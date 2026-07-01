@@ -7,12 +7,20 @@
 ```
 assets/                共通モジュール（全ツールがscriptタグで読み込む）
   divp-header.js        共通ヘッダー（ロゴ・校名・Zen Maru Gothic）
+  divp-correct.js        小学生用 正解エフェクト（星＋「正解！」演出）
   divp-correct-jh.js     中学・高校用 正解スタンプエフェクト（es用Divp.correctとは別物）
   print-watermark.js     印刷シート用透かしモジュール
   .htaccess              ETagベースのキャッシュ制御（URL固定で更新を届ける）
 learning/
   math/                  教科ごとのフォルダ（学校種・学年はファイル名側で表現）
+    math_es3_tokei.html
+    math_es4_warizan_hissan.html
     math_js3_heihokonmaster.html
+  english/
+    english_js_eibunpou.html
+    english_js_eitango.html
+  science/
+    science_js3_ionlab.html
 ```
 
 ファイル名規則: `教科_校種学年_単元(_製作者コード).html`
