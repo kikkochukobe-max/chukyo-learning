@@ -1,0 +1,2184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>イオンのなりたち｜原子核と電子で学ぶイオン観測室</title>
+<meta name="description" content="原子核（陽子・中性子）と電子の動くモデル図で、イオンのでき方を体験して学べる中学理科の学習サイト。電子を取ったり加えたりして、陽イオン・陰イオンができる仕組みを目で見て理解しよう。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Zen+Maru+Gothic:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#070b1f;
+    --bg2:#0c1230;
+    --ink:#eaf0ff;
+    --muted:#99a3cf;
+    --line:rgba(120,160,255,.16);
+    --panel:rgba(255,255,255,.045);
+    --panel-bd:rgba(130,165,255,.18);
+    --proton:#ff5d63;
+    --proton-soft:#ff8a8f;
+    --electron:#3ce0ff;
+    --electron-soft:#8af1ff;
+    --neutron:#9aa1c4;
+    --gold:#ffd66b;
+    --cation:#ff5d63;
+    --anion:#3ce0ff;
+    --neutral:#7be3a0;
+    --jp:"Zen Maru Gothic",system-ui,sans-serif;
+    --head:"Zen Kaku Gothic New",system-ui,sans-serif;
+    --mono:"DM Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--jp);
+    color:var(--ink);
+    background:
+      radial-gradient(1100px 700px at 78% -8%, rgba(60,224,255,.10), transparent 60%),
+      radial-gradient(900px 650px at 8% 12%, rgba(255,93,99,.10), transparent 55%),
+      linear-gradient(180deg,var(--bg),var(--bg2));
+    background-attachment:fixed;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  /* 方眼ブループリント背景 */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      linear-gradient(var(--line) 1px,transparent 1px),
+      linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:38px 38px;
+    mask-image:radial-gradient(circle at 50% 35%, #000 30%, transparent 78%);
+    opacity:.5;
+  }
+  .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:30px 20px 70px}
+
+  /* サイトバー（学校リンク） */
+  .sitebar{display:flex;justify-content:center;padding:8px 20px;margin:0 -20px 8px;position:sticky;top:0;z-index:100;background:rgba(7,11,31,.92);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);border-bottom:1px solid var(--panel-bd)}
+  .brand-link{font-family:var(--head);font-weight:700;font-size:20.25px;letter-spacing:.04em;color:var(--muted);text-decoration:none;border:1px solid var(--panel-bd);border-radius:999px;padding:7px 22px;background:rgba(255,255,255,.03);transition:.15s}
+  .brand-link:hover{color:var(--electron);border-color:var(--electron)}
+
+  /* タブ */
+  .tabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:24px 0 28px}
+  .tab{cursor:pointer;font-family:var(--head);font-weight:700;font-size:15px;color:var(--muted);text-decoration:none;padding:11px 22px;border-radius:13px;border:1px solid var(--panel-bd);background:rgba(255,255,255,.03);transition:.16s}
+  .tab:hover{color:var(--ink);transform:translateY(-2px)}
+  .tab.on{color:var(--ink);border-color:var(--electron);background:rgba(60,224,255,.12);box-shadow:0 0 0 1px var(--electron) inset}
+  .is-hidden{display:none}
+
+  /* ===== ヘッダー ===== */
+  header.hd{text-align:center;padding:18px 0 8px}
+  .eyebrow{
+    font-family:var(--mono);font-size:12px;letter-spacing:.32em;color:var(--electron);
+    text-transform:uppercase;display:inline-block;
+    border:1px solid var(--panel-bd);border-radius:999px;padding:5px 16px;
+    background:rgba(60,224,255,.06);
+  }
+  h1{
+    font-family:var(--head);font-weight:900;
+    font-size:clamp(30px,6vw,58px);line-height:1.1;margin:16px 0 6px;letter-spacing:.01em;
+  }
+  h1 .a{color:var(--proton)} h1 .b{color:var(--electron)}
+  .lead{color:var(--muted);max-width:640px;margin:0 auto;font-size:clamp(14px,2.4vw,16px)}
+
+  /* ===== レイアウト ===== */
+  .lab{display:grid;grid-template-columns:1.05fr .95fr;gap:24px;margin-top:30px}
+  .lab-solo{grid-template-columns:1fr;max-width:560px;margin-left:auto;margin-right:auto}
+  @media(max-width:880px){.lab{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--panel);border:1px solid var(--panel-bd);border-radius:22px;
+    backdrop-filter:blur(8px);padding:22px;position:relative;overflow:hidden;
+  }
+  .card-title{
+    font-family:var(--head);font-weight:700;font-size:14px;letter-spacing:.18em;
+    color:var(--muted);text-transform:uppercase;margin:0 0 14px;
+    display:flex;align-items:center;gap:9px;
+  }
+  .card-title::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--electron);box-shadow:0 0 12px var(--electron)}
+
+  /* ===== 原子ステージ ===== */
+  .stage-card{display:flex;flex-direction:column;align-items:center}
+  .stage{width:100%;max-width:460px;aspect-ratio:1/1;position:relative}
+  .stage svg{width:100%;height:100%;display:block;overflow:visible}
+
+  .charge-badge{
+    position:absolute;top:8px;right:8px;z-index:3;text-align:right;
+    font-family:var(--mono);
+  }
+  .charge-badge .sym{
+    font-family:var(--head);font-weight:900;font-size:clamp(28px,7vw,46px);line-height:1;
+    display:inline-block;transition:color .3s,text-shadow .3s;
+  }
+  .charge-badge .sym sup{font-size:.55em;vertical-align:super}
+  .state-pill{
+    margin-top:8px;display:inline-block;font-family:var(--jp);font-weight:700;
+    font-size:13px;padding:5px 14px;border-radius:999px;border:1px solid currentColor;
+    transition:all .3s;
+  }
+
+  .legend{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:14px;font-size:13px;color:var(--muted)}
+
+  /* 最外殻の下・陽子/電子の数（横並び中央） */
+  .count-row{display:flex;gap:12px;justify-content:center;width:100%;max-width:360px;margin:18px auto 6px}
+  .count-row .cbox{flex:1;border:1px solid var(--panel-bd);border-radius:14px;padding:9px 8px;text-align:center;background:rgba(255,255,255,.025)}
+  .count-row .cbox .lbl{font-size:12px;color:var(--muted)}
+  .count-row .cbox .val{font-family:var(--mono);font-weight:500;font-size:30px;line-height:1.2}
+  .count-row .cbox.proton{border-color:rgba(255,93,99,.55)} .count-row .cbox.proton .val{color:var(--proton)}
+  .count-row .cbox.electron{border-color:rgba(60,224,255,.55)} .count-row .cbox.electron .val{color:var(--electron)}
+  .stage-controls{width:100%;max-width:360px;margin:0 auto}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  .dot{width:14px;height:14px;border-radius:50%;display:inline-block}
+  .dot.p{background:var(--proton);box-shadow:0 0 10px var(--proton)}
+  .dot.e{background:var(--electron);box-shadow:0 0 10px var(--electron)}
+  .dot.n{background:var(--neutron)}
+
+  /* ===== コントロール ===== */
+  .ctrl-card{display:flex;flex-direction:column;gap:20px}
+  .elem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  @media(max-width:420px){.elem-grid{grid-template-columns:repeat(3,1fr)}}
+  .elem{
+    cursor:pointer;border:1px solid var(--panel-bd);border-radius:13px;
+    background:rgba(255,255,255,.03);color:var(--ink);
+    padding:9px 4px 7px;text-align:center;transition:.18s;font-family:var(--jp);
+  }
+  .elem:hover{border-color:var(--electron);transform:translateY(-2px);background:rgba(60,224,255,.08)}
+  .elem.on{border-color:var(--electron);background:rgba(60,224,255,.14);box-shadow:0 0 0 1px var(--electron) inset}
+  .elem .es{font-family:var(--head);font-weight:900;font-size:19px;line-height:1.1}
+  .elem .ez{font-family:var(--mono);font-size:10px;color:var(--muted)}
+  .elem .en{font-size:10px;color:var(--muted)}
+
+  /* ===== 周期表セレクター ===== */
+  .pt-card{margin-top:26px}
+  .pt-scroll{overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+  .ptable{display:grid;grid-template-columns:22px repeat(18,minmax(34px,1fr));gap:5px;min-width:620px}
+  .pt-glabel,.pt-plabel{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:var(--muted)}
+  .pt-cell{
+    cursor:pointer;border:1px solid var(--panel-bd);border-radius:8px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:4px 1px;min-height:40px;transition:.14s;background:rgba(255,255,255,.03);
+  }
+  .pt-cell .ptz{font-family:var(--mono);font-size:9px;color:var(--muted);line-height:1}
+  .pt-cell .pts{font-family:var(--head);font-weight:900;font-size:17px;line-height:1.15}
+  .pt-cell:hover{transform:translateY(-2px);border-color:var(--ink)}
+  .pt-cell.cat{background:rgba(255,93,99,.14);border-color:rgba(255,93,99,.42)}
+  .pt-cell.cat .pts{color:var(--proton-soft)}
+  .pt-cell.ani{background:rgba(60,224,255,.13);border-color:rgba(60,224,255,.42)}
+  .pt-cell.ani .pts{color:var(--electron-soft)}
+  .pt-cell.neu{background:rgba(255,255,255,.04)}
+  .pt-cell.neu .pts{color:var(--muted)}
+  .pt-cell.on{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.35),0 0 18px rgba(60,224,255,.35);transform:translateY(-2px)}
+  .pt-legend{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:14px;font-size:12.5px;color:var(--muted)}
+  .pt-legend span{display:inline-flex;align-items:center;gap:7px}
+  .pt-legend .sw{width:15px;height:15px;border-radius:4px;display:inline-block;border:1px solid}
+  .pt-legend .sw.cat{background:rgba(255,93,99,.14);border-color:rgba(255,93,99,.42)}
+  .pt-legend .sw.ani{background:rgba(60,224,255,.13);border-color:rgba(60,224,255,.42)}
+  .pt-legend .sw.neu{background:rgba(255,255,255,.04);border-color:var(--panel-bd)}
+
+  .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .btn{
+    cursor:pointer;border:none;border-radius:14px;padding:14px 10px;font-family:var(--jp);
+    font-weight:700;font-size:15px;color:#08102a;transition:.16s;display:flex;
+    flex-direction:column;align-items:center;gap:2px;line-height:1.25;
+  }
+  .btn small{font-size:11px;font-weight:500;opacity:.8}
+  .btn.take{background:linear-gradient(135deg,#ff7a7f,#ff5d63)}
+  .btn.give{background:linear-gradient(135deg,#6ef0ff,#3ce0ff)}
+  .btn:hover{filter:brightness(1.08);transform:translateY(-2px)}
+  .btn:active{transform:translateY(0)}
+  .btn:disabled{opacity:.32;cursor:not-allowed;transform:none;filter:none}
+  .btn.ghost{background:transparent;border:1px solid var(--panel-bd);color:var(--muted);font-weight:500;flex-direction:row}
+  .btn.ghost:hover{color:var(--ink);border-color:var(--electron)}
+
+  /* 電荷の内訳 */
+  .tally{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .tally .box{border:1px solid var(--panel-bd);border-radius:14px;padding:12px 14px;text-align:center;background:rgba(255,255,255,.02)}
+  .tally .box .lbl{font-size:12px;color:var(--muted)}
+  .tally .box .val{font-family:var(--mono);font-weight:500;font-size:30px;line-height:1.2}
+  .box.proton .val{color:var(--proton)}
+  .box.electron .val{color:var(--electron)}
+
+  /* バランスバー */
+  .balance{margin-top:4px}
+  .balance .track{
+    height:16px;border-radius:999px;background:rgba(255,255,255,.06);
+    display:flex;overflow:hidden;border:1px solid var(--panel-bd);
+  }
+  .balance .fillP{background:linear-gradient(90deg,#ff5d63,#ff8a8f);height:100%;transition:width .35s}
+  .balance .fillE{background:linear-gradient(90deg,#8af1ff,#3ce0ff);height:100%;transition:width .35s}
+  .balance .cap{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:5px}
+
+  /* 説明 */
+  .explain{
+    border-radius:14px;padding:14px 16px;font-size:14.5px;line-height:1.8;
+    border:1px solid var(--panel-bd);background:rgba(255,255,255,.025);transition:.3s;
+  }
+  .explain b{color:var(--ink)}
+  .explain .hl-p{color:var(--proton);font-weight:700}
+  .explain .hl-e{color:var(--electron);font-weight:700}
+  .celebrate{
+    margin-top:10px;font-size:13px;color:var(--gold);font-weight:700;
+    background:rgba(255,214,107,.08);border:1px solid rgba(255,214,107,.3);
+    border-radius:11px;padding:9px 12px;display:none;
+  }
+  .celebrate.show{display:block;animation:pop .4s ease}
+  @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+
+  .hint{font-size:12.5px;color:var(--muted);text-align:center}
+  .hint b{color:var(--gold)}
+
+  /* ===== 解説セクション ===== */
+  .learn{margin-top:34px}
+  .learn h2{font-family:var(--head);font-weight:900;font-size:clamp(22px,4.2vw,30px);text-align:center;margin:0 0 6px}
+  .learn .sub{text-align:center;color:var(--muted);margin:0 0 26px;font-size:14px}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:760px){.steps{grid-template-columns:1fr}}
+  .step{border:1px solid var(--panel-bd);border-radius:18px;padding:20px;background:var(--panel);position:relative;overflow:hidden}
+  .step .num{font-family:var(--mono);font-size:13px;letter-spacing:.2em;color:var(--muted)}
+  .step h3{font-family:var(--head);font-weight:700;font-size:18px;margin:8px 0 8px}
+  .step p{font-size:13.5px;color:var(--muted);margin:0;line-height:1.75}
+  .step.neu{border-top:3px solid var(--neutral)}
+  .step.cat{border-top:3px solid var(--cation)}
+  .step.ani{border-top:3px solid var(--anion)}
+  .step .tag{font-weight:700}
+  .step.neu .tag{color:var(--neutral)} .step.cat .tag{color:var(--cation)} .step.ani .tag{color:var(--anion)}
+
+  .formula{
+    margin-top:26px;border:1px solid var(--panel-bd);border-radius:18px;padding:22px;
+    background:var(--panel);text-align:center;
+  }
+  .formula .big{font-family:var(--mono);font-size:clamp(18px,4vw,26px);line-height:2;color:var(--ink)}
+  .formula .big .p{color:var(--proton)} .formula .big .e{color:var(--electron)}
+  .formula sup{font-size:.6em}
+
+  /* ===== 多原子イオン ビューア ===== */
+  .poly-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(82px,1fr));gap:8px}
+  .poly-el .es{font-size:15px}
+  .poly-el .es sup{font-size:.6em}
+  .poly-name{text-align:center;border:1px solid var(--panel-bd);border-radius:14px;padding:14px;background:rgba(255,255,255,.02)}
+  .poly-name .pn-formula{font-family:var(--head);font-weight:900;font-size:34px;line-height:1.1;color:var(--ink)}
+  .poly-name .pn-formula sup{font-size:.55em;vertical-align:super}
+  .poly-name .pn-name{color:var(--muted);font-size:14px;margin-top:4px}
+  .made{display:flex;flex-wrap:wrap;gap:8px}
+  .made .chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--panel-bd);border-radius:999px;padding:6px 13px 6px 8px;font-size:13px;background:rgba(255,255,255,.02)}
+  .made .chip .ad{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:var(--head);font-weight:900;font-size:12px}
+  .made .chip b{font-family:var(--mono);font-weight:500}
+  .atomlg{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:14px;font-size:12.5px;color:var(--muted)}
+  .atomlg span{display:inline-flex;align-items:center;gap:6px}
+  .atomlg i{width:15px;height:15px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.2)}
+
+  footer{margin-top:46px;text-align:center;color:var(--muted);font-size:12.5px;line-height:1.9}
+  footer .brand{color:var(--electron);font-weight:700}
+
+  /* ===== 電子の受け渡しを式にする ===== */
+  .zeq-card{margin-top:6px}
+  .zeq-pick{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+  .zpg{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .zpl{font-size:12px;font-weight:700;letter-spacing:.04em}
+  .zpl.cat{color:var(--proton-soft)} .zpl.ani{color:var(--electron-soft)}
+  .zprow{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+  .zeq-pick .zp{cursor:pointer;border:1px solid var(--panel-bd);border-radius:11px;padding:6px 12px;font-family:var(--head);font-weight:700;font-size:15px;background:rgba(255,255,255,.03);color:var(--ink);transition:.15s}
+  .zeq-pick .zp:hover{border-color:var(--proton);transform:translateY(-2px)}
+  .zeq-pick .zp.on{border-color:var(--proton);background:rgba(255,93,99,.16);box-shadow:0 0 0 1px var(--proton) inset}
+  .zeq-pick .zp.anion:hover{border-color:var(--electron)}
+  .zeq-pick .zp.anion.on{border-color:var(--electron);background:rgba(60,224,255,.16);box-shadow:0 0 0 1px var(--electron) inset}
+  .zeq-pick .zp sup{font-size:.6em;vertical-align:super}
+  .zeq-stage{width:100%;max-width:720px;margin:6px auto}
+  .zeq-stage svg{width:100%;height:auto;display:block;overflow:visible}
+  .zeq-replay{display:flex;justify-content:center;margin:8px 0 2px}
+  .zeq-replay .btn{max-width:260px}
+  @keyframes zeqFly{
+    0%{transform:translate(0px,0px)}
+    50%{transform:translate(var(--mx,0px),var(--my,0px))}
+    100%{transform:translate(var(--dx,0px),var(--dy,0px))}
+  }
+  @keyframes zeqAppear{from{opacity:0}to{opacity:1}}
+  /* 静止表示：全アニメを終了状態に固定（ボタンを押すまで再生しない） */
+  #zeqStage.zeq-static *{animation-delay:-9999s !important}
+  /* 電離タブ */
+  @keyframes elzMove{from{transform:translate(0px,0px)}to{transform:translate(var(--dx,0px),var(--dy,0px))}}
+  @keyframes elzEtrans{
+    0%{opacity:0;transform:translate(0px,0px)}
+    14%{opacity:1;transform:translate(0px,0px)}
+    35%{transform:translate(var(--mx,0px),var(--my,0px))}
+    62%{opacity:1;transform:translate(var(--dx,0px),var(--dy,0px))}
+    100%{opacity:0;transform:translate(var(--dx,0px),var(--dy,0px))}
+  }
+  .elz-pick .zp:hover{border-color:#8fe0c0}
+  .elz-pick .zp.on{border-color:#8fe0c0;background:rgba(143,224,192,.15);box-shadow:0 0 0 1px #8fe0c0 inset}
+
+  /* 電気分解タブ */
+  @keyframes elcDrift{from{transform:translate(0px,0px)}to{transform:translate(var(--dx,0px),var(--dy,0px))}}
+  @keyframes elcBubble{0%{opacity:0;transform:translate(0px,0px)}12%{opacity:.95}100%{opacity:0;transform:translate(var(--bx,0px),var(--by,-150px))}}
+  #elcStage.elc-start *,#daniStage.elc-start *,#daniZnStage.elc-start *,#daniCuStage.elc-start *,#fuelStage.elc-start *,#fuelNegStage.elc-start *,#fuelPosStage.elc-start *{animation-delay:9999s !important;animation-fill-mode:backwards !important}
+  #elcCatStage.elc-static *,#elcAnStage.elc-static *{animation-delay:-9999s !important}
+  @keyframes daniSpin{to{transform:rotate(360deg)}}
+  .fuel-wire{offset-path:path('M200 250 L200 52 L440 52 L440 250');offset-rotate:0deg;animation:fuelFlow 2s linear infinite}
+  @keyframes fuelFlow{0%{offset-distance:0%;opacity:0}10%{opacity:1}90%{opacity:1}100%{offset-distance:100%;opacity:0}}
+  @keyframes fuelHplus{0%{transform:translateX(0);opacity:0}12%{opacity:1}86%{opacity:1}100%{transform:translateX(208px);opacity:0}}
+  @keyframes fuelDrop{0%{transform:translateY(0);opacity:0}16%{opacity:1}80%{opacity:1}100%{transform:translateY(132px);opacity:.25}}
+  .dani-cuso4{animation:daniCuFade 4.5s ease-out .6s forwards}
+  @keyframes daniCuFade{0%{opacity:.5}100%{opacity:.16}}
+  .dani-w0{offset-path:path('M196 236 L196 52 L444 52 L444 236');offset-rotate:0deg}
+  .dani-w1{offset-path:path('M196 288 L196 52 L444 52 L444 288');offset-rotate:0deg}
+  .dani-w2{offset-path:path('M196 340 L196 52 L444 52 L444 340');offset-rotate:0deg}
+  .dani-w3{offset-path:path('M196 392 L196 52 L444 52 L444 392');offset-rotate:0deg}
+  @keyframes daniFlow2{0%{offset-distance:0%;opacity:0}12%{opacity:1}85%{opacity:1}100%{offset-distance:100%;opacity:0}}
+  .elc-pick .zp:hover{border-color:#ffd27a}
+  .elc-pick .zp.on{border-color:#ffd27a;background:rgba(255,210,122,.14);box-shadow:0 0 0 1px #ffd27a inset}
+  .elc-beaker{width:100%;max-width:600px;margin:6px auto 0}
+  .elc-beaker svg{width:100%;height:auto;display:block;overflow:visible}
+  .elc-electrodes{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
+  .elc-node{border:1px solid var(--panel-bd);border-radius:14px;padding:10px 12px;background:rgba(255,255,255,.02)}
+  .elc-node-h{font-family:var(--head);font-weight:700;font-size:14px;text-align:center;padding:6px;border-radius:9px;margin-bottom:6px}
+  .elc-node-h.cathode{color:#cdecff;background:rgba(60,160,224,.16)}
+  .elc-node-h.anode{color:#ffd9db;background:rgba(255,93,99,.14)}
+  .elc-node svg,.elc-overall svg{width:100%;height:auto;display:block;overflow:visible}
+  .elc-eq{font-family:var(--head);font-weight:800;font-size:21px;text-align:center;margin:8px 0 2px;color:#e8ecff;min-height:1.5em}
+  .elc-eq sub{font-size:.6em}.elc-eq sup{font-size:.6em}
+  .elc-eq .eqR{margin-left:.32em}
+  .elc-eq.playing .eqL{animation:elcEqIn .5s ease .3s both}
+  .elc-eq.playing .eqR{animation:elcEqIn .6s ease 2.1s both}
+  @keyframes elcEqIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+  .elc-replay{display:flex;justify-content:flex-end;margin:4px 0 2px}
+  .elc-overall{max-width:560px;margin:0 auto}
+  .ov-eq{font-family:var(--head);font-weight:900;font-size:30px;text-align:center;color:#e8ecff;padding:8px 0 4px}
+  .ov-eq sub{font-size:.6em}.ov-eq sup{font-size:.6em}
+  .ov-eq .eqR{margin-left:.32em}
+  .ov-eq.playing .eqL{animation:elcEqIn .6s ease .2s both}
+  .ov-eq.playing .eqR{animation:elcEqIn .7s ease .9s both}
+  .ov-sub{text-align:center;font-size:13.5px;color:var(--muted)}
+  @media(max-width:560px){.ov-eq{font-size:24px}}
+  @media(max-width:620px){.elc-electrodes{grid-template-columns:1fr}}
+
+  /* 問題（クイズ）タブ */
+  .quiz-card{max-width:680px;margin-left:auto;margin-right:auto}
+  .quiz-lead{font-family:var(--head);font-weight:700;font-size:17px;text-align:center;color:var(--ink);margin-bottom:16px}
+  .quiz-types{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .quiz-top{display:flex;justify-content:space-between;font-family:var(--mono,monospace);font-size:13px;color:var(--muted);margin-bottom:14px}
+  .quiz-back-row{margin-bottom:10px}
+  .quiz-back-btn{cursor:pointer;font-family:var(--head);font-weight:700;font-size:13px;color:var(--muted);background:transparent;border:1px solid var(--panel-bd);border-radius:999px;padding:5px 13px;transition:.14s}
+  .quiz-back-btn:hover{color:var(--ink);border-color:var(--electron)}
+  .quiz-top #quizScore{color:var(--electron-soft);font-weight:700}
+  .quiz-q{font-family:var(--head);font-weight:700;font-size:21px;line-height:1.5;text-align:center;padding:14px 6px 4px}
+  .quiz-q sup{font-size:.62em}
+  .quiz-choices{display:grid;grid-template-columns:1fr;gap:10px;margin:18px 0 6px}
+  .choice{cursor:pointer;text-align:center;padding:15px 16px;border-radius:14px;border:1px solid var(--panel-bd);background:rgba(255,255,255,.03);color:var(--ink);font-family:var(--head);font-weight:700;font-size:19px;transition:.14s}
+  .choice sup{font-size:.6em}
+  .choice sub{font-size:.6em}
+  .choice:hover{border-color:var(--electron);transform:translateY(-2px)}
+  .choice:disabled{cursor:default;transform:none}
+  .choice.correct{border-color:#7ee0a0;background:rgba(126,224,160,.16);box-shadow:0 0 0 1px #7ee0a0 inset;color:#d6ffe6}
+  .choice.wrong{border-color:#ff7a80;background:rgba(255,122,128,.16);box-shadow:0 0 0 1px #ff7a80 inset;color:#ffd9db}
+  .choice.sel{border-color:#7fd6ef;background:rgba(127,214,239,.16);box-shadow:0 0 0 1px #7fd6ef inset;color:#dff6ff}
+  .choice.miss{border-color:#7ee0a0;border-style:dashed;background:rgba(126,224,160,.07);color:#bfe6cf}
+  .choice.dim{opacity:.45}
+  .quiz-check{margin-top:8px}
+  .multi-hint{display:block;font-size:14px;color:var(--muted);font-weight:500;margin-top:8px}
+  .quiz-fb{font-size:15px;line-height:1.6;border-radius:12px;margin-top:6px}
+  .quiz-fb.ok,.quiz-fb.ng{padding:13px 15px}
+  .quiz-fb.ok{background:rgba(126,224,160,.1);border:1px solid rgba(126,224,160,.4)}
+  .quiz-fb.ng{background:rgba(255,122,128,.1);border:1px solid rgba(255,122,128,.4)}
+  .quiz-nav{display:flex;justify-content:center;margin-top:16px}
+  .quiz-anim{margin-top:2px;border:1px solid var(--electron);border-radius:14px;padding:8px 10px 4px;background:rgba(60,224,255,.05)}
+  .quiz-anim-top{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 4px}
+  .quiz-anim-label{font-size:12.5px;color:var(--electron-soft);font-weight:700}
+  .anim-replay{cursor:pointer;font-family:var(--head);font-weight:700;font-size:13px;color:var(--ink);background:rgba(60,224,255,.12);border:1px solid var(--electron);border-radius:999px;padding:5px 14px;transition:.14s}
+  .anim-replay:hover{background:rgba(60,224,255,.22)}
+  .quiz-anim svg{width:100%;height:auto;display:block;overflow:visible}
+  .quiz-score-big{font-family:var(--head);font-weight:900;font-size:30px;text-align:center;color:var(--ink);margin:6px 0}
+  .quiz-score-sub{text-align:center;color:var(--muted);font-size:14px;margin-bottom:20px}
+  @media(max-width:560px){.quiz-types{grid-template-columns:1fr}.quiz-q{font-size:19px}.choice{font-size:17px}}
+  @keyframes zeqSlide{0%{transform:translate(0px,0px)}100%{transform:translate(var(--ax,0px),var(--ay,0px))}}
+  @keyframes zeqFlyOut{0%{transform:translate(0px,0px);opacity:1}60%{transform:translate(var(--gx,0px),0px);opacity:1}100%{transform:translate(var(--gx,0px),0px);opacity:0}}
+  @keyframes zeqFadeOut{from{opacity:1}to{opacity:0}}
+
+  .seo-hide{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  @media print{
+    body{background:#fff;color:#111}
+    body::before{display:none}
+    .card,.step,.formula{border-color:#ccc;background:#fff;backdrop-filter:none}
+    .btn-row,.elem-grid,.poly-grid,.hint{display:none}
+    h1 .a,h1 .b{color:#111}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="sitebar">
+    <a class="brand-link" href="https://chukyokobetsu.com" target="_blank" rel="noopener">中京個別指導学院</a>
+  </div>
+
+  <header class="hd">
+    <span class="eyebrow">中学理科 ・ 原子とイオン</span>
+    <h1>イオンの<span class="a">な</span>り<span class="b">た</span>ち</h1>
+    <p class="lead">原子核（陽子＋中性子）と、周りを回る電子のモデル図で体験。電子を「取る」「加える」と、原子がどうやってイオンに変わるのかを目で見て確かめよう。</p>
+  </header>
+
+  <!-- タブ -->
+  <nav class="tabs">
+    <a href="javascript:void(0)" class="tab on" id="tabbtn-model" onclick="ionTab('model')">モデル図</a>
+    <a href="javascript:void(0)" class="tab" id="tabbtn-transfer" onclick="ionTab('transfer')">電子の受け渡し</a>
+    <a href="javascript:void(0)" class="tab" id="tabbtn-poly" onclick="ionTab('poly')">多原子イオン</a>
+    <a href="javascript:void(0)" class="tab" id="tabbtn-elz" onclick="ionTab('elz')">電離式</a>
+    <a href="javascript:void(0)" class="tab" id="tabbtn-elc" onclick="ionTab('elc')">電気分解</a>
+    <a href="javascript:void(0)" class="tab" id="tabbtn-dani" onclick="ionTab('dani')">ダニエル電池</a>
+    <a href="javascript:void(0)" class="tab" id="tabbtn-fuel" onclick="ionTab('fuel')">燃料電池</a>
+    <a href="javascript:void(0)" class="tab" id="tabbtn-quiz" onclick="ionTab('quiz')">問題</a>
+  </nav>
+
+  <!-- ===== タブ：モデル図 ===== -->
+  <div class="tabpanel" id="tab-model">
+
+  <!-- 周期表セレクター（全幅） -->
+  <section class="card pt-card">
+    <div class="card-title">原子を選ぶ（周期表・1〜20番＋おもな金属）</div>
+    <div class="pt-scroll"><div class="ptable" id="ionElems"></div></div>
+    <div class="pt-legend">
+      <span><i class="sw cat"></i>金属など → <b style="color:var(--proton-soft)">陽イオン</b>になりやすい</span>
+      <span><i class="sw ani"></i>非金属 → <b style="color:var(--electron-soft)">陰イオン</b>になりやすい</span>
+      <span><i class="sw neu"></i>イオンになりにくい（貴ガスなど）</span>
+    </div>
+  </section>
+
+  <div class="lab lab-solo">
+    <!-- 原子モデルのステージ -->
+    <section class="card stage-card">
+      <div class="charge-badge">
+        <div class="sym" id="ionSym">Na</div>
+        <div><span class="state-pill" id="ionPill">原子（中性）</span></div>
+      </div>
+      <div class="stage"><svg id="ionStage" viewBox="0 0 460 460" aria-label="原子のモデル図"></svg></div>
+
+      <!-- 陽子数・電子数（最外殻の下・横並び中央） -->
+      <div class="count-row">
+        <div class="cbox proton"><div class="lbl">陽子（＋）</div><div class="val" id="ionPnum">11</div></div>
+        <div class="cbox electron"><div class="lbl">電子（−）</div><div class="val" id="ionEnum">11</div></div>
+      </div>
+
+      <!-- ボタンは2つだけ：自然なイオン／原子に戻す -->
+      <div class="stage-controls">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button class="btn ghost" onclick="ionAuto()">⚡ 自然なイオンにする</button>
+          <button class="btn ghost" onclick="ionReset()">↺ 原子に戻す</button>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span><i class="dot p"></i>陽子（＋）</span>
+        <span><i class="dot n"></i>中性子</span>
+        <span><i class="dot e"></i>電子（−）</span>
+      </div>
+    </section>
+  </div>
+
+  </div><!-- /tab-model -->
+
+  <!-- ===== タブ：電子の受け渡し ===== -->
+  <div class="tabpanel is-hidden" id="tab-transfer">
+  <!-- ===== 電子の受け渡しを式にする ===== -->
+  <section class="learn" style="margin-top:50px">
+    <h2>電子の受け渡しを式にしよう <span style="font-size:.55em;color:var(--muted);font-weight:500">— 原子がイオンになる</span></h2>
+    <p class="sub">金属は電子を<b style="color:var(--proton)">はなして陽イオン</b>に、非金属は電子を<b style="color:var(--electron)">受け取って陰イオン</b>になる。電子の動きを見ながら、矢印の左から右へ式を組み立ててみよう。</p>
+  </section>
+
+  <section class="card zeq-card">
+    <div class="zeq-pick" id="zeqPick"></div>
+    <div class="zeq-stage"><svg id="zeqStage" viewBox="0 0 720 320" aria-label="電子の受け渡しの式"></svg></div>
+    <div class="zeq-replay">
+      <button class="btn give" onclick="zeqPlay()">▶ 動きを再生</button>
+    </div>
+    <div class="explain" id="zeqExplain"></div>
+  </section>
+
+  </div><!-- /tab-transfer -->
+
+  <!-- ===== タブ：多原子イオン ===== -->
+  <div class="tabpanel is-hidden" id="tab-poly">
+  <!-- ===== 多原子イオン ビューア ===== -->
+  <section class="learn" style="margin-top:50px">
+    <h2>多原子イオン <span style="font-size:.55em;color:var(--muted);font-weight:500">— いくつかの原子が集まったイオン</span></h2>
+    <p class="sub">原子がいくつか結びついたかたまり。各原子の<b style="color:var(--proton)">陽子（＋）</b>と、グループ全体の<b style="color:var(--electron)">電子（−）</b>の数を比べると、なぜ電気を帯びるのかが分かるよ。ボタンで切り替えてみよう。</p>
+  </section>
+
+  <div class="lab">
+    <section class="card stage-card">
+      <div class="charge-badge">
+        <div class="sym" id="polySym">NH₄<sup>＋</sup></div>
+        <div><span class="state-pill" id="polyPill">陽イオン（＋）</span></div>
+      </div>
+      <div class="stage"><svg id="polyStage" viewBox="0 0 400 400" aria-label="多原子イオンのモデル図"></svg></div>
+      <div class="atomlg">
+        <span><i style="background:#5b8cff"></i>窒素 N</span>
+        <span><i style="background:#ff5d63"></i>酸素 O</span>
+        <span><i style="background:#e8ecff"></i>水素 H</span>
+        <span><i style="background:#aeb6da"></i>炭素 C</span>
+        <span><i style="background:#ffd66b"></i>硫黄 S</span>
+      </div>
+      <div class="atomlg" style="margin-top:8px">
+        <span><b style="color:#ff8a8f;font-family:var(--mono)">＋n</b>＝原子核の陽子の数</span>
+        <span><i style="background:#3ce0ff"></i>水色の粒＝グループ全体の電子</span>
+      </div>
+    </section>
+
+    <section class="card ctrl-card">
+      <div>
+        <div class="card-title">イオンを選ぶ</div>
+        <div class="poly-grid" id="polyBtns"></div>
+      </div>
+      <div>
+        <div class="card-title">名前と式</div>
+        <div class="poly-name" id="polyName"></div>
+      </div>
+      <div>
+        <div class="card-title">原子の内訳</div>
+        <div class="made" id="polyMade"></div>
+      </div>
+      <div>
+        <div class="card-title">電気のつり合い（グループ全体）</div>
+        <div class="tally">
+          <div class="box proton"><div class="lbl">陽子の数（合計）</div><div class="val" id="polyPtot">11</div></div>
+          <div class="box electron"><div class="lbl">電子の数（合計）</div><div class="val" id="polyEtot">10</div></div>
+        </div>
+        <div class="balance">
+          <div class="track"><div class="fillP" id="polyFillP" style="width:50%"></div><div class="fillE" id="polyFillE" style="width:50%"></div></div>
+          <div class="cap"><span>＋がわ（陽子）</span><span>−がわ（電子）</span></div>
+        </div>
+        <div class="explain" id="polyBalance" style="margin-top:10px"></div>
+      </div>
+      <div class="explain" id="polyExplain"></div>
+      <div class="hint">＊各原子の下の<b style="color:#ff8a8f">＋n</b>が陽子の数、周りを回る<b style="color:var(--electron)">水色の粒</b>がグループ全体の電子。点線の輪の右上が、全体の持つ電気だよ。</div>
+    </section>
+  </div>
+
+  </div><!-- /tab-poly -->
+
+  <!-- ===== タブ：電離式 ===== -->
+  <div class="tabpanel is-hidden" id="tab-elz">
+  <section class="learn" style="margin-top:50px">
+    <h2>電離式を見てみよう <span style="font-size:.55em;color:var(--muted);font-weight:500">— 水にとけて イオンに分かれる</span></h2>
+    <p class="sub">塩酸や食塩のような<b>電解質</b>は、水にとかすと<b style="color:var(--proton)">陽イオン</b>と<b style="color:var(--electron)">陰イオン</b>にバラバラに分かれる。これを<b>電離</b>というよ。▶ボタンで分かれる様子を見てみよう。</p>
+  </section>
+
+  <section class="card zeq-card">
+    <div class="zeq-pick elz-pick" id="elzPick"></div>
+    <div class="zeq-stage"><svg id="elzStage" viewBox="0 0 720 320" aria-label="電離のようす"></svg></div>
+    <div class="zeq-replay">
+      <button class="btn give" onclick="elzPlay()">▶ 動きを再生</button>
+    </div>
+    <div class="explain" id="elzExplain"></div>
+  </section>
+  </div><!-- /tab-elz -->
+
+  <!-- ===== タブ：電気分解 ===== -->
+  <div class="tabpanel is-hidden" id="tab-elc">
+  <section class="learn" style="margin-top:50px">
+    <h2>電気分解を見てみよう <span style="font-size:.55em;color:var(--muted);font-weight:500">— 水溶液に電流を流す</span></h2>
+    <p class="sub">電解質の水溶液に電流を流すと、<b style="color:var(--electron)">陰イオンは陽極</b>へ、<b style="color:var(--proton)">陽イオンは陰極</b>へ引きよせられる。電極で電子のやり取りが起こり、別の物質に変わるよ。▶で動きを見てみよう。</p>
+  </section>
+
+  <section class="card">
+    <div class="zeq-pick elc-pick" id="elcPick"></div>
+    <div class="elc-beaker"><svg id="elcStage" viewBox="0 0 640 480" aria-label="電気分解のビーカー"></svg></div>
+    <div class="zeq-replay"><button class="btn give" onclick="elcPlay()">▶ 動きを再生</button></div>
+
+    <div class="card-title" style="margin-top:26px">電極で起こっていること</div>
+    <div class="elc-electrodes">
+      <div class="elc-node">
+        <div class="elc-node-h cathode">陰極｜陽イオンが来る</div>
+        <svg id="elcCatStage" viewBox="0 0 380 150" aria-label="陰極の反応"></svg>
+        <div class="elc-eq" id="elcCatEq"></div>
+        <div class="elc-replay"><button class="anim-replay" onclick="elcReplay('cat')">▶ もう一度再生</button></div>
+        <div class="explain" id="elcCatEx"></div>
+      </div>
+      <div class="elc-node">
+        <div class="elc-node-h anode">陽極｜陰イオンが来る</div>
+        <svg id="elcAnStage" viewBox="0 0 380 150" aria-label="陽極の反応"></svg>
+        <div class="elc-eq" id="elcAnEq"></div>
+        <div class="elc-replay"><button class="anim-replay" onclick="elcReplay('an')">▶ もう一度再生</button></div>
+        <div class="explain" id="elcAnEx"></div>
+      </div>
+    </div>
+
+    <div class="card-title" style="margin-top:26px">全体の化学反応</div>
+    <div class="elc-overall" id="elcOverEq"></div>
+    <div class="elc-replay" style="justify-content:center"><button class="anim-replay" onclick="elcReplay('over')">▶ もう一度再生</button></div>
+    <div class="explain" id="elcOverEx"></div>
+  </section>
+  </div><!-- /tab-elc -->
+
+  <!-- ===== タブ：ダニエル電池 ===== -->
+  <div class="tabpanel is-hidden" id="tab-dani">
+  <section class="learn" style="margin-top:50px">
+    <h2>ダニエル電池 <span style="font-size:.55em;color:var(--muted);font-weight:500">— 化学変化から電気をとり出す</span></h2>
+    <p class="sub"><b style="color:var(--electron)">亜鉛板（−極）</b>がとけて電子を出し、その電子が導線を通って<b style="color:var(--proton)">銅板（＋極）</b>へ流れる。電流が生まれてプロペラが回るよ。▶で動きを見てみよう。</p>
+  </section>
+
+  <section class="card">
+    <div class="elc-beaker"><svg id="daniStage" viewBox="0 0 640 480" aria-label="ダニエル電池"></svg></div>
+    <div class="zeq-replay"><button class="btn give" onclick="daniPlay()">▶ 動きを再生</button></div>
+
+    <div class="card-title" style="margin-top:26px">電極で起こっていること</div>
+    <div class="elc-electrodes">
+      <div class="elc-node">
+        <div class="elc-node-h cathode">亜鉛板（−極）｜とけ出す</div>
+        <svg id="daniZnStage" viewBox="0 0 380 150" aria-label="亜鉛板の反応"></svg>
+        <div class="elc-eq" id="daniZnEq"></div>
+        <div class="elc-replay"><button class="anim-replay" onclick="daniReplay('zn')">▶ もう一度再生</button></div>
+        <div class="explain" id="daniZnEx"></div>
+      </div>
+      <div class="elc-node">
+        <div class="elc-node-h anode">銅板（＋極）｜付着する</div>
+        <svg id="daniCuStage" viewBox="0 0 380 150" aria-label="銅板の反応"></svg>
+        <div class="elc-eq" id="daniCuEq"></div>
+        <div class="elc-replay"><button class="anim-replay" onclick="daniReplay('cu')">▶ もう一度再生</button></div>
+        <div class="explain" id="daniCuEx"></div>
+      </div>
+    </div>
+
+    <div class="card-title" style="margin-top:26px">全体の反応</div>
+    <div class="elc-overall" id="daniOverEq"></div>
+    <div class="elc-replay" style="justify-content:center"><button class="anim-replay" onclick="daniReplay('over')">▶ もう一度再生</button></div>
+    <div class="explain" id="daniOverEx"></div>
+  </section>
+  </div><!-- /tab-dani -->
+
+  <!-- ===== タブ：燃料電池 ===== -->
+  <div class="tabpanel is-hidden" id="tab-fuel">
+  <section class="learn" style="margin-top:50px">
+    <h2>燃料電池 <span style="font-size:.55em;color:var(--muted);font-weight:500">— 水素と酸素から電気をとり出す</span></h2>
+    <p class="sub"><b style="color:var(--electron)">水素極（−極）</b>で水素が電子を出し、その電子が導線を通って<b style="color:var(--proton)">酸素極（＋極）</b>へ。電解質の中を H⁺ が移動し、酸素と結びついて<b>水</b>ができるよ。出るのは水だけ。▶で動きを見てみよう。</p>
+  </section>
+
+  <section class="card">
+    <div class="elc-beaker"><svg id="fuelStage" viewBox="0 0 640 480" aria-label="燃料電池"></svg></div>
+    <div class="zeq-replay"><button class="btn give" onclick="fuelPlay()">▶ 動きを再生</button></div>
+
+    <div class="card-title" style="margin-top:26px">電極で起こっていること</div>
+    <div class="elc-electrodes">
+      <div class="elc-node">
+        <div class="elc-node-h cathode">水素極（−極）｜水素がとける</div>
+        <svg id="fuelNegStage" viewBox="0 0 380 150" aria-label="水素極の反応"></svg>
+        <div class="elc-eq" id="fuelNegEq"></div>
+        <div class="elc-replay"><button class="anim-replay" onclick="fuelReplay('neg')">▶ もう一度再生</button></div>
+        <div class="explain" id="fuelNegEx"></div>
+      </div>
+      <div class="elc-node">
+        <div class="elc-node-h anode">酸素極（＋極）｜水ができる</div>
+        <svg id="fuelPosStage" viewBox="0 0 380 150" aria-label="酸素極の反応"></svg>
+        <div class="elc-eq" id="fuelPosEq"></div>
+        <div class="elc-replay"><button class="anim-replay" onclick="fuelReplay('pos')">▶ もう一度再生</button></div>
+        <div class="explain" id="fuelPosEx"></div>
+      </div>
+    </div>
+
+    <div class="card-title" style="margin-top:26px">全体の反応</div>
+    <div class="elc-overall" id="fuelOverEq"></div>
+    <div class="elc-replay" style="justify-content:center"><button class="anim-replay" onclick="fuelReplay('over')">▶ もう一度再生</button></div>
+    <div class="explain" id="fuelOverEx"></div>
+  </section>
+  </div><!-- /tab-fuel -->
+
+  <!-- ===== タブ：問題 ===== -->
+  <div class="tabpanel is-hidden" id="tab-quiz">
+  <section class="learn" style="margin-top:50px">
+    <h2>問題にチャレンジ <span style="font-size:.55em;color:var(--muted);font-weight:500">— 4択クイズ</span></h2>
+    <p class="sub">イオンの化学式・電離の式・電子のやり取りを4択で確認しよう。まちがえた問題は、最後に<b>「間違い直し」</b>でもう一度ちょうせんできるよ。</p>
+  </section>
+
+  <section class="card quiz-card">
+    <!-- スタート -->
+    <div id="quizStart">
+      <div class="quiz-lead">どの問題にする？</div>
+      <div class="quiz-types">
+        <button class="btn ghost" onclick="quizStart('formula')">イオンの化学式</button>
+        <button class="btn ghost" onclick="quizStart('elz')">電離の式</button>
+        <button class="btn ghost" onclick="quizStart('transfer')">電子のやり取り</button>
+        <button class="btn ghost" onclick="quizStart('elc')">電気分解</button>
+        <button class="btn ghost" onclick="quizStart('dani')">ダニエル電池</button>
+        <button class="btn ghost" onclick="quizStart('battery')">電池の種類</button>
+        <button class="btn ghost" onclick="quizStart('mix')">ミックス（ぜんぶ）</button>
+      </div>
+    </div>
+    <!-- 問題 -->
+    <div id="quizPlay" class="is-hidden">
+      <div class="quiz-back-row"><button class="quiz-back-btn" onclick="quizView('start')">← 最初にもどる</button></div>
+      <div class="quiz-top"><span id="quizProg"></span><span id="quizScore"></span></div>
+      <div class="quiz-q" id="quizQ"></div>
+      <div class="quiz-choices" id="quizChoices"></div>
+      <div class="quiz-fb" id="quizFb"></div>
+      <div class="quiz-nav"><button class="btn give is-hidden" id="quizNextBtn" onclick="quizNext()">次へ ▶</button></div>
+    </div>
+    <!-- 結果 -->
+    <div id="quizResult" class="is-hidden">
+      <div id="quizResultText"></div>
+      <div class="quiz-types" id="quizResultBtns"></div>
+    </div>
+  </section>
+  </div><!-- /tab-quiz -->
+
+  <footer>
+    <p><span class="brand">イオン観測室</span> ｜ 中京個別指導学院 理科教材<br>
+    上のモデル図で電子を動かして、陽イオン・陰イオンができる仕組みを体験しよう。</p>
+  </footer>
+
+  <p class="seo-hide">中学理科 イオンの成り立ち 学習サイト。原子核（陽子・中性子）と電子のモデル図で、陽イオン・陰イオンのでき方を体験的に学べる無料の理科ドリル教材。周期表から元素を選んで電子配置を確認。原子の構造、原子番号、電荷の計算、ナトリウムイオン、塩化物イオン、マグネシウムイオン、酸化物イオン、アルミニウムイオン、鉄イオン Fe2+ Fe3+、銅イオン Cu2+、亜鉛イオン Zn2+、銀イオン Ag+、バリウムイオン Ba2+ の例。多原子イオン（複合イオン）アンモニウムイオン NH4+、水酸化物イオン OH-、硫酸イオン SO4 2-、硝酸イオン NO3-、炭酸イオン CO3 2- の構造モデル図。中京個別指導学院。</p>
+</div>
+
+<script>
+/* ===== データ（原子番号1〜20・周期p・族g・代表イオンion） ===== */
+var ION_ELEMS = [
+  {sym:'H', name:'水素',        z:1,  n:0,  ion:1,  p:1, g:1 },
+  {sym:'He',name:'ヘリウム',    z:2,  n:2,  ion:0,  p:1, g:18},
+  {sym:'Li',name:'リチウム',    z:3,  n:4,  ion:1,  p:2, g:1 },
+  {sym:'Be',name:'ベリリウム',  z:4,  n:5,  ion:2,  p:2, g:2 },
+  {sym:'B', name:'ホウ素',      z:5,  n:6,  ion:0,  p:2, g:13},
+  {sym:'C', name:'炭素',        z:6,  n:6,  ion:0,  p:2, g:14},
+  {sym:'N', name:'窒素',        z:7,  n:7,  ion:-3, p:2, g:15},
+  {sym:'O', name:'酸素',        z:8,  n:8,  ion:-2, p:2, g:16},
+  {sym:'F', name:'フッ素',      z:9,  n:10, ion:-1, p:2, g:17},
+  {sym:'Ne',name:'ネオン',      z:10, n:10, ion:0,  p:2, g:18},
+  {sym:'Na',name:'ナトリウム',  z:11, n:12, ion:1,  p:3, g:1 },
+  {sym:'Mg',name:'マグネシウム',z:12, n:12, ion:2,  p:3, g:2 },
+  {sym:'Al',name:'アルミニウム',z:13, n:14, ion:3,  p:3, g:13},
+  {sym:'Si',name:'ケイ素',      z:14, n:14, ion:0,  p:3, g:14},
+  {sym:'P', name:'リン',        z:15, n:16, ion:0,  p:3, g:15},
+  {sym:'S', name:'硫黄',        z:16, n:16, ion:-2, p:3, g:16},
+  {sym:'Cl',name:'塩素',        z:17, n:18, ion:-1, p:3, g:17},
+  {sym:'Ar',name:'アルゴン',    z:18, n:22, ion:0,  p:3, g:18},
+  {sym:'K', name:'カリウム',    z:19, n:20, ion:1,  p:4, g:1 },
+  {sym:'Ca',name:'カルシウム',  z:20, n:20, ion:2,  p:4, g:2 },
+  {sym:'Fe',name:'鉄',          z:26, n:30, ion:2,  alt:3, p:4, g:8,  sh:[2,8,14,2] },
+  {sym:'Cu',name:'銅',          z:29, n:34, ion:2,  alt:1, p:4, g:11, sh:[2,8,18,1] },
+  {sym:'Zn',name:'亜鉛',        z:30, n:34, ion:2,  p:4, g:12, sh:[2,8,18,2] },
+  {sym:'Ag',name:'銀',          z:47, n:60, ion:1,  p:5, g:11, sh:[2,8,18,18,1] },
+  {sym:'Ba',name:'バリウム',    z:56, n:82, ion:2,  p:6, g:2,  sh:[2,8,18,18,8,2] }
+];
+
+var ionIdx = 10;       // 初期=ナトリウム（原子番号11）
+var ionElectrons = 11; // 現在の電子数
+
+/* 中性原子の電子配置（shがあればそれ、無ければ簡易モデルK2 L8 M8 N…で算出） */
+function ionNeutralShells(el){
+  if(el.sh) return el.sh.slice();
+  var cap=[2,8,8,8], out=[], left=el.z;
+  for(var i=0;i<cap.length && left>0;i++){
+    var c=Math.min(cap[i],left); out.push(c); left-=c;
+  }
+  if(out.length===0) out=[0];
+  return out;
+}
+/* 現在の電子数に合わせた電子配置（イオンは一番外側から増減） */
+function ionShells(){
+  var el=ION_ELEMS[ionIdx];
+  var base=ionNeutralShells(el);
+  var delta=ionElectrons-el.z; // ＋なら受け取った、−なら失った
+  if(delta<0){
+    var rem=-delta;
+    while(rem>0){
+      var idx=base.length-1;
+      while(idx>=0 && base[idx]===0) idx--;
+      if(idx<0) break;
+      var take=Math.min(base[idx],rem); base[idx]-=take; rem-=take;
+      if(base[idx]===0 && idx===base.length-1) base.pop();
+    }
+  }else if(delta>0){
+    var add=delta, cap=[2,8,18,32,50,72];
+    while(add>0){
+      var li=base.length-1; if(li<0){ base.push(0); li=0; }
+      if(base[li] < cap[li]){ var put=Math.min(cap[li]-base[li],add); base[li]+=put; add-=put; }
+      else { base.push(0); }
+    }
+  }
+  while(base.length>1 && base[base.length-1]===0) base.pop();
+  return base;
+}
+
+/* ===== 周期表セレクター生成 ===== */
+function ionCellClass(el){ return el.ion>0?'cat':(el.ion<0?'ani':'neu'); }
+function ionBuildElems(){
+  // 存在する族・最大周期を集計
+  var gset={}, maxP=1;
+  for(var q=0;q<ION_ELEMS.length;q++){ gset[ION_ELEMS[q].g]=1; if(ION_ELEMS[q].p>maxP)maxP=ION_ELEMS[q].p; }
+  var groups=Object.keys(gset).map(Number).sort(function(a,b){return a-b;});
+  var h='<div style="grid-column:1;grid-row:1"></div>'; // 左上の空きセル
+  // 族番号ラベル（1行目）
+  for(var gi=0;gi<groups.length;gi++){
+    h+='<div class="pt-glabel" style="grid-column:'+(groups[gi]+1)+';grid-row:1">'+groups[gi]+'</div>';
+  }
+  // 周期番号ラベル（1列目）
+  for(var p=1;p<=maxP;p++){
+    h+='<div class="pt-plabel" style="grid-column:1;grid-row:'+(p+1)+'">'+p+'</div>';
+  }
+  // 元素セル
+  for(var i=0;i<ION_ELEMS.length;i++){
+    var el=ION_ELEMS[i];
+    h+='<div class="pt-cell '+ionCellClass(el)+(i===ionIdx?' on':'')+'" id="ionEl'+i+'" onclick="ionSelect('+i+')" '
+      +'style="grid-column:'+(el.g+1)+';grid-row:'+(el.p+1)+'">'
+      +'<span class="ptz">'+el.z+'</span><span class="pts">'+el.sym+'</span></div>';
+  }
+  document.getElementById('ionElems').innerHTML=h;
+}
+
+/* ===== 原子モデルSVG生成 ===== */
+function ionBuildSVG(){
+  var el=ION_ELEMS[ionIdx];
+  var cx=230, cy=230;
+  var s='';
+
+  /* defs：発光フィルター */
+  s+='<defs>'
+   +'<filter id="ionGlowP" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
+   +'<filter id="ionGlowE" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
+   +'<radialGradient id="ionNuc" cx="50%" cy="42%" r="65%"><stop offset="0%" stop-color="rgba(255,150,150,.18)"/><stop offset="100%" stop-color="rgba(255,93,99,0)"/></radialGradient>'
+   +'</defs>';
+
+  /* 電子殻（軌道リング）。殻数に応じた半径 */
+  var shells=ionShells();
+  var SR={1:[92],2:[78,132],3:[70,120,170],4:[80,126,172,210],5:[62,103,142,178,212],6:[56,93,128,160,190,216]};
+  var ns=shells.length;
+  var radii = ns>=1 ? (SR[ns]||SR[6]) : [];
+  for(var r=0;r<radii.length;r++){
+    s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+radii[r]+'" fill="none" stroke="rgba(140,180,255,.55)" stroke-width="1.4" stroke-dasharray="2 5"/>';
+  }
+
+  /* 原子核：陽子(赤)＋中性子(灰)。粒子数に応じて大きさを自動調整 */
+  var particles=el.z+el.n;
+  var targetNuc=(radii.length? radii[0]:90)*0.6;
+  var spread = particles>1 ? targetNuc/Math.sqrt(particles-1) : 0;
+  var pr = Math.max(2.8, Math.min(6.4, spread*0.82));
+  if(particles===1){ pr=6.4; }
+  var showPlus = pr>=4.6; // 粒が小さい重い原子では＋を省略
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(targetNuc+5).toFixed(1)+'" fill="url(#ionNuc)"/>';
+  var parts=[], pT=el.z, nT=el.n;
+  while(pT>0||nT>0){ if(pT>0){parts.push('p');pT--;} if(nT>0){parts.push('n');nT--;} }
+  var GA=Math.PI*(3-Math.sqrt(5)); // 黄金角
+  var nucG='<g filter="url(#ionGlowP)">';
+  for(var i=0;i<parts.length;i++){
+    var rr=spread*Math.sqrt(i), th=i*GA;
+    var x=cx+rr*Math.cos(th), y=cy+rr*Math.sin(th);
+    if(parts[i]==='p'){
+      nucG+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+pr.toFixed(1)+'" fill="#ff5d63"/>';
+      if(showPlus) nucG+='<text x="'+x.toFixed(1)+'" y="'+(y+0.5).toFixed(1)+'" text-anchor="middle" dominant-baseline="central" font-size="7.5" fill="#fff" font-family="DM Mono,monospace">+</text>';
+    }else{
+      nucG+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+pr.toFixed(1)+'" fill="#9aa1c4"/>';
+    }
+  }
+  nucG+='</g>';
+  s+=nucG;
+
+  /* 電子：各殻ごとに均等配置し、殻ごと回転アニメ */
+  var dur=[13,18,24,30,37,44], dir=[1,-1,1,-1,1,-1];
+  for(var sh=0;sh<shells.length;sh++){
+    var cnt=shells[sh], R=radii[sh], off=sh*16;
+    var er = cnt>12 ? 7 : 9; // 電子が多い殻は少し小さく
+    var g='<g><animateTransform attributeName="transform" type="rotate" from="'+(dir[sh]>0?0:360)+' '+cx+' '+cy+'" to="'+(dir[sh]>0?360:0)+' '+cx+' '+cy+'" dur="'+dur[sh]+'s" repeatCount="indefinite"/>';
+    for(var j=0;j<cnt;j++){
+      var a=(j/cnt)*2*Math.PI + off*Math.PI/180;
+      var ex=cx+R*Math.cos(a), ey=cy+R*Math.sin(a);
+      g+='<g filter="url(#ionGlowE)"><circle cx="'+ex.toFixed(1)+'" cy="'+ey.toFixed(1)+'" r="'+er+'" fill="#3ce0ff"/>'
+        +'<text x="'+ex.toFixed(1)+'" y="'+(ey+0.5).toFixed(1)+'" text-anchor="middle" dominant-baseline="central" font-size="'+(er>8?11:9)+'" fill="#08263a" font-family="DM Mono,monospace" font-weight="500">−</text></g>';
+    }
+    g+='</g>';
+    s+=g;
+  }
+
+  document.getElementById('ionStage').innerHTML=s;
+}
+
+/* ===== 情報パネル更新 ===== */
+function ionSupHTML(charge){
+  var el=ION_ELEMS[ionIdx];
+  if(charge===0) return el.sym;
+  var n=Math.abs(charge), sign=(charge>0?'＋':'−'), num=(n>1?n:'');
+  return el.sym+'<sup>'+num+sign+'</sup>';
+}
+
+function ionUpdate(){
+  var el=ION_ELEMS[ionIdx];
+  var charge=el.z-ionElectrons;          // ＋なら陽イオン
+  var lost=el.z-ionElectrons;            // 失った電子数（＋で失う）
+
+  document.getElementById('ionPnum').innerHTML=el.z;
+  document.getElementById('ionEnum').innerHTML=ionElectrons;
+
+  // バッジ
+  var symEl=document.getElementById('ionSym');
+  symEl.innerHTML=ionSupHTML(charge);
+  var pill=document.getElementById('ionPill');
+
+  var col,label;
+  if(charge===0){col='var(--neutral)';label='原子（中性）';}
+  else if(charge>0){col='var(--cation)';label='陽イオン（＋）';}
+  else{col='var(--anion)';label='陰イオン（−）';}
+  symEl.style.color=col; symEl.style.textShadow='0 0 22px '+col;
+  pill.style.color=col; pill.innerHTML=label;
+}
+
+function ionRender(){ ionBuildSVG(); ionUpdate(); }
+
+/* ===== 操作 ===== */
+function ionSelect(i){
+  ionIdx=i; ionElectrons=ION_ELEMS[i].z;
+  for(var k=0;k<ION_ELEMS.length;k++){
+    var node=document.getElementById('ionEl'+k);
+    if(node) node.className='pt-cell '+ionCellClass(ION_ELEMS[k])+(k===i?' on':'');
+  }
+  ionRender();
+}
+function ionTake(){ if(ionElectrons>0){ionElectrons--; ionRender();} }
+function ionGive(){ if(ionElectrons<ION_ELEMS[ionIdx].z+3){ionElectrons++; ionRender();} }
+function ionReset(){ ionElectrons=ION_ELEMS[ionIdx].z; ionRender(); }
+function ionAuto(){
+  var el=ION_ELEMS[ionIdx];
+  ionElectrons = el.z - el.ion; // ion=＋なら電子を減らす
+  ionRender();
+}
+
+/* WordPress等のグローバル環境向けに明示公開 */
+window.ionSelect=ionSelect; window.ionTake=ionTake; window.ionGive=ionGive;
+window.ionReset=ionReset; window.ionAuto=ionAuto;
+
+/* 起動 */
+ionBuildElems();
+ionRender();
+
+/* ============================================================
+   多原子イオン（複合イオン）ビューア
+   ============================================================ */
+var ATOM={
+  H:{c:'#e8ecff',t:'#0a1330',r:18,name:'水素', z:1 },
+  O:{c:'#ff5d63',t:'#ffffff',r:26,name:'酸素', z:8 },
+  N:{c:'#5b8cff',t:'#ffffff',r:30,name:'窒素', z:7 },
+  C:{c:'#aeb6da',t:'#10162e',r:30,name:'炭素', z:6 },
+  S:{c:'#ffd66b',t:'#3a2c00',r:31,name:'硫黄', z:16}
+};
+
+var ION_POLY=[
+  { sym:'NH₄', charge:1, name:'アンモニウムイオン', center:'N', R:82,
+    ligands:[{el:'H',deg:45},{el:'H',deg:135},{el:'H',deg:225},{el:'H',deg:315}],
+    made:[['N',1],['H',4]],
+    note:'窒素1個に水素4個がくっついたかたまり。アンモニア NH₃ が水素イオン H<sup>＋</sup> を1個受け取るとできるよ。' },
+  { sym:'OH', charge:-1, name:'水酸化物イオン', center:'O', R:62,
+    ligands:[{el:'H',deg:90}],
+    made:[['O',1],['H',1]],
+    note:'酸素1個と水素1個のかたまり。水酸化ナトリウム NaOH など、アルカリ性の水溶液に多いよ。' },
+  { sym:'SO₄', charge:-2, name:'硫酸イオン', center:'S', R:84,
+    ligands:[{el:'O',deg:45},{el:'O',deg:135},{el:'O',deg:225},{el:'O',deg:315}],
+    made:[['S',1],['O',4]],
+    note:'硫黄1個に酸素4個。硫酸 H₂SO₄ が電離するとできるよ。' },
+  { sym:'NO₃', charge:-1, name:'硝酸イオン', center:'N', R:82,
+    ligands:[{el:'O',deg:0},{el:'O',deg:120},{el:'O',deg:240}],
+    made:[['N',1],['O',3]],
+    note:'窒素1個に酸素3個。硝酸 HNO₃ が電離するとできるよ。' },
+  { sym:'CO₃', charge:-2, name:'炭酸イオン', center:'C', R:82,
+    ligands:[{el:'O',deg:0},{el:'O',deg:120},{el:'O',deg:240}],
+    made:[['C',1],['O',3]],
+    note:'炭素1個に酸素3個。炭酸カルシウム CaCO₃（貝殻・石灰石）などに含まれるよ。' }
+];
+
+var polyIdx=0;
+
+function polySupHTML(charge){
+  var n=Math.abs(charge), sign=(charge>0?'＋':'−'), num=(n>1?n:'');
+  return '<sup>'+num+sign+'</sup>';
+}
+function polyChargeStr(charge){
+  var n=Math.abs(charge), sign=(charge>0?'＋':'−');
+  return (n>1?n:'')+sign;
+}
+
+function polyAtomSVG(el,x,y){
+  var a=ATOM[el];
+  var s='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+a.r+'" fill="'+a.c+'" stroke="rgba(5,10,30,.35)" stroke-width="1.5" filter="url(#polyShadow)"/>'
+    +'<text x="'+x.toFixed(1)+'" y="'+(y-a.r*0.16).toFixed(1)+'" text-anchor="middle" dominant-baseline="central" font-family="Zen Kaku Gothic New,sans-serif" font-weight="900" font-size="'+Math.round(a.r*0.78)+'" fill="'+a.t+'">'+el+'</text>';
+  // 陽子の数チップ（赤の＋n）：原子の下ふちに重ねる
+  var cw=(a.z>9?30:24), yc=y+a.r-3;
+  s+='<rect x="'+(x-cw/2).toFixed(1)+'" y="'+(yc-8.5).toFixed(1)+'" width="'+cw+'" height="17" rx="8.5" fill="#0b1430" stroke="#ff5d63" stroke-width="1.2"/>'
+    +'<text x="'+x.toFixed(1)+'" y="'+(yc).toFixed(1)+'" text-anchor="middle" dominant-baseline="central" font-family="DM Mono,monospace" font-weight="500" font-size="11" fill="#ff8a8f">＋'+a.z+'</text>';
+  return s;
+}
+
+function polyBuildBtns(){
+  var h='';
+  for(var i=0;i<ION_POLY.length;i++){
+    var d=ION_POLY[i];
+    h+='<div class="elem poly-el'+(i===polyIdx?' on':'')+'" id="polyB'+i+'" onclick="polySelect('+i+')">'
+      +'<div class="es">'+d.sym+polySupHTML(d.charge)+'</div>'
+      +'<div class="en">'+d.name.replace('イオン','')+'</div></div>';
+  }
+  document.getElementById('polyBtns').innerHTML=h;
+}
+
+function polyBuildSVG(){
+  var d=ION_POLY[polyIdx];
+  var cx=200, cy=200, R=d.R||82;
+
+  // 合計の陽子・電子
+  var protons=0;
+  for(var t=0;t<d.made.length;t++){ protons+=ATOM[d.made[t][0]].z*d.made[t][1]; }
+  var electrons=protons-d.charge;
+
+  var bonds='', minX=cx,maxX=cx,minY=cy,maxY=cy;
+  for(var i=0;i<d.ligands.length;i++){
+    var rad=d.ligands[i].deg*Math.PI/180;
+    var x=cx+R*Math.sin(rad), y=cy-R*Math.cos(rad);
+    bonds+='<line x1="'+cx+'" y1="'+cy+'" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="rgba(200,215,255,.4)" stroke-width="7" stroke-linecap="round"/>';
+    var ar=ATOM[d.ligands[i].el].r+10; // チップ分の余白
+    if(x-ar<minX)minX=x-ar; if(x+ar>maxX)maxX=x+ar;
+    if(y-ar<minY)minY=y-ar; if(y+ar>maxY)maxY=y+ar;
+  }
+  var cR=ATOM[d.center].r+10;
+  minX=Math.min(minX,cx-cR); maxX=Math.max(maxX,cx+cR);
+  minY=Math.min(minY,cy-cR); maxY=Math.max(maxY,cy+cR);
+
+  // 原子（配位→中心の順に描画。中心を前面へ）
+  var atoms='';
+  for(var j=0;j<d.ligands.length;j++){
+    var r2=d.ligands[j].deg*Math.PI/180;
+    atoms+=polyAtomSVG(d.ligands[j].el, cx+R*Math.sin(r2), cy-R*Math.cos(r2));
+  }
+  atoms+=polyAtomSVG(d.center,cx,cy);
+
+  // グループを示す点線の輪
+  var ecx=(minX+maxX)/2, ecy=(minY+maxY)/2;
+  var erx=(maxX-minX)/2+10, ery=(maxY-minY)/2+10;
+  var rad0=Math.max(erx,ery);
+  var col=(d.charge>0?'#ff5d63':'#3ce0ff');
+  var bracket='<ellipse cx="'+ecx.toFixed(1)+'" cy="'+ecy.toFixed(1)+'" rx="'+erx.toFixed(1)+'" ry="'+ery.toFixed(1)+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-dasharray="3 7" opacity=".7"/>';
+
+  // 電子殻：グループ全体の電子（水色）を外側に並べてゆっくり回す
+  var shellR=rad0+18;
+  var eshell='<g><animateTransform attributeName="transform" type="rotate" from="0 '+ecx.toFixed(1)+' '+ecy.toFixed(1)+'" to="360 '+ecx.toFixed(1)+' '+ecy.toFixed(1)+'" dur="48s" repeatCount="indefinite"/>';
+  for(var k=0;k<electrons;k++){
+    var a2=(k/electrons)*2*Math.PI - Math.PI/2;
+    var ex=ecx+shellR*Math.cos(a2), ey=ecy+shellR*Math.sin(a2);
+    eshell+='<circle cx="'+ex.toFixed(1)+'" cy="'+ey.toFixed(1)+'" r="3.4" fill="#3ce0ff"/>';
+  }
+  eshell+='</g>';
+  var ring='<circle cx="'+ecx.toFixed(1)+'" cy="'+ecy.toFixed(1)+'" r="'+shellR.toFixed(1)+'" fill="none" stroke="rgba(60,224,255,.55)" stroke-width="1.4" stroke-dasharray="2 5"/>';
+
+  // グループ全体の電気（電子殻の外・右上）
+  var lx=ecx+shellR*0.74, ly=ecy-shellR*0.74;
+  var chargeLabel='<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="middle" dominant-baseline="central" font-family="DM Mono,monospace" font-weight="500" font-size="30" fill="'+col+'">'+polyChargeStr(d.charge)+'</text>';
+
+  var defs='<defs><filter id="polyShadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="3.5" flood-color="#000" flood-opacity="0.45"/></filter></defs>';
+
+  // 図内の「でんきのつり合い」表示（左上・グループ合計）
+  var hud='<g font-family="Zen Kaku Gothic New,sans-serif" font-weight="700">'
+    +'<rect x="10" y="10" width="166" height="32" rx="9" fill="rgba(11,20,48,.85)" stroke="#ff5d63" stroke-width="1.3"/>'
+    +'<text x="22" y="31" font-size="14" fill="#ff8a8f">陽子（＋）合計<tspan font-family="DM Mono,monospace" font-size="18" dx="4">'+protons+'</tspan></text>'
+    +'<rect x="10" y="48" width="166" height="32" rx="9" fill="rgba(11,20,48,.85)" stroke="#3ce0ff" stroke-width="1.3"/>'
+    +'<text x="22" y="69" font-size="14" fill="#3ce0ff">電子（−）合計<tspan font-family="DM Mono,monospace" font-size="18" dx="4">'+electrons+'</tspan></text>'
+    +'</g>';
+
+  document.getElementById('polyStage').innerHTML=defs+ring+eshell+bracket+bonds+atoms+chargeLabel+hud;
+}
+
+function polyUpdate(){
+  var d=ION_POLY[polyIdx];
+  // バッジ
+  var symEl=document.getElementById('polySym');
+  symEl.innerHTML=d.sym+polySupHTML(d.charge);
+  var col=(d.charge>0?'var(--cation)':'var(--anion)');
+  symEl.style.color=col; symEl.style.textShadow='0 0 22px '+col;
+  var pill=document.getElementById('polyPill');
+  pill.style.color=col; pill.innerHTML=(d.charge>0?'陽イオン（＋）':'陰イオン（−）');
+  // 名前としき
+  document.getElementById('polyName').innerHTML=
+    '<div class="pn-formula">'+d.sym+polySupHTML(d.charge)+'</div><div class="pn-name">'+d.name+'</div>';
+  // うちわけチップ
+  var m='';
+  for(var i=0;i<d.made.length;i++){
+    var el=d.made[i][0], cnt=d.made[i][1], a=ATOM[el];
+    m+='<span class="chip"><span class="ad" style="background:'+a.c+';color:'+a.t+'">'+el+'</span>'+a.name+' <b>×'+cnt+'</b></span>';
+  }
+  document.getElementById('polyMade').innerHTML=m;
+
+  // 陽子・電子の合計とつり合い
+  var protons=0;
+  for(var t=0;t<d.made.length;t++){ protons+=ATOM[d.made[t][0]].z*d.made[t][1]; }
+  var electrons=protons-d.charge;
+  document.getElementById('polyPtot').innerHTML=protons;
+  document.getElementById('polyEtot').innerHTML=electrons;
+  var tot=protons+electrons;
+  document.getElementById('polyFillP').style.width=(protons/tot*100).toFixed(1)+'%';
+  document.getElementById('polyFillE').style.width=(electrons/tot*100).toFixed(1)+'%';
+
+  var bal=document.getElementById('polyBalance');
+  var n=Math.abs(d.charge);
+  if(d.charge>0){
+    bal.innerHTML='陽子が合計 <span class="hl-p">'+protons+'個</span>、電子が合計 <span class="hl-e">'+electrons+'個</span>。<b>電子が'+n+'個足りない</b>ので、グループ全体が <b>＋'+d.charge+'</b> の電気を持つ陽イオンになるよ。';
+  }else{
+    bal.innerHTML='陽子が合計 <span class="hl-p">'+protons+'個</span>、電子が合計 <span class="hl-e">'+electrons+'個</span>。<b>電子が'+n+'個多い</b>ので、グループ全体が <b>−'+n+'</b> の電気を持つ陰イオンになるよ。';
+  }
+
+  // 説明
+  document.getElementById('polyExplain').innerHTML=d.note;
+}
+
+function polyRender(){ polyBuildSVG(); polyUpdate(); }
+function polySelect(i){
+  polyIdx=i;
+  for(var k=0;k<ION_POLY.length;k++){
+    var node=document.getElementById('polyB'+k);
+    if(node) node.className='elem poly-el'+(k===i?' on':'');
+  }
+  polyRender();
+}
+window.polySelect=polySelect;
+
+polyBuildBtns();
+polyRender();
+
+/* ============================================================
+   電子の受け渡しを式にする（原子 → イオン）。陽イオン・陰イオン両対応
+   ============================================================ */
+var ZEQ=[
+  {sym:'Zn',name:'亜鉛',        z:30, q:2, type:'cation'},
+  {sym:'Na',name:'ナトリウム',  z:11, q:1, type:'cation'},
+  {sym:'Mg',name:'マグネシウム',z:12, q:2, type:'cation'},
+  {sym:'Al',name:'アルミニウム',z:13, q:3, type:'cation'},
+  {sym:'Ca',name:'カルシウム',  z:20, q:2, type:'cation'},
+  {sym:'H', name:'水素',        z:1,  q:1, type:'cation'},
+  {sym:'Ag',name:'銀',          z:47, q:1, type:'cation'},
+  {sym:'Ba',name:'バリウム',    z:56, q:2, type:'cation'},
+  {sym:'Cl',name:'塩素',        z:17, q:1, type:'anion'},
+  {sym:'O', name:'酸素',        z:8,  q:2, type:'anion'},
+  {sym:'F', name:'フッ素',      z:9,  q:1, type:'anion'},
+  {sym:'S', name:'硫黄',        z:16, q:2, type:'anion'}
+];
+var zeqIdx=0; // 既定=亜鉛
+
+function zeqIonCharge(d){ return (d.q>1?d.q:'')+(d.type==='cation'?'＋':'−'); }
+function zeqElecStr(n){ return (n>1?n:'')+'e'; }
+function zeqSupHTML(d){ return '<sup>'+(d.q>1?d.q:'')+(d.type==='cation'?'＋':'−')+'</sup>'; }
+
+function zeqBuildPick(){
+  var cat='', ani='';
+  for(var i=0;i<ZEQ.length;i++){
+    var d=ZEQ[i];
+    var btn='<div class="zp'+(d.type==='anion'?' anion':'')+(i===zeqIdx?' on':'')+'" id="zeqP'+i+'" onclick="zeqSelect('+i+')">'+d.sym+'<sup>'+zeqIonCharge(d)+'</sup></div>';
+    if(d.type==='anion') ani+=btn; else cat+=btn;
+  }
+  document.getElementById('zeqPick').innerHTML=
+    '<div class="zpg"><span class="zpl cat">陽イオンになる（金属・水素）</span><div class="zprow">'+cat+'</div></div>'
+   +'<div class="zpg"><span class="zpl ani">陰イオンになる（非金属）</span><div class="zprow">'+ani+'</div></div>';
+}
+
+function zeqBuild(animate, dArg, stageId){
+  var d=dArg||ZEQ[zeqIdx], n=d.q, cat=(d.type==='cation');
+  var LX=148, LY=128, R=54, RX=542, RY=128, RR=50, EX=656;
+  var s='';
+  s+='<defs><filter id="zeqGE" x="-130%" y="-130%" width="360%" height="360%"><feGaussianBlur stdDeviation="3.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
+
+  // 矢印と説明
+  s+='<text x="358" y="82" text-anchor="middle" font-family="Zen Maru Gothic,sans-serif" font-size="15" fill="#99a3cf">電子を'+n+'個 '+(cat?'はなす':'受け取る')+'</text>';
+  s+='<line x1="266" y1="128" x2="446" y2="128" stroke="#9aa3c8" stroke-width="4"/>';
+  s+='<polygon points="446,119 470,128 446,137" fill="#9aa3c8"/>';
+
+  if(cat){
+    /* ===== 陽イオン：左の原子が右へ移動し、到着後に電子が出てくる ===== */
+    var gxc=RX-LX;
+    // 開始時のカウント（左）— 動き出すと消える
+    s+='<text x="'+LX+'" y="'+(LY+R+24)+'" text-anchor="middle" font-family="DM Mono,monospace" font-size="12.5" fill="#99a3cf" style="animation:zeqFadeOut .4s ease .3s forwards">陽子'+d.z+' ／ 電子'+d.z+'</text>';
+    // 移動グループ：原子が右へ飛んで消える
+    var mgc='<g style="--gx:'+gxc+'px;animation:zeqFlyOut 1s ease .3s forwards">';
+    mgc+='<circle cx="'+LX+'" cy="'+LY+'" r="'+R+'" fill="#a6b4cf" stroke="rgba(5,10,30,.4)" stroke-width="2"/>';
+    mgc+='<text x="'+LX+'" y="'+(LY-3)+'" text-anchor="middle" dominant-baseline="central" font-family="Zen Kaku Gothic New,sans-serif" font-weight="900" font-size="36" fill="#10162e">'+d.sym+'</text>';
+    mgc+='<text x="'+LX+'" y="'+(LY+27)+'" text-anchor="middle" font-family="Zen Maru Gothic,sans-serif" font-size="13" fill="#2a3357">原子</text></g>';
+    s+=mgc;
+    // 右：陽イオン（赤）— 到着に合わせて現れる
+    var c1='<g style="opacity:0;animation:zeqAppear .45s ease .9s forwards">';
+    c1+='<circle cx="'+RX+'" cy="'+RY+'" r="'+RR+'" fill="rgba(255,93,99,.9)" stroke="rgba(5,10,30,.35)" stroke-width="2"/>';
+    c1+='<text x="'+RX+'" y="'+(RY-3)+'" text-anchor="middle" dominant-baseline="central" font-family="Zen Kaku Gothic New,sans-serif" font-weight="900" font-size="30" fill="#fff">'+d.sym+'<tspan font-size="18" dy="-12">'+zeqIonCharge(d)+'</tspan></text>';
+    c1+='<text x="'+RX+'" y="'+(RY+27)+'" text-anchor="middle" font-family="Zen Maru Gothic,sans-serif" font-size="13" fill="#fff">イオン</text>';
+    c1+='<text x="'+RX+'" y="'+(RY+RR+24)+'" text-anchor="middle" font-family="DM Mono,monospace" font-size="12.5" fill="#ffb0b4">陽子'+d.z+' ／ 電子'+(d.z-n)+'</text></g>';
+    s+=c1;
+    // 電子：イオンの右リムから出てきて、右の山へ
+    for(var i=0;i<n;i++){
+      var th=(((n===1)?0:(-1+2*i/(n-1)))*30)*Math.PI/180;
+      var sx=RX+RR*Math.cos(th), sy=RY+RR*Math.sin(th);
+      var ex=EX, ey=RY+(i-(n-1)/2)*30;
+      var dx=ex-sx, dy=ey-sy, mx=dx*0.45, my=dy*0.5-46;
+      s+='<g style="--mx:'+mx.toFixed(1)+'px;--my:'+my.toFixed(1)+'px;--dx:'+dx.toFixed(1)+'px;--dy:'+dy.toFixed(1)+'px;opacity:0;animation:zeqAppear .3s ease 1s forwards, zeqFly 1.1s cubic-bezier(.4,0,.55,1) 1s both" filter="url(#zeqGE)">'
+        +'<circle cx="'+sx.toFixed(1)+'" cy="'+sy.toFixed(1)+'" r="11" fill="#3ce0ff"/>'
+        +'<text x="'+sx.toFixed(1)+'" y="'+(sy+0.5).toFixed(1)+'" text-anchor="middle" dominant-baseline="central" font-family="DM Mono,monospace" font-size="13" fill="#08263a" font-weight="500">−</text></g>';
+    }
+    var lblY=RY+(n-1)/2*30+36;
+    s+='<g style="opacity:0;animation:zeqAppear .4s ease 2.2s forwards"><text x="'+EX+'" y="'+lblY.toFixed(1)+'" text-anchor="middle" font-family="DM Mono,monospace" font-size="17" fill="#8af1ff">'+zeqElecStr(n)+'<tspan font-size="11" dy="-9">−</tspan></text></g>';
+    // 式：sym → sym^n+ ＋ ne-
+    s+='<g font-family="Zen Kaku Gothic New,sans-serif" font-weight="900" font-size="31">';
+    s+='<text x="248" y="278" text-anchor="middle" fill="#e8ecff">'+d.sym+'</text>';
+    s+='<g style="opacity:0;animation:zeqAppear .4s ease .9s forwards"><text x="304" y="278" text-anchor="middle" fill="#99a3cf">→</text></g>';
+    s+='<g style="opacity:0;animation:zeqAppear .4s ease 1.2s forwards"><text x="372" y="278" text-anchor="middle" fill="#ff8a8f">'+d.sym+'<tspan font-size="19" dy="-12">'+zeqIonCharge(d)+'</tspan></text></g>';
+    s+='<g style="opacity:0;animation:zeqAppear .4s ease 2.2s forwards"><text x="470" y="278" text-anchor="middle" fill="#8af1ff"><tspan fill="#99a3cf">＋</tspan> '+zeqElecStr(n)+'<tspan font-size="19" dy="-12">−</tspan></text></g>';
+    s+='</g>';
+
+  }else{
+    /* ===== 陰イオン：左で原子と電子がくっつき、その結合体が右へ飛ぶ ===== */
+    var gx=RX-LX;
+    // 開始時のカウント（左）— 飛び立つ前に消える
+    s+='<text x="'+LX+'" y="'+(LY+R+24)+'" text-anchor="middle" font-family="DM Mono,monospace" font-size="12.5" fill="#99a3cf" style="animation:zeqFadeOut .4s ease 1.2s forwards">陽子'+d.z+' ／ 電子'+d.z+'</text>';
+    // 移動グループ：原子＋電子（左で結合）→ 右へ飛んで消える
+    var mg='<g style="--gx:'+gx+'px;animation:zeqFlyOut 1s ease 1.2s forwards">';
+    mg+='<circle cx="'+LX+'" cy="'+LY+'" r="'+R+'" fill="#a6b4cf" stroke="rgba(5,10,30,.4)" stroke-width="2"/>';
+    mg+='<text x="'+LX+'" y="'+(LY-3)+'" text-anchor="middle" dominant-baseline="central" font-family="Zen Kaku Gothic New,sans-serif" font-weight="900" font-size="36" fill="#10162e">'+d.sym+'</text>';
+    mg+='<text x="'+LX+'" y="'+(LY+27)+'" text-anchor="middle" font-family="Zen Maru Gothic,sans-serif" font-size="13" fill="#2a3357">原子</text>';
+    for(var j=0;j<n;j++){
+      var frac=(n===1)?0:(-1+2*j/(n-1));
+      var fx=LX-92, fy=LY+frac*44;
+      var ang=(180-frac*32)*Math.PI/180;
+      var ax=(LX+R*Math.cos(ang))-fx, ay=(LY+R*Math.sin(ang))-fy;
+      mg+='<g style="--ax:'+ax.toFixed(1)+'px;--ay:'+ay.toFixed(1)+'px;animation:zeqSlide .7s cubic-bezier(.4,0,.4,1) '+(0.3+j*0.18).toFixed(2)+'s both" filter="url(#zeqGE)">'
+        +'<circle cx="'+fx.toFixed(1)+'" cy="'+fy.toFixed(1)+'" r="11" fill="#3ce0ff"/>'
+        +'<text x="'+fx.toFixed(1)+'" y="'+(fy+0.5).toFixed(1)+'" text-anchor="middle" dominant-baseline="central" font-family="DM Mono,monospace" font-size="13" fill="#08263a" font-weight="500">−</text></g>';
+    }
+    mg+='</g>';
+    s+=mg;
+    // 右：完成した陰イオン（青）— 結合体の到着に合わせて現れる
+    var b1='<g style="opacity:0;animation:zeqAppear .45s ease 1.85s forwards">';
+    b1+='<circle cx="'+RX+'" cy="'+RY+'" r="'+RR+'" fill="rgba(58,142,205,.95)" stroke="rgba(5,10,30,.35)" stroke-width="2"/>';
+    b1+='<text x="'+RX+'" y="'+(RY-3)+'" text-anchor="middle" dominant-baseline="central" font-family="Zen Kaku Gothic New,sans-serif" font-weight="900" font-size="30" fill="#fff">'+d.sym+'<tspan font-size="18" dy="-12">'+zeqIonCharge(d)+'</tspan></text>';
+    b1+='<text x="'+RX+'" y="'+(RY+27)+'" text-anchor="middle" font-family="Zen Maru Gothic,sans-serif" font-size="13" fill="#fff">イオン</text>';
+    for(var k2=0;k2<n;k2++){
+      var fr2=(n===1)?0:(-1+2*k2/(n-1));
+      var an2=(180-fr2*32)*Math.PI/180;
+      var ecx=LX+R*Math.cos(an2)+gx, ecy=LY+R*Math.sin(an2);
+      b1+='<g filter="url(#zeqGE)"><circle cx="'+ecx.toFixed(1)+'" cy="'+ecy.toFixed(1)+'" r="11" fill="#3ce0ff"/>'
+        +'<text x="'+ecx.toFixed(1)+'" y="'+(ecy+0.5).toFixed(1)+'" text-anchor="middle" dominant-baseline="central" font-family="DM Mono,monospace" font-size="13" fill="#08263a" font-weight="500">−</text></g>';
+    }
+    b1+='<text x="'+RX+'" y="'+(RY+RR+24)+'" text-anchor="middle" font-family="DM Mono,monospace" font-size="12.5" fill="#bfe6ff">陽子'+d.z+' ／ 電子'+(d.z+n)+'</text></g>';
+    s+=b1;
+    // 式：sym ＋ ne-（左で足す） → sym^n-
+    s+='<g font-family="Zen Kaku Gothic New,sans-serif" font-weight="900" font-size="31">';
+    s+='<text x="232" y="278" text-anchor="middle" fill="#e8ecff">'+d.sym+'</text>';
+    s+='<g style="opacity:0;animation:zeqAppear .4s ease .3s forwards"><text x="318" y="278" text-anchor="middle" fill="#8af1ff"><tspan fill="#99a3cf">＋</tspan> '+zeqElecStr(n)+'<tspan font-size="19" dy="-12">−</tspan></text></g>';
+    s+='<g style="opacity:0;animation:zeqAppear .4s ease 1.6s forwards"><text x="400" y="278" text-anchor="middle" fill="#99a3cf">→</text></g>';
+    s+='<g style="opacity:0;animation:zeqAppear .4s ease 2s forwards"><text x="462" y="278" text-anchor="middle" fill="#7fc4ee">'+d.sym+'<tspan font-size="19" dy="-12">'+zeqIonCharge(d)+'</tspan></text></g>';
+    s+='</g>';
+  }
+
+  var sid=stageId||'zeqStage';
+  var stageEl=document.getElementById(sid);
+  // ボタンを押したとき(animate=true)だけアニメ再生。それ以外は完成形で静止
+  if(animate) stageEl.classList.remove('zeq-static');
+  else stageEl.classList.add('zeq-static');
+  if(sid!=='zeqStage') s=s.replace(/zeqGE/g,'zeqGEq'); // フィルタID重複回避
+  stageEl.innerHTML=s;
+  if(sid!=='zeqStage') return; // 受け渡しタブ以外（クイズ等）は説明欄を更新しない
+
+  // 説明
+  if(cat){
+    document.getElementById('zeqExplain').innerHTML='左の <b>'+d.name+'</b>の原子が矢印の右へ移り、一番外側の電子を <span class="hl-e">'+n+'個</span> はなすと、<span class="hl-p">＋'+n+'</span> の電気をもつ <b>'+d.sym+zeqSupHTML(d)+'（陽イオン）</b>になる。出てきた電子は右がわに <b>'+zeqElecStr(n)+'<sup>−</sup></b> と書くよ。陽子の数（'+d.z+'）は変わらず、電子が'+(d.z)+'個から'+(d.z-n)+'個にへる。';
+  }else{
+    document.getElementById('zeqExplain').innerHTML='矢印の<b>左がわ</b>で、<b>'+d.name+'</b>の原子に電子を <span class="hl-e">'+n+'個</span> くっつける（足す）と、<span class="hl-e">−'+n+'</span> の電気をもつ <b>'+d.sym+zeqSupHTML(d)+'（陰イオン）</b>ができて、矢印の右がわへ移る。式の左がわで <b>'+d.sym+' ＋ '+zeqElecStr(n)+'<sup>−</sup></b> と足し、右がわに結果を書くよ。電子は'+d.z+'個から'+(d.z+n)+'個にふえる。';
+  }
+}
+
+function zeqSelect(i){
+  zeqIdx=i;
+  for(var k=0;k<ZEQ.length;k++){ var nd=document.getElementById('zeqP'+k); if(nd) nd.className='zp'+(ZEQ[k].type==='anion'?' anion':'')+(k===i?' on':''); }
+  zeqBuild(false);
+}
+function zeqPlay(){ zeqBuild(true); }
+window.zeqSelect=zeqSelect; window.zeqPlay=zeqPlay;
+
+zeqBuildPick();
+zeqBuild(false);
+
+/* ============================================================
+   電離式：電解質が水にとけて 陽イオン＋陰イオン に分かれる様子
+   ============================================================ */
+var ELZ=[
+  {name:'塩酸',           formula:'HCl',    cat:{sym:'H', q:1, cnt:1, r:30}, ani:{sym:'Cl', q:1, cnt:1, r:30}, bad:['HCl → H<sub>2</sub><sup>＋</sup> ＋ Cl<sub>2</sub><sup>−</sup>']},
+  {name:'塩化ナトリウム', formula:'NaCl',   cat:{sym:'Na',q:1, cnt:1, r:31}, ani:{sym:'Cl', q:1, cnt:1, r:30}, bad:['NaCl → Na<sup>＋</sup> ＋ Cl<sub>2</sub><sup>−</sup>']},
+  {name:'塩化銅',         formula:'CuCl₂',  cat:{sym:'Cu',q:2, cnt:1, r:33}, ani:{sym:'Cl', q:1, cnt:2, r:30}, bad:['CuCl₂ → Cu<sup>2＋</sup> ＋ Cl<sub>2</sub><sup>−</sup>']},
+  {name:'水酸化ナトリウム',formula:'NaOH',   cat:{sym:'Na',q:1, cnt:1, r:31}, ani:{sym:'OH', q:1, cnt:1, r:37}},
+  {name:'水酸化カルシウム',formula:'Ca(OH)₂',cat:{sym:'Ca',q:2, cnt:1, r:34}, ani:{sym:'OH', q:1, cnt:2, r:37}},
+  {name:'水酸化バリウム', formula:'Ba(OH)₂',cat:{sym:'Ba',q:2, cnt:1, r:35}, ani:{sym:'OH', q:1, cnt:2, r:37}},
+  {name:'炭酸ナトリウム', formula:'Na₂CO₃', cat:{sym:'Na',q:1, cnt:2, r:31}, ani:{sym:'CO₃',q:2, cnt:1, r:39}},
+  {name:'硫酸',           formula:'H₂SO₄',  cat:{sym:'H', q:1, cnt:2, r:30}, ani:{sym:'SO₄',q:2, cnt:1, r:39}, bad:['H₂SO₄ → H<sub>2</sub><sup>＋</sup> ＋ SO₄<sup>2−</sup>']}
+];
+var elzIdx=0;
+
+function elzChg(q,isCat){ return (q>1?q:'')+(isCat?'＋':'−'); }
+// 式の中のイオン表記（係数＋記号＋電荷）
+function elzTok(ion,isCat,color){
+  var coef=ion.cnt>1?ion.cnt:'';
+  return '<tspan fill="'+color+'">'+coef+ion.sym+'<tspan font-size="0.6em" dy="-0.5em">'+elzChg(ion.q,isCat)+'</tspan></tspan>';
+}
+
+function elzBuildPick(){
+  var h='';
+  for(var i=0;i<ELZ.length;i++){
+    h+='<div class="zp'+(i===elzIdx?' on':'')+'" id="elzP'+i+'" onclick="elzSelect('+i+')">'+ELZ[i].formula+'</div>';
+  }
+  document.getElementById('elzPick').innerHTML=h;
+}
+
+function elzBuild(animate){
+  var d=ELZ[elzIdx];
+
+  // 構成イオン（陽イオン→陰イオンの順）
+  var ions=[],k;
+  for(var a=0;a<d.cat.cnt;a++) ions.push({sym:d.cat.sym,q:d.cat.q,r:d.cat.r,isCat:true});
+  for(var b=0;b<d.ani.cnt;b++) ions.push({sym:d.ani.sym,q:d.ani.q,r:d.ani.r,isCat:false});
+
+  // 左：原子団（横一列・接して並べる）
+  var LXc=170, LYc=148, gap=3, totalW=0, maxr=0;
+  for(k=0;k<ions.length;k++){ totalW+=ions[k].r*2; if(ions[k].r>maxr)maxr=ions[k].r; }
+  totalW+=gap*(ions.length-1);
+  var run=LXc-totalW/2;
+  for(k=0;k<ions.length;k++){ ions[k].px=run+ions[k].r; ions[k].py=LYc; run+=ions[k].r*2+gap; }
+
+  // 右：陽イオン上段・陰イオン下段
+  var RXc=556, topY=92, botY=222, spread=116, ci=0, ai=0;
+  for(k=0;k<ions.length;k++){
+    if(ions[k].isCat){ ions[k].sx=RXc+(ci-(d.cat.cnt-1)/2)*spread; ions[k].sy=topY; ci++; }
+    else { ions[k].sx=RXc+(ai-(d.ani.cnt-1)/2)*spread; ions[k].sy=botY; ai++; }
+  }
+  // 電子の受け渡しペア（陽イオン原子→陰イオン原子）
+  var srcs=[],tgts=[],x,y;
+  for(k=0;k<ions.length;k++){
+    if(ions[k].isCat){ for(x=0;x<ions[k].q;x++) srcs.push(ions[k]); }
+    else { for(y=0;y<ions[k].q;y++) tgts.push(ions[k]); }
+  }
+
+  var s='';
+  s+='<defs><filter id="elzGE" x="-130%" y="-130%" width="360%" height="360%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
+  // 矢印
+  s+='<text x="378" y="118" text-anchor="middle" font-family="Zen Maru Gothic,sans-serif" font-size="15" fill="#99a3cf">水にとかすと</text>';
+  s+='<line x1="312" y1="148" x2="440" y2="148" stroke="#9aa3c8" stroke-width="4"/>';
+  s+='<polygon points="440,139 464,148 440,157" fill="#9aa3c8"/>';
+
+  function neutralAtom(io,fade){
+    var fs=io.r>34?20:23;
+    var st=fade?' style="animation:zeqFadeOut .5s ease 1.55s forwards"':'';
+    return '<g'+st+'><circle cx="'+io.px+'" cy="'+io.py+'" r="'+io.r+'" fill="#a6b4cf" stroke="rgba(5,10,30,.4)" stroke-width="2"/>'
+      +'<text x="'+io.px+'" y="'+(io.py+1)+'" text-anchor="middle" dominant-baseline="central" font-family="Zen Kaku Gothic New,sans-serif" font-weight="900" font-size="'+fs+'" fill="#10162e">'+io.sym+'</text></g>';
+  }
+  function chargedIon(io,moving){
+    var fs=io.r>34?20:23, fill=io.isCat?'rgba(255,93,99,.92)':'rgba(58,142,205,.95)';
+    var inner='<circle cx="'+io.px+'" cy="'+io.py+'" r="'+io.r+'" fill="'+fill+'" stroke="rgba(5,10,30,.35)" stroke-width="2"/>'
+      +'<text x="'+io.px+'" y="'+(io.py+1)+'" text-anchor="middle" dominant-baseline="central" font-family="Zen Kaku Gothic New,sans-serif" font-weight="900" font-size="'+fs+'" fill="#fff">'+io.sym+'<tspan font-size="0.6em" dy="-0.55em">'+elzChg(io.q,io.isCat)+'</tspan></text>';
+    if(!moving) return '<g filter="url(#elzGE)">'+inner+'</g>';
+    var dx=io.sx-io.px, dy=io.sy-io.py;
+    return '<g style="--dx:'+dx.toFixed(1)+'px;--dy:'+dy.toFixed(1)+'px;opacity:0;animation:zeqAppear .45s ease 1.65s forwards, elzMove .95s cubic-bezier(.5,0,.3,1) 2.1s both" filter="url(#elzGE)">'+inner+'</g>';
+  }
+
+  if(!animate){
+    /* ===== 初期表示：原子団（中性）＋ 電離式 ===== */
+    for(k=0;k<ions.length;k++) s+=neutralAtom(ions[k],false);
+    s+='<text x="'+LXc+'" y="'+(LYc+maxr+30)+'" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="700" font-size="15" fill="#aeb8e0">'+d.name+'（電解質）</text>';
+    s+='<g font-family="Zen Kaku Gothic New,sans-serif" font-weight="900" font-size="30">';
+    s+='<text x="158" y="296" text-anchor="middle" fill="#e8ecff">'+d.formula+'</text>';
+    s+='<text x="246" y="296" text-anchor="middle" fill="#99a3cf">→</text>';
+    s+='<text x="330" y="296" text-anchor="middle">'+elzTok(d.cat,true,'#ff8a8f')+'</text>';
+    s+='<text x="452" y="296" text-anchor="middle"><tspan fill="#99a3cf">＋</tspan> '+elzTok(d.ani,false,'#7fc4ee')+'</text>';
+    s+='</g>';
+  }else{
+    /* ===== 再生：中性原子団 → 電子のやり取り → 電荷が生じる → 右へ分離 ===== */
+    for(k=0;k<ions.length;k++) s+=neutralAtom(ions[k],true);       // グレー原子（あとで消える）
+    for(k=0;k<ions.length;k++) s+=chargedIon(ions[k],true);        // 色つきイオン（出現→右へ移動）
+    // 電子：陽イオン原子 → 陰イオン原子
+    for(k=0;k<srcs.length;k++){
+      var sc=srcs[k], tg=tgts[k];
+      var edx=tg.px-sc.px, edy=tg.py-sc.py, emx=edx*0.4, emy=edy*0.4-46;
+      s+='<g style="--mx:'+emx.toFixed(1)+'px;--my:'+emy.toFixed(1)+'px;--dx:'+edx.toFixed(1)+'px;--dy:'+edy.toFixed(1)+'px;animation:elzEtrans 1.3s ease '+(0.55+k*0.16).toFixed(2)+'s both" filter="url(#elzGE)">'
+        +'<circle cx="'+sc.px+'" cy="'+sc.py+'" r="10" fill="#3ce0ff"/>'
+        +'<text x="'+sc.px+'" y="'+(sc.py+0.5)+'" text-anchor="middle" dominant-baseline="central" font-family="DM Mono,monospace" font-size="12" fill="#08263a" font-weight="500">−</text></g>';
+    }
+    // 化合物名（消える）
+    s+='<text x="'+LXc+'" y="'+(LYc+maxr+30)+'" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="700" font-size="15" fill="#aeb8e0" style="animation:zeqFadeOut .5s ease 1.55s forwards">'+d.name+'（電解質）</text>';
+    // 式（分かれるのに合わせて）
+    s+='<g font-family="Zen Kaku Gothic New,sans-serif" font-weight="900" font-size="30">';
+    s+='<text x="158" y="296" text-anchor="middle" fill="#e8ecff">'+d.formula+'</text>';
+    s+='<g style="opacity:0;animation:zeqAppear .4s ease 2.0s forwards"><text x="246" y="296" text-anchor="middle" fill="#99a3cf">→</text></g>';
+    s+='<g style="opacity:0;animation:zeqAppear .4s ease 2.3s forwards"><text x="330" y="296" text-anchor="middle">'+elzTok(d.cat,true,'#ff8a8f')+'</text></g>';
+    s+='<g style="opacity:0;animation:zeqAppear .4s ease 2.6s forwards"><text x="452" y="296" text-anchor="middle"><tspan fill="#99a3cf">＋</tspan> '+elzTok(d.ani,false,'#7fc4ee')+'</text></g>';
+    s+='</g>';
+  }
+
+  document.getElementById('elzStage').innerHTML=s;
+
+  // 説明
+  var tot=d.cat.cnt*d.cat.q;
+  var catLabel='<b style="color:var(--proton)">'+(d.cat.cnt>1?d.cat.cnt:'')+d.cat.sym+'<sup>'+elzChg(d.cat.q,true)+'</sup></b>';
+  var aniLabel='<b style="color:var(--electron)">'+(d.ani.cnt>1?d.ani.cnt:'')+d.ani.sym+'<sup>'+elzChg(d.ani.q,false)+'</sup></b>';
+  document.getElementById('elzExplain').innerHTML='<b>'+d.name+'（'+d.formula+'）</b>を水にとかすと、'+catLabel+' になる原子から '+aniLabel+' になる原子へ<span class="hl-e">電子</span>が移り、＋と−の電気をもったイオンに分かれる（<b>電離</b>）。＋の合計と−の合計はどちらも <b>'+tot+'個分</b>でつり合っているよ。式：<b>'+d.formula+' → '+(d.cat.cnt>1?d.cat.cnt:'')+d.cat.sym+'<sup>'+elzChg(d.cat.q,true)+'</sup> ＋ '+(d.ani.cnt>1?d.ani.cnt:'')+d.ani.sym+'<sup>'+elzChg(d.ani.q,false)+'</sup></b>';
+}
+
+function elzSelect(i){
+  elzIdx=i;
+  for(var k=0;k<ELZ.length;k++){ var nd=document.getElementById('elzP'+k); if(nd) nd.className='zp'+(k===i?' on':''); }
+  elzBuild(false);
+}
+function elzPlay(){ elzBuild(true); }
+window.elzSelect=elzSelect; window.elzPlay=elzPlay;
+
+elzBuildPick();
+elzBuild(false);
+
+/* ============================================================
+   問題モード：4択クイズ（化学式／電離式／電子のやり取り）＋間違い直し
+   ============================================================ */
+function qSup(q,cat){ return '<sup>'+(q>1?q:'')+(cat?'＋':'−')+'</sup>'; }
+function qIon(f,q,cat){ return f+qSup(q,cat); }
+function qShuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t; } return a; }
+function qChoices(correct,cands){
+  var u=[],i;
+  for(i=0;i<cands.length;i++){ if(cands[i]!==correct && u.indexOf(cands[i])<0) u.push(cands[i]); }
+  u=qShuffle(u).slice(0,3);
+  var list=qShuffle([correct].concat(u));
+  return {list:list, correct:list.indexOf(correct)};
+}
+
+// 出題データ
+var QION=[
+  {name:'ナトリウムイオン',f:'Na',q:1,cat:true},{name:'カリウムイオン',f:'K',q:1,cat:true},
+  {name:'銀イオン',f:'Ag',q:1,cat:true},{name:'水素イオン',f:'H',q:1,cat:true},
+  {name:'銅イオン',f:'Cu',q:2,cat:true},{name:'亜鉛イオン',f:'Zn',q:2,cat:true},
+  {name:'マグネシウムイオン',f:'Mg',q:2,cat:true},{name:'カルシウムイオン',f:'Ca',q:2,cat:true},
+  {name:'バリウムイオン',f:'Ba',q:2,cat:true},{name:'アルミニウムイオン',f:'Al',q:3,cat:true},
+  {name:'アンモニウムイオン',f:'NH₄',q:1,cat:true,bad:['NH₃<sup>＋</sup>']},
+  {name:'塩化物イオン',f:'Cl',q:1,cat:false,bad:['Cl<sub>2</sub><sup>−</sup>']},{name:'酸化物イオン',f:'O',q:2,cat:false},
+  {name:'水酸化物イオン',f:'OH',q:1,cat:false},{name:'硫酸イオン',f:'SO₄',q:2,cat:false,no3:true},
+  {name:'硝酸イオン',f:'NO₃',q:1,cat:false},{name:'炭酸イオン',f:'CO₃',q:2,cat:false,bad:['CO₃<sup>−</sup>']}
+];
+var QTRANS=[
+  {el:'ナトリウム',sym:'Na',q:1,cat:true,z:11},{el:'カリウム',sym:'K',q:1,cat:true,z:19},
+  {el:'マグネシウム',sym:'Mg',q:2,cat:true,z:12},{el:'カルシウム',sym:'Ca',q:2,cat:true,z:20},
+  {el:'アルミニウム',sym:'Al',q:3,cat:true,z:13},{el:'銅',sym:'Cu',q:2,cat:true,z:29},
+  {el:'亜鉛',sym:'Zn',q:2,cat:true,z:30},
+  {el:'塩素',sym:'Cl',q:1,cat:false,z:17},{el:'フッ素',sym:'F',q:1,cat:false,z:9},
+  {el:'酸素',sym:'O',q:2,cat:false,z:8},{el:'硫黄',sym:'S',q:2,cat:false,z:16}
+];
+
+function genFormulaQ(it){
+  var correct=qIon(it.f,it.q,it.cat),i,v;
+  var fillers=[qIon(it.f,it.q,!it.cat), it.f];          // 符号ちがい・電荷なし
+  if(it.q>1) fillers.push(qIon(it.f,it.q-1,it.cat));    // 1つ小さい価数
+  if(!it.no3){ fillers.push(qIon(it.f,it.q+1,it.cat)); fillers.push(qIon(it.f,it.q+1,!it.cat)); } // 1つ大きい価数（no3で除外）
+  var d=[];
+  if(it.bad) for(i=0;i<it.bad.length;i++){ v=it.bad[i]; if(v!==correct && d.indexOf(v)<0) d.push(v); } // 指定の誤答を優先
+  var fs=qShuffle(fillers);
+  for(i=0;i<fs.length && d.length<3;i++){ v=fs[i]; if(v!==correct && d.indexOf(v)<0) d.push(v); }
+  d=d.slice(0,3);
+  var list=qShuffle([correct].concat(d));
+  return {q:'「<b>'+it.name+'</b>」を化学式で表すと？',choices:list,correct:list.indexOf(correct),
+    explain:'<b>'+it.name+'</b>は '+correct+'。'+(it.cat?'＋':'−')+'の電気を'+it.q+'個分もつ'+(it.cat?'陽':'陰')+'イオンだよ。'+(it.f==='NH₄'?'（NH₃は「アンモニア」という別の気体で、イオンではないよ）':'')};
+}
+function elzEq(d){ return d.formula+' → '+(d.cat.cnt>1?d.cat.cnt:'')+qIon(d.cat.sym,d.cat.q,true)+' ＋ '+(d.ani.cnt>1?d.ani.cnt:'')+qIon(d.ani.sym,d.ani.q,false); }
+function genElzQ(d){
+  var correct=elzEq(d),i,v;
+  var cands=[
+    d.formula+' → '+(d.cat.cnt>1?d.cat.cnt:'')+qIon(d.cat.sym,d.cat.q===1?2:1,true)+' ＋ '+(d.ani.cnt>1?d.ani.cnt:'')+qIon(d.ani.sym,d.ani.q,false),
+    d.formula+' → '+qIon(d.cat.sym,d.cat.q,true)+' ＋ '+qIon(d.ani.sym,d.ani.q,false),
+    d.formula+' → '+(d.cat.cnt>1?d.cat.cnt:'')+qIon(d.cat.sym,d.cat.q,true)+' ＋ '+(d.ani.cnt>1?d.ani.cnt:'')+qIon(d.ani.sym,d.ani.q===1?2:1,false),
+    d.formula+' → '+(d.cat.cnt>1?d.cat.cnt:'')+qIon(d.cat.sym,d.cat.q,false)+' ＋ '+(d.ani.cnt>1?d.ani.cnt:'')+qIon(d.ani.sym,d.ani.q,true)
+  ];
+  var dd=[];
+  if(d.bad) for(i=0;i<d.bad.length;i++){ v=d.bad[i]; if(v!==correct && dd.indexOf(v)<0) dd.push(v); } // 指定の誤答を優先
+  var fs=qShuffle(cands);
+  for(i=0;i<fs.length && dd.length<3;i++){ v=fs[i]; if(v!==correct && dd.indexOf(v)<0) dd.push(v); }
+  dd=dd.slice(0,3);
+  var list=qShuffle([correct].concat(dd));
+  return {q:'<b>'+d.name+'</b>（'+d.formula+'）が電離するときの式は？',choices:list,correct:list.indexOf(correct),
+    explain:'正しくは <b>'+correct+'</b>。＋の合計と−の合計（ともに'+(d.cat.cnt*d.cat.q)+'）が等しくなるよ。'+(d.bad?'（H₂やCl₂は「分子」の形。イオンは原子1個ぶんの H⁺・Cl⁻ などになるよ）':'')};
+}
+function genTransQ(it){
+  var s=it.sym, q=it.q, cat=it.cat;
+  function eU(n){ return (n>1?n:'')+'e<sup>−</sup>'; }
+  function ip(n,sign){ return s+'<sup>'+(n>1?n:'')+(sign>0?'＋':'−')+'</sup>'; }
+  var q2=(q===1?2:q-1), qe=(q===1?2:q+1), correct, cands;
+  if(cat){
+    correct = s+' → '+ip(q,1)+' ＋ '+eU(q);                       // 例 Zn → Zn²⁺ ＋ 2e⁻
+    cands=[ s+' → '+ip(q2,1)+' ＋ '+eU(q2),                       // 価数・電子数ちがい
+            s+' ＋ '+eU(q)+' → '+ip(q,-1),                        // 向きちがい（受け取って陰イオン）
+            ip(q,1)+' ＋ '+eU(q)+' → '+s,                         // 逆向き
+            s+' → '+ip(q,1)+' ＋ '+eU(qe) ];                      // 電子数だけちがい
+  }else{
+    correct = s+' ＋ '+eU(q)+' → '+ip(q,-1);                      // 例 O ＋ 2e⁻ → O²⁻
+    cands=[ s+' ＋ '+eU(q2)+' → '+ip(q2,-1),
+            s+' → '+ip(q,1)+' ＋ '+eU(q),                         // 向きちがい（失って陽イオン）
+            ip(q,-1)+' → '+s+' ＋ '+eU(q),                        // 逆向き
+            s+' ＋ '+eU(qe)+' → '+ip(q,-1) ];                     // 電子数だけちがい
+  }
+  var c=qChoices(correct,cands);
+  return {q:'<b>'+it.el+'</b>が'+(cat?'陽':'陰')+'イオンになる変化を式で表すと？',choices:c.list,correct:c.correct,
+    anim:{sym:it.sym,name:it.el,z:it.z,q:it.q,type:it.cat?'cation':'anion'},
+    explain:'正しくは <b>'+correct+'</b>。'+it.el+'は電子（−）を '+q+'個 '+(cat?'<b>失って</b> '+ip(q,1)+'（陽イオン）':'<b>受け取って</b> '+ip(q,-1)+'（陰イオン）')+'になるよ。下の図で動きを確認しよう。'};
+}
+
+var quizQueue=[],quizPos=0,quizScore=0,quizWrong=[],quizType='',quizReview=false,quizAnswered=false,quizSel=[];
+
+var BATTERY={ primary:['アルカリマンガン乾電池','リチウム電池','空気亜鉛電池'], secondary:['鉛蓄電池','リチウムイオン電池','ニッケル水素電池'] };
+function batterySelectAll(target){
+  var P=BATTERY.primary, S=BATTERY.secondary;
+  var tgt=target==='primary'?P:S, oth=target==='primary'?S:P;
+  var nt=1+Math.floor(Math.random()*3); var no=4-nt; if(no<1){nt=3;no=1;}
+  var picked=qShuffle(tgt).slice(0,nt).concat(qShuffle(oth).slice(0,no));
+  var choices=qShuffle(picked), correctSet=[], i;
+  for(i=0;i<choices.length;i++) if(tgt.indexOf(choices[i])>=0) correctSet.push(i);
+  var label=target==='primary'?'一次電池':'二次電池';
+  return {q:'次のうち、<b>'+label+'</b>を全てえらびましょう。',choices:choices,multi:true,correctSet:correctSet,
+    explain:'<b>一次電池</b>（使い切り）＝アルカリマンガン乾電池・リチウム電池・空気亜鉛電池。<b>二次電池</b>（充電してくり返し使える）＝鉛蓄電池・リチウムイオン電池・ニッケル水素電池。'};
+}
+function batteryMakeQs(){
+  var out=[], P=BATTERY.primary, S=BATTERY.secondary;
+  P.forEach(function(n){ var c=qShuffle(['一次電池','二次電池']);
+    out.push({q:'<b>'+n+'</b>は、一次電池・二次電池のどちら？',choices:c,correct:c.indexOf('一次電池'),
+      explain:'<b>'+n+'</b>は使い切りタイプの<b>一次電池</b>だよ。'}); });
+  S.forEach(function(n){ var c=qShuffle(['一次電池','二次電池']);
+    out.push({q:'<b>'+n+'</b>は、一次電池・二次電池のどちら？',choices:c,correct:c.indexOf('二次電池'),
+      explain:'<b>'+n+'</b>は充電してくり返し使える<b>二次電池</b>だよ。'}); });
+  out.push(batterySelectAll('primary'), batterySelectAll('primary'));
+  out.push(batterySelectAll('secondary'), batterySelectAll('secondary'));
+  return qShuffle(out);
+}
+function quizMakeQueue(type){
+  var qs=[],i;
+  if(type==='formula'||type==='mix') for(i=0;i<QION.length;i++) qs.push(genFormulaQ(QION[i]));
+  if(type==='elz'||type==='mix') for(i=0;i<ELZ.length;i++) qs.push(genElzQ(ELZ[i]));
+  if(type==='transfer'||type==='mix') for(i=0;i<QTRANS.length;i++) qs.push(genTransQ(QTRANS[i]));
+  if(type==='elc'||type==='mix') qs=qs.concat(elcMakeQs());
+  if(type==='dani'||type==='mix') qs=qs.concat(daniMakeQs());
+  if(type==='battery'||type==='mix') qs=qs.concat(batteryMakeQs());
+  qs=qShuffle(qs);
+  var lim=type==='mix'?18:(type==='elc'?12:(type==='dani'?12:10));
+  return qs.slice(0,lim);
+}
+function quizView(v){
+  document.getElementById('quizStart').className=(v==='start'?'':'is-hidden');
+  document.getElementById('quizPlay').className=(v==='play'?'':'is-hidden');
+  document.getElementById('quizResult').className=(v==='result'?'':'is-hidden');
+}
+function quizStart(type){
+  quizType=type; quizReview=false;
+  quizQueue=quizMakeQueue(type); quizPos=0; quizScore=0; quizWrong=[];
+  quizView('play'); quizShow();
+}
+function quizReviewStart(){
+  quizReview=true; quizQueue=qShuffle(quizWrong); quizPos=0; quizScore=0; quizWrong=[];
+  quizView('play'); quizShow();
+}
+function quizShow(){
+  quizAnswered=false; quizSel=[];
+  var it=quizQueue[quizPos];
+  document.getElementById('quizProg').innerHTML='第'+(quizPos+1)+'問 / '+quizQueue.length+'問'+(quizReview?'（間違い直し）':'');
+  document.getElementById('quizScore').innerHTML='正解 '+quizScore;
+  document.getElementById('quizQ').innerHTML=it.q+(it.multi?'<span class="multi-hint">（あてはまるものを全部えらんでね）</span>':'');
+  var ch='';
+  for(var i=0;i<it.choices.length;i++){
+    var fn=it.multi?('quizToggle('+i+')'):('quizAnswer('+i+')');
+    ch+='<button class="choice" id="quizCh'+i+'" onclick="'+fn+'">'+it.choices[i]+'</button>';
+  }
+  if(it.multi) ch+='<button class="btn give quiz-check" id="quizCheckBtn" onclick="quizCheckMulti()">答え合わせ</button>';
+  document.getElementById('quizChoices').innerHTML=ch;
+  var fb=document.getElementById('quizFb'); fb.className='quiz-fb'; fb.innerHTML='';
+  document.getElementById('quizNextBtn').className='btn give is-hidden';
+}
+function quizToggle(i){
+  if(quizAnswered) return;
+  quizSel[i]=!quizSel[i];
+  document.getElementById('quizCh'+i).className='choice'+(quizSel[i]?' sel':'');
+}
+function quizCheckMulti(){
+  if(quizAnswered) return; quizAnswered=true;
+  var it=quizQueue[quizPos], cs=it.correctSet, k, allOk=true;
+  for(k=0;k<it.choices.length;k++){
+    var b=document.getElementById('quizCh'+k); b.disabled=true;
+    var isCor=cs.indexOf(k)>=0, picked=!!quizSel[k];
+    if(isCor&&picked) b.className='choice correct';
+    else if(isCor&&!picked){ b.className='choice miss'; allOk=false; }
+    else if(!isCor&&picked){ b.className='choice wrong'; allOk=false; }
+    else b.className='choice dim';
+  }
+  var cb=document.getElementById('quizCheckBtn'); if(cb) cb.className='btn give quiz-check is-hidden';
+  var fb=document.getElementById('quizFb');
+  if(allOk){ quizScore++; fb.className='quiz-fb ok'; fb.innerHTML='<b>○ 正解！</b> '+it.explain; }
+  else { quizWrong.push(it); fb.className='quiz-fb ng'; fb.innerHTML='<b>× おしい…</b> 緑のものが正解だよ。'+it.explain; }
+  document.getElementById('quizScore').innerHTML='正解 '+quizScore;
+  document.getElementById('quizNextBtn').className='btn give';
+}
+function quizAnswer(i){
+  if(quizAnswered) return; quizAnswered=true;
+  var it=quizQueue[quizPos], cor=it.correct, k;
+  for(k=0;k<it.choices.length;k++){
+    var b=document.getElementById('quizCh'+k); b.disabled=true;
+    b.className='choice '+(k===cor?'correct':(k===i?'wrong':'dim'));
+  }
+  var fb=document.getElementById('quizFb');
+  if(i===cor){ quizScore++; fb.className='quiz-fb ok'; fb.innerHTML='<b>○ 正解！</b> '+it.explain; }
+  else { quizWrong.push(it); fb.className='quiz-fb ng'; fb.innerHTML='<b>× ざんねん…</b> '+it.explain; }
+  document.getElementById('quizScore').innerHTML='正解 '+quizScore;
+  if(it.anim){
+    var animHTML='<div class="quiz-anim" id="quizAnim">'
+      +'<div class="quiz-anim-top"><span class="quiz-anim-label">受け渡しの動き</span>'
+      +'<button class="anim-replay" onclick="quizReplayAnim()">▶ もう一度再生</button></div>'
+      +'<svg id="quizAnimStage" viewBox="0 0 720 320" aria-label="電子の受け渡しのアニメ"></svg></div>';
+    document.getElementById('quizCh'+i).insertAdjacentHTML('afterend', animHTML); // 選んだ選択肢の直下に差し込む
+    zeqBuild(true, it.anim, 'quizAnimStage');
+  }
+  document.getElementById('quizNextBtn').className='btn give';
+}
+function quizNext(){ quizPos++; if(quizPos>=quizQueue.length) quizResult(); else quizShow(); }
+function quizReplayAnim(){ var it=quizQueue[quizPos]; if(it && it.anim) zeqBuild(true, it.anim, 'quizAnimStage'); }
+function quizResult(){
+  quizView('result');
+  var n=quizQueue.length,m=quizScore,pct=Math.round(m/n*100);
+  document.getElementById('quizResultText').innerHTML='<div class="quiz-score-big">'+m+' / '+n+' 問 正解！</div><div class="quiz-score-sub">正答率 '+pct+'％'+(m===n?' — 全問正解！すばらしい！':'')+'</div>';
+  var b='';
+  if(quizWrong.length>0) b+='<button class="btn give" onclick="quizReviewStart()">✏ 間違い直し（'+quizWrong.length+'問）</button>';
+  b+='<button class="btn ghost" onclick="quizStart(quizType)">同じ種類でもう一度</button>';
+  b+='<button class="btn ghost" onclick="quizView(\'start\')">種類をえらぶ</button>';
+  document.getElementById('quizResultBtns').innerHTML=b;
+}
+window.quizStart=quizStart; window.quizAnswer=quizAnswer; window.quizNext=quizNext; window.quizReviewStart=quizReviewStart; window.quizView=quizView; window.quizReplayAnim=quizReplayAnim;
+quizView('start');
+
+/* ============================================================
+   電気分解（塩酸・塩化銅）：ビーカー／電極の反応／全体の反応
+   ============================================================ */
+var ELC={
+  hcl:{ name:'塩酸', formula:'HCl', solColor:'rgba(150,205,150,.16)',
+    cathode:{ rsym:'H', rq:1, count:2, ne:2, gain:true,  prod:{sym:'H', n:2, gas:true,  fill:'#a6b4cf', label:'H₂'},
+      eq:'2H<sup>＋</sup> ＋ 2e<sup>−</sup> → H<sub>2</sub>',
+      ex:'陽イオンの <b>H⁺</b> が陰極に来て電子を受け取り、2個まとまって<b>水素 H₂（気体）</b>になり、あわとなって発生する。' },
+    anode:{ rsym:'Cl', rq:1, count:2, ne:2, gain:false, prod:{sym:'Cl', n:2, gas:true, fill:'#a6b4cf', label:'Cl₂'},
+      eq:'2Cl<sup>−</sup> → Cl<sub>2</sub> ＋ 2e<sup>−</sup>',
+      ex:'陰イオンの <b>Cl⁻</b> が陽極に来て電子をわたし、2個まとまって<b>塩素 Cl₂（気体）</b>になり、あわとなって発生する。' },
+    overall:'2HCl → H<sub>2</sub> ＋ Cl<sub>2</sub>',
+    overEx:'塩酸を電気分解すると、<b style="color:#ff8a8f">陰極から水素</b>、<b style="color:#7fc4ee">陽極から塩素</b>が発生する。' },
+  cucl2:{ name:'塩化銅', formula:'CuCl₂', solColor:'rgba(90,170,210,.20)',
+    cathode:{ rsym:'Cu', rq:2, count:1, ne:2, gain:true, prod:{sym:'Cu', n:1, gas:false, fill:'#c4855a', label:'Cu'},
+      eq:'Cu<sup>2＋</sup> ＋ 2e<sup>−</sup> → Cu',
+      ex:'陽イオンの <b>Cu²⁺</b> が陰極に来て電子を2個受け取り、<b>銅 Cu（金属）</b>になって電極の表面につく。' },
+    anode:{ rsym:'Cl', rq:1, count:2, ne:2, gain:false, prod:{sym:'Cl', n:2, gas:true, fill:'#a6b4cf', label:'Cl₂'},
+      eq:'2Cl<sup>−</sup> → Cl<sub>2</sub> ＋ 2e<sup>−</sup>',
+      ex:'陰イオンの <b>Cl⁻</b> が陽極に来て電子をわたし、2個まとまって<b>塩素 Cl₂（気体）</b>になる。' },
+    overall:'CuCl₂ → Cu ＋ Cl<sub>2</sub>',
+    overEx:'塩化銅を電気分解すると、<b style="color:#c4855a">陰極に銅が付着</b>し、<b style="color:#7fc4ee">陽極から塩素</b>が発生する。' }
+};
+var elcKey='hcl';
+
+function elcJp(l){ return {'H₂':'水素','Cl₂':'塩素','Cu':'銅','O₂':'酸素'}[l]||l; }
+var ELC_SUBS=[{n:'水素',f:'H<sub>2</sub>'},{n:'塩素',f:'Cl<sub>2</sub>'},{n:'銅',f:'Cu'},{n:'酸素',f:'O<sub>2</sub>'},{n:'水',f:'H<sub>2</sub>O'}];
+function elcProdInfo(l){ return {'H₂':{n:'水素',f:'H<sub>2</sub>'},'Cl₂':{n:'塩素',f:'Cl<sub>2</sub>'},'Cu':{n:'銅',f:'Cu'}}[l]||{n:l,f:l}; }
+function elcMix(correct, forced, fillers){
+  var d=[],i,v;
+  for(i=0;i<forced.length;i++){ v=forced[i]; if(v!==correct&&d.indexOf(v)<0)d.push(v); } // 指定の惑わし（名称⇔化学式）を必ず入れる
+  var fs=qShuffle(fillers);
+  for(i=0;i<fs.length&&d.length<3;i++){ v=fs[i]; if(v!==correct&&d.indexOf(v)<0)d.push(v); }
+  d=d.slice(0,3);
+  var list=qShuffle([correct].concat(d));
+  return {list:list, correct:list.indexOf(correct)};
+}
+function daniMakeQs(){
+  var out=[];
+  var a1=qChoices('−極・ぼろぼろになり細くなる', ['＋極・銅が付着する','−極・銅が付着する','＋極・ぼろぼろになり細くなる']);
+  out.push({q:'ダニエル電池の<b>亜鉛板</b>は何極で、表面はどうなる？',choices:a1.list,correct:a1.correct,
+    explain:'亜鉛板は<b>−極</b>。Zn が Zn²⁺ になってとけ出すので、表面は<b>ぼろぼろになり細く</b>なるよ。'});
+  var a2=qChoices('＋極・銅が付着して厚くなる', ['−極・ぼろぼろになり細くなる','＋極・ぼろぼろになり細くなる','−極・銅が付着して厚くなる']);
+  out.push({q:'ダニエル電池の<b>銅板</b>は何極で、表面はどうなる？',choices:a2.list,correct:a2.correct,
+    explain:'銅板は<b>＋極</b>。Cu²⁺ が電子を受け取って銅になり、表面に<b>付着して厚く</b>なるよ。'});
+  var a3=qChoices('亜鉛板', ['銅板','どちらでもよい','セロハン']);
+  out.push({q:'ダニエル電池で<b>−極</b>になるのはどちらの板？',choices:a3.list,correct:a3.correct,
+    explain:'電子を出して（とけて）いく<b>亜鉛板</b>が−極だよ。'});
+  var a4=qChoices('銅板', ['亜鉛板','どちらでもよい','セロハン']);
+  out.push({q:'ダニエル電池で<b>＋極</b>になるのはどちらの板？',choices:a4.list,correct:a4.correct,
+    explain:'電子を受け取って銅が付着する<b>銅板</b>が＋極だよ。'});
+  var a5=qChoices('Zn → Zn<sup>2＋</sup> ＋ 2e<sup>−</sup>', ['Zn<sup>2＋</sup> ＋ 2e<sup>−</sup> → Zn','Cu<sup>2＋</sup> ＋ 2e<sup>−</sup> → Cu','Zn ＋ 2e<sup>−</sup> → Zn<sup>2＋</sup>']);
+  out.push({q:'<b>亜鉛板（−極）</b>で起こる反応を、電子を使った式で表すと？',choices:a5.list,correct:a5.correct,
+    explain:'亜鉛が電子を2個<b>失って</b>イオンになる：<b>Zn → Zn²⁺ ＋ 2e⁻</b>'});
+  var a6=qChoices('Cu<sup>2＋</sup> ＋ 2e<sup>−</sup> → Cu', ['Cu → Cu<sup>2＋</sup> ＋ 2e<sup>−</sup>','Zn → Zn<sup>2＋</sup> ＋ 2e<sup>−</sup>','Cu<sup>2＋</sup> → Cu ＋ 2e<sup>−</sup>']);
+  out.push({q:'<b>銅板（＋極）</b>で起こる反応を、電子を使った式で表すと？',choices:a6.list,correct:a6.correct,
+    explain:'銅イオンが電子を2個<b>受け取って</b>銅になる：<b>Cu²⁺ ＋ 2e⁻ → Cu</b>'});
+  var a7=qChoices('亜鉛板 → 銅板', ['銅板 → 亜鉛板','電子は流れない','両方向に流れる']);
+  out.push({q:'導線の中を<b>電子</b>はどちら向きに流れる？',choices:a7.list,correct:a7.correct,
+    explain:'電子は−極の<b>亜鉛板から＋極の銅板へ</b>流れるよ。（電流の向きはこれと逆）'});
+  var a8=qChoices('青色がうすくなる', ['青色が濃くなる','色は変わらない','赤色になる']);
+  out.push({q:'使い続けると<b>硫酸銅水溶液</b>の色はどうなる？',choices:a8.list,correct:a8.correct,
+    explain:'青色のもとである Cu²⁺ が減って銅になるので、<b>青色はうすく</b>なっていくよ。'});
+  var a9=qChoices('やがて回転が止まる', ['だんだん速くなる','ずっと同じ速さ','逆向きに回り出す']);
+  out.push({q:'<b>使い続ける</b>とプロペラの回転はどうなる？',choices:a9.list,correct:a9.correct,
+    explain:'亜鉛がとけつくしたり Cu²⁺ が減ると電流が流れなくなり、<b>やがて止まる</b>よ。'});
+  var a10=qChoices('逆向きに回る', ['同じ向きに速く回る','止まったまま','変わらない']);
+  out.push({q:'導線のつなぎ方を<b>逆</b>にすると、プロペラの回転はどうなる？',choices:a10.list,correct:a10.correct,
+    explain:'電流の向きが逆になるので、プロペラは<b>逆向き</b>に回るよ。'});
+  var a11=qChoices('イオンは通すが、2つの水溶液がすぐ混ざるのを防ぐ', ['電子を導線のように通す','水を蒸発させる','銅板を支えるため']);
+  out.push({q:'<b>セロハン（しきり）</b>の役割は？',choices:a11.list,correct:a11.correct,
+    explain:'セロハンには小さな穴があり、<b>イオンは通すが2つの水溶液はすぐ混ざらない</b>。電気的なかたよりを防いで、電流を流し続けられるよ。'});
+  var a12=qChoices('Zn ＋ Cu<sup>2＋</sup> → Zn<sup>2＋</sup> ＋ Cu', ['Cu ＋ Zn<sup>2＋</sup> → Cu<sup>2＋</sup> ＋ Zn','Zn ＋ Cu → Zn<sup>2＋</sup> ＋ Cu<sup>2＋</sup>','Zn<sup>2＋</sup> ＋ Cu → Zn ＋ Cu<sup>2＋</sup>']);
+  out.push({q:'ダニエル電池<b>全体</b>で起こる反応の式は？',choices:a12.list,correct:a12.correct,
+    explain:'亜鉛がとけて銅が付着する：<b>Zn ＋ Cu²⁺ → Zn²⁺ ＋ Cu</b>'});
+  return qShuffle(out);
+}
+function elcMakeQs(){
+  var out=[], keys=['hcl','cucl2'], k;
+  var names=ELC_SUBS.map(function(s){return s.n;}), forms=ELC_SUBS.map(function(s){return s.f;});
+  function prodQs(d, elJp, label, ionDesc){
+    var pi=elcProdInfo(label);
+    // (1) 化学式で答える：選択肢に名称も混ぜ、正解の「名称」を必ず惑わしに入れる
+    var ff=forms.filter(function(x){return x!==pi.f;}).concat(names.filter(function(x){return x!==pi.n;}));
+    var cf=elcMix(pi.f, [pi.n], ff);
+    out.push({q:'<b>'+d.name+'</b>を電気分解したとき、<b>'+elJp+'</b>に出てくる物質を<b>化学式</b>で答えなさい。',choices:cf.list,correct:cf.correct,
+      explain:elJp+'では'+ionDesc+'、<b>'+pi.n+'（'+pi.f+'）</b>ができる。化学式は <b>'+pi.f+'</b>。（'+pi.n+'は名前だよ）'});
+    // (2) 名称で答える：選択肢に化学式も混ぜ、正解の「化学式」を必ず惑わしに入れる
+    var nf=names.filter(function(x){return x!==pi.n;}).concat(forms.filter(function(x){return x!==pi.f;}));
+    var cn=elcMix(pi.n, [pi.f], nf);
+    out.push({q:'<b>'+d.name+'</b>を電気分解したとき、<b>'+elJp+'</b>に出てくる物質を<b>名前（名称）</b>で答えなさい。',choices:cn.list,correct:cn.correct,
+      explain:elJp+'では'+ionDesc+'、<b>'+pi.n+'（'+pi.f+'）</b>ができる。名前は <b>'+pi.n+'</b>。（'+pi.f+'は化学式だよ）'});
+  }
+  for(k=0;k<keys.length;k++){
+    var d=ELC[keys[k]], catP=elcJp(d.cathode.prod.label), anP=elcJp(d.anode.prod.label);
+    prodQs(d, '陰極', d.cathode.prod.label, '<b>陽イオン</b>が電子を受け取って');
+    prodQs(d, '陽極', d.anode.prod.label, '<b>陰イオン</b>が電子をわたして');
+    var catBad=keys[k]==='hcl'
+      ?['2H<sup>＋</sup> → H<sub>2</sub> ＋ 2e<sup>−</sup>','H<sup>＋</sup> ＋ e<sup>−</sup> → H<sub>2</sub>','2Cl<sup>−</sup> → Cl<sub>2</sub> ＋ 2e<sup>−</sup>']
+      :['Cu<sup>2＋</sup> → Cu ＋ 2e<sup>−</sup>','Cu<sup>2＋</sup> ＋ e<sup>−</sup> → Cu','2Cl<sup>−</sup> → Cl<sub>2</sub> ＋ 2e<sup>−</sup>'];
+    var c3=qChoices(d.cathode.eq, catBad);
+    out.push({q:'<b>'+d.name+'</b>の電気分解で、<b>陰極</b>で起こる反応は？',choices:c3.list,correct:c3.correct,
+      explain:'陰極では陽イオンが電子を<b>受け取る</b>：<b>'+d.cathode.eq+'</b>'});
+    var anBad=['2Cl<sup>−</sup> ＋ 2e<sup>−</sup> → Cl<sub>2</sub>','Cl<sup>−</sup> → Cl<sub>2</sub> ＋ e<sup>−</sup>',d.cathode.eq];
+    var c4=qChoices(d.anode.eq, anBad);
+    out.push({q:'<b>'+d.name+'</b>の電気分解で、<b>陽極</b>で起こる反応は？',choices:c4.list,correct:c4.correct,
+      explain:'陽極では陰イオンが電子を<b>わたす</b>：<b>'+d.anode.eq+'</b>'});
+    var ovBad=keys[k]==='hcl'
+      ?['HCl → H<sub>2</sub> ＋ Cl<sub>2</sub>','2HCl → 2H ＋ 2Cl','HCl → H<sup>＋</sup> ＋ Cl<sup>−</sup>']
+      :['CuCl₂ → Cu ＋ 2Cl','CuCl₂ → Cu<sup>2＋</sup> ＋ Cl<sub>2</sub>','CuCl₂ → Cu<sup>2＋</sup> ＋ 2Cl<sup>−</sup>'];
+    var c5=qChoices(d.overall, ovBad);
+    out.push({q:'<b>'+d.name+'</b>（'+d.formula+'）を電気分解したときの化学反応式は？',choices:c5.list,correct:c5.correct,
+      explain:'全体では <b>'+d.overall+'</b>。陰極で'+catP+'、陽極で'+anP+'ができるよ。'});
+  }
+  return qShuffle(out);
+}
+
+function elcAtom(cx,cy,sym,r,fill){
+  return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+fill+'" stroke="rgba(5,10,30,.4)" stroke-width="2"/>'
+    +'<text x="'+cx+'" y="'+(cy+1)+'" text-anchor="middle" dominant-baseline="central" font-family="Zen Kaku Gothic New,sans-serif" font-weight="900" font-size="'+(r*0.82)+'" fill="#10162e">'+sym+'</text>';
+}
+function elcIon(cx,cy,sym,q,cat,r){
+  var fill=cat?'rgba(255,93,99,.95)':'rgba(58,142,205,.96)';
+  var sup='<tspan font-size="0.6em" dy="-0.5em">'+(q>1?q:'')+(cat?'＋':'−')+'</tspan>';
+  return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+fill+'" stroke="rgba(5,10,30,.35)" stroke-width="2"/>'
+    +'<text x="'+cx+'" y="'+(cy+1)+'" text-anchor="middle" dominant-baseline="central" font-family="Zen Kaku Gothic New,sans-serif" font-weight="900" font-size="'+(r*0.78)+'" fill="#fff">'+sym+sup+'</text>';
+}
+function elcMol(cx,cy,p,r){ // p.n=1 原子, 2 分子
+  if(p.n===2){ var dx=r*0.8;
+    return '<line x1="'+(cx-dx)+'" y1="'+cy+'" x2="'+(cx+dx)+'" y2="'+cy+'" stroke="#7b88a6" stroke-width="6"/>'
+      +elcAtom(cx-dx,cy,p.sym,r,p.fill)+elcAtom(cx+dx,cy,p.sym,r,p.fill);
+  }
+  return elcAtom(cx,cy,p.sym,r,p.fill);
+}
+
+/* --- ビーカー全体 --- */
+function elcBeaker(animate){
+  var d=ELC[elcKey];
+  var LEX=210, REX=430, eW=18, eTop=118, eBot=412; // 電極 左=陰極 右=陽極（間隔を広く）
+  var s='';
+  // 電源装置＋導線
+  s+='<rect x="208" y="22" width="224" height="38" rx="9" fill="#2a3257" stroke="#5566a0" stroke-width="2"/>';
+  s+='<text x="320" y="47" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="700" font-size="15" fill="#cfd6f5">電源装置</text>';
+  s+='<text x="232" y="48" text-anchor="middle" font-weight="900" font-size="19" fill="#9fd2ff">−</text>';
+  s+='<text x="408" y="48" text-anchor="middle" font-weight="900" font-size="19" fill="#ff8a8f">＋</text>';
+  s+='<path d="M'+LEX+',60 V'+eTop+'" stroke="#d0d0d0" stroke-width="3" fill="none"/>';
+  s+='<path d="M'+REX+',60 V'+eTop+'" stroke="#d0d0d0" stroke-width="3" fill="none"/>';
+  // ビーカー（横長）
+  s+='<path d="M96,152 L116,452 L524,452 L544,152" fill="none" stroke="#8a96b8" stroke-width="4" stroke-linejoin="round"/>';
+  s+='<path d="M106,208 L120,446 L520,446 L534,208 Z" fill="'+d.solColor+'"/>';
+  s+='<line x1="106" y1="208" x2="534" y2="208" stroke="#bcd6ea" stroke-width="2" opacity=".7"/>';
+  // 電極
+  s+='<rect x="'+(LEX-eW/2)+'" y="'+eTop+'" width="'+eW+'" height="'+(eBot-eTop)+'" rx="3" fill="#9aa3b5" stroke="rgba(5,10,30,.4)" stroke-width="2"/>';
+  s+='<rect x="'+(REX-eW/2)+'" y="'+eTop+'" width="'+eW+'" height="'+(eBot-eTop)+'" rx="3" fill="#9aa3b5" stroke="rgba(5,10,30,.4)" stroke-width="2"/>';
+  s+='<text x="'+LEX+'" y="108" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="800" font-size="34" fill="#9fd2ff">陰極</text>';
+  s+='<text x="'+REX+'" y="108" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="800" font-size="34" fill="#ff9da1">陽極</text>';
+  // 銅の付着（陰極が金属のとき）
+  if(d.cathode.prod.gas===false){
+    s+='<rect x="'+(LEX-13)+'" y="250" width="26" height="155" rx="4" fill="'+d.cathode.prod.fill+'" opacity=".9" style="animation:zeqAppear .8s ease 1.9s both"/>';
+    s+='<text x="'+LEX+'" y="240" text-anchor="middle" font-weight="800" font-size="24" fill="#e7b48f" style="animation:zeqAppear .6s ease 2s both">Cu</text>';
+  }
+  // 気体のあわ＋ラベル
+  function gasAt(ex,label,color){
+    var g='';
+    for(var i=0;i<3;i++){
+      var bx=ex-7+i*7, dly=(1.9+i*0.35);
+      g+='<circle cx="'+bx+'" cy="398" r="'+(6+i)+'" fill="#dff3ff" opacity="0" style="--by:-178px;--bx:'+((i-1)*5)+'px;animation:elcBubble 1.7s ease '+dly+'s infinite"/>';
+    }
+    g+='<text x="'+ex+'" y="196" text-anchor="middle" font-weight="800" font-size="32" fill="'+color+'" style="animation:zeqAppear .6s ease 2.1s both">'+label+' ↑</text>';
+    return g;
+  }
+  var prod='';
+  if(d.cathode.prod.gas) prod+=gasAt(LEX, d.cathode.prod.label, '#9fd2ff');
+  prod+=gasAt(REX, d.anode.prod.label, '#ff9da1');
+  // イオン（陽イオン2＝赤・左へ／陰イオン2＝青・右へ）粒を大きく
+  var catSym=d.cathode.rsym, catQ=d.cathode.rq, aniSym=d.anode.rsym, aniQ=d.anode.rq;
+  var catStart=[[300,292],[284,362]], catEnd=[[262,278],[262,350]];
+  var aniStart=[[352,256],[368,340]], aniEnd=[[380,278],[380,350]];
+  var R=23, ions='';
+  for(var c=0;c<2;c++){
+    var dx=catEnd[c][0]-catStart[c][0], dy=catEnd[c][1]-catStart[c][1];
+    ions+='<g style="--dx:'+dx+'px;--dy:'+dy+'px;animation:elcDrift 1.3s ease '+(0.4+c*0.15)+'s both">'+elcIon(catStart[c][0],catStart[c][1],catSym,catQ,true,R)+'</g>';
+  }
+  for(var a=0;a<2;a++){
+    var ax=aniEnd[a][0]-aniStart[a][0], ay=aniEnd[a][1]-aniStart[a][1];
+    ions+='<g style="--dx:'+ax+'px;--dy:'+ay+'px;animation:elcDrift 1.3s ease '+(0.4+a*0.15)+'s both">'+elcIon(aniStart[a][0],aniStart[a][1],aniSym,aniQ,false,R)+'</g>';
+  }
+  var st=document.getElementById('elcStage');
+  if(animate) st.classList.remove('elc-start'); else st.classList.add('elc-start');
+  st.innerHTML=s+prod+ions;
+}
+
+/* --- 電極の反応（電子のやり取り風） --- */
+function elcHalf(stageId, eqId, h, animate){
+  var R=23, ionX=72, arrowX=128, prodX=256, midY=75, barX=338, dx=R*0.8;
+  var cat=h.gain, n=h.prod.n;
+  var ionPos=(h.count===2)?[[ionX,46],[ionX,104]]:[[ionX,75]];
+  var prodPos=(n===2)?[[prodX-dx,midY],[prodX+dx,midY]]:[[prodX,midY]];
+  var s='';
+  // 電極（右）＋ラベル
+  s+='<rect x="'+barX+'" y="12" width="18" height="120" rx="3" fill="#9aa3b5" stroke="rgba(5,10,30,.4)" stroke-width="2"/>';
+  s+='<text x="'+(barX+9)+'" y="148" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="700" font-size="13" fill="'+(cat?'#9fd2ff':'#ff9da1')+'">'+(cat?'陰極':'陽極')+'</text>';
+  // 矢印
+  s+='<line x1="'+arrowX+'" y1="'+midY+'" x2="'+(arrowX+44)+'" y2="'+midY+'" stroke="#9aa3c8" stroke-width="4"/><polygon points="'+(arrowX+44)+','+(midY-9)+' '+(arrowX+62)+','+midY+' '+(arrowX+44)+','+(midY+9)+'" fill="#9aa3c8"/>';
+  // 反応物イオン（左・色つき）→ 電子を受け渡したら消える（最後は左が空）
+  for(var i=0;i<ionPos.length;i++)
+    s+='<g style="animation:zeqFadeOut .3s ease 1.15s both">'+elcIon(ionPos[i][0],ionPos[i][1],h.rsym,h.rq,cat,R)+'</g>';
+  // 中性原子：イオンの位置に出現 → 右へ移動 → 分子/原子になる
+  for(var a=0;a<ionPos.length;a++){
+    var from=ionPos[a], to=prodPos[a];
+    s+='<g style="--dx:'+(to[0]-from[0])+'px;--dy:'+(to[1]-from[1])+'px;animation:zeqAppear .35s ease 1.0s both, elcDrift .8s ease 1.4s both">'+elcAtom(from[0],from[1],h.prod.sym,R,h.prod.fill)+'</g>';
+  }
+  // 電子（陰極：電極→イオン／陽極：イオン→電極）
+  for(var e=0;e<h.ne;e++){
+    var ip=ionPos[h.count===2?e:0], off=(h.count===1)?(e===0?-13:13):0;
+    var iSide=ip[0]+R+5, iY=ip[1]+off;
+    if(cat){ var fx=barX-6, fy=midY;
+      s+='<g style="--dx:'+(iSide-fx)+'px;--dy:'+(iY-fy)+'px;animation:elcDrift .8s ease '+(0.3+e*0.15)+'s both, zeqFadeOut .3s ease 1.05s both">'+elcElec(fx,fy)+'</g>';
+    }else{ var tx=barX-6, ty=midY;
+      s+='<g style="--dx:'+(tx-iSide)+'px;--dy:'+(ty-iY)+'px;animation:elcDrift .8s ease '+(0.3+e*0.15)+'s both, zeqFadeOut .3s ease 1.05s both">'+elcElec(iSide,iY)+'</g>';
+    }
+  }
+  var st=document.getElementById(stageId);
+  if(animate) st.classList.remove('elc-static'); else st.classList.add('elc-static');
+  st.innerHTML=s;
+  // 式（動画の下・連動）
+  var eq=document.getElementById(eqId), p=h.eq.split('→');
+  eq.innerHTML='<span class="eqL">'+p[0]+'→</span><span class="eqR">'+p[1]+'</span>';
+  eq.className='elc-eq'+(animate?' playing':'');
+}
+function elcElec(cx,cy){
+  return '<circle cx="'+cx+'" cy="'+cy+'" r="11" fill="#3ce0ff" stroke="#0a4d63" stroke-width="1.5"/><text x="'+cx+'" y="'+(cy+1)+'" text-anchor="middle" dominant-baseline="central" font-weight="900" font-size="13" fill="#06222b">−</text>';
+}
+
+/* --- 全体の反応式 --- */
+function elcOverall(animate){
+  var d=ELC[elcKey], p=d.overall.split('→');
+  document.getElementById('elcOverEq').innerHTML=
+    '<div class="ov-eq'+(animate?' playing':'')+'"><span class="eqL">'+p[0]+'→</span><span class="eqR">'+p[1]+'</span></div>'
+    +'<div class="ov-sub">電気を流して分解する反応（電気分解）</div>';
+}
+
+function elcRender(animate){
+  var d=ELC[elcKey];
+  elcBeaker(animate);
+  elcHalf('elcCatStage','elcCatEq', d.cathode, animate);
+  elcHalf('elcAnStage','elcAnEq', d.anode, animate);
+  elcOverall(animate);
+  document.getElementById('elcCatEx').innerHTML=d.cathode.ex;
+  document.getElementById('elcAnEx').innerHTML=d.anode.ex;
+  document.getElementById('elcOverEx').innerHTML=d.overEx;
+}
+function elcPlay(){ elcRender(true); }
+function elcReplay(which){
+  var d=ELC[elcKey];
+  if(which==='cat') elcHalf('elcCatStage','elcCatEq', d.cathode, true);
+  else if(which==='an') elcHalf('elcAnStage','elcAnEq', d.anode, true);
+  else if(which==='over') elcOverall(true);
+}
+function elcSelect(key){ elcKey=key; elcBuildPick(); elcRender(false); }
+function elcBuildPick(){
+  var keys=['hcl','cucl2'], h='';
+  for(var i=0;i<keys.length;i++){
+    var d=ELC[keys[i]];
+    h+='<button class="zp'+(keys[i]===elcKey?' on':'')+'" onclick="elcSelect(\''+keys[i]+'\')">'+d.name+'<span style="font-size:.82em;color:var(--muted)"> '+d.formula+'</span></button>';
+  }
+  document.getElementById('elcPick').innerHTML=h;
+}
+window.elcPlay=elcPlay; window.elcReplay=elcReplay; window.elcSelect=elcSelect;
+elcBuildPick();
+elcRender(false);
+
+/* ============================================================
+   ダニエル電池：化学変化から電気をとり出す（亜鉛板−／銅板＋）
+   ============================================================ */
+var DANI={
+  zn:{ label:'亜鉛板', labelColor:'#9fd2ff', barFill:'#b9c0cf', side:'left',
+    react:{kind:'atom',sym:'Zn',color:'#c0c6d4'}, prod:{kind:'ion',sym:'Zn',q:2,cat:true},
+    ne:2, gain:false, eq:'Zn → Zn<sup>2＋</sup> ＋ 2e<sup>−</sup>',
+    ex:'亜鉛板（−極）では、亜鉛原子が電子を2個<b>失って</b> Zn²⁺ になり、水溶液に<b>とけ出す</b>。出た電子は導線を通って銅板へ流れるよ。' },
+  cu:{ label:'銅板', labelColor:'#ff9da1', barFill:'#c4855a', side:'right',
+    react:{kind:'ion',sym:'Cu',q:2,cat:true}, prod:{kind:'atom',sym:'Cu',color:'#c4855a'},
+    ne:2, gain:true, eq:'Cu<sup>2＋</sup> ＋ 2e<sup>−</sup> → Cu',
+    ex:'銅板（＋極）では、水溶液中の Cu²⁺ が流れてきた電子を2個<b>受け取って</b> 銅原子になり、銅板に<b>付着</b>するよ。' },
+  overall:'Zn ＋ Cu<sup>2＋</sup> → Zn<sup>2＋</sup> ＋ Cu',
+  overEx:'全体では <b>Zn ＋ Cu²⁺ → Zn²⁺ ＋ Cu</b>。亜鉛がとけて銅が付着し、その間に導線へ電流が流れてプロペラが回る。電子は亜鉛板→銅板、電流はその逆向きだよ。'
+};
+
+function daniDraw(cx,cy,spec,R){
+  if(spec.kind==='ion') return elcIon(cx,cy,spec.sym,spec.q,spec.cat,R);
+  return elcAtom(cx,cy,spec.sym,R,spec.color);
+}
+/* --- 電極（板）で起こる反応：電子のやり取り風 --- */
+function daniHalf(stageId, eqId, cfg, animate){
+  var R=23, midY=75, s='';
+  if(!cfg.gain){
+    // 亜鉛板（−極）：亜鉛原子を電極に重ねて配置 → 矢印の右に Zn²⁺ と電子2個（生成物）
+    var barX=22, rX=46, pX=250, arrowX=118, eX=322;
+    s+='<rect x="'+barX+'" y="12" width="18" height="120" rx="3" fill="'+cfg.barFill+'" stroke="rgba(5,10,30,.4)" stroke-width="2"/>';
+    s+='<text x="'+(barX+9)+'" y="148" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="700" font-size="13" fill="'+cfg.labelColor+'">'+cfg.label+'</text>';
+    s+='<line x1="'+arrowX+'" y1="'+midY+'" x2="'+(arrowX+44)+'" y2="'+midY+'" stroke="#9aa3c8" stroke-width="4"/><polygon points="'+(arrowX+44)+','+(midY-9)+' '+(arrowX+62)+','+midY+' '+(arrowX+44)+','+(midY+9)+'" fill="#9aa3c8"/>';
+    s+='<text x="'+((pX+eX)/2-4)+'" y="'+(midY+6)+'" text-anchor="middle" font-weight="900" font-size="20" fill="#8893b8">＋</text>';
+    s+='<text x="'+eX+'" y="28" text-anchor="middle" font-size="12" fill="#7fd6ef">電子</text>';
+    // 反応物 Zn原子（電極に重ねて）→消える
+    s+='<g style="animation:zeqFadeOut .35s ease 1.1s both">'+daniDraw(rX,midY,cfg.react,R)+'</g>';
+    // 生成物 Zn²⁺：右へ発生
+    s+='<g style="--dx:'+(pX-rX)+'px;--dy:0px;animation:zeqAppear .35s ease 1.0s both, elcDrift .9s ease 1.35s both">'+daniDraw(rX,midY,cfg.prod,R)+'</g>';
+    // 電子2個：原子から矢印の右（生成物側）へ移動
+    for(var e=0;e<cfg.ne;e++){ var ey=midY-14+e*28;
+      s+='<g style="--dx:'+(eX-rX)+'px;--dy:'+(ey-midY)+'px;animation:zeqAppear .3s ease 1.15s both, elcDrift .95s ease 1.4s both">'+elcElec(rX,midY)+'</g>';
+    }
+  } else {
+    // 銅板（＋極）：Cu²⁺が左から移動し電子をもらう → 発生した銅を電極に重ねて配置
+    var bX=338, sX=78, dX=296, pcX=326, aX=152;
+    s+='<rect x="'+bX+'" y="12" width="18" height="120" rx="3" fill="'+cfg.barFill+'" stroke="rgba(5,10,30,.4)" stroke-width="2"/>';
+    s+='<text x="'+(bX+9)+'" y="148" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="700" font-size="13" fill="'+cfg.labelColor+'">'+cfg.label+'</text>';
+    s+='<line x1="'+aX+'" y1="'+midY+'" x2="'+(aX+44)+'" y2="'+midY+'" stroke="#9aa3c8" stroke-width="4"/><polygon points="'+(aX+44)+','+(midY-9)+' '+(aX+62)+','+midY+' '+(aX+44)+','+(midY+9)+'" fill="#9aa3c8"/>';
+    // 注釈：Cu²⁺の移動の上に
+    s+='<text x="'+((sX+dX)/2)+'" y="26" text-anchor="middle" font-size="12" fill="#ff9da1">移動 →</text>';
+    // 反応物 Cu²⁺：右へ移動して消える
+    s+='<g style="--dx:'+(dX-sX)+'px;--dy:0px;animation:elcDrift 1.1s ease .9s both, zeqFadeOut .35s ease 1.7s both">'+daniDraw(sX,midY,cfg.react,R)+'</g>';
+    // 電子2個：電極から左へ（Cu²⁺へ）
+    for(var e2=0;e2<cfg.ne;e2++){ var fy=midY-13+e2*26;
+      s+='<g style="--dx:'+((dX+10)-332)+'px;--dy:'+(fy-midY)+'px;animation:elcDrift 1.0s ease '+(1.0+e2*0.12)+'s both, zeqFadeOut .3s ease 1.72s both">'+elcElec(332,midY)+'</g>';
+    }
+    // 生成物 Cu原子：電極に重ねて発生
+    s+='<g style="animation:zeqAppear .4s ease 1.7s both">'+daniDraw(pcX,midY,cfg.prod,R)+'</g>';
+  }
+  var st=document.getElementById(stageId);
+  if(animate) st.classList.remove('elc-start'); else st.classList.add('elc-start');
+  st.innerHTML=s;
+  var eq=document.getElementById(eqId), p=cfg.eq.split('→');
+  eq.innerHTML='<span class="eqL">'+p[0]+'→</span><span class="eqR">'+p[1]+'</span>';
+  eq.className='elc-eq'+(animate?' playing':'');
+}
+
+/* --- 電池全体（ビーカー＋プロペラ） --- */
+function daniBeaker(animate){
+  var ZX=196, CX=444, eW=16, eTop=122, eBot=410;
+  var s='';
+  // 導線
+  s+='<path d="M196,122 L196,52 L444,52 L444,122" fill="none" stroke="#d0d0d0" stroke-width="3"/>';
+  // プロペラ（回転）
+  s+='<g style="transform-box:view-box;transform-origin:320px 52px;animation:daniSpin 1.3s linear .65s 3.4 forwards">';
+  s+='<ellipse cx="320" cy="33" rx="7" ry="18" fill="#8fa0c8"/>';
+  s+='<ellipse cx="320" cy="33" rx="7" ry="18" fill="#8fa0c8" transform="rotate(120 320 52)"/>';
+  s+='<ellipse cx="320" cy="33" rx="7" ry="18" fill="#8fa0c8" transform="rotate(240 320 52)"/>';
+  s+='</g>';
+  s+='<circle cx="320" cy="52" r="8" fill="#46527a" stroke="#7e8cc0" stroke-width="2"/>';
+  s+='<text x="320" y="92" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="700" font-size="13" fill="#aeb8e0">プロペラ</text>';
+  // ビーカー
+  s+='<path d="M100,150 L116,452 L524,452 L540,150" fill="none" stroke="#8a96b8" stroke-width="4" stroke-linejoin="round"/>';
+  s+='<path d="M108,210 L120,446 L318,446 L318,210 Z" fill="rgba(200,212,228,.10)"/>';
+  s+='<path class="dani-cuso4" d="M322,210 L322,446 L520,446 L532,210 Z" fill="#3a8ee0" opacity=".5"/>';
+  s+='<line x1="108" y1="210" x2="318" y2="210" stroke="#bcd6ea" stroke-width="2" opacity=".55"/>';
+  s+='<line x1="322" y1="210" x2="532" y2="210" stroke="#bcd6ea" stroke-width="2" opacity=".55"/>';
+  // セロハン（しきり）
+  s+='<line x1="320" y1="162" x2="320" y2="448" stroke="#c9d3e6" stroke-width="3" stroke-dasharray="6 5" opacity=".85"/>';
+  s+='<text x="320" y="470" text-anchor="middle" font-size="12.5" fill="#aab4d6">セロハン（しきり）</text>';
+  // 電極板
+  s+='<rect x="'+(ZX-eW/2)+'" y="'+eTop+'" width="'+eW+'" height="'+(eBot-eTop)+'" rx="3" fill="#b9c0cf" stroke="rgba(5,10,30,.4)" stroke-width="2"/>';
+  s+='<rect x="'+(CX-eW/2)+'" y="'+eTop+'" width="'+eW+'" height="'+(eBot-eTop)+'" rx="3" fill="#c4855a" stroke="rgba(5,10,30,.4)" stroke-width="2"/>';
+  s+='<text x="'+ZX+'" y="110" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="800" font-size="22" fill="#9fd2ff">亜鉛板</text>';
+  s+='<text x="'+CX+'" y="110" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="800" font-size="22" fill="#ff9da1">銅板</text>';
+  s+='<text x="170" y="437" text-anchor="middle" font-size="12.5" fill="#9fb0d0">ZnSO₄ 水溶液</text>';
+  s+='<text x="470" y="437" text-anchor="middle" font-size="12.5" fill="#9fb0d0">CuSO₄ 水溶液</text>';
+  // 静止イオン（常に表示）
+  s+=elcIon(258,418,'SO₄',2,false,17)+elcIon(470,420,'SO₄',2,false,17);
+  // 4回くりかえし：亜鉛がとけてZn²⁺発生（左にたまる）／電子2個が銅板へ／Cu²⁺が銅板に付着（重ねてたまる）
+  var znY=[236,288,340,392], znRest=[[142,300],[126,356],[170,400],[150,268]];
+  var cuP=[[500,264],[510,312],[496,366],[508,410]], cuY=[236,288,340,392];
+  for(var e=0;e<4;e++){
+    var t=0.3+e*0.85;
+    s+='<g style="animation:zeqFadeOut .35s ease '+(t+0.75).toFixed(2)+'s both">'+elcAtom(196,znY[e],'Zn',17,'#c0c6d4')+'</g>';
+    var zr=znRest[e];
+    s+='<g style="--dx:'+(zr[0]-196)+'px;--dy:'+(zr[1]-znY[e])+'px;animation:zeqAppear .4s ease '+(t+0.6).toFixed(2)+'s both, elcDrift 1.2s ease '+(t+0.95).toFixed(2)+'s both">'+elcIon(196,znY[e],'Zn',2,true,18)+'</g>';
+    s+='<g class="dani-w'+e+'" style="animation:daniFlow2 1.4s ease-in-out '+(t+0.35).toFixed(2)+'s forwards">'+elcElec(0,0)+'</g>';
+    s+='<g class="dani-w'+e+'" style="animation:daniFlow2 1.4s ease-in-out '+(t+0.5).toFixed(2)+'s forwards">'+elcElec(0,0)+'</g>';
+    var cs=cuP[e];
+    s+='<g style="--dx:'+(430-cs[0])+'px;--dy:'+(cuY[e]-cs[1])+'px;animation:elcDrift 1.2s ease '+(t+0.6).toFixed(2)+'s both, zeqFadeOut .4s ease '+(t+1.75).toFixed(2)+'s both">'+elcIon(cs[0],cs[1],'Cu',2,true,18)+'</g>';
+    s+='<g style="animation:zeqAppear .45s ease '+(t+1.8).toFixed(2)+'s both">'+elcAtom(430,cuY[e],'Cu',15,'#c4855a')+'</g>';
+  }
+  var st=document.getElementById('daniStage');
+  if(animate) st.classList.remove('elc-start'); else st.classList.add('elc-start');
+  st.innerHTML=s;
+}
+
+function daniOverall(animate){
+  var p=DANI.overall.split('→');
+  document.getElementById('daniOverEq').innerHTML=
+    '<div class="ov-eq'+(animate?' playing':'')+'"><span class="eqL">'+p[0]+'→</span><span class="eqR">'+p[1]+'</span></div>'
+    +'<div class="ov-sub">化学変化で電気をとり出す（電池）</div>';
+}
+function daniRender(animate){
+  daniBeaker(animate);
+  daniHalf('daniZnStage','daniZnEq', DANI.zn, animate);
+  daniHalf('daniCuStage','daniCuEq', DANI.cu, animate);
+  daniOverall(animate);
+  document.getElementById('daniZnEx').innerHTML=DANI.zn.ex;
+  document.getElementById('daniCuEx').innerHTML=DANI.cu.ex;
+  document.getElementById('daniOverEx').innerHTML=DANI.overEx;
+}
+function daniPlay(){ daniRender(true); }
+function daniReplay(w){
+  if(w==='zn') daniHalf('daniZnStage','daniZnEq', DANI.zn, true);
+  else if(w==='cu') daniHalf('daniCuStage','daniCuEq', DANI.cu, true);
+  else if(w==='over') daniOverall(true);
+}
+window.daniPlay=daniPlay; window.daniReplay=daniReplay;
+daniRender(false);
+
+/* ============================================================
+   燃料電池：水素と酸素から電気をとり出す（水素極−／酸素極＋）
+   ============================================================ */
+var FUEL={
+  neg:{ label:'水素極（−）', labelColor:'#9fd2ff', barFill:'#5b6478',
+    eq:'2H<sub>2</sub> → 4H<sup>＋</sup> ＋ 4e<sup>−</sup>',
+    ex:'水素極（−極）では、水素 H₂ が電子を<b>失って</b> 水素イオン H⁺ になる。電子は導線へ、H⁺ は電解質の中を酸素極へ移動するよ。' },
+  pos:{ label:'酸素極（＋）', labelColor:'#ff9da1', barFill:'#5b6478',
+    eq:'O<sub>2</sub> ＋ 4H<sup>＋</sup> ＋ 4e<sup>−</sup> → 2H<sub>2</sub>O',
+    ex:'酸素極（＋極）では、酸素 O₂ が、流れてきた電子と移動してきた H⁺ を<b>受け取って</b> 水 H₂O ができるよ。' },
+  overall:'2H<sub>2</sub> ＋ O<sub>2</sub> → 2H<sub>2</sub>O',
+  overEx:'全体では <b>2H₂ ＋ O₂ → 2H₂O</b>。水素と酸素から水ができ、そのとき電気をとり出せる。出るのは<b>水だけ</b>で、燃料を送り続ければ電気をつくり続けられるクリーンなエネルギーだよ。'
+};
+function fuelWater(cx,cy,r){
+  return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="#4f93cf" stroke="rgba(5,10,30,.4)" stroke-width="2"/>'
+    +'<text x="'+cx+'" y="'+(cy+1)+'" text-anchor="middle" dominant-baseline="central" font-weight="800" font-size="'+(r*0.62)+'" fill="#fff">H₂O</text>';
+}
+function fuelHalf(stageId, eqId, cfg, animate){
+  var midY=75, s='', i;
+  if(cfg.type==='neg'){
+    var barX=22;
+    s+='<rect x="'+barX+'" y="12" width="18" height="120" rx="3" fill="'+cfg.barFill+'" stroke="rgba(5,10,30,.4)" stroke-width="2"/>';
+    s+='<text x="'+(barX+9)+'" y="148" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="700" font-size="13" fill="'+cfg.labelColor+'">水素極</text>';
+    s+='<line x1="118" y1="'+midY+'" x2="162" y2="'+midY+'" stroke="#9aa3c8" stroke-width="4"/><polygon points="162,66 180,75 162,84" fill="#9aa3c8"/>';
+    s+='<text x="216" y="22" text-anchor="middle" font-size="11.5" fill="#7fd6ef">電子</text>';
+    s+='<g style="animation:zeqFadeOut .35s ease 1.05s both">'+elcAtom(62,52,'H₂',16,'#cdd5e6')+elcAtom(62,98,'H₂',16,'#cdd5e6')+'</g>';
+    var hp=[[206,46],[234,46],[206,104],[234,104]], ep=[[296,46],[324,46],[296,104],[324,104]];
+    for(i=0;i<4;i++) s+='<g style="--dx:24px;--dy:0px;animation:zeqAppear .35s ease '+(1.0+i*0.07)+'s both, elcDrift .8s ease '+(1.4+i*0.05)+'s both">'+elcIon(hp[i][0],hp[i][1],'H',1,true,12)+'</g>';
+    s+='<text x="266" y="'+(midY+6)+'" text-anchor="middle" font-weight="900" font-size="18" fill="#8893b8">＋</text>';
+    for(i=0;i<4;i++) s+='<g style="--dx:24px;--dy:0px;animation:zeqAppear .35s ease '+(1.1+i*0.07)+'s both, elcDrift .8s ease '+(1.5+i*0.05)+'s both">'+elcElec(ep[i][0],ep[i][1])+'</g>';
+  } else {
+    var bX=338;
+    s+='<rect x="'+bX+'" y="12" width="18" height="120" rx="3" fill="'+cfg.barFill+'" stroke="rgba(5,10,30,.4)" stroke-width="2"/>';
+    s+='<text x="'+(bX+9)+'" y="148" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="700" font-size="13" fill="'+cfg.labelColor+'">酸素極</text>';
+    s+='<line x1="206" y1="'+midY+'" x2="250" y2="'+midY+'" stroke="#9aa3c8" stroke-width="4"/><polygon points="250,66 268,75 250,84" fill="#9aa3c8"/>';
+    s+='<text x="150" y="22" text-anchor="middle" font-size="11.5" fill="#9fb0d0">酸素・H⁺・電子</text>';
+    var hp2=[[92,44],[118,44],[92,106],[118,106]], ep2=[[160,44],[184,44],[160,106],[184,106]];
+    s+='<g style="animation:zeqFadeOut .4s ease 1.5s both">'+elcAtom(48,75,'O₂',16,'#cdd5e6');
+    for(i=0;i<4;i++) s+=elcIon(hp2[i][0],hp2[i][1],'H',1,true,11);
+    for(i=0;i<4;i++) s+=elcElec(ep2[i][0],ep2[i][1]);
+    s+='</g>';
+    s+='<g style="animation:zeqAppear .45s ease 1.6s both">'+fuelWater(300,55,16)+fuelWater(300,100,16)+'</g>';
+  }
+  var st=document.getElementById(stageId);
+  if(animate) st.classList.remove('elc-start'); else st.classList.add('elc-start');
+  st.innerHTML=s;
+  var eq=document.getElementById(eqId), p=cfg.eq.split('→');
+  eq.innerHTML='<span class="eqL">'+p[0]+'→</span><span class="eqR">'+p[1]+'</span>';
+  eq.className='elc-eq'+(animate?' playing':'');
+}
+function fuelBeaker(animate){
+  var LX=200, RX=440, eW=18, eTop=122, eBot=410, i;
+  var s='';
+  s+='<path d="M200,122 L200,52 L440,52 L440,122" fill="none" stroke="#d0d0d0" stroke-width="3"/>';
+  s+='<g style="transform-box:view-box;transform-origin:320px 52px;animation:daniSpin 1.1s linear infinite">';
+  s+='<ellipse cx="320" cy="33" rx="7" ry="18" fill="#8fa0c8"/>';
+  s+='<ellipse cx="320" cy="33" rx="7" ry="18" fill="#8fa0c8" transform="rotate(120 320 52)"/>';
+  s+='<ellipse cx="320" cy="33" rx="7" ry="18" fill="#8fa0c8" transform="rotate(240 320 52)"/>';
+  s+='</g><circle cx="320" cy="52" r="8" fill="#46527a" stroke="#7e8cc0" stroke-width="2"/>';
+  s+='<text x="320" y="92" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="700" font-size="13" fill="#aeb8e0">プロペラ</text>';
+  s+='<path d="M100,150 L116,452 L524,452 L540,150" fill="none" stroke="#8a96b8" stroke-width="4" stroke-linejoin="round"/>';
+  s+='<path d="M108,210 L120,446 L520,446 L532,210 Z" fill="rgba(185,205,230,.12)"/>';
+  s+='<line x1="108" y1="210" x2="532" y2="210" stroke="#bcd6ea" stroke-width="2" opacity=".55"/>';
+  s+='<text x="320" y="468" text-anchor="middle" font-size="12.5" fill="#aab4d6">電解質</text>';
+  s+='<rect x="'+(LX-eW/2)+'" y="'+eTop+'" width="'+eW+'" height="'+(eBot-eTop)+'" rx="3" fill="#5b6478" stroke="rgba(5,10,30,.45)" stroke-width="2"/>';
+  s+='<rect x="'+(RX-eW/2)+'" y="'+eTop+'" width="'+eW+'" height="'+(eBot-eTop)+'" rx="3" fill="#5b6478" stroke="rgba(5,10,30,.45)" stroke-width="2"/>';
+  s+='<text x="'+LX+'" y="110" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="800" font-size="20" fill="#9fd2ff">水素極（−）</text>';
+  s+='<text x="'+RX+'" y="110" text-anchor="middle" font-family="Zen Kaku Gothic New,sans-serif" font-weight="800" font-size="20" fill="#ff9da1">酸素極（＋）</text>';
+  s+='<text x="150" y="244" text-anchor="middle" font-size="13" fill="#cfd6e6">水素 H₂ →</text>';
+  s+='<text x="492" y="244" text-anchor="middle" font-size="13" fill="#cfd6e6">← O₂ 酸素</text>';
+  s+=elcAtom(150,300,'H₂',16,'#cdd5e6')+elcAtom(150,366,'H₂',16,'#cdd5e6');
+  s+=elcAtom(490,300,'O₂',16,'#cdd5e6')+elcAtom(490,366,'O₂',16,'#cdd5e6');
+  var hy=[262,322,382];
+  for(i=0;i<3;i++) s+='<g style="animation:fuelHplus 2.6s linear '+(i*0.85).toFixed(2)+'s infinite">'+elcIon(216,hy[i],'H',1,true,16)+'</g>';
+  for(i=0;i<3;i++) s+='<g class="fuel-wire" style="animation-delay:-'+(i*0.66).toFixed(2)+'s">'+elcElec(0,0)+'</g>';
+  var wy=[250,300];
+  for(i=0;i<2;i++) s+='<g style="animation:fuelDrop 2.8s ease-in '+(0.6+i*1.2).toFixed(2)+'s infinite">'+fuelWater(462,wy[i],16)+'</g>';
+  var st=document.getElementById('fuelStage');
+  if(animate) st.classList.remove('elc-start'); else st.classList.add('elc-start');
+  st.innerHTML=s;
+}
+function fuelOverall(animate){
+  var p=FUEL.overall.split('→');
+  document.getElementById('fuelOverEq').innerHTML=
+    '<div class="ov-eq'+(animate?' playing':'')+'"><span class="eqL">'+p[0]+'→</span><span class="eqR">'+p[1]+'</span></div>'
+    +'<div class="ov-sub">水素＋酸素 → 水（＋電気）。出るのは水だけ</div>';
+}
+function fuelRender(animate){
+  fuelBeaker(animate);
+  fuelHalf('fuelNegStage','fuelNegEq', {type:'neg',label:FUEL.neg.label,labelColor:FUEL.neg.labelColor,barFill:FUEL.neg.barFill,eq:FUEL.neg.eq}, animate);
+  fuelHalf('fuelPosStage','fuelPosEq', {type:'pos',label:FUEL.pos.label,labelColor:FUEL.pos.labelColor,barFill:FUEL.pos.barFill,eq:FUEL.pos.eq}, animate);
+  fuelOverall(animate);
+  document.getElementById('fuelNegEx').innerHTML=FUEL.neg.ex;
+  document.getElementById('fuelPosEx').innerHTML=FUEL.pos.ex;
+  document.getElementById('fuelOverEx').innerHTML=FUEL.overEx;
+}
+function fuelPlay(){ fuelRender(true); }
+function fuelReplay(w){
+  if(w==='neg') fuelHalf('fuelNegStage','fuelNegEq', {type:'neg',label:FUEL.neg.label,labelColor:FUEL.neg.labelColor,barFill:FUEL.neg.barFill,eq:FUEL.neg.eq}, true);
+  else if(w==='pos') fuelHalf('fuelPosStage','fuelPosEq', {type:'pos',label:FUEL.pos.label,labelColor:FUEL.pos.labelColor,barFill:FUEL.pos.barFill,eq:FUEL.pos.eq}, true);
+  else if(w==='over') fuelOverall(true);
+}
+window.fuelPlay=fuelPlay; window.fuelReplay=fuelReplay;
+fuelRender(false);
+
+/* ============================================================
+   タブ切り替え（モデル図／受け渡し／多原子イオン）
+   ============================================================ */
+function ionTab(name){
+  var tabs=['model','transfer','poly','elz','elc','dani','fuel','quiz'];
+  for(var i=0;i<tabs.length;i++){
+    var panel=document.getElementById('tab-'+tabs[i]);
+    var btn=document.getElementById('tabbtn-'+tabs[i]);
+    if(panel) panel.className='tabpanel'+(tabs[i]===name?'':' is-hidden');
+    if(btn) btn.className='tab'+(tabs[i]===name?' on':'');
+  }
+  // 表示したタブを再描画（アニメーションを最初から再生）
+  if(name==='model') ionRender();
+  else if(name==='transfer') zeqBuild(false);
+  else if(name==='poly') polyRender();
+  else if(name==='elz') elzBuild(false);
+  else if(name==='elc') elcRender(false);
+  else if(name==='dani') daniRender(false);
+  else if(name==='fuel') fuelRender(false);
+}
+window.ionTab=ionTab;
+</script>
+</body>
+</html>

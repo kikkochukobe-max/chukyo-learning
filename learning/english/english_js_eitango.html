@@ -1,0 +1,2382 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英単語練習 — 小学校〜中学3年</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Lexend:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2f6fb;
+  --navy:#0d1f3c;
+  --blue:#1562d6;
+  --sky:#4fa8f0;
+  --accent:#ff6b35;
+  --green:#1db87c;
+  --purple:#7c4dff;
+  --gold:#f5b800;
+  --card:#ffffff;
+  --border:#dce6f0;
+  --muted:#7a91ad;
+  --text:#0d1f3c;
+  --red:#e5393e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ─── HEADER ─── */
+header{
+  background:var(--navy);
+  padding:0 20px;
+  height:58px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 2px 16px rgba(13,31,60,.35);
+}
+.hd-left{display:flex;align-items:center;gap:12px}
+.hd-badge{
+  background:linear-gradient(135deg,var(--accent),#ff9f1c);
+  border-radius:10px;padding:5px 11px;
+  font-family:'Lexend',sans-serif;font-weight:900;font-size:13px;color:#fff;
+  letter-spacing:.03em;white-space:nowrap;
+}
+.hd-title{
+  font-family:'Lexend',sans-serif;font-weight:800;font-size:17px;color:#fff;
+  letter-spacing:.01em;
+}
+.hd-title span{color:var(--sky);}
+.hd-right{display:flex;align-items:center;gap:8px}
+.total-badge{
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+  border-radius:20px;padding:4px 12px;
+  font-size:12px;color:#a8c4de;font-weight:600;
+}
+.total-badge b{color:#fff}
+
+/* ─── 塾リンク ─── */
+.juku-link{
+  display:inline-flex;align-items:center;gap:6px;
+  background:linear-gradient(135deg,#ff6b35,#ff9f1c);
+  border-radius:20px;padding:5px 13px;
+  font-size:11px;font-weight:700;color:#fff;
+  text-decoration:none;white-space:nowrap;
+  transition:opacity .15s,transform .15s;
+  box-shadow:0 2px 8px rgba(255,107,53,.4);
+  letter-spacing:.02em;
+}
+.juku-link:hover{opacity:.88;transform:translateY(-1px)}
+.juku-link .jk-icon{font-size:13px}
+
+/* ─── フッター ─── */
+.site-footer{
+  margin-top:40px;padding:20px 16px;
+  background:var(--navy);
+  text-align:center;
+}
+.footer-inner{
+  max-width:700px;margin:0 auto;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.footer-juku-link{
+  display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,#ff6b35,#ff9f1c);
+  border-radius:12px;padding:10px 22px;
+  font-size:13px;font-weight:700;color:#fff;
+  text-decoration:none;
+  transition:opacity .15s,transform .15s;
+  box-shadow:0 3px 12px rgba(255,107,53,.4);
+}
+.footer-juku-link:hover{opacity:.88;transform:translateY(-2px)}
+.footer-copy{font-size:11px;color:#5a7a9a}
+
+/* ─── LEVEL TABS ─── */
+#level-tabs{
+  display:flex;gap:0;background:var(--navy);
+  border-top:1px solid rgba(255,255,255,.08);
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+#level-tabs::-webkit-scrollbar{display:none}
+.lv-tab{
+  flex:1;min-width:80px;
+  padding:11px 8px;
+  font-family:'Lexend',sans-serif;font-weight:700;font-size:13px;
+  color:#7a91ad;cursor:pointer;
+  border:none;background:none;
+  border-bottom:3px solid transparent;
+  transition:all .2s;white-space:nowrap;
+  font-family:'Noto Sans JP',sans-serif;
+}
+.lv-tab:hover{color:#fff;background:rgba(255,255,255,.05)}
+.lv-tab.active{color:#fff;border-bottom-color:var(--accent)}
+.lv-tab .lv-count{
+  display:block;font-size:10px;color:var(--muted);font-weight:500;margin-top:1px;
+}
+.lv-tab.active .lv-count{color:var(--sky)}
+
+/* ─── HOME SCREEN ─── */
+#home-screen{max-width:980px;margin:0 auto;padding:24px 16px}
+.home-hero{
+  background:linear-gradient(135deg,var(--navy) 0%,#1a3a6e 100%);
+  border-radius:18px;padding:28px 28px 24px;margin-bottom:22px;
+  position:relative;overflow:hidden;
+}
+.home-hero::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:200px;height:200px;
+  background:radial-gradient(circle,rgba(79,168,240,.25) 0%,transparent 70%);
+  border-radius:50%;
+}
+.hero-label{font-size:11px;color:var(--sky);font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.hero-title{font-family:'Lexend',sans-serif;font-size:24px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:6px}
+.hero-sub{font-size:13px;color:#a8c4de;line-height:1.6}
+.hero-stats{display:flex;gap:16px;margin-top:18px;flex-wrap:wrap}
+.hero-stat{
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);
+  border-radius:10px;padding:8px 14px;text-align:center;
+}
+.hero-stat .hs-num{font-family:'Lexend',sans-serif;font-size:22px;font-weight:900;color:#fff;line-height:1}
+.hero-stat .hs-lbl{font-size:10px;color:#a8c4de;margin-top:2px}
+
+/* ─── LEVEL OVERVIEW CARDS ─── */
+.level-overview{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-bottom:24px}
+.lv-card{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:14px;padding:16px;cursor:pointer;
+  transition:transform .15s,box-shadow .15s,border-color .15s;
+  position:relative;overflow:hidden;
+}
+.lv-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:var(--lv-color,var(--accent));border-radius:14px 14px 0 0;
+}
+.lv-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(13,31,60,.12);border-color:var(--lv-color,var(--accent))}
+.lv-card-icon{font-size:28px;margin-bottom:8px}
+.lv-card-name{font-family:'Lexend',sans-serif;font-size:15px;font-weight:800;color:var(--navy);margin-bottom:3px}
+.lv-card-sub{font-size:12px;color:var(--muted);margin-bottom:10px}
+.lv-card-meta{display:flex;gap:8px;flex-wrap:wrap}
+.lv-pill{
+  background:var(--bg);border-radius:20px;padding:3px 10px;
+  font-size:11px;font-weight:700;color:var(--muted);
+}
+.lv-pill b{color:var(--navy)}
+
+/* ─── UNIT SELECTOR ─── */
+#unit-selector{display:none;max-width:980px;margin:0 auto;padding:20px 16px}
+.sel-back{
+  display:inline-flex;align-items:center;gap:6px;
+  background:none;border:1.5px solid var(--border);border-radius:9px;
+  padding:7px 14px;font-size:13px;cursor:pointer;color:var(--navy);
+  font-family:'Noto Sans JP',sans-serif;margin-bottom:16px;
+  transition:background .15s;
+}
+.sel-back:hover{background:var(--bg)}
+.sel-heading{
+  font-family:'Lexend',sans-serif;font-size:20px;font-weight:900;color:var(--navy);
+  margin-bottom:4px;display:flex;align-items:center;gap:10px;
+}
+.sel-sub{font-size:13px;color:var(--muted);margin-bottom:18px}
+.unit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}
+.unit-card{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:12px;padding:14px;cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+  position:relative;overflow:hidden;
+}
+.unit-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:var(--stripe,var(--accent));border-radius:12px 12px 0 0;
+}
+.unit-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(13,31,60,.11)}
+.unit-num{font-family:'Lexend',sans-serif;font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.06em;margin-bottom:4px}
+.unit-title{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:2px;line-height:1.4}
+.unit-theme{font-size:11px;color:var(--muted);margin-bottom:8px}
+.unit-count{font-size:11px;color:var(--muted)}
+.unit-count b{color:var(--accent);font-weight:700}
+
+/* ─── STUDY AREA ─── */
+#study-area{display:none;max-width:660px;margin:0 auto;padding:20px 16px}
+.study-back{
+  display:inline-flex;align-items:center;gap:6px;
+  background:none;border:1.5px solid var(--border);border-radius:9px;
+  padding:7px 14px;font-size:13px;cursor:pointer;color:var(--navy);
+  font-family:'Noto Sans JP',sans-serif;margin-bottom:14px;
+  transition:background .15s;
+}
+.study-back:hover{background:var(--bg)}
+.unit-header{
+  background:var(--navy);border-radius:14px;padding:16px 20px;
+  margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;
+}
+.uh-left h2{
+  font-family:'Lexend',sans-serif;font-size:16px;font-weight:800;color:#fff;
+  display:flex;align-items:center;gap:7px;
+}
+.uh-left p{font-size:11px;color:#a8c4de;margin-top:2px}
+.ring-wrap{position:relative;width:48px;height:48px;flex-shrink:0}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-track{fill:none;stroke:rgba(255,255,255,.12);stroke-width:4}
+.ring-fill{fill:none;stroke:var(--gold);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .5s}
+.ring-label{position:absolute;inset:0;display:grid;place-items:center;font-family:'Lexend',sans-serif;font-size:11px;font-weight:800;color:#fff}
+
+/* ─── MODE TABS ─── */
+.mode-tabs{display:flex;gap:7px;margin-bottom:14px}
+.mode-tab{
+  flex:1;padding:8px 4px;
+  border:1.5px solid var(--border);border-radius:9px;
+  background:#fff;font-size:12px;font-weight:700;cursor:pointer;
+  color:var(--muted);transition:all .15s;
+  font-family:'Noto Sans JP',sans-serif;text-align:center;
+}
+.mode-tab:hover{border-color:var(--blue);color:var(--blue)}
+.mode-tab.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.prog-bar-bg{background:var(--border);border-radius:99px;height:5px;margin-bottom:14px}
+.prog-bar-fill{height:100%;border-radius:99px;background:var(--blue);transition:width .3s}
+
+/* ─── FLASHCARD ─── */
+.flashcard-wrap{perspective:1000px;margin-bottom:12px}
+.flashcard{
+  width:100%;height:180px;position:relative;
+  transform-style:preserve-3d;transition:transform .45s ease;cursor:pointer;
+}
+.flashcard.flipped{transform:rotateY(180deg)}
+.card-face{
+  position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px;text-align:center;
+}
+.card-front{background:linear-gradient(135deg,var(--navy) 0%,#1a3a6e 100%)}
+.card-back{background:var(--bg);transform:rotateY(180deg);border:1.5px solid var(--border)}
+.card-hint{font-size:10px;color:rgba(255,255,255,.45);margin-bottom:7px;letter-spacing:.07em}
+.card-word{font-family:'Lexend',sans-serif;font-size:30px;font-weight:900;color:#fff;line-height:1.1}
+.card-ph{font-size:12px;color:rgba(255,255,255,.5);margin-top:5px}
+.card-bk-hint{font-size:10px;color:var(--muted);margin-bottom:6px}
+.card-meaning{font-size:21px;font-weight:700;color:var(--navy);line-height:1.3}
+.card-pos{
+  font-size:11px;color:var(--blue);margin-top:7px;
+  background:#e8f1fb;padding:2px 10px;border-radius:20px;
+}
+.flash-nav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.fnav-btn{
+  width:40px;height:40px;border:1.5px solid var(--border);border-radius:50%;
+  background:#fff;font-size:16px;cursor:pointer;
+  display:grid;place-items:center;transition:all .15s;color:var(--navy);
+  flex-shrink:0;
+}
+.fnav-btn:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+.fnav-btn:disabled{opacity:.3;cursor:default}
+.flash-counter{font-size:13px;color:var(--muted);font-weight:700}
+.fnav-shuffle{
+  padding:8px 14px;border:1.5px solid var(--border);border-radius:20px;
+  background:#fff;font-size:12px;font-weight:700;cursor:pointer;
+  color:var(--navy);transition:all .15s;font-family:'Noto Sans JP',sans-serif;
+}
+.fnav-shuffle:hover{background:var(--gold);border-color:var(--gold);color:#fff}
+.flip-hint{text-align:center;font-size:11px;color:var(--muted);margin-top:7px}
+.wl-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:12px}
+.wl-item{
+  background:#fff;border:1px solid var(--border);border-radius:8px;
+  padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:5px;
+}
+.wl-eng{font-family:'Lexend',sans-serif;font-size:12px;font-weight:700;color:var(--navy);white-space:nowrap}
+.wl-jpn{font-size:11px;color:var(--muted);text-align:right;line-height:1.3}
+
+/* ─── QUIZ ─── */
+.quiz-q-card{
+  background:linear-gradient(135deg,var(--navy) 0%,#1a3a6e 100%);
+  border-radius:14px;padding:22px;margin-bottom:12px;text-align:center;
+}
+.quiz-q-label{font-size:10px;color:rgba(255,255,255,.45);margin-bottom:6px;letter-spacing:.08em}
+.quiz-q-word{font-family:'Lexend',sans-serif;font-size:32px;font-weight:900;color:#fff;line-height:1.2}
+.quiz-q-ph{font-size:12px;color:rgba(255,255,255,.45);margin-top:4px}
+.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.quiz-opt{
+  background:#fff;border:1.5px solid var(--border);border-radius:10px;
+  padding:11px 10px;font-size:13px;font-weight:700;color:var(--navy);
+  cursor:pointer;transition:all .15s;
+  font-family:'Noto Sans JP',sans-serif;text-align:center;line-height:1.4;
+}
+.quiz-opt:hover:not(:disabled){border-color:var(--blue);background:#eef4fd}
+.quiz-opt.correct{background:#d1fae5;border-color:var(--green);color:#065f46}
+.quiz-opt.wrong{background:#fee2e2;border-color:var(--red);color:#991b1b}
+.quiz-opt:disabled{cursor:default}
+.feedback-box{
+  font-size:13px;font-weight:700;padding:8px;border-radius:9px;
+  margin-bottom:10px;text-align:center;
+}
+.feedback-box.ok{background:#d1fae5;color:#065f46}
+.feedback-box.ng{background:#fee2e2;color:#991b1b}
+.next-btn{
+  width:100%;padding:11px;background:var(--blue);color:#fff;
+  border:none;border-radius:10px;font-size:14px;font-weight:700;
+  cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:background .15s;
+}
+.next-btn:hover{background:#0f4fc7}
+
+/* ─── SPELL ─── */
+.spell-q-card{
+  background:linear-gradient(135deg,var(--navy) 0%,#1a3a6e 100%);
+  border-radius:14px;padding:22px;margin-bottom:12px;text-align:center;
+}
+.spell-q-label{font-size:10px;color:rgba(255,255,255,.45);margin-bottom:6px;letter-spacing:.08em}
+.spell-q-meaning{font-size:22px;font-weight:700;color:#fff;line-height:1.3}
+.spell-row{display:flex;gap:8px;margin-bottom:10px}
+.spell-input{
+  flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:16px;font-family:'Lexend',sans-serif;font-weight:600;
+  color:var(--navy);background:#fff;outline:none;transition:border-color .15s;
+}
+.spell-input:focus{border-color:var(--blue)}
+.spell-input.ok{border-color:var(--green);background:#d1fae5}
+.spell-input.ng{border-color:var(--red);background:#fee2e2}
+.spell-submit{
+  padding:10px 16px;background:var(--blue);color:#fff;
+  border:none;border-radius:10px;font-size:13px;font-weight:700;
+  cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:background .15s;white-space:nowrap;
+}
+.spell-submit:hover{background:#0f4fc7}
+
+/* ─── SCORE ─── */
+#score-screen{
+  display:none;max-width:480px;margin:40px auto;
+  background:var(--card);border-radius:18px;padding:36px 28px;
+  text-align:center;box-shadow:0 8px 32px rgba(13,31,60,.1);
+}
+.ss-emoji{font-size:52px;margin-bottom:10px}
+.ss-title{font-family:'Lexend',sans-serif;font-size:22px;font-weight:900;color:var(--navy);margin-bottom:6px}
+.ss-score{font-family:'Lexend',sans-serif;font-size:54px;font-weight:900;color:var(--green);line-height:1}
+.ss-sub{font-size:14px;color:var(--muted);margin:8px 0 20px}
+.score-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.score-btn{
+  padding:10px 22px;border-radius:10px;font-size:14px;font-weight:700;
+  cursor:pointer;border:1.5px solid;font-family:'Noto Sans JP',sans-serif;
+  transition:all .15s;
+}
+.score-btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.score-btn.primary:hover{background:#0f4fc7}
+.score-btn.secondary{background:#fff;border-color:var(--border);color:var(--navy)}
+.score-btn.secondary:hover{background:var(--bg)}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:500px){
+  .quiz-options{grid-template-columns:1fr}
+  .wl-grid{grid-template-columns:1fr}
+  .hero-title{font-size:19px}
+  .hero-stats{gap:10px}
+}
+
+/* ===== NAME LOGIN / ADMIN ===== */
+.name-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;display:flex;align-items:center;justify-content:center}
+.name-box{background:white;border-radius:16px;padding:32px 28px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.3)}
+.name-box h2{font-family:'Lexend',sans-serif;font-size:18px;color:var(--navy);margin-bottom:6px;font-weight:800}
+.name-box p{font-size:12px;color:var(--muted);margin-bottom:18px}
+.name-input{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:16px;font-family:'Noto Sans JP',sans-serif;outline:none;margin-bottom:14px;box-sizing:border-box}
+.name-input:focus{border-color:var(--blue)}
+.name-btn{background:var(--navy);color:white;border:none;border-radius:10px;padding:11px 0;width:100%;font-size:15px;font-family:'Noto Sans JP',sans-serif;font-weight:700;cursor:pointer}
+.name-display{font-size:11px;color:rgba(255,255,255,.7);margin-left:8px}
+.admin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:3100;display:none;align-items:flex-start;justify-content:center;overflow-y:auto}
+.admin-overlay.show{display:flex}
+.admin-box{background:white;border-radius:16px;margin:20px;max-width:760px;width:100%;padding:24px;box-shadow:0 8px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;max-height:90vh}
+.admin-box h3{font-family:'Lexend',sans-serif;font-size:20px;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;font-weight:800}
+.admin-close{background:none;border:none;font-size:24px;cursor:pointer;color:var(--muted)}
+.admin-meta{font-size:13px;color:#444;margin-bottom:12px;flex-shrink:0}
+.admin-actions{display:flex;gap:8px;margin-bottom:12px;flex-shrink:0;flex-wrap:wrap}
+.admin-btn-sm{background:var(--navy);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:700}
+.admin-table-wrap{overflow-y:auto;flex:1;margin-top:4px;border:1px solid var(--border);border-radius:8px}
+.admin-table{width:100%;border-collapse:collapse;font-size:14px}
+.admin-table thead{position:sticky;top:0;z-index:1}
+.admin-table th{background:var(--navy);color:white;padding:10px 12px;text-align:left;font-weight:600}
+.admin-table td{padding:9px 12px;border-bottom:1px solid var(--border)}
+.admin-table tr:hover td{background:#f5f8fc}
+.admin-table .high{color:#1db87c;font-weight:700}
+.admin-table .mid{color:#f5b800;font-weight:700}
+.admin-table .low{color:#e5393e;font-weight:700}
+.admin-btn-header{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);color:white;padding:7px 14px;border-radius:50px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:700;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="name-overlay" id="name-overlay">
+  <div class="name-box">
+    <h2>📗 英単語練習</h2>
+    <p>名前を入力してはじめてください</p>
+    <input class="name-input" id="student-name" type="text" placeholder="名前を入力してください" maxlength="20"
+      onkeydown="if(event.key==='Enter')startWithName()">
+    <button class="name-btn" onclick="startWithName()">はじめる</button>
+  </div>
+</div>
+
+<div class="admin-overlay" id="admin-overlay">
+  <div class="admin-box">
+    <h3>📊 生徒成績管理<button class="admin-close" onclick="closeAdmin()">✕</button></h3>
+    <div class="admin-meta" id="admin-date"></div>
+    <div class="admin-actions">
+      <button class="admin-btn-sm" onclick="loadAdminData()">🔄 更新</button>
+      <button class="admin-btn-sm" onclick="exportCSV()">📥 CSV出力</button>
+    </div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead><tr><th>名前</th><th>合計回答</th><th>正解</th><th>不正解</th><th>正答率</th><th>最終回答</th></tr></thead>
+        <tbody id="admin-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="hd-left">
+    <div class="hd-badge">NEW HORIZON</div>
+    <div class="hd-title">英単語<span>練習</span></div>
+    <span class="name-display" id="name-display"></span>
+  </div>
+  <div class="hd-right">
+    <div class="total-badge">全 <b id="total-count">0</b> 語収録</div>
+    <button class="admin-btn-header" onclick="openAdmin()">📊 管理</button>
+    <a class="juku-link" href="https://chukyokobetsu.com/" target="_blank" rel="noopener">
+      <span class="jk-icon">🏫</span>中京個別指導学院
+    </a>
+  </div>
+</header>
+
+<!-- LEVEL TABS -->
+<div id="level-tabs">
+  <button class="lv-tab active" data-level="home" onclick="showHome()">
+    🏠 トップ<span class="lv-count">全レベル</span>
+  </button>
+  <button class="lv-tab" data-level="elem" onclick="showLevel('elem')">
+    🌸 小学校<span class="lv-count" id="tc-elem">0語</span>
+  </button>
+  <button class="lv-tab" data-level="jhs1" onclick="showLevel('jhs1')">
+    📘 中学1年<span class="lv-count" id="tc-jhs1">0語</span>
+  </button>
+  <button class="lv-tab" data-level="jhs2" onclick="showLevel('jhs2')">
+    📗 中学2年<span class="lv-count" id="tc-jhs2">0語</span>
+  </button>
+  <button class="lv-tab" data-level="jhs3" onclick="showLevel('jhs3')">
+    📕 中学3年<span class="lv-count" id="tc-jhs3">0語</span>
+  </button>
+</div>
+
+<!-- HOME SCREEN -->
+<div id="home-screen">
+  <div class="home-hero">
+    <div class="hero-label">NEW HORIZON 完全準拠</div>
+    <div class="hero-title">小学校〜中学３年<br>英単語トレーニング</div>
+    <div class="hero-sub">フラッシュカード・4択クイズ・スペリングの3モードで<br>楽しく単語力を鍛えよう！</div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hs-num" id="h-total">0</div><div class="hs-lbl">総単語数</div></div>
+      <div class="hero-stat"><div class="hs-num">4</div><div class="hs-lbl">学年レベル</div></div>
+      <div class="hero-stat"><div class="hs-num">3</div><div class="hs-lbl">練習モード</div></div>
+    </div>
+  </div>
+  <div class="level-overview" id="level-overview-cards"></div>
+</div>
+
+<!-- UNIT SELECTOR -->
+<div id="unit-selector">
+  <button class="sel-back" onclick="backFromSelector()">← 戻る</button>
+  <div class="sel-heading" id="sel-heading"></div>
+  <div class="sel-sub" id="sel-sub"></div>
+  <div class="unit-grid" id="unit-grid"></div>
+</div>
+
+<!-- STUDY AREA -->
+<div id="study-area">
+  <button class="study-back" onclick="backFromStudy()">← 単語リストへ</button>
+  <div class="unit-header">
+    <div class="uh-left">
+      <h2 id="sh-title"></h2>
+      <p id="sh-sub"></p>
+    </div>
+    <div class="ring-wrap">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+        <circle class="ring-track" cx="24" cy="24" r="20"/>
+        <circle class="ring-fill" id="ring-fill" cx="24" cy="24" r="20"
+          stroke-dasharray="125.7" stroke-dashoffset="125.7"/>
+      </svg>
+      <div class="ring-label" id="ring-label">0%</div>
+    </div>
+  </div>
+  <div class="mode-tabs">
+    <button class="mode-tab active" onclick="switchMode('flash',this)">🃏 フラッシュ</button>
+    <button class="mode-tab" onclick="switchMode('quiz',this)">📝 クイズ</button>
+    <button class="mode-tab" onclick="switchMode('spell',this)">✏️ スペル</button>
+  </div>
+  <!-- Flash Mode -->
+  <div id="mode-flash">
+    <div class="prog-bar-bg"><div class="prog-bar-fill" id="flash-prog"></div></div>
+    <div class="flashcard-wrap">
+      <div class="flashcard" id="flashcard" onclick="flipCard()">
+        <div class="card-face card-front">
+          <div class="card-hint">ENGLISH → クリックで日本語</div>
+          <div class="card-word" id="fc-word"></div>
+          <div class="card-ph" id="fc-ph"></div>
+        </div>
+        <div class="card-face card-back">
+          <div class="card-bk-hint">日本語</div>
+          <div class="card-meaning" id="fc-meaning"></div>
+          <div class="card-pos" id="fc-pos"></div>
+        </div>
+      </div>
+    </div>
+    <div class="flip-hint">カードをクリック / タップして裏返す</div>
+    <div class="flash-nav" style="margin-top:10px">
+      <button class="fnav-btn" id="prev-btn" onclick="flashPrev()">←</button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="fnav-shuffle" onclick="shuffleFlash()">🔀 シャッフル</button>
+        <div class="flash-counter" id="flash-counter">1 / 1</div>
+      </div>
+      <button class="fnav-btn" id="next-btn" onclick="flashNext()">→</button>
+    </div>
+    <div class="wl-grid" id="word-list"></div>
+  </div>
+  <!-- Quiz Mode -->
+  <div id="mode-quiz" style="display:none">
+    <div class="prog-bar-bg"><div class="prog-bar-fill" id="quiz-prog"></div></div>
+    <div class="quiz-q-card">
+      <div class="quiz-q-label">ENGLISH → 日本語を選ぼう</div>
+      <div class="quiz-q-word" id="quiz-word"></div>
+      <div class="quiz-q-ph" id="quiz-ph"></div>
+    </div>
+    <div class="quiz-options" id="quiz-options"></div>
+    <div class="feedback-box" id="quiz-feedback" style="display:none"></div>
+    <button class="next-btn" id="quiz-next" onclick="quizNext()" style="display:none">次の問題 →</button>
+  </div>
+  <!-- Spell Mode -->
+  <div id="mode-spell" style="display:none">
+    <div class="prog-bar-bg"><div class="prog-bar-fill" id="spell-prog"></div></div>
+    <div class="spell-q-card">
+      <div class="spell-q-label">日本語 → 英語を入力</div>
+      <div class="spell-q-meaning" id="spell-meaning"></div>
+    </div>
+    <div class="spell-row">
+      <input class="spell-input" id="spell-input" type="text" placeholder="英語を入力…"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+        onkeydown="if(event.key==='Enter')checkSpell()">
+      <button class="spell-submit" onclick="checkSpell()">確認</button>
+    </div>
+    <div class="feedback-box" id="spell-feedback" style="display:none"></div>
+    <button class="next-btn" id="spell-next" onclick="spellNext()" style="display:none">次の問題 →</button>
+  </div>
+</div>
+
+<!-- SCORE SCREEN -->
+<div id="score-screen">
+  <div class="ss-emoji" id="ss-emoji">🎉</div>
+  <div class="ss-title" id="ss-msg">すばらしい！</div>
+  <div class="ss-score" id="ss-num">0</div>
+  <div class="ss-sub" id="ss-sub"></div>
+  <div class="score-btns">
+    <button class="score-btn primary" onclick="retryMode()">もう一度</button>
+    <button class="score-btn secondary" onclick="backFromStudy()">単語リストへ</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <a class="footer-juku-link" href="https://chukyokobetsu.com/" target="_blank" rel="noopener">
+      🏫&nbsp;中京個別指導学院 | 名古屋・長久手・日進の個別指導 学習塾
+    </a>
+    <div class="footer-copy">© 中京個別指導学院　このサイトは塾生の学習をサポートするために作成されました。</div>
+  </div>
+</footer>
+
+<script>
+// ===== SUPABASE / LOGIN / TRACKING =====
+const SB_URL='https://fqvwokrqivvlkehzjsop.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxdndva3JxaXZ2bGtlaHpqc29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMTI2MjYsImV4cCI6MjA5NTc4ODYyNn0.gau4wemZE4kfWQY_tMIxBOcxXVkWMOiweozAvfreeqA';
+const ET_TABLE='eitango_student_results';
+let studentName='';
+
+function startWithName(){
+  const input=document.getElementById('student-name').value.trim();
+  if(!input){alert('名前を入力してください');return;}
+  studentName=input;
+  document.getElementById('name-overlay').style.display='none';
+  document.getElementById('name-display').textContent='　'+studentName+' さん';
+  try{ localStorage.setItem('et_last_name', studentName); }catch(e){}
+}
+(function(){
+  try{
+    const saved = localStorage.getItem('et_last_name');
+    if(saved){ document.getElementById('student-name').value = saved; }
+  }catch(e){}
+})();
+
+async function saveQResult(qid, isOk){
+  if(!studentName) return;
+  try{
+    await fetch(SB_URL+'/rest/v1/'+ET_TABLE,{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({name:studentName,qid:String(qid),is_correct:isOk})
+    });
+  }catch(e){}
+}
+
+// ===== ADMIN =====
+function openAdmin(){
+  const pw=prompt('パスワードを入力してください');
+  if(pw!=='Eitango-Chukyo'){alert('パスワードが違います');return;}
+  document.getElementById('admin-overlay').classList.add('show');
+  loadAdminData();
+}
+function closeAdmin(){document.getElementById('admin-overlay').classList.remove('show');}
+async function loadAdminData(){
+  const theadTr=document.querySelector('#admin-tbody').closest('table').querySelector('thead tr');
+  theadTr.innerHTML='<th>名前</th><th>合計回答</th><th>正解</th><th>不正解</th><th>正答率</th><th>最終回答</th>';
+  try{
+    let rows=[];let offset=0;
+    while(true){
+      const res=await fetch(SB_URL+'/rest/v1/'+ET_TABLE+'?select=name,is_correct,answered_at&order=answered_at.desc&limit=1000&offset='+offset,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
+      if(!res.ok)break;const batch=await res.json();rows=rows.concat(batch);
+      if(batch.length<1000)break;offset+=1000;
+    }
+    window._adminAllRows=rows;
+    const agg={};
+    rows.forEach(r=>{
+      if(!agg[r.name])agg[r.name]={total:0,ok:0,ng:0,last:''};
+      agg[r.name].total++;
+      if(r.is_correct)agg[r.name].ok++;else agg[r.name].ng++;
+      if(!agg[r.name].last||r.answered_at>agg[r.name].last)agg[r.name].last=r.answered_at;
+    });
+    const sorted=Object.entries(agg).sort((a,b)=>b[1].total-a[1].total);
+    const tbody=document.getElementById('admin-tbody');
+    tbody.innerHTML='';
+    sorted.forEach(([name,d])=>{
+      const pct=Math.round(d.ok/d.total*100);
+      const cls=pct>=80?'high':pct>=60?'mid':'low';
+      const date=new Date(d.last).toLocaleString('ja-JP',{timeZone:'Asia/Tokyo',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+      tbody.innerHTML+=`<tr onclick="showStudentDetail('${name}')" style="cursor:pointer">
+        <td><strong>${name}</strong></td><td>${d.total}</td><td>${d.ok}</td><td>${d.ng}</td>
+        <td class="${cls}">${pct}%</td><td style="font-size:12px;color:#888">${date}</td></tr>`;
+    });
+    document.getElementById('admin-date').textContent=`${sorted.length}名 / 合計${rows.length}回答`;
+  }catch(e){console.error(e);}
+}
+function showStudentDetail(name){
+  const rows=window._adminAllRows||[];
+  const studentRows=rows.filter(r=>r.name===name);
+  const agg={};
+  studentRows.forEach(r=>{
+    if(!agg[r.qid])agg[r.qid]={total:0,ok:0,last:''};
+    agg[r.qid].total++;if(r.is_correct)agg[r.qid].ok++;
+    if(!agg[r.qid].last||r.answered_at>agg[r.qid].last)agg[r.qid].last=r.answered_at;
+  });
+  const sorted=Object.keys(agg).sort();
+  const tbody=document.getElementById('admin-tbody');
+  const thead=tbody.closest('table').querySelector('thead tr');
+  thead.innerHTML='<th><button onclick="loadAdminData()" style="background:none;border:none;cursor:pointer;color:white;font-size:12px;white-space:nowrap">← 戻る</button></th><th>回答回数</th><th>正解数</th><th>正答率</th><th>最終回答</th>';
+  tbody.innerHTML='';
+  sorted.forEach(qid=>{
+    const d=agg[qid];
+    const pct=Math.round(d.ok/d.total*100);
+    const dt=new Date(d.last);
+    const date=(dt.getMonth()+1)+'/'+dt.getDate()+' '+String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');
+    const pctColor=pct>=80?'color:#1db87c':pct>=60?'color:#f5b800':'color:#e5393e';
+    tbody.innerHTML+=`<tr><td style="white-space:nowrap;font-size:13px"><strong>${qid}</strong></td>
+      <td style="text-align:center;white-space:nowrap">${d.total}回</td>
+      <td style="text-align:center;white-space:nowrap">${d.ok}問</td>
+      <td style="text-align:center;font-weight:700;white-space:nowrap;${pctColor}">${pct}%</td>
+      <td style="font-size:12px;color:#888;white-space:nowrap">${date}</td></tr>`;
+  });
+  document.getElementById('admin-date').textContent=name+' さんの詳細: '+sorted.length+'語 取り組み済み';
+}
+function exportCSV(){
+  const rows=window._adminAllRows||[];
+  const agg={};
+  rows.forEach(r=>{
+    if(!agg[r.name])agg[r.name]={total:0,ok:0,ng:0,last:''};
+    agg[r.name].total++;if(r.is_correct)agg[r.name].ok++;else agg[r.name].ng++;
+    if(!agg[r.name].last||r.answered_at>agg[r.name].last)agg[r.name].last=r.answered_at;
+  });
+  let csv='名前,合計回答,正解,不正解,正答率,最終回答\n';
+  Object.entries(agg).sort((a,b)=>b[1].total-a[1].total).forEach(([name,d])=>{
+    const pct=Math.round(d.ok/d.total*100);
+    const date=new Date(d.last).toLocaleString('ja-JP',{timeZone:'Asia/Tokyo'});
+    csv+=`"${name}",${d.total},${d.ok},${d.ng},${pct}%,"${date}"\n`;
+  });
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='英単語_成績.csv';a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// DATA — 小学校
+// ============================================================
+const ELEM_DATA = [
+  {
+    id:'c01', name:'数 [numbers]', icon:'🔢', stripe:'#e8522a',
+    words:[
+      {en:'one',jp:'1'},
+      {en:'two',jp:'2'},
+      {en:'three',jp:'3'},
+      {en:'four',jp:'4'},
+      {en:'five',jp:'5'},
+      {en:'six',jp:'6'},
+      {en:'seven',jp:'7'},
+      {en:'eight',jp:'8'},
+      {en:'nine',jp:'9'},
+      {en:'ten',jp:'10'},
+      {en:'eleven',jp:'11'},
+      {en:'twelve',jp:'12'},
+      {en:'thirteen',jp:'13'},
+      {en:'fourteen',jp:'14'},
+      {en:'fifteen',jp:'15'},
+      {en:'sixteen',jp:'16'},
+      {en:'seventeen',jp:'17'},
+      {en:'eighteen',jp:'18'},
+      {en:'nineteen',jp:'19'},
+      {en:'twenty',jp:'20'},
+      {en:'thirty',jp:'30'},
+      {en:'forty',jp:'40'},
+      {en:'fifty',jp:'50'},
+      {en:'sixty',jp:'60'},
+      {en:'seventy',jp:'70'},
+      {en:'eighty',jp:'80'},
+      {en:'ninety',jp:'90'},
+      {en:'one hundred',jp:'100'},
+      {en:'zero',jp:'0'},
+    ]
+  },
+  {
+    id:'c02', name:'色 [colors]・形 [shapes]', icon:'🎨', stripe:'#d44faa',
+    words:[
+      {en:'white',jp:'白'},
+      {en:'red',jp:'赤'},
+      {en:'orange',jp:'オレンジ'},
+      {en:'yellow',jp:'黄'},
+      {en:'green',jp:'緑'},
+      {en:'pink',jp:'ピンク'},
+      {en:'purple',jp:'むらさき'},
+      {en:'blue',jp:'青'},
+      {en:'brown',jp:'茶'},
+      {en:'black',jp:'黒'},
+      {en:'circle',jp:'円、丸'},
+      {en:'square',jp:'正方形'},
+      {en:'star',jp:'星形'},
+      {en:'triangle',jp:'三角形'},
+      {en:'rectangle',jp:'長方形'},
+    ]
+  },
+  {
+    id:'c03', name:'月・季節・行事', icon:'📅', stripe:'#2d9e6e',
+    words:[
+      {en:'January',jp:'1月'},
+      {en:'February',jp:'2月'},
+      {en:'March',jp:'3月'},
+      {en:'April',jp:'4月'},
+      {en:'May',jp:'5月'},
+      {en:'June',jp:'6月'},
+      {en:'July',jp:'7月'},
+      {en:'August',jp:'8月'},
+      {en:'September',jp:'9月'},
+      {en:'October',jp:'10月'},
+      {en:'November',jp:'11月'},
+      {en:'December',jp:'12月'},
+      {en:'spring',jp:'春'},
+      {en:'summer',jp:'夏'},
+      {en:'fall',jp:'秋（autumn）'},
+      {en:'winter',jp:'冬'},
+      {en:'birthday',jp:'誕生日'},
+      {en:"New Year's Day",jp:'元日'},
+      {en:"New Year's Eve",jp:'大みそか'},
+      {en:"Children's Day",jp:'こどもの日'},
+      {en:'Christmas',jp:'クリスマス'},
+      {en:'Halloween',jp:'ハロウィーン'},
+      {en:'fireworks festival',jp:'花火大会'},
+    ]
+  },
+  {
+    id:'c04', name:'曜日 [days of the week]', icon:'📆', stripe:'#1a6fd4',
+    words:[
+      {en:'Sunday',jp:'日曜日'},
+      {en:'Monday',jp:'月曜日'},
+      {en:'Tuesday',jp:'火曜日'},
+      {en:'Wednesday',jp:'水曜日'},
+      {en:'Thursday',jp:'木曜日'},
+      {en:'Friday',jp:'金曜日'},
+      {en:'Saturday',jp:'土曜日'},
+    ]
+  },
+  {
+    id:'c05', name:'天気・気分', icon:'☀️', stripe:'#d4a020',
+    words:[
+      {en:'fine',jp:'元気な'},
+      {en:'good',jp:'元気な、健康な'},
+      {en:'great',jp:'すばらしい'},
+      {en:'happy',jp:'幸せな'},
+      {en:'sad',jp:'悲しい'},
+      {en:'tired',jp:'疲れた'},
+      {en:'sleepy',jp:'眠い'},
+      {en:'busy',jp:'忙しい'},
+      {en:'hungry',jp:'空腹な'},
+      {en:'thirsty',jp:'のどがかわいた'},
+      {en:'sunny',jp:'晴れた'},
+      {en:'cloudy',jp:'くもった'},
+      {en:'windy',jp:'風の吹く'},
+      {en:'rainy',jp:'雨の'},
+      {en:'snowy',jp:'雪の降る'},
+      {en:'hot',jp:'暑い'},
+      {en:'warm',jp:'あたたかい'},
+      {en:'cold',jp:'寒い'},
+      {en:'humid',jp:'湿気のある'},
+    ]
+  },
+  {
+    id:'c06', name:'食べ物・飲み物', icon:'🍎', stripe:'#c4401c',
+    words:[
+      {en:'rice',jp:'ご飯'},
+      {en:'bread',jp:'パン'},
+      {en:'sandwich',jp:'サンドイッチ'},
+      {en:'pizza',jp:'ピザ'},
+      {en:'hamburger',jp:'ハンバーガー'},
+      {en:'tea',jp:'茶、紅茶'},
+      {en:'juice',jp:'ジュース'},
+      {en:'water',jp:'水'},
+      {en:'cake',jp:'ケーキ'},
+      {en:'donut',jp:'ドーナツ'},
+      {en:'rice ball',jp:'おにぎり'},
+      {en:'curry and rice',jp:'カレーライス'},
+      {en:'pancake',jp:'パンケーキ'},
+      {en:'hot dog',jp:'ホットドッグ'},
+      {en:'French fries',jp:'フライドポテト'},
+      {en:'fried chicken',jp:'フライドチキン'},
+      {en:'sausage',jp:'ソーセージ'},
+      {en:'steak',jp:'ステーキ'},
+      {en:'omelet',jp:'オムレツ'},
+      {en:'spaghetti',jp:'スパゲッティ'},
+      {en:'pie',jp:'パイ'},
+      {en:'salad',jp:'サラダ'},
+      {en:'soup',jp:'スープ'},
+      {en:'coffee',jp:'コーヒー'},
+      {en:'green tea',jp:'緑茶'},
+      {en:'soda',jp:'ソーダ、炭酸飲料'},
+      {en:'milk',jp:'牛乳'},
+      {en:'ice cream',jp:'アイスクリーム'},
+      {en:'shaved ice',jp:'かき氷'},
+      {en:'chocolate',jp:'チョコレート'},
+    ]
+  },
+  {
+    id:'c07', name:'果物・野菜・肉', icon:'🥦', stripe:'#2d8c2d',
+    words:[
+      {en:'apple',jp:'リンゴ'},
+      {en:'banana',jp:'バナナ'},
+      {en:'cherry',jp:'サクランボ'},
+      {en:'grapes',jp:'ブドウ'},
+      {en:'kiwi fruit',jp:'キウイフルーツ'},
+      {en:'lemon',jp:'レモン'},
+      {en:'melon',jp:'メロン'},
+      {en:'orange',jp:'オレンジ'},
+      {en:'potato',jp:'ジャガイモ'},
+      {en:'tomato',jp:'トマト'},
+      {en:'lettuce',jp:'レタス'},
+      {en:'onion',jp:'タマネギ'},
+      {en:'peach',jp:'モモ'},
+      {en:'pineapple',jp:'パイナップル'},
+      {en:'strawberry',jp:'イチゴ'},
+      {en:'watermelon',jp:'スイカ'},
+      {en:'corn',jp:'トウモロコシ'},
+      {en:'bean',jp:'豆'},
+      {en:'beef',jp:'牛肉'},
+      {en:'chicken',jp:'とり肉'},
+      {en:'pork',jp:'ぶた肉'},
+      {en:'bacon',jp:'ベーコン'},
+      {en:'ham',jp:'ハム'},
+      {en:'cheese',jp:'チーズ'},
+      {en:'egg',jp:'卵'},
+      {en:'fish',jp:'魚'},
+    ]
+  },
+  {
+    id:'c08', name:'動物 [animals]', icon:'🐶', stripe:'#7a4f22',
+    words:[
+      {en:'dog',jp:'イヌ'},
+      {en:'cat',jp:'ネコ'},
+      {en:'bird',jp:'鳥'},
+      {en:'rabbit',jp:'ウサギ'},
+      {en:'panda',jp:'パンダ'},
+      {en:'fox',jp:'キツネ'},
+      {en:'koala',jp:'コアラ'},
+      {en:'mouse',jp:'ネズミ'},
+      {en:'bear',jp:'クマ'},
+      {en:'elephant',jp:'ゾウ'},
+      {en:'tiger',jp:'トラ'},
+      {en:'lion',jp:'ライオン'},
+      {en:'horse',jp:'ウマ'},
+      {en:'zebra',jp:'シマウマ'},
+      {en:'giraffe',jp:'キリン'},
+      {en:'camel',jp:'ラクダ'},
+      {en:'monkey',jp:'サル'},
+      {en:'gorilla',jp:'ゴリラ'},
+      {en:'snake',jp:'ヘビ'},
+      {en:'frog',jp:'カエル'},
+      {en:'whale',jp:'クジラ'},
+      {en:'dolphin',jp:'イルカ'},
+      {en:'penguin',jp:'ペンギン'},
+      {en:'sea turtle',jp:'ウミガメ'},
+      {en:'shark',jp:'サメ'},
+      {en:'ant',jp:'アリ'},
+      {en:'butterfly',jp:'チョウ'},
+      {en:'spider',jp:'クモ'},
+    ]
+  },
+  {
+    id:'c09', name:'自然 [nature]', icon:'🌿', stripe:'#1d8c5a',
+    words:[
+      {en:'tree',jp:'木'},
+      {en:'flower',jp:'花'},
+      {en:'sun',jp:'太陽'},
+      {en:'river',jp:'川'},
+      {en:'mountain',jp:'山'},
+      {en:'forest',jp:'森'},
+      {en:'lake',jp:'湖'},
+      {en:'sea',jp:'海'},
+      {en:'beach',jp:'ビーチ'},
+      {en:'hot spring',jp:'温泉'},
+      {en:'island',jp:'島'},
+      {en:'rain forest',jp:'熱帯雨林'},
+    ]
+  },
+  {
+    id:'c10', name:'スポーツ [sports]', icon:'⚽', stripe:'#0f6e56',
+    words:[
+      {en:'baseball',jp:'野球'},
+      {en:'basketball',jp:'バスケットボール'},
+      {en:'soccer',jp:'サッカー'},
+      {en:'tennis',jp:'テニス'},
+      {en:'volleyball',jp:'バレーボール'},
+      {en:'softball',jp:'ソフトボール'},
+      {en:'dodgeball',jp:'ドッジボール'},
+      {en:'rugby',jp:'ラグビー'},
+      {en:'table tennis',jp:'卓球'},
+      {en:'badminton',jp:'バドミントン'},
+      {en:'track and field',jp:'陸上競技'},
+      {en:'swimming',jp:'水泳'},
+      {en:'skiing',jp:'スキー'},
+      {en:'dance',jp:'ダンス'},
+    ]
+  },
+  {
+    id:'c11', name:'楽器 [instruments]', icon:'🎵', stripe:'#534ab7',
+    words:[
+      {en:'piano',jp:'ピアノ'},
+      {en:'violin',jp:'バイオリン'},
+      {en:'guitar',jp:'ギター'},
+      {en:'recorder',jp:'リコーダー'},
+      {en:'harmonica',jp:'ハーモニカ'},
+      {en:'drum',jp:'ドラム、たいこ'},
+      {en:'triangle',jp:'トライアングル'},
+      {en:'xylophone',jp:'木琴、鉄琴'},
+    ]
+  },
+  {
+    id:'c12', name:'身のまわりのもの・文房具・衣類', icon:'✏️', stripe:'#4a7ab7',
+    words:[
+      {en:'pen',jp:'ペン'},
+      {en:'book',jp:'本'},
+      {en:'TV',jp:'テレビ'},
+      {en:'computer',jp:'コンピュータ'},
+      {en:'smartphone',jp:'スマートフォン'},
+      {en:'desk',jp:'机'},
+      {en:'chair',jp:'いす'},
+      {en:'umbrella',jp:'傘'},
+      {en:'bag',jp:'かばん、バッグ、ふくろ'},
+      {en:'T-shirt',jp:'Tシャツ'},
+      {en:'bed',jp:'ベッド'},
+      {en:'racket',jp:'ラケット'},
+      {en:'glass',jp:'（ガラスの）コップ'},
+      {en:'textbook',jp:'教科書'},
+      {en:'comic book',jp:'マンガ本'},
+      {en:'dictionary',jp:'辞書'},
+      {en:'camera',jp:'カメラ'},
+      {en:'watch',jp:'腕時計'},
+      {en:'tablet',jp:'タブレット型コンピュータ'},
+      {en:'crayon',jp:'クレヨン'},
+      {en:'marker',jp:'マーカー'},
+      {en:'pencil',jp:'えんぴつ'},
+      {en:'pencil case',jp:'筆箱'},
+      {en:'eraser',jp:'消しゴム'},
+      {en:'ruler',jp:'じょうぎ'},
+      {en:'scissors',jp:'はさみ'},
+      {en:'notebook',jp:'ノート'},
+      {en:'shirt',jp:'シャツ'},
+      {en:'sweater',jp:'セーター'},
+      {en:'uniform',jp:'制服、ユニフォーム'},
+      {en:'pants',jp:'ズボン'},
+      {en:'jeans',jp:'ジーンズ'},
+      {en:'cap',jp:'ぼうし'},
+      {en:'hat',jp:'（ふちのある）ぼうし'},
+      {en:'sock',jp:'くつした'},
+      {en:'shoe',jp:'くつ'},
+    ]
+  },
+  {
+    id:'c13', name:'学校 [school]', icon:'🏫', stripe:'#2d5fa0',
+    words:[
+      {en:'classroom',jp:'教室'},
+      {en:'library',jp:'図書室'},
+      {en:'schoolyard',jp:'校庭'},
+      {en:'gym',jp:'体育館'},
+      {en:'music room',jp:'音楽室'},
+      {en:'entrance',jp:'玄関'},
+      {en:'restroom',jp:'トイレ'},
+      {en:'computer room',jp:'コンピュータ室'},
+      {en:'swimming pool',jp:'プール'},
+      {en:"teachers' office",jp:'職員室'},
+      {en:"principal's office",jp:'校長室'},
+      {en:"nurse's office",jp:'保健室'},
+    ]
+  },
+  {
+    id:'c14', name:'教科 [subjects]', icon:'📚', stripe:'#8b4fa0',
+    words:[
+      {en:'Japanese',jp:'国語'},
+      {en:'social studies',jp:'社会科'},
+      {en:'math',jp:'数学'},
+      {en:'science',jp:'理科'},
+      {en:'music',jp:'音楽'},
+      {en:'art',jp:'美術'},
+      {en:'P.E.',jp:'体育'},
+      {en:'English',jp:'英語'},
+      {en:'moral education',jp:'道徳'},
+    ]
+  },
+  {
+    id:'c15', name:'学校行事 [events]', icon:'🎉', stripe:'#c47820',
+    words:[
+      {en:'school trip',jp:'修学旅行'},
+      {en:'chorus contest',jp:'合唱コンクール'},
+      {en:'school festival',jp:'学校祭'},
+      {en:'sports day',jp:'運動会'},
+      {en:'field trip',jp:'校外実習、校外見学、遠足'},
+      {en:'drama festival',jp:'演劇祭'},
+      {en:'summer vacation',jp:'夏休み'},
+      {en:'entrance ceremony',jp:'入学式'},
+      {en:'graduation ceremony',jp:'卒業式'},
+      {en:'music festival',jp:'音楽祭'},
+    ]
+  },
+  {
+    id:'c16', name:'部活動 [clubs]', icon:'🏅', stripe:'#c43030',
+    words:[
+      {en:'soccer team',jp:'サッカー部'},
+      {en:'art club',jp:'美術部'},
+      {en:'brass band',jp:'ブラスバンド・吹奏楽団'},
+      {en:'chorus',jp:'合唱部'},
+      {en:'badminton team',jp:'バドミントン部'},
+      {en:'baseball team',jp:'野球部'},
+      {en:'basketball team',jp:'バスケットボール部'},
+      {en:'volleyball team',jp:'バレーボール部'},
+      {en:'tennis team',jp:'テニス部'},
+      {en:'dance team',jp:'ダンス部'},
+      {en:'cooking club',jp:'料理部'},
+      {en:'drama club',jp:'演劇部'},
+      {en:'newspaper club',jp:'新聞部'},
+    ]
+  },
+  {
+    id:'c17', name:'町 [town]・乗り物', icon:'🏘️', stripe:'#3b7a7a',
+    words:[
+      {en:'house',jp:'家'},
+      {en:'station',jp:'駅'},
+      {en:'park',jp:'公園'},
+      {en:'school',jp:'学校'},
+      {en:'restaurant',jp:'レストラン'},
+      {en:'library',jp:'図書館'},
+      {en:'museum',jp:'博物館、美術館'},
+      {en:'hospital',jp:'病院'},
+      {en:'bus stop',jp:'バス停'},
+      {en:'police station',jp:'警察署'},
+      {en:'fire station',jp:'消防署'},
+      {en:'post office',jp:'郵便局'},
+      {en:'bookstore',jp:'書店'},
+      {en:'supermarket',jp:'スーパーマーケット'},
+      {en:'shrine',jp:'神社'},
+      {en:'temple',jp:'寺'},
+      {en:'stadium',jp:'スタジアム'},
+      {en:'zoo',jp:'動物園'},
+      {en:'elementary school',jp:'小学校'},
+      {en:'junior high school',jp:'中学校'},
+      {en:'car',jp:'車'},
+      {en:'bus',jp:'バス'},
+      {en:'bike',jp:'自転車'},
+      {en:'train',jp:'電車'},
+      {en:'taxi',jp:'タクシー'},
+    ]
+  },
+  {
+    id:'c18', name:'職業 [jobs]', icon:'👨‍⚕️', stripe:'#2d7a8c',
+    words:[
+      {en:'singer',jp:'歌手'},
+      {en:'cook',jp:'料理人'},
+      {en:'teacher',jp:'先生、教師'},
+      {en:'doctor',jp:'医師、医者'},
+      {en:'comedian',jp:'コメディアン'},
+      {en:'artist',jp:'芸術家'},
+      {en:'writer',jp:'作家、ライター'},
+      {en:'nurse',jp:'看護師'},
+      {en:'farmer',jp:'農場経営者'},
+      {en:'police officer',jp:'警察官'},
+      {en:'fire fighter',jp:'消防士'},
+      {en:'pilot',jp:'パイロット'},
+      {en:'astronaut',jp:'宇宙飛行士'},
+      {en:'researcher',jp:'研究者'},
+      {en:'scientist',jp:'科学者'},
+      {en:'flight attendant',jp:'キャビンアテンダント'},
+      {en:'baseball player',jp:'野球選手'},
+      {en:'bus driver',jp:'バス運転手'},
+    ]
+  },
+  {
+    id:'c19', name:'人・家族 [family]', icon:'👨‍👩‍👧', stripe:'#8c4a8c',
+    words:[
+      {en:'friend',jp:'友達'},
+      {en:'classmate',jp:'クラスメート'},
+      {en:'grandmother',jp:'祖母'},
+      {en:'grandfather',jp:'祖父'},
+      {en:'mother',jp:'母'},
+      {en:'father',jp:'父'},
+      {en:'brother',jp:'兄、弟'},
+      {en:'sister',jp:'姉、妹'},
+      {en:'child',jp:'子供'},
+      {en:'aunt',jp:'おば'},
+      {en:'uncle',jp:'おじ'},
+      {en:'cousin',jp:'いとこ'},
+    ]
+  },
+  {
+    id:'c20', name:'体 [body]', icon:'🫀', stripe:'#b04545',
+    words:[
+      {en:'hair',jp:'髪の毛'},
+      {en:'head',jp:'頭'},
+      {en:'face',jp:'顔'},
+      {en:'shoulder',jp:'肩'},
+      {en:'hand',jp:'手'},
+      {en:'arm',jp:'腕'},
+      {en:'knee',jp:'ひざ'},
+      {en:'eye',jp:'目'},
+      {en:'ear',jp:'耳'},
+      {en:'nose',jp:'鼻'},
+      {en:'mouth',jp:'口'},
+      {en:'tooth',jp:'歯（複数形 teeth）'},
+      {en:'neck',jp:'首'},
+      {en:'leg',jp:'脚'},
+      {en:'toe',jp:'足の指'},
+    ]
+  },
+  {
+    id:'c21', name:'いろいろな動詞', icon:'🏃', stripe:'#5a5a8c',
+    words:[
+      {en:'like',jp:'〜を好む・が好きである'},
+      {en:'want',jp:'〜がほしい'},
+      {en:'have',jp:'〜を持っている'},
+      {en:'play',jp:'（競技・ゲームなどを）する'},
+      {en:'spell',jp:'（語）をつづる'},
+      {en:'listen',jp:'聞く、耳を傾ける'},
+      {en:'walk',jp:'歩く'},
+      {en:'run',jp:'走る'},
+      {en:'dance',jp:'おどる、ダンスをする'},
+      {en:'jump',jp:'とぶ'},
+      {en:'catch',jp:'〜をつかまえる・とらえる'},
+      {en:'swim',jp:'泳ぐ'},
+      {en:'fly',jp:'飛ぶ'},
+      {en:'sing',jp:'歌う'},
+      {en:'cook',jp:'（〜を）料理する'},
+      {en:'go',jp:'行く'},
+      {en:'turn',jp:'向く、曲がる'},
+      {en:'see',jp:'〜が見える、〜を見る'},
+      {en:'look',jp:'見る、目を向ける'},
+      {en:'drink',jp:'〜を飲む'},
+      {en:'eat',jp:'〜を食べる'},
+      {en:'buy',jp:'〜を買う'},
+      {en:'speak',jp:'（ある言語を）話す'},
+      {en:'live',jp:'住む、住んでいる'},
+      {en:'make',jp:'〜を作る'},
+      {en:'wear',jp:'〜を着ている、身につけている'},
+      {en:'talk',jp:'話す、しゃべる'},
+      {en:'watch',jp:'〜を（注意して）見る'},
+      {en:'read',jp:'（〜を）読む、読んで知る'},
+      {en:'help',jp:'〜を手伝う、助ける'},
+      {en:'practice',jp:'（〜を）練習する'},
+      {en:'clean',jp:'〜をそうじする'},
+      {en:'enjoy',jp:'〜を楽しむ'},
+      {en:'visit',jp:'（人・場所）を訪ねる'},
+      {en:'ride',jp:'〜に乗る、乗っていく'},
+      {en:'come',jp:'来る'},
+      {en:'get',jp:'〜を得る、受け取る、手に入れる'},
+      {en:'save',jp:'〜を救う'},
+      {en:'stop',jp:'とまる、停止する'},
+      {en:'study',jp:'（〜を）勉強する、研究する'},
+      {en:'join',jp:'〜に加わる、参加する'},
+      {en:'work',jp:'働く、作業をする'},
+      {en:'ate',jp:'〜を食べた（eat の過去形）'},
+      {en:'went',jp:'行った（go の過去形）'},
+      {en:'saw',jp:'〜が見えた・を見た（see の過去形）'},
+      {en:'had',jp:'〜を持っていた（have の過去形）'},
+      {en:'enjoyed',jp:'〜を楽しんだ'},
+      {en:'played',jp:'（競技・ゲームなどを）した'},
+      {en:'watched',jp:'〜を（注意して）見た'},
+    ]
+  },
+  {
+    id:'c22', name:'様子・状態・感想など', icon:'😊', stripe:'#c47820',
+    words:[
+      {en:'good',jp:'よい、元気な、健康な'},
+      {en:'bad',jp:'悪い、よくない、ひどい'},
+      {en:'cool',jp:'かっこいい'},
+      {en:'cute',jp:'かわいい'},
+      {en:'delicious',jp:'とてもおいしい'},
+      {en:'nice',jp:'すてきな、よい'},
+      {en:'big',jp:'大きい'},
+      {en:'small',jp:'小さい'},
+      {en:'new',jp:'新しい'},
+      {en:'old',jp:'古い'},
+      {en:'high',jp:'高い'},
+      {en:'low',jp:'低い'},
+      {en:'long',jp:'長い'},
+      {en:'short',jp:'短い'},
+      {en:'fast',jp:'速い'},
+      {en:'slow',jp:'遅い'},
+      {en:'active',jp:'活発な'},
+      {en:'brave',jp:'勇かんな'},
+      {en:'friendly',jp:'親しみやすい'},
+      {en:'funny',jp:'おもしろい'},
+      {en:'kind',jp:'やさしい'},
+      {en:'shy',jp:'内気な'},
+      {en:'smart',jp:'頭が良い'},
+      {en:'strong',jp:'力が強い'},
+      {en:'quiet',jp:'静かな'},
+      {en:'sweet',jp:'甘い'},
+      {en:'spicy',jp:'香辛料のきいた、辛ばしい'},
+      {en:'hot',jp:'熱い'},
+      {en:'cold',jp:'冷たい'},
+      {en:'soft',jp:'やわらかい'},
+      {en:'hard',jp:'かたい'},
+    ]
+  },
+  {
+    id:'c23', name:'頻度・位置', icon:'📍', stripe:'#3a7a3a',
+    words:[
+      {en:'always',jp:'いつも、常に'},
+      {en:'usually',jp:'たいてい、ふつう'},
+      {en:'sometimes',jp:'ときどき'},
+      {en:'never',jp:'決して〜ない'},
+      {en:'in',jp:'〜（の中）に〔で、の〕'},
+      {en:'on',jp:'〜（の上）に〔で〕'},
+      {en:'under',jp:'〜の下に〔で〕'},
+      {en:'by',jp:'〜のそばに'},
+    ]
+  },
+];
+
+// ============================================================
+// DATA — 中学1年
+// ============================================================
+const JHS1_DATA = [
+  {
+    id:'u0', num:'Unit 0', title:'Nice to Meet You', sem:1, stripe:'#3a9fd4',
+    words:[
+      {en:'nice',jp:'すてきな、よい',pos:'形容詞'},
+      {en:'to',jp:'〜すること（不定詞）',pos:'前置詞'},
+      {en:'meet',jp:'会う、知り合いになる',pos:'動詞'},
+      {en:'you',jp:'あなた（たち）を・に',pos:'代名詞'},
+      {en:'good',jp:'よい',pos:'形容詞'},
+      {en:'morning',jp:'朝、午前',pos:'名詞'},
+      {en:'I',jp:'私は・が',pos:'代名詞'},
+      {en:'am',jp:'〜です（be動詞）',pos:'動詞'},
+      {en:'hi',jp:'やあ、こんにちは',pos:'感嘆詞'},
+      {en:'my',jp:'私の',pos:'代名詞'},
+      {en:'name',jp:'名前',pos:'名詞'},
+      {en:'is',jp:'〜です・だ（be動詞）',pos:'動詞'},
+      {en:'hello',jp:'こんにちは',pos:'感嘆詞'},
+      {en:'do',jp:'〔疑問文や否定文を作る〕',pos:'助動詞'},
+      {en:'like',jp:'〜を好む・が好きである',pos:'動詞'},
+      {en:'tennis',jp:'テニス',pos:'名詞'},
+      {en:'yes',jp:'はい、そうです',pos:'感嘆詞'},
+    ]
+  },
+  {
+    id:'u1', num:'Unit 1', title:'Hello, Everyone!', sem:1, stripe:'#1a6fd4',
+    words:[
+      {en:'call',jp:'〜を（〜と）呼ぶ、名づける',pos:'動詞'},
+      {en:'love',jp:'〜が大好きである、〜を愛している',pos:'動詞'},
+      {en:'fan',jp:'ファン',pos:'名詞'},
+      {en:'often',jp:'しばしば、よく',pos:'副詞'},
+      {en:'with',jp:'〔共同・同伴〕〜といっしょに',pos:'前置詞'},
+      {en:'but',jp:'しかし、けれども',pos:'接続詞'},
+      {en:'draw',jp:'〔線画を〕かく',pos:'動詞'},
+      {en:'an',jp:'1つの、1人の〔母音で始まる名詞の前〕',pos:'冠詞'},
+      {en:'anime',jp:'〔日本の〕アニメ',pos:'名詞'},
+      {en:'so',jp:'だから、それで、では',pos:'接続詞'},
+      {en:'about',jp:'〜について、〜に関する',pos:'前置詞'},
+      {en:'lesson',jp:'授業、レッスン',pos:'名詞'},
+    ]
+  },
+  {
+    id:'u2', num:'Unit 2', title:'Our New Teacher', sem:1, stripe:'#0f6e56',
+    words:[
+      {en:'class',jp:'学級、組、クラス',pos:'名詞'},
+      {en:'our',jp:'私たちの',pos:'代名詞'},
+      {en:'Canada',jp:'カナダ',pos:'名詞'},
+      {en:'America',jp:'アメリカ（合衆国）',pos:'名詞'},
+      {en:'Chinese',jp:'中国の',pos:'形容詞'},
+      {en:'cannot',jp:'〜できない',pos:'助動詞'},
+      {en:'some',jp:'いくつかの、少しの',pos:'形容詞'},
+      {en:'parent',jp:'親、〔parentsで〕親たち、両親',pos:'名詞'},
+      {en:'China',jp:'中国',pos:'名詞'},
+      {en:'excuse',jp:'〜を許す',pos:'動詞'},
+      {en:'oops',jp:'おっと、うわっ、しまった',pos:'感嘆詞'},
+      {en:'here',jp:'さあ、ほら',pos:'副詞'},
+      {en:'welcome',jp:'歓迎される',pos:'形容詞'},
+    ]
+  },
+  {
+    id:'u3', num:'Unit 3', title:'Our School', sem:1, stripe:'#993c1d',
+    words:[
+      {en:'symbol',jp:'シンボル、象徴、記号',pos:'名詞'},
+      {en:'for',jp:'〔代理・代表〕〜の代わりに、〜に相当する',pos:'前置詞'},
+      {en:'interesting',jp:'おもしろい、興味深い',pos:'形容詞'},
+      {en:'favorite',jp:'いちばん好きな、お気に入りの',pos:'形容詞'},
+      {en:'character',jp:'登場人物、キャラクター',pos:'名詞'},
+      {en:'also',jp:'〜もまた、そのうえ',pos:'副詞'},
+      {en:'around',jp:'〜の近くに',pos:'前置詞'},
+      {en:'after',jp:'〜のあとに〔で〕',pos:'前置詞'},
+      {en:'online',jp:'オンラインで',pos:'副詞'},
+      {en:'hallway',jp:'ろうか',pos:'名詞'},
+      {en:'win',jp:'〔〜に〕勝つ',pos:'動詞'},
+      {en:'next',jp:'次回の、今度の、となりの',pos:'形容詞'},
+      {en:'luck',jp:'運、幸運',pos:'名詞'},
+      {en:'near',jp:'〜の近くに〔で〕',pos:'前置詞'},
+    ]
+  },
+  {
+    id:'u4', num:'Unit 4', title:'Friends in New Zealand', sem:1, stripe:'#185fa5',
+    words:[
+      {en:'New Zealand',jp:'ニュージーランド',pos:'名詞'},
+      {en:'puppy',jp:'子イヌ',pos:'名詞'},
+      {en:'of',jp:'〔部分〕〜の中の〔で〕、〜の',pos:'前置詞'},
+      {en:'someday',jp:'いつか',pos:'副詞'},
+      {en:'lot',jp:'〔a lotまたはlotsで〕たくさん',pos:'名詞'},
+      {en:'they',jp:'彼らは〔が〕、彼女らは〔が〕',pos:'代名詞'},
+      {en:'noon',jp:'正午、真昼',pos:'名詞'},
+      {en:'last',jp:'最後の、最終の',pos:'形容詞'},
+      {en:'like',jp:'〜のような〔に〕、〜に似た',pos:'前置詞'},
+      {en:"o'clock",jp:'〔〜〕時',pos:'名詞'},
+      {en:'front',jp:'前部、正面',pos:'名詞'},
+      {en:'be',jp:'〜である、〜になる',pos:'動詞'},
+      {en:'nervous',jp:'緊張した',pos:'形容詞'},
+      {en:'worry',jp:'心配する、悩む',pos:'動詞'},
+      {en:'yourself',jp:'あなた自身を〔に〕',pos:'代名詞'},
+      {en:'sheep',jp:'ヒツジ',pos:'名詞'},
+      {en:'kiwi',jp:'キーウィ〔動物名〕',pos:'名詞'},
+      {en:'right',jp:'正しい、正確な',pos:'形容詞'},
+    ]
+  },
+  {
+    id:'u5', num:'Unit 5', title:'My Brother in Hawaii', sem:2, stripe:'#854f0b',
+    words:[
+      {en:'as',jp:'〜として',pos:'前置詞'},
+      {en:'tour',jp:'旅行、ツアー、見学',pos:'名詞'},
+      {en:'guide',jp:'ガイド、案内人',pos:'名詞'},
+      {en:'write',jp:'〔〜を〕書く',pos:'動詞'},
+      {en:'blog',jp:'ブログ',pos:'名詞'},
+      {en:'local',jp:'〔ある〕地方の、地元の',pos:'形容詞'},
+      {en:'beautiful',jp:'美しい',pos:'形容詞'},
+      {en:'spot',jp:'地点、場所',pos:'名詞'},
+      {en:'his',jp:'彼の',pos:'代名詞'},
+      {en:'any',jp:'〔疑問文などで〕いくらかの、何らかの',pos:'形容詞'},
+      {en:'does',jp:'〔疑問文や応答を作る〕',pos:'助動詞'},
+      {en:'has',jp:'have の三人称単数現在形',pos:'動詞'},
+      {en:'there',jp:'そこに〔で、へ〕',pos:'副詞'},
+      {en:'surf',jp:'〔サーフィン〔波乗り〕〕をする',pos:'動詞'},
+      {en:'life',jp:'生活、暮らし',pos:'名詞'},
+    ]
+  },
+  {
+    id:'u6', num:'Unit 6', title:'A Rakugo Performer', sem:2, stripe:'#534ab7',
+    words:[
+      {en:'him',jp:'彼を〔に〕',pos:'代名詞'},
+      {en:'say',jp:'〔〜を〕言う、〜だと言う',pos:'動詞'},
+      {en:'everything',jp:'何もすべてのもの〔こと〕',pos:'代名詞'},
+      {en:'show',jp:'ショー',pos:'名詞'},
+      {en:'her',jp:'彼女を〔に〕',pos:'代名詞'},
+      {en:'performer',jp:'演技者',pos:'名詞'},
+      {en:'together',jp:'いっしょに、ともに',pos:'副詞'},
+      {en:'minute',jp:'〔時間の単位の〕分',pos:'名詞'},
+      {en:'wait',jp:'待つ',pos:'動詞'},
+      {en:'whose',jp:'だれの、だれのもの',pos:'疑問詞'},
+      {en:'yours',jp:'あなた（たち）のもの',pos:'代名詞'},
+      {en:'mine',jp:'私のもの',pos:'代名詞'},
+      {en:'maybe',jp:'たぶん、もしかすると',pos:'副詞'},
+      {en:'careful',jp:'注意深い',pos:'形容詞'},
+      {en:'crowded',jp:'こみ合った、満員の',pos:'形容詞'},
+      {en:'history',jp:'歴史',pos:'名詞'},
+      {en:'still',jp:'まだ、今でも',pos:'副詞'},
+      {en:'over',jp:'〔〜より多く、〜をこえて〕',pos:'前置詞'},
+    ]
+  },
+  {
+    id:'u7', num:'Unit 7', title:'An Online Tour of the U.K.', sem:2, stripe:'#3b6d11',
+    words:[
+      {en:'tomorrow',jp:'明日（は）',pos:'名詞'},
+      {en:'plan',jp:'計画、予定',pos:'名詞'},
+      {en:'free',jp:'ひまな',pos:'形容詞'},
+      {en:'mean',jp:'〜を意味する、〜のことを言う',pos:'動詞'},
+      {en:'forward',jp:'〔look forward toで〕〜を楽しみに待つ',pos:'副詞'},
+      {en:'busy',jp:'忙しい',pos:'形容詞'},
+      {en:'talk',jp:'話す、しゃべる',pos:'動詞'},
+      {en:'market',jp:'市場',pos:'名詞'},
+      {en:'souvenir',jp:'記念品、みやげ',pos:'名詞'},
+      {en:'place',jp:'場所、ところ',pos:'名詞'},
+      {en:'appear',jp:'現れる、姿を現す',pos:'動詞'},
+      {en:'those',jp:'あれらの、それらの',pos:'代名詞'},
+    ]
+  },
+  {
+    id:'u8', num:'Unit 8', title:'Think Globally, Act Locally', sem:2, stripe:'#d85a30',
+    words:[
+      {en:'ethnic',jp:'民族（特有の）',pos:'形容詞'},
+      {en:'Africa',jp:'アフリカ',pos:'名詞'},
+      {en:'Kenya',jp:'ケニア',pos:'名詞'},
+      {en:'volunteer',jp:'ボランティア',pos:'名詞'},
+      {en:'need',jp:'困っている状態、貧困',pos:'名詞'},
+      {en:'teach',jp:'〔〜に〕（〜を）教える',pos:'動詞'},
+      {en:'try',jp:'〔〜を〕試す、やってみる、努力する',pos:'動詞'},
+      {en:'best',jp:'最もよいもの、最良の状態',pos:'名詞'},
+      {en:'respect',jp:'〔〜を〕尊重する、尊重する',pos:'動詞'},
+      {en:'become',jp:'〔〜に〕なる',pos:'動詞'},
+      {en:'African',jp:'アフリカ（人）の',pos:'形容詞'},
+      {en:'reduce',jp:'〔サイズ・数量・程度などを〕減らす、少なくする、縮小する',pos:'動詞'},
+      {en:'waste',jp:'ごみ、廃棄物',pos:'名詞'},
+      {en:'plastic',jp:'プラスチック〔ビニール〕製の',pos:'形容詞'},
+      {en:'paper',jp:'紙の',pos:'形容詞'},
+      {en:'straw',jp:'ストロー',pos:'名詞'},
+      {en:'original',jp:'独創的な、独自の',pos:'形容詞'},
+      {en:'reusable',jp:'再利用できる',pos:'形容詞'},
+      {en:'course',jp:'〔of courseで〕もちろん',pos:'名詞'},
+    ]
+  },
+  {
+    id:'u9', num:'Unit 9', title:'Winter Vacation', sem:3, stripe:'#7f77dd',
+    words:[
+      {en:'back',jp:'戻って、返して',pos:'副詞'},
+      {en:'during',jp:'〔〜の〕間ずっと、〜の間に',pos:'前置詞'},
+      {en:'stay',jp:'滞在する、泊まる',pos:'動詞'},
+      {en:'snowboarding',jp:'スノーボード（をすること）',pos:'名詞'},
+      {en:'Christmas Day',jp:'クリスマス',pos:'名詞'},
+      {en:'relax',jp:'くつろぐ',pos:'動詞'},
+      {en:'met',jp:'meet の過去形',pos:'動詞'},
+      {en:'ice hockey',jp:'アイスホッケー',pos:'名詞'},
+      {en:'did',jp:'do の過去形',pos:'動詞'},
+      {en:'traditional',jp:'伝統的な',pos:'形容詞'},
+      {en:'special',jp:'特別な',pos:'形容詞'},
+      {en:'grandparent',jp:'祖父、祖母',pos:'名詞'},
+      {en:'wrote',jp:'write の過去形',pos:'動詞'},
+      {en:'New Year',jp:'新年',pos:'名詞'},
+    ]
+  },
+  {
+    id:'u10', num:'Unit 10', title:"This Year's Memories", sem:3, stripe:'#1d9e75',
+    words:[
+      {en:'remember',jp:'〔〜を〕思い出す、覚えている',pos:'動詞'},
+      {en:'bored',jp:'退屈した、うんざりした',pos:'形容詞'},
+      {en:'were',jp:'are の過去形',pos:'動詞'},
+      {en:'realize',jp:'〔〜に〕だと気づく',pos:'動詞'},
+      {en:'made',jp:'make の過去形',pos:'動詞'},
+      {en:'mistake',jp:'間違い、まちがい',pos:'名詞'},
+      {en:'anyone',jp:'〔否定文で〕だれでも',pos:'代名詞'},
+      {en:'won',jp:'win の過去形',pos:'動詞'},
+      {en:'anyway',jp:'とにかく、それでも',pos:'副詞'},
+      {en:'hey',jp:'やあ、おい、ちょっと',pos:'感嘆詞'},
+      {en:'break',jp:'休憩',pos:'名詞'},
+      {en:'then',jp:'そのとき（に）',pos:'副詞'},
+      {en:'bring',jp:'〔〜を〕もたらす',pos:'動詞'},
+      {en:'heart',jp:'心臓、心',pos:'名詞'},
+      {en:'beat',jp:'どきどきする',pos:'動詞'},
+      {en:'way',jp:'道、道路',pos:'名詞'},
+      {en:'each',jp:'それぞれの、各自の',pos:'形容詞'},
+    ]
+  }
+];
+
+// ============================================================
+// DATA — 中学2年
+// ============================================================
+const JHS2_DATA = [
+  {
+    id:'u0', num:'Unit 0', title:'My Spring Vacation', stripe:'#3a9fd4',
+    words:[
+      {en:'same',jp:'同同じ、同一の',pos:'形容詞'},
+      {en:'experience',jp:'経験、体験',pos:'名詞'},
+      {en:'actually',jp:'実際は、本当は',pos:'副詞'},
+      {en:'ramen',jp:'ラーメン',pos:'名詞'},
+      {en:'instant',jp:'即席の、緊急の、（食べ物が）即席の',pos:'形容詞'},
+      {en:'noodle',jp:'ヌードル、めん',pos:'名詞'},
+      {en:'by the way',jp:'ところで',pos:'熟語'},
+    ]
+  },
+  {
+    id:'u1', num:'Unit 1', title:'What can we experience on a trip?', stripe:'#1a6fd4',
+    words:[
+      {en:'golden',jp:'金色の、すばらしい',pos:'形容詞'},
+      {en:'holiday',jp:'休日、休暇',pos:'名詞'},
+      {en:'Singapore',jp:'シンガポール',pos:'名詞'},
+      {en:'flight',jp:'飛行機の便、空の旅',pos:'名詞'},
+      {en:'arrive',jp:'到着する',pos:'動詞'},
+      {en:'airport',jp:'空港、飛行場',pos:'名詞'},
+      {en:'soon',jp:'すぐに、まもなく',pos:'副詞'},
+      {en:'will',jp:'〔単純な未来〕〜しよう、〜だろう',pos:'助動詞'},
+      {en:'excited',jp:'わくわくした',pos:'形容詞'},
+      {en:'seafood',jp:'シーフード',pos:'名詞'},
+      {en:'reservation',jp:'予約',pos:'名詞'},
+      {en:'meter',jp:'メートル',pos:'名詞'},
+      {en:'tall',jp:'〔身長・高さを表す語のあとに用いて〕〜がある',pos:'形容詞'},
+      {en:'weigh',jp:'〜の重さがある',pos:'動詞'},
+      {en:'ton',jp:'トン',pos:'名詞'},
+      {en:'found',jp:'find の過去形',pos:'動詞'},
+      {en:'language',jp:'言語、言葉',pos:'名詞'},
+      {en:'dollar',jp:'ドル',pos:'名詞'},
+      {en:'example',jp:'例、実例',pos:'名詞'},
+      {en:'communicate',jp:'連絡する、意思の疎通をする',pos:'動詞'},
+      {en:'painting',jp:'〔絵の具でかいた〕絵、絵画',pos:'名詞'},
+      {en:'wall',jp:'かべ',pos:'名詞'},
+      {en:'surprised',jp:'驚いた、びっくりした',pos:'形容詞'},
+      {en:'area',jp:'地域、場所、地域',pos:'名詞'},
+      {en:'India',jp:'インド',pos:'名詞'},
+      {en:'mosque',jp:'モスク、イスラム教寺院',pos:'名詞'},
+      {en:'culture',jp:'文化',pos:'名詞'},
+      {en:'for example',jp:'例えば',pos:'熟語'},
+    ]
+  },
+  {
+    id:'u2', num:'Unit 2', title:'What is local food?', stripe:'#0f6e56',
+    words:[
+      {en:'especially',jp:'特に、とりわけ',pos:'副詞'},
+      {en:'order',jp:'〔〜を〕注文する',pos:'動詞'},
+      {en:'topping',jp:'トッピング',pos:'名詞'},
+      {en:'various',jp:'いろいろな',pos:'形容詞'},
+      {en:'flavor',jp:'〔独特な〕味、〔香りもふくめた〕風味',pos:'名詞'},
+      {en:'soy sauce',jp:'しょうゆ',pos:'名詞'},
+      {en:'salt',jp:'塩、食塩',pos:'名詞'},
+      {en:'speech',jp:'スピーチ',pos:'名詞'},
+      {en:'sometime',jp:'いつか、そのうち',pos:'副詞'},
+      {en:'if',jp:'〔条件・仮定〕もし〜ならば',pos:'接続詞'},
+      {en:'add',jp:'〔〜に〕を加える、足す',pos:'動詞'},
+      {en:'butter',jp:'バター',pos:'名詞'},
+      {en:'interested',jp:'興味を持っている',pos:'形容詞'},
+      {en:'forget',jp:'〔〜を〕忘れる',pos:'動詞'},
+      {en:'kind',jp:'種類',pos:'名詞'},
+      {en:'based',jp:'〜をベースにした',pos:'形容詞'},
+      {en:'because',jp:'〜だから、なので',pos:'接続詞'},
+      {en:'thick',jp:'濃い、どろっとした',pos:'形容詞'},
+      {en:'recommended',jp:'おすすめの',pos:'形容詞'},
+      {en:'manufacturer',jp:'製造業者、メーカー',pos:'名詞'},
+      {en:'early',jp:'早く',pos:'副詞'},
+      {en:'reflect',jp:'〔物事・考えなどを〕反映する',pos:'動詞'},
+      {en:'climate',jp:'気候',pos:'名詞'},
+      {en:'creativity',jp:'創造性〔力〕、独創性〔力〕',pos:'名詞'},
+      {en:'chef',jp:'コック長',pos:'名詞'},
+      {en:'foreign',jp:'外国の〔から〕の',pos:'形容詞'},
+      {en:'create',jp:'〔〜を〕創造する、つくり出す',pos:'動詞'},
+      {en:'sauce',jp:'ソース',pos:'名詞'},
+      {en:'change',jp:'〔変わる〕変化する、変化する',pos:'動詞'},
+    ]
+  },
+  {
+    id:'u3', num:'Unit 3', title:'What kind of job are you interested in?', stripe:'#993c1d',
+    words:[
+      {en:'career',jp:'職業',pos:'名詞'},
+      {en:'information',jp:'情報',pos:'名詞'},
+      {en:'international',jp:'国際的な',pos:'形容詞'},
+      {en:'nursery',jp:'保育園、託児所',pos:'名詞'},
+      {en:'note',jp:'メモ、覚え書き',pos:'名詞'},
+      {en:'own',jp:'自分自身の、独自の',pos:'形容詞'},
+      {en:'tag',jp:'荷づけ札、下げ札、荷札',pos:'名詞'},
+      {en:'chopstick',jp:'〔ふつうchopsticksで〕（食事用の）はし',pos:'名詞'},
+      {en:'picture book',jp:'絵本、絵画',pos:'名詞'},
+      {en:'choose',jp:'〔〜を〕選ぶ',pos:'動詞'},
+      {en:'colorful',jp:'色鮮やかな',pos:'形容詞'},
+      {en:'illustration',jp:'〔例・挿絵・図、（図・例などによる）説明〕',pos:'名詞'},
+      {en:'pretty',jp:'かわいい、きれいな',pos:'形容詞'},
+      {en:'taught',jp:'teach の過去形',pos:'動詞'},
+      {en:'important',jp:'重要な、大切な',pos:'形容詞'},
+      {en:'moon',jp:'月（天体の）',pos:'名詞'},
+      {en:'lay',jp:'lie の過去形',pos:'動詞'},
+      {en:'leaf',jp:'〔草〕の葉',pos:'名詞'},
+      {en:'pop',jp:'ポンと鳴る音',pos:'名詞'},
+      {en:'tiny',jp:'とても小さい',pos:'形容詞'},
+      {en:'caterpillar',jp:'〔昆〕イモムシ、毛虫',pos:'名詞'},
+      {en:'pear',jp:'〔洋〕ナシ、西洋ナシの木',pos:'名詞'},
+      {en:'plum',jp:'〔西洋〕スモモ、プラム',pos:'名詞'},
+      {en:'learn',jp:'〔〜を〕学ぶ、習う',pos:'動詞'},
+      {en:'necessary',jp:'必要な',pos:'形容詞'},
+      {en:'adjust',jp:'〔〜を〕調節する',pos:'動詞'},
+      {en:'speed',jp:'スピード、速度',pos:'名詞'},
+      {en:'story',jp:'話、物語',pos:'名詞'},
+      {en:'difficult',jp:'難しい、困難な',pos:'形容詞'},
+      {en:'sentence',jp:'文',pos:'名詞'},
+      {en:'clearly',jp:'はっきりと',pos:'副詞'},
+      {en:'understand',jp:'〔〜を〕理解する、わかる',pos:'動詞'},
+      {en:'smile',jp:'微笑む',pos:'動詞'},
+      {en:'clap',jp:'〔手〕をたたく、（人・演技などに）拍手する',pos:'動詞'},
+      {en:'glad',jp:'うれしい',pos:'形容詞'},
+      {en:'loud',jp:'大きな声で',pos:'副詞'},
+      {en:'sincerely',jp:'敬具から、本案で、誠実に',pos:'副詞'},
+    ]
+  },
+  {
+    id:'u4', num:'Unit 4', title:'What is important in a homestay?', stripe:'#185fa5',
+    words:[
+      {en:'homestay',jp:'ホームステイ',pos:'名詞'},
+      {en:'advice',jp:'助言、勧告',pos:'名詞'},
+      {en:'member',jp:'一員、メンバー',pos:'名詞'},
+      {en:'guest',jp:'お客さん、訪問客',pos:'名詞'},
+      {en:'follow',jp:'〔〜に〕従う、〜をする',pos:'動詞'},
+      {en:'rule',jp:'規則、ルール',pos:'名詞'},
+      {en:'host',jp:'〔招待した人をもてなす〕主人（役）',pos:'名詞'},
+      {en:'perfect',jp:'完全な、完璧な、最適な',pos:'形容詞'},
+      {en:'have to',jp:'〜しなければならない',pos:'熟語'},
+      {en:'must',jp:'〔〜しなければならない〕',pos:'助動詞'},
+      {en:'shower',jp:'シャワー',pos:'名詞'},
+      {en:'limit',jp:'制限、限界、制限',pos:'名詞'},
+      {en:'elderly',jp:'年配の、お年寄りの',pos:'形容詞'},
+      {en:'couple',jp:'夫婦',pos:'名詞'},
+      {en:'living room',jp:'居間、リビングルーム',pos:'名詞'},
+      {en:'finish',jp:'〔〜を〕終える',pos:'動詞'},
+      {en:'nothing',jp:'〔代〕何も〜ない',pos:'代名詞'},
+      {en:'should',jp:'〔〜す〕べきである',pos:'助動詞'},
+      {en:'plate',jp:'皿、（皿などで）盛り取り皿',pos:'名詞'},
+      {en:'hurt',jp:'〔〜を〕傷つける',pos:'動詞'},
+      {en:'feeling',jp:'〔名〕感情、気持ち',pos:'名詞'},
+      {en:'answer',jp:'〔〜に〕答える',pos:'動詞'},
+      {en:'enter',jp:'〔場所〕に入る',pos:'動詞'},
+      {en:'explain',jp:'〔〜を〕説明する',pos:'動詞'},
+      {en:'felt',jp:'feel の過去形',pos:'動詞'},
+      {en:'end',jp:'〔期間・行動などの〕終わり、最後',pos:'名詞'},
+      {en:'kept',jp:'keep の過去形',pos:'動詞'},
+      {en:'carefully',jp:'注意深く',pos:'副詞'},
+    ]
+  },
+  {
+    id:'u5', num:'Unit 5', title:'What design is good for everyone?', stripe:'#854f0b',
+    words:[
+      {en:'universal',jp:'全ての人の',pos:'形容詞'},
+      {en:'design',jp:'デザイン',pos:'名詞'},
+      {en:'fair',jp:'博覧会、フェア',pos:'名詞'},
+      {en:'bottle',jp:'びん、ボトル',pos:'名詞'},
+      {en:'automatic',jp:'〔機械などが〕自動的な、機械的な、無意識の',pos:'形容詞'},
+      {en:'adjustable',jp:'調整可能な',pos:'形容詞'},
+      {en:'public',jp:'公公衆の、公共の',pos:'形容詞'},
+      {en:'touch',jp:'触れる、ふれる',pos:'動詞'},
+      {en:'product',jp:'製品',pos:'名詞'},
+      {en:'facility',jp:'施設、設備',pos:'名詞'},
+      {en:'staff',jp:'スタッフ員、従業員',pos:'名詞'},
+      {en:'tap',jp:'〔〜を〕軽くたたく、トントンたたく',pos:'動詞'},
+      {en:'both',jp:'〔both … and 〜で〕…も〜も両方',pos:'副詞'},
+      {en:'left-handed',jp:'左利きの、左利き用の',pos:'形容詞'},
+      {en:'right-handed',jp:'右利きの、右利き用の',pos:'形容詞'},
+      {en:'useful',jp:'役に立つ、有用な',pos:'形容詞'},
+      {en:'sign',jp:'標識、看板、掲示',pos:'名詞'},
+      {en:'young',jp:'若い、幼い',pos:'形容詞'},
+      {en:'ramp',jp:'スロープ',pos:'名詞'},
+      {en:'stair',jp:'階段',pos:'名詞'},
+      {en:'wheelchair',jp:'車椅子',pos:'名詞'},
+      {en:'pull',jp:'〔〜を〕ひく、ひっぱる',pos:'動詞'},
+      {en:'baggage',jp:'〔旅行者の〕荷物',pos:'名詞'},
+      {en:'baby',jp:'赤ちゃん',pos:'名詞'},
+      {en:'presentation',jp:'発表、プレゼンテーション',pos:'名詞'},
+      {en:'American',jp:'アメリカの、アメリカ人の',pos:'形容詞'},
+      {en:'professor',jp:'教授',pos:'名詞'},
+      {en:'childhood',jp:'子供のころ',pos:'名詞'},
+      {en:'remove',jp:'〔〜を〕取り除く',pos:'動詞'},
+      {en:'barrier',jp:'障壁、障害',pos:'名詞'},
+      {en:'disabled',jp:'障体の不自由な',pos:'形容詞'},
+      {en:'regardless',jp:'〔何があっても、とにかく、（困難・忠告などに〕おかまいなしに',pos:'副詞'},
+      {en:'ability',jp:'〔〜する〕能力、〜できること、才能',pos:'名詞'},
+      {en:'situation',jp:'場面、状況、情勢、場面',pos:'名詞'},
+      {en:'found',jp:'〔〜を〕創設する',pos:'動詞'},
+      {en:'center',jp:'〔活動などの〕中心地、センター',pos:'名詞'},
+      {en:'spread',jp:'〔〜を〕広げる、広まる',pos:'動詞'},
+      {en:'accessible',jp:'〔〜にとって〕使いやすい、（〜にとって〕行きやすい',pos:'形容詞'},
+    ]
+  },
+  {
+    id:'u6', num:'Unit 6', title:'How can we make a good presentation?', stripe:'#534ab7',
+    words:[
+      {en:'trivia',jp:'雑学的な知識',pos:'名詞'},
+      {en:'quiz',jp:'クイズ',pos:'名詞'},
+      {en:'court',jp:'〔テニス・バレーボールなどの〕コート',pos:'名詞'},
+      {en:'than',jp:'〔比較〕〜よりも',pos:'接続詞'},
+      {en:'survey',jp:'調査',pos:'名詞'},
+      {en:'curling',jp:'カーリング',pos:'名詞'},
+      {en:'more',jp:'〔比較級を作る〕（〜より〕もっと…',pos:'副詞'},
+      {en:'strategy',jp:'戦略、作戦、計画、対策',pos:'名詞'},
+      {en:'skill',jp:'技能、技術',pos:'名詞'},
+      {en:'most',jp:'〔最上級を作る〕いちばん〜、最も…',pos:'副詞'},
+      {en:'graph',jp:'グラフ、図表',pos:'名詞'},
+      {en:'according',jp:'〔according to で〕〜によれば',pos:'副詞'},
+      {en:'percent',jp:'パーセント',pos:'名詞'},
+      {en:'such',jp:'そのような、このような',pos:'形容詞'},
+      {en:'conclusion',jp:'結論、決定、結論、結び',pos:'名詞'},
+      {en:'half',jp:'半分、2分の1',pos:'名詞'},
+      {en:'better',jp:'〔well, very much の比較級〕よりよく、より以上に',pos:'副詞'},
+      {en:'feedback',jp:'意見、フィードバック',pos:'名詞'},
+      {en:'speaker',jp:'講演者',pos:'名詞'},
+      {en:'content',jp:'〔中身、内容〕',pos:'名詞'},
+      {en:'delivery',jp:'話し振り',pos:'名詞'},
+      {en:'clear',jp:'はっきりした',pos:'形容詞'},
+      {en:'contact',jp:'接触',pos:'名詞'},
+      {en:'comment',jp:'批評、コメント',pos:'名詞'},
+      {en:'topic',jp:'話題、トピック',pos:'名詞'},
+      {en:'spoke',jp:'speak の過去形',pos:'動詞'},
+      {en:'data',jp:'資料、データ',pos:'名詞'},
+      {en:'slide',jp:'〔プレゼンテーション用の〕スライド',pos:'名詞'},
+      {en:'letter',jp:'文字',pos:'名詞'},
+    ]
+  },
+  {
+    id:'u7', num:'Unit 7', title:'What are World Heritage sites and their problems?', stripe:'#3b6d11',
+    words:[
+      {en:'select',jp:'〔〜を〕選ぶ、選択する',pos:'動詞'},
+      {en:'heritage',jp:'〔文化的な〕遺産',pos:'名詞'},
+      {en:'site',jp:'遺跡',pos:'名詞'},
+      {en:'natural',jp:'自然の',pos:'形容詞'},
+      {en:'cultural',jp:'文化の',pos:'形容詞'},
+      {en:'mixed',jp:'複合した',pos:'形容詞'},
+      {en:'selection',jp:'選択、選んだもの',pos:'名詞'},
+      {en:'standard',jp:'基準',pos:'名詞'},
+      {en:'decide',jp:'〔〜を〕決める',pos:'動詞'},
+      {en:'general',jp:'〔一般的な、全般的な〕',pos:'形容詞'},
+      {en:'conference',jp:'会議、評議会',pos:'名詞'},
+      {en:'fantastic',jp:'すばらしい、すてきな',pos:'形容詞'},
+      {en:'hometown',jp:'故郷',pos:'名詞'},
+      {en:'floral',jp:'花の',pos:'形容詞'},
+      {en:'region',jp:'地方、地域',pos:'名詞'},
+      {en:'known',jp:'know の過去分詞',pos:'動詞'},
+      {en:'plant',jp:'植物',pos:'名詞'},
+      {en:'diversity',jp:'〔〜の〕多様性、相違（点）',pos:'名詞'},
+      {en:'species',jp:'〔生物学上の〕種〔複数形も species〕',pos:'名詞'},
+      {en:'built',jp:'build の過去分詞',pos:'動詞'},
+      {en:'emperor',jp:'皇帝',pos:'名詞'},
+      {en:'wife',jp:'妻',pos:'名詞'},
+      {en:'architecture',jp:'〔建築、建築学、建築様式〕',pos:'名詞'},
+      {en:'cover',jp:'〔〜を〕おおう、包む',pos:'動詞'},
+      {en:'marble',jp:'大理石',pos:'名詞'},
+      {en:'jewel',jp:'宝石',pos:'名詞'},
+      {en:'material',jp:'〔原材料、材料、〔原〕材料の生地〕',pos:'名詞'},
+      {en:'pollution',jp:'汚染、汚れ、〔汚染による〕公害、汚染物質',pos:'名詞'},
+      {en:'government',jp:'政府',pos:'名詞'},
+      {en:'protect',jp:'〔〜を〕守る、保護する',pos:'動詞'},
+      {en:'list',jp:'〔〜を〕（文化財のリストに）載せる',pos:'動詞'},
+      {en:'seen',jp:'see の過去分詞',pos:'動詞'},
+      {en:'tourist',jp:'観光客、旅行者',pos:'名詞'},
+      {en:'climb',jp:'〔〜に（を）〕のぼる',pos:'動詞'},
+      {en:'sunrise',jp:'日の出',pos:'名詞'},
+      {en:'cloud',jp:'雲',pos:'名詞'},
+      {en:'crater',jp:'〔火山口、月面などによる地面の〕穴、（月面の）クレーター',pos:'名詞'},
+      {en:'amount',jp:'量、額',pos:'名詞'},
+      {en:'trail',jp:'〔歩いてできた〕小道',pos:'名詞'},
+      {en:'recently',jp:'最近、近ごろ',pos:'副詞'},
+      {en:'cleanup',jp:'大そうじ',pos:'名詞'},
+      {en:'campaign',jp:'キャンペーン',pos:'名詞'},
+      {en:'forever',jp:'永久に、永遠に',pos:'副詞'},
+    ]
+  },
+];
+
+// ============================================================
+// DATA — 中学3年
+// ============================================================
+const JHS3_DATA = [
+  {
+    id: 0,
+    name: "Unit 0",
+    theme: "プレビュー",
+    color: "#6a4c93",
+    words: [
+      { en: "discover", ph: "[diskʌvər]", jp: "〜を発見する", pos: "動" },
+      { en: "adventure", ph: "[ədventʃər]", jp: "冒険、探検心", pos: "名" },
+      { en: "quality", ph: "[kwɑləti]", jp: "質、品質、良さ", pos: "名" },
+      { en: "entirely", ph: "[intáiərli]", jp: "完全に、すっかり", pos: "副" },
+      { en: "animation", ph: "[ænəmeiʃən]", jp: "アニメーション、動画", pos: "名" },
+      { en: "drawing(s)", ph: "[drɔːɪŋ(z)]", jp: "絵画、絵、スケッチ", pos: "名" },
+      { en: "exist", ph: "[igzist]", jp: "存在する、生存する", pos: "動" },
+      { en: "affect", ph: "[əfekt]", jp: "〜に影響を及ぼす", pos: "動" },
+      { en: "really into", ph: "", jp: "〜に夢中で、見ないふりをする", pos: "熟" },
+    ]
+  },
+  {
+    id: 1,
+    name: "Unit 1",
+    theme: "日本文化",
+    color: "#e63946",
+    words: [
+      { en: "fashion", ph: "[fæʃən]", jp: "流行・行動様式などの人気のもの、ファッション", pos: "名" },
+      { en: "regional", ph: "[riːdʒənl]", jp: "地域の、地方的な、地域特有の", pos: "形" },
+      { en: "been", ph: "[biːn]", jp: "beの過去分詞", pos: "動" },
+      { en: "foreigner(s)", ph: "[fɔːrɪnər(z)]", jp: "外国人", pos: "名" },
+      { en: "ever", ph: "[evər]", jp: "[疑問文で]今まで、かつて", pos: "副" },
+      { en: "global", ph: "[gloʊbl]", jp: "全世界の、世界的な、地球上の", pos: "形" },
+      { en: "genre(s)", ph: "[ʒɑːnrə(z)]", jp: "芸術・音楽・映画などの分野、ジャンル", pos: "名" },
+      { en: "adult(s)", ph: "[ædʌlt(s)]", jp: "若い人をとった成人、成熟した動物", pos: "名" },
+      { en: "delicate", ph: "[delikɪt]", jp: "精巧な、優美な、繊細な", pos: "形" },
+      { en: "addition", ph: "[ədɪʃən]", jp: "付加、付け加えること、追加", pos: "名" },
+      { en: "match(es)", ph: "[mætʃ(iz)]", jp: "〜に合う、〜に匹敵する", pos: "動" },
+      { en: "positive", ph: "[pɑːzətɪv]", jp: "積極的な、前向きな", pos: "形" },
+      { en: "in addition", ph: "", jp: "加えて", pos: "熟" },
+    ]
+  },
+  {
+    id: 2,
+    name: "Unit 2",
+    theme: "エシカルファッション",
+    color: "#457b9d",
+    words: [
+      { en: "accessory", ph: "[əksesəri]", jp: "装飾・カメラ・機器などの附属品 / 従犯", pos: "名" },
+      { en: "accessories", ph: "[əksésoriz]", jp: "accessoryの複数形", pos: "名" },
+      { en: "recycle(d)", ph: "[riːsáikld]", jp: "〜を再利用する、リサイクルする", pos: "動" },
+      { en: "eco-friendly", ph: "[iːkoʊfrɛndli]", jp: "環境に優しい", pos: "形" },
+      { en: "become", ph: "[bɪkʌm]", jp: "〜になる（becomeの過去分詞）", pos: "動" },
+      { en: "since", ph: "[sɪns]", jp: "〜以来、〜から、前、なぜなら、遥か前", pos: "前/接" },
+      { en: "introduce(d)", ph: "[ɪntrədjuːst]", jp: "〜を導入する", pos: "動" },
+      { en: "morally", ph: "[mɔːrəli]", jp: "道徳的に、倫理的に", pos: "副" },
+      { en: "clothing", ph: "[kloʊðɪŋ]", jp: "衣服、衣類", pos: "名" },
+      { en: "company", ph: "[kʌmpəni]", jp: "会社、仲間", pos: "名" },
+      { en: "chemical(s)", ph: "[kemikl(z)]", jp: "化学物質", pos: "名" },
+      { en: "avoid", ph: "[əvɔɪd]", jp: "〜を避ける、〜をやめる", pos: "動" },
+      { en: "leather", ph: "[leðər]", jp: "皮革、なめし革、革製品", pos: "名" },
+      { en: "vegan", ph: "[viːɡən]", jp: "完全菜食主義者・菜食主義者のタイプ", pos: "名/形" },
+      { en: "wool", ph: "[wʊl]", jp: "羊毛、毛糸、ウール", pos: "名" },
+      { en: "fur", ph: "[fɜːr]", jp: "（本物の）毛皮製品、毛皮の敷物、（乳動物の）柔らかい毛", pos: "名" },
+      { en: "negative", ph: "[negətɪv]", jp: "固定的な、有害な、よくない", pos: "形" },
+      { en: "less", ph: "[les]", jp: "もっと少ない", pos: "形/副" },
+      { en: "animal-free", ph: "[ænɪməl friː]", jp: "（製品が）動物性原料を含んでいない", pos: "形" },
+      { en: "include", ph: "[ɪnkluːd]", jp: "〜を含む、含める", pos: "動" },
+    ]
+  },
+  {
+    id: 3,
+    name: "Unit 3",
+    theme: "絶滅危機の動物",
+    color: "#2a9d8f",
+    words: [
+      { en: "danger", ph: "[deɪndʒər]", jp: "危険（性）", pos: "名" },
+      { en: "extinction", ph: "[ɪkstɪŋkʃən]", jp: "絶滅", pos: "名" },
+      { en: "challenge(s)", ph: "[tʃælɪndʒ(ɪz)]", jp: "難題、困難", pos: "名" },
+      { en: "human", ph: "[hjuːmən]", jp: "人間の、人間的な", pos: "形/名" },
+      { en: "endangered", ph: "[ɪndeɪndʒərd]", jp: "絶滅の危機に直面している", pos: "形" },
+      { en: "survive", ph: "[sərvaɪv]", jp: "生き延びる、生き残る", pos: "動" },
+      { en: "trouble", ph: "[trʌbl]", jp: "困難、苦労、困惑", pos: "名" },
+      { en: "be in danger of", ph: "", jp: "〜の危機にさらされている", pos: "熟" },
+      { en: "population", ph: "[pɒpjʊleɪʃən]", jp: "人口、（動物の）個体数", pos: "名" },
+      { en: "rapidly", ph: "[ræpɪdli]", jp: "急速に、急速に", pos: "副" },
+      { en: "beginning", ph: "[bɪgɪnɪŋ]", jp: "最初の部分", pos: "名" },
+      { en: "century", ph: "[sentʃəri]", jp: "世紀、100年", pos: "名" },
+      { en: "shock(ed)", ph: "[ʃɒkt]", jp: "〜にショックを与える", pos: "動" },
+      { en: "safely", ph: "[seɪfli]", jp: "安全に", pos: "副" },
+      { en: "overhunting", ph: "[oʊvərhʌntɪŋ]", jp: "乱獲", pos: "名" },
+      { en: "oil", ph: "[ɔɪl]", jp: "石油、石油", pos: "名" },
+      { en: "spill(s)", ph: "[spɪl(z)]", jp: "（液体・粉などの）こぼれ、流出", pos: "名" },
+      { en: "hunting", ph: "[hʌntɪŋ]", jp: "狩り、さがし", pos: "名" },
+      { en: "killer whale(s)", ph: "[kɪlər hweɪl(z)]", jp: "シャチ", pos: "名" },
+      { en: "the Northern Pacific Ocean", ph: "", jp: "北太平洋", pos: "固有名" },
+      { en: "as a result", ph: "", jp: "（…の）結果として", pos: "熟" },
+      { en: "bomb", ph: "[bɒm]", jp: "爆弾", pos: "名" },
+      { en: "lost", ph: "[lɒst]", jp: "（← lose）", pos: "動" },
+      { en: "injure(d)", ph: "[ɪndʒərd]", jp: "〜を傷つける", pos: "動" },
+      { en: "shade", ph: "[ʃeɪd]", jp: "日陰", pos: "名" },
+      { en: "dead", ph: "[ded]", jp: "死んだ", pos: "形" },
+      { en: "weak", ph: "[wiːk]", jp: "弱い、かすかな", pos: "形" },
+      { en: "mommy", ph: "[mɑmi]", jp: "お母ちゃん", pos: "名" },
+      { en: "real", ph: "[riːl]", jp: "本当の", pos: "形" },
+    ]
+  },
+  {
+    id: 4,
+    name: "Unit 4",
+    theme: "防災",
+    color: "#f4a261",
+    words: [
+      { en: "done", ph: "[dʌn]", jp: "（← do）doの過去分詞", pos: "動" },
+      { en: "prepare", ph: "[prɪpeər]", jp: "（〜の）準備をする、備える", pos: "動" },
+      { en: "emergency", ph: "[ɪmɜːrdʒənsi]", jp: "緊急事態", pos: "名" },
+      { en: "kit", ph: "[kɪt]", jp: "道具[用品]一式", pos: "名" },
+      { en: "recommend(ed)", ph: "[rekəmend(ɪd)]", jp: "〜をすすめる、〜を推薦する", pos: "動" },
+      { en: "earthquake", ph: "[ɜːrθkweɪk]", jp: "地震", pos: "名" },
+      { en: "rode", ph: "[roʊd]", jp: "（← ride）", pos: "動" },
+      { en: "bicycle", ph: "[baɪsɪkl]", jp: "自転車", pos: "名" },
+      { en: "toward", ph: "[tɔːrd]", jp: "〜に向かって", pos: "前" },
+      { en: "apartment", ph: "[əpɑːrtmənt]", jp: "アパート", pos: "名" },
+      { en: "caught", ph: "[kɔːt]", jp: "（← catch）", pos: "動" },
+      { en: "tsunami", ph: "[tsʊnɑːmi]", jp: "津波", pos: "名" },
+      { en: "sudden", ph: "[sʌdn]", jp: "突然の", pos: "形" },
+      { en: "news", ph: "[njuːz]", jp: "知らせ", pos: "名" },
+      { en: "shortly", ph: "[ʃɔːrtli]", jp: "まもなく", pos: "副" },
+      { en: "corner", ph: "[kɔːrnər]", jp: "コーナー", pos: "名" },
+      { en: "exchange", ph: "[ɪkstʃeɪndʒ]", jp: "交流", pos: "名" },
+      { en: "program(s)", ph: "[proʊgræm(z)]", jp: "プログラム", pos: "名" },
+      { en: "support", ph: "[səpɔːrt]", jp: "〜を支える、支援する", pos: "動" },
+      { en: "ordinary", ph: "[ɔːrdɪneri]", jp: "ふつうの、通常の", pos: "形" },
+      { en: "crisis", ph: "[kraɪsɪs]", jp: "危機", pos: "名" },
+      { en: "be caught in", ph: "", jp: "〜にあう", pos: "熟" },
+      { en: "bring together", ph: "", jp: "〜を団結させる", pos: "熟" },
+      { en: "keep on -ing", ph: "", jp: "〜し続ける", pos: "熟" },
+      { en: "no longer", ph: "", jp: "もはや〜ない", pos: "熟" },
+    ]
+  },
+  {
+    id: 5,
+    name: "Unit 5",
+    theme: "ガンジー",
+    color: "#6a4c93",
+    words: [
+      { en: "internet", ph: "[ɪntərnet]", jp: "インターネット", pos: "名" },
+      { en: "person", ph: "[pɜːrsn]", jp: "人、個人", pos: "名" },
+      { en: "image", ph: "[ɪmɪdʒ]", jp: "像、映像、画像", pos: "名" },
+      { en: "print(ed)", ph: "[prɪnt(ɪd)]", jp: "〜を印刷する", pos: "動" },
+      { en: "leader", ph: "[liːdər]", jp: "指導者、リーダー", pos: "名" },
+      { en: "greatly", ph: "[greɪtli]", jp: "おおいに、非常に", pos: "副" },
+      { en: "born", ph: "[bɔːrn]", jp: "（← be born）生まれる", pos: "動" },
+      { en: "national", ph: "[næʃənl]", jp: "国の", pos: "形" },
+      { en: "non-violence", ph: "[nɒnvaɪələns]", jp: "非暴力", pos: "名" },
+      { en: "lawyer", ph: "[lɔːjər]", jp: "弁護士", pos: "名" },
+      { en: "British", ph: "[brɪtɪʃ]", jp: "英国の", pos: "形" },
+      { en: "discrimination", ph: "[dɪskrɪmɪneɪʃən]", jp: "差別", pos: "名" },
+      { en: "freely", ph: "[friːli]", jp: "自由に", pos: "副" },
+      { en: "sidewalk", ph: "[saɪdwɔːk]", jp: "歩道", pos: "名" },
+      { en: "accept", ph: "[əksept]", jp: "〜を受け入れる", pos: "動" },
+      { en: "law", ph: "[lɔː]", jp: "法律", pos: "名" },
+      { en: "unfair", ph: "[ʌnfeər]", jp: "不公平な", pos: "形" },
+      { en: "stood", ph: "[stʊd]", jp: "（← stand）", pos: "動" },
+      { en: "arrest(ed)", ph: "[ərest(ɪd)]", jp: "〜を逮捕する", pos: "動" },
+      { en: "jail(s)", ph: "[dʒeɪl(z)]", jp: "刑務所", pos: "名" },
+      { en: "non-violent", ph: "[nɒnvaɪələnt]", jp: "非暴力の", pos: "形" },
+      { en: "effective", ph: "[ɪfektɪv]", jp: "効果的な", pos: "形" },
+      { en: "colony", ph: "[kɒləni]", jp: "植民地", pos: "名" },
+      { en: "produce", ph: "[prədjuːs]", jp: "〜を生産する", pos: "動" },
+      { en: "tax", ph: "[tæks]", jp: "税金", pos: "名" },
+      { en: "expensive", ph: "[ɪkspensɪv]", jp: "高価な", pos: "形" },
+      { en: "follower(s)", ph: "[fɒloʊər(z)]", jp: "支持者", pos: "名" },
+      { en: "thousand(s)", ph: "[θaʊznd(z)]", jp: "1,000（の）", pos: "数" },
+      { en: "kilometer(s)", ph: "[kɪlɒmɪtər(z)]", jp: "キロメートル", pos: "名" },
+      { en: "march", ph: "[mɑːrtʃ]", jp: "行進", pos: "名" },
+      { en: "peaceful", ph: "[piːsfl]", jp: "平和な", pos: "形" },
+      { en: "legacy", ph: "[legəsi]", jp: "遺産", pos: "名" },
+      { en: "at that time", ph: "", jp: "その当時", pos: "熟" },
+      { en: "thousands of", ph: "", jp: "何千もの", pos: "熟" },
+    ]
+  },
+  {
+    id: 6,
+    name: "Unit 6",
+    theme: "国際協力",
+    color: "#2a9d8f",
+    words: [
+      { en: "Afghanistan", ph: "[æfgænɪstæn]", jp: "アフガニスタン", pos: "固有名" },
+      { en: "definitely", ph: "[defɪnɪtli]", jp: "もちろん、確かに", pos: "副" },
+      { en: "so far", ph: "", jp: "今まで（は）、これまで（は）", pos: "熟" },
+      { en: "imagine", ph: "[ɪmædʒɪn]", jp: "〜を想像する", pos: "動" },
+      { en: "illiterate", ph: "[ɪlɪtərɪt]", jp: "読み書きのできない", pos: "形" },
+      { en: "son(s)", ph: "[sʌn(z)]", jp: "息子", pos: "名" },
+      { en: "daughter(s)", ph: "[dɔːtər(z)]", jp: "娘", pos: "名" },
+      { en: "ready", ph: "[redi]", jp: "用意ができて", pos: "形" },
+      { en: "air", ph: "[eɪr]", jp: "空気", pos: "名" },
+      { en: "service(s)", ph: "[sɜːrvɪs(ɪz)]", jp: "サービス", pos: "名" },
+      { en: "globe", ph: "[gloʊb]", jp: "地球", pos: "名" },
+      { en: "connect", ph: "[kənekt]", jp: "〜を結ぶ", pos: "動" },
+      { en: "border(s)", ph: "[bɔːrdər(z)]", jp: "国境", pos: "名" },
+      { en: "encourage to", ph: "", jp: "〜にするよう促す", pos: "熟" },
+      { en: "most of", ph: "", jp: "〜の大部分", pos: "熟" },
+      { en: "be ready for", ph: "", jp: "〜の用意ができている", pos: "熟" },
+      { en: "in the open air", ph: "", jp: "屋外で", pos: "熟" },
+      { en: "depend(s)", ph: "[dɪpend(z)]", jp: "頼る", pos: "動" },
+      { en: "trade", ph: "[treɪd]", jp: "貿易", pos: "名" },
+      { en: "survival", ph: "[sərvaɪvl]", jp: "存続", pos: "名" },
+      { en: "Brazil", ph: "[brəzɪl]", jp: "ブラジル（国名）", pos: "固有名" },
+      { en: "Thailand", ph: "[taɪlænd]", jp: "タイ（国名）", pos: "固有名" },
+      { en: "import", ph: "[ɪmpɔːrt]", jp: "〜を輸入する", pos: "動" },
+      { en: "quite", ph: "[kwaɪt]", jp: "かなり", pos: "副" },
+      { en: "coat(s)", ph: "[koʊt(s)]", jp: "コート", pos: "名" },
+      { en: "Asian", ph: "[eɪʒn]", jp: "アジアの", pos: "形" },
+      { en: "fact", ph: "[fækt]", jp: "事実", pos: "名" },
+      { en: "sold", ph: "[soʊld]", jp: "（← sell）", pos: "動" },
+      { en: "exception", ph: "[ɪksepʃən]", jp: "例外", pos: "名" },
+      { en: "surround(ed)", ph: "[səraʊnd(ɪd)]", jp: "〜を囲む", pos: "動" },
+      { en: "daily", ph: "[deɪli]", jp: "日常の", pos: "形" },
+      { en: "relationship(s)", ph: "[rɪleɪʃnʃɪp(s)]", jp: "関係", pos: "名" },
+      { en: "interdependent", ph: "[ɪntərdɪpendənt]", jp: "相互に依存している", pos: "形" },
+      { en: "beyond", ph: "[bɪjɒnd]", jp: "〜をこえたところへ", pos: "前" },
+      { en: "depend on", ph: "", jp: "〜に頼る", pos: "熟" },
+      { en: "in fact", ph: "", jp: "実際に", pos: "熟" },
+      { en: "report", ph: "[rɪpɔːrt]", jp: "報告、レポート", pos: "名" },
+      { en: "position", ph: "[pəzɪʃn]", jp: "地位、ポジション", pos: "名" },
+      { en: "setter", ph: "[setər]", jp: "（バレーボールの）セッター", pos: "名" },
+      { en: "chance(s)", ph: "[tʃɑːns(ɪz)]", jp: "機会、チャンス", pos: "名" },
+      { en: "spiker(s)", ph: "[spaɪkər(z)]", jp: "（バレーボールの）スパイカー", pos: "名" },
+      { en: "teammate(s)", ph: "[tiːmmeɪt(s)]", jp: "チームの仲間、チームメイト", pos: "名" },
+      { en: "get the most out of", ph: "", jp: "〜を最大限に生かす", pos: "熟" },
+    ]
+  }
+];
+
+// ============================================================
+// LEVEL CONFIG
+// ============================================================
+const LEVELS = {
+  elem: {
+    key:'elem', label:'小学校', icon:'🌸', color:'#e8522a',
+    desc:'NEW HORIZON 1年 資料編 準拠',
+    data: ELEM_DATA, isCategory: true,
+  },
+  jhs1: {
+    key:'jhs1', label:'中学1年', icon:'📘', color:'#1562d6',
+    desc:'NEW HORIZON 中学1年 準拠',
+    data: JHS1_DATA, isCategory: false,
+    semLabels: {1:'前期（Unit 0〜3）',2:'中期（Unit 4〜8）',3:'後期（Unit 9〜10）'},
+  },
+  jhs2: {
+    key:'jhs2', label:'中学2年', icon:'📗', color:'#0f9e6b',
+    desc:'NEW HORIZON 中学2年 準拠',
+    data: JHS2_DATA, isCategory: false,
+  },
+  jhs3: {
+    key:'jhs3', label:'中学3年', icon:'📕', color:'#7c4dff',
+    desc:'NEW HORIZON 中学3年 準拠',
+    data: JHS3_DATA, isCategory: false,
+  },
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let currentLevel = null;
+let currentUnit = null;
+let currentMode = 'flash';
+let flashWords = [], flashIdx = 0, flashFlipped = false;
+let quizWords = [], quizIdx = 0, quizScore = 0, quizAnswered = false;
+let spellWords = [], spellIdx = 0, spellScore = 0, spellAnswered = false;
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  // Count total words
+  let total = 0;
+  Object.values(LEVELS).forEach(lv => {
+    const cnt = lv.data.reduce((s, g) => s + g.words.length, 0);
+    total += cnt;
+    document.getElementById('tc-' + lv.key).textContent = cnt + '語';
+  });
+  document.getElementById('total-count').textContent = total;
+  document.getElementById('h-total').textContent = total;
+  buildLevelOverviewCards();
+}
+
+function buildLevelOverviewCards() {
+  const el = document.getElementById('level-overview-cards');
+  el.innerHTML = '';
+  Object.values(LEVELS).forEach(lv => {
+    const cnt = lv.data.reduce((s, g) => s + g.words.length, 0);
+    const groups = lv.data.length;
+    const div = document.createElement('div');
+    div.className = 'lv-card';
+    div.style.setProperty('--lv-color', lv.color);
+    div.onclick = () => showLevel(lv.key);
+    div.innerHTML = `
+      <div class="lv-card-icon">${lv.icon}</div>
+      <div class="lv-card-name">${lv.label}</div>
+      <div class="lv-card-sub">${lv.desc}</div>
+      <div class="lv-card-meta">
+        <div class="lv-pill"><b>${cnt}</b> 語</div>
+        <div class="lv-pill"><b>${groups}</b> ${lv.isCategory ? 'カテゴリ' : 'ユニット'}</div>
+      </div>`;
+    el.appendChild(div);
+  });
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showHome() {
+  setActiveTab('home');
+  document.getElementById('home-screen').style.display = 'block';
+  document.getElementById('unit-selector').style.display = 'none';
+  document.getElementById('study-area').style.display = 'none';
+  document.getElementById('score-screen').style.display = 'none';
+}
+
+function showLevel(key) {
+  currentLevel = LEVELS[key];
+  setActiveTab(key);
+  document.getElementById('home-screen').style.display = 'none';
+  document.getElementById('unit-selector').style.display = 'block';
+  document.getElementById('study-area').style.display = 'none';
+  document.getElementById('score-screen').style.display = 'none';
+
+  const lv = currentLevel;
+  document.getElementById('sel-heading').innerHTML =
+    `${lv.icon} ${lv.label} の単語一覧`;
+  const cnt = lv.data.reduce((s, g) => s + g.words.length, 0);
+  document.getElementById('sel-sub').textContent =
+    `${lv.desc} — 全${lv.data.length}${lv.isCategory?'カテゴリ':'ユニット'} / ${cnt}語`;
+
+  const grid = document.getElementById('unit-grid');
+  grid.innerHTML = '';
+  lv.data.forEach((g, i) => {
+    const div = document.createElement('div');
+    div.className = 'unit-card';
+    const color = g.stripe || g.color || lv.color;
+    div.style.setProperty('--stripe', color);
+    div.onclick = () => openUnit(i);
+    const label = g.num || g.name || ('カテゴリ ' + (i+1));
+    const sub = g.title || g.theme || '';
+    div.innerHTML = `
+      <div class="unit-num">${label}</div>
+      <div class="unit-title">${sub || g.name || ''}</div>
+      ${sub ? '' : ''}
+      <div class="unit-count">単語 <b>${g.words.length}</b> 語</div>`;
+    grid.appendChild(div);
+  });
+}
+
+function backFromSelector() {
+  document.getElementById('unit-selector').style.display = 'none';
+  showHome();
+}
+
+function backFromStudy() {
+  document.getElementById('study-area').style.display = 'none';
+  document.getElementById('score-screen').style.display = 'none';
+  if (currentLevel) {
+    showLevel(currentLevel.key);
+  } else {
+    showHome();
+  }
+}
+
+function openUnit(idx) {
+  currentUnit = currentLevel.data[idx];
+  document.getElementById('unit-selector').style.display = 'none';
+  document.getElementById('score-screen').style.display = 'none';
+  document.getElementById('study-area').style.display = 'block';
+
+  const label = currentUnit.num || currentUnit.name || '';
+  const sub = currentUnit.title || currentUnit.theme || '';
+  document.getElementById('sh-title').textContent =
+    label + (sub ? ' — ' + sub : '');
+  document.getElementById('sh-sub').textContent = currentUnit.words.length + '語収録';
+  updateRing(0);
+
+  const tabs = document.querySelectorAll('.mode-tab');
+  tabs.forEach((t,i) => t.classList.toggle('active', i===0));
+  currentMode = 'flash';
+  ['flash','quiz','spell'].forEach(m =>
+    document.getElementById('mode-'+m).style.display = m==='flash'?'block':'none');
+  initFlash();
+}
+
+function setActiveTab(key) {
+  document.querySelectorAll('.lv-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.level === key);
+  });
+}
+
+function switchMode(mode, btn) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  ['flash','quiz','spell'].forEach(m =>
+    document.getElementById('mode-'+m).style.display = m===mode?'block':'none');
+  if(mode==='flash') initFlash();
+  if(mode==='quiz')  initQuiz();
+  if(mode==='spell') initSpell();
+}
+
+function updateRing(pct) {
+  const c = 125.7;
+  document.getElementById('ring-fill').style.strokeDashoffset = c*(1-pct/100);
+  document.getElementById('ring-label').textContent = Math.round(pct)+'%';
+}
+
+// ============================================================
+// FLASH
+// ============================================================
+function initFlash() {
+  flashWords = [...currentUnit.words];
+  flashIdx = 0; flashFlipped = false;
+  renderFlash(); buildWordList();
+}
+
+function shuffleFlash() {
+  flashWords = [...currentUnit.words].sort(() => Math.random()-.5);
+  flashIdx = 0; flashFlipped = false;
+  renderFlash();
+}
+
+function renderFlash() {
+  const w = flashWords[flashIdx];
+  document.getElementById('fc-word').textContent = w.en;
+  document.getElementById('fc-meaning').textContent = w.jp;
+  document.getElementById('fc-pos').textContent = w.pos || '';
+  document.getElementById('fc-ph').textContent = w.ph || '';
+  document.getElementById('flashcard').classList.remove('flipped');
+  flashFlipped = false;
+  const tot = flashWords.length;
+  document.getElementById('flash-counter').textContent = (flashIdx+1)+' / '+tot;
+  document.getElementById('prev-btn').disabled = flashIdx===0;
+  document.getElementById('next-btn').disabled = flashIdx===tot-1;
+  const pct = Math.round((flashIdx+1)/tot*100);
+  document.getElementById('flash-prog').style.width = pct+'%';
+  updateRing(pct);
+}
+
+function flipCard() {
+  flashFlipped = !flashFlipped;
+  document.getElementById('flashcard').classList.toggle('flipped', flashFlipped);
+}
+function flashPrev() { if(flashIdx>0){flashIdx--;renderFlash();} }
+function flashNext() { if(flashIdx<flashWords.length-1){flashIdx++;renderFlash();} }
+
+function buildWordList() {
+  const g = document.getElementById('word-list');
+  g.innerHTML = '<div style="grid-column:1/-1;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:2px">📚 全単語一覧</div>';
+  currentUnit.words.forEach(w => {
+    const d = document.createElement('div');
+    d.className = 'wl-item';
+    d.innerHTML = `<span class="wl-eng">${w.en}</span><span class="wl-jpn">${w.jp}</span>`;
+    g.appendChild(d);
+  });
+}
+
+// ============================================================
+// QUIZ
+// ============================================================
+function shuffle(a) { return [...a].sort(()=>Math.random()-.5); }
+
+function initQuiz() {
+  // For small unit, use all words; else shuffle
+  const pool = currentUnit.words;
+  quizWords = shuffle(pool);
+  quizIdx = 0; quizScore = 0; quizAnswered = false;
+  renderQuiz();
+}
+
+function renderQuiz() {
+  if(quizIdx >= quizWords.length) { showScore('quiz'); return; }
+  const w = quizWords[quizIdx];
+  document.getElementById('quiz-word').textContent = w.en;
+  document.getElementById('quiz-ph').textContent = w.ph || '';
+  document.getElementById('quiz-feedback').style.display = 'none';
+  document.getElementById('quiz-next').style.display = 'none';
+  quizAnswered = false;
+  const others = shuffle(currentUnit.words.filter(x=>x.en!==w.en)).slice(0,3);
+  const opts = shuffle([w, ...others]);
+  const c = document.getElementById('quiz-options');
+  c.innerHTML = '';
+  opts.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.textContent = opt.jp;
+    btn.onclick = () => chooseQuiz(opt.en===w.en, btn, w.jp, currentUnit.id+'-'+w.en);
+    c.appendChild(btn);
+  });
+  const pct = Math.round(quizIdx/quizWords.length*100);
+  document.getElementById('quiz-prog').style.width = pct+'%';
+  updateRing(pct);
+}
+
+function chooseQuiz(correct, btn, correctJp, qid) {
+  if(quizAnswered) return;
+  quizAnswered = true;
+  const fb = document.getElementById('quiz-feedback');
+  if(correct) {
+    btn.classList.add('correct');
+    fb.className='feedback-box ok'; fb.textContent='✓ 正解！'; quizScore++;
+  } else {
+    btn.classList.add('wrong');
+    fb.className='feedback-box ng'; fb.textContent='✗ 不正解。正解は「'+correctJp+'」';
+    document.querySelectorAll('.quiz-opt').forEach(b=>{if(b.textContent===correctJp)b.classList.add('correct');});
+  }
+  document.querySelectorAll('.quiz-opt').forEach(b=>b.disabled=true);
+  fb.style.display='block';
+  document.getElementById('quiz-next').style.display='block';
+  saveQResult(qid, correct);
+}
+function quizNext() { quizIdx++; renderQuiz(); }
+
+// ============================================================
+// SPELL
+// ============================================================
+function initSpell() {
+  spellWords = shuffle(currentUnit.words);
+  spellIdx = 0; spellScore = 0; spellAnswered = false;
+  renderSpell();
+}
+
+function renderSpell() {
+  if(spellIdx >= spellWords.length) { showScore('spell'); return; }
+  const w = spellWords[spellIdx];
+  document.getElementById('spell-meaning').textContent = w.jp;
+  const inp = document.getElementById('spell-input');
+  inp.value=''; inp.className='spell-input'; inp.disabled=false;
+  document.getElementById('spell-feedback').style.display='none';
+  document.getElementById('spell-next').style.display='none';
+  spellAnswered = false;
+  const pct = Math.round(spellIdx/spellWords.length*100);
+  document.getElementById('spell-prog').style.width=pct+'%';
+  updateRing(pct);
+  setTimeout(()=>inp.focus(),50);
+}
+
+function checkSpell() {
+  if(spellAnswered) return;
+  const inp = document.getElementById('spell-input');
+  const ans = inp.value.trim().toLowerCase();
+  const correct = spellWords[spellIdx].en.toLowerCase();
+  spellAnswered = true; inp.disabled = true;
+  const fb = document.getElementById('spell-feedback');
+  const isOk = ans===correct;
+  if(isOk) {
+    inp.classList.add('ok');
+    fb.className='feedback-box ok'; fb.textContent='✓ 正解！ "'+spellWords[spellIdx].en+'"'; spellScore++;
+  } else {
+    inp.classList.add('ng');
+    fb.className='feedback-box ng'; fb.textContent='✗ 不正解。正解は "'+spellWords[spellIdx].en+'"';
+  }
+  fb.style.display='block';
+  document.getElementById('spell-next').style.display='block';
+  saveQResult(currentUnit.id+'-'+spellWords[spellIdx].en+'-spell', isOk);
+}
+function spellNext() { spellIdx++; renderSpell(); }
+
+// ============================================================
+// SCORE
+// ============================================================
+function showScore(mode) {
+  document.getElementById('study-area').style.display='none';
+  document.getElementById('score-screen').style.display='block';
+  const tot = currentUnit.words.length;
+  const score = mode==='quiz' ? quizScore : spellScore;
+  const pct = Math.round(score/tot*100);
+  document.getElementById('ss-num').textContent = score;
+  document.getElementById('ss-sub').textContent = pct+'% 正解 — '+score+' / '+tot;
+  if(pct>=80){document.getElementById('ss-emoji').textContent='🎉';document.getElementById('ss-msg').textContent='すばらしい！';}
+  else if(pct>=60){document.getElementById('ss-emoji').textContent='👍';document.getElementById('ss-msg').textContent='よくできました！';}
+  else{document.getElementById('ss-emoji').textContent='💪';document.getElementById('ss-msg').textContent='もう一度挑戦！';}
+}
+
+function retryMode() {
+  document.getElementById('score-screen').style.display='none';
+  document.getElementById('study-area').style.display='block';
+  if(currentMode==='quiz') initQuiz(); else initSpell();
+}
+
+init();
+</script>
+</body>
+</html>

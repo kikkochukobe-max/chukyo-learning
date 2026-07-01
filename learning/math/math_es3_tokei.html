@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>とけいマスター｜時こくと時間の練習（小3算数）</title>
+<meta name="description" content="アナログ時計を動かして「何分たった?」「何分後は何時何分?」を練習できる小学3年生向け学習ツール。中京個別指導学院">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#DDF1FB;
+  --ink:#2B4356;
+  --white:#FFFFFF;
+  --sun:#FFD24D;      /* 経過時間の色 */
+  --sun-deep:#F5B400;
+  --coral:#FF8A5C;
+  --coral-deep:#E96A3C;
+  --mint:#5BC8AF;
+  --mint-deep:#3FAE95;
+  --line:#9CC7DC;
+  --wrong:#F26D6D;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{font-size:16px;}
+body{
+  font-family:'M PLUS Rounded 1c','Hiragino Maru Gothic ProN',sans-serif;
+  background:var(--sky);
+  color:var(--ink);
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:62px 10px 40px;
+  user-select:none;-webkit-user-select:none;
+}
+header{
+  position:fixed;top:0;left:0;right:0;z-index:40;
+  background:rgba(221,241,251,.95);backdrop-filter:blur(6px);
+  box-shadow:0 2px 10px rgba(43,67,86,.10);
+  padding:6px 10px;
+}
+.header-inner{
+  max-width:520px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.header-text{text-align:left;min-width:0;flex:1;}
+.home-link{
+  flex-shrink:0;
+  font-size:.68rem;font-weight:800;color:#3a7ca0;text-decoration:none;
+  background:#fff;border-radius:99px;padding:6px 10px;
+  box-shadow:0 2px 0 #b9d8e8;white-space:nowrap;line-height:1;
+  display:inline-flex;align-items:center;gap:3px;
+}
+.home-link:active{transform:translateY(2px);box-shadow:none;}
+@media (max-width:380px){
+  .home-label{display:none;}   /* 狭い画面では🏠アイコンのみ */
+  h1{font-size:1.2rem;}
+}
+h1{font-size:1.3rem;font-weight:900;letter-spacing:.04em;white-space:nowrap;}
+h1 .dot{color:var(--coral);}
+.subtitle{font-size:.7rem;color:#5b7d93;font-weight:700;white-space:nowrap;}
+
+/* ===== モードタブ ===== */
+.mode-tabs{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:4px;
+  width:100%;max-width:520px;margin:8px 0 10px;
+}
+.mode-tab{
+  border:none;border-radius:12px;padding:8px 1px 6px;
+  font-family:inherit;font-weight:800;font-size:.66rem;color:var(--ink);
+  background:var(--white);box-shadow:0 3px 0 #b9d8e8;cursor:pointer;
+  transition:transform .08s;line-height:1.25;
+}
+.mode-tab small{display:block;font-size:.46rem;font-weight:700;color:#7a9cb0;}
+.mode-tab.active{background:var(--coral);color:#fff;box-shadow:0 3px 0 var(--coral-deep);}
+.mode-tab.active small{color:#ffe3d6;}
+.mode-tab:active{transform:translateY(2px);box-shadow:none;}
+
+/* ===== カード ===== */
+.card{
+  width:100%;max-width:520px;background:var(--white);
+  border-radius:22px;padding:14px;margin-bottom:10px;
+  box-shadow:0 4px 14px rgba(43,67,86,.10);
+}
+
+/* ===== 問題文 ===== */
+.question-box{
+  background:#FFF6DC;border:3px dashed var(--sun-deep);
+  border-radius:14px;padding:7px 10px;margin-bottom:8px;
+  font-weight:800;font-size:.95rem;line-height:1.45;text-align:center;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+}
+.question-box .level-row{display:flex;gap:5px;justify-content:center;margin-top:4px;flex-wrap:wrap;}
+.q-time{color:var(--coral-deep);font-size:1.15em;}
+.q-min{color:var(--mint-deep);font-size:1.15em;}
+.q-nowrap{white-space:nowrap;}
+
+/* ===== 時計エリア ===== */
+.clock-row{display:flex;align-items:flex-start;justify-content:center;gap:6px;}
+.clock-wrap{position:relative;width:min(64vw,262px);}
+.press-log{display:none;flex-direction:row;align-items:flex-start;gap:6px;padding-top:6px;flex-shrink:0;}
+.press-col{display:flex;flex-direction:column;gap:4px;width:52px;}
+.press-chip{
+  font-size:.7rem;font-weight:900;color:#fff;border-radius:8px;
+  padding:3px 0;text-align:center;line-height:1.1;
+  box-shadow:0 2px 0 rgba(43,67,86,.18);animation:chipIn .18s ease;
+}
+@keyframes chipIn{0%{transform:scale(.4);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.chip-p1{background:#5BC8AF;} .chip-p5{background:#56AEE8;} .chip-p10{background:#FF8A5C;}
+.chip-m1{background:#A8B8C4;} .chip-m5{background:#C58BC9;} .chip-m10{background:#9B6FD4;}
+.clock-wrap svg{width:100%;height:auto;display:block;}
+.hand-min{transition:transform .12s cubic-bezier(.34,1.56,.64,1);}
+.hand-hour{transition:transform .12s ease;}
+.clock-bounce .hand-min{animation:bounce .25s;}
+@keyframes bounce{50%{transform:scale(1.03);}}
+
+/* デジタル表示 */
+.digital-row{
+  display:flex;justify-content:center;align-items:center;gap:10px;
+  margin-top:6px;font-weight:900;
+}
+.digital{
+  background:var(--ink);color:#9BE8FF;border-radius:12px;
+  padding:4px 14px;font-size:1.5rem;letter-spacing:.05em;
+  font-variant-numeric:tabular-nums;
+}
+.elapsed-badge{
+  background:var(--sun);border-radius:12px;padding:4px 12px;
+  font-size:.95rem;font-weight:900;color:#7a5800;
+}
+
+/* ===== 数直線 ===== */
+.numline-wrap{margin-top:10px;}
+.numline-wrap svg{width:100%;height:auto;display:block;}
+
+/* ===== 操作ボタン ===== */
+.controls{margin-top:12px;}
+.btn-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.push-btn{
+  border:none;border-radius:16px;font-family:inherit;cursor:pointer;
+  font-weight:900;padding:12px 0;flex:1;min-width:64px;max-width:110px;
+  font-size:1.05rem;color:#fff;transition:transform .08s;
+}
+.push-btn:active{transform:translateY(3px);box-shadow:none !important;}
+.btn-plus1{background:var(--mint);box-shadow:0 4px 0 var(--mint-deep);}
+.btn-plus5{background:#56AEE8;box-shadow:0 4px 0 #3a8cc4;}
+.btn-plus10{background:var(--coral);box-shadow:0 4px 0 var(--coral-deep);}
+.btn-minus{background:#A8B8C4;box-shadow:0 4px 0 #8195a3;font-size:.95rem;}
+.btn-back5{background:#C58BC9;box-shadow:0 4px 0 #a468a8;}
+.btn-back10{background:#9B6FD4;box-shadow:0 4px 0 #7d52b5;}
+.input-row{display:flex;gap:8px;margin-top:10px;align-items:stretch;justify-content:center;}
+.min-input{
+  width:92px;border:3px solid var(--line);border-radius:14px;text-align:center;
+  font-family:inherit;font-size:1.25rem;font-weight:900;color:var(--ink);outline:none;
+}
+.min-input:focus{border-color:var(--coral);}
+.go-btn{
+  border:none;border-radius:14px;background:var(--sun);box-shadow:0 4px 0 var(--sun-deep);
+  font-family:inherit;font-weight:900;font-size:1rem;color:#7a5800;
+  padding:10px 18px;cursor:pointer;transition:transform .08s;
+}
+.go-btn:active{transform:translateY(3px);box-shadow:none;}
+.reset-btn{
+  display:block;margin:12px auto 0;border:none;background:none;
+  font-family:inherit;font-weight:800;color:#7a9cb0;font-size:.82rem;
+  cursor:pointer;text-decoration:underline;
+}
+
+/* ===== 解答エリア ===== */
+.answer-area{margin-top:10px;}
+.answer-fields{display:flex;justify-content:center;align-items:flex-end;gap:6px;margin-bottom:10px;flex-wrap:wrap;width:100%;}
+.ans-field{
+  min-width:74px;height:58px;border:3px solid var(--line);border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.7rem;font-weight:900;background:#F6FBFE;cursor:pointer;
+  font-variant-numeric:tabular-nums;
+}
+.ans-field.focused{border-color:var(--coral);background:#FFF3ED;}
+.ans-unit{font-size:1.1rem;font-weight:900;padding-bottom:8px;}
+.numpad{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;width:100%;max-width:360px;margin:0 auto;}
+.np-btn{
+  border:none;border-radius:13px;background:#EAF3F8;box-shadow:0 3px 0 #c6dcea;
+  font-family:inherit;font-size:1.3rem;font-weight:900;color:var(--ink);
+  padding:11px 0;cursor:pointer;transition:transform .07s;
+}
+.np-btn:active{transform:translateY(2px);box-shadow:none;}
+.np-clear{background:#FBE3E3;box-shadow:0 3px 0 #e7baba;color:#b14a4a;font-size:1rem;}
+.np-ok{background:var(--mint);box-shadow:0 3px 0 var(--mint-deep);color:#fff;font-size:1.05rem;}
+
+/* ===== 判定・メッセージ ===== */
+.feedback{
+  text-align:center;font-weight:900;font-size:1.15rem;min-height:1.8em;
+  margin-top:8px;transition:opacity .2s;
+}
+.feedback.good{color:var(--mint-deep);animation:pop .35s;}
+.feedback.bad{color:var(--wrong);animation:shake .35s;}
+@keyframes pop{0%{transform:scale(.5);}60%{transform:scale(1.25);}100%{transform:scale(1);}}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-7px);}75%{transform:translateX(7px);}}
+.next-btn{
+  display:none;margin:10px auto 0;border:none;border-radius:16px;
+  background:var(--coral);box-shadow:0 4px 0 var(--coral-deep);color:#fff;
+  font-family:inherit;font-weight:900;font-size:1.05rem;padding:12px 34px;cursor:pointer;
+}
+.next-btn:active{transform:translateY(3px);box-shadow:none;}
+
+/* ===== スコア ===== */
+.score-row{
+  display:flex;justify-content:center;gap:14px;margin-top:10px;
+  font-weight:800;font-size:.85rem;color:#5b7d93;
+}
+.score-row b{color:var(--coral-deep);font-size:1.1em;}
+
+/* ===== レベル選択ピル ===== */
+.level-pill{
+  border:2px solid var(--line);background:#fff;border-radius:99px;
+  font-family:inherit;font-weight:800;font-size:.74rem;color:#5b7d93;
+  padding:4px 10px;cursor:pointer;
+}
+.level-pill.on{background:var(--mint);border-color:var(--mint);color:#fff;}
+
+/* ===== 分解モードのステップ ===== */
+.step-banner{
+  background:#E8F8F3;border:2.5px solid var(--mint);border-radius:12px;
+  padding:7px 10px;margin-bottom:8px;
+  font-weight:900;text-align:center;font-size:1rem;color:var(--mint-deep);
+}
+.bunkai-sum{
+  text-align:center;font-weight:900;font-size:1.3rem;margin-top:6px;
+  color:var(--ink);min-height:1.6em;
+}
+.bunkai-sum .seg1{color:#D89A00;}
+.bunkai-sum .seg2{color:#E8467C;}
+
+/* ===== お祝いエフェクト ===== */
+.confetti-layer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:50;}
+.confetti{
+  position:absolute;width:11px;height:11px;border-radius:3px;
+  animation:fall linear forwards;
+}
+@keyframes fall{
+  0%{transform:translateY(-20px) rotate(0deg);opacity:1;}
+  100%{transform:translateY(105vh) rotate(720deg);opacity:.6;}
+}
+.sparkle{
+  position:absolute;font-size:1.6rem;pointer-events:none;
+  animation:spark .8s ease-out forwards;z-index:51;
+}
+@keyframes spark{
+  0%{transform:scale(.3);opacity:1;}
+  100%{transform:scale(1.6) translateY(-34px);opacity:0;}
+}
+.cheer-pop{
+  position:fixed;left:50%;top:36%;
+  width:172px;height:172px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  padding:18px;line-height:1.3;font-size:1.2rem;font-weight:900;
+  color:#E8467C;border:5px solid #E8467C;
+  background:rgba(255,255,255,.93);
+  box-shadow:0 8px 26px rgba(43,67,86,.22);
+  z-index:60;pointer-events:none;
+  animation:stampIn 1.55s ease forwards;
+}
+.cheer-pop::before{
+  content:"";position:absolute;inset:6px;border-radius:50%;
+  border:2.5px solid #E8467C;
+}
+@keyframes stampIn{
+  0%{transform:translate(-50%,-50%) rotate(-12deg) scale(2.5);opacity:0;}
+  16%{transform:translate(-50%,-50%) rotate(-12deg) scale(.9);opacity:1;}
+  26%{transform:translate(-50%,-50%) rotate(-12deg) scale(1.05);}
+  34%{transform:translate(-50%,-50%) rotate(-12deg) scale(1);}
+  82%{opacity:1;transform:translate(-50%,-50%) rotate(-12deg) scale(1);}
+  100%{transform:translate(-50%,-52%) rotate(-12deg) scale(1);opacity:0;}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important;}
+}
+.card-body{display:block;}
+.col-visual,.col-action{min-width:0;}
+@media (min-width:760px){
+  .card{max-width:860px;}
+  .card-body{display:flex;align-items:flex-start;gap:20px;}
+  .col-visual{flex:0 0 360px;}
+  .col-action{flex:1;display:flex;flex-direction:column;justify-content:center;align-self:stretch;}
+  .col-visual{flex:0 0 340px;}
+  .clock-wrap{width:272px;}
+  /* マスターモード(時計なし)では操作列を中央に */
+  .col-visual.hidden + .col-action{align-items:stretch;}
+  .col-visual.hidden + .col-action .answer-area{max-width:400px;margin:0 auto;width:100%;}
+}
+.reset-btn-big{
+  display:block;margin:0 auto 10px;border:none;border-radius:14px;
+  background:#FFE3D6;color:#E96A3C;box-shadow:0 3px 0 #f0b89e;
+  font-family:inherit;font-weight:900;font-size:.9rem;padding:9px 22px;cursor:pointer;
+}
+.reset-btn-big:active{transform:translateY(2px);box-shadow:none;}
+.input-hint{text-align:center;font-weight:700;font-size:.78rem;color:#7a9cb0;margin-top:6px;}
+.move-hint{
+  text-align:center;font-weight:800;font-size:.86rem;color:#5b7d93;
+  margin-bottom:8px;
+}
+.hidden{display:none !important;}
+footer{font-size:.66rem;color:#7a9cb0;font-weight:700;margin-top:6px;text-align:center;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-text">
+      <h1>とけいマスター<span class="dot">⏰</span></h1>
+      <div class="subtitle">時こくと時間（小3算数）</div>
+    </div>
+    <a class="home-link" href="https://chukyokobetsu.com/" target="_blank" rel="noopener">🏠<span class="home-label">中京個別指導学院</span></a>
+  </div>
+</header>
+
+<div class="mode-tabs">
+  <button class="mode-tab active" data-mode="free">ミッション<small>ゴールまで</small></button>
+  <button class="mode-tab" data-mode="qa">もんだいA<small>なんぷん?</small></button>
+  <button class="mode-tab" data-mode="qb">もんだいB<small>なんじ?</small></button>
+  <button class="mode-tab" data-mode="bunkai">ぶんかい<small>ちょうどで分ける</small></button>
+  <button class="mode-tab" data-mode="gyaku">もどる⏪<small>出る時こく</small></button>
+  <button class="mode-tab" data-mode="master">マスター<small>とけいなし</small></button>
+</div>
+
+<div class="card">
+  <div class="question-box" id="questionBox">すきなボタンで とけいを うごかしてみよう！</div>
+
+  <div class="card-body" id="cardBody">
+  <div class="col-visual" id="colVisual">
+  <div class="clock-row">
+    <div class="clock-wrap" id="clockWrap">
+      <svg id="clockSvg" viewBox="0 0 300 300" aria-label="アナログ時計"></svg>
+    </div>
+    <div class="press-log" id="pressLog" aria-label="おしたボタン"></div>
+  </div>
+
+  <div class="digital-row" id="digitalRow">
+    <div class="digital" id="digital">7:50</div>
+    <div class="elapsed-badge" id="elapsedBadge">0分たった</div>
+  </div>
+
+  <div class="numline-wrap" id="numlineWrap">
+    <svg id="numlineSvg" viewBox="0 0 520 78" aria-label="数直線"></svg>
+  </div>
+  </div><!-- /col-visual -->
+  <div class="col-action" id="colAction">
+
+  <!-- 針の操作（全モード共通） -->
+  <div class="controls" id="moveControls">
+    <div class="move-hint hidden" id="moveHint">ボタンを押して 針を動かしてみよう！</div>
+    <button class="reset-btn-big" id="resetBtn">↩ はじめの時こくにもどす</button>
+    <div class="btn-row">
+      <button class="push-btn btn-back10 hidden" id="btnM10">−10分</button>
+      <button class="push-btn btn-back5 hidden" id="btnM5">−5分</button>
+      <button class="push-btn btn-minus" id="btnM1">−1分</button>
+      <button class="push-btn btn-plus1" id="btnP1">＋1分</button>
+      <button class="push-btn btn-plus5" id="btnP5">＋5分</button>
+      <button class="push-btn btn-plus10" id="btnP10">＋10分</button>
+    </div>
+  </div>
+
+  <!-- 自由（ミッション）モード専用 -->
+  <div class="controls" id="freeControls">
+    <div class="input-row">
+      <input class="min-input" id="minInput" type="tel" inputmode="numeric" maxlength="3" placeholder="？">
+      <button class="go-btn" id="goBtn">分すすめる ▶</button>
+    </div>
+    <div class="input-hint">入力した 数字の数だけ 動かせるよ！</div>
+    <div class="feedback" id="missionFeedback"></div>
+    <button class="next-btn" id="missionNextBtn">つぎのミッション ▶</button>
+    <div class="feedback" id="freeMsg"></div>
+    <button class="next-btn" id="missionNext">つぎのミッション ▶</button>
+  </div>
+
+  <!-- 解答エリア（問題A/B/分解で共用） -->
+  <div class="answer-area hidden" id="answerArea">
+    <div class="step-banner hidden" id="stepBanner"></div>
+    <div class="answer-fields" id="answerFields"></div>
+    <div class="numpad" id="numpad"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="bunkai-sum" id="bunkaiSum"></div>
+    <button class="next-btn" id="nextBtn">つぎのもんだい ▶</button>
+  </div>
+  </div><!-- /col-action -->
+  </div><!-- /card-body -->
+
+  <div class="score-row" id="scoreRow"><span>しょうごう <b id="rankName">みならい🐣</b></span><span>せいかい <b id="scoreOkEl">0</b></span><span>れんぞく <b id="scoreStreak">0</b></span></div>
+</div>
+
+<div class="confetti-layer" id="confettiLayer"></div>
+
+<footer>© 中京個別指導学院｜とけいマスター</footer>
+
+<script>
+"use strict";
+/* ===== 設定 ===== */
+const UNIT_KEY = "math_es3_tokei";
+const SAVE_ENDPOINT = ""; // 例: "https://example.com/save_progress.php" 空なら保存しない
+
+/* ===== 状態 ===== */
+let mode = "free";          // free | qa | qb | bunkai
+let startMin = 7 * 60 + 50; // 開始時刻（分）
+let curMin = startMin;      // 現在時刻（分）
+let targetMin = null;       // 問題の終了時刻（分）
+let qbLevel = "mix";        // qbの難易度
+let answer = null;          // 正解
+let fields = [];            // 解答欄 [{el,unit,max,val}]
+let focusIdx = 0;
+let locked = false;         // 解答後ロック
+let animTimer = null;
+let scoreOk = 0, scoreStreak = 0;  // scoreOkは初期化時に復元
+let bunkaiStep = 0, bunkaiData = null;
+let missionDone = false;
+let moveFloor = 0, moveCeil = 1439;
+let gyakuData = null;
+
+/* ===== DOM ===== */
+const $ = id => document.getElementById(id);
+const clockSvg = $("clockSvg"), numlineSvg = $("numlineSvg");
+const questionBox = $("questionBox"), stepBanner = $("stepBanner");
+const digital = $("digital"), elapsedBadge = $("elapsedBadge");
+const freeControls = $("freeControls"), answerArea = $("answerArea");
+const answerFields = $("answerFields"), numpad = $("numpad");
+const feedback = $("feedback"), nextBtn = $("nextBtn"), bunkaiSum = $("bunkaiSum");
+const freeMsg = $("freeMsg"), missionNext = $("missionNext");
+const moveControls = $("moveControls"), clockWrap = $("clockWrap");
+const digitalRow = $("digitalRow"), numlineWrap = $("numlineWrap");
+
+/* ===== 称号 ===== */
+const RANKS = [
+  [0,  "みならい\uD83D\uDC23"],
+  [5,  "とけいルーキー\u2B50"],
+  [12, "とけいめいじん\uD83C\uDF19"],
+  [25, "とけいはかせ\uD83C\uDF93"],
+  [40, "とけいキング\uD83D\uDC51"]
+];
+function rankIdx(n){ let i=0; RANKS.forEach((r,k)=>{ if(n>=r[0]) i=k; }); return i; }
+function loadOk(){ try{ return parseInt(localStorage.getItem(UNIT_KEY+"_ok"),10)||0; }catch(e){ return 0; } }
+function storeOk(){ try{ localStorage.setItem(UNIT_KEY+"_ok", scoreOk); }catch(e){} }
+
+/* ===== 音 ===== */
+let audioCtx = null;
+function ac(){ if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return audioCtx; }
+let tickBuf = null;
+function tickSound(){
+  const c = ac(); if(!c) return;
+  if(!tickBuf){
+    const len = Math.floor(c.sampleRate * 0.025);
+    tickBuf = c.createBuffer(1, len, c.sampleRate);
+    const d = tickBuf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i] = (Math.random()*2-1) * Math.pow(1-i/len, 4);
+  }
+  const src = c.createBufferSource(); src.buffer = tickBuf;
+  const f = c.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 2600;
+  const g = c.createGain(); g.gain.value = .55;
+  src.connect(f); f.connect(g); g.connect(c.destination);
+  src.start();
+}
+function chime(){
+  const c = ac(); if(!c) return;
+  [880,1108,1318].forEach((f,i)=>{
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine"; o.frequency.value = f;
+    const t = c.currentTime + i*.02;
+    g.gain.setValueAtTime(.12, t);
+    g.gain.exponentialRampToValueAtTime(.0001, t + .5);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + .55);
+  });
+}
+function fanfare(){
+  const c = ac(); if(!c) return;
+  [523,659,784,1046].forEach((f,i)=>{
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "triangle"; o.frequency.value = f;
+    const t = c.currentTime + i*.11;
+    g.gain.setValueAtTime(.16, t);
+    g.gain.exponentialRampToValueAtTime(.0001, t + .4);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + .45);
+  });
+}
+function buzz(){
+  const c = ac(); if(!c) return;
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = "sawtooth"; o.frequency.value = 140;
+  g.gain.setValueAtTime(.1, c.currentTime);
+  g.gain.exponentialRampToValueAtTime(.0001, c.currentTime + .3);
+  o.connect(g).connect(c.destination); o.start(); o.stop(c.currentTime + .32);
+}
+
+/* ===== ユーティリティ ===== */
+const fmt = m => `${Math.floor(m/60)%24}:${String(m%60).padStart(2,"0")}`;
+const fmtJ = m => `${Math.floor(m/60)%24}時${m%60===0?"":(m%60)+"分"}`;
+const rand = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+
+/* ===== 時計の描画 ===== */
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for(const k in attrs) e.setAttribute(k, attrs[k]);
+  if(parent) parent.appendChild(e);
+  return e;
+}
+let sectorPath, sectorPath2, handMin, handHour, centerDot, goalStar;
+function buildClock(){
+  clockSvg.innerHTML = "";
+  const cx=150, cy=150, R=140;
+  el("circle",{cx,cy,r:R,fill:"#FFFDF6",stroke:"#2B4356","stroke-width":7}, clockSvg);
+  sectorPath = el("path",{fill:"#FFD24D",opacity:.65}, clockSvg);
+  sectorPath2 = el("path",{fill:"#F58FB4",opacity:.7}, clockSvg);
+  // 分の目もり
+  for(let i=0;i<60;i++){
+    const a = i*6*Math.PI/180;
+    const long = i%5===0;
+    const r1 = long? R-16 : R-9, r2 = R-3;
+    el("line",{
+      x1:cx+r1*Math.sin(a), y1:cy-r1*Math.cos(a),
+      x2:cx+r2*Math.sin(a), y2:cy-r2*Math.cos(a),
+      stroke: long? "#2B4356":"#9CC7DC", "stroke-width": long?3.5:2, "stroke-linecap":"round"
+    }, clockSvg);
+  }
+  // 数字（1〜12）と分表示（5,10,...）
+  for(let n=1;n<=12;n++){
+    const a = n*30*Math.PI/180;
+    const t = el("text",{
+      x:cx+(R-34)*Math.sin(a), y:cy-(R-34)*Math.cos(a)+9,
+      "text-anchor":"middle","font-size":26,"font-weight":900,fill:"#2B4356",
+      "font-family":"'M PLUS Rounded 1c',sans-serif"
+    }, clockSvg);
+    t.textContent = n;
+    const m = el("text",{
+      x:cx+(R-58)*Math.sin(a), y:cy-(R-58)*Math.cos(a)+5,
+      "text-anchor":"middle","font-size":11,"font-weight":700,fill:"#56AEE8",
+      "font-family":"'M PLUS Rounded 1c',sans-serif"
+    }, clockSvg);
+    m.textContent = n*5===60? "0": n*5;
+  }
+  handHour = el("line",{x1:cx,y1:cy,x2:cx,y2:cy-72,stroke:"#2B4356","stroke-width":10,"stroke-linecap":"round"}, clockSvg);
+  handMin  = el("line",{x1:cx,y1:cy,x2:cx,y2:cy-110,stroke:"#FF8A5C","stroke-width":7,"stroke-linecap":"round"}, clockSvg);
+  handHour.style.transformOrigin = "150px 150px";
+  handMin.style.transformOrigin = "150px 150px";
+  goalStar = el("text",{"text-anchor":"middle","font-size":22,"font-weight":900,
+    fill:"#E96A3C","font-family":"'M PLUS Rounded 1c',sans-serif"}, clockSvg);
+  goalStar.textContent = "\u2605";
+  goalStar.setAttribute("display","none");
+  centerDot = el("circle",{cx,cy,r:9,fill:"#2B4356"}, clockSvg);
+}
+function sectorD(fromDeg, sweep){
+  if(sweep<=0) return "";
+  const cx=150, cy=150, r=118;
+  if(sweep>=360){
+    return `M${cx-r},${cy} a${r},${r} 0 1,0 ${r*2},0 a${r},${r} 0 1,0 ${-r*2},0`;
+  }
+  const a1 = fromDeg*Math.PI/180, a2 = (fromDeg+sweep)*Math.PI/180;
+  const x1=cx+r*Math.sin(a1), y1=cy-r*Math.cos(a1);
+  const x2=cx+r*Math.sin(a2), y2=cy-r*Math.cos(a2);
+  return `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${sweep>180?1:0},1 ${x2},${y2} Z`;
+}
+function renderClock(){
+  const minDeg = (curMin%60)*6;
+  const hourDeg = ((curMin%720)/720)*360;
+  handMin.style.transform = `rotate(${minDeg}deg)`;
+  handHour.style.transform = `rotate(${hourDeg}deg)`;
+  const isBack = mode==="gyaku" || (mode==="bunkai" && bunkaiData && bunkaiData.reverse);
+  const elapsed = isBack ? (startMin - curMin) : (curMin - startMin);
+  if(mode==="bunkai" && bunkaiData && bunkaiData.reverse){
+    const j = bunkaiData.justMin;
+    // 到着→ちょうど(黄) / ちょうど→現在(ピンク) を後ろ向きに塗る
+    if(curMin >= j){
+      const back = startMin - curMin;                 // 黄色のみ拡大
+      sectorPath.setAttribute("d", back>0? sectorD((curMin%60)*6, Math.min(back*6,360)) : "");
+      sectorPath2.setAttribute("d", "");
+    }else{
+      sectorPath.setAttribute("d", sectorD(0, bunkaiData.seg1*6));     // 黄=ちょうど〜到着 固定
+      const back2 = j - curMin;
+      sectorPath2.setAttribute("d", back2>0? sectorD((curMin%60)*6, Math.min(back2*6,360)) : "");
+    }
+  }else if(mode==="bunkai" && bunkaiData){
+    const j = bunkaiData.justMin;
+    const e1 = Math.min(curMin, j) - startMin;
+    const e2 = curMin - j;
+    sectorPath.setAttribute("d", e1>0? sectorD((startMin%60)*6, Math.min(e1*6,360)) : "");
+    sectorPath2.setAttribute("d", e2>0? sectorD(0, Math.min(e2*6,360)) : "");
+  }else if(mode==="gyaku"){
+    // 現在(早い時刻)から到着(startMin)まで時計回りに塗る = 旅の時間
+    const back = startMin - curMin;
+    sectorPath.setAttribute("d", back>0? sectorD((curMin%60)*6, Math.min(back*6,360)) : "");
+    sectorPath2.setAttribute("d", "");
+  }else{
+    sectorPath.setAttribute("d", sectorD((startMin%60)*6, Math.min(elapsed*6, 360)));
+    sectorPath2.setAttribute("d", "");
+  }
+  digital.textContent = fmt(curMin);
+  if(isBack){
+    elapsedBadge.textContent = `${elapsed}分 もどった`;
+  }else{
+    const maskBadge = (mode==="qa" || mode==="bunkai") && !nextBtnVisible();
+    elapsedBadge.textContent = maskBadge? "？分たった" : `${elapsed}分たった`;
+  }
+  if((mode==="qa"||mode==="free"||mode==="gyaku"||(mode==="bunkai"&&bunkaiData&&bunkaiData.reverse)) && targetMin!==null){
+    const ga = (targetMin%60)*6*Math.PI/180;
+    goalStar.setAttribute("x", 150+96*Math.sin(ga));
+    goalStar.setAttribute("y", 150-96*Math.cos(ga)+8);
+    goalStar.setAttribute("display","");
+  }else{
+    goalStar.setAttribute("display","none");
+  }
+  renderNumline();
+}
+
+function nextBtnVisible(){ return nextBtn.style.display === "block"; }
+
+/* ===== 数直線の描画 ===== */
+function renderNumline(){
+  numlineSvg.innerHTML = "";
+  const isBack = mode==="gyaku" || (mode==="bunkai" && bunkaiData && bunkaiData.reverse);
+  const elapsed = curMin - startMin;
+  let lo, hi;
+  if(isBack && gyakuData){
+    lo = Math.floor(Math.min(curMin, gyakuData.depart)/10)*10;
+    hi = Math.ceil(startMin/10)*10 + (startMin%10===0?10:0);
+  }else{
+    const end = targetMin!==null? Math.max(targetMin, curMin) : Math.max(curMin, startMin+10);
+    lo = Math.floor(startMin/10)*10;
+    hi = Math.ceil(end/10)*10 + (end%10===0?10:0);
+  }
+  const span = Math.max(hi-lo, 30);
+  const X = m => 30 + (m-lo)/span*460;
+  const baseY = 44;
+  // 経過の帯
+  if(mode==="bunkai" && bunkaiData && bunkaiData.reverse){
+    // 逆分解: 到着→ちょうど(黄) / ちょうど→現在(ピンク)
+    const j = bunkaiData.justMin;
+    if(startMin>curMin){
+      const segStart = Math.max(curMin, j);  // 黄の左端
+      el("rect",{x:X(segStart), y:baseY-9, width:X(startMin)-X(segStart), height:18, rx:9, fill:"#FFD24D"}, numlineSvg);
+      if(curMin<j){
+        el("rect",{x:X(curMin), y:baseY-9, width:X(j)-X(curMin), height:18, rx:9, fill:"#F58FB4"}, numlineSvg);
+      }
+    }
+  }else if(mode==="gyaku"){
+    if(startMin>curMin)
+      el("rect",{x:X(curMin), y:baseY-9, width:X(startMin)-X(curMin), height:18, rx:9, fill:"#C58BC9"}, numlineSvg);
+  }else if(elapsed>0){
+    el("rect",{x:X(startMin), y:baseY-9, width:X(curMin)-X(startMin), height:18, rx:9, fill:"#FFD24D"}, numlineSvg);
+  }
+  // 分解モード(順)の2色帯
+  if(mode==="bunkai" && bunkaiData && !bunkaiData.reverse){
+    const j = bunkaiData.justMin;
+    if(curMin>startMin){
+      const seg1End = Math.min(curMin, j);
+      el("rect",{x:X(startMin), y:baseY-9, width:X(seg1End)-X(startMin), height:18, rx:9, fill:"#FFD24D"}, numlineSvg);
+      if(curMin>j){
+        el("rect",{x:X(j), y:baseY-9, width:X(curMin)-X(j), height:18, rx:9, fill:"#F58FB4"}, numlineSvg);
+      }
+    }
+  }
+  // 軸
+  el("line",{x1:30,y1:baseY,x2:490,y2:baseY,stroke:"#2B4356","stroke-width":3,"stroke-linecap":"round"}, numlineSvg);
+  // 目もり（10分ごと）
+  for(let m=lo;m<=lo+span;m+=10){
+    const x = X(m);
+    const just = m%60===0;
+    el("line",{x1:x,y1:baseY-(just?12:7),x2:x,y2:baseY+(just?12:7),stroke:just?"#E96A3C":"#2B4356","stroke-width":just?3:2}, numlineSvg);
+    const t = el("text",{x, y:baseY+28, "text-anchor":"middle","font-size":13,"font-weight":just?900:700,
+      fill:just?"#E96A3C":"#5b7d93","font-family":"'M PLUS Rounded 1c',sans-serif"}, numlineSvg);
+    t.textContent = fmt(m);
+  }
+  // ゴールマーカー
+  if((mode==="qa"||mode==="free"||mode==="gyaku"||(mode==="bunkai"&&bunkaiData&&bunkaiData.reverse)) && targetMin!==null){
+    const gx = X(targetMin);
+    el("line",{x1:gx,y1:baseY-22,x2:gx,y2:baseY,stroke:"#E96A3C","stroke-width":3,"stroke-dasharray":"3 3"}, numlineSvg);
+    const gt = el("text",{x:gx, y:baseY-26,"text-anchor":"middle","font-size":13,"font-weight":900,
+      fill:"#E96A3C","font-family":"'M PLUS Rounded 1c',sans-serif"}, numlineSvg);
+    gt.textContent = (mode==="gyaku"||(mode==="bunkai"&&bunkaiData&&bunkaiData.reverse))? "\u2605出発" : "\u2605ゴール";
+  }
+  // 現在位置／いまマーカー：「いま」は常にスタート時刻(startMin)に固定。
+  // 時計の針(curMin)を前後に動かしても「いま」は動かさない。
+  const ix = X(startMin);
+  el("circle",{cx:ix, cy:baseY, r:7, fill:"#FF8A5C", stroke:"#fff","stroke-width":2.5}, numlineSvg);
+  const il = el("text",{x:ix, y:baseY-18,"text-anchor":"middle","font-size":13,"font-weight":900,
+    fill:"#E96A3C","font-family":"'M PLUS Rounded 1c',sans-serif"}, numlineSvg);
+  il.textContent = "いま";
+  // 現在の針の位置は色帯の先端に小さな目印だけ(ラベルなし)
+  if(curMin !== startMin){
+    const cx2 = X(curMin);
+    el("circle",{cx:cx2, cy:baseY, r:5, fill:"#fff", stroke:"#2B4356","stroke-width":2.5}, numlineSvg);
+  }
+}
+
+/* ===== 操作ログ(押したボタン) ===== */
+function clearPressLog(){ const p = $("pressLog"); if(p){ p.innerHTML = ""; p.style.display = "none"; } }
+function logPress(n){
+  const p = $("pressLog"); if(!p) return;
+  p.style.display = "flex";
+  let col = p.lastElementChild;
+  if(!col || col.children.length >= 10){     // 10個たまったら右に新しい列
+    col = document.createElement("div");
+    col.className = "press-col";
+    p.appendChild(col);
+  }
+  const chip = document.createElement("div");
+  const sign = n>0? "＋" : "−";
+  chip.className = "press-chip chip-" + (n>0?"p":"m") + Math.abs(n);
+  chip.textContent = `${sign}${Math.abs(n)}分`;
+  col.appendChild(chip);
+}
+
+/* ===== 時計を動かす ===== */
+function stepTo(target, done){
+  if(animTimer) clearInterval(animTimer);
+  const dir = target>curMin? 1 : -1;
+  if(target===curMin){ if(done) done(); return; }
+  const dist = Math.abs(target - curMin);
+  const interval = dist>=10? 55 : dist>=5? 95 : 130;  // 遠いほど速く
+  animTimer = setInterval(()=>{
+    curMin += dir;
+    tickSound();
+    clockBounce();
+    if(curMin%60===0 && dir>0) justEffect();
+    renderClock();
+    if(curMin===target){
+      clearInterval(animTimer); animTimer = null;
+      if(done) done();
+    }
+  }, interval);
+}
+function clockBounce(){
+  const w = $("clockWrap");
+  w.classList.remove("clock-bounce");
+  void w.offsetWidth;
+  w.classList.add("clock-bounce");
+}
+function justEffect(){
+  chime();
+  sparkleAt($("clockWrap"), "✨");
+}
+function sparkleAt(container, char){
+  const r = container.getBoundingClientRect();
+  for(let i=0;i<4;i++){
+    const s = document.createElement("div");
+    s.className = "sparkle"; s.textContent = char;
+    s.style.left = (r.left + r.width*(0.2+Math.random()*0.6)) + "px";
+    s.style.top  = (r.top + r.height*(0.15+Math.random()*0.5)) + "px";
+    s.style.position = "fixed";
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(), 850);
+  }
+}
+function confetti(emoji){
+  const layer = $("confettiLayer");
+  const colors = ["#FF8A5C","#FFD24D","#5BC8AF","#56AEE8","#F2789F"];
+  for(let i=0;i<36;i++){
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = Math.random()*100 + "vw";
+    if(emoji){ c.textContent = emoji; c.style.background = "none"; c.style.fontSize = "1.5rem"; c.style.width = "auto"; c.style.height = "auto"; }
+    else c.style.background = colors[i%colors.length];
+    c.style.animationDuration = (1.4+Math.random()*1.2) + "s";
+    c.style.animationDelay = (Math.random()*.3) + "s";
+    layer.appendChild(c);
+    setTimeout(()=>c.remove(), 3200);
+  }
+}
+function cheer(text){
+  const c = document.createElement("div");
+  c.className = "cheer-pop"; c.textContent = text;
+  document.body.appendChild(c);
+  setTimeout(()=>c.remove(), 1650);
+}
+const CHEERS = ["やったね！","すごい！","せいかい！","その調子！","ピンポン！","とけいはかせ！"];
+
+/* ===== 解答欄・テンキー ===== */
+function buildFields(defs){
+  // defs: [{unit:"分", max:599}] など
+  answerFields.innerHTML = "";
+  fields = defs.map((d,i)=>{
+    const f = document.createElement("div");
+    f.className = "ans-field"; f.textContent = "？";
+    f.addEventListener("click", ()=>{ if(!locked){ focusIdx = i; refreshFields(); } });
+    answerFields.appendChild(f);
+    const u = document.createElement("div");
+    u.className = "ans-unit"; u.textContent = d.unit;
+    answerFields.appendChild(u);
+    return {el:f, unit:d.unit, val:""};
+  });
+  focusIdx = 0;
+  refreshFields();
+}
+function refreshFields(){
+  fields.forEach((f,i)=>{
+    f.el.textContent = f.val===""? "？" : f.val;
+    f.el.classList.toggle("focused", i===focusIdx && !locked);
+  });
+}
+function buildNumpad(){
+  numpad.innerHTML = "";
+  const keys = ["1","2","3","4","5","6","7","8","9","0"];
+  keys.forEach(k=>{
+    const b = document.createElement("button");
+    b.className = "np-btn"; b.textContent = k;
+    b.addEventListener("click", ()=>{
+      if(locked) return;
+      const f = fields[focusIdx];
+      if(f.val.length<2) f.val += k;
+      refreshFields();
+    });
+    numpad.appendChild(b);
+  });
+  const clr = document.createElement("button");
+  clr.className = "np-btn np-clear"; clr.textContent = "けす";
+  clr.addEventListener("click", ()=>{
+    if(locked) return;
+    fields[focusIdx].val = "";
+    refreshFields();
+  });
+  numpad.appendChild(clr);
+  // 欄の切りかえ（複数欄のとき）
+  const sw = document.createElement("button");
+  sw.className = "np-btn"; sw.textContent = "→";
+  sw.id = "npSwitch";
+  sw.addEventListener("click", ()=>{
+    if(locked || fields.length<2) return;
+    focusIdx = (focusIdx+1)%fields.length;
+    refreshFields();
+  });
+  numpad.appendChild(sw);
+  const ok = document.createElement("button");
+  ok.className = "np-btn np-ok"; ok.textContent = "こたえる！";
+  ok.style.gridColumn = "span 3";
+  ok.addEventListener("click", submitAnswer);
+  numpad.appendChild(ok);
+}
+
+/* ===== 進捗保存（任意） ===== */
+function saveProgress(correct){
+  if(!SAVE_ENDPOINT) return;
+  try{
+    fetch(SAVE_ENDPOINT, {
+      method:"POST",
+      headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body:`unit_key=${UNIT_KEY}&mode=${mode}&correct=${correct?1:0}`
+    }).catch(()=>{});
+  }catch(e){}
+}
+
+/* ===== ミッション（じゆうモード） ===== */
+function genMission(){
+  missionDone = false;
+  const h = rand(6,11), m5 = rand(0,11)*5;
+  startMin = h*60 + m5;
+  const dur = rand(2,11)*5;          // 10〜55分（時またぎ混在）
+  targetMin = startMin + dur;
+  curMin = startMin;
+  questionBox.innerHTML =
+    `ミッション\uD83D\uDEA9 <span class="q-nowrap"><span class="q-time">${fmtJ(startMin)}</span>から<span class="q-time">${fmtJ(targetMin)}</span></span>まで うごかそう！`;
+  freeMsg.textContent = ""; freeMsg.className = "feedback";
+  missionNext.style.display = "none";
+  renderClock();
+}
+function checkMission(){
+  if(mode!=="free" || missionDone || targetMin===null) return;
+  if(curMin===targetMin){
+    missionDone = true;
+    const d = targetMin - startMin;
+    addCorrect();
+    fanfare(); confetti(); cheer(`${d}分たった！`);
+    freeMsg.innerHTML = `ゴール！\u2605 ぜんぶで <b>${d}分</b> たったね！`;
+    freeMsg.className = "feedback good";
+    missionNext.style.display = "block";
+    saveProgress(true);
+  }else if(curMin>targetMin){
+    freeMsg.textContent = "いきすぎ！「−1分」で もどろう";
+    freeMsg.className = "feedback bad";
+    buzz();
+  }else{
+    freeMsg.textContent = ""; freeMsg.className = "feedback";
+  }
+}
+
+/* ===== 問題生成 ===== */
+function genQA(){
+  // 開始：5分きざみ、経過：5分きざみ 10〜55分（時またぎ混在）
+  const h = rand(6,11);
+  const m5 = rand(0,11)*5;
+  startMin = h*60 + m5;
+  const dur = rand(2,11)*5;
+  targetMin = startMin + dur;
+  curMin = startMin;
+  answer = [String(dur)];
+  questionBox.innerHTML =
+    `<span class="q-nowrap"><span class="q-time">${fmtJ(startMin)}</span>から<span class="q-time">${fmtJ(targetMin)}</span></span>になりました。何分たちましたか？`;
+  buildFields([{unit:"分"}]);
+  renderClock();
+}
+function genQB(){
+  let h, m, dur;
+  const lv = qbLevel==="mix"? ["easy","just","cross"][rand(0,2)] : qbLevel;
+  if(lv==="easy"){           // またぎなし
+    h = rand(6,11); m = rand(0,6)*5; dur = rand(1, Math.floor((55-m)/5))*5;
+  }else if(lv==="just"){     // ちょうどになる
+    h = rand(6,11); m = rand(5,11)*5; dur = 60-m;
+  }else{                     // 時またぎ
+    h = rand(6,11); m = rand(7,11)*5; dur = (60-m) + rand(1,7)*5;
+  }
+  startMin = h*60+m;
+  targetMin = startMin + dur;
+  curMin = startMin;
+  const ansH = Math.floor(targetMin/60)%24, ansM = targetMin%60;
+  answer = [String(ansH), String(ansM)];
+  questionBox.innerHTML =
+    `<span class="q-nowrap"><span class="q-time">${fmtJ(startMin)}</span>から<span class="q-min">${dur}分後</span></span>は 何時何分？`;
+  buildFields([{unit:"時"},{unit:"分"}]);
+  renderClock();
+}
+function genBunkai(){
+  if(rand(0,1)===0) genBunkaiFwd();
+  else genBunkaiRev();
+}
+function genBunkaiFwd(){
+  setBackButtons(false);
+  // かならず時またぎ
+  const h = rand(6,11);
+  // 移動範囲は最後に設定
+  const m = rand(7,11)*5;            // :35〜:55
+  const seg1 = 60-m;
+  const seg2 = rand(2,7)*5;          // 10〜35分
+  startMin = h*60+m;
+  targetMin = startMin + seg1 + seg2;
+  curMin = startMin;
+  bunkaiData = { justMin: (h+1)*60, seg1, seg2, reverse:false };
+  bunkaiStep = 1;
+  questionBox.innerHTML =
+    `<span class="q-nowrap"><span class="q-time">${fmtJ(startMin)}</span>から<span class="q-time">${fmtJ(targetMin)}</span></span>になりました。何分たちましたか？`;
+  stepBanner.classList.remove("hidden");
+  stepBanner.innerHTML = `ステップ1️⃣ まず ちょうど <b>${h+1}時</b> まで、あと何分？`;
+  bunkaiSum.innerHTML = "";
+  answer = [String(seg1)];
+  moveFloor = startMin; moveCeil = startMin + 180;
+  buildFields([{unit:"分"}]);
+  renderClock();
+}
+
+function genBunkaiRev(){
+  setBackButtons(true);
+  const dests = ["公園","えき","がっこう","としょかん","プール","おばあちゃんの家"];
+  const hows  = ["車で","あるいて","じてんしゃで","バスで"];
+  const dest = dests[rand(0,dests.length-1)], how = hows[rand(0,hows.length-1)];
+  const h = rand(8,13);
+  const seg1 = rand(2,6)*5;          // 到着の分(ちょうどまで戻る) :10〜:30
+  const seg2 = rand(2,5)*5;          // 前の時間に戻る分 10〜25
+  const dur = seg1 + seg2;
+  const arrival = h*60 + seg1;
+  const justMin = h*60;              // ちょうどの時刻
+  const depart = arrival - dur;      // = (h-1)時 (60-seg2)分
+  startMin = arrival; curMin = arrival; targetMin = depart;
+  bunkaiData = { justMin, seg1, seg2, reverse:true, arrival, depart, dur };
+  gyakuData = { arrival, depart, dur };   // 数直線の範囲計算に流用
+  moveFloor = depart - 20; moveCeil = arrival;
+  bunkaiStep = 1;
+  questionBox.innerHTML =
+    `<span class="q-nowrap">家から${dest}まで<span class="q-min">${how}${dur}分</span>かかります。</span><span class="q-nowrap"><span class="q-time">${fmtJ(arrival)}</span>に${dest}に着く</span>には 何時に家を出る？`;
+  stepBanner.classList.remove("hidden");
+  stepBanner.innerHTML = `ステップ1️⃣ まず ちょうど <b>${h}時</b> まで 何分 もどる？`;
+  bunkaiSum.innerHTML = "";
+  answer = [String(seg1)];
+  buildFields([{unit:"分"}]);
+  renderClock();
+}
+
+function setBackButtons(on){
+  $("btnM10").classList.toggle("hidden", !on);
+  $("btnM5").classList.toggle("hidden", !on);
+  $("btnP5").classList.toggle("hidden", on);
+  $("btnP10").classList.toggle("hidden", on);
+}
+
+function genGyaku(){
+  const trips = [
+    ["公園","車",[20,30,40]],
+    ["えき","あるいて",[10,15,20]],
+    ["がっこう","あるいて",[15,20,25]],
+    ["としょかん","じてんしゃで",[15,20,25]],
+    ["プール","バスで",[20,25,30]],
+    ["おばあちゃんの家","車",[30,40,45]]
+  ];
+  const t = trips[rand(0,trips.length-1)];
+  const dest = t[0], how = t[1], dur = t[2][rand(0,t[2].length-1)];
+  // 到着時刻: 5分きざみ。出発が6:00以降になるよう調整
+  let arrival;
+  do { arrival = rand(8,15)*60 + rand(0,11)*5; } while(arrival - dur < 6*60);
+  const depart = arrival - dur;
+  startMin = arrival;          // 時計は到着時刻からスタート
+  curMin = arrival;
+  targetMin = depart;          // ゴール=出発時刻
+  gyakuData = { arrival, depart, dur };
+  moveFloor = depart - 20;     // 行きすぎ用に少し余裕
+  moveCeil = arrival;          // 到着より後には進めない
+  const ansH = Math.floor(depart/60)%24, ansM = depart%60;
+  answer = [String(ansH), String(ansM)];
+  const helper = (how==="車") ? "車で" : how;
+  questionBox.innerHTML =
+    `<span class="q-nowrap">家から${dest}まで<span class="q-min">${helper}${dur}分</span>かかります。</span><span class="q-nowrap"><span class="q-time">${fmtJ(arrival)}</span>に${dest}に着く</span>には 何時に家を出る？`;
+  buildFields([{unit:"時"},{unit:"分"}]);
+  renderClock();
+}
+
+function genMaster(){
+  const pick = rand(0,2);
+  if(pick===0){
+    genQA();
+  }else if(pick===1){
+    const keep = qbLevel; qbLevel = "mix";
+    genQB();
+    qbLevel = keep;
+  }else{
+    genGyaku();
+  }
+  questionBox.innerHTML = "\uD83D\uDC51 " + questionBox.innerHTML;
+}
+
+/* ===== 答え合わせ ===== */
+function submitAnswer(){
+  if(locked) return;
+  if(fields.some(f=>f.val==="")){
+    feedback.textContent = "ぜんぶの□に かずを いれてね";
+    feedback.className = "feedback bad";
+    return;
+  }
+  const got = fields.map(f=>String(parseInt(f.val,10)));
+  const isCorrect = got.length===answer.length && got.every((v,i)=>v===answer[i]);
+
+  if(mode==="bunkai"){ handleBunkai(isCorrect); return; }
+
+  if(isCorrect){
+    locked = true;
+    addCorrect();
+    saveProgress(true);
+    if(mode==="master"){
+      feedback.textContent = "せいかい！とけいなしで とけた！";
+      feedback.className = "feedback good";
+      fanfare(); confetti(); cheer(CHEERS[rand(0,CHEERS.length-1)]);
+      nextBtn.style.display = "block";
+    }else if(mode==="gyaku"){
+      feedback.textContent = "せいかい！出発の時こくまで もどすよ◀";
+      feedback.className = "feedback good";
+      stepTo(targetMin, ()=>{
+        fanfare(); confetti(); cheer(CHEERS[rand(0,CHEERS.length-1)]);
+        nextBtn.style.display = "block";
+      });
+    }else{
+      feedback.textContent = "せいかい！とけいで たしかめよう▶";
+      feedback.className = "feedback good";
+      stepTo(targetMin, ()=>{
+        fanfare(); confetti(); cheer(CHEERS[rand(0,CHEERS.length-1)]);
+        nextBtn.style.display = "block";
+      });
+    }
+  }else{
+    addWrong();
+    buzz();
+    feedback.textContent = "おしい！もういちど かんがえてみよう";
+    feedback.className = "feedback bad";
+    saveProgress(false);
+    fields.forEach(f=>f.val="");
+    refreshFields();
+  }
+}
+function handleBunkai(isCorrect){
+  const d = bunkaiData;
+  if(!isCorrect){
+    const got = parseInt(fields[0].val, 10);
+    if(!d.reverse && bunkaiStep<3 && got === d.seg1 + d.seg2){
+      // 合計は合っている→順番の案内にする
+      feedback.textContent = `ぜんぶで${got}分は あってる！でも まずは うえの しつもんに こたえてね`;
+      feedback.className = "feedback bad";
+    }else{
+      addWrong();
+      buzz();
+      feedback.textContent = "おしい！もういちど かんがえてみよう";
+      feedback.className = "feedback bad";
+    }
+    fields.forEach(f=>f.val=""); refreshFields();
+    return;
+  }
+  if(d.reverse){ handleBunkaiRev(d); return; }
+  if(bunkaiStep===1){
+    locked = true;
+    feedback.textContent = "せいかい！ちょうどの時こくまで すすめるよ▶";
+    feedback.className = "feedback good";
+    stepTo(d.justMin, ()=>{
+      chime();
+      bunkaiSum.innerHTML = `<span class="seg1">${d.seg1}分</span>`;
+      bunkaiStep = 2;
+      stepBanner.innerHTML = `ステップ2️⃣ <b>${fmtJ(d.justMin)}</b> から <b>${fmtJ(targetMin)}</b> まで、何分？`;
+      answer = [String(d.seg2)];
+      locked = false;
+      fields.forEach(f=>f.val=""); refreshFields();
+      feedback.textContent = "";
+      feedback.className = "feedback";
+    });
+  }else if(bunkaiStep===2){
+    locked = true;
+    feedback.textContent = "せいかい！さいごまで すすめるよ▶";
+    feedback.className = "feedback good";
+    stepTo(targetMin, ()=>{
+      bunkaiSum.innerHTML = `<span class="seg1">${d.seg1}分</span> ＋ <span class="seg2">${d.seg2}分</span> ＝ ？分`;
+      bunkaiStep = 3;
+      stepBanner.innerHTML = `ステップ3️⃣ あわせて 何分 たった？`;
+      answer = [String(d.seg1 + d.seg2)];
+      locked = false;
+      fields.forEach(f=>f.val=""); refreshFields();
+      feedback.textContent = "";
+      feedback.className = "feedback";
+    });
+  }else{
+    locked = true;
+    addCorrect();
+    bunkaiSum.innerHTML = `<span class="seg1">${d.seg1}分</span> ＋ <span class="seg2">${d.seg2}分</span> ＝ <b>${d.seg1+d.seg2}分</b>`;
+    feedback.textContent = "せいかい！ぶんかいマスター！";
+    feedback.className = "feedback good";
+    saveProgress(true);
+    fanfare(); confetti(); cheer("ぶんかいマスター！");
+    nextBtn.style.display = "block";
+  }
+}
+let curRank = 0;
+function handleBunkaiRev(d){
+  if(bunkaiStep===1){
+    locked = true;
+    feedback.textContent = "せいかい！ちょうどの時こくまで もどすよ◀";
+    feedback.className = "feedback good";
+    stepTo(d.justMin, ()=>{
+      chime();
+      bunkaiSum.innerHTML = `<span class="seg1">${d.seg1}分</span> もどった`;
+      bunkaiStep = 2;
+      stepBanner.innerHTML = `ステップ2️⃣ <b>${fmtJ(d.justMin)}</b> から あと 何分 もどる？`;
+      answer = [String(d.seg2)];
+      locked = false;
+      fields.forEach(f=>f.val=""); refreshFields();
+      feedback.textContent = ""; feedback.className = "feedback";
+    });
+  }else if(bunkaiStep===2){
+    locked = true;
+    feedback.textContent = "せいかい！出発の時こくまで もどすよ◀";
+    feedback.className = "feedback good";
+    stepTo(d.depart, ()=>{
+      chime();
+      bunkaiSum.innerHTML = `<span class="seg1">${d.seg1}分</span> ＋ <span class="seg2">${d.seg2}分</span> ＝ ${d.dur}分 もどる`;
+      bunkaiStep = 3;
+      stepBanner.innerHTML = `ステップ3️⃣ 何時に 家を出る？`;
+      const dH = Math.floor(d.depart/60)%24, dM = d.depart%60;
+      answer = [String(dH), String(dM)];
+      buildFields([{unit:"時"},{unit:"分"}]);
+      locked = false;
+      feedback.textContent = ""; feedback.className = "feedback";
+    });
+  }else{
+    locked = true;
+    addCorrect();
+    bunkaiSum.innerHTML = `出発は <b>${fmtJ(d.depart)}</b>！（${d.seg1}分＋${d.seg2}分 もどった）`;
+    feedback.textContent = "せいかい！ぶんかいマスター！";
+    feedback.className = "feedback good";
+    saveProgress(true);
+    fanfare(); confetti(); cheer("ぶんかいマスター！");
+    nextBtn.style.display = "block";
+  }
+}
+function updateScore(){
+  $("scoreOkEl").textContent = scoreOk;
+  $("scoreStreak").textContent = scoreStreak;
+  const idx = rankIdx(scoreOk);
+  $("rankName").textContent = RANKS[idx][1];
+  if(idx > curRank){
+    curRank = idx;
+    const isKing = idx === RANKS.length-1;
+    setTimeout(()=>{
+      fanfare();
+      confetti(isKing? "\uD83D\uDC51" : null);
+      cheer(isKing? "とけいキング たんじょう！\uD83D\uDC51" : `${RANKS[idx][1]} にランクアップ！`);
+    }, isKing? 900 : 700);
+  }else{
+    curRank = idx;
+  }
+}
+function addCorrect(){ scoreOk++; scoreStreak++; storeOk(); updateScore(); }
+function addWrong(){ scoreStreak = 0; updateScore(); }
+
+/* ===== モード切りかえ ===== */
+function setMode(m){
+  mode = m;
+  clearPressLog();
+  if(animTimer){ clearInterval(animTimer); animTimer = null; }
+  locked = false;
+  nextBtn.style.display = "none";
+  feedback.textContent = ""; feedback.className = "feedback";
+  bunkaiSum.innerHTML = "";
+  stepBanner.classList.add("hidden");
+  bunkaiData = null;
+  document.querySelectorAll(".mode-tab").forEach(t=>t.classList.toggle("active", t.dataset.mode===m));
+
+  // 移動の上限・下限(既定: 開始以降〜+3時間)
+  moveFloor = startMin; moveCeil = startMin + 180;
+  // 戻る/通常で操作ボタンの出し分け
+  const gy = m==="gyaku";
+  $("btnM10").classList.toggle("hidden", !gy);
+  $("btnM5").classList.toggle("hidden", !gy);
+  $("btnP5").classList.toggle("hidden", gy);
+  $("btnP10").classList.toggle("hidden", gy);
+  const showClock = m!=="master";
+  $("colVisual").classList.toggle("hidden", !showClock);
+  clockWrap.classList.toggle("hidden", !showClock);
+  digitalRow.classList.toggle("hidden", !showClock);
+  numlineWrap.classList.toggle("hidden", !showClock);
+  moveControls.classList.toggle("hidden", !showClock);
+  if(m==="free"){
+    freeControls.classList.remove("hidden");
+    answerArea.classList.add("hidden");
+    $("moveHint").classList.remove("hidden");
+    genMission();
+    moveFloor=startMin; moveCeil=startMin+180;
+  }else{
+    $("moveHint").classList.add("hidden");
+    freeControls.classList.add("hidden");
+    answerArea.classList.remove("hidden");
+    if(m==="qa"){ genQA(); moveFloor=startMin; moveCeil=startMin+180; }
+    else if(m==="qb"){ showLevelPills(); genQB(); moveFloor=startMin; moveCeil=startMin+180; }
+    else if(m==="bunkai"){ genBunkai(); }
+    else if(m==="gyaku"){ genGyaku(); }
+    else genMaster();
+  }
+  if(m!=="qb") hideLevelPills();
+}
+let pillRow = null;
+function showLevelPills(){
+  hideLevelPills();
+  pillRow = document.createElement("div");
+  pillRow.className = "level-row";
+  const defs = [["easy","またぎなし"],["just","ちょうど"],["cross","時またぎ"],["mix","ミックス"]];
+  defs.forEach(([k,label])=>{
+    const b = document.createElement("button");
+    b.className = "level-pill" + (qbLevel===k? " on":"");
+    b.textContent = label;
+    b.addEventListener("click", ()=>{
+      qbLevel = k;
+      pillRow.querySelectorAll(".level-pill").forEach(p=>p.classList.remove("on"));
+      b.classList.add("on");
+      locked = false; nextBtn.style.display = "none";
+      feedback.textContent = ""; feedback.className = "feedback";
+      genQB();
+      questionBox.appendChild(pillRow);
+    });
+    pillRow.appendChild(b);
+  });
+  questionBox.appendChild(pillRow);
+}
+function hideLevelPills(){
+  if(pillRow && pillRow.parentNode) pillRow.parentNode.removeChild(pillRow);
+  pillRow = null;
+}
+
+/* ===== イベント ===== */
+document.querySelectorAll(".mode-tab").forEach(t=>{
+  t.addEventListener("click", ()=> setMode(t.dataset.mode));
+});
+function freeMove(n){
+  if(animTimer) return;
+  if(mode==="free" && missionDone) return;
+  if((mode==="qa"||mode==="qb"||mode==="bunkai"||mode==="gyaku") && locked) return;
+  const target = Math.min(moveCeil, Math.max(moveFloor, curMin + n));
+  if(target===curMin) return;       // クランプで動けない時は何もしない
+  logPress(n);
+  if(Math.abs(n)===1 && target!==curMin){
+    curMin = target; tickSound(); clockBounce();
+    if(curMin%60===0 && n>0) justEffect();
+    renderClock();
+    checkMission();
+  }else{
+    stepTo(target, checkMission);
+  }
+}
+$("btnP1").addEventListener("click", ()=>freeMove(1));
+$("btnP5").addEventListener("click", ()=>freeMove(5));
+$("btnP10").addEventListener("click", ()=>freeMove(10));
+$("btnM1").addEventListener("click", ()=>freeMove(-1));
+$("btnM5").addEventListener("click", ()=>freeMove(-5));
+$("btnM10").addEventListener("click", ()=>freeMove(-10));
+$("goBtn").addEventListener("click", ()=>{
+  const v = parseInt($("minInput").value, 10);
+  if(!isNaN(v) && v>0 && v<=180) freeMove(v);
+  $("minInput").value = "";
+});
+$("resetBtn").addEventListener("click", ()=>{
+  if(animTimer) return;
+  if(mode==="free" && missionDone) return;
+  if(mode!=="free" && locked) return;
+  curMin = startMin;
+  clearPressLog();
+  freeMsg.textContent = ""; freeMsg.className = "feedback";
+  renderClock();
+});
+missionNext.addEventListener("click", ()=>{ clearPressLog(); genMission(); });
+nextBtn.addEventListener("click", ()=>{
+  locked = false;
+  clearPressLog();
+  nextBtn.style.display = "none";
+  feedback.textContent = ""; feedback.className = "feedback";
+  bunkaiSum.innerHTML = "";
+  if(mode==="qa"){ genQA(); moveFloor=startMin; moveCeil=startMin+180; }
+  else if(mode==="qb"){ genQB(); if(pillRow) questionBox.appendChild(pillRow); moveFloor=startMin; moveCeil=startMin+180; }
+  else if(mode==="bunkai"){ genBunkai(); }
+  else if(mode==="gyaku") genGyaku();
+  else genMaster();
+});
+
+/* ===== 初期化 ===== */
+buildClock();
+buildNumpad();
+scoreOk = loadOk();
+curRank = rankIdx(scoreOk);
+updateScore();
+setMode("free");
+
+</script>
+</body>
+</html>
