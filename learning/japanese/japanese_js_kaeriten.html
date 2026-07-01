@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>漢文 返り点ドリル | 中京個別指導学院</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Noto Serif JP','Hiragino Mincho ProN',serif;background:#18100a;min-height:100dvh}
+header{background:#0d0905;border-bottom:3px solid #b88a18;padding:12px 20px;text-align:center;position:sticky;top:0;z-index:100}
+header a{color:#f0dda8;text-decoration:none;font-size:15px;font-weight:700;letter-spacing:.18em}
+#app{max-width:430px;margin:0 auto;padding:14px 13px 36px}
+
+/* progress */
+.prog{display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:13px}
+.dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.13);transition:all .3s;flex-shrink:0}
+.dot.done{background:#b88a18}.dot.active{background:#f0dda8;transform:scale(1.4)}
+.prog-lbl{color:rgba(255,255,255,.35);font-size:12px;margin-left:4px}
+
+/* card */
+.card{background:#f3e5ba;border-radius:6px;box-shadow:0 8px 32px rgba(0,0,0,.55);overflow:hidden}
+.card-ribbon{height:4px;background:linear-gradient(90deg,#831818,#b88a18,#831818)}
+.card-top{background:#e9d59e;border-bottom:1px solid rgba(0,0,0,.1);padding:10px 13px;display:flex;align-items:center;justify-content:space-between;gap:6px}
+.badge{background:#831818;color:#fff;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.pnum{color:#6b4620;font-size:12px;flex-shrink:0}
+.hint-btn{background:none;border:1px solid #8b6030;color:#6b4620;font-size:10.5px;padding:3px 9px;border-radius:20px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.hint-btn.on{background:#fff9e0;border-color:#b88a18;color:#7a5a08}
+.hint-wrap{overflow:hidden;max-height:0;transition:max-height .35s ease}
+.hint-wrap.open{max-height:90px}
+.hint-inner{border-left:3px solid #b88a18;margin:9px 13px 0;padding:6px 10px;background:#fffbe6;border-radius:0 4px 4px 0;font-size:11px;color:#5a3d18;line-height:1.7}
+
+/* ─── DRILL エリア ─── */
+.drill{padding:13px 13px 60px;position:relative}
+.instr{text-align:center;font-size:11.5px;color:#6b4620;margin-bottom:12px}
+.kb-wrap{display:flex;justify-content:center;padding-bottom:6px}
+.kb-col.md .cb{width:46px;height:46px}
+.kb-col.sm .cb{width:40px;height:40px}
+.kb-col.md .mgap{height:17px;font-size:12px}
+.kb-col.sm .mgap{height:17px;font-size:11px}
+.kb-col.md .cb-n{width:22px;height:22px;font-size:12px;top:-9px;right:-9px}
+.kb-col.sm .cb-n{width:20px;height:20px;font-size:11px;top:-8px;right:-8px;border-width:1.5px}
+.cmp-grid.md{grid-template-columns:54px 28px 54px;width:136px}
+.cmp-grid.sm{grid-template-columns:48px 28px 48px;width:124px}
+.cmp-grid.md .cg-box{width:54px;height:54px;font-size:16px}
+.cmp-grid.sm .cg-box{width:48px;height:48px;font-size:15px}
+.cmp-grid.md .cg-gap{height:16px}
+.cmp-grid.sm .cg-gap{height:17px}
+.kb-col{display:flex;flex-direction:column}
+
+/* 解答フェーズのマス（小さめ） */
+.cb{position:relative;width:54px;height:54px;background:#fdf4de;border:2px solid #3d2510;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background .2s;user-select:none;flex-shrink:0}
+.cb:active{transform:scale(0.88)}
+.cb.tapped{background:#e9ddb8;border-color:#6b4620}
+.mgap{height:20px;display:flex;align-items:center;padding-left:5px;font-size:13px;font-weight:900;color:#8b1818;line-height:1;pointer-events:none;position:relative;z-index:1}
+.mstack{display:flex;flex-direction:column;align-items:center;font-size:8px;line-height:1;font-weight:900;color:#8b1818;gap:0}
+
+/* タップ後の番号バッジ */
+.cb-n{position:absolute;top:-10px;right:-10px;width:24px;height:24px;background:#3d5a9a;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;border:2px solid #f3e5ba;animation:pop .18s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+@keyframes pop{from{transform:scale(0) rotate(-20deg)}to{transform:scale(1) rotate(0)}}
+
+/* ボタン */
+.remain-h{text-align:center;font-size:11px;color:#8b6030;min-height:16px;margin:4px 0 8px}
+.drill-l{position:absolute;left:13px;top:13px;display:flex;flex-direction:column;gap:6px;z-index:2}
+.side-btn{writing-mode:vertical-rl;width:28px;background:none;border:1.5px solid #8b6030;color:#6b4620;border-radius:4px;padding:10px 5px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.12em;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.side-btn:active{background:rgba(139,96,48,.12)}
+.btn-row{display:flex;gap:8px;margin-top:2px}
+.reset-btn{flex:1;background:none;border:2px solid #8b6030;color:#6b4620;border-radius:4px;padding:10px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer}
+.check-btn{position:absolute;bottom:14px;right:13px;background:#b88a18;color:#0d0905;border:none;border-radius:4px;padding:11px 24px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.06em}
+.check-btn:active,.reset-btn:active{opacity:.75}
+
+/* ─── 答え合わせ エリア ─── */
+.chk-flex{display:flex;align-items:stretch;gap:7px;padding:10px 10px 12px;animation:fadeUp .25s ease}
+.chk-l{flex:1;min-width:0;display:flex;align-items:flex-start;justify-content:center;background:#fffbe6;border-left:3px solid #b88a18;border-radius:0 4px 4px 0;padding:8px 4px;overflow:hidden}
+.hint-v{writing-mode:vertical-rl;font-size:11px;color:#5a3d18;line-height:1.8;margin:0}
+.chk-r{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px}
+.score-disp{font-size:11px;font-weight:900;text-align:center;letter-spacing:.05em;white-space:nowrap}
+.deco{flex:1;display:flex;align-items:center;justify-content:center;border-radius:4px}
+.deco-text{writing-mode:vertical-rl;font-weight:900;margin:0;letter-spacing:.18em}
+.deco-text.all-ok{font-size:14px;color:#b88a18;animation:kira 1.4s ease-in-out infinite alternate}
+.deco-text.partial{font-size:13px;color:#831818}
+@keyframes kira{from{text-shadow:0 0 4px rgba(184,138,24,.4);color:#b88a18}to{text-shadow:0 0 16px rgba(220,170,40,1),0 0 4px #fff8d0;color:#d9a828}}
+.next-btn-v{flex:1;width:100%;writing-mode:vertical-rl;background:#831818;color:#fff;border:none;border-radius:4px;padding:8px 5px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.14em}
+.next-btn-v:active{opacity:.8}
+.next-btn-v:active{opacity:.8}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* 比較グリッド */
+.cmp-grid{display:grid;grid-template-columns:62px 44px 62px;gap:0;margin:0 auto 10px;width:168px}
+.cg-hdr{font-size:9.5px;font-weight:700;color:#6b4620;text-align:center;padding-bottom:5px;line-height:1.3}
+.cg-box{display:flex;align-items:center;justify-content:center;width:62px;height:62px;border:2px solid;border-radius:4px;font-size:18px;font-weight:900}
+.cg-box.cor{background:#e9d59e;border-color:#6b4620;color:#3d2510}
+.cg-box.ok{background:#d4edda;border-color:#2a6640;color:#1e5030}
+.cg-box.ng{background:#fdeaea;border-color:#b02020;color:#7a0f0f}
+.cg-box.blank{background:#ececec;border-color:#aaa;color:#999}
+.cg-gap{height:18px;display:flex;align-items:center;padding-left:4px;font-size:12px;font-weight:900;color:#8b1818;line-height:1;position:relative;z-index:1}
+.cg-mark{height:10px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#8b1818}
+
+/* 解説 */
+.exp{background:#fffbe6;border-left:3px solid #b88a18;padding:8px 10px;border-radius:0 4px 4px 0;margin-bottom:10px}
+.exp-order{font-size:10.5px;color:#1a0e06;line-height:1.85;margin-bottom:4px;word-break:break-all}
+.exp-hint{font-size:10.5px;color:#6a5a3a;line-height:1.6}
+
+.next-btn{display:block;width:100%;background:#831818;color:#fff;border:none;border-radius:4px;padding:12px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.08em}
+.next-btn:active{opacity:.8}
+
+/* ─── ラウンド完了 ─── */
+.comp{text-align:center;padding:36px 20px}
+.comp-ico{font-size:48px;margin-bottom:12px;display:block}
+.comp h2{color:#b88a18;font-size:21px;font-weight:900;letter-spacing:.1em;margin-bottom:10px}
+.comp p{color:rgba(255,255,255,.6);font-size:14px;line-height:2;margin-bottom:22px}
+.comp p strong{color:#f0dda8}
+.replay-btn{background:#b88a18;color:#0d0905;border:none;border-radius:4px;padding:12px 30px;font-size:15px;font-weight:900;font-family:inherit;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <a href="https://chukyokobetsu.com" target="_blank" rel="noopener">中京個別指導学院</a>
+</header>
+<div id="app"></div>
+<script>
+// ── テンプレート (19種) ───────────────────────────────────────
+const T=[
+  {t:"レ点①",       m:["レ",null,null,null,null],              h:"レ点が付いている語のすぐ下を読み、レ点が付いている語に戻って読みます。"},
+  {t:"レ点②",       m:[null,"レ",null,null,null],              h:"レ点が付いている語のすぐ下を読み、レ点が付いている語に戻って読みます。"},
+  {t:"レ点③",       m:[null,null,"レ",null,null],              h:"レ点が付いている語のすぐ下を読み、レ点が付いている語に戻って読みます。"},
+  {t:"レ点×２①",   m:["レ","レ",null,null,null],              h:"レ点が付いている語のすぐ下を読み、レ点が付いている語に戻って読みます。"},
+  {t:"レ点×２②",   m:[null,"レ","レ",null,null],              h:"レ点が付いている語のすぐ下を読み、レ点が付いている語に戻って読みます。"},
+  {t:"レ点×３①",   m:["レ","レ","レ",null,null,null],         h:"レ点が付いている語のすぐ下を読み、レ点が付いている語に戻って読みます。"},
+  {t:"レ点×３②",   m:[null,"レ","レ","レ",null,null],         h:"レ点が付いている語のすぐ下を読み、レ点が付いている語に戻って読みます。"},
+  {t:"一二点①",     m:["二","一",null,null,null],              h:"一二点は数の小さい順（一→二）に読みます。"},
+  {t:"一二点②",     m:[null,"二","一",null,null],              h:"一点のマスを先に読み、二点のマスに返ります。"},
+  {t:"一二点③",     m:[null,null,"二","一",null],              h:"一点のマスを先に読み、二点のマスに返ります。"},
+  {t:"一二点④",     m:[null,"二","一",null,null,null],         h:"返り点なしのマスも読みながら進みましょう。"},
+  {t:"一二＋レ①",  m:["二","一","レ",null,null],              h:"一二点で返ってから、レ点箇所で直下を先読みします。"},
+  {t:"レ＋一二",    m:["レ",null,"二","一",null,null],         h:"まずレ点で直下を先読みし、次に一二点グループを読みます。"},
+  {t:"一二＋レ②",  m:["二","一",null,"レ",null,null],         h:"一二点で返ってから、離れたレ点で直下を先読みします。"},
+  {t:"一・レ点①",  m:["二","一レ",null,null,null],            h:"一レ点は「一点の位置で読む」＋「直下を先に読む」の組み合わせです。"},
+  {t:"一・レ点②",  m:["二","一レ","レ",null,null,null],       h:"一レ点にさらにレ点が加わります。一番下から読み上げましょう。"},
+  {t:"上下＋一二①",m:["下","二","一","上",null,null],         h:"上下点は一二点を「挟む」ように使います。一→二→上→下の順。"},
+  {t:"上下＋一二②",m:[null,"下","二","一","上",null,null],    h:"先頭に返り点なしのマスがある上下点の問題です。"},
+  {t:"一レ＋上下",  m:["下","二","一レ","レ",null,null,"上"], h:"下点と上点が全体を挟み、間に一二・一レ・レ点が入ります。"},
+];
+
+// ── 読み順アルゴリズム ────────────────────────────────────────
+function computeOrder(marks){
+  const n=marks.length,seq=[],done=new Array(n).fill(false);
+  function rd(i){
+    if(i<0||i>=n||done[i])return;
+    const m=marks[i];
+    if(m==="レ"){rd(i+1);if(!done[i]){done[i]=true;seq.push(i);}}
+    else if(m==="一レ"){rd(i+1);if(!done[i]){done[i]=true;seq.push(i);}for(let j=i-1;j>=0;j--){if(marks[j]==="二"&&!done[j]){done[j]=true;seq.push(j);break;}}}
+    else if(m==="一"){done[i]=true;seq.push(i);for(let j=i-1;j>=0;j--){if(marks[j]==="二"&&!done[j]){done[j]=true;seq.push(j);break;}}}
+    else if(m==="上"){done[i]=true;seq.push(i);for(let j=i-1;j>=0;j--){if(marks[j]==="下"&&!done[j]){done[j]=true;seq.push(j);break;}}}
+    else if(m===null){done[i]=true;seq.push(i);}
+  }
+  for(let i=0;i<n;i++)if(!done[i])rd(i);
+  for(let i=0;i<n;i++)if(!done[i]){done[i]=true;seq.push(i);}
+  const ord=new Array(n).fill(0);
+  seq.forEach((p,i)=>{ord[p]=i+1;});
+  return ord;
+}
+
+// ── ヘルパー ───────────────────────────────────────────────────
+function mhtml(m){
+  if(!m)return'';
+  if(m==='一レ')return`<span class="mstack"><span>一</span><span>レ</span></span>`;
+  return m;
+}
+function orderDesc(marks,ord){
+  const c=['①','②','③','④','⑤','⑥','⑦'];
+  const n=marks.length;
+  const by=Array.from({length:n},(_,i)=>i).sort((a,b)=>ord[a]-ord[b]);
+  return by.map((p,idx)=>(marks[p]?`マス${p+1}（${marks[p]}）`:`マス${p+1}`)+c[idx]).join('→');
+}
+function dotsHtml(){
+  return round.map((_,i)=>{
+    let c='dot';if(i<qi)c+=' done';if(i===qi)c+=' active';
+    return`<div class="${c}"></div>`;
+  }).join('')+`<span class="prog-lbl">${qi+1}/5</span>`;
+}
+
+// ── 状態 ──────────────────────────────────────────────────────
+let round=[],qi=0,curOrd=[],userAns=[],tapCnt=0,tapHistory=[],hintOn=false;
+
+// ── ラウンド開始 ──────────────────────────────────────────────
+function startRound(){
+  round=[...T].sort(()=>Math.random()-.5).slice(0,5);
+  qi=0;renderQ();
+}
+
+// ── 問題描画 ──────────────────────────────────────────────────
+function renderQ(){
+  const q=round[qi];
+  curOrd=computeOrder(q.m);
+  const smCls=q.m.length>=7?' sm':q.m.length>=6?' md':'';
+  userAns=new Array(q.m.length).fill(0);
+  tapCnt=0;tapHistory=[];hintOn=false;
+
+  let boxes='';
+  q.m.forEach((m,i)=>{
+    boxes+=`<button class="cb" id="c${i}" onclick="tap(${i})"></button>`;
+    boxes+=`<div class="mgap">${mhtml(m)}</div>`;
+  });
+
+  document.getElementById('app').innerHTML=`
+    <div class="prog">${dotsHtml()}</div>
+    <div class="card">
+      <div class="card-ribbon"></div>
+      <div class="card-top">
+        <span class="badge">${q.t}</span>
+        <span class="pnum">第${qi+1}問</span>
+        <button class="hint-btn" id="hb" onclick="toggleHint()">💡 ヒント</button>
+      </div>
+      <div class="hint-wrap" id="hw"><div class="hint-inner">${q.h}</div></div>
+      <div class="drill" id="drill">
+        <div class="drill-l">
+          <button class="side-btn" onclick="undoTap()">一つ戻る</button>
+          <button class="side-btn" onclick="resetQ()">やり直し</button>
+        </div>
+        <p class="instr">読む順番にタップしよう</p>
+        <div class="kb-wrap"><div class="kb-col${smCls}">${boxes}</div></div>
+        <p class="remain-h" id="rh">残り ${q.m.length} マス</p>
+        <button class="check-btn" onclick="showCheck()">答え合わせ</button>
+      </div>
+    </div>`;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── タップ処理 ────────────────────────────────────────────────
+function tap(i){
+  if(userAns[i]!==0)return;
+  const btn=document.getElementById('c'+i);
+  if(!btn)return;
+  tapCnt++;
+  userAns[i]=tapCnt;
+  tapHistory.push(i);
+  btn.classList.add('tapped');
+  const nd=document.createElement('div');
+  nd.className='cb-n';nd.textContent=tapCnt;
+  btn.appendChild(nd);
+  const rem=round[qi].m.length-tapCnt;
+  const rh=document.getElementById('rh');
+  if(rh)rh.textContent=rem>0?`残り ${rem} マス`:'答え合わせしてみよう！';
+}
+
+function undoTap(){
+  if(tapHistory.length===0)return;
+  const last=tapHistory.pop();
+  userAns[last]=0;
+  tapCnt--;
+  const btn=document.getElementById('c'+last);
+  if(btn){
+    btn.classList.remove('tapped');
+    const badge=btn.querySelector('.cb-n');
+    if(badge)badge.remove();
+  }
+  const rem=round[qi].m.length-tapCnt;
+  const rh=document.getElementById('rh');
+  if(rh)rh.textContent=rem>0?`残り ${rem} マス`:'答え合わせしてみよう！';
+}
+function resetQ(){renderQ();}
+
+// ── 答え合わせ ────────────────────────────────────────────────
+function showCheck(){
+  const q=round[qi];
+  const n=q.m.length;
+  const c=['①','②','③','④','⑤','⑥','⑦'];
+
+  let rows=`<div class="cg-hdr">正解</div><div></div><div class="cg-hdr">自分の解答</div>`;
+  q.m.forEach((m,i)=>{
+    const cor=curOrd[i];
+    const usr=userAns[i];
+    const ok=cor===usr&&usr>0;
+    const ucls=usr===0?'cg-box blank':(ok?'cg-box ok':'cg-box ng');
+    rows+=`<div class="cg-box cor">${c[cor-1]}</div><div></div><div class="${ucls}">${usr>0?c[usr-1]:'―'}</div>`;
+    rows+=`<div class="cg-gap">${mhtml(m)}</div><div></div><div class="cg-gap">${mhtml(m)}</div>`;
+  });
+
+  const smCls=n>=7?' sm':n>=6?' md':'';
+  const score=q.m.reduce((s,_,i)=>s+(curOrd[i]===userAns[i]&&userAns[i]>0?1:0),0);
+  const total=n;
+  const allOk=score===total;
+  const scoreColor=allOk?'#2a6640':'#b02020';
+  const scoreLabel=allOk?'全問正解！':score+'/'+total+' 正解';
+  const btnLabel=qi<4?'次の問題へ':'ラウンド終了';
+
+  document.getElementById('drill').outerHTML=`
+    <div class="chk-flex" id="drill">
+      <div class="chk-l">
+        <p class="hint-v">${q.h}</p>
+      </div>
+      <div>
+        <div class="cmp-grid${smCls}">${rows}</div>
+      </div>
+      <div class="chk-r">
+        <div class="deco">
+          <p class="deco-text ${allOk?'all-ok':'partial'}">${allOk?'★全問正解！★':scoreLabel}</p>
+        </div>
+        <button class="next-btn-v" onclick="nextQ()">${btnLabel}</button>
+      </div>
+    </div>`;
+}
+function nextQ(){
+  qi++;
+  if(qi>=5)showComp();
+  else renderQ();
+}
+
+function showComp(){
+  document.getElementById('app').innerHTML=`
+    <div class="comp">
+      <span class="comp-ico">🏆</span>
+      <h2>ラウンド完了！</h2>
+      <p>5問クリアしました！<br><strong>返り点マスター</strong>への道を進んでいます。</p>
+      <button class="replay-btn" onclick="startRound()">次のラウンドへ 🔄</button>
+    </div>`;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function toggleHint(){
+  hintOn=!hintOn;
+  document.getElementById('hw')?.classList.toggle('open',hintOn);
+  document.getElementById('hb')?.classList.toggle('on',hintOn);
+}
+
+startRound();
+</script>
+</body>
+</html>
