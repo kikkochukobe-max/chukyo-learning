@@ -961,7 +961,7 @@ reg({
     const fontSeg=el('div','seg');
     STYLES.forEach((s,i)=>{
       const b=el('button',i===0?'on':'',s.name.replace('フォント','')); b.title=s.name;
-      b.onclick=()=>{ styleSel=i; style=STYLES[i];
+      b.onclick=()=>{ if(started)return; styleSel=i; style=STYLES[i];
         [...fontSeg.children].forEach(x=>x.classList.remove('on')); b.classList.add('on');
         if(!style.words[lenSel]) lenSel=+Object.keys(style.words)[0]; // 文字数が無ければ対応する数へ
         refreshLenSeg(); newRound(); };
@@ -970,12 +970,15 @@ reg({
     const lenSeg=el('div','seg');
     [2,3,4].forEach((n)=>{
       const b=el('button',n===3?'on':'',n+'文字'); b.dataset.len=n;
-      b.onclick=()=>{ if(b.disabled)return; lenSel=n; refreshLenSeg(); newRound(); };
+      b.onclick=()=>{ if(started||b.disabled)return; lenSel=n; refreshLenSeg(); newRound(); };
       lenSeg.appendChild(b);
     });
-    function refreshLenSeg(){ [...lenSeg.children].forEach(b=>{ const n=+b.dataset.len; const ok=!!style.words[n];
+    function refreshLenSeg(){ [...lenSeg.children].forEach(b=>{ const n=+b.dataset.len; const ok=!!style.words[n] && !started;
       b.disabled=!ok; b.style.opacity=ok?'':'.35'; b.style.cursor=ok?'pointer':'default';
-      b.classList.toggle('on', ok && n===lenSel); }); }
+      b.classList.toggle('on', !!style.words[n] && n===lenSel); }); }
+    // スタート中はフォント・文字数の選択を固定（見た目もグレーアウト）
+    function refreshSelectors(){ refreshLenSeg();
+      [...fontSeg.children].forEach(b=>{ b.style.opacity=started?'.35':''; b.style.cursor=started?'default':'pointer'; }); }
     const redoLbl=el('div','pill','書き直し のこり2回');
     const startBtn=el('button','btn lime','▶ スタート'); const clearBtn=el('button','btn','けす'); const scoreBtn=el('button','btn primary','採点する'); const nextBtn=el('button','btn','次のお題');
     ctrls.appendChild(chip);ctrls.appendChild(fontSeg);ctrls.appendChild(lenSeg);const sp=el('div',null);sp.style.flex='1';ctrls.appendChild(sp);
@@ -983,8 +986,10 @@ reg({
     root.appendChild(ctrls);
 
     let strokes=[],cur=null,drawing=false;
-    const MAX_REDO=2; let redosLeft=MAX_REDO; let started=false;
+    const MAX_REDO=2; let redosLeft=MAX_REDO; let started=false; let roundScored=false;
     function updateRedo(){ redoLbl.textContent='書き直し のこり'+redosLeft+'回'; redoLbl.style.opacity=redosLeft>0?'1':'.45'; }
+    // スタートして採点するまでは「次のお題」を押せないようにする（誤タップで0点スキップ防止）
+    function updateNextBtn(){ const ok=started&&roundScored; nextBtn.disabled=!ok; nextBtn.style.opacity=ok?'':'.35'; nextBtn.style.cursor=ok?'pointer':'default'; }
 
     function guideLines(g,W,H,size){ g.save(); g.lineCap='butt';
       g.strokeStyle='rgba(46,95,143,.18)';g.lineWidth=1.5;g.setLineDash([4,8]);
@@ -1133,7 +1138,7 @@ reg({
         else cb();
       }catch(e){ cb(); }
     }
-    function newRound(){word=pick(wordPool());strokes=[];cur=null;clearBaked();redosLeft=MAX_REDO;updateRedo();chip.textContent=started?word:'？';ensureFont(layout);}
+    function newRound(){word=pick(wordPool());strokes=[];cur=null;clearBaked();redosLeft=MAX_REDO;updateRedo();roundScored=false;updateNextBtn();chip.textContent=started?word:'？';ensureFont(layout);}
     function layout(){refCv.fit();copyCv.fit();drawRef();drawCopy();}
 
     // 答え合わせ：写しの上にお題の形（緑）を同じ位置・大きさで重ねる
@@ -1161,6 +1166,7 @@ reg({
       if(!auto && strokes.every(s=>s.length<2)){ toast('まず写してね'); return; }
       stopBattle();
       const score=scoreCopy();
+      roundScored=true; updateNextBtn();
       showResult(wrap,{score,label:auto?'時間切れ！ にてる度':'にてる度',detail:`「${word}」のかたちにどれだけ近いかで採点（厳しめ）。「重ねて見る」で答え合わせ。`,buttons:[
         {text:'次の人へ',cls:'lime',onClick:toIdle},
         {text:'重ねて見る',cls:'ghost',onClick:showCompare}
@@ -1172,10 +1178,10 @@ reg({
     const BATTLE_SEC=60; let battleT=null, timeLeft=BATTLE_SEC;
     function paintTime(){ timeEl.innerHTML=timeLeft+'<span style="font-size:.42em;font-weight:700;margin-left:2px">秒</span>'; timeEl.style.color=timeLeft<=10?'#E8503A':'var(--header)'; }
     function stopBattle(){ if(battleT){clearInterval(battleT);battleT=null;} }
-    function startBattle(){ started=true; stopBattle(); newRound(); timeLeft=BATTLE_SEC; timeEl.style.display='block'; paintTime();
+    function startBattle(){ started=true; stopBattle(); newRound(); refreshSelectors(); timeLeft=BATTLE_SEC; timeEl.style.display='block'; paintTime();
       battleT=setInterval(()=>{ timeLeft=Math.max(0,timeLeft-1); paintTime(); if(timeLeft<=0){ stopBattle(); doScore(true); } },1000); }
     startBtn.onclick=startBattle;
-    function toIdle(){ started=false; stopBattle(); timeEl.style.display='none'; timeLeft=BATTLE_SEC; newRound(); }
+    function toIdle(){ started=false; stopBattle(); timeEl.style.display='none'; timeLeft=BATTLE_SEC; newRound(); refreshSelectors(); }
 
     // 採点：お題とコピーをそれぞれ粗いグリッドの「塗り」に変換し IoU で比較（多少のズレに寛容）
     function maskGrid(drawFn,W,H,GW){
@@ -1227,7 +1233,7 @@ reg({
     // フォント読込後に再描画
     if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layout);
     setTimeout(layout,300);
-    refreshLenSeg();
+    refreshSelectors();
     newRound();
     return ()=>{window.removeEventListener('resize',onResize); stopBattle();};
   }
@@ -1382,15 +1388,17 @@ reg({
           else       { const xR=rx-trav*s; walls.push({kind:'seg',x1:xR-barLen,y1:hy,x2:xR,y2:hy}); } // 右寄り（左が開く）
         }
       }
-      const sr=clampN(Math.min(fw,fh)*0.045,12,18);
+      const sr=clampN(Math.min(fw,fh)*0.09,24,36); // Lv3はスタート/ゴールを2倍に（狙いやすく）
       const start={x:x0+fw*0.05,y:cy,r:sr};
-      const goal={x:x1-fw*0.045,y:cy,r:Math.max(13,sr*1.05)};
+      const goal={x:x1-fw*0.045,y:cy,r:Math.max(26,sr*1.05)};
       return {walls,start,goal,cx,cy,R:Math.min(W,H)*0.43,dr:30,wallThick,tol,bounds:{x0,y0,x1,y1}};
     }
 
-    let maze=null,state='idle',startTime=0,elapsed=0,raf=0,t=0,start=null,goal=null;
+    let maze=null,state='idle',startTime=0,elapsed=0,raf=0,t=0,start=null,goal=null,attempt=1;
 
-    function reset(){state='idle';elapsed=0;status.textContent='スタート地点をタッチ';status.style.color='';tEl.textContent='⏱ 0.00s';layout();}
+    function reset(){attempt=1;state='idle';elapsed=0;status.textContent='スタート地点をタッチ';status.style.color='';tEl.textContent='⏱ 0.00s';layout();}
+    // 2回目のチャレンジへ（記録はまだ。同じ人がもう一度スタートから）
+    function retry2(){attempt=2;state='idle';elapsed=0;status.textContent='2回目！スタート地点をタッチ';status.style.color='';tEl.textContent='⏱ 0.00s';layout();}
     function layout(){cv.fit();rebuild();}
     function rebuild(){const W=cv.W(),H=cv.H();const L=LEVELS[lvl];maze=(L.rect?buildRectMaze(W,H,t):buildMaze(W,H,L,t));start=maze.start;goal=maze.goal;draw();}
     function draw(){const g=cv.ctx,W=cv.W(),H=cv.H();g.clearRect(0,0,W,H);
@@ -1434,8 +1442,13 @@ reg({
       // バチッ演出
       const g=cv.ctx;g.fillStyle='rgba(255,93,108,.25)';g.fillRect(0,0,cv.W(),cv.H());
       toast('⚡'+msg);
-      setTimeout(()=>{ showResult(wrap,{score:0,label:'感電！',detail:msg+' STARTからやり直そう。',buttons:[
-        {text:'やり直す',cls:'warn',onClick:reset}]}); },250);
+      if(attempt<2){ // 1回目のアウトは記録せず、2回目のチャンスを出す
+        setTimeout(()=>{ showResult(wrap,{score:0,noRecord:true,label:'1回目アウト',detail:msg+' もう1回チャレンジできるよ！',buttons:[
+          {text:'2回目にチャレンジ →',cls:'primary',onClick:retry2}]}); },250);
+      } else {
+        setTimeout(()=>{ showResult(wrap,{score:0,label:'感電！',detail:msg+' STARTからやり直そう。',buttons:[
+          {text:'やり直す',cls:'warn',onClick:reset}]}); },250);
+      }
     }
     c.addEventListener('pointerdown',down);c.addEventListener('pointermove',move);
     c.addEventListener('pointerup',leave);c.addEventListener('pointercancel',leave);c.addEventListener('pointerleave',leave);
