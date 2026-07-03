@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2次方程式マスター | 中京個別指導学院</title>
+<meta name="robots" content="noindex">
+
+<!-- KaTeX -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+
+<!-- Zen Maru Gothic（見出し用・共通仕様） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+
+<!-- divp-core（固定URL・ETagキャッシュ） -->
+<link rel="stylesheet" href="/learning/assets/divp-core.css">
+
+<style>
+:root {
+  --ink: #26324e;          /* ノートのインク（藍） */
+  --ink-light: #5a6785;
+  --paper: #fbfaf6;        /* わずかに生成りの紙 */
+  --line: #dfe3ec;         /* 罫線 */
+  --accent: #b23a3a;       /* ハンコの朱 */
+  --accent-soft: #fdf1ef;
+  --ok: #2e7d4f;
+  --ok-soft: #ecf7f0;
+  --radius: 10px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+  background:
+    linear-gradient(var(--paper), var(--paper)) padding-box,
+    var(--paper);
+  background-color: var(--paper);
+  background-image: linear-gradient(to bottom, transparent 31px, rgba(38,50,78,.055) 32px);
+  background-size: 100% 32px;
+  min-height: 100vh;
+}
+
+/* ---------- ヘッダー ---------- */
+.app-header {
+  background: #fff;
+  border-bottom: 3px solid var(--ink);
+  padding: 14px 16px 10px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.app-title {
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: clamp(20px, 4.5vw, 27px);
+  letter-spacing: .04em;
+  margin: 0;
+}
+.app-title small {
+  font-size: .55em;
+  color: var(--ink-light);
+  font-weight: 500;
+  margin-left: .6em;
+}
+.stats {
+  display: flex;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--ink-light);
+}
+.stats b { color: var(--ink); font-size: 15px; margin-left: 4px; }
+
+/* ---------- モード切替（折りたたみ） ---------- */
+.mode-bar { max-width: 720px; margin: 14px auto 0; padding: 0 14px; }
+#mode-toggle {
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+#mode-toggle::after { content: "▾"; color: var(--ink-light); }
+#mode-panel {
+  display: none;
+  margin-top: 8px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px;
+}
+#mode-panel.open { display: block; }
+#mode-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px;
+}
+.mode-btn {
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 8px 10px;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink);
+}
+.mode-btn.active { border-color: var(--ink); background: var(--ink); color: #fff; }
+.mode-btn.active .mode-desc { color: #cdd4e4; }
+.mode-name { display: block; font-weight: 700; font-size: 14px; }
+.mode-desc { display: block; font-size: 11px; color: var(--ink-light); margin-top: 2px; }
+#print-btn {
+  margin-top: 8px;
+  width: 100%;
+  border: 1.5px dashed var(--ink-light);
+  border-radius: 8px;
+  background: none;
+  padding: 8px;
+  color: var(--ink-light);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ---------- 問題カード ---------- */
+main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
+#q-card {
+  position: relative;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 16px 20px;
+  margin-top: 12px;
+  box-shadow: 0 1px 0 rgba(38,50,78,.05);
+}
+.q-label {
+  font-size: 13px;
+  color: var(--ink-light);
+  margin-bottom: 6px;
+}
+#q-tex { font-size: 22px; text-align: center; padding: 8px 0 4px; overflow-x: auto; }
+/* 問題文の上付き(x²など)だけ、ほんの少し持ち上げて指数の詰まりを緩和。
+   .msupsub は上付き/下付き専用クラスなので分数(.mfrac)には影響しない。 */
+#q-tex .katex .msupsub .vlist > span { margin-left: 0.06em; }
+#q-tex .katex .msupsub .vlist > span > .mtight,
+#q-tex .katex .msupsub .vlist > span > .sizing { position: relative; top: -0.10em; }
+
+/* ---------- ヒント（朱の書き込み欄）: シグネチャ要素 ---------- */
+#hint-box {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 8px 8px 0;
+  padding: 8px 12px;
+  margin: 10px 0 4px;
+  font-size: 14px;
+}
+.hint-tag {
+  color: var(--accent);
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  margin-right: 8px;
+}
+#hint-details { margin-top: 4px; }
+#hint-details summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--accent);
+  user-select: none;
+}
+.hint-line { padding: 4px 0 0 4px; font-size: 14px; }
+
+/* ---------- 6択 ---------- */
+#choices {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+@media (max-width: 430px) { #q-tex { font-size: 19px; } }
+.choice {
+  position: relative;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  min-height: 56px;
+  padding: 8px 8px 8px 30px;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: auto;
+  transition: border-color .12s;
+}
+.choice:hover:not(:disabled) { border-color: var(--ink); }
+.choice:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.choice-num {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  font-size: 11px;
+  color: var(--ink-light);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+.choice.is-correct { border-color: var(--ok); background: var(--ok-soft); }
+.choice.is-wrong { border-color: var(--accent); background: var(--accent-soft); }
+.choice:disabled { cursor: default; opacity: .92; }
+
+/* ---------- フィードバック ---------- */
+.feedback { min-height: 26px; margin-top: 12px; font-size: 15px; text-align: center; }
+.feedback.ok { color: var(--ok); font-weight: 700; }
+.feedback.ng { color: var(--accent); }
+.feedback .katex { font-size: 1.05em; }
+#next-btn {
+  display: block;
+  margin: 12px auto 0;
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 34px;
+  font-size: 15px;
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  letter-spacing: .06em;
+  cursor: pointer;
+}
+#next-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.kbd-hint { text-align: center; font-size: 11px; color: var(--ink-light); margin-top: 8px; }
+
+/* ---------- 進捗 ---------- */
+.q-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.q-progress {
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink-light);
+}
+.progress-dots { display: flex; gap: 5px; }
+.dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
+  background: #fff;
+}
+.dot.d-ok { background: var(--ok); border-color: var(--ok); }
+.dot.d-ng { background: var(--accent); border-color: var(--accent); }
+.dot.d-now { border-color: var(--ink); }
+
+/* ---------- 結果カード・ランク ---------- */
+#result-card {
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px 16px 24px;
+  margin-top: 12px;
+  text-align: center;
+}
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 108px; height: 108px;
+  border-radius: 50%;
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: 34px;
+  letter-spacing: .02em;
+  border: 5px solid;
+  transform: rotate(-8deg);
+  animation: rankIn .5s cubic-bezier(.2,1.6,.4,1) both;
+}
+@keyframes rankIn {
+  from { opacity: 0; transform: rotate(-8deg) scale(1.8); }
+  to   { opacity: 1; transform: rotate(-8deg) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .rank-badge { animation: none; } }
+.r-sss { color: #a8790a; border-color: #d4a017; background: linear-gradient(135deg, #fdf6dd, #f7e9b0); box-shadow: 0 0 0 4px #f3e5ac66; }
+.r-ss  { color: #5b6570; border-color: #9aa4ae; background: linear-gradient(135deg, #f6f8fa, #e6eaee); }
+.r-s   { color: #8a5a2a; border-color: #b87f45; background: linear-gradient(135deg, #faf3ea, #f0dfc8); }
+.r-a   { color: var(--ink); border-color: var(--ink); background: #fff; }
+.r-b   { color: var(--ink-light); border-color: var(--ink-light); background: #fff; }
+.r-c   { color: var(--ink-light); border-color: var(--line); background: #fff; }
+.r-d   { color: #98a0ad; border-color: #e4e7ee; background: #fafbfc; }
+.r-retry { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.result-score {
+  margin-top: 14px;
+  font-size: 18px;
+  font-weight: 700;
+}
+.result-msg { margin-top: 4px; font-size: 14px; color: var(--ink-light); }
+.result-actions {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+.btn-retry {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 11px 30px;
+  font-size: 15px;
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-again {
+  background: #fff;
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  padding: 10px 30px;
+  font-size: 14px;
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ---------- 簡易ハンコ（divp-correct-jh 不在時のフォールバック） ---------- */
+.stamp {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-12deg) scale(1.5);
+  border: 4px solid var(--accent);
+  color: var(--accent);
+  border-radius: 50%;
+  width: 92px; height: 92px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  opacity: 0;
+  animation: stampIn .55s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes stampIn {
+  0% { opacity: 0; transform: translate(-50%,-50%) rotate(-12deg) scale(2.4); }
+  55% { opacity: .9; transform: translate(-50%,-50%) rotate(-12deg) scale(1.45); }
+  100% { opacity: .85; transform: translate(-50%,-50%) rotate(-12deg) scale(1.5); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stamp { animation: none; opacity: .85; }
+}
+
+/* ---------- 印刷（A4縦・共通仕様） ---------- */
+#print-area { display: none; }
+@media print {
+  @page { size: A4 portrait; margin: 14mm; }
+  body { background: #fff; }
+  body > *:not(#print-area) { display: none !important; }
+  #print-area { display: block; }
+  .pr-page { position: relative; page-break-after: always; }
+  .pr-page:last-child { page-break-after: auto; }
+  .pr-header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 2px solid #26324e; padding-bottom: 4mm; margin-bottom: 6mm;
+    font-family: "Zen Maru Gothic", sans-serif;
+  }
+  .pr-header h2 { font-size: 15pt; margin: 0; }
+  .pr-header .pr-meta { font-size: 9pt; color: #555; }
+  .pr-name { border-bottom: 1px solid #999; padding: 0 18mm 1mm 4mm; margin-left: 6mm; }
+  /* センター透かしロゴ（クロマキー透過版） */
+  .pr-watermark {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120mm; opacity: .07;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .pr-body { position: relative; z-index: 1; }
+  #pr-questions { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10mm; }
+  .pr-item { font-size: 12pt; padding: 3mm 0 0; break-inside: avoid; }
+  .pr-num { font-weight: 700; margin-right: 3mm; }
+  .pr-space { height: 34mm; }           /* 記述用の余白 */
+  #pr-answers { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10mm; row-gap: 6mm; }
+  .pr-ans-item { font-size: 12pt; break-inside: avoid; }
+}
+</style>
+</head>
+<body data-unit-key="nijihoteishiki" data-theme="jh" data-access="student">
+
+<!-- divp-header（JSで注入・共通仕様） -->
+<div class="divp-header"></div>
+
+<header class="app-header">
+  <h1 class="app-title">2次方程式マスター<small>中3数学</small></h1>
+  <div class="stats">
+    <span>正解<b id="st-correct">0 / 0</b></span>
+    <span>連続<b id="st-streak">0</b></span>
+    <span>XP<b id="st-xp">0</b></span>
+  </div>
+</header>
+
+<div class="mode-bar">
+  <button id="mode-toggle" type="button">モード：<span id="mode-current"></span></button>
+  <div id="mode-panel">
+    <div id="mode-list"></div>
+    <button id="print-btn" type="button">🖨 このモードでプリントを作る（A4・10問）</button>
+  </div>
+</div>
+
+<main>
+  <div id="q-card">
+    <div class="q-head">
+      <span id="q-progress" class="q-progress"></span>
+      <span id="progress-dots" class="progress-dots"></span>
+    </div>
+    <div class="q-label">次の2次方程式を解きなさい。</div>
+    <div id="q-tex"></div>
+
+    <div id="hint-box" hidden>
+      <span class="hint-tag">ヒント</span><span id="hint-d"></span>
+      <details id="hint-details">
+        <summary>とき方のステップを見る</summary>
+        <div id="hint-steps"></div>
+      </details>
+    </div>
+
+    <div id="choices"></div>
+    <div class="feedback" id="feedback"></div>
+    <button id="next-btn" type="button" hidden>次の問題へ</button>
+    <div class="kbd-hint">キーボード：1〜6で選択 ／ Enterで次へ</div>
+  </div>
+
+  <div id="result-card" hidden>
+    <div class="rank-badge" id="rank-badge">S</div>
+    <div class="result-score" id="result-score"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-actions">
+      <button id="retry-btn" type="button" class="btn-retry" hidden></button>
+      <button id="again-btn" type="button" class="btn-again">もう一度 10問</button>
+    </div>
+  </div>
+</main>
+
+<!-- 印刷用（表＝問題のみ／裏＝答え） -->
+<div id="print-area">
+  <div class="pr-page">
+    <img class="pr-watermark" src="/learning/assets/logo_clear.png" alt="" onerror="this.remove()">
+    <div class="pr-body">
+      <div class="pr-header">
+        <h2 id="pr-title-1"></h2>
+        <div class="pr-meta"><span id="pr-date-1"></span>　名前<span class="pr-name"></span></div>
+      </div>
+      <div id="pr-questions"></div>
+    </div>
+  </div>
+  <div class="pr-page">
+    <img class="pr-watermark" src="/learning/assets/logo_clear.png" alt="" onerror="this.remove()">
+    <div class="pr-body">
+      <div class="pr-header">
+        <h2 id="pr-title-2"></h2>
+        <div class="pr-meta"><span id="pr-date-2"></span></div>
+      </div>
+      <div id="pr-answers"></div>
+    </div>
+  </div>
+</div>
+
+<!-- divp-core（固定URL・ETag）。jh用ハンコエフェクト -->
+<script src="/learning/assets/divp-core.js" defer></script>
+<script src="/learning/assets/divp-correct-jh.js" defer></script>
+
+<script>
+/* ============================================================
+   2次方程式マスター 数理コア（生成・整形・誤答テンプレ）
+   ブラウザ/Node 両対応（テスト用）
+   ============================================================ */
+(function (global) {
+  'use strict';
+
+  /* ---------- utils ---------- */
+  const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1)); // inclusive
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const shuffle = (arr) => {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+  const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; };
+
+  // n = s^2 * d（d は平方因子なし）に分解
+  function sqDecomp(n) {
+    let s = 1, d = n;
+    for (let k = 2; k * k <= d; k++) {
+      while (d % (k * k) === 0) { d /= k * k; s *= k; }
+    }
+    return { s, d };
+  }
+  const isSquare = (n) => { if (n < 0) return false; const r = Math.round(Math.sqrt(n)); return r * r === n; };
+
+  /* ---------- 解の表現モデル ----------
+     pm  : x = (p ± s√d) / r   （r>0, d>1 平方因子なし）
+     list: x = a, b            （分数 {n,d} の配列, 1〜2個）
+  ------------------------------------- */
+  function frac(n, d = 1) {
+    if (d < 0) { n = -n; d = -d; }
+    const g = gcd(n, d);
+    return { n: n / g, d: d / g };
+  }
+  const fracVal = (f) => f.n / f.d;
+
+  function normPm(p, s, d, r) {
+    // d==1 → 有理解2つの list に落とす
+    if (d === 1) return listSol([frac(p + s, r), frac(p - s, r)]);
+    if (r < 0) { r = -r; p = -p; }
+    const g = gcd(gcd(p, s), r);
+    return { kind: 'pm', p: p / g, s: s / g, d, r: r / g };
+  }
+  function listSol(fracs) {
+    // 正規化・重複除去・ソート
+    const seen = {};
+    const out = [];
+    fracs.map(f => frac(f.n, f.d)).forEach(f => {
+      const k = f.n + '/' + f.d;
+      if (!seen[k]) { seen[k] = 1; out.push(f); }
+    });
+    out.sort((a, b) => fracVal(a) - fracVal(b));
+    return { kind: 'list', roots: out };
+  }
+  function solValues(sol) {
+    if (sol.kind === 'pmSingle') return [(sol.p + sol.s * Math.sqrt(sol.d)) / sol.r];
+    if (sol.kind === 'pm') {
+      const rt = Math.sqrt(sol.d);
+      return [(sol.p - sol.s * rt) / sol.r, (sol.p + sol.s * rt) / sol.r].sort((a, b) => a - b);
+    }
+    return sol.roots.map(fracVal).sort((a, b) => a - b);
+  }
+  function solKey(sol) {
+    return solValues(sol).map(v => v.toFixed(9)).join('|');
+  }
+
+  /* ---------- LaTeX / テキスト整形 ---------- */
+  function fracTex(f) {
+    if (f.d === 1) return String(f.n);
+    return (f.n < 0 ? '-' : '') + '\\dfrac{' + Math.abs(f.n) + '}{' + f.d + '}';
+  }
+  function fracTxt(f) { return f.d === 1 ? String(f.n) : f.n + '/' + f.d; }
+  function rootTex(s, d) { // s√d（d>1 前提）
+    return (s === 1 ? '' : s) + '\\sqrt{' + d + '}';
+  }
+  function solTex(sol) {
+    if (sol.kind === 'pmSingle') {
+      const R = rootTex(sol.s, sol.d);
+      const num = (sol.p === 0 ? '' : sol.p + '+') + R;
+      return sol.r === 1 ? 'x=' + num : 'x=\\dfrac{' + num + '}{' + sol.r + '}';
+    }
+    if (sol.kind === 'list') {
+      return 'x=' + sol.roots.map(fracTex).join(',\\ ');
+    }
+    const R = rootTex(sol.s, sol.d);
+    if (sol.r === 1) {
+      return sol.p === 0 ? 'x=\\pm ' + R : 'x=' + sol.p + '\\pm ' + R;
+    }
+    const num = (sol.p === 0 ? '' : sol.p) + '\\pm ' + R;
+    return 'x=\\dfrac{' + num + '}{' + sol.r + '}';
+  }
+  function solTxt(sol) {
+    if (sol.kind === 'pmSingle') {
+      const R = (sol.s === 1 ? '' : sol.s) + '\u221a' + sol.d;
+      return 'x=' + (sol.p === 0 ? '' : sol.p + '+') + R + (sol.r === 1 ? '' : '/' + sol.r);
+    }
+    if (sol.kind === 'list') return 'x=' + sol.roots.map(fracTxt).join(', ');
+    const R = (sol.s === 1 ? '' : sol.s) + '√' + sol.d;
+    if (sol.r === 1) return sol.p === 0 ? 'x=±' + R : 'x=' + sol.p + '±' + R;
+    return 'x=(' + (sol.p === 0 ? '' : sol.p) + '±' + R + ')/' + sol.r;
+  }
+
+  // 係数 → 「ax^2+bx+c」LaTeX/テキスト（=0 は付けない）
+  function polyTex(a, b, c) {
+    let t = '';
+    if (a !== 0) t += (a === 1 ? '' : a === -1 ? '-' : a) + 'x^2';
+    if (b !== 0) t += (b > 0 && t ? '+' : '') + (b === 1 ? '' : b === -1 ? '-' : b) + 'x';
+    if (c !== 0) t += (c > 0 && t ? '+' : '') + c;
+    if (!t) t = '0';
+    return t;
+  }
+  function polyTxt(a, b, c) {
+    return polyTex(a, b, c).replace(/\^2/g, '²').replace(/\\,/g, '');
+  }
+  // 一次因数 (x+k) 型
+  function linTex(coef, k) { // coef*x + k
+    let t = (coef === 1 ? '' : coef === -1 ? '-' : coef) + 'x';
+    if (k !== 0) t += (k > 0 ? '+' : '') + k;
+    return t;
+  }
+
+  /* ---------- 誤答候補 → 6択組み立て ---------- */
+  function perturb(sol) {
+    // 保険用の摂動（値が変わることを保証）
+    if (sol.kind === 'pmSingle') return normPm(sol.p + pick([1, -1]), sol.s, sol.d, sol.r);
+    if (sol.kind === 'pm') {
+      const which = ri(0, 2);
+      if (which === 0) return normPm(sol.p + pick([1, -1, 2]), sol.s, sol.d, sol.r);
+      if (which === 1) return normPm(sol.p, sol.s + 1, sol.d, sol.r);
+      return normPm(-sol.p, sol.s, sol.d, sol.r === 1 ? 2 : 1);
+    }
+    const rs = sol.roots.map(f => frac(f.n + pick([1, -1, 2]) * f.d, f.d));
+    return listSol(rs.length === 1 ? [rs[0], frac(rs[0].n + f2(), rs[0].d)] : rs);
+    function f2() { return pick([1, 2, 3]); }
+  }
+  function assembleChoices(correct, candidates) {
+    const used = { [solKey(correct)]: 1 };
+    const out = [];
+    for (const c of candidates) {
+      if (!c) continue;
+      const k = solKey(c);
+      if (used[k]) continue;
+      used[k] = 1;
+      out.push(c);
+      if (out.length === 5) break;
+    }
+    let guard = 0;
+    while (out.length < 5 && guard++ < 200) {
+      const c = perturb(out.length ? pick(out) : correct);
+      const k = solKey(c);
+      if (used[k]) continue;
+      used[k] = 1;
+      out.push(c);
+    }
+    return shuffle(out.concat([correct]));
+  }
+
+  /* ---------- √n 用の題材（n = s²d, 2 ≤ n ≤ 96, d>1） ---------- */
+  const IRR = [];
+  for (let n = 2; n <= 96; n++) { const { s, d } = sqDecomp(n); if (d > 1) IRR.push({ n, s, d }); }
+  const IRR_NICE = IRR.filter(o => [2, 3, 5, 6, 7, 10, 11, 13].includes(o.d));
+
+  /* ============================================================
+     モード別ジェネレーター
+     戻り値: { mode, qTex, qTxt, correct, choices, params, hint? }
+     ============================================================ */
+  const GEN = {};
+
+  /* --- 1) 平方根: x² = k --- */
+  GEN.heihokon = function () {
+    const rational = Math.random() < 0.3;
+    let qTex, qTxt, correct, cands, params;
+    if (rational) {
+      const m = ri(2, 12);
+      const k = m * m;
+      correct = listSol([frac(m), frac(-m)]);
+      cands = [
+        listSol([frac(m)]),                       // ±忘れ
+        listSol([frac(k), frac(-k)]),             // √忘れ
+        listSol([frac(m + 1), frac(-(m + 1))]),
+        listSol([frac(k / 2), frac(-k / 2)]),
+        listSol([frac(m), frac(-m - 1)]),
+      ];
+      const form = eqZeroForm(k);
+      qTex = form.tex; qTxt = form.txt;
+      params = { type: 'rational', k, a: 1, b: 0, c: -k, form: form.kind };
+    } else {
+      const t = pick(IRR_NICE);
+      correct = normPm(0, t.s, t.d, 1);           // x = ±s√d
+      cands = [
+        { kind: 'pmSingle', p: 0, s: t.s, d: t.d, r: 1 },   // ±忘れ
+        listSol([frac(t.n), frac(-t.n)]),          // √忘れ
+        normPm(0, t.d, t.s === 1 ? nextD(t.d) : t.s, 1),     // s と d の取り違え風
+        normPm(0, t.s + 1, t.d, 1),
+        normPm(0, t.s, nextD(t.d), 1),
+        listSol([frac(t.n, 2), frac(-t.n, 2)]),
+      ];
+      const form = eqZeroForm(t.n);
+      qTex = form.tex; qTxt = form.txt;
+      params = { type: 'irrational', k: t.n, a: 1, b: 0, c: -t.n, form: form.kind };
+    }
+    return pack('heihokon', qTex, qTxt, correct, cands, params);
+  };
+  function nextD(d) { const L = [2, 3, 5, 6, 7, 10, 11, 13]; const i = L.indexOf(d); return L[(i + 1) % L.length]; }
+  // 平方根モードの出題形式: x²=k（移項ずみ）／ x²−k=0（=0 形・要移項）を混ぜる
+  function eqZeroForm(k) {
+    if (Math.random() < 0.5) return { kind: 'eq', tex: 'x^2=' + k, txt: 'x²=' + k };
+    return { kind: 'zero', tex: 'x^2-' + k + '=0', txt: 'x²-' + k + '=0' };
+  }
+
+  /* --- 2) （ ）²の塊: (x+m)² = n --- */
+  GEN.katamari = function () {
+    const m = pick([1, 2, 3, 4, 5, 6]) * pick([1, -1]);
+    const rational = Math.random() < 0.3;
+    let n, correct, cands;
+    if (rational) {
+      const t = ri(2, 9); n = t * t;
+      correct = listSol([frac(-m + t), frac(-m - t)]);
+      cands = [
+        listSol([frac(m + t), frac(m - t)]),      // 符号ミス
+        listSol([frac(-m + n), frac(-m - n)]),    // √忘れ
+        listSol([frac(-m + t)]),                  // 片方だけ
+        listSol([frac(t), frac(-t)]),             // -m 忘れ
+        listSol([frac(-m + t + 1), frac(-m - t - 1)]),
+      ];
+    } else {
+      const t = pick(IRR_NICE); n = t.n;
+      correct = normPm(-m, t.s, t.d, 1);
+      cands = [
+        normPm(m, t.s, t.d, 1),                   // 符号ミス
+        { kind: 'pmSingle', p: -m, s: t.s, d: t.d, r: 1 },  // ±忘れ
+        listSol([frac(-m + n), frac(-m - n)]),    // √忘れ
+        normPm(0, t.s, t.d, 1),                   // -m 忘れ
+        normPm(-m, t.s + 1, t.d, 1),              // 簡約ミス
+        normPm(-m, t.d, t.s === 1 ? 2 : t.s, 1),
+        normPm(-m, t.s, t.d, 2),
+      ];
+    }
+    const inner = linTex(1, m);
+    const qTex = '(' + inner + ')^2=' + n;
+    const qTxt = '(' + inner + ')²=' + n;
+    return pack('katamari', qTex, qTxt, correct, cands,
+      { m, n, a: 1, b: 2 * m, c: m * m - n });
+  };
+
+  /* --- 3) 平方完成: x² + 2ux + c = 0（D/4 が非平方） --- */
+  GEN.heihokansei = function () {
+    for (let tries = 0; tries < 300; tries++) {
+      const u = pick([1, 2, 3, 4, 5]) * pick([1, -1]);
+      const t = pick(IRR_NICE);
+      const inside = t.n;                 // u² - c = inside
+      const c = u * u - inside;
+      if (Math.abs(c) > 40 || c === 0) continue;
+      const b = 2 * u;
+      const correct = normPm(-u, t.s, t.d, 1);
+      const cands = [
+        normPm(u, t.s, t.d, 1),                    // 符号ミス
+        listSol([frac(-u + inside), frac(-u - inside)]), // √忘れ
+        normPm(-u, t.s, t.d, 2),                   // 2で割ってしまう
+        normPm(-b, t.s, t.d, 1),                   // b をそのまま移項
+        normPm(-u, t.s + 1, t.d, 1),
+        (() => { const w = sqDecomp(Math.abs(u * u + c)); return (u * u + c > 1 && w.d > 1) ? normPm(-u, w.s, w.d, 1) : null; })(), // +c で計算
+      ];
+      const qTex = polyTex(1, b, c) + '=0';
+      return pack('heihokansei', qTex, polyTxt(1, b, c) + '=0', correct, cands,
+        { a: 1, b, c });
+    }
+    return GEN.heihokansei();
+  };
+
+  /* --- 4) 因数分解ずみ --- */
+  GEN.insu_zumi = function () {
+    const pattern = pick(['fact', 'fact', 'common', 'common', 'sq', 'coef']);
+    let qTex, qTxt, correct, cands, params;
+    if (pattern === 'fact') {           // (x+α)(x+β)=0
+      let al = ri(1, 9) * pick([1, -1]), be = ri(1, 9) * pick([1, -1]);
+      if (al === be) be = -be || 3;
+      const p = -al, q = -be;
+      correct = listSol([frac(p), frac(q)]);
+      cands = [
+        listSol([frac(-p), frac(-q)]),   // 符号そのまま読む
+        listSol([frac(p)]),              // 片方だけ
+        listSol([frac(p), frac(-q)]),    // 半分だけ符号ミス
+        listSol([frac(-p), frac(q)]),
+        listSol([frac(al * be > 0 ? p + q : p * q)]), // 意味不明系1つ
+      ];
+      qTex = '(' + linTex(1, al) + ')(' + linTex(1, be) + ')=0';
+      qTxt = qTex;
+      params = { pattern, roots: [p, q] };
+    } else if (pattern === 'common') {  // x(x+α)=0 ← x=0 落とし
+      const al = ri(1, 9) * pick([1, -1]);
+      const p = -al;
+      correct = listSol([frac(0), frac(p)]);
+      cands = [
+        listSol([frac(p)]),              // x=0 を落とす（主役）
+        listSol([frac(0), frac(-p)]),    // 符号ミス
+        listSol([frac(-p)]),
+        listSol([frac(0)]),
+        listSol([frac(0), frac(p + pick([1, -1])) ]),
+      ];
+      qTex = 'x(' + linTex(1, al) + ')=0';
+      qTxt = qTex;
+      params = { pattern, roots: [0, p] };
+    } else if (pattern === 'sq') {      // (x+α)²=0 重解
+      const al = ri(1, 9) * pick([1, -1]);
+      const p = -al;
+      correct = listSol([frac(p)]);
+      cands = [
+        listSol([frac(-p)]),
+        listSol([frac(p), frac(-p)]),    // ±にしてしまう
+        listSol([frac(0), frac(p)]),
+        listSol([frac(2 * p)]),
+        listSol([frac(p + pick([1, -1]))]),
+      ];
+      qTex = '(' + linTex(1, al) + ')^2=0';
+      qTxt = '(' + linTex(1, al) + ')²=0';
+      params = { pattern, roots: [p] };
+    } else {                             // (ax+b)(x+c)=0 分数根
+      const a2 = pick([2, 3]);
+      let b2 = ri(1, 7) * pick([1, -1]);
+      while (b2 % a2 === 0) b2 = ri(1, 7) * pick([1, -1]);
+      const c2 = ri(1, 8) * pick([1, -1]);
+      correct = listSol([frac(-b2, a2), frac(-c2)]);
+      cands = [
+        listSol([frac(b2, a2), frac(c2)]),   // 符号ミス
+        listSol([frac(-b2), frac(-c2)]),     // a で割り忘れ
+        listSol([frac(-a2, b2), frac(-c2)]), // 逆分数
+        listSol([frac(-b2, a2)]),
+        listSol([frac(-b2, a2), frac(c2)]),
+      ];
+      qTex = '(' + linTex(a2, b2) + ')(' + linTex(1, c2) + ')=0';
+      qTxt = qTex;
+      params = { pattern, roots: [[-b2, a2], [-c2, 1]] };
+    }
+    return pack('insu_zumi', qTex, qTxt, correct, cands, params);
+  };
+
+  /* --- 5) 自分で因数分解: x² + Bx + C = 0 --- */
+  GEN.insu_jibun = function () {
+    const pattern = pick(['pq', 'pq', 'pq', 'common', 'sq']);
+    let p, q;
+    if (pattern === 'common') { p = 0; q = ri(1, 9) * pick([1, -1]); }
+    else if (pattern === 'sq') { p = q = ri(1, 8) * pick([1, -1]); }
+    else {
+      p = ri(1, 9) * pick([1, -1]); q = ri(1, 9) * pick([1, -1]);
+      if (p === q) q = -q || (p + 2);
+      // p+q=0 は一次項が消えて x²−k=0 形になる → 平方根モードの領分なので避ける
+      if (p + q === 0) q = q + pick([1, -1]) * pick([1, 2]) || (q + 2);
+    }
+    const B = -(p + q), C = p * q;
+    const correct = p === q ? listSol([frac(p)]) : listSol([frac(p), frac(q)]);
+    // 「積は C だが和が合わない」ペア
+    const wrongPair = (() => {
+      if (C === 0) return null;
+      const abs = Math.abs(C);
+      for (let k = 1; k * k <= abs; k++) {
+        if (abs % k) continue;
+        const combos = [[k, C / k], [-k, -C / k], [C / k, k]];
+        for (const [x1, x2] of combos) {
+          if (x1 + x2 !== p + q && !(x1 === p && x2 === q) && !(x1 === q && x2 === p)) {
+            return listSol([frac(x1), frac(x2)]);
+          }
+        }
+      }
+      return null;
+    })();
+    const cands = [
+      listSol(p === q ? [frac(-p)] : [frac(-p), frac(-q)]),  // 符号ミス
+      wrongPair,                                              // 積だけ合う
+      pattern === 'common' ? listSol([frac(q)]) : listSol([frac(p)]), // 片方（common は x=0 落とし）
+      listSol([frac(-B), frac(C === 0 ? -q : C)]),            // 係数をそのまま答える
+      listSol(p === q ? [frac(p), frac(-p)] : [frac(p), frac(-q)]),
+      listSol([frac(p + 1), frac(q - 1)]),
+    ];
+    const qTex = polyTex(1, B, C) + '=0';
+    return pack('insu_jibun', qTex, polyTxt(1, B, C) + '=0', correct, cands,
+      { pattern, a: 1, b: B, c: C, roots: [p, q] });
+  };
+
+  /* --- 6) 解の公式: ax² + bx + c = 0（D 非平方） --- */
+  GEN.kai_koshiki = function () {
+    for (let tries = 0; tries < 500; tries++) {
+      const a = pick([1, 1, 1, 1, 2, 2, 3]);
+      const b = ri(1, 9) * pick([1, -1]);
+      const c = ri(1, 9) * pick([1, -1]);
+      const D = b * b - 4 * a * c;
+      if (D <= 0 || isSquare(D)) continue;
+      const { s, d } = sqDecomp(D);
+      if (d > 60) continue;
+      const correct = normPm(-b, s, d, 2 * a);
+      const Dplus = b * b + 4 * a * c;
+      const wp = Dplus > 1 && !isSquare(Dplus) ? sqDecomp(Dplus) : null;
+      const cands = [
+        normPm(b, s, d, 2 * a),                       // -b の符号ミス
+        normPm(-b, s, d, a),                          // 分母 a
+        wp && wp.d > 1 ? normPm(-b, wp.s, wp.d, 2 * a) : null, // D=b²+4ac
+        s > 1 ? fakeHalf(correct, b, s, d, a) : normPm(-b, s + 1, d, 2 * a), // 約分ミス
+        normPm(-b, s, nextD(d), 2 * a),               // 簡約ミス
+        normPm(-2 * b, s, d, 2 * a),
+      ];
+      const qTex = polyTex(a, b, c) + '=0';
+      const g = gcd(gcd(b, s), 2 * a);
+      const hint = {
+        D, s, d, a, b, g,
+        normTex: null,
+      };
+      return pack('kai_koshiki', qTex, polyTxt(a, b, c) + '=0', correct, cands,
+        { a, b, c, D }, hint);
+    }
+    return GEN.kai_koshiki();
+  };
+  function fakeHalf(correct, b, s, d, a) {
+    // 「分子の√側だけ約分」型: (-b ± s√d)/(2a) → (-b ± (s/g)√d)/(2a/g)
+    const g = gcd(s, 2 * a);
+    if (g > 1) return { kind: 'pm', p: -b, s: s / g, d, r: 2 * a / g };
+    return normPm(-b, s, d, a === 1 ? 4 : 2);
+  }
+
+  /* --- 7) ランダム（整理してから解く） --- */
+  GEN.random = function () {
+    const base = pick([GEN.insu_jibun, GEN.insu_jibun, GEN.kai_koshiki, GEN.heihokansei])();
+    const a = base.params.a, b = base.params.b, c = base.params.c;
+    const disguise = pick(['ikou', 'tenkai', 'bunsuu', 'shousuu', 'douruikou']);
+    let qTex = base.qTex, qTxt = base.qTxt, ok = true;
+
+    if (disguise === 'ikou') {           // 定数項（＋一次項）を右辺へ
+      const moveB = b !== 0 && Math.random() < 0.4;
+      const lhs = polyTex(a, moveB ? 0 : b, 0);
+      const rhs = polyTex(0, moveB ? -b : 0, -c);
+      qTex = lhs + '=' + rhs;
+    } else if (disguise === 'tenkai') {  // (x+α)(x+β) = k（a=1 のときのみ）
+      if (a !== 1) { ok = false; }
+      else {
+        const al = pick([1, 2, 3, 4, 5, 6]) * pick([1, -1]);
+        const be = b - al;
+        const k = al * be - c;
+        if (k === 0 || be === 0 || Math.abs(be) > 10 || Math.abs(k) > 60) ok = false;
+        else qTex = '(' + linTex(1, al) + ')(' + linTex(1, be) + ')=' + k;
+      }
+    } else if (disguise === 'bunsuu') {  // 全体を 1/2 倍して分数係数に
+      if (a % 2 === 0 && b % 2 === 0 && c % 2 === 0) ok = false; // 割り切れると変装にならない
+      else qTex = fracCoefTex(a, b, c, 2);
+    } else if (disguise === 'shousuu') { // 全体を 1/10 倍して小数係数に
+      if (Math.abs(a) > 9 || Math.abs(b) > 9 || Math.abs(c) > 9) ok = false;
+      else qTex = decCoefTex(a, b, c);
+    } else {                             // 同類項: LHS = RHS（両辺に余分を足す）
+      const e = ri(1, 2), f = ri(-4, 4), g2 = ri(-6, 6);
+      const lhs = polyTex(a + e, b + f, c + g2);
+      const rhs = polyTex(e, f, g2);
+      qTex = lhs + '=' + (rhs === '0' ? '0' : rhs);
+    }
+    if (!ok) return GEN.random();
+    qTxt = qTex.replace(/\^2/g, '²').replace(/\\dfrac\{(\d+)\}\{(\d+)\}/g, '$1/$2').replace(/\\,/g, '');
+
+    const D = b * b - 4 * a * c;
+    const hint = { D, a, b, normTex: polyTex(a, b, c) + '=0' };
+    if (D > 0 && !isSquare(D)) { const w = sqDecomp(D); hint.s = w.s; hint.d = w.d; hint.g = gcd(gcd(b, w.s), 2 * a); }
+    else if (D >= 0) { hint.sqrtD = Math.round(Math.sqrt(D)); }
+
+    return pack('random', qTex, qTxt, base.correct, base.rawCands, { a, b, c, D, disguise, base: base.mode }, hint);
+  };
+  function fracCoefTex(a, b, c, div) {
+    const term = (co, body) => {
+      if (co === 0) return '';
+      const f = frac(co, div);
+      let coefTex;
+      if (f.d === 1) coefTex = (f.n === 1 && body ? '' : f.n === -1 && body ? '-' : String(f.n));
+      else coefTex = (f.n < 0 ? '-' : '') + '\\dfrac{' + Math.abs(f.n) + '}{' + f.d + '}';
+      return { sign: co > 0 ? '+' : '', tex: coefTex + body };
+    };
+    let out = '';
+    [[a, 'x^2'], [b, 'x'], [c, '']].forEach(([co, body]) => {
+      const t = term(co, body);
+      if (!t) return;
+      out += (out && t.sign ? '+' : '') + t.tex;
+    });
+    return out + '=0';
+  }
+  function decCoefTex(a, b, c) {
+    const dec = (n) => {
+      const v = n / 10;
+      return (v < 0 ? '-' : '') + Math.abs(v).toFixed(1).replace(/\.0$/, '');
+    };
+    let out = '';
+    [[a, 'x^2'], [b, 'x'], [c, '']].forEach(([co, body]) => {
+      if (co === 0) return;
+      const isFirst = !out;
+      const mag = Math.abs(co) / 10;
+      const coefTex = (co < 0 ? '-' : isFirst ? '' : '+') + (mag === 1 && body ? (Math.abs(co) === 10 ? '' : mag.toFixed(1)) : mag.toFixed(1)) + body;
+      out += coefTex;
+    });
+    return out + '=0';
+  }
+
+  /* ---------- 共通パック ---------- */
+  function pack(mode, qTex, qTxt, correct, cands, params, hint) {
+    const rawCands = cands.filter(Boolean);
+    const choices = assembleChoices(correct, rawCands);
+    return { mode, qTex, qTxt, correct, choices, rawCands, params: params || {}, hint: hint || null };
+  }
+
+  /* ---------- 公開 ---------- */
+  global.QuadCore = {
+    GEN, solTex, solTxt, solValues, solKey,
+    sqDecomp, gcd, frac, listSol, normPm, polyTex, ri, pick, shuffle,
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* ============================================================
+   2次方程式マスター アプリ層
+   10問1セット・ランク評価（SSS〜C）・解き直し・印刷・Divp連携
+   ============================================================ */
+(function () {
+  'use strict';
+  const C = window.QuadCore;
+  const $ = (id) => document.getElementById(id);
+
+  /* ---------- 設定 ---------- */
+  const UNIT_KEY = 'nijihoteishiki';
+  const XP = { heihokon: 5, katamari: 5, heihokansei: 5, insu_zumi: 5, insu_jibun: 5, kai_koshiki: 5, random: 10 };
+  const MODES = [
+    { key: 'heihokon',    label: '平方根',        desc: 'x²=k の形' },
+    { key: 'katamari',    label: '（　）²を塊で', desc: '(x+m)²=n の形' },
+    { key: 'heihokansei', label: '平方完成',      desc: '自分で (x+m)² の形に' },
+    { key: 'insu_zumi',   label: '因数分解ずみ',  desc: '解を読み取る' },
+    { key: 'insu_jibun',  label: '自分で因数分解', desc: '因数分解してから解く' },
+    { key: 'kai_koshiki', label: '解の公式',      desc: '公式で解く' },
+    { key: 'random',      label: 'ランダム',      desc: '整理してから解く（XP2倍）' },
+  ];
+  const SET_SIZE = 10;
+  const PRINT_COUNT = 10;
+  // ランク判定（連続パーフェクト方式）
+  // SSS=3セット連続全問正解(30問) / SS=2セット連続(20問) / S=全問正解
+  // A=正解率90%以上 / B=70%以上 / C=50%以上 / D=それ未満
+  function rankFor(correct, total, consecutivePerfect) {
+    const perfect = correct === total;
+    if (perfect && consecutivePerfect >= 3) return { rank: 'SSS', cls: 'r-sss', msg: '30問連続パーフェクト！' };
+    if (perfect && consecutivePerfect >= 2) return { rank: 'SS',  cls: 'r-ss',  msg: '20問連続パーフェクト！あと1セットでSSS！' };
+    if (perfect)                            return { rank: 'S',   cls: 'r-s',   msg: 'パーフェクト！連続で続けるとSS・SSSに！' };
+    const rate = correct / total;
+    if (rate >= 0.9) return { rank: 'A', cls: 'r-a', msg: 'すばらしい！' };
+    if (rate >= 0.7) return { rank: 'B', cls: 'r-b', msg: 'いい調子！' };
+    if (rate >= 0.5) return { rank: 'C', cls: 'r-c', msg: 'もう少し！' };
+    return { rank: 'D', cls: 'r-d', msg: '解き直しで力をつけよう' };
+  }
+  window.__rankFor = rankFor; // テスト用公開
+
+  /* ---------- 状態 ---------- */
+  let mode = 'heihokon';
+  let current = null;
+  let answered = false;
+  let stats = { total: 0, correct: 0, streak: 0, xp: 0, consecutivePerfect: 0 };
+  // セット管理
+  let set = null; // { num, results:[bool], wrong:[q], retry:false, queue:[q] }
+
+  /* ---------- KaTeX ---------- */
+  function tex(el, src, display) {
+    try { katex.render(src, el, { displayMode: !!display, throwOnError: false }); }
+    catch (e) { el.textContent = src; }
+  }
+
+  /* ---------- Divp 連携 ---------- */
+  function divpLog(q, chosen, isCorrect, isRetry) {
+    const payload = {
+      unit_key: UNIT_KEY,
+      question_key: q.mode,
+      question_params: Object.assign({}, q.params, isRetry ? { retry: true } : {}),
+      question_text: q.qTxt,
+      correct_answer: C.solTxt(q.correct),
+      student_answer: C.solTxt(chosen),
+      is_correct: isCorrect,
+      xp: isCorrect ? (isRetry ? 1 : XP[q.mode]) : 0,   // 解き直しは1XP
+    };
+    try {
+      const D = window.Divp;
+      if (D && typeof D.answer === 'function') D.answer(payload);
+      else if (D && typeof D.save === 'function') D.save(payload);
+      else if (D && typeof D.log === 'function') D.log(payload);
+    } catch (e) { /* オフラインでも演習は継続 */ }
+  }
+  function divpCorrectEffect() {
+    try {
+      const D = window.Divp;
+      if (D && typeof D.correct === 'function') { D.correct({ scale: 1.5 }); return true; }
+    } catch (e) {}
+    return false;
+  }
+
+  /* ---------- ヒント ---------- */
+  function buildHint(q) {
+    const box = $('hint-box');
+    if (!q.hint) { box.hidden = true; return; }
+    box.hidden = false;
+    const h = q.hint;
+    tex($('hint-d'), 'D=b^2-4ac=' + h.D, false);
+    const stepEl = $('hint-steps');
+    stepEl.innerHTML = '';
+    const lines = [];
+    if (h.normTex && q.mode === 'random') lines.push('\\text{整理すると }' + h.normTex);
+    if (h.D > 0 && h.d) {
+      if (h.s > 1) lines.push('\\sqrt{' + h.D + '}=\\sqrt{' + (h.s * h.s) + '\\times ' + h.d + '}=' + h.s + '\\sqrt{' + h.d + '}');
+      else lines.push('\\sqrt{' + h.D + '}\\ \\text{はこれ以上簡単にできない}');
+      if (h.g > 1) lines.push('\\text{分母・分子を }' + h.g + '\\ \\text{で約分できる}');
+    } else if (h.D > 0 && typeof h.sqrtD === 'number') {
+      lines.push('\\sqrt{' + h.D + '}=' + h.sqrtD + '\\ \\text{（有理数の解）}');
+    } else if (h.D === 0) {
+      lines.push('D=0\\ \\text{なので重解}');
+    }
+    lines.forEach(src => {
+      const div = document.createElement('div');
+      div.className = 'hint-line';
+      stepEl.appendChild(div);
+      tex(div, src, false);
+    });
+    $('hint-details').open = false;
+  }
+
+  /* ---------- セット進行 ---------- */
+  function startSet(retryQueue) {
+    set = retryQueue
+      ? { num: 0, results: [], wrong: [], retry: true, queue: retryQueue.slice() }
+      : { num: 0, results: [], wrong: [], retry: false, queue: null };
+    $('result-card').hidden = true;
+    $('q-card').hidden = false;
+    nextQuestion();
+  }
+  function nextQuestion() {
+    set.num++;
+    if (set.retry) {
+      current = set.queue[set.num - 1];
+      current.choices = C.shuffle(current.choices);   // 並びだけ変える
+    } else {
+      current = C.GEN[mode]();
+    }
+    answered = false;
+    renderProgress();
+    tex($('q-tex'), current.qTex, true);
+    buildHint(current);
+
+    const grid = $('choices');
+    grid.innerHTML = '';
+    current.choices.forEach((ch, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.type = 'button';
+      const num = document.createElement('span');
+      num.className = 'choice-num';
+      num.textContent = i + 1;
+      const body = document.createElement('span');
+      body.className = 'choice-tex';
+      btn.appendChild(num);
+      btn.appendChild(body);
+      tex(body, C.solTex(ch), false);
+      btn.addEventListener('click', () => judge(i, btn));
+      grid.appendChild(btn);
+    });
+    $('feedback').textContent = '';
+    $('feedback').className = 'feedback';
+    $('next-btn').hidden = true;
+  }
+  function setTotal() { return set.retry ? set.queue.length : SET_SIZE; }
+  function renderProgress() {
+    $('q-progress').textContent = (set.retry ? '解き直し ' : '') + '問 ' + set.num + ' / ' + setTotal();
+    const dots = $('progress-dots');
+    dots.innerHTML = '';
+    for (let i = 0; i < setTotal(); i++) {
+      const d = document.createElement('span');
+      d.className = 'dot' + (i < set.results.length ? (set.results[i] ? ' d-ok' : ' d-ng') : '') + (i === set.num - 1 ? ' d-now' : '');
+      dots.appendChild(d);
+    }
+  }
+
+  /* ---------- 判定 ---------- */
+  function judge(i, btn) {
+    if (answered) return;
+    answered = true;
+    const chosen = current.choices[i];
+    const ok = C.solKey(chosen) === C.solKey(current.correct);
+
+    set.results.push(ok);
+    if (!ok) set.wrong.push(current);
+    stats.total++;
+    if (ok) { stats.correct++; stats.streak++; stats.xp += set.retry ? 1 : XP[current.mode]; }
+    else stats.streak = 0;
+    renderStats();
+    renderProgress();
+
+    const buttons = $('choices').children;
+    for (let k = 0; k < buttons.length; k++) {
+      buttons[k].disabled = true;
+      if (C.solKey(current.choices[k]) === C.solKey(current.correct)) buttons[k].classList.add('is-correct');
+    }
+    if (!ok) btn.classList.add('is-wrong');
+
+    const fb = $('feedback');
+    if (ok) {
+      fb.textContent = '正解！ +' + (set.retry ? 1 : XP[current.mode]) + 'XP';
+      fb.className = 'feedback ok';
+      if (!divpCorrectEffect()) localStamp();
+    } else {
+      fb.className = 'feedback ng';
+      fb.textContent = '';
+      const span = document.createElement('span');
+      span.textContent = 'ざんねん… 正解は ';
+      const ktx = document.createElement('span');
+      fb.appendChild(span); fb.appendChild(ktx);
+      tex(ktx, C.solTex(current.correct), false);
+    }
+    divpLog(current, chosen, ok, set.retry);
+    const last = set.num >= setTotal();
+    $('next-btn').textContent = last ? '結果を見る' : '次の問題へ';
+    $('next-btn').hidden = false;
+    $('next-btn').focus({ preventScroll: true });
+  }
+  function advance() {
+    if (set.num >= setTotal()) showResult();
+    else nextQuestion();
+  }
+
+  /* ---------- 結果・ランク・解き直し ---------- */
+  function showResult() {
+    $('q-card').hidden = true;
+    const card = $('result-card');
+    card.hidden = false;
+    const correct = set.results.filter(Boolean).length;
+    const total = setTotal();
+
+    if (set.retry) {
+      $('rank-badge').className = 'rank-badge r-retry';
+      $('rank-badge').textContent = set.wrong.length === 0 ? '完' : '再';
+      $('result-score').textContent = '解き直し ' + correct + ' / ' + total + ' 問クリア';
+      $('result-msg').textContent = set.wrong.length === 0 ? '全問クリア！よくがんばった！' : 'まだ残ってる。もう一回！';
+    } else {
+      if (correct === total) stats.consecutivePerfect++;
+      else stats.consecutivePerfect = 0;
+      const r = rankFor(correct, total, stats.consecutivePerfect);
+      $('rank-badge').className = 'rank-badge ' + r.cls;
+      $('rank-badge').textContent = r.rank;
+      $('result-score').textContent = correct + ' / ' + total + ' 問正解';
+      $('result-msg').textContent = r.msg;
+    }
+    const rb = $('retry-btn');
+    if (set.wrong.length > 0) {
+      rb.hidden = false;
+      rb.textContent = 'まちがえた ' + set.wrong.length + ' 問を解き直す';
+    } else {
+      rb.hidden = true;
+    }
+  }
+  function retryWrong() { startSet(set.wrong); }
+
+  // divp-correct-jh.js 不在時の簡易ハンコ
+  function localStamp() {
+    const st = document.createElement('div');
+    st.className = 'stamp';
+    st.textContent = '正解';
+    $('q-card').appendChild(st);
+    setTimeout(() => st.remove(), 900);
+  }
+
+  function renderStats() {
+    $('st-correct').textContent = stats.correct + ' / ' + stats.total;
+    $('st-streak').textContent = stats.streak;
+    $('st-xp').textContent = stats.xp;
+  }
+
+  /* ---------- モード切替 ---------- */
+  function buildModeSwitcher() {
+    const list = $('mode-list');
+    MODES.forEach(m => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'mode-btn' + (m.key === mode ? ' active' : '');
+      btn.dataset.key = m.key;
+      btn.innerHTML = '<span class="mode-name">' + m.label + '</span><span class="mode-desc">' + m.desc + '</span>';
+      btn.addEventListener('click', () => {
+        mode = m.key;
+        stats.consecutivePerfect = 0;
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.key === mode));
+        $('mode-current').textContent = m.label;
+        $('mode-panel').classList.remove('open');
+        startSet();
+      });
+      list.appendChild(btn);
+    });
+    $('mode-current').textContent = MODES[0].label;
+    $('mode-toggle').addEventListener('click', () => $('mode-panel').classList.toggle('open'));
+  }
+
+  /* ---------- 印刷 ---------- */
+  function buildPrint() {
+    const probs = [];
+    for (let i = 0; i < PRINT_COUNT; i++) probs.push(C.GEN[mode]());
+    const label = MODES.find(m => m.key === mode).label;
+    const dateStr = new Date().toLocaleDateString('ja-JP');
+    $('pr-title-1').textContent = '2次方程式（' + label + '）';
+    $('pr-title-2').textContent = '2次方程式（' + label + '）　解答';
+    $('pr-date-1').textContent = dateStr;
+    $('pr-date-2').textContent = dateStr;
+    const qWrap = $('pr-questions');
+    const aWrap = $('pr-answers');
+    qWrap.innerHTML = '';
+    aWrap.innerHTML = '';
+    probs.forEach((q, i) => {
+      const qi = document.createElement('div');
+      qi.className = 'pr-item';
+      qi.innerHTML = '<span class="pr-num">(' + (i + 1) + ')</span><span class="pr-tex"></span><div class="pr-space"></div>';
+      qWrap.appendChild(qi);
+      tex(qi.querySelector('.pr-tex'), q.qTex, false);
+      const ai = document.createElement('div');
+      ai.className = 'pr-ans-item';
+      ai.innerHTML = '<span class="pr-num">(' + (i + 1) + ')</span><span class="pr-tex"></span>';
+      aWrap.appendChild(ai);
+      tex(ai.querySelector('.pr-tex'), C.solTex(q.correct), false);
+    });
+    window.print();
+  }
+
+  /* ---------- キーボード ---------- */
+  document.addEventListener('keydown', (e) => {
+    if (!$('result-card').hidden) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startSet(); }
+      return;
+    }
+    if (e.key >= '1' && e.key <= '6' && !answered) {
+      const idx = Number(e.key) - 1;
+      const btn = $('choices').children[idx];
+      if (btn) btn.click();
+    } else if ((e.key === 'Enter' || e.key === ' ') && answered) {
+      e.preventDefault();
+      advance();
+    }
+  });
+
+  /* ---------- 起動 ---------- */
+  window.addEventListener('DOMContentLoaded', () => {
+    buildModeSwitcher();
+    renderStats();
+    $('next-btn').addEventListener('click', advance);
+    $('retry-btn').addEventListener('click', retryWrong);
+    $('again-btn').addEventListener('click', () => startSet());
+    $('print-btn').addEventListener('click', buildPrint);
+    startSet();
+  });
+})();
+
+</script>
+</body>
+</html>

@@ -22,6 +22,22 @@ function grade_label(?string $grade): string
     return $grade;
 }
 
+// unit_key の先頭要素（フォルダ名と同じ）を教科として扱う
+const SUBJECT_LABELS = [
+    'math' => '数学', 'english' => '英語', 'science' => '理科',
+    'japanese' => '国語', 'allgrade' => 'その他',
+];
+
+function subject_of(string $unitKey): string
+{
+    return explode('_', $unitKey, 2)[0];
+}
+
+function subject_label(string $subject): string
+{
+    return SUBJECT_LABELS[$subject] ?? $subject;
+}
+
 $actor = current_actor();
 
 // ---- 未ログイン時: 講師ログインフォーム ----
@@ -94,10 +110,16 @@ $teacherId = $actor['id'];
 $pdo = db();
 
 // ---- 講師の権限と担当教室 ----
-$stmt = $pdo->prepare('SELECT role, teacher_name FROM teachers WHERE teacher_id = :id');
+$stmt = $pdo->prepare('SELECT role, teacher_name, must_change_password FROM teachers WHERE teacher_id = :id');
 $stmt->execute(['id' => $teacherId]);
 $me = $stmt->fetch();
 $role = $me['role'];
+
+// 初期パスワードのままなら、変更するまで先に進ませない
+if ((int)$me['must_change_password'] === 1) {
+    header('Location: /password.php');
+    exit;
+}
 
 if ($role === 'super_admin') {
     $classrooms = $pdo->query('SELECT classroom_id, classroom_name FROM classrooms ORDER BY classroom_id')->fetchAll();
@@ -138,8 +160,47 @@ function pf(string $col, ?string $fromStr, string $tag, array &$params): string
     return " AND {$col} >= :from{$tag} AND {$col} < :to{$tag}";
 }
 
+// ---- 教科フィルタ（unit_key の先頭が教科） ----
+$filterSubject = (string)($_GET['subject'] ?? '');
+if ($filterSubject !== '' && !preg_match('/^[a-z]+$/', $filterSubject)) {
+    $filterSubject = '';
+}
+
+// 教科フィルタSQL片（pf と同様、プレースホルダ名を変えて複数回使える）
+function sf(string $col, string $tag, array &$params): string
+{
+    global $filterSubject;
+    if ($filterSubject === '') return '';
+    $params["subj{$tag}"] = $filterSubject . '\\_%';
+    return " AND {$col} LIKE :subj{$tag}";
+}
+
 $unitMeta = require __DIR__ . '/api/units.php';
 $detailStudentId = isset($_GET['student_id']) ? (int)$_GET['student_id'] : 0;
+
+// ============================================================
+// ランキングビュー（担当教室のみ。教室別/チェックした教室の混合どちらも可）
+// ============================================================
+$rankView = ((string)($_GET['view'] ?? '')) === 'ranking' && $detailStudentId === 0;
+$rankData = null;
+if ($rankView) {
+    require_once __DIR__ . '/api/ranking.php';
+    $cids = $_GET['cids'] ?? [];
+    if (!is_array($cids)) {
+        $cids = [$cids];
+    }
+    $cids = array_values(array_intersect(array_map('intval', $cids), $allowedClassroomIds));
+    if (count($cids) === 0) {
+        $cids = $allowedClassroomIds;   // 未指定は担当全教室の混合
+    }
+    $rows = ranking_rows($pdo, $cids, $fromStr, $toStr);
+    $rankData = [
+        'cids'   => $cids,
+        'solved' => ranking_ranked($rows, 'solved'),
+        'rate'   => ranking_ranked($rows, 'rate'),
+        'xp'     => ranking_ranked($rows, 'xp'),
+    ];
+}
 
 // ============================================================
 // 生徒詳細ビュー
@@ -158,15 +219,28 @@ if ($detailStudentId > 0) {
         exit;
     }
 
+    // この期間に記録がある教科（タブ表示用。教科フィルタはかけない）
+    $params = ['id' => $detailStudentId];
+    $w = pf('answered_at', $fromStr, 'sj', $params);
+    $stmt = $pdo->prepare("SELECT DISTINCT unit_key FROM answer_logs WHERE student_id = :id{$w}");
+    $stmt->execute($params);
+    $dSubjects = array_values(array_unique(array_map(
+        fn($r) => subject_of($r['unit_key']), $stmt->fetchAll()
+    )));
+    sort($dSubjects);
+    if ($filterSubject !== '' && !in_array($filterSubject, $dSubjects, true)) {
+        $filterSubject = '';
+    }
+
     // 期間サマリー
     $params = ['id' => $detailStudentId];
-    $w = pf('started_at', $fromStr, 'a', $params);
+    $w = pf('started_at', $fromStr, 'a', $params) . sf('unit_key', 'a', $params);
     $stmt = $pdo->prepare("SELECT COALESCE(SUM(duration_sec),0) FROM study_sessions WHERE student_id = :id{$w}");
     $stmt->execute($params);
     $dMinutes = (int)floor(((int)$stmt->fetchColumn()) / 60);
 
     $params = ['id' => $detailStudentId];
-    $w = pf('answered_at', $fromStr, 'b', $params);
+    $w = pf('answered_at', $fromStr, 'b', $params) . sf('unit_key', 'b', $params);
     $stmt = $pdo->prepare("SELECT COUNT(*) AS total, COALESCE(SUM(is_correct),0) AS correct FROM answer_logs WHERE student_id = :id{$w}");
     $stmt->execute($params);
     $dAns = $stmt->fetch();
@@ -175,7 +249,7 @@ if ($detailStudentId > 0) {
 
     // 単元カルテ
     $params = ['id' => $detailStudentId];
-    $w = pf('al.answered_at', $fromStr, 'c', $params);
+    $w = pf('al.answered_at', $fromStr, 'c', $params) . sf('al.unit_key', 'c', $params);
     $stmt = $pdo->prepare(
         "SELECT al.unit_key, COALESCE(qc.label, al.question_key) AS label,
                 COUNT(*) AS solved, COALESCE(SUM(al.is_correct),0) AS correct,
@@ -194,7 +268,7 @@ if ($detailStudentId > 0) {
 
     // 直近の誤答（講師のみ閲覧可の情報）
     $params = ['id' => $detailStudentId];
-    $w = pf('al.answered_at', $fromStr, 'd', $params);
+    $w = pf('al.answered_at', $fromStr, 'd', $params) . sf('al.unit_key', 'd', $params);
     $stmt = $pdo->prepare(
         "SELECT al.answered_at, al.unit_key, COALESCE(qc.label, al.question_key) AS label,
                 al.question_text, al.correct_answer, al.student_answer
@@ -208,7 +282,7 @@ if ($detailStudentId > 0) {
 
     // 直近の学習セッション（端末情報つき・講師のみ）
     $params = ['id' => $detailStudentId];
-    $w = pf('ss.started_at', $fromStr, 'e', $params);
+    $w = pf('ss.started_at', $fromStr, 'e', $params) . sf('ss.unit_key', 'e', $params);
     $stmt = $pdo->prepare(
         "SELECT ss.started_at, ss.duration_sec, ss.total_questions, ss.correct_count, ss.unit_key,
                 COALESCE(d.label, LEFT(ss.device_id, 8)) AS device_label
@@ -226,7 +300,7 @@ if ($detailStudentId > 0) {
 // 生徒一覧ビュー
 // ============================================================
 $students = [];
-if (!$detail) {
+if (!$detail && !$rankView) {
     $filterClassroom = isset($_GET['classroom_id']) ? (int)$_GET['classroom_id'] : 0;
     if ($filterClassroom > 0 && $role !== 'super_admin' && !in_array($filterClassroom, $allowedClassroomIds, true)) {
         $filterClassroom = 0;
@@ -234,9 +308,10 @@ if (!$detail) {
 
     // 同名プレースホルダは再利用できない(エミュレーション無効)ため、サブクエリごとに別名にする
     $params = [];
-    $wSess = pf('ss.started_at', $fromStr, 's', $params);
-    $wAns1 = pf('al.answered_at', $fromStr, 'n1', $params);
-    $wAns2 = pf('al.answered_at', $fromStr, 'n2', $params);
+    $wSess = pf('ss.started_at', $fromStr, 's', $params) . sf('ss.unit_key', 's', $params);
+    $wAns1 = pf('al.answered_at', $fromStr, 'n1', $params) . sf('al.unit_key', 'n1', $params);
+    $wAns2 = pf('al.answered_at', $fromStr, 'n2', $params) . sf('al.unit_key', 'n2', $params);
+    $wRetry = sf('rq.unit_key', 'r', $params);
 
     $sql =
         "SELECT s.student_id, s.login_id, s.student_name, s.grade, c.classroom_name,
@@ -247,7 +322,7 @@ if (!$detail) {
                 (SELECT COALESCE(SUM(al.is_correct),0) FROM answer_logs al
                   WHERE al.student_id = s.student_id{$wAns2}) AS correct,
                 (SELECT COUNT(*) FROM retry_queue rq
-                  WHERE rq.student_id = s.student_id AND rq.status = 'pending') AS retries,
+                  WHERE rq.student_id = s.student_id AND rq.status = 'pending'{$wRetry}) AS retries,
                 (SELECT MAX(al.answered_at) FROM answer_logs al
                   WHERE al.student_id = s.student_id) AS last_at
          FROM students s
@@ -297,7 +372,7 @@ function qtab(array $extra): string
     background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
     background-size:24px 24px;line-height:1.6;-webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:880px;margin:0 auto;padding:0 16px 64px}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 16px 64px}
   header{display:flex;align-items:center;justify-content:space-between;padding:14px 2px 10px;flex-wrap:wrap;gap:8px}
   header img.logo{height:34px;width:auto;display:block}
   .who{font-size:12px;color:var(--ink-soft);display:flex;align-items:center;gap:10px}
@@ -310,6 +385,9 @@ function qtab(array $extra): string
     padding:4px 14px;border-radius:999px;text-decoration:none;
     background:var(--white);color:var(--ink-soft);border:1.5px solid var(--grid)}
   .ptab.active{background:var(--ai);color:#fff;border-color:var(--ai)}
+  .stab.active{background:var(--shu);border-color:var(--shu)}
+  .subject-head{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:13px;color:var(--ai);
+    border-left:4px solid var(--ai);padding-left:8px;margin-top:14px}
 
   .card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
     border-top:4px solid var(--ai);padding:18px;margin-top:14px}
@@ -348,6 +426,8 @@ function qtab(array $extra): string
     <div class="who">
       <b><?= h($me['teacher_name']) ?> 先生</b>
       <span><?= h($role) ?></span>
+      <a class="logout" href="/admin.php" style="text-decoration:none;">アカウント管理</a>
+      <a class="logout" href="/password.php" style="text-decoration:none;">パスワード変更</a>
       <button class="logout" id="logout-btn" type="button">ログアウト</button>
     </div>
   </header>
@@ -359,6 +439,13 @@ function qtab(array $extra): string
 <?php foreach ($periodLabels as $key => $label): ?>
     <a class="ptab<?= $period === $key ? ' active' : '' ?>" href="<?= h(qtab(['period' => $key])) ?>"><?= h($label) ?></a>
 <?php endforeach; ?>
+<?php if (count($dSubjects) > 1): ?>
+    <span style="flex:1"></span>
+    <a class="ptab stab<?= $filterSubject === '' ? ' active' : '' ?>" href="<?= h(qtab(['subject' => null])) ?>">全教科</a>
+<?php foreach ($dSubjects as $sj): ?>
+    <a class="ptab stab<?= $filterSubject === $sj ? ' active' : '' ?>" href="<?= h(qtab(['subject' => $sj])) ?>"><?= h(subject_label($sj)) ?></a>
+<?php endforeach; ?>
+<?php endif; ?>
   </div>
 
   <div class="card">
@@ -372,11 +459,23 @@ function qtab(array $extra): string
   </div>
 
   <div class="card">
-    <h2>単元カルテ（<?= h($periodLabels[$period]) ?>）</h2>
+    <h2>単元カルテ（<?= h($periodLabels[$period]) ?><?= $filterSubject !== '' ? '・' . h(subject_label($filterSubject)) : '' ?>）</h2>
 <?php if (count($dUnits) === 0): ?>
     <p style="font-size:13px;color:var(--ink-soft);">この期間の解答記録はありません</p>
 <?php else: ?>
-<?php foreach ($dUnits as $unitKey => $rows):
+<?php
+    // 教科ごとにグループ化して見出しを付ける（教科で絞り込み中は見出し不要）
+    $dBySubject = [];
+    foreach ($dUnits as $unitKey => $rows) {
+        $dBySubject[subject_of($unitKey)][$unitKey] = $rows;
+    }
+    ksort($dBySubject);
+?>
+<?php foreach ($dBySubject as $sj => $subjectUnits): ?>
+<?php if ($filterSubject === '' && count($dSubjects) > 1): ?>
+    <p class="subject-head"><?= h(subject_label($sj)) ?></p>
+<?php endif; ?>
+<?php foreach ($subjectUnits as $unitKey => $rows):
     $meta = $unitMeta[$unitKey] ?? ['title' => $unitKey, 'sub' => ''];
 ?>
     <p style="font-size:13px;font-weight:700;margin-top:8px;"><?= h($meta['title']) ?> <span style="font-size:11px;color:var(--ink-soft);font-weight:500;"><?= h($meta['sub']) ?></span></p>
@@ -398,6 +497,7 @@ function qtab(array $extra): string
     </table>
     </div>
 <?php endforeach; ?>
+<?php endforeach; ?>
 <?php endif; ?>
   </div>
 
@@ -408,10 +508,13 @@ function qtab(array $extra): string
 <?php else: ?>
     <div class="scroll">
     <table>
-      <tr><th>日時</th><th>種類</th><th>問題</th><th>正解</th><th>生徒の答え</th></tr>
-<?php foreach ($dWrongs as $wr): ?>
+      <tr><th>日時</th><th>単元</th><th>種類</th><th>問題</th><th>正解</th><th>生徒の答え</th></tr>
+<?php foreach ($dWrongs as $wr):
+    $wUnitTitle = ($unitMeta[$wr['unit_key']] ?? null)['title'] ?? $wr['unit_key'];
+?>
       <tr>
         <td style="white-space:nowrap;"><?= h(substr($wr['answered_at'], 5, 11)) ?></td>
+        <td style="white-space:nowrap;font-size:12px;"><?= h($wUnitTitle) ?></td>
         <td><span class="chip"><?= h($wr['label']) ?></span></td>
         <td class="math" data-math="<?= h($wr['question_text']) ?>"><?= h($wr['question_text']) ?></td>
         <td class="math" data-math="<?= h($wr['correct_answer']) ?>"><?= h($wr['correct_answer']) ?></td>
@@ -448,12 +551,87 @@ function qtab(array $extra): string
 <?php endif; ?>
   </div>
 
+<?php elseif ($rankView): ?>
+  <!-- ============ ランキング ============ -->
+  <div class="bar-row">
+    <a class="back" href="<?= h(qtab(['view' => null, 'cids' => null])) ?>">← 生徒一覧へ</a>
+<?php foreach ($periodLabels as $key => $label): ?>
+    <a class="ptab<?= $period === $key ? ' active' : '' ?>" href="<?= h(qtab(['period' => $key])) ?>"><?= h($label) ?></a>
+<?php endforeach; ?>
+  </div>
+
+  <div class="card">
+    <h1>ランキング <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">（<?= h($periodLabels[$period]) ?>）</span></h1>
+<?php if (count($classrooms) > 1): ?>
+    <form method="get" class="bar-row" style="margin-top:10px;">
+      <input type="hidden" name="view" value="ranking">
+      <input type="hidden" name="period" value="<?= h($period) ?>">
+<?php foreach ($classrooms as $c): ?>
+      <label style="font-size:13px;display:inline-flex;align-items:center;gap:4px;background:var(--white);border:1.5px solid var(--grid);border-radius:999px;padding:3px 12px;cursor:pointer;">
+        <input type="checkbox" name="cids[]" value="<?= (int)$c['classroom_id'] ?>"
+          <?= in_array((int)$c['classroom_id'], $rankData['cids'], true) ? 'checked' : '' ?>>
+        <?= h($c['classroom_name']) ?>
+      </label>
+<?php endforeach; ?>
+      <button type="submit" class="ptab active" style="cursor:pointer;">表示</button>
+    </form>
+    <p style="font-size:11px;color:var(--ink-soft);margin-top:4px;">1教室だけチェックすると教室別、複数チェックすると混合ランキングになります</p>
+<?php endif; ?>
+  </div>
+
+<?php
+    $rankSections = [
+        ['key' => 'solved', 'title' => '解答数ランキング', 'unit' => '問'],
+        ['key' => 'rate',   'title' => '正答率ランキング', 'unit' => '%'],
+        ['key' => 'xp',     'title' => 'XPランキング',     'unit' => 'XP'],
+    ];
+?>
+<?php foreach ($rankSections as $sec): $list = $rankData[$sec['key']]; ?>
+  <div class="card">
+    <h2><?= h($sec['title']) ?><?php if ($sec['key'] === 'rate'): ?> <span style="font-size:11px;color:var(--ink-soft);font-weight:500;">（<?= RANK_MIN_SOLVED ?>問以上解いた生徒のみ）</span><?php endif; ?></h2>
+<?php if (count($list) === 0): ?>
+    <p style="font-size:13px;color:var(--ink-soft);">この期間の対象者はいません</p>
+<?php else: ?>
+    <div class="scroll">
+    <table>
+      <tr><th class="num">順位</th><th>生徒</th><th>教室</th><th>学年</th>
+        <th class="num"><?= h($sec['unit']) ?></th><?php if ($sec['key'] === 'rate'): ?><th class="num">解答数</th><?php endif; ?></tr>
+<?php foreach ($list as $r): ?>
+      <tr>
+        <td class="num" style="font-weight:700;<?= $r['rank'] <= 3 ? 'color:var(--kin);' : '' ?>"><?= $r['rank'] ?>位</td>
+        <td><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
+        <td><?= h($r['classroom_name']) ?></td>
+        <td><?= h(grade_label($r['grade'])) ?></td>
+        <td class="num"><?= $sec['key'] === 'rate' ? $r['value'] . '%' : (int)$r['value'] ?></td>
+<?php if ($sec['key'] === 'rate'): ?>
+        <td class="num"><?= (int)$r['solved'] ?></td>
+<?php endif; ?>
+      </tr>
+<?php endforeach; ?>
+    </table>
+    </div>
+<?php endif; ?>
+  </div>
+<?php endforeach; ?>
+
 <?php else: ?>
   <!-- ============ 生徒一覧 ============ -->
+<?php
+    // 台帳(units.php)に載っている単元から教科タブを作る
+    $ledgerSubjects = array_values(array_unique(array_map('subject_of', array_keys($unitMeta))));
+    sort($ledgerSubjects);
+?>
   <div class="bar-row">
 <?php foreach ($periodLabels as $key => $label): ?>
     <a class="ptab<?= $period === $key ? ' active' : '' ?>" href="<?= h(qtab(['period' => $key])) ?>"><?= h($label) ?></a>
 <?php endforeach; ?>
+<?php if (count($ledgerSubjects) > 1): ?>
+    <a class="ptab stab<?= $filterSubject === '' ? ' active' : '' ?>" href="<?= h(qtab(['subject' => null])) ?>">全教科</a>
+<?php foreach ($ledgerSubjects as $sj): ?>
+    <a class="ptab stab<?= $filterSubject === $sj ? ' active' : '' ?>" href="<?= h(qtab(['subject' => $sj])) ?>"><?= h(subject_label($sj)) ?></a>
+<?php endforeach; ?>
+<?php endif; ?>
+    <a class="ptab" style="border-color:var(--kin);color:var(--kin);" href="<?= h(qtab(['view' => 'ranking'])) ?>">ランキング</a>
     <span style="flex:1"></span>
 <?php if (count($classrooms) > 1): ?>
     <a class="ptab<?= empty($_GET['classroom_id']) ? ' active' : '' ?>" href="<?= h(qtab(['classroom_id' => null])) ?>">全教室</a>
@@ -465,7 +643,7 @@ function qtab(array $extra): string
   </div>
 
   <div class="card">
-    <h1>生徒一覧 <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">（<?= h($periodLabels[$period]) ?>の学習状況）</span></h1>
+    <h1>生徒一覧 <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">（<?= h($periodLabels[$period]) ?><?= $filterSubject !== '' ? '・' . h(subject_label($filterSubject)) : '' ?>の学習状況）</span></h1>
 <?php if (count($students) === 0): ?>
     <p style="font-size:13px;color:var(--ink-soft);margin-top:8px;">表示できる生徒がいません</p>
 <?php else: ?>

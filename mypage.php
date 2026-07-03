@@ -33,7 +33,7 @@ $pdo = db();
 
 // ---- 生徒情報(教室名・学年) ----
 $stmt = $pdo->prepare(
-    'SELECT s.student_name, s.grade, c.classroom_name
+    'SELECT s.student_name, s.grade, s.classroom_id, c.classroom_name
      FROM students s JOIN classrooms c ON c.classroom_id = s.classroom_id
      WHERE s.student_id = :id'
 );
@@ -122,6 +122,53 @@ $levelPct = (int)round(100 * ($totalXp - $levelFloor) / max(1, $levelCeil - $lev
 $stmt = $pdo->prepare("SELECT COUNT(*) FROM retry_queue WHERE student_id = :id AND status = 'pending'");
 $stmt->execute(['id' => $studentId]);
 $retryCount = (int)$stmt->fetchColumn();
+
+// ---- 教室内ランキング(自分の順位だけ表示。他の生徒の名前は出さない) ----
+require_once __DIR__ . '/api/ranking.php';
+$rankFromStr = $from ? $from->format('Y-m-d 00:00:00') : null;
+$rankToStr = $to ? $to->format('Y-m-d 00:00:00') : null;
+$rankRows = ranking_rows($pdo, [(int)$student['classroom_id']], $rankFromStr, $rankToStr);
+$myRanks = [];
+foreach (['solved' => '解いた問題', 'rate' => '正答率', 'xp' => 'ゲットしたXP'] as $metric => $metricLabel) {
+    $list = ranking_ranked($rankRows, $metric);
+    $mine = null;
+    foreach ($list as $r) {
+        if ((int)$r['student_id'] === $studentId) { $mine = $r; break; }
+    }
+    $myRanks[] = [
+        'label' => $metricLabel,
+        'metric' => $metric,
+        'rank' => $mine ? (int)$mine['rank'] : null,
+        'total' => count($list),
+    ];
+}
+
+// ---- 全教室混合ランキング(イベント期間中のみ表示。集計もイベント期間の実績) ----
+$activeEvent = ranking_active_event(require __DIR__ . '/api/ranking_events.php');
+$eventRanks = null;
+if ($activeEvent) {
+    $evFromStr = $activeEvent['from'] . ' 00:00:00';
+    $evToStr = (new DateTimeImmutable($activeEvent['to']))->modify('+1 day')->format('Y-m-d 00:00:00');
+    $evRows = ranking_rows($pdo, null, $evFromStr, $evToStr);
+    $evSolved = 0;   // 足切りメッセージ用に自分のイベント期間内解答数を控えておく
+    foreach ($evRows as $r) {
+        if ((int)$r['student_id'] === $studentId) { $evSolved = (int)$r['solved']; break; }
+    }
+    $eventRanks = [];
+    foreach (['solved' => '解いた問題', 'rate' => '正答率', 'xp' => 'ゲットしたXP'] as $metric => $metricLabel) {
+        $list = ranking_ranked($evRows, $metric);
+        $mine = null;
+        foreach ($list as $r) {
+            if ((int)$r['student_id'] === $studentId) { $mine = $r; break; }
+        }
+        $eventRanks[] = [
+            'label' => $metricLabel,
+            'metric' => $metric,
+            'rank' => $mine ? (int)$mine['rank'] : null,
+            'total' => count($list),
+        ];
+    }
+}
 
 // ---- 単元カルテ(選択期間・種類別) ----
 $params = ['id' => $studentId];
@@ -272,6 +319,19 @@ function h(?string $s): string
     min-width:44px;text-align:center;padding:6px 12px;
   }
 
+  /* ---------- 教室内ランキング(自分の順位のみ) ---------- */
+  .rankcard{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:16px 18px 8px;margin-top:16px;border-top:4px solid var(--kin)}
+  .rankcard .rc-title{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:14px;color:var(--kin)}
+  .rankrow{display:flex;justify-content:space-between;align-items:baseline;
+    padding:10px 0;border-bottom:1px solid #F3F0E8;font-size:14px}
+  .rankrow:last-child{border-bottom:none}
+  .rankrow .pos{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:20px;
+    font-feature-settings:'tnum'}
+  .rankrow .pos small{font-size:11px;font-weight:500;color:var(--ink-soft);margin-left:4px}
+  .rankrow .pos.top3{color:var(--kin)}
+  .rankrow .none{font-size:12px;color:var(--ink-soft)}
+
   /* ---------- 単元カルテ ---------- */
   .section-title{
     display:flex;align-items:center;gap:10px;margin:28px 2px 10px;
@@ -365,6 +425,48 @@ function h(?string $s): string
     <span class="t">きょうの解き直し<small>まちがえた問題に もう一度チャレンジ</small></span>
     <span class="badge"><?= $retryCount ?>問</span>
   </a>
+<?php endif; ?>
+
+  <!-- 教室内ランキング(自分の順位のみ) -->
+  <section class="rankcard">
+    <div class="rc-title"><?= h($student['classroom_name']) ?>教室の中での じゅんい（<?= h($periodLabels[$period]) ?>）</div>
+<?php foreach ($myRanks as $mr): ?>
+    <div class="rankrow">
+      <span><?= h($mr['label']) ?></span>
+<?php if ($mr['rank'] !== null): ?>
+      <span class="pos<?= $mr['rank'] <= 3 ? ' top3' : '' ?>"><?= $mr['rank'] ?>位<small><?= $mr['total'] ?>人中</small></span>
+<?php elseif ($mr['metric'] === 'rate' && $weekSolved < RANK_MIN_SOLVED): ?>
+      <span class="none">あと<?= RANK_MIN_SOLVED - $weekSolved ?>問とくと じゅんいが出るよ</span>
+<?php else: ?>
+      <span class="none">もんだいをとくと じゅんいが出るよ</span>
+<?php endif; ?>
+    </div>
+<?php endforeach; ?>
+  </section>
+
+<?php if ($eventRanks !== null):
+    $evFromD = new DateTimeImmutable($activeEvent['from']);
+    $evToD = new DateTimeImmutable($activeEvent['to']);
+    $evPeriodLabel = $evFromD->format('n') . '月' . $evFromD->format('j') . '日〜'
+                   . $evToD->format('n') . '月' . $evToD->format('j') . '日';
+?>
+  <!-- 全教室混合ランキング(イベント期間限定) -->
+  <section class="rankcard" style="border-top-color:var(--shu);">
+    <div class="rc-title" style="color:var(--shu);"><?= h($activeEvent['label']) ?> ぜんきょうしつでの じゅんい</div>
+    <div style="font-size:11px;color:var(--ink-soft);"><?= h($evPeriodLabel) ?>の きろくで きそうよ</div>
+<?php foreach ($eventRanks as $mr): ?>
+    <div class="rankrow">
+      <span><?= h($mr['label']) ?></span>
+<?php if ($mr['rank'] !== null): ?>
+      <span class="pos<?= $mr['rank'] <= 3 ? ' top3' : '' ?>"><?= $mr['rank'] ?>位<small><?= $mr['total'] ?>人中</small></span>
+<?php elseif ($mr['metric'] === 'rate' && $evSolved < RANK_MIN_SOLVED): ?>
+      <span class="none">あと<?= RANK_MIN_SOLVED - $evSolved ?>問とくと じゅんいが出るよ</span>
+<?php else: ?>
+      <span class="none">もんだいをとくと じゅんいが出るよ</span>
+<?php endif; ?>
+    </div>
+<?php endforeach; ?>
+  </section>
 <?php endif; ?>
 
   <!-- 単元カルテ -->
