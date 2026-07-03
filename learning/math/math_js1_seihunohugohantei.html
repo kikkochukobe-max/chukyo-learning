@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>符号判定クイズ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Lora:wght@700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue:#38bdf8; --pink:#f472b6; --purple:#a78bfa;
+      --green:#4ade80; --gold:#fbbf24; --text:#eef0f8;
+      --muted:rgba(238,240,248,.45);
+    }
+    body {
+      min-height: 100vh;
+      background: #0b0d18;
+      background-image:
+        radial-gradient(ellipse at 15% 15%,rgba(90,50,200,.22) 0%,transparent 55%),
+        radial-gradient(ellipse at 85% 85%,rgba(10,90,160,.22) 0%,transparent 55%);
+      font-family: 'Noto Sans JP', sans-serif;
+      color: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    .wrap { width: 100%; max-width: 560px; }
+    .hd { text-align: center; margin-bottom: 18px; }
+    .hd h1 {
+      font-family: 'Lora', serif;
+      font-size: clamp(1.7rem,5vw,2.2rem);
+      background: linear-gradient(100deg,var(--purple),var(--blue));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 4px;
+    }
+    .hd p { font-size: .8rem; color: var(--muted); }
+    .cond {
+      border: 1px solid rgba(167,139,250,.3); border-radius: 10px;
+      background: rgba(167,139,250,.07); padding: 8px 16px;
+      text-align: center; font-size: .84rem; color: rgba(238,240,248,.82);
+      margin-bottom: 12px;
+    }
+    .cond .v { color: var(--purple); font-weight: 700; }
+    .term-sel {
+      display: flex; justify-content: center; align-items: center;
+      gap: 8px; margin-bottom: 12px;
+    }
+    .tslabel { font-size: .78rem; color: var(--muted); }
+    .tsbtn {
+      padding: 5px 20px; border: 1.5px solid rgba(167,139,250,.35);
+      border-radius: 999px; background: transparent; color: var(--muted);
+      font-family: 'Noto Sans JP',sans-serif; font-size: .8rem; font-weight: 500;
+      cursor: pointer; transition: .15s;
+    }
+    .tsbtn.active { background: rgba(167,139,250,.18); border-color: var(--purple); color: var(--purple); font-weight: 700; }
+    .tsbtn:hover:not(.active) { border-color: rgba(167,139,250,.6); color: rgba(238,240,248,.7); }
+    .sbar { display: flex; justify-content: space-between; font-size: .78rem; color: var(--muted); margin-bottom: 11px; }
+    .sbar .sc { color: var(--gold); font-weight: 700; }
+    .sbar .stk { color: var(--pink); font-weight: 700; }
+    .qcard {
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 22px; padding: 34px 22px 30px; text-align: center;
+      margin-bottom: 13px; min-height: 155px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: relative; overflow: hidden; transition: opacity .22s ease;
+    }
+    .qcard::before {
+      content: ''; position: absolute; top: 0; left: 8%; right: 8%; height: 1px;
+      background: linear-gradient(90deg,transparent,var(--purple),var(--blue),transparent);
+    }
+    .qcard.out { opacity: 0; }
+    .qlabel { font-size: .73rem; color: var(--muted); letter-spacing: .06em; margin-bottom: 13px; }
+    .expr {
+      font-size: clamp(2rem,8vw,3rem); font-weight: 700;
+      font-family: Georgia,serif; line-height: 1.25;
+      word-break: break-word; letter-spacing: .03em;
+    }
+    .bgrid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 12px; }
+    .abtn {
+      border: 2px solid; border-radius: 16px; padding: 15px 6px 11px;
+      cursor: pointer; font-family: 'Noto Sans JP',sans-serif;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      transition: transform .15s,box-shadow .15s; user-select: none;
+    }
+    .abtn:active { transform: scale(.96); }
+    .abtn .big { font-size: 1.55rem; font-weight: 900; line-height: 1; }
+    .abtn .sm  { font-size: .62rem; font-weight: 400; opacity: .65; line-height: 1.4; text-align: center; }
+    .abtn-p { background: rgba(56,189,248,.08);  border-color: rgba(56,189,248,.38);  color: var(--blue); }
+    .abtn-n { background: rgba(244,114,182,.08); border-color: rgba(244,114,182,.38); color: var(--pink); }
+    .abtn-b { background: rgba(167,139,250,.08); border-color: rgba(167,139,250,.38); color: var(--purple); }
+    .abtn:hover:not(:disabled) { transform: translateY(-3px); }
+    .abtn-p:hover:not(:disabled) { box-shadow: 0 8px 22px rgba(56,189,248,.22); }
+    .abtn-n:hover:not(:disabled) { box-shadow: 0 8px 22px rgba(244,114,182,.22); }
+    .abtn-b:hover:not(:disabled) { box-shadow: 0 8px 22px rgba(167,139,250,.22); }
+    .abtn:disabled { cursor: default; transform: none !important; box-shadow: none !important; }
+    .abtn.hit  { background: rgba(74,222,128,.15)!important; border-color: var(--green)!important; color: var(--green)!important; }
+    .abtn.miss { opacity: .35; }
+    .fb { border-radius: 14px; padding: 13px 16px; margin-bottom: 11px; display: none; }
+    .fb.show { display: block; animation: up .25s ease; }
+    .fb.ok { background: rgba(74,222,128,.08); border: 1px solid rgba(74,222,128,.3); color: #86efac; }
+    .fb.ng { background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.3); color: #fca5a5; }
+    .fb-head { font-size: .96rem; font-weight: 700; margin-bottom: 9px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+    .chip { padding: 3px 10px; border-radius: 999px; font-size: .75rem; font-weight: 500; line-height: 1.6; }
+    .chip.pos { background: rgba(56,189,248,.13);  color: var(--blue);  border: 1px solid rgba(56,189,248,.22); }
+    .chip.neg { background: rgba(244,114,182,.13); color: var(--pink);  border: 1px solid rgba(244,114,182,.22); }
+    .cond-special {
+      border-color: rgba(251,191,36,.5);
+      background: rgba(251,191,36,.08);
+      color: #fbbf24;
+      font-weight: 700;
+    }
+    .fb-note { margin-top: 9px; font-size: .72rem; color: rgba(238,240,248,.5); line-height: 1.55; }
+    .next {
+      width: 100%; padding: 13px;
+      background: linear-gradient(95deg,var(--purple),var(--blue));
+      border: none; border-radius: 13px; color: #fff;
+      font-family: 'Noto Sans JP',sans-serif; font-size: .93rem; font-weight: 700;
+      cursor: pointer; display: none; transition: opacity .18s;
+    }
+    .next.show { display: block; animation: up .25s ease; }
+    .next:hover { opacity: .88; }
+    .foot { display: flex; justify-content: space-between; margin-top: 11px; font-size: .68rem; color: rgba(238,240,248,.22); }
+    @keyframes up    { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes pop   { 0%{transform:scale(1)} 45%{transform:scale(1.09)} 100%{transform:scale(1)} }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
+    .do-pop   { animation: pop   .35s ease; }
+    .do-shake { animation: shake .3s  ease; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hd">
+    <h1>符号判定クイズ</h1>
+    <p>式の値の符号を当てよう</p>
+  </div>
+  <div class="cond" id="cond-normal">
+    <span class="v">a</span> は正の数　｜　<span class="v">b</span> は負の数
+  </div>
+  <div class="cond cond-special" id="cond-special" style="display:none;"></div>
+  <div class="term-sel">
+    <span class="tslabel">項数：</span>
+    <button class="tsbtn active" id="ts2" onclick="setTerms(2)">2項</button>
+    <button class="tsbtn"        id="ts3" onclick="setTerms(3)">3項</button>
+  </div>
+  <div class="sbar">
+    <div>正解　<span class="sc" id="sc-c">0</span>/<span class="sc" id="sc-t">0</span></div>
+    <div>連続正解　<span class="stk" id="sc-s">0</span>　🔥</div>
+  </div>
+  <div class="qcard" id="qcard">
+    <div class="qlabel">この式の値の符号は？</div>
+    <div class="expr" id="expr"></div>
+  </div>
+  <div class="bgrid">
+    <button class="abtn abtn-p" id="bp" onclick="ans('positive')">
+      <span class="big">正</span><span class="sm">必ず正に<br>なる</span>
+    </button>
+    <button class="abtn abtn-n" id="bn" onclick="ans('negative')">
+      <span class="big">負</span><span class="sm">必ず負に<br>なる</span>
+    </button>
+    <button class="abtn abtn-b" id="bb" onclick="ans('both')">
+      <span class="big">両方</span><span class="sm">どちらも<br>あり得る</span>
+    </button>
+  </div>
+  <div class="fb" id="fb">
+    <div class="fb-head" id="fb-head"></div>
+    <div class="chips"   id="fb-chips"></div>
+    <div class="fb-note" id="fb-note"></div>
+  </div>
+  <button class="next" id="nx" onclick="nextQ()">次の問題へ →</button>
+  <div class="foot">
+    <span id="qnum">問題 1</span>
+    <span>キー: [1]正 [2]負 [3]両方 [Space]次へ</span>
+  </div>
+</div>
+<script>
+'use strict';
+// WordPress 対応: Unicode テキストのみ・textContent で DOM 更新
+
+/* ── 通常問題の項定義 ─────────────────────────── */
+var TERMS = [
+  {h:'a',  s: 1, wt:5, why:'a > 0'},
+  {h:'a²', s: 1, wt:4, why:'a > 0 なので a² > 0'},
+  {h:'a³', s: 1, wt:1, why:'a > 0 なので a³ > 0'},
+  {h:'a⁴', s: 1, wt:1, why:'a > 0 なので a⁴ > 0'},
+  {h:'b',  s:-1, wt:5, why:'b < 0'},
+  {h:'b²', s: 1, wt:4, why:'偶数乗なので b² > 0'},
+  {h:'b³', s:-1, wt:1, why:'b < 0 なので b³ < 0'},
+  {h:'b⁴', s: 1, wt:1, why:'偶数乗なので b⁴ > 0'},
+];
+
+/* ── 大小条件問題プール（a・b が同符号のとき）─────
+   cond  : 条件文（表示テキスト）
+   n     : 項数（2 or 3）
+   note  : 解説
+   text  : 式テキスト
+   answer: 'positive'|'negative'|'both'
+   parts : チップ用 [{text, contrib}]
+     contrib は各項単体の符号
+     （その条件での a・b 自体の符号はパターンにより異なる）
+──────────────────────────────────────────────── */
+var CPROB = [
+  /* ══ a > b > 0 のとき ══ */
+  { cond:'a > b > 0 のとき', n:2,
+    note:'a > b より a−b > 0 → 正',
+    text:'a−b', answer:'positive',
+    parts:[{text:'a',contrib:1},{text:'−b',contrib:-1}] },
+  { cond:'a > b > 0 のとき', n:2,
+    note:'a > b より b−a < 0 → 負',
+    text:'b−a', answer:'negative',
+    parts:[{text:'b',contrib:1},{text:'−a',contrib:-1}] },
+  { cond:'a > b > 0 のとき', n:2,
+    note:'a > b より a²−b² = (a+b)(a−b) > 0 → 正',
+    text:'a²−b²', answer:'positive',
+    parts:[{text:'a²',contrib:1},{text:'−b²',contrib:-1}] },
+  { cond:'a > b > 0 のとき', n:2,
+    note:'a > b より b²−a² < 0 → 負',
+    text:'b²−a²', answer:'negative',
+    parts:[{text:'b²',contrib:1},{text:'−a²',contrib:-1}] },
+  { cond:'a > b > 0 のとき', n:3,
+    note:'a−b > 0 かつ a² > 0 なので正',
+    text:'a²+a−b', answer:'positive',
+    parts:[{text:'a²',contrib:1},{text:'+a',contrib:1},{text:'−b',contrib:-1}] },
+  { cond:'a > b > 0 のとき', n:3,
+    note:'a−b > 0 だが −a² < 0 のため不確定',
+    text:'a−b−a²', answer:'both',
+    parts:[{text:'a',contrib:1},{text:'−b',contrib:-1},{text:'−a²',contrib:-1}] },
+
+  /* ══ b > a > 0 のとき ══ */
+  { cond:'b > a > 0 のとき', n:2,
+    note:'b > a より b−a > 0 → 正',
+    text:'b−a', answer:'positive',
+    parts:[{text:'b',contrib:1},{text:'−a',contrib:-1}] },
+  { cond:'b > a > 0 のとき', n:2,
+    note:'b > a より a−b < 0 → 負',
+    text:'a−b', answer:'negative',
+    parts:[{text:'a',contrib:1},{text:'−b',contrib:-1}] },
+  { cond:'b > a > 0 のとき', n:2,
+    note:'b > a より b²−a² > 0 → 正',
+    text:'b²−a²', answer:'positive',
+    parts:[{text:'b²',contrib:1},{text:'−a²',contrib:-1}] },
+  { cond:'b > a > 0 のとき', n:2,
+    note:'b > a より a²−b² < 0 → 負',
+    text:'a²−b²', answer:'negative',
+    parts:[{text:'a²',contrib:1},{text:'−b²',contrib:-1}] },
+  { cond:'b > a > 0 のとき', n:3,
+    note:'b−a > 0 かつ b² > 0 なので正',
+    text:'b²+b−a', answer:'positive',
+    parts:[{text:'b²',contrib:1},{text:'+b',contrib:1},{text:'−a',contrib:-1}] },
+  { cond:'b > a > 0 のとき', n:3,
+    note:'b−a > 0 だが −b² < 0 のため不確定',
+    text:'b−a−b²', answer:'both',
+    parts:[{text:'b',contrib:1},{text:'−a',contrib:-1},{text:'−b²',contrib:-1}] },
+
+  /* ══ 0 > a > b のとき（両方負、a が 0 に近い） ══ */
+  { cond:'0 > a > b のとき', n:2,
+    note:'a > b より a−b > 0 → 正（負の数の大小に注意）',
+    text:'a−b', answer:'positive',
+    parts:[{text:'a',contrib:-1},{text:'−b',contrib:1}] },
+  { cond:'0 > a > b のとき', n:2,
+    note:'a > b より b−a < 0 → 負',
+    text:'b−a', answer:'negative',
+    parts:[{text:'b',contrib:-1},{text:'−a',contrib:1}] },
+  { cond:'0 > a > b のとき', n:2,
+    note:'0 > a > b より aの方が0に近く、a²はb²より小さい → a²−b² < 0 → 負',
+    text:'a²−b²', answer:'negative',
+    parts:[{text:'a²',contrib:1},{text:'−b²',contrib:-1}] },
+  { cond:'0 > a > b のとき', n:2,
+    note:'0 > a > b より aの方が0に近く、b²はa²より大きい → b²−a² > 0 → 正',
+    text:'b²−a²', answer:'positive',
+    parts:[{text:'b²',contrib:1},{text:'−a²',contrib:-1}] },
+  { cond:'0 > a > b のとき', n:3,
+    note:'a−b > 0 かつ −b² < 0 のため不確定',
+    text:'a−b−b²', answer:'both',
+    parts:[{text:'a',contrib:-1},{text:'−b',contrib:1},{text:'−b²',contrib:-1}] },
+
+  /* ══ 0 > b > a のとき（両方負、b が 0 に近い） ══ */
+  { cond:'0 > b > a のとき', n:2,
+    note:'b > a より a−b < 0 → 負（負の数の大小に注意）',
+    text:'a−b', answer:'negative',
+    parts:[{text:'a',contrib:-1},{text:'−b',contrib:1}] },
+  { cond:'0 > b > a のとき', n:2,
+    note:'b > a より b−a > 0 → 正',
+    text:'b−a', answer:'positive',
+    parts:[{text:'b',contrib:-1},{text:'−a',contrib:1}] },
+  { cond:'0 > b > a のとき', n:2,
+    note:'0 > b > a より bの方が0に近く、a²はb²より大きい → a²−b² > 0 → 正',
+    text:'a²−b²', answer:'positive',
+    parts:[{text:'a²',contrib:1},{text:'−b²',contrib:-1}] },
+  { cond:'0 > b > a のとき', n:2,
+    note:'0 > b > a より bの方が0に近く、b²はa²より小さい → b²−a² < 0 → 負',
+    text:'b²−a²', answer:'negative',
+    parts:[{text:'b²',contrib:1},{text:'−a²',contrib:-1}] },
+  { cond:'0 > b > a のとき', n:3,
+    note:'b−a > 0 かつ −a² < 0 のため不確定',
+    text:'b−a−a²', answer:'both',
+    parts:[{text:'b',contrib:-1},{text:'−a',contrib:1},{text:'−a²',contrib:-1}] },
+];
+var AI = [0,1,2,3], BI = [4,5,6,7], ALL = [0,1,2,3,4,5,6,7];
+
+function pickW(pool, used) {
+  var av = pool.filter(function(i){ return !used.has(i); });
+  if (!av.length) return null;
+  var tot = av.reduce(function(s,i){ return s + TERMS[i].wt; }, 0);
+  var r = Math.random() * tot;
+  for (var j = 0; j < av.length; j++) {
+    r -= TERMS[av[j]].wt;
+    if (r <= 0) { used.add(av[j]); return av[j]; }
+  }
+  used.add(av[av.length-1]); return av[av.length-1];
+}
+
+var termCount = 2;
+
+/* 条件表示：通常バンドと大小条件バンドを切り替え */
+function showCondMode(condText) {
+  var normal  = document.getElementById('cond-normal');
+  var special = document.getElementById('cond-special');
+  if (condText) {
+    normal.style.display  = 'none';
+    special.textContent   = condText;
+    special.style.display = 'block';
+  } else {
+    normal.style.display  = 'block';
+    special.style.display = 'none';
+  }
+}
+
+/* 条件問題を生成 */
+function genCond() {
+  var pool = CPROB.filter(function(p){ return p.n === termCount; });
+  if (!pool.length) pool = CPROB;
+  var p = pool[Math.floor(Math.random() * pool.length)];
+  return {
+    text: p.text, answer: p.answer, parts: p.parts,
+    hasBracket: false,
+    isCond: true, condNote: p.note, cond: p.cond
+  };
+}
+
+/* 通常問題を生成 */
+function genNormal() {
+  var used = new Set(), idxs = [];
+  var ai = pickW(AI, used); if (ai != null) idxs.push(ai);
+  var bi = pickW(BI, used); if (bi != null) idxs.push(bi);
+  for (var k = 2; k < termCount; k++) {
+    var x = pickW(ALL, used); if (x != null) idxs.push(x);
+  }
+  idxs.sort(function(){ return Math.random() - 0.5; });
+
+  var text = '', parts = [], bracketUsed = false, hasBracket = false;
+  for (var i = 0; i < idxs.length; i++) {
+    var t = TERMS[idxs[i]], pt, contrib;
+    if (i === 0) {
+      if (Math.random() < 0.35) { pt = '−' + t.h; contrib = -t.s; }
+      else                       { pt = t.h;         contrib =  t.s; }
+    } else {
+      var wb = !bracketUsed && Math.random() < 0.32;
+      if (wb) {
+        bracketUsed = hasBracket = true;
+        if (Math.random() < 0.55) { pt = '−(−' + t.h + ')'; contrib =  t.s; }
+        else                       { pt = '+(−' + t.h + ')'; contrib = -t.s; }
+      } else if (Math.random() < 0.5) { pt = '+' + t.h; contrib =  t.s; }
+      else                            { pt = '−' + t.h; contrib = -t.s; }
+    }
+    text += pt;
+    parts.push({text: pt, contrib: contrib, why: t.why});
+  }
+  var hasP = parts.some(function(p){ return p.contrib > 0; });
+  var hasN = parts.some(function(p){ return p.contrib < 0; });
+  var answer = (hasP && hasN) ? 'both' : hasP ? 'positive' : 'negative';
+  return {text: text, answer: answer, parts: parts, hasBracket: hasBracket, isCond: false};
+}
+
+/* 25% の確率で大小条件問題 */
+function gen() {
+  var q = (Math.random() < 0.25) ? genCond() : genNormal();
+  showCondMode(q.isCond ? q.cond : null);
+  return q;
+}
+
+var $expr   = document.getElementById('expr');
+var $qcard  = document.getElementById('qcard');
+var $fb     = document.getElementById('fb');
+var $fbHead = document.getElementById('fb-head');
+var $fbChip = document.getElementById('fb-chips');
+var $fbNote = document.getElementById('fb-note');
+var $nx     = document.getElementById('nx');
+var $btns   = {
+  positive: document.getElementById('bp'),
+  negative: document.getElementById('bn'),
+  both:     document.getElementById('bb'),
+};
+var st  = {c:0, t:0, s:0, q:1, done:false};
+var cur = null;
+
+function renderScore() {
+  document.getElementById('sc-c').textContent = st.c;
+  document.getElementById('sc-t').textContent = st.t;
+  document.getElementById('sc-s').textContent = st.s;
+  document.getElementById('qnum').textContent = '問題 ' + st.q;
+}
+
+function ans(choice) {
+  if (st.done) return;
+  st.done = true; st.t++;
+  Object.values($btns).forEach(function(b){ b.disabled = true; });
+  var correct = (choice === cur.answer);
+  if (correct) {
+    st.c++; st.s++;
+    $btns[choice].classList.add('hit', 'do-pop');
+  } else {
+    st.s = 0;
+    $btns[choice].classList.add('miss', 'do-shake');
+    $btns[cur.answer].classList.add('hit');
+  }
+  var LBL = {positive:'正', negative:'負', both:'両方'};
+  $fb.className = 'fb show ' + (correct ? 'ok' : 'ng');
+  $fbHead.textContent = correct
+    ? '✓ 正解！'
+    : '✗ 不正解。正解は「' + LBL[cur.answer] + '」';
+  $fbChip.innerHTML = '';
+  cur.parts.forEach(function(p) {
+    var chip = document.createElement('span');
+    chip.className = 'chip ' + (p.contrib > 0 ? 'pos' : 'neg');
+    chip.textContent = p.text + ' → ' + (p.contrib > 0 ? '正' : '負');
+    $fbChip.appendChild(chip);
+  });
+  $fbNote.textContent = cur.isCond
+    ? cur.condNote
+    : cur.hasBracket
+      ? '※ −(−x) は二重否定で x と同符号、+(−x) は x の符号が反転します'
+      : '';
+  renderScore();
+  $nx.classList.add('show');
+}
+
+function nextQ() {
+  if (!st.done) return;
+  st.done = false; st.q++;
+  $qcard.classList.add('out');
+  setTimeout(function() {
+    cur = gen();
+    $expr.textContent = cur.text;
+    $qcard.classList.remove('out');
+    Object.values($btns).forEach(function(b) {
+      b.disabled = false;
+      b.classList.remove('hit', 'miss', 'do-pop', 'do-shake');
+    });
+    $fb.className = 'fb';
+    $nx.classList.remove('show');
+    renderScore();
+  }, 230);
+}
+
+function setTerms(n) {
+  termCount = n;
+  document.getElementById('ts2').classList.toggle('active', n === 2);
+  document.getElementById('ts3').classList.toggle('active', n === 3);
+  if (!st.done) {
+    cur = gen();
+    $expr.textContent = cur.text;
+    renderScore();
+  }
+}
+
+document.addEventListener('keydown', function(e) {
+  if      (e.key === '1') ans('positive');
+  else if (e.key === '2') ans('negative');
+  else if (e.key === '3') ans('both');
+  else if (e.key === ' ' && st.done) { e.preventDefault(); nextQ(); }
+});
+
+cur = gen();
+$expr.textContent = cur.text;
+renderScore();
+</script>
+</body>
+</html>

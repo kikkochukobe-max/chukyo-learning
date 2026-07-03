@@ -180,20 +180,33 @@ $detailStudentId = isset($_GET['student_id']) ? (int)$_GET['student_id'] : 0;
 
 // ============================================================
 // ランキングビュー（担当教室のみ。教室別/チェックした教室の混合どちらも可）
+// イベント期間中は台帳(ranking_events.php)で決めた教室混合を権限に関係なく見られる
+// （生徒がマイページで見ている順位と同じ集計。期間もイベント期間で固定）
 // ============================================================
 $rankView = ((string)($_GET['view'] ?? '')) === 'ranking' && $detailStudentId === 0;
 $rankData = null;
+$rankEvent = null;
+$evMode = false;
 if ($rankView) {
     require_once __DIR__ . '/api/ranking.php';
-    $cids = $_GET['cids'] ?? [];
-    if (!is_array($cids)) {
-        $cids = [$cids];
+    $rankEvent = ranking_active_event(require __DIR__ . '/api/ranking_events.php');
+    $evMode = $rankEvent !== null && (string)($_GET['ev'] ?? '') === '1';
+    if ($evMode) {
+        $evFromStr = $rankEvent['from'] . ' 00:00:00';
+        $evToStr = (new DateTimeImmutable($rankEvent['to']))->modify('+1 day')->format('Y-m-d 00:00:00');
+        $rows = ranking_rows($pdo, $rankEvent['classroom_ids'] ?? null, $evFromStr, $evToStr);
+        $cids = [];
+    } else {
+        $cids = $_GET['cids'] ?? [];
+        if (!is_array($cids)) {
+            $cids = [$cids];
+        }
+        $cids = array_values(array_intersect(array_map('intval', $cids), $allowedClassroomIds));
+        if (count($cids) === 0) {
+            $cids = $allowedClassroomIds;   // 未指定は担当全教室の混合
+        }
+        $rows = ranking_rows($pdo, $cids, $fromStr, $toStr);
     }
-    $cids = array_values(array_intersect(array_map('intval', $cids), $allowedClassroomIds));
-    if (count($cids) === 0) {
-        $cids = $allowedClassroomIds;   // 未指定は担当全教室の混合
-    }
-    $rows = ranking_rows($pdo, $cids, $fromStr, $toStr);
     $rankData = [
         'cids'   => $cids,
         'solved' => ranking_ranked($rows, 'solved'),
@@ -554,12 +567,21 @@ function qtab(array $extra): string
 <?php elseif ($rankView): ?>
   <!-- ============ ランキング ============ -->
   <div class="bar-row">
-    <a class="back" href="<?= h(qtab(['view' => null, 'cids' => null])) ?>">← 生徒一覧へ</a>
+    <a class="back" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null])) ?>">← 生徒一覧へ</a>
 <?php foreach ($periodLabels as $key => $label): ?>
-    <a class="ptab<?= $period === $key ? ' active' : '' ?>" href="<?= h(qtab(['period' => $key])) ?>"><?= h($label) ?></a>
+    <a class="ptab<?= !$evMode && $period === $key ? ' active' : '' ?>" href="<?= h(qtab(['period' => $key, 'ev' => null])) ?>"><?= h($label) ?></a>
 <?php endforeach; ?>
+<?php if ($rankEvent !== null): ?>
+    <a class="ptab<?= $evMode ? ' active' : '' ?>" style="<?= $evMode ? 'background:var(--kin);border-color:var(--kin);' : 'border-color:var(--kin);color:var(--kin);' ?>" href="<?= h(qtab(['ev' => '1'])) ?>"><?= h($rankEvent['label']) ?></a>
+<?php endif; ?>
   </div>
 
+<?php if ($evMode): ?>
+  <div class="card">
+    <h1><?= h($rankEvent['label']) ?> <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">（<?= h((new DateTimeImmutable($rankEvent['from']))->format('n/j')) ?>〜<?= h((new DateTimeImmutable($rankEvent['to']))->format('n/j')) ?>・<?= isset($rankEvent['classroom_ids']) ? '対象教室混合' : '全教室混合' ?>）</span></h1>
+    <p style="font-size:11px;color:var(--ink-soft);margin-top:4px;">生徒のマイページに表示している順位と同じ集計です（期間タブとは独立にイベント期間内の実績で集計）</p>
+  </div>
+<?php else: ?>
   <div class="card">
     <h1>ランキング <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">（<?= h($periodLabels[$period]) ?>）</span></h1>
 <?php if (count($classrooms) > 1): ?>
@@ -578,6 +600,7 @@ function qtab(array $extra): string
     <p style="font-size:11px;color:var(--ink-soft);margin-top:4px;">1教室だけチェックすると教室別、複数チェックすると混合ランキングになります</p>
 <?php endif; ?>
   </div>
+<?php endif; ?>
 
 <?php
     $rankSections = [
@@ -599,7 +622,12 @@ function qtab(array $extra): string
 <?php foreach ($list as $r): ?>
       <tr>
         <td class="num" style="font-weight:700;<?= $r['rank'] <= 3 ? 'color:var(--kin);' : '' ?>"><?= $r['rank'] ?>位</td>
-        <td><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
+        <?php // 担当外教室の生徒は詳細を開けないのでリンクにしない（イベントランキングで載りうる） ?>
+<?php if (in_array((int)$r['classroom_id'], $allowedClassroomIds, true)): ?>
+        <td><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
+<?php else: ?>
+        <td><?= h($r['student_name']) ?></td>
+<?php endif; ?>
         <td><?= h($r['classroom_name']) ?></td>
         <td><?= h(grade_label($r['grade'])) ?></td>
         <td class="num"><?= $sec['key'] === 'rate' ? $r['value'] . '%' : (int)$r['value'] ?></td>

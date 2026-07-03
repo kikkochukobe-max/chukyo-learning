@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>棒磁石の磁力線 3D｜中京個別指導学院</title>
+<meta name="description" content="中学理科「電流と磁界」の棒磁石の磁力線を3Dで学べる無料教材。名古屋市・長久手市・焼山・吉根・神丘・高針台・一社・貴船・有松・植田・志段味エリアの中学生におすすめ。中京個別指導学院が提供する無料学習コンテンツです。">
+<meta name="keywords" content="棒磁石,磁力線,電流と磁界,中学理科,方位磁針,3D教材,無料教材,中京個別指導学院,個別指導塾,名古屋,長久手,焼山,吉根,神丘,高針台,一社,貴船,有松,植田,志段味,塾,中学生,理科,勉強">
+<meta name="author" content="中京個別指導学院">
+<meta name="divp-device" content="PC・タブレット推奨">
+<meta property="og:title" content="棒磁石の磁力線 3D｜中京個別指導学院">
+<meta property="og:description" content="中学理科「電流と磁界」の磁力線を立体的に学べる無料の3D教材。名古屋・長久手の個別指導塾「中京個別指導学院」提供。">
+<meta property="og:url" content="https://chukyokobetsu.com/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="中京個別指導学院">
+<link rel="canonical" href="https://chukyokobetsu.com/">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#050510;color:#d0eeff;font-family:'Noto Sans JP',sans-serif}
+#app{display:flex;flex-direction:column;height:100vh}
+#hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;
+  background:rgba(5,8,32,.93);border-bottom:1px solid rgba(0,180,255,.2);backdrop-filter:blur(10px);flex-shrink:0;z-index:10}
+#hdr h1{font-family:'Orbitron',sans-serif;font-size:1rem;color:#00d4ff;letter-spacing:.06em}
+#hdr h1 span{color:#00ffcc}
+#school-link{font-family:'Noto Sans JP',sans-serif;font-size:.78rem;color:#aaccee;
+  text-decoration:none;letter-spacing:.05em;opacity:.85;transition:opacity .2s;white-space:nowrap;
+  border-left:1px solid rgba(0,180,255,.3);padding-left:12px;margin-left:10px;}
+#school-link:hover{opacity:1;color:#00d4ff;}
+.hbtn{background:transparent;border:1px solid rgba(0,180,255,.4);color:#00d4ff;
+  padding:7px 16px;border-radius:7px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;
+  font-size:.82rem;transition:all .2s;letter-spacing:.04em}
+.hbtn:hover{background:rgba(0,180,255,.15);box-shadow:0 0 14px rgba(0,200,255,.3)}
+.hbtn.on{background:rgba(0,200,255,.18);border-color:#00d4ff;box-shadow:0 0 18px rgba(0,200,255,.35)}
+#cw{position:relative;flex:1;overflow:hidden}
+canvas{display:block;width:100%!important;height:100%!important}
+#legend{position:absolute;top:12px;left:14px;display:flex;flex-direction:column;gap:5px;z-index:5;pointer-events:none}
+.leg{display:flex;align-items:center;gap:7px;font-size:.72rem;color:rgba(180,220,255,.75)}
+.ld{width:11px;height:11px;border-radius:50%}
+#ctrl{position:absolute;bottom:18px;right:16px;display:flex;flex-direction:column;align-items:center;gap:4px;z-index:5}
+.crow{display:flex;gap:4px;align-items:center}
+.ctip{font-size:.65rem;color:rgba(0,200,255,.45);text-align:center;margin-bottom:2px}
+.cb{width:40px;height:40px;background:rgba(4,8,28,.88);border:1px solid rgba(0,160,230,.3);
+  border-radius:8px;color:#00d4ff;font-size:1.05rem;cursor:pointer;display:flex;
+  align-items:center;justify-content:center;transition:all .15s;user-select:none;backdrop-filter:blur(4px)}
+.cb:hover{background:rgba(0,140,220,.22);box-shadow:0 0 12px rgba(0,200,255,.35);transform:scale(1.05)}
+.cb:active{transform:scale(.94)}
+.cb.sm{font-size:.65rem;color:#88bbdd;line-height:1.2;text-align:center}
+#rollarea{position:absolute;bottom:18px;left:16px;display:flex;flex-direction:column;align-items:center;gap:4px;z-index:5}
+#dragh{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  color:rgba(0,180,255,.18);font-size:.75rem;pointer-events:none;text-align:center;transition:opacity .8s;line-height:1.7}
+/* ── Practice panel ── */
+#main{display:flex;flex:1;overflow:hidden;position:relative}
+#cw{position:relative;flex:1;overflow:hidden}
+#pp{position:absolute;inset:0;overflow-y:auto;background:#f3efe5;
+  display:flex;flex-direction:column;z-index:10}
+#pp.hidden{display:none}
+/* スケール切替: 1em = 問題文サイズ。--pfs を変えれば全体が一括で伸縮する。
+   マウスPC=控えめ(〜25px) / タッチ端末(MAXHub・タブレット)=画面幅に比例して最大3倍(46px)。
+   PCとMAXHubはCSS上の画面幅が同じことがあるため、幅ではなくポインタ種別で判定する */
+#pp{--pfs:clamp(15px, 1.3vw, 25px)}
+@media (pointer:coarse){
+  #pp{--pfs:clamp(17px, 2.4vw, 46px)}
+}
+#paper{font-size:var(--pfs);padding:.8em 1.1em;display:flex;flex-direction:column;gap:.62em;
+  max-width:1800px;margin:0 auto;width:100%;font-family:'Noto Sans JP',sans-serif;background:
+  repeating-linear-gradient(transparent,transparent 1.8em,#e0d8cc 1.8em,#e0d8cc calc(1.8em + 2px))}
+.paper-hdr{display:flex;justify-content:space-between;align-items:center;
+  border-bottom:5px double #888;padding-bottom:.35em}
+.paper-title{font-size:1em;font-weight:700;color:#1a1a1a;letter-spacing:.06em}
+#sc{font-family:'Orbitron',sans-serif;font-size:.79em;color:#334;
+  background:rgba(0,0,0,.06);padding:.15em .6em;border-radius:.2em}
+#qnum{font-size:.76em;color:#666;font-weight:700;letter-spacing:.08em;margin-bottom:-.25em}
+#qq{font-size:1em;color:#111;line-height:1.85;margin-left:4px}
+.diagram-wrap{display:flex;gap:1.1em;justify-content:center;flex-wrap:wrap;
+  background:white;border-radius:.38em;padding:.65em .55em;border:1px solid #ccc;
+  box-shadow:inset 0 1px 4px rgba(0,0,0,.06)}
+.view-block{display:flex;flex-direction:column;align-items:center;gap:.28em}
+.view-lbl{font-size:.74em;color:#555;font-weight:700;letter-spacing:.04em}
+.hint-text{font-size:.72em;color:#888;text-align:center;font-style:italic}
+#choices{display:grid;grid-template-columns:repeat(4,1fr);gap:.62em}
+.ch{background:white;border:.09em solid #c0bbb0;border-radius:.42em;padding:.45em .22em;
+  cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:.18em;
+  transition:all .15s;font-size:.65em;color:#444;font-family:'Noto Sans JP',sans-serif;
+  line-height:1.3}
+.view-block svg{width:clamp(180px, 16vw, 300px);height:auto}
+.ch svg{width:clamp(90px, 9vw, 170px);max-width:100%;height:auto}
+@media (pointer:coarse){
+  .view-block svg{width:clamp(200px, 22vw, 420px)}
+  .ch svg{width:clamp(110px, 13.5vw, 260px)}
+}
+.ch:hover:not(:disabled){border-color:#2255cc;background:#eef2ff;
+  box-shadow:0 2px 10px rgba(40,80,200,.15);transform:translateY(-1px)}
+.ch.ok{border-color:#1a8a50;background:#dff5ea;box-shadow:0 0 10px rgba(26,138,80,.3)}
+.ch.ng{border-color:#cc3333;background:#fff0f0;opacity:.6}
+.ch:disabled{cursor:default;transform:none}
+#fb{font-size:.9em;color:#111;line-height:1.7;background:rgba(255,255,255,.7);
+  border-radius:.28em;padding:.42em .65em;border-left:.19em solid #aaa;min-height:2.2em}
+.qfoot{display:flex;justify-content:flex-end;padding-top:.18em}
+#nxt{display:none;background:#1a55b5;border:none;border-radius:.36em;color:white;
+  padding:.5em 1.45em;cursor:pointer;font-family:'Noto Sans JP',sans-serif;
+  font-size:.93em;font-weight:700;letter-spacing:.04em;transition:all .16s}
+#nxt:hover{background:#2468d0;box-shadow:0 2px 12px rgba(26,85,181,.35)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hdr">
+    <h1>🧲 棒磁石の磁力線 <span>3D</span><a id="school-link" href="https://chukyokobetsu.com/" target="_blank" rel="noopener">中京個別指導学院</a></h1>
+    <div style="display:flex;gap:8px">
+      <button class="hbtn" id="autobtn">🔄 自動回転</button>
+      <button class="hbtn" id="modetgl">🎯 練習モード</button>
+    </div>
+  </div>
+  <div id="main">
+  <div id="cw">
+    <canvas id="c"></canvas>
+    <div id="legend">
+      <div class="leg"><div class="ld" style="background:#ff2233"></div>N極（北極）</div>
+      <div class="leg"><div class="ld" style="background:#2244ff"></div>S極（南極）</div>
+      <div class="leg"><div class="ld" style="background:#00ffcc;border-radius:2px;width:18px;height:3px"></div>磁力線</div>
+      <div class="leg" style="margin-top:4px;color:rgba(120,180,255,.5);font-size:.65rem">ドラッグ：視点変更 ｜ ホイール：ズーム</div>
+    </div>
+    <div id="ctrl">
+      <div class="ctip">磁石を回転</div>
+      <div class="crow"><button class="cb" id="bu" title="上に傾ける">↑</button></div>
+      <div class="crow">
+        <button class="cb" id="bl" title="左に回す">←</button>
+        <button class="cb sm" id="brst">↺<br>reset</button>
+        <button class="cb" id="br" title="右に回す">→</button>
+      </div>
+      <div class="crow"><button class="cb" id="bd" title="下に傾ける">↓</button></div>
+    </div>
+    <div id="rollarea">
+      <div class="ctip">ロール</div>
+      <button class="cb" id="brl" title="反時計回り">↺</button>
+      <button class="cb" id="brr" title="時計回り">↻</button>
+    </div>
+    <div id="dragh">マウスドラッグで視点変更<br>ホイールでズーム</div>
+  </div><!-- /#cw -->
+  <div id="pp" class="hidden">
+    <div id="paper">
+      <div class="paper-hdr">
+        <span class="paper-title">📋 方位磁針の問題</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button id="resetbtn" title="最初からやり直す" style="background:none;border:2px solid #bbb;border-radius:.25em;font-size:.72em;color:#888;padding:.12em .55em;cursor:pointer;">↺ リセット</button>
+          <span id="sc">正解: 0 / 0 問</span>
+        </div>
+      </div>
+      <div id="qnum"></div>
+      <p id="qq"></p>
+      <div class="diagram-wrap" id="diagram-wrap"></div>
+      <p class="hint-text">💡 左の3D画面を回転させて考えてみよう</p>
+      <div id="choices"></div>
+      <div id="fb"></div>
+      <div class="qfoot">
+        <button id="nxt">次の問題 →</button>
+      </div>
+    </div>
+  </div><!-- /#pp -->
+</div><!-- /#main -->
+
+<script>
+// ── Scene ──────────────────────────────────────────────
+const canvas=document.getElementById('c');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setClearColor(0x050510,1);
+
+const scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x050510,.04);
+
+const camera=new THREE.PerspectiveCamera(55,1,.1,200);
+let camTheta=.5,camPhi=1.05,camR=9;
+function setCam(){
+  camera.position.set(
+    camR*Math.sin(camPhi)*Math.sin(camTheta),
+    camR*Math.cos(camPhi),
+    camR*Math.sin(camPhi)*Math.cos(camTheta));
+  camera.lookAt(0,0,0);
+}
+setCam();
+
+function resize(){
+  const w=canvas.parentElement.clientWidth,h=canvas.parentElement.clientHeight;
+  renderer.setSize(w,h,false);
+  camera.aspect=w/h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize',resize);
+resize();
+
+// ── Lighting ───────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0x0d1a44,2.4));
+const dl=new THREE.DirectionalLight(0xffffff,.5);
+dl.position.set(5,10,7); scene.add(dl);
+const nPL=new THREE.PointLight(0xff3344,3,7);
+const sPL=new THREE.PointLight(0x3355ff,3,7);
+scene.add(nPL,sPL);
+
+// ── Grid ───────────────────────────────────────────────
+scene.add(new THREE.GridHelper(24,24,0x0c1a3a,0x071026));
+
+// ── Magnet (local: N pole = +Z, S pole = -Z) ──────────
+const MAG_L=2.4,MAG_R=.32;
+const mg=new THREE.Group();
+scene.add(mg);
+
+const MAG_W=MAG_R*2, MAG_H=MAG_R*2; // width / height of cuboid
+
+// N half (red)
+const nHalf=new THREE.Mesh(new THREE.BoxGeometry(MAG_W,MAG_H,MAG_L),
+    new THREE.MeshPhongMaterial({color:0xff2233,emissive:0x550011,specular:0xff7799,shininess:90}));
+nHalf.position.z=MAG_L/2; mg.add(nHalf);
+
+// S half (blue)
+const sHalf=new THREE.Mesh(new THREE.BoxGeometry(MAG_W,MAG_H,MAG_L),
+    new THREE.MeshPhongMaterial({color:0x2244ff,emissive:0x001155,specular:0x7799ff,shininess:90}));
+sHalf.position.z=-MAG_L/2; mg.add(sHalf);
+
+// Divider line (thin box)
+const sep=new THREE.Mesh(
+  new THREE.BoxGeometry(MAG_W+.04,MAG_H+.04,.04),
+  new THREE.MeshPhongMaterial({color:0xccddee,shininess:120}));
+mg.add(sep);
+
+// N/S labels
+function mkLbl(txt,col){
+  const cv=document.createElement('canvas'); cv.width=cv.height=128;
+  const ctx=cv.getContext('2d');
+  ctx.font='bold 74px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle=col; ctx.fillText(txt,64,64);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false}));
+  sp.scale.set(.55,.55,1); return sp;
+}
+const nLbl=mkLbl('N','#ff9aaa'); nLbl.position.z=MAG_L+.08; mg.add(nLbl);
+const sLbl=mkLbl('S','#99aaff'); sLbl.position.z=-(MAG_L+.08); mg.add(sLbl);
+
+// ── Two-monopole magnetic field ────────────────────────
+// More realistic than pure dipole: two magnetic charges at ±MAG_L
+function magField(x,y,z){
+  const L=MAG_L;
+  // N pole at (0,0,+L)
+  const nx=x,ny=y,nz=z-L;
+  const nr2=nx*nx+ny*ny+nz*nz;
+  if(nr2<.0064) return new THREE.Vector3(0,0,0);
+  const nr3=nr2*Math.sqrt(nr2);
+  // S pole at (0,0,-L)
+  const sx=x,sy=y,sz=z+L;
+  const sr2=sx*sx+sy*sy+sz*sz;
+  if(sr2<.0064) return new THREE.Vector3(0,0,0);
+  const sr3=sr2*Math.sqrt(sr2);
+  return new THREE.Vector3(nx/nr3-sx/sr3,ny/nr3-sy/sr3,nz/nr3-sz/sr3);
+}
+
+// ── Field line tracing ─────────────────────────────────
+function traceFL(x0,y0,z0){
+  const pts=[new THREE.Vector3(x0,y0,z0)];
+  let x=x0,y=y0,z=z0;
+  for(let i=0;i<1400;i++){
+    const B=magField(x,y,z),bl=B.length();
+    if(bl<1e-8) break;
+    x+=.036*B.x/bl; y+=.036*B.y/bl; z+=.036*B.z/bl;
+    if(x*x+y*y+z*z>110) break;
+    if(x*x+y*y+(z+MAG_L)*(z+MAG_L)<.05) break; // near S pole
+    pts.push(new THREE.Vector3(x,y,z));
+  }
+  return pts;
+}
+
+// S極起点：-B方向にトレース（N→S方向と逆）
+function traceFLNeg(x0,y0,z0){
+  const pts=[new THREE.Vector3(x0,y0,z0)];
+  let x=x0,y=y0,z=z0;
+  for(let i=0;i<1400;i++){
+    const B=magField(x,y,z),bl=B.length();
+    if(bl<1e-8) break;
+    x-=.036*B.x/bl; y-=.036*B.y/bl; z-=.036*B.z/bl;
+    if(x*x+y*y+z*z>110) break;
+    if(x*x+y*y+(z-MAG_L)*(z-MAG_L)<.05) break; // near N pole
+    pts.push(new THREE.Vector3(x,y,z));
+  }
+  return pts;
+}
+
+// Build field lines group and attach to magnet group
+function buildFLGroup(){
+  const grp=new THREE.Group();
+  const R0=.42;
+
+  // N極側（+B方向にトレース）
+  addFLRings(grp,(t,phi,R0)=>{
+    const pts=traceFL(
+      R0*Math.sin(t)*Math.cos(phi),
+      R0*Math.sin(t)*Math.sin(phi),
+      MAG_L+R0*Math.cos(t));
+    return pts;
+  },R0);
+
+  // S極側（-B方向にトレースして反転→N→S方向に揃える）
+  addFLRings(grp,(t,phi,R0)=>{
+    const pts=traceFLNeg(
+      R0*Math.sin(t)*Math.cos(phi),
+      R0*Math.sin(t)*Math.sin(phi),
+      -MAG_L-R0*Math.cos(t));
+    pts.reverse();
+    return pts;
+  },R0);
+
+  return grp;
+}
+
+// N極・S極共通のリング処理
+function addFLRings(grp, startFn, R0){
+  [{t:.28,n:6},{t:.60,n:8},{t:.92,n:8},{t:1.22,n:6},{t:1.40,n:8},{t:1.55,n:8},{t:1.65,n:6}].forEach(ring=>{
+    for(let i=0;i<ring.n;i++){
+      const phi=2*Math.PI*i/ring.n;
+      const pts=startFn(ring.t,phi,R0);
+      if(pts.length<5) return;
+      const cols=[];
+      for(let j=0;j<pts.length;j++){
+        const t=j/(pts.length-1);
+        cols.push(0,1-t*.85,.8+t*.2);
+      }
+      const geo=new THREE.BufferGeometry().setFromPoints(pts);
+      geo.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));
+      grp.add(new THREE.Line(geo,new THREE.LineBasicMaterial({
+        vertexColors:true,transparent:true,opacity:.92,
+        blending:THREE.AdditiveBlending,depthWrite:false})));
+      [0.30,0.55,0.75].forEach(frac=>{
+        const idx=Math.floor(frac*(pts.length-2));
+        if(idx<0||idx+1>=pts.length)return;
+        const p=pts[idx];
+        const dir=new THREE.Vector3().subVectors(pts[idx+1],pts[idx]).normalize();
+        const t=frac;
+        const coneMat=new THREE.MeshBasicMaterial({
+          color:new THREE.Color(t*.85,1-t*.85,0.8+t*.2),transparent:true,opacity:.85,
+          blending:THREE.AdditiveBlending,depthWrite:false});
+        const cone=new THREE.Mesh(new THREE.ConeGeometry(.06,.18,8),coneMat);
+        cone.position.copy(p);
+        cone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir);
+        grp.add(cone);
+      });
+    }
+  });
+}
+mg.add(buildFLGroup());
+
+// ── Compass marker (practice mode) ─────────────────────
+const markerMat=new THREE.MeshPhongMaterial({color:0xffcc00,emissive:0xaa7700,transparent:true,opacity:.92});
+const marker=new THREE.Mesh(new THREE.SphereGeometry(.17,16,16),markerMat);
+marker.visible=false; scene.add(marker);
+
+const glowRing=new THREE.Mesh(
+  new THREE.TorusGeometry(.24,.038,8,32),
+  new THREE.MeshBasicMaterial({color:0xffee00,transparent:true,opacity:.55,
+    blending:THREE.AdditiveBlending,depthWrite:false}));
+marker.add(glowRing);
+
+const arrowH=new THREE.ArrowHelper(
+  new THREE.Vector3(1,0,0),new THREE.Vector3(0,0,0),.92,0xffff00,.22,.13);
+arrowH.visible=false; scene.add(arrowH);
+
+// ── Camera orbit ───────────────────────────────────────
+let drag=false,mx=0,my=0,hintGone=false;
+const dragh=document.getElementById('dragh');
+
+canvas.addEventListener('mousedown',e=>{
+  drag=true;mx=e.clientX;my=e.clientY;
+  if(!hintGone){dragh.style.opacity='0';hintGone=true;}
+});
+window.addEventListener('mousemove',e=>{
+  if(!drag)return;
+  camTheta-=(e.clientX-mx)*.008;
+  camPhi=Math.max(.12,Math.min(Math.PI-.12,camPhi+(e.clientY-my)*.008));
+  setCam();mx=e.clientX;my=e.clientY;
+});
+window.addEventListener('mouseup',()=>drag=false);
+
+// Touch orbit
+canvas.addEventListener('touchstart',e=>{drag=true;mx=e.touches[0].clientX;my=e.touches[0].clientY;e.preventDefault();},{passive:false});
+canvas.addEventListener('touchmove',e=>{
+  if(!drag)return;
+  camTheta-=(e.touches[0].clientX-mx)*.008;
+  camPhi=Math.max(.12,Math.min(Math.PI-.12,camPhi+(e.touches[0].clientY-my)*.008));
+  setCam();mx=e.touches[0].clientX;my=e.touches[0].clientY;e.preventDefault();
+},{passive:false});
+canvas.addEventListener('touchend',()=>drag=false);
+
+// Wheel zoom
+canvas.addEventListener('wheel',e=>{
+  camR=Math.max(4,Math.min(20,camR+e.deltaY*.012));setCam();e.preventDefault();
+},{passive:false});
+
+setTimeout(()=>dragh.style.opacity='0',5000);
+
+// ── Magnet rotation ─────────────────────────────────────
+const RS=.115;
+let autoRot=false;
+
+function rotMag(axis,ang){
+  mg.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(axis,ang));
+}
+
+document.getElementById('bu').onclick=()=>rotMag(new THREE.Vector3(1,0,0),-RS);
+document.getElementById('bd').onclick=()=>rotMag(new THREE.Vector3(1,0,0), RS);
+document.getElementById('bl').onclick=()=>rotMag(new THREE.Vector3(0,1,0),-RS);
+document.getElementById('br').onclick=()=>rotMag(new THREE.Vector3(0,1,0), RS);
+document.getElementById('brl').onclick=()=>rotMag(new THREE.Vector3(0,0,1),-RS);
+document.getElementById('brr').onclick=()=>rotMag(new THREE.Vector3(0,0,1), RS);
+document.getElementById('brst').onclick=()=>{
+  mg.quaternion.identity();autoRot=false;
+  document.getElementById('autobtn').classList.remove('on');
+};
+document.getElementById('autobtn').onclick=function(){
+  autoRot=!autoRot;this.classList.toggle('on',autoRot);
+};
+
+// ── Practice mode ───────────────────────────────────────
+let practiceMode=false,score=0,total=0,qCount=0,curAns=null,answered=false,lastQKey='';
+
+// 問題の位置タイプ（磁石ローカル座標）
+const Q_TYPES=[
+  {key:'above',   local:()=>new THREE.Vector3(0,3.5,0),           lbl:'磁石の真ん中の真上'},
+  {key:'below',   local:()=>new THREE.Vector3(0,-3.5,0),          lbl:'磁石の真ん中の真下'},
+  {key:'sideR',   local:()=>new THREE.Vector3(3.5,0,0),           lbl:'磁石の真ん中の真横（右）'},
+  {key:'sideL',   local:()=>new THREE.Vector3(-3.5,0,0),          lbl:'磁石の真ん中の真横（左）'},
+  {key:'Nfront',  local:()=>new THREE.Vector3(0,0,MAG_L+1.8),    lbl:'N極のすぐ前'},
+  {key:'Sfront',  local:()=>new THREE.Vector3(0,0,-(MAG_L+1.8)), lbl:'S極のすぐ前'},
+];
+
+function worldField(wp){
+  const invQ=mg.quaternion.clone().invert();
+  const lp=wp.clone().applyQuaternion(invQ);
+  const Bl=magField(lp.x,lp.y,lp.z);
+  return Bl.applyQuaternion(mg.quaternion);
+}
+
+// 上から見た方位磁針SVG（答えの選択肢）
+// angleFromNorth: +Zから時計回りのラジアン
+function topCompassSVG(ang, sz=64){
+  const cx=sz/2, cy=sz/2, r=sz/2-sz*0.045;
+  const sa=ang-Math.PI/2; // SVGアングル (0=右=東)
+  const len=r*0.72, hw=sz*0.062;
+  const nx=cx+Math.cos(sa)*len, ny=cy+Math.sin(sa)*len;
+  const sx=cx-Math.cos(sa)*len, sy=cy-Math.sin(sa)*len;
+  const px=Math.cos(sa+Math.PI/2)*hw, py=Math.sin(sa+Math.PI/2)*hw;
+  const nP=`${nx.toFixed(1)},${ny.toFixed(1)} ${(cx+px).toFixed(1)},${(cy+py).toFixed(1)} ${(cx-px).toFixed(1)},${(cy-py).toFixed(1)}`;
+  const sP=`${sx.toFixed(1)},${sy.toFixed(1)} ${(cx+px).toFixed(1)},${(cy+py).toFixed(1)} ${(cx-px).toFixed(1)},${(cy-py).toFixed(1)}`;
+  return `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="white" stroke="#aaa" stroke-width="${(sz/48).toFixed(1)}"/>
+    <line x1="${cx}" y1="${cy-r+2}" x2="${cx}" y2="${cy+r-2}" stroke="#e8e8e8" stroke-width="${Math.max(1,sz/90).toFixed(1)}"/>
+    <line x1="${cx-r+2}" y1="${cy}" x2="${cx+r-2}" y2="${cy}" stroke="#e8e8e8" stroke-width="${Math.max(1,sz/90).toFixed(1)}"/>
+    <polygon points="${sP}" fill="#3355ff"/>
+    <polygon points="${nP}" fill="#ff2222"/>
+    <circle cx="${cx}" cy="${cy}" r="${(sz/28).toFixed(1)}" fill="#444"/>
+  </svg>`;
+}
+
+// 凸包
+function convexHull(pts){
+  if(pts.length<3)return pts;
+  pts=pts.slice().sort((a,b)=>a.x-b.x||a.y-b.y);
+  const cross=(O,A,B)=>(A.x-O.x)*(B.y-O.y)-(A.y-O.y)*(B.x-O.x);
+  const lo=[],hi=[];
+  for(const p of pts){while(lo.length>=2&&cross(lo[lo.length-2],lo[lo.length-1],p)<=0)lo.pop();lo.push(p);}
+  for(let i=pts.length-1;i>=0;i--){const p=pts[i];while(hi.length>=2&&cross(hi[hi.length-2],hi[hi.length-1],p)<=0)hi.pop();hi.push(p);}
+  hi.pop();lo.pop();return lo.concat(hi);
+}
+
+function buildDiagramSVG(projFn,compassWP,axTop,axRight,W=140,H=140,sc=22,compassOpacity=1){
+  const cx=W/2,cy=H/2;
+  const p2=v=>{const r=projFn(v);return{x:cx+r.x*sc,y:cy+r.y*sc};};
+  const hw=MAG_W/2,hh=MAG_H/2;
+  const halfC=(z0,z1)=>{const cs=[];for(const x of[-hw,hw])for(const y of[-hh,hh])for(const z of[z0,z1])cs.push(new THREE.Vector3(x,y,z).applyQuaternion(mg.quaternion));return cs;};
+  const pS=arr=>arr.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const nH=convexHull(halfC(0,MAG_L).map(p2));
+  const sH=convexHull(halfC(-MAG_L,0).map(p2));
+  const cp=p2(compassWP);
+  const u=W/190; // 190px基準のスケール係数（文字・線幅・マーカーを比例拡大）
+  const mr=9*u;
+  // N/Sラベルは極の先端ではなく各半分の中央寄りに置き、枠外に出ないようクランプ
+  const lblM=8*u;
+  const clampP=p=>({x:Math.max(lblM,Math.min(W-lblM,p.x)),y:Math.max(lblM,Math.min(H-lblM,p.y))});
+  const nC=clampP(p2(new THREE.Vector3(0,0,MAG_L*.6).applyQuaternion(mg.quaternion)));
+  const sC=clampP(p2(new THREE.Vector3(0,0,-MAG_L*.6).applyQuaternion(mg.quaternion)));
+  const cpx=Math.max(mr,Math.min(W-mr,cp.x)),cpy=Math.max(mr,Math.min(H-mr,cp.y));
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <rect width="${W}" height="${H}" fill="white" rx="${4*u}"/>
+    <line x1="${cx}" y1="3" x2="${cx}" y2="${H-3}" stroke="#eee" stroke-width="${u.toFixed(1)}"/>
+    <line x1="3" y1="${cy}" x2="${W-3}" y2="${cy}" stroke="#eee" stroke-width="${u.toFixed(1)}"/>
+    <text x="${cx+3*u}" y="${12*u}" font-size="${9*u}" fill="#ccc" font-family="sans-serif">${axTop}</text>
+    <text x="${W-14*u}" y="${cy-3*u}" font-size="${9*u}" fill="#ccc" font-family="sans-serif">${axRight}</text>
+    <polygon points="${pS(sH)}" fill="#4466ff" opacity="0.88"/>
+    <polygon points="${pS(nH)}" fill="#ff3333" opacity="0.88"/>
+    <polygon points="${pS(sH)}" fill="none" stroke="#2233aa" stroke-width="${u.toFixed(1)}"/>
+    <polygon points="${pS(nH)}" fill="none" stroke="#aa1111" stroke-width="${u.toFixed(1)}"/>
+    <text x="${nC.x}" y="${nC.y+4*u}" text-anchor="middle" font-size="${9*u}" font-weight="bold" fill="white" font-family="sans-serif">N</text>
+    <text x="${sC.x}" y="${sC.y+4*u}" text-anchor="middle" font-size="${9*u}" font-weight="bold" fill="white" font-family="sans-serif">S</text>
+    <g opacity="${compassOpacity}">
+      <circle cx="${cpx}" cy="${cpy}" r="${mr}" fill="rgba(230,120,0,0.12)" stroke="#e07800" stroke-width="${(2.2*u).toFixed(1)}"/>
+      <text x="${cpx}" y="${cpy+5*u}" text-anchor="middle" font-size="${13*u}" fill="#e07800" font-family="sans-serif">★</text>
+    </g>
+  </svg>`;
+}
+
+function drawDiagram(container,compassWP,isBelow){
+  container.innerHTML='';
+  const projTop  =v=>({x:v.x,y:-v.z});
+  const projSide =v=>({x:v.z,y:-v.y});
+  const tDiv=document.createElement('div');
+  tDiv.className='view-block';
+  // 真下の場合、上から見た図では磁石の下に隠れているので薄く表示
+  const topOpacity = isBelow ? 0.28 : 1;
+  tDiv.innerHTML=`<div class="view-lbl">🦅 上から見た図${isBelow?' (磁石の真下)':''}</div>`
+    +buildDiagramSVG(projTop,compassWP,'N↑','E→',420,420,66,topOpacity);
+  container.appendChild(tDiv);
+  const sDiv=document.createElement('div');
+  sDiv.className='view-block';
+  sDiv.innerHTML=`<div class="view-lbl">👁 横から見た図</div>`
+    +buildDiagramSVG(projSide,compassWP,'↑上','N→',420,420,66,1);
+  container.appendChild(sDiv);
+}
+
+// 磁石の向きパターン（上から見てN極が4方向＋斜め4方向）
+const MAG_ORIS=[0,Math.PI/4,Math.PI/2,3*Math.PI/4,Math.PI,5*Math.PI/4,3*Math.PI/2,7*Math.PI/4]
+  .map(a=>new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),a));
+let lastOriIdx=-1;
+
+function newQ(){
+  answered=false;qCount++;
+  arrowH.visible=false;
+  document.getElementById('fb').textContent='';
+  document.getElementById('fb').style.borderLeftColor='#aaa';
+  document.getElementById('nxt').style.display='none';
+  document.getElementById('qnum').textContent=`問題 ${qCount}`;
+  markerMat.color.set(0xffcc00);
+
+  // 磁石の向きをランダムに変える（連続同じ方向を避ける）
+  let oriIdx;
+  do{oriIdx=Math.floor(Math.random()*MAG_ORIS.length);}while(oriIdx===lastOriIdx);
+  lastOriIdx=oriIdx;
+  mg.quaternion.copy(MAG_ORIS[oriIdx]);
+
+  // 位置タイプを選ぶ（連続同じキーを避け、水平成分が弱い場合は再抽選）
+  let qt,wp,Bw,horiz,tries=0;
+  do{
+    const pool=Q_TYPES.filter(t=>t.key!==lastQKey);
+    qt=pool[Math.floor(Math.random()*pool.length)];
+    wp=qt.local().applyQuaternion(mg.quaternion);
+    Bw=worldField(wp);
+    horiz=Math.sqrt(Bw.x*Bw.x+Bw.z*Bw.z);
+    tries++;
+  }while(horiz<0.35*Bw.length()&&tries<20);
+  lastQKey=qt.key;
+
+  marker.position.copy(wp);
+  marker.visible=true;
+
+  // 正解角度（+Z=北から時計回りラジアン）
+  const correctAngle=Math.atan2(Bw.x,Bw.z);
+
+  // 4択：90°刻みでシャッフル
+  const offsets=[0,Math.PI/2,Math.PI,-Math.PI/2];
+  for(let i=offsets.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[offsets[i],offsets[j]]=[offsets[j],offsets[i]];}
+  const choices=offsets.map(off=>({angle:correctAngle+off,isCorrect:off===0}));
+  curAns=choices.findIndex(c=>c.isCorrect);
+
+  document.getElementById('qq').innerHTML=
+    `<strong>${qt.lbl}</strong>に方位磁針を置いたとき、<br>上から見るとどの向きを指すでしょうか？`;
+
+  drawDiagram(document.getElementById('diagram-wrap'),wp,qt.key==='below');
+
+  const div=document.getElementById('choices');
+  div.innerHTML='';
+  choices.forEach((ch,i)=>{
+    const btn=document.createElement('button');
+    btn.className='ch';
+    btn.innerHTML=topCompassSVG(ch.angle,260);
+    btn.dataset.idx=i;
+    btn.onclick=()=>onAns(i,ch.isCorrect,Bw);
+    div.appendChild(btn);
+  });
+  updSc();
+}
+
+function onAns(idx,isCorrect,Bw){
+  if(answered)return;
+  answered=true;total++;
+  if(isCorrect)score++;
+  document.querySelectorAll('.ch').forEach(b=>{
+    b.disabled=true;
+    if(Number(b.dataset.idx)===curAns)b.classList.add('ok');
+    else if(Number(b.dataset.idx)===idx&&!isCorrect)b.classList.add('ng');
+  });
+  const fb=document.getElementById('fb');
+  if(isCorrect){fb.style.borderLeftColor='#1a8a50';fb.textContent='✅ 正解！磁力線の向きに方位磁針のN極が向きます。';}
+  else{fb.style.borderLeftColor='#cc3333';fb.textContent='❌ 惜しい！左の3D画面で磁力線の向きを確認しよう。';}
+  const Bn=Bw.clone().normalize();
+  arrowH.position.copy(marker.position);arrowH.setDirection(Bn);arrowH.visible=true;
+  markerMat.color.set(isCorrect?0x00ff88:0xff4444);
+  setTimeout(()=>markerMat.color.set(0xffcc00),900);
+  document.getElementById('nxt').style.display='block';
+  updSc();
+}
+
+function updSc(){
+  document.getElementById('sc').textContent=`正解: ${score} / ${total} 問`;
+}
+
+document.getElementById('modetgl').onclick=function(){
+  practiceMode=!practiceMode;
+  document.getElementById('pp').classList.toggle('hidden',!practiceMode);
+  this.classList.toggle('on',practiceMode);
+  this.textContent=practiceMode?'🔬 観察モードへ':'🎯 練習モード';
+  if(practiceMode){
+    autoRot=false;document.getElementById('autobtn').classList.remove('on');
+    if(qCount===0){score=0;total=0;newQ();}
+  }else{marker.visible=false;arrowH.visible=false;}
+};
+
+document.getElementById('resetbtn').onclick=()=>{score=0;total=0;qCount=0;newQ();updSc();};
+document.getElementById('nxt').onclick=newQ;
+
+// ── Animation loop ──────────────────────────────────────
+const clock=new THREE.Clock();
+
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=clock.getDelta(),t=clock.getElapsedTime();
+
+  if(autoRot){
+    rotMag(new THREE.Vector3(0,1,0),dt*.45);
+    rotMag(new THREE.Vector3(1,0,0),dt*.12);
+  }
+
+  // Animate compass marker
+  if(marker.visible){
+    glowRing.rotation.z=t*1.6;
+    glowRing.scale.setScalar(1+.1*Math.sin(t*3.2));
+  }
+
+  // Move coloured point lights to pole positions
+  nPL.position.copy(new THREE.Vector3(0,0,MAG_L).applyQuaternion(mg.quaternion));
+  sPL.position.copy(new THREE.Vector3(0,0,-MAG_L).applyQuaternion(mg.quaternion));
+
+  renderer.render(scene,camera);
+}
+animate();
+</script>
+</body>
+</html>

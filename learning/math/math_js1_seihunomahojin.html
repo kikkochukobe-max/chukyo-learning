@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>魔法陣 ｜ 正負の数</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Shippori+Mincho:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --panel: #1c2333;
+    --gold: #e8b84b;
+    --gold-dim: #a07828;
+    --red: #e85b4b;
+    --blue-acc: #4b8be8;
+    --text: #e8e4d8;
+    --text-dim: #8b8680;
+    --correct: #4be88a;
+    --wrong: #e85b4b;
+    --border: rgba(232,184,75,0.2);
+    --border-bright: rgba(232,184,75,0.7);
+    --cell-size: clamp(56px, 10vw, 80px);
+    --cell-size-4: clamp(46px, 8vw, 66px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Serif JP', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* 背景パターン */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(232,184,75,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,184,75,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* 角の装飾 */
+  .corner-deco {
+    position: fixed;
+    width: 120px;
+    height: 120px;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.4;
+  }
+  .corner-deco.tl { top: 0; left: 0; border-top: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+  .corner-deco.tr { top: 0; right: 0; border-top: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+  .corner-deco.bl { bottom: 0; left: 0; border-bottom: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+  .corner-deco.br { bottom: 0; right: 0; border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+
+  .wrapper {
+    position: relative;
+    z-index: 2;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+
+  /* ヘッダー */
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+    animation: fadeDown 0.7s ease both;
+  }
+
+  .title-badge {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    border: 1px solid var(--gold-dim);
+    padding: 4px 14px;
+    margin-bottom: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .site-title {
+    font-size: clamp(28px, 6vw, 42px);
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    line-height: 1.2;
+  }
+  .site-title span {
+    color: var(--gold);
+    position: relative;
+  }
+  .site-title span::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 0; right: 0;
+    height: 2px;
+    background: var(--gold);
+    transform: scaleX(0);
+    animation: underlineIn 0.6s 0.8s ease forwards;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-top: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  /* 設定パネル */
+  .settings {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .setting-group {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .setting-label {
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+    margin-bottom: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .btn-group {
+    display: flex;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .opt-btn {
+    flex: 1;
+    background: var(--surface);
+    border: none;
+    color: var(--text-dim);
+    padding: 10px 8px;
+    cursor: pointer;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 13px;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .opt-btn:not(:last-child) {
+    border-right: 1px solid var(--border);
+  }
+  .opt-btn.active {
+    background: var(--gold);
+    color: #1a1200;
+    font-weight: 700;
+  }
+  .opt-btn:not(.active):hover {
+    background: var(--panel);
+    color: var(--text);
+  }
+
+  /* メインゲームエリア */
+  .game-area {
+    animation: fadeUp 0.6s 0.35s ease both;
+  }
+
+  /* 説明カード */
+  .info-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .info-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--gold);
+  }
+  .info-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .info-text {
+    font-size: 13.5px;
+    line-height: 1.8;
+    color: var(--text);
+  }
+  .info-text strong {
+    color: var(--gold);
+  }
+
+  /* 魔法陣グリッド */
+  .grid-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .magic-grid {
+    display: grid;
+    gap: 3px;
+    background: var(--gold-dim);
+    border: 2px solid var(--gold-dim);
+    padding: 3px;
+    box-shadow: 0 0 40px rgba(232,184,75,0.1), 0 0 80px rgba(232,184,75,0.05);
+  }
+
+  .cell {
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(16px, 3vw, 22px);
+    font-weight: 700;
+    position: relative;
+    transition: background 0.2s;
+  }
+
+  /* 固定値セル */
+  .cell.given {
+    color: var(--text);
+    background: var(--panel);
+  }
+  .cell.given::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(232,184,75,0.12);
+  }
+
+  /* 空欄セル */
+  .cell.empty {
+    background: var(--bg);
+  }
+
+  .cell input {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: var(--blue-acc);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(16px, 3vw, 22px);
+    font-weight: 700;
+    text-align: center;
+    outline: none;
+    cursor: pointer;
+    caret-color: var(--gold);
+    -moz-appearance: textfield;
+  }
+  .cell input::-webkit-outer-spin-button,
+  .cell input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .cell input:focus {
+    background: rgba(75, 139, 232, 0.08);
+  }
+
+  /* 正解・不正解 */
+  .cell.correct {
+    background: rgba(75, 232, 138, 0.12) !important;
+    border: 1px solid var(--correct) !important;
+  }
+  .cell.correct input { color: var(--correct); }
+
+  .cell.wrong {
+    background: rgba(232, 91, 75, 0.12) !important;
+    border: 1px solid var(--wrong) !important;
+    animation: shake 0.3s ease;
+  }
+  .cell.wrong input { color: var(--wrong); }
+
+  /* サマリー表示（行和・列和） */
+  .sum-display {
+    display: grid;
+    margin-bottom: 20px;
+    gap: 3px;
+  }
+
+  .sum-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sum-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    width: 24px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .sum-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .sum-bar {
+    height: 100%;
+    background: var(--gold-dim);
+    transition: width 0.3s, background 0.3s;
+  }
+  .sum-bar.complete { background: var(--correct); }
+
+  .sum-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    width: 40px;
+    text-align: right;
+  }
+  .sum-val.match { color: var(--correct); }
+  .sum-val.no-match { color: var(--wrong); }
+
+  /* ボタン群 */
+  .actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease;
+    z-index: 0;
+  }
+  .btn:hover::before { transform: scaleX(1); }
+  .btn:hover { color: #1a1200; border-color: var(--gold); }
+  .btn span { position: relative; z-index: 1; }
+
+  .btn.primary {
+    background: var(--gold);
+    color: #1a1200;
+    font-weight: 700;
+    border-color: var(--gold);
+  }
+  .btn.primary::before { background: #fff; }
+  .btn.primary:hover { color: #1a1200; }
+
+  /* 結果メッセージ */
+  .result-msg {
+    text-align: center;
+    padding: 20px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.4s;
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  .result-msg.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .result-msg.success { color: var(--correct); }
+  .result-msg.error { color: var(--wrong); }
+
+  /* スコア */
+  .scoreboard {
+    display: flex;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 28px;
+    animation: fadeUp 0.6s 0.5s ease both;
+  }
+  .score-item {
+    flex: 1;
+    background: var(--surface);
+    padding: 14px 10px;
+    text-align: center;
+  }
+  .score-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .score-key {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  /* ヒント */
+  .hint-area {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    min-height: 48px;
+    margin-bottom: 16px;
+    transition: all 0.3s;
+  }
+  .hint-area.visible { color: var(--text); border-color: var(--gold-dim); }
+  .hint-area strong { color: var(--gold); }
+
+  /* 答え確認モーダル風オーバーレイ */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .overlay.show { display: flex; }
+
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border-bright);
+    padding: 36px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    animation: fadeDown 0.3s ease;
+  }
+  .modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 12px;
+    letter-spacing: 0.1em;
+  }
+  .modal-body {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+  .modal-answer-grid {
+    display: grid;
+    gap: 3px;
+    background: var(--gold-dim);
+    padding: 3px;
+    margin: 20px auto;
+  }
+  .modal-cell {
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--text);
+  }
+  .modal-cell.was-blank { color: var(--gold); }
+  .modal-btn {
+    background: var(--gold);
+    color: #1a1200;
+    border: none;
+    padding: 12px 32px;
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: opacity 0.2s;
+  }
+  .modal-btn:hover { opacity: 0.85; }
+
+  /* タイマー */
+  .timer {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: right;
+    margin-bottom: 8px;
+    letter-spacing: 0.1em;
+  }
+  .timer span { color: var(--gold); }
+
+  /* アニメーション */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes underlineIn {
+    to { transform: scaleX(1); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+  @keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    60% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .pop { animation: popIn 0.4s ease forwards; }
+
+  /* レスポンシブ */
+  @media (max-width: 480px) {
+    .wrapper { padding: 20px 12px 40px; }
+    .settings { gap: 8px; }
+    .actions { gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script>Divp.init('math_js1_seihunomahojin');</script>
+
+<div class="corner-deco tl"></div>
+<div class="corner-deco tr"></div>
+<div class="corner-deco bl"></div>
+<div class="corner-deco br"></div>
+
+<div class="wrapper">
+  <header>
+    <div class="title-badge">中１数学 ／ 正負の数</div>
+    <div class="site-title">魔法<span>陣</span>道場</div>
+    <p class="subtitle">縦・横・斜めの和がすべて等しくなるように、空欄を埋めよ</p>
+  </header>
+
+  <!-- スコア -->
+  <div class="scoreboard">
+    <div class="score-item">
+      <div class="score-val" id="score-correct">0</div>
+      <div class="score-key">正解</div>
+    </div>
+    <div class="score-item">
+      <div class="score-val" id="score-wrong">0</div>
+      <div class="score-key">不正解</div>
+    </div>
+    <div class="score-item">
+      <div class="score-val" id="score-streak">0</div>
+      <div class="score-key">連続正解</div>
+    </div>
+  </div>
+
+  <!-- 設定 -->
+  <div class="settings">
+    <div class="setting-group">
+      <div class="setting-label">◆ グリッドサイズ</div>
+      <div class="btn-group">
+        <button class="opt-btn active" data-grid="3" onclick="setSetting('grid',3,this)">3×3</button>
+        <button class="opt-btn" data-grid="4" onclick="setSetting('grid',4,this)">4×4</button>
+      </div>
+    </div>
+    <div class="setting-group">
+      <div class="setting-label">◆ 難易度</div>
+      <div class="btn-group">
+        <button class="opt-btn active" data-diff="normal" onclick="setSetting('diff','normal',this)">普通</button>
+        <button class="opt-btn" data-diff="hard" onclick="setSetting('diff','hard',this)">難しい</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ゲームエリア -->
+  <div class="game-area">
+    <div class="timer">経過時間: <span id="timer-display">00:00</span></div>
+
+    <div class="info-card">
+      <div class="info-icon">⬛</div>
+      <div class="info-text" id="info-text">
+        縦・横・斜め、それぞれ3つの数の和が<strong>すべて同じ</strong>になるように空欄に数を入れよ。<br>
+        整数（負の数も含む）を入力してください。
+      </div>
+    </div>
+
+    <div class="grid-wrapper">
+      <div class="magic-grid" id="magic-grid"></div>
+    </div>
+
+    <div class="hint-area" id="hint-area">ヒントボタンを押すとヒントが表示されます。</div>
+
+    <div class="actions">
+      <button class="btn" onclick="showHint()"><span>💡 ヒント</span></button>
+      <button class="btn" onclick="checkAnswer()"><span>✓ 答え合わせ</span></button>
+      <button class="btn primary" onclick="newPuzzle()"><span>▶ 新しい問題</span></button>
+    </div>
+
+    <div class="result-msg" id="result-msg"></div>
+  </div>
+</div>
+
+<!-- 答え確認モーダル -->
+<div class="overlay" id="answer-overlay">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">解答</div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-answer-grid" id="modal-grid"></div>
+    <button class="modal-btn" onclick="closeModal()">次の問題へ ▶</button>
+  </div>
+</div>
+
+<script>
+// ===== 状態 =====
+let config = { grid: 3, diff: 'normal' };
+let puzzle = null; // { size, magic_sum, grid: number[][], blanks: Set<string> }
+let score = { correct: 0, wrong: 0, streak: 0 };
+let timerInterval = null;
+let timerSec = 0;
+let hintUsed = false;
+let answered = false;        // この問題をDBに記録済みか（1問1行）
+let dbRetryQueue = null;     // ?retry=1 のとき list_retries.php の question_params が入る
+
+function safeDivpCorrect(selector) {
+  // /assets/divp-correct-jh.js が読み込めない環境（ローカル/未アップロード時）でも
+  // 採点処理自体は止まらないようにする安全呼び出し
+  if (window.Divp && typeof Divp.correct === 'function') {
+    try { Divp.correct(selector); } catch (e) {}
+  }
+}
+
+// ===== DB記録用の問題表現（機械用paramsと人間用テキストの二重表現） =====
+function sortedBlanks() {
+  return [...puzzle.blanks].sort((a, b) => {
+    const [ar, ac] = a.split(',').map(Number), [br, bc] = b.split(',').map(Number);
+    return ar - br || ac - bc;
+  });
+}
+
+function buildQuestionParams() {
+  return {
+    size: puzzle.size,
+    magic_sum: puzzle.magic_sum,
+    grid: puzzle.grid,
+    blanks: sortedBlanks(),
+  };
+}
+
+function buildQuestionText() {
+  const rows = puzzle.grid.map((row, i) =>
+    row.map((v, j) => puzzle.blanks.has(`${i},${j}`) ? '□' : v).join(' ')
+  ).join(' ／ ');
+  return `${puzzle.size}×${puzzle.size}魔法陣（縦・横・斜めの和が同じ）: ${rows}`;
+}
+
+function buildBlankValues(getVal) {
+  return sortedBlanks().map(key => {
+    const [r, c] = key.split(',').map(Number);
+    return getVal(r, c);
+  }).join(', ');
+}
+
+// ===== 設定変更 =====
+function setSetting(key, val, btn) {
+  config[key] = val;
+  btn.closest('.btn-group').querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  newPuzzle();
+}
+
+// ===== 魔法陣生成 =====
+
+// ===== ランダム魔法陣生成（-9〜9の整数のみ） =====
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// 3×3魔法陣をゼロから生成
+// 3×3魔法陣は中央値をcとするとすべてのパターンが生成できる
+// セルは c±d1, c±d2 の組み合わせ（シラジャン法）
+// 全セルが -9〜9 かつ 負の数を必ず含む かつ 和≠0 を保証
+function generate3x3(diff) {
+  const MAX_TRIES = 200;
+  for (let t = 0; t < MAX_TRIES; t++) {
+    // 中央値: -4〜4（和 = 3*center）
+    // 和≠0 → center≠0
+    const centerCandidates = [-4,-3,-2,-1,1,2,3]; // center=4は正の数のみになるため除外
+    const center = centerCandidates[Math.floor(Math.random() * centerCandidates.length)];
+    const magic_sum = 3 * center;
+
+    // 3×3魔法陣の標準形: 中央をcとして
+    // a b の2つのパラメータで全9マスが決まる（Siamese法の一般化）
+    // 使いやすいのは: 9マスを c + {-a-b, -a+2b, 2a-b, 2a+b, -2a-b? ...}
+    // → シンプルに: offset配列をランダムに並べて3×3に配置し、各行列対角の和がmagic_sumになるか確認
+
+    // より確実な方法: ベース魔法陣 [2,7,6,9,5,1,4,3,8] をoffset変換
+    // center = 5+offset → offset = center-5
+    const offset = center - 5;
+    const base = [2,7,6,9,5,1,4,3,8].map(v => v + offset);
+    // base は必ず3×3魔法陣になる
+
+    // 全セルが-9〜9か確認
+    if (base.some(v => v < -9 || v > 9)) continue;
+    // 負の数を必ず含む
+    if (!base.some(v => v < 0)) continue;
+
+    // ランダムに回転・反転
+    let grid = [[base[0],base[1],base[2]],[base[3],base[4],base[5]],[base[6],base[7],base[8]]];
+    grid = transformGrid(grid, 3);
+
+    const numBlanks = diff === 'normal'
+      ? 4 + Math.floor(Math.random() * 2)   // 4〜5個
+      : 6 + Math.floor(Math.random() * 2);  // 6〜7個
+
+    const blanks = selectBlanks(3, numBlanks, grid, magic_sum);
+    if (blanks.size === 0) continue;
+
+    return { size: 3, magic_sum, grid, blanks };
+  }
+  // フォールバック: center=-2固定
+  const center = -2;
+  const magic_sum = -6;
+  const offset = center - 5;
+  const base = [2,7,6,9,5,1,4,3,8].map(v => v + offset);
+  const grid = [[base[0],base[1],base[2]],[base[3],base[4],base[5]],[base[6],base[7],base[8]]];
+  const blanks = selectBlanks(3, 4, grid, magic_sum);
+  return { size: 3, magic_sum, grid, blanks };
+}
+
+// 4×4魔法陣をゼロから生成（-9〜9）
+// デュラー魔法陣をベースにオフセット変換
+// デュラーの和=34、offset後の和=34+4*offset
+// 全セル: min=1+offset, max=16+offset → -9〜9に収めるには -9≦1+offset かつ 16+offset≦9
+// → offset≧-10 かつ offset≦-7 → offset ∈ {-10,-9,-8,-7}
+// ただし必ず負の数を含む(1+offset<0 → offset<-1、常に満たす)
+// 和≠0: 34+4*offset≠0 → offset≠-8.5 → 整数なので常に≠0 ✓
+function generate4x4(diff) {
+  const bases = [
+    [16,3,2,13, 5,10,11,8, 9,6,7,12, 4,15,14,1],
+    [1,15,14,4, 12,6,7,9, 8,10,11,5, 13,3,2,16],
+    [16,2,3,13, 5,11,10,8, 9,7,6,12, 4,14,15,1],
+  ];
+
+  const MAX_TRIES = 100;
+  for (let t = 0; t < MAX_TRIES; t++) {
+    const base16 = bases[Math.floor(Math.random() * bases.length)];
+
+    // offset: -9〜-7（全セル-9〜9、必ず負含む）
+    // 普通: offset -8（和=34-32=2）、難しい: -9〜-7からランダム
+    let offset;
+    if (diff === 'normal') {
+      const offsets = [-9, -8, -7];
+      offset = offsets[Math.floor(Math.random() * offsets.length)];
+    } else {
+      // 難しい: より和の絶対値が小さい（計算しにくい）
+      offset = [-9, -8, -7][Math.floor(Math.random() * 3)];
+    }
+    const magic_sum = 34 + 4 * offset;
+    const flat = base16.map(v => v + offset);
+    if (flat.some(v => v < -9 || v > 9)) continue;
+    if (!flat.some(v => v < 0)) continue;
+
+    let grid = [
+      flat.slice(0,4), flat.slice(4,8), flat.slice(8,12), flat.slice(12,16)
+    ];
+    grid = transformGrid(grid, 4);
+
+    const numBlanks = diff === 'normal'
+      ? 7 + Math.floor(Math.random() * 2)   // 7〜8個
+      : 10 + Math.floor(Math.random() * 3); // 10〜12個
+
+    const blanks = selectBlanks(4, numBlanks, grid, magic_sum);
+    if (blanks.size === 0) continue;
+
+    return { size: 4, magic_sum, grid, blanks };
+  }
+  // フォールバック
+  const flat = bases[0].map(v => v - 8);
+  const grid = [flat.slice(0,4), flat.slice(4,8), flat.slice(8,12), flat.slice(12,16)];
+  const magic_sum = 34 - 32;
+  const blanks = selectBlanks(4, 7, grid, magic_sum);
+  return { size: 4, magic_sum, grid, blanks };
+}
+
+// グリッドのランダム変換（回転・反転）
+function transformGrid(grid, size) {
+  let g = grid.map(r => [...r]);
+  const ops = Math.floor(Math.random() * 8);
+  // 回転
+  for (let r = 0; r < (ops % 4); r++) {
+    const ng = Array.from({length:size}, () => Array(size));
+    for (let i = 0; i < size; i++)
+      for (let j = 0; j < size; j++)
+        ng[j][size-1-i] = g[i][j];
+    g = ng;
+  }
+  // 反転
+  if (ops >= 4) g = g.map(row => [...row].reverse());
+  return g;
+}
+
+// ===== 一意解チェック =====
+// 制約伝播（残り1マスの行/列/対角から値を決める）で全空欄が埋まるか判定
+function isUniquelySolvable(size, grid, blanks, magic_sum) {
+  const work = [];
+  for (let i = 0; i < size; i++) {
+    work.push([]);
+    for (let j = 0; j < size; j++) {
+      work[i].push(blanks.has(`${i},${j}`) ? null : grid[i][j]);
+    }
+  }
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+
+    // 各行
+    for (let i = 0; i < size; i++) {
+      const nullCols = [];
+      let known = 0;
+      for (let j = 0; j < size; j++) {
+        if (work[i][j] === null) nullCols.push(j);
+        else known += work[i][j];
+      }
+      if (nullCols.length === 1) { work[i][nullCols[0]] = magic_sum - known; changed = true; }
+    }
+
+    // 各列
+    for (let j = 0; j < size; j++) {
+      const nullRows = [];
+      let known = 0;
+      for (let i = 0; i < size; i++) {
+        if (work[i][j] === null) nullRows.push(i);
+        else known += work[i][j];
+      }
+      if (nullRows.length === 1) { work[nullRows[0]][j] = magic_sum - known; changed = true; }
+    }
+
+    // 主対角線
+    {
+      const nullIdx = [];
+      let known = 0;
+      for (let i = 0; i < size; i++) {
+        if (work[i][i] === null) nullIdx.push(i);
+        else known += work[i][i];
+      }
+      if (nullIdx.length === 1) { work[nullIdx[0]][nullIdx[0]] = magic_sum - known; changed = true; }
+    }
+
+    // 副対角線
+    {
+      const nullIdx = [];
+      let known = 0;
+      for (let i = 0; i < size; i++) {
+        const j = size - 1 - i;
+        if (work[i][j] === null) nullIdx.push(i);
+        else known += work[i][j];
+      }
+      if (nullIdx.length === 1) { work[nullIdx[0]][size - 1 - nullIdx[0]] = magic_sum - known; changed = true; }
+    }
+  }
+
+  for (let i = 0; i < size; i++)
+    for (let j = 0; j < size; j++)
+      if (work[i][j] === null) return false;
+  return true;
+}
+
+// 空欄を選択（一意解を保証）
+function selectBlanks(size, count, grid, magic_sum) {
+  const allPositions = [];
+  for (let i = 0; i < size; i++)
+    for (let j = 0; j < size; j++)
+      allPositions.push(`${i},${j}`);
+
+  // count個の空欄で一意解になるまで最大30回試行
+  for (let attempt = 0; attempt < 30; attempt++) {
+    const candidates = shuffle([...allPositions]);
+    const blanks = new Set(candidates.slice(0, count));
+    if (isUniquelySolvable(size, grid, blanks, magic_sum)) return blanks;
+  }
+
+  // count個で無理なら count-1, count-2... と減らして一意解を探す
+  for (let n = count - 1; n >= 1; n--) {
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const candidates = shuffle([...allPositions]);
+      const blanks = new Set(candidates.slice(0, n));
+      if (isUniquelySolvable(size, grid, blanks, magic_sum)) return blanks;
+    }
+  }
+
+  return new Set(); // フォールバック: 空欄なし
+}
+
+// ===== パズル生成メイン =====
+function newPuzzle() {
+  hintUsed = false;
+  answered = false;
+  document.getElementById('hint-area').textContent = 'ヒントボタンを押すとヒントが表示されます。';
+  document.getElementById('hint-area').classList.remove('visible');
+  document.getElementById('result-msg').classList.remove('show');
+
+  if (dbRetryQueue && dbRetryQueue.length > 0) {
+    // 解き直し: 保存済みの question_params から全く同じ問題を復元
+    const p = dbRetryQueue.shift();
+    puzzle = { size: p.size, magic_sum: p.magic_sum, grid: p.grid, blanks: new Set(p.blanks) };
+    config.grid = p.size;
+    document.querySelectorAll('.opt-btn[data-grid]').forEach(b =>
+      b.classList.toggle('active', parseInt(b.dataset.grid) === p.size));
+    updateRetryBanner();
+  } else {
+    if (dbRetryQueue) { dbRetryQueue = null; updateRetryBanner(); }
+    puzzle = config.grid === 3
+      ? generate3x3(config.diff)
+      : generate4x4(config.diff);
+  }
+
+  renderGrid();
+  startTimer();
+  updateInfoText();
+}
+
+// ===== グリッド描画 =====
+function renderGrid() {
+  const gridEl = document.getElementById('magic-grid');
+  const { size, grid, blanks } = puzzle;
+  const cellSize = size === 3 ? 'var(--cell-size)' : 'var(--cell-size-4)';
+
+  gridEl.style.gridTemplateColumns = `repeat(${size}, ${cellSize})`;
+  gridEl.style.gridTemplateRows = `repeat(${size}, ${cellSize})`;
+  gridEl.innerHTML = '';
+
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      const key = `${i},${j}`;
+      const cell = document.createElement('div');
+      cell.className = 'cell ' + (blanks.has(key) ? 'empty' : 'given');
+      cell.dataset.row = i;
+      cell.dataset.col = j;
+      cell.style.width = cellSize;
+      cell.style.height = cellSize;
+
+      if (blanks.has(key)) {
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.dataset.answer = grid[i][j];
+        input.addEventListener('input', () => onInput(i, j));
+        input.addEventListener('keydown', (e) => onKeyNav(e, i, j));
+        cell.appendChild(input);
+      } else {
+        cell.textContent = grid[i][j];
+      }
+
+      gridEl.appendChild(cell);
+    }
+  }
+}
+
+// ===== キーボードナビゲーション =====
+function onKeyNav(e, r, c) {
+  const size = puzzle.size;
+  let nr = r, nc = c;
+  if (e.key === 'ArrowRight') nc = Math.min(c + 1, size - 1);
+  else if (e.key === 'ArrowLeft') nc = Math.max(c - 1, 0);
+  else if (e.key === 'ArrowDown') nr = Math.min(r + 1, size - 1);
+  else if (e.key === 'ArrowUp') nr = Math.max(r - 1, 0);
+  else if (e.key === 'Enter') { checkAnswer(); return; }
+  else return;
+  e.preventDefault();
+  focusCell(nr, nc);
+}
+
+function focusCell(r, c) {
+  const grid = document.getElementById('magic-grid');
+  const cells = grid.querySelectorAll('.cell');
+  const size = puzzle.size;
+  const target = cells[r * size + c];
+  if (target) {
+    const inp = target.querySelector('input');
+    if (inp) inp.focus();
+    else focusNextBlank(r, c);
+  }
+}
+
+function focusNextBlank(r, c) {
+  const size = puzzle.size;
+  for (let j = c + 1; j < size; j++) {
+    const k = `${r},${j}`;
+    if (puzzle.blanks.has(k)) { focusCell(r, j); return; }
+  }
+  for (let i = r + 1; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      const k = `${i},${j}`;
+      if (puzzle.blanks.has(k)) { focusCell(i, j); return; }
+    }
+  }
+}
+
+function onInput(r, c) {
+  // リアルタイムで色をリセット
+  const cell = getCellEl(r, c);
+  if (cell) {
+    cell.classList.remove('correct', 'wrong');
+  }
+}
+
+function getCellEl(r, c) {
+  const grid = document.getElementById('magic-grid');
+  return grid.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+}
+
+// ===== 答え合わせ =====
+function checkAnswer() {
+  const size = puzzle.size;
+  const inputs = document.getElementById('magic-grid').querySelectorAll('input');
+
+  // 全て入力されているか
+  let allFilled = true;
+  inputs.forEach(inp => { if (inp.value === '') allFilled = false; });
+
+  if (!allFilled) {
+    showResult('すべての空欄を埋めてください', 'error');
+    return;
+  }
+
+  // 正解チェック
+  let allCorrect = true;
+  inputs.forEach(inp => {
+    const userVal = parseInt(inp.value);
+    const ans = parseInt(inp.dataset.answer);
+    const cell = inp.closest('.cell');
+    if (userVal === ans) {
+      cell.classList.add('correct');
+      cell.classList.remove('wrong');
+    } else {
+      cell.classList.add('wrong');
+      cell.classList.remove('correct');
+      allCorrect = false;
+    }
+  });
+
+  stopTimer();
+
+  // DB記録は最初の答え合わせ1回のみ（1問=1行）。判定直後にDivp.answerへ渡す
+  if (!answered) {
+    answered = true;
+    const userVals = {};
+    inputs.forEach(inp => {
+      const cell = inp.closest('.cell');
+      userVals[`${cell.dataset.row},${cell.dataset.col}`] = inp.value;
+    });
+    Divp.answer(allCorrect, {
+      question_key: `grid${puzzle.size}`,
+      question_params: buildQuestionParams(),
+      question_text: buildQuestionText(),
+      correct_answer: buildBlankValues((r, c) => puzzle.grid[r][c]),
+      wrong_answer: buildBlankValues((r, c) => userVals[`${r},${c}`]),
+      time_taken_sec: timerSec,
+    });
+  }
+
+  if (allCorrect) {
+    score.correct++;
+    score.streak++;
+    updateScore();
+    safeDivpCorrect('.magic-grid');
+    showResult(`🎉 正解！ ${timerSec}秒でクリア`, 'success');
+    setTimeout(() => newPuzzle(), 2000);
+  } else {
+    score.wrong++;
+    score.streak = 0;
+    updateScore();
+    showResult('✗ 違います。赤いマスを確認してください', 'error');
+  }
+}
+
+function showResult(msg, type) {
+  const el = document.getElementById('result-msg');
+  el.textContent = msg;
+  el.className = `result-msg ${type} show`;
+}
+
+function updateScore() {
+  document.getElementById('score-correct').textContent = score.correct;
+  document.getElementById('score-wrong').textContent = score.wrong;
+  document.getElementById('score-streak').textContent = score.streak;
+}
+
+// ===== ヒント =====
+function showHint() {
+  const { size, magic_sum, grid, blanks } = puzzle;
+  const hintArea = document.getElementById('hint-area');
+  hintUsed = true;
+
+  // 最初に合計を教える
+  // 次に「この行の合計から残り1つが求められる」ヒント
+  let hintMsg = `縦・横・斜めの合計は <strong>${magic_sum}</strong> です。<br>`;
+
+  // 空欄が1つの行・列を探す
+  const inputs = document.getElementById('magic-grid').querySelectorAll('input');
+  const userVals = {};
+  inputs.forEach(inp => {
+    const r = inp.closest('.cell').dataset.row;
+    const c = inp.closest('.cell').dataset.col;
+    userVals[`${r},${c}`] = inp.value !== '' ? parseInt(inp.value) : null;
+  });
+
+  // 空欄1つの行を探す
+  for (let i = 0; i < size; i++) {
+    let emptyCount = 0, emptyCol = -1, rowSum = 0;
+    for (let j = 0; j < size; j++) {
+      const k = `${i},${j}`;
+      if (blanks.has(k)) {
+        const uv = userVals[k];
+        if (uv === null) { emptyCount++; emptyCol = j; }
+        else rowSum += uv;
+      } else {
+        rowSum += grid[i][j];
+      }
+    }
+    if (emptyCount === 1) {
+      hintMsg += `${i+1}行目に注目：残り1マスは <strong>${magic_sum - rowSum}</strong> です。`;
+      break;
+    }
+  }
+
+  hintArea.innerHTML = hintMsg;
+  hintArea.classList.add('visible');
+}
+
+// ===== 答え表示 =====
+function showAnswer() {
+  // 解けずに答えを見た場合は誤答として記録（解き直しキューに入る）
+  if (!answered) {
+    answered = true;
+    Divp.answer(false, {
+      question_key: `grid${puzzle.size}`,
+      question_params: buildQuestionParams(),
+      question_text: buildQuestionText(),
+      correct_answer: buildBlankValues((r, c) => puzzle.grid[r][c]),
+      wrong_answer: '（答えを見た）',
+      time_taken_sec: timerSec,
+    });
+  }
+  const { size, grid, blanks } = puzzle;
+  const modal = document.getElementById('answer-overlay');
+  const modalGrid = document.getElementById('modal-grid');
+  const cellPx = size === 3 ? '60px' : '50px';
+
+  modalGrid.style.gridTemplateColumns = `repeat(${size}, ${cellPx})`;
+  modalGrid.style.gridTemplateRows = `repeat(${size}, ${cellPx})`;
+  modalGrid.innerHTML = '';
+
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      const cell = document.createElement('div');
+      cell.className = 'modal-cell' + (blanks.has(`${i},${j}`) ? ' was-blank' : '');
+      cell.style.width = cellPx;
+      cell.style.height = cellPx;
+      cell.textContent = grid[i][j];
+      modalGrid.appendChild(cell);
+    }
+  }
+
+  document.getElementById('modal-title').textContent = '正解はこちら';
+  document.getElementById('modal-body').textContent = `縦・横・斜めの合計はすべて ${puzzle.magic_sum} です。金色が空欄だったマスです。`;
+  modal.classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('answer-overlay').classList.remove('show');
+  newPuzzle();
+}
+
+// ===== タイマー =====
+function startTimer() {
+  stopTimer();
+  timerSec = 0;
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timerSec++;
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function updateTimerDisplay() {
+  const m = String(Math.floor(timerSec / 60)).padStart(2, '0');
+  const s = String(timerSec % 60).padStart(2, '0');
+  document.getElementById('timer-display').textContent = `${m}:${s}`;
+}
+
+// ===== テキスト更新 =====
+function updateInfoText() {
+  const size = puzzle.size;
+  const el = document.getElementById('info-text');
+  el.innerHTML = `縦・横・斜め、それぞれ<strong>${size}つ</strong>の数の和が<strong>すべて同じ</strong>になるように空欄に整数を入れよ。
+    ${config.diff === 'hard' ? '<br>（<strong>負の数</strong>や大きな数が含まれます）' : ''}`;
+}
+
+// ===== 答えを見るボタン (actions外に置く) =====
+// ヒントエリアの下に「答えを見る」を追加（DOMで既にある）
+
+// ===== 解き直しモードの表示バナー =====
+function updateRetryBanner() {
+  let banner = document.getElementById('retry-banner');
+  if (!dbRetryQueue) {
+    if (banner) banner.remove();
+    return;
+  }
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'retry-banner';
+    banner.className = 'info-card';
+    document.querySelector('.game-area').prepend(banner);
+  }
+  const remaining = dbRetryQueue.length + 1; // 表示中の1問を含む
+  banner.innerHTML = `<div class="info-icon">🔁</div>
+    <div class="info-text"><strong>解き直しモード</strong>：まちがえた問題と全く同じ問題が出ます（残り ${remaining}問）。<br>
+    2回連続で正解すると「マスター」になります。</div>`;
+}
+
+// ===== 初期化 =====
+newPuzzle();
+
+// ===== アクション: 答えを見る =====
+// actions div にボタンを追加
+document.querySelector('.actions').insertAdjacentHTML('afterbegin',
+  `<button class="btn" onclick="showAnswer()"><span>📖 答えを見る</span></button>`
+);
+
+// ====== DBの解き直しキュー（?retry=1 で mypage の「きょうの解き直し」から遷移） ======
+// list_retries.php から pending の question_params を取得し、newPuzzle が
+// 生成の代わりにキューから復元して「全く同じ問題」を再出題する。
+// 同じ問題(params_hash)に2連続正解するとサーバー側で mastered になる。
+(function () {
+  if (!/[?&]retry=1/.test(location.search)) return;
+  if (!window.Divp || !Divp.getRetries) return;
+
+  // question_params が再出題に必要な形かの検証（古い形式・欠損データを弾く）
+  function validParams(p) {
+    return p && (p.size === 3 || p.size === 4)
+      && typeof p.magic_sum === 'number'
+      && Array.isArray(p.grid) && p.grid.length === p.size
+      && p.grid.every(row => Array.isArray(row) && row.length === p.size)
+      && Array.isArray(p.blanks) && p.blanks.length > 0;
+  }
+
+  Divp.getRetries().then(function (items) {
+    const probs = (items || [])
+      .map(function (it) { return it.question_params; })
+      .filter(validParams);
+    if (!probs.length) return;
+    dbRetryQueue = probs;
+    newPuzzle();
+  });
+})();
+</script>
+</body>
+</html>

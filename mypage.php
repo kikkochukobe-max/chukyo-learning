@@ -149,7 +149,7 @@ $eventRanks = null;
 if ($activeEvent) {
     $evFromStr = $activeEvent['from'] . ' 00:00:00';
     $evToStr = (new DateTimeImmutable($activeEvent['to']))->modify('+1 day')->format('Y-m-d 00:00:00');
-    $evRows = ranking_rows($pdo, null, $evFromStr, $evToStr);
+    $evRows = ranking_rows($pdo, $activeEvent['classroom_ids'] ?? null, $evFromStr, $evToStr);
     $evSolved = 0;   // 足切りメッセージ用に自分のイベント期間内解答数を控えておく
     foreach ($evRows as $r) {
         if ((int)$r['student_id'] === $studentId) { $evSolved = (int)$r['solved']; break; }

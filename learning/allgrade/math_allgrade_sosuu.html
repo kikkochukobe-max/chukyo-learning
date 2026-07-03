@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>素数を発見しよう！ | 中京個別指導学院</title>
+<link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%; height: 100dvh;
+    overflow: hidden;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    background: #0a1520;
+    color: #c0daf5;
+  }
+  .page {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 10px;
+  }
+
+  /* ── ヘッダー ── */
+  header {
+    flex-shrink: 0;
+    background: linear-gradient(135deg,#1a3a5c,#0d2540);
+    border-bottom: 2.5px solid #f5a623;
+    margin: 0 -10px;
+    padding: 8px 10px 6px;
+    text-align: center;
+  }
+  header .name { font-family:'Kaisei Decol',serif; font-size:16px; color:#f5a623; letter-spacing:.06em; }
+  header .sub  { font-size:10px; color:#6a90b0; margin-top:1px; letter-spacing:.08em; }
+
+  /* ── タイトル ── */
+  .title-row {
+    flex-shrink: 0;
+    text-align: center;
+    padding: 6px 0 4px;
+  }
+  .title-row h1 { font-family:'Kaisei Decol',serif; font-size:17px; color:#f0f8ff; letter-spacing:.04em; }
+  .title-row p  { font-size:10px; color:#5a80a0; margin-top:2px; }
+
+  /* ── ボタンエリア ── */
+  .btns {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .btn-row { display: grid; grid-template-columns:1fr 1fr; gap:5px; }
+
+  .sb {
+    border:none; border-radius:9px; padding:7px 6px 6px;
+    font-family:'Zen Kaku Gothic New',sans-serif;
+    cursor:pointer; transition:transform .1s, opacity .15s;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    text-align: center;
+  }
+  .sb:active:not(:disabled){ transform:scale(.96); }
+  .sb:disabled{ opacity:.28; cursor:not-allowed; box-shadow:none !important; }
+
+  .sb .btn-main { font-size:12px; font-weight:700; line-height:1; }
+  .sb .btn-note {
+    font-size:9px; font-weight:400; opacity:.8;
+    letter-spacing:.01em; line-height:1.3;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .b2{ background:#d94f4f; color:#fff; box-shadow:0 3px 10px rgba(217,79,79,.35); }
+  .b3{ background:#d47f10; color:#fff; box-shadow:0 3px 10px rgba(212,127,16,.35); }
+  .b5{ background:#2f9c62; color:#fff; box-shadow:0 3px 10px rgba(47,156,98,.35); }
+  .b7{ background:#3d6ec4; color:#fff; box-shadow:0 3px 10px rgba(61,110,196,.35); }
+
+  .btn-reveal {
+    border:none; border-radius:9px; padding:10px;
+    font-family:'Kaisei Decol',serif; font-size:14px; font-weight:700;
+    background:#f5a623; color:#0a1520; cursor:pointer;
+    box-shadow:0 4px 14px rgba(245,166,35,.4);
+    transition:transform .1s, opacity .15s;
+    letter-spacing:.04em;
+  }
+  .btn-reveal:active:not(:disabled){ transform:scale(.97); }
+  .btn-reveal:disabled{ opacity:.28; cursor:not-allowed; box-shadow:none; }
+
+  .btn-reset {
+    background:transparent; border:1px solid #1e3450; border-radius:9px;
+    padding:7px; color:#5a7898; font-size:11px; cursor:pointer;
+    font-family:'Zen Kaku Gothic New',sans-serif;
+    transition:border-color .15s, color .15s;
+  }
+  .btn-reset:hover{ border-color:#4a6888; color:#90b8d8; }
+
+  /* ── ステータス ── */
+  .status {
+    flex-shrink: 0;
+    background:#0e1e2e; border:1px solid #1a3048; border-radius:9px;
+    padding:7px 12px; font-size:12px; color:#90b8d8; line-height:1.5;
+    margin: 4px 0;
+    height: 52px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+  .hl  { color:#f5a623; font-weight:700; }
+  .pc  { color:#6de898; font-weight:700; }
+
+  /* ── プログレス ── */
+  .prog {
+    flex-shrink: 0;
+    height:4px; background:#111e2c; border-radius:2px; overflow:hidden;
+    margin-bottom: 4px;
+  }
+  .prog-fill {
+    height:100%; background:linear-gradient(90deg,#f5a623,#6de898);
+    border-radius:2px; width:0%; transition:width .5s ease;
+  }
+
+  /* ── グリッド ── */
+  .grid-wrap {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .num-grid {
+    flex: 1 1 0;
+    display: grid;
+    grid-template-columns: repeat(10,1fr);
+    grid-template-rows: repeat(10,1fr);
+    gap: 3px;
+  }
+  .cell {
+    display:flex; align-items:center; justify-content:center;
+    border-radius:5px; font-size:11px; font-weight:700;
+    background:#1a2e48; color:#b0cce8; border:1px solid #243e5a;
+    transition:background .35s,color .35s,opacity .45s,transform .3s,border-color .35s;
+    user-select:none;
+  }
+  .cell.n1 { background:#0e1a28; color:#1e3048; border-color:#141e2c; opacity:.45; transform:scale(.86); }
+  .cell.elim {
+    background:#0c1820; color:#1c2c3c; border-color:#111e2c;
+    opacity:.38; transform:scale(.86);
+  }
+  .cell.pop { animation:popOut .5s ease forwards; }
+  .cell.pop-fast { animation:popOut .25s ease forwards; }
+  @keyframes popOut {
+    0%  { background:#d94f4f; color:#fff; transform:scale(1.1); opacity:1; }
+    55% { background:#381414; color:#803040; opacity:.65; }
+    100%{ background:#0c1820; color:#1c2c3c; opacity:.38; transform:scale(.86); }
+  }
+  .cell.prime {
+    background:#163326; color:#6de898; border-color:#3aac68;
+    animation:pRev .65s ease-out forwards;
+  }
+  @keyframes pRev {
+    0%  { background:#f0d820; color:#0a1520; transform:scale(1.18); }
+    35% { background:#1a9858; color:#a0ffcc; transform:scale(1.05); }
+    100%{ background:#163326; color:#6de898; transform:scale(1); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <a href="https://chukyokobetsu.com" style="text-decoration:none;"><div class="name">中京個別指導学院</div></a>
+    <div class="sub">数学探求ラボ</div>
+  </header>
+
+  <div class="title-row">
+    <h1>100までの素数を発見しよう！</h1>
+    <p>エラトステネスのふるい — 倍数を消すと素数が残る</p>
+  </div>
+
+  <div class="btns">
+    <div class="btn-row">
+      <button class="sb b2" id="btn2" onclick="sieve(2)">
+        <span class="btn-main">✕ ２以外の２の倍数を消す</span>
+        <span class="btn-note">4, 6, 8, 10, 12, 14…</span>
+      </button>
+      <button class="sb b3" id="btn3" onclick="sieve(3)">
+        <span class="btn-main">✕ ３以外の３の倍数を消す</span>
+        <span class="btn-note">6, 9, 12, 15, 18, 21…</span>
+      </button>
+    </div>
+    <div class="btn-row">
+      <button class="sb b5" id="btn5" onclick="sieve(5)">
+        <span class="btn-main">✕ ５以外の５の倍数を消す</span>
+        <span class="btn-note">10, 15, 20, 25, 30, 35…</span>
+      </button>
+      <button class="sb b7" id="btn7" onclick="sieve(7)">
+        <span class="btn-main">✕ ７以外の７の倍数を消す</span>
+        <span class="btn-note">14, 21, 28, 35, 42, 49…</span>
+      </button>
+    </div>
+    <button class="btn-reveal" id="btnReveal" onclick="revealPrimes()" disabled>✦ 素数を確認する！</button>
+    <button class="btn-reset" onclick="resetAll()">↺ やり直す</button>
+  </div>
+
+  <div class="status" id="status">
+    ボタンを順番に押して倍数を消そう！<span style="color:#3a5878;font-size:11px;"> まず「２の倍数」から</span>
+  </div>
+
+  <div class="prog"><div class="prog-fill" id="pFill"></div></div>
+
+  <div class="grid-wrap">
+    <div class="num-grid" id="grid"></div>
+  </div>
+
+</div>
+<script>
+var elim={}, stepsDone=0;
+var bids={2:'btn2',3:'btn3',5:'btn5',7:'btn7'};
+var nxt={2:3,3:5,5:7,7:null};
+var msgs={
+  2:'<span class="hl">２の倍数</span>を消去！2は素数なので残ります。<span style="color:#3a5878;font-size:11px;"> 次→３の倍数</span>',
+  3:'<span class="hl">３の倍数</span>を消去！3は素数なので残ります。<span style="color:#3a5878;font-size:11px;"> 次→５の倍数</span>',
+  5:'<span class="hl">５の倍数</span>を消去！5は素数なので残ります。<span style="color:#3a5878;font-size:11px;"> 次→７の倍数</span>',
+  7:'<span class="hl">７の倍数</span>を消去！7は素数なので残ります。<span style="color:#3a5878;font-size:11px;"> 素数を確認しよう！</span>'
+};
+
+function buildGrid(){
+  var g=document.getElementById('grid'); g.innerHTML='';
+  for(var i=1;i<=100;i++){
+    var d=document.createElement('div');
+    d.className='cell'+(i===1?' n1':''); d.id='c'+i; d.textContent=i; g.appendChild(d);
+  }
+}
+
+function sieve(p){
+  document.getElementById(bids[p]).disabled=true;
+  var targets=[]; for(var n=p*2;n<=100;n+=p) if(!elim[n]){ targets.push(n); elim[n]=p; }
+  var fast=(p===2);
+  var interval=fast?25:50;
+  var animDur=fast?240:490;
+  var popClass=fast?'pop-fast':'pop';
+  var delay=0;
+  targets.forEach(function(n){
+    (function(num,d){
+      setTimeout(function(){
+        var el=document.getElementById('c'+num); el.classList.add(popClass);
+        setTimeout(function(){ el.classList.remove(popClass); el.classList.add('elim'); },animDur);
+      },d);
+    })(n,delay); delay+=interval;
+  });
+  stepsDone++;
+  setTimeout(function(){
+    document.getElementById('status').innerHTML=msgs[p];
+    if(stepsDone===4) document.getElementById('btnReveal').disabled=false;
+    document.getElementById('pFill').style.width=(stepsDone/4*80)+'%';
+  },delay+280);
+}
+
+function revealPrimes(){
+  document.getElementById('btnReveal').disabled=true;
+  var primes=[]; for(var i=2;i<=100;i++) if(!elim[i]) primes.push(i);
+  var delay=0;
+  primes.forEach(function(p){
+    (function(num,d){ setTimeout(function(){ document.getElementById('c'+num).classList.add('prime'); },d); })(p,delay);
+    delay+=75;
+  });
+  setTimeout(function(){
+    document.getElementById('status').innerHTML=
+      '<span class="pc">✦ 素数は '+primes.length+' 個！</span>';
+    document.getElementById('pFill').style.width='100%';
+  },delay+150);
+}
+
+function resetAll(){
+  elim={}; stepsDone=0;
+  [2,3,5,7].forEach(function(p){ document.getElementById(bids[p]).disabled=false; });
+  document.getElementById('btnReveal').disabled=true;
+  document.getElementById('status').innerHTML='ボタンを順番に押して倍数を消そう！<span style="color:#3a5878;font-size:11px;"> まず「２の倍数」から</span>';
+  document.getElementById('pFill').style.width='0%';
+  buildGrid();
+}
+
+buildGrid();
+</script>
+</body>
+</html>

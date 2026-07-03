@@ -15,9 +15,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
 
-<!-- divp-core（固定URL・ETagキャッシュ） -->
-<link rel="stylesheet" href="/learning/assets/divp-core.css">
-
 <style>
 :root {
   --ink: #26324e;          /* ノートのインク（藍） */
@@ -52,10 +49,11 @@ body {
   padding: 14px 16px 10px;
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
+  justify-content: flex-start;
   flex-wrap: wrap;
   gap: 8px;
 }
+.app-header .stats { margin-left: auto; }
 .app-title {
   font-family: "Zen Maru Gothic", sans-serif;
   font-weight: 700;
@@ -122,18 +120,29 @@ body {
 .mode-btn.active .mode-desc { color: #cdd4e4; }
 .mode-name { display: block; font-weight: 700; font-size: 14px; }
 .mode-desc { display: block; font-size: 11px; color: var(--ink-light); margin-top: 2px; }
-#print-btn {
-  margin-top: 8px;
-  width: 100%;
-  border: 1.5px dashed var(--ink-light);
-  border-radius: 8px;
+/* タイトル行右端の印刷ボタン（平方根マスターと同じ位置・小型アイコン） */
+.title-print-btn {
+  align-self: center;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   background: none;
-  padding: 8px;
+  border: 1.5px solid var(--ink-light);
+  border-radius: 10px;
   color: var(--ink-light);
-  font-family: inherit;
-  font-size: 13px;
   cursor: pointer;
+  transition: all .18s;
+  padding: 0;
+  font-family: inherit;
 }
+.title-print-btn .pi { font-size: 15px; line-height: 1; }
+.title-print-btn .pl { font-size: 9px; line-height: 1; font-weight: 700; letter-spacing: .02em; }
+.title-print-btn:hover { background: #eef1f6; }
+.title-print-btn:active { transform: scale(0.94); }
 
 /* ---------- 問題カード ---------- */
 main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
@@ -385,14 +394,8 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
   .pr-header h2 { font-size: 15pt; margin: 0; }
   .pr-header .pr-meta { font-size: 9pt; color: #555; }
   .pr-name { border-bottom: 1px solid #999; padding: 0 18mm 1mm 4mm; margin-left: 6mm; }
-  /* センター透かしロゴ（クロマキー透過版） */
-  .pr-watermark {
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 120mm; opacity: .07;
-    z-index: 0;
-    pointer-events: none;
-  }
+  /* センター透かしロゴ：共通モジュール /assets/print-watermark.js（ChukyoPrint）が
+     buildPrint 時に .wm のCSSと画像を注入する */
   .pr-body { position: relative; z-index: 1; }
   #pr-questions { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10mm; }
   .pr-item { font-size: 12pt; padding: 3mm 0 0; break-inside: avoid; }
@@ -403,7 +406,7 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
 }
 </style>
 </head>
-<body data-unit-key="nijihoteishiki" data-theme="jh" data-access="student">
+<body data-unit-key="math_js3_nijihoteishiki" data-theme="jh" data-access="student">
 
 <!-- divp-header（JSで注入・共通仕様） -->
 <div class="divp-header"></div>
@@ -415,13 +418,13 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
     <span>連続<b id="st-streak">0</b></span>
     <span>XP<b id="st-xp">0</b></span>
   </div>
+  <button class="title-print-btn" id="title-print-btn" type="button" title="このモードでプリントを作る（A4・10問）" aria-label="印刷"><span class="pi">🖨</span><span class="pl">印刷</span></button>
 </header>
 
 <div class="mode-bar">
   <button id="mode-toggle" type="button">モード：<span id="mode-current"></span></button>
   <div id="mode-panel">
     <div id="mode-list"></div>
-    <button id="print-btn" type="button">🖨 このモードでプリントを作る（A4・10問）</button>
   </div>
 </div>
 
@@ -462,7 +465,6 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
 <!-- 印刷用（表＝問題のみ／裏＝答え） -->
 <div id="print-area">
   <div class="pr-page">
-    <img class="pr-watermark" src="/learning/assets/logo_clear.png" alt="" onerror="this.remove()">
     <div class="pr-body">
       <div class="pr-header">
         <h2 id="pr-title-1"></h2>
@@ -472,7 +474,6 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
     </div>
   </div>
   <div class="pr-page">
-    <img class="pr-watermark" src="/learning/assets/logo_clear.png" alt="" onerror="this.remove()">
     <div class="pr-body">
       <div class="pr-header">
         <h2 id="pr-title-2"></h2>
@@ -483,9 +484,11 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
   </div>
 </div>
 
-<!-- divp-core（固定URL・ETag）。jh用ハンコエフェクト -->
-<script src="/learning/assets/divp-core.js" defer></script>
-<script src="/learning/assets/divp-correct-jh.js" defer></script>
+<!-- divp共通モジュール（固定URL・ETagキャッシュ）。ヘッダー＋学習記録＋jh用ハンコ＋印刷透かし -->
+<script src="/assets/divp-header.js" defer></script>
+<script src="/assets/divp-core.js" defer></script>
+<script src="/assets/print-watermark.js" defer></script>
+<script src="/assets/divp-correct-jh.js" defer></script>
 
 <script>
 /* ============================================================
@@ -996,7 +999,7 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
 
   /* ---------- 公開 ---------- */
   global.QuadCore = {
-    GEN, solTex, solTxt, solValues, solKey,
+    GEN, solTex, solTxt, solValues, solKey, assembleChoices,
     sqDecomp, gcd, frac, listSol, normPm, polyTex, ri, pick, shuffle,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -1013,7 +1016,7 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
   const $ = (id) => document.getElementById(id);
 
   /* ---------- 設定 ---------- */
-  const UNIT_KEY = 'nijihoteishiki';
+  const UNIT_KEY = 'math_js3_nijihoteishiki';
   const XP = { heihokon: 5, katamari: 5, heihokansei: 5, insu_zumi: 5, insu_jibun: 5, kai_koshiki: 5, random: 10 };
   const MODES = [
     { key: 'heihokon',    label: '平方根',        desc: 'x²=k の形' },
@@ -1057,28 +1060,35 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
   }
 
   /* ---------- Divp 連携 ---------- */
-  function divpLog(q, chosen, isCorrect, isRetry) {
-    const payload = {
-      unit_key: UNIT_KEY,
-      question_key: q.mode,
-      question_params: Object.assign({}, q.params, isRetry ? { retry: true } : {}),
-      question_text: q.qTxt,
-      correct_answer: C.solTxt(q.correct),
-      student_answer: C.solTxt(chosen),
-      is_correct: isCorrect,
-      xp: isCorrect ? (isRetry ? 1 : XP[q.mode]) : 0,   // 解き直しは1XP
-    };
+  // question_params には再出題に必要な情報一式（生成パラメータ＋qTex/sol/cands）を持たせる。
+  // 同じ問題は同じparamsを送り返すことで params_hash が一致し、2連続正解のmastered判定が成立する。
+  // ※このJSON形式を変えると既存pending行のハッシュと合わなくなる点に注意
+  function dbParams(q) {
+    if (!q._dbParams) {
+      q._dbParams = Object.assign({}, q.params, {
+        qTex: q.qTex, qTxt: q.qTxt, sol: q.correct, cands: q.rawCands,
+      });
+    }
+    return q._dbParams;
+  }
+  function divpLog(q, chosen, isCorrect) {
     try {
       const D = window.Divp;
-      if (D && typeof D.answer === 'function') D.answer(payload);
-      else if (D && typeof D.save === 'function') D.save(payload);
-      else if (D && typeof D.log === 'function') D.log(payload);
+      if (!D || typeof D.answer !== 'function') return;
+      D.answer(isCorrect, {
+        question_key: q.mode,
+        question_params: dbParams(q),
+        question_text: q.qTxt,
+        correct_answer: C.solTxt(q.correct),
+        wrong_answer: C.solTxt(chosen),
+      });
     } catch (e) { /* オフラインでも演習は継続 */ }
   }
   function divpCorrectEffect() {
     try {
       const D = window.Divp;
-      if (D && typeof D.correct === 'function') { D.correct({ scale: 1.5 }); return true; }
+      // 第一引数はスタンプを押すカードのセレクタ。カードは使い回すのでfadeで自動消去
+      if (D && typeof D.correct === 'function') { D.correct('#q-card', { fadeMs: 900 }); return true; }
     } catch (e) {}
     return false;
   }
@@ -1203,7 +1213,7 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
       fb.appendChild(span); fb.appendChild(ktx);
       tex(ktx, C.solTex(current.correct), false);
     }
-    divpLog(current, chosen, ok, set.retry);
+    divpLog(current, chosen, ok);
     const last = set.num >= setTotal();
     $('next-btn').textContent = last ? '結果を見る' : '次の問題へ';
     $('next-btn').hidden = false;
@@ -1246,6 +1256,36 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
   }
   function retryWrong() { startSet(set.wrong); }
 
+  /* ---------- DBの解き直しキュー（?retry=1 で mypage から遷移） ---------- */
+  // list_retries.php の pending から question_params を取り出し、保存時と
+  // 全く同じ問題を全モード混合の1セットとして再出題する。
+  function startDbRetry() {
+    if (!/[?&]retry=1/.test(location.search)) return;
+    const D = window.Divp;
+    if (!D || typeof D.getRetries !== 'function') return;
+    D.getRetries().then((items) => {
+      const queue = [];
+      (items || []).forEach((it) => {
+        const p = it.question_params;
+        if (!XP[it.question_key]) return;                                   // 未知のモードは弾く
+        if (!p || !p.qTex || !p.sol || !Array.isArray(p.cands) || !p.cands.length) return; // 古い形式は再出題不可
+        const q = {
+          mode: it.question_key,
+          qTex: p.qTex,
+          qTxt: p.qTxt || '',
+          correct: p.sol,
+          rawCands: p.cands,
+          choices: C.assembleChoices(p.sol, p.cands),
+          params: p,
+          hint: null,
+        };
+        q._dbParams = p;   // 保存時と同一のparamsを送り返す（params_hash一致のため）
+        queue.push(q);
+      });
+      if (queue.length) startSet(queue);
+    });
+  }
+
   // divp-correct-jh.js 不在時の簡易ハンコ
   function localStamp() {
     const st = document.createElement('div');
@@ -1286,6 +1326,16 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
 
   /* ---------- 印刷 ---------- */
   function buildPrint() {
+    // 透かし：共通モジュール（未読込でも透かし無しで印刷できる）。
+    // position:fixed 上書きで用紙センターに固定・全ページへ繰り返し印字。
+    // zIndex:0 は印刷時の body 白背景に隠れないため（.pr-body は z-index:1）
+    if (window.ChukyoPrint && !document.getElementById('pr-wm-style')) {
+      const st = document.createElement('style');
+      st.id = 'pr-wm-style';
+      st.textContent = ChukyoPrint.css({ zIndex: 0 }) + '.wm{position:fixed;}';
+      document.head.appendChild(st);
+      $('print-area').insertAdjacentHTML('afterbegin', ChukyoPrint.img());
+    }
     const probs = [];
     for (let i = 0; i < PRINT_COUNT; i++) probs.push(C.GEN[mode]());
     const label = MODES.find(m => m.key === mode).label;
@@ -1315,6 +1365,9 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
 
   /* ---------- キーボード ---------- */
   document.addEventListener('keydown', (e) => {
+    // ログイン窓など入力欄フォーカス中はショートカットを無効に
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
     if (!$('result-card').hidden) {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startSet(); }
       return;
@@ -1331,13 +1384,16 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
 
   /* ---------- 起動 ---------- */
   window.addEventListener('DOMContentLoaded', () => {
+    // 学習記録セッション開始（divp-coreはdefer読み込みなのでここで初期化）
+    if (window.Divp && typeof window.Divp.init === 'function') window.Divp.init(UNIT_KEY);
     buildModeSwitcher();
     renderStats();
     $('next-btn').addEventListener('click', advance);
     $('retry-btn').addEventListener('click', retryWrong);
     $('again-btn').addEventListener('click', () => startSet());
-    $('print-btn').addEventListener('click', buildPrint);
+    $('title-print-btn').addEventListener('click', buildPrint);
     startSet();
+    startDbRetry();   // ?retry=1 のときは取得でき次第、解き直しセットに切替
   });
 })();
 

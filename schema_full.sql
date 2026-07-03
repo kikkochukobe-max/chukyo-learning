@@ -341,6 +341,9 @@ CREATE TABLE IF NOT EXISTS question_catalog (
   PRIMARY KEY (unit_key, question_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ※MySQL 8 では「VALUES() は将来廃止予定」の警告(#1287)が出るが、実行は成功する。
+--   新構文(INSERT ... AS alias)はローカルミラーの MariaDB が未対応のため、
+--   両環境で動く VALUES() をあえて使い続ける（警告は無視してよい）
 -- 平方根マスターの初期シード（日曜運用分。当面は難易度を分けず一律XP=1）
 -- question_key は math_js3_heihokonmaster.html 内のモードボタンID(switchMode引数)と一致させる
 INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
@@ -352,6 +355,69 @@ INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('math_js3_heihokon', 'approx',    '近似値',   1),
   ('math_js3_heihokon', 'intval',    '整数値',   1),
   ('math_js3_heihokon', 'subst',     '代入',     1)
+ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
+
+-- 2次方程式マスターのシード
+-- question_key は math_js3_nijihoteishiki.html 内の MODES の key と一致させる
+INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
+  ('math_js3_nijihoteishiki', 'heihokon',    '平方根の形',     1),
+  ('math_js3_nijihoteishiki', 'katamari',    '（　）²を塊で',  1),
+  ('math_js3_nijihoteishiki', 'heihokansei', '平方完成',       1),
+  ('math_js3_nijihoteishiki', 'insu_zumi',   '因数分解ずみ',   1),
+  ('math_js3_nijihoteishiki', 'insu_jibun',  '自分で因数分解', 1),
+  ('math_js3_nijihoteishiki', 'kai_koshiki', '解の公式',       1),
+  ('math_js3_nijihoteishiki', 'random',      'ランダム',       1)
+ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
+
+-- わり算のひっ算マスターのシード
+-- question_key は math_es4_warizan_hissan.html 内の問題生成が返す qkey と一致させる
+INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
+  ('math_es4_warizan_hissan', 'int',    '整数のわり算',   1),
+  ('math_es4_warizan_hissan', 'decint', '小数÷整数',     1),
+  ('math_es4_warizan_hissan', 'decdec', '小数÷小数',     1),
+  ('math_es4_warizan_hissan', 'round',  'がい数のわり算', 1)
+ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
+
+-- 正負の数マスター（中1）のシード
+-- question_key は math_js1_seihumaster.html 内の MODE_KEYS と一致させる
+-- （数の種類 整数/分数/小数 はモードではなく question_params 側に入る）
+INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
+  ('math_js1_seihu', 'dofugo',      '同符号のたし算',   1),
+  ('math_js1_seihu', 'ifugo',       '異符号のたし算',   1),
+  ('math_js1_seihu', 'genpo',       'ひき算（2項）',    1),
+  ('math_js1_seihu', 'kagenkakko',  '加減 かっこあり',  1),
+  ('math_js1_seihu', 'kagennashi',  '加減 かっこなし',  1),
+  ('math_js1_seihu', 'kagenichibu', '加減 一部かっこ',  1),
+  ('math_js1_seihu', 'kakezan',     '乗法',             1),
+  ('math_js1_seihu', 'ruijo',       '累乗',             1),
+  ('math_js1_seihu', 'warizan',     '除法',             1),
+  ('math_js1_seihu', 'muldiv',      '乗除（指数あり）', 1),
+  ('math_js1_seihu', 'shisoku34',   '四則 3〜4項',      1),
+  ('math_js1_seihu', 'shisoku46',   '四則 4〜6項',      1),
+  ('math_js1_seihu', 'hatten',      '発展',             1)
+ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
+
+-- 魔法陣道場（正負の数・中1）のシード
+-- question_key はグリッドサイズ（grid3=3×3, grid4=4×4）
+INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
+  ('math_js1_seihunomahojin', 'grid3', '魔法陣 3×3', 1),
+  ('math_js1_seihunomahojin', 'grid4', '魔法陣 4×4', 1)
+ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
+
+-- わり算れんしゅう（分けて計算）のシード
+-- 出題は1種類のみ（2けた÷1けたを位ごとに分けて計算）
+INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
+  ('math_es3_warizanwakete', 'wakete', '分けて計算', 1)
+ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
+
+-- 漢文 返り点ドリル（国語・中1）のシード
+-- question_key は返り点の種類（テンプレの k フィールド）
+INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
+  ('japanese_js1_kaeriten', 're',     'レ点',           1),
+  ('japanese_js1_kaeriten', 'ichini', '一二点',         1),
+  ('japanese_js1_kaeriten', 'mix',    '一二点＋レ点',   1),
+  ('japanese_js1_kaeriten', 'ichire', '一レ点',         1),
+  ('japanese_js1_kaeriten', 'jouge',  '上下点',         1)
 ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
 
 -- ============================================================

@@ -1,0 +1,803 @@
+<!-- ============================================================
+  中京個別指導学院 / 中1 正負の数 四則計算ドリル v5
+  ダーク・ブループリント調 / WordPress(Custom HTML)対応(onclick・innerHTML・グローバル関数・divpプレフィックス・クラスで表示切替)
+  更新点：ヘッダー完全固定 / 設定ボタン拡幅 / 数字・記号の余白を均等(flexギャップ) / 項数に依らずフォント統一(長い式は折返し)
+============================================================ -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Fira+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+#divpRoot *,#divpRoot *::before,#divpRoot *::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+#divpRoot{
+  --bg:#080d16;--surf:#0f1722;--surf2:#162033;--brd:#1c2a40;--brd2:#263c58;
+  --text:#dde8f8;--muted:#4f6a88;--green:#34d399;--amber:#fbbf24;--blue:#60a5fa;--red:#f87171;
+  position:relative;max-width:740px;margin:0 auto;border-radius:16px;
+  background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);border:1px solid var(--brd);
+}
+#divpRoot::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.22;border-radius:16px;
+  background-image:linear-gradient(var(--brd) 1px,transparent 1px),linear-gradient(90deg,var(--brd) 1px,transparent 1px);background-size:46px 46px;}
+.divp-hide{display:none !important;}
+
+/* Header（スクロールしても上部に固定） */
+#divpHead{position:sticky;top:0;z-index:50;background:rgba(8,13,22,.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--brd);border-radius:16px 16px 0 0;padding:12px 18px;display:flex;align-items:center;gap:12px;}
+#divpHead a.divp-brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--text);}
+#divpHead a.divp-brand:hover .divp-brand-txt{color:var(--green);}
+#divpHead .divp-logo{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.6rem;color:var(--green);line-height:1;letter-spacing:.04em;flex:0 0 auto;}
+#divpHead .divp-brand-txt{font-family:'Rajdhani','Noto Sans JP',sans-serif;font-weight:700;font-size:clamp(1rem,2.6vw,1.2rem);letter-spacing:.04em;color:var(--text);transition:color .15s;}
+#divpHead .divp-sub{font-size:.62rem;color:var(--muted);letter-spacing:.06em;}
+#divpHead .divp-spacer{flex:1;}
+#divpHead .divp-hbtn{border:1px solid var(--brd2);background:var(--surf2);color:var(--muted);border-radius:8px;
+  padding:8px 12px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:.15s;white-space:nowrap;}
+#divpHead .divp-hbtn:hover{border-color:var(--green);color:var(--green);}
+
+/* Layout */
+#divpWrap{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:18px 14px;display:flex;flex-direction:column;gap:14px;}
+.divp-panel{background:var(--surf);border:1px solid var(--brd);border-radius:14px;overflow:hidden;}
+
+/* Settings */
+.divp-stg-head{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;transition:background .15s;}
+.divp-stg-head:hover{background:var(--surf2);}
+.divp-stg-lbl{font-size:.7rem;font-weight:700;letter-spacing:.14em;color:var(--muted);}
+.divp-stg-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.divp-stg-hint{font-size:.62rem;color:var(--muted);font-weight:500;letter-spacing:.02em;opacity:.85;}
+.divp-caret2{font-size:.7rem;color:var(--muted);transition:transform .2s;}
+.divp-caret2.closed{transform:rotate(180deg);}
+.divp-stg-body{border-top:1px solid var(--brd);padding:16px;display:flex;flex-direction:column;gap:16px;}
+.divp-sg{display:flex;flex-direction:column;gap:9px;}
+.divp-sg>label{font-size:.7rem;color:var(--muted);font-weight:500;letter-spacing:.04em;}
+.divp-chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.divp-chip{padding:9px 22px;border-radius:99px;border:1.5px solid var(--brd2);background:transparent;color:var(--muted);
+  font-size:.82rem;font-weight:700;cursor:pointer;transition:.15s;font-family:'Noto Sans JP',sans-serif;min-width:62px;text-align:center;}
+.divp-chip:hover{border-color:var(--text);color:var(--text);}
+.divp-chip.on{background:rgba(52,211,153,.1);border-color:var(--green);color:var(--green);}
+.divp-sel{font-family:'Fira Mono',monospace;font-weight:700;font-size:1.15rem;padding:11px 20px;border:1.5px solid var(--brd2);
+  border-radius:10px;background:var(--surf2);color:var(--text);min-width:72px;cursor:pointer;text-align:center;text-align-last:center;-moz-text-align-last:center;}
+.divp-sel:hover{border-color:var(--green);}
+.divp-sg .tilde{color:var(--muted);font-size:1rem;font-weight:700;}
+
+/* Score bar */
+.divp-scorebar{display:flex;}
+.divp-sc{flex:1;padding:11px 4px;text-align:center;border-right:1px solid var(--brd);}
+.divp-sc:last-child{border-right:none;}
+.divp-sc .n{font-family:'Fira Mono',monospace;font-size:1.6rem;font-weight:700;line-height:1;}
+.divp-sc .l{font-size:.58rem;color:var(--muted);margin-top:4px;letter-spacing:.06em;}
+
+/* Problem */
+.divp-prob{padding:22px 16px 20px;display:flex;flex-direction:column;align-items:center;text-align:center;}
+.divp-prob-no{font-family:'Fira Mono',monospace;font-size:.64rem;color:var(--muted);letter-spacing:.12em;margin-bottom:14px;}
+#divpProbCard{position:relative;width:100%;min-height:92px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
+/* ★ 数字・記号を均等な余白で並べる（項数に依らずフォントは固定、長い式は折返し） */
+#divpProb{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;column-gap:.36em;row-gap:.18em;width:100%;overflow:hidden;
+  font-family:'Fira Mono','Noto Sans JP',monospace;font-size:clamp(1.5rem,4.7vw,2.25rem);color:var(--text);line-height:1.25;}
+.divp-tok{display:inline-block;flex:0 0 auto;}
+#divpRoot sup{font-size:.56em;vertical-align:super;line-height:0;}
+#divpProb.show{animation:divpIn .26s cubic-bezier(.2,.7,.2,1);}
+@keyframes divpIn{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:none;}}
+.divp-op{color:var(--text);}
+.divp-gop{color:var(--text);margin:0 .2em;}
+.divp-grp{display:inline-flex;align-items:center;column-gap:.36em;}
+.divp-brk{color:var(--text);}
+.divp-sgn{color:var(--text);}
+
+/* fraction（通常数字とほぼ同サイズ・自前の余白は持たずギャップで揃える） */
+.divp-fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:.82em;line-height:1.1;position:relative;top:-.04em;}
+.divp-fr .divp-fn{border-bottom:1.6px solid currentColor;padding:0 .3em 1px;min-width:.7em;}
+.divp-fr .divp-fd{padding:1px .3em 0;min-width:.7em;}
+
+/* Answer row */
+.divp-ans-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;}
+.divp-eq{font-family:'Fira Mono',monospace;font-size:1.7rem;color:var(--muted);align-self:center;}
+.divp-sign{width:52px;height:52px;border-radius:12px;border:2px solid;font-family:'Fira Mono',monospace;font-size:1.5rem;font-weight:700;
+  cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;align-self:center;}
+.divp-sign.pos{color:var(--blue);border-color:rgba(96,165,250,.5);background:rgba(96,165,250,.1);}
+.divp-sign.neg{color:var(--red);border-color:rgba(248,113,113,.5);background:rgba(248,113,113,.1);}
+.divp-sign:active{transform:scale(.92);}
+.divp-frac-input{display:flex;flex-direction:column;align-items:center;align-self:center;}
+.divp-field{min-width:90px;height:52px;background:var(--surf2);border:2px solid var(--brd2);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-family:'Fira Mono',monospace;font-size:1.45rem;color:var(--text);
+  cursor:pointer;transition:border-color .2s,background .2s;padding:0 10px;user-select:none;}
+.divp-field.active{border-color:var(--blue);}
+.divp-field.ok{border-color:var(--green);background:rgba(52,211,153,.07);}
+.divp-field.ng{border-color:var(--red);background:rgba(248,113,113,.07);}
+.divp-divider{width:100%;height:2px;background:var(--text);margin:5px 0;border-radius:1px;}
+.divp-divider.ok{background:var(--green);} .divp-divider.ng{background:var(--red);}
+.divp-cur{display:inline-block;width:2px;height:1.05em;background:var(--blue);margin-left:2px;animation:divpblink 1s step-end infinite;vertical-align:middle;}
+.divp-field:not(.active) .divp-cur{display:none;}
+.divp-locked .divp-cur{display:none !important;}
+@keyframes divpblink{50%{opacity:0;}}
+
+.divp-tip{font-size:.6rem;color:var(--muted);letter-spacing:.03em;margin-bottom:8px;}
+.divp-fb{font-size:.88rem;min-height:26px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;}
+
+@keyframes divpshake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes divppulse{0%{box-shadow:0 0 0 0 rgba(52,211,153,.5)}70%{box-shadow:0 0 0 14px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+.divp-shaking{animation:divpshake .35s ease;} .divp-pulsing{animation:divppulse .5s ease;}
+
+/* Buttons */
+#divpRoot .divp-btnrow{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:4px 0 18px;}
+#divpRoot .divp-btn{padding:11px 28px;border-radius:99px;border:1.5px solid var(--brd2);cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:.04em;white-space:nowrap;min-width:148px;background:transparent;color:var(--muted);transition:.15s;}
+#divpRoot .divp-btn-g{background:rgba(52,211,153,.14);border-color:var(--green);color:var(--green);}
+#divpRoot .divp-btn-g:hover{background:rgba(52,211,153,.24);}
+#divpRoot .divp-btn-o{background:transparent;border-color:var(--brd2);color:var(--muted);}
+#divpRoot .divp-btn-o:hover{border-color:var(--text);color:var(--text);}
+#divpRoot #divpBtnNxt{background:rgba(96,165,250,.14);border-color:var(--blue);color:var(--blue);}
+
+/* Keypad */
+.divp-khint{font-size:.62rem;color:var(--muted);text-align:center;margin-bottom:6px;letter-spacing:.06em;}
+.divp-keypad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;max-width:340px;margin:0 auto;}
+.divp-kbtn{height:54px;border-radius:10px;border:1.5px solid var(--brd2);background:var(--surf2);color:var(--text);
+  font-family:'Fira Mono',monospace;font-size:1.2rem;font-weight:700;cursor:pointer;transition:background .12s,border-color .12s,transform .08s;
+  user-select:none;display:flex;align-items:center;justify-content:center;}
+.divp-kbtn:active{transform:scale(.92);} .divp-kbtn:hover{background:var(--surf);border-color:var(--text);}
+.divp-kbtn.slash{color:var(--amber);border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.08);font-size:.72rem;font-family:'Noto Sans JP',sans-serif;}
+.divp-kbtn.slash.active{color:var(--blue);border-color:rgba(96,165,250,.55);background:rgba(96,165,250,.14);font-size:.8rem;font-family:'Noto Sans JP',sans-serif;}
+.divp-kbtn.dot{color:var(--blue);border-color:rgba(96,165,250,.4);background:rgba(96,165,250,.08);}
+.divp-kbtn.back{color:var(--muted);font-size:1rem;} .divp-kbtn.back:hover{color:var(--text);}
+.divp-kbtn.clear{color:var(--muted);font-size:.72rem;} .divp-kbtn.clear:hover{color:var(--text);}
+.divp-kbtn.zero{grid-column:span 2;}
+.divp-kbtn.kdis{opacity:.28;pointer-events:none;}
+.divp-kpad-off{opacity:.35;pointer-events:none;}
+
+@media(max-width:480px){
+  .divp-sc .n{font-size:1.35rem;}
+  .divp-kbtn{height:48px;font-size:1.1rem;}
+  .divp-sign{width:48px;height:48px;font-size:1.4rem;}
+  .divp-field{min-width:78px;height:48px;font-size:1.3rem;}
+  .divp-chip{padding:9px 18px;}
+}
+
+/* 印刷（A4・10問＋解答） */
+#divpPrintArea{display:none;}
+/* ===== スマホ横向き最適化（埋め込み版では無効） ===== */
+@media (min-aspect-ratio:50/1){
+  /* フォントサイズを縦向きと同じに（幅でなく高さ基準） */
+  #divpProb{font-size:clamp(1.4rem,5.8vh,1.9rem);}
+
+  /* 設定の中身・スコアバーを隠してコンパクトに */
+  #divpWrap .divp-panel:nth-child(2){display:none;}
+
+  /* 全体余白を縮小 */
+  #divpHead{padding:8px 14px;}
+  #divpHead .divp-sub{display:none;}
+  #divpWrap{padding:8px 12px;gap:8px;}
+
+  /* 問題カードをコンパクトに */
+  .divp-prob{padding:8px 12px 10px;}
+  #divpProbCard{min-height:52px;padding:8px 12px;margin-bottom:8px;}
+
+  /* こたえ入力をコンパクトに */
+  .divp-ans-row{margin-bottom:4px;gap:8px;}
+  .divp-field{height:40px;min-width:70px;font-size:1.3rem;}
+  .divp-sign{width:42px;height:42px;font-size:1.3rem;}
+  .divp-eq{font-size:1.3rem;}
+
+  /* ヒント・feedback を縮小 */
+  .divp-tip{display:none;}
+  .divp-khint{display:none;}
+  .divp-fb{min-height:16px;margin-bottom:4px;font-size:.8rem;}
+
+  /* 確認・スキップボタンをコンパクトに */
+  .divp-btnrow{margin:2px 0 6px;gap:8px;}
+  #divpRoot .divp-btn{padding:7px 18px;font-size:.78rem;border-radius:99px;}
+
+  /* ★ テンキーを8列横並びにして式のすぐ下に配置 */
+  .divp-keypad{grid-template-columns:repeat(8,1fr);gap:6px;max-width:100%;}
+  .divp-kbtn{height:clamp(34px,9vh,42px);font-size:clamp(.95rem,2.6vw,1.15rem);border-radius:8px;}
+  #divpCheck,#divpRoot #divpBtnNxt{height:clamp(34px,9.5vh,44px);}
+}
+
+@media print{
+  body *{visibility:hidden;}
+  #divpPrintArea,#divpPrintArea *{visibility:visible;}
+  #divpPrintArea{display:block !important;position:absolute;left:0;top:0;width:100%;}
+  #divpPrintArea .divp-op,#divpPrintArea .divp-brk,#divpPrintArea .divp-sgn,#divpPrintArea .divp-fr{color:#111 !important;}
+  @page{size:A4 portrait;margin:14mm 12mm;}
+}
+.divp-sheet{font-family:'Noto Sans JP',sans-serif;color:#111;}
+.divp-sheet .ph-head{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:6px;margin-bottom:10px;}
+.divp-sheet .ph-title{font-weight:800;font-size:18px;}
+.divp-sheet .ph-school{font-size:12px;color:#444;}
+.divp-sheet .ph-meta{display:flex;justify-content:space-between;font-size:14px;margin:8px 0 16px;align-items:center;}
+.divp-sheet .ph-meta span{border-bottom:1px solid #999;min-width:130px;display:inline-block;}
+.divp-sheet .ph-meta .ph-name{min-width:260px;height:42px;border:1px solid #999;border-radius:5px;display:inline-flex;align-items:center;justify-content:flex-start;padding:0 14px;}
+.divp-pgrid{display:flex;flex-direction:column;justify-content:space-between;margin-top:7mm;min-height:223mm;}
+.divp-pitem{display:flex;align-items:baseline;gap:12px;font-size:17px;padding-bottom:3mm;font-family:'Fira Mono',monospace;}
+.divp-pitem .no{font-weight:800;width:30px;flex:0 0 auto;}
+.divp-pex{display:inline-flex;flex-wrap:wrap;align-items:center;column-gap:.3em;row-gap:.1em;}
+.divp-pitem sup{font-size:.56em;vertical-align:super;}
+.divp-keypage{page-break-before:always;}
+.divp-kgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 26px;font-size:14px;font-family:'Fira Mono',monospace;}
+.divp-kgrid div{padding:5px 0;border-bottom:1px dotted #ccc;}
+.divp-kgrid .no{font-weight:800;}
+/* #divpRoot *{margin:0;padding:0} のリセットに勝つため #divpPrintArea 接頭辞で余白を指定 */
+#divpPrintArea .ph-head{padding-bottom:6px;margin-bottom:12px;}
+#divpPrintArea .ph-meta{margin:0;}
+#divpPrintArea .ph-name{padding:0 14px;}
+#divpPrintArea .divp-pgrid{margin-top:12mm;min-height:216mm;}
+#divpPrintArea .divp-pitem{padding-bottom:3mm;}
+#divpPrintArea .ph-meta span{padding-bottom:2px;}
+#divpPrintArea .divp-kgrid div{padding:5px 0;}
+
+/* ===== 埋め込み（Googleサイト等）：コンパクトな自然の高さ＋必要ならスクロール ===== */
+html,body{height:auto;min-height:100%;margin:0;background:#080d16;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#divpRoot{height:auto;min-height:100%;max-width:520px;border-radius:0;display:flex;flex-direction:column;background:var(--bg);}
+#divpHead{position:static;}
+#divpWrap{max-width:none;display:flex;flex-direction:column;gap:10px;padding:10px 14px 16px;}
+/* 設定：開いたらインライン表示（中身が多い時はスクロール） */
+#divpWrap>.divp-panel:nth-child(1) .divp-stg-body{max-height:52vh;overflow:auto;}
+/* スコアバーは埋め込みでは非表示（高さ確保） */
+#divpWrap>.divp-panel:nth-child(2){display:none;}
+/* 問題パネル：自然な高さ */
+#divpWrap>.divp-prob{padding:14px 14px 16px;}
+#divpProbCard{min-height:64px;margin-bottom:14px;}
+.divp-ans-row{margin:6px 0;}
+.divp-btnrow{margin:4px 0;}
+/* 余分な説明文は省略 */
+.divp-tip,.divp-khint{display:none;}
+/* テンキー：自然な高さ・押しやすいサイズ（4列） */
+.divp-keypad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;max-width:340px;margin:0 auto;}
+.divp-kbtn{height:auto;min-height:50px;font-size:1.2rem;padding:12px 0;}
+/* 問題の文字サイズ（横はオートフィットで縮小） */
+#divpProb{font-size:1.7rem;}
+
+/* ===== 横向き（iframeが横長）：横幅を使い、テンキー8列 ===== */
+@media (min-aspect-ratio:1/1){
+  #divpRoot{max-width:760px;}
+  #divpProb{font-size:1.6rem;}
+  .divp-keypad{grid-template-columns:repeat(8,1fr);max-width:560px;}
+  .divp-kbtn{min-height:46px;font-size:1.1rem;}
+}
+</style>
+
+<div id="divpRoot">
+  <div id="divpHead">
+    <a class="divp-brand" href="https://www.chukyokobetsu.com/" target="_blank" rel="noopener">
+      <span class="divp-logo">±</span>
+      <span><span class="divp-brand-txt">中京個別指導学院</span><br>
+      <span class="divp-sub">正負の数 四則計算 ｜ 中学1年</span></span>
+    </a>
+    <span class="divp-spacer"></span>
+    <button class="divp-hbtn" onclick="divpOpenPrint()">🖨 プリント(10問)</button>
+  </div>
+
+  <div id="divpWrap">
+
+    <!-- 設定 -->
+    <div class="divp-panel">
+      <div class="divp-stg-head" onclick="divpToggleStg()">
+        <span class="divp-stg-left"><span class="divp-stg-lbl">⚙ 設定</span><span class="divp-stg-hint" id="divpStgHint">タップで閉じれます</span></span>
+        <span class="divp-caret2" id="divpCaret">▲</span>
+      </div>
+      <div class="divp-stg-body" id="divpStgBody">
+        <div class="divp-sg">
+          <label>出題する種類</label>
+          <div class="divp-chips">
+            <button class="divp-chip on" id="divpCatInt"  onclick="divpToggleCat('int',this)">整数</button>
+            <button class="divp-chip on" id="divpCatDec"  onclick="divpToggleCat('dec',this)">小数</button>
+            <button class="divp-chip on" id="divpCatFrac" onclick="divpToggleCat('frac',this)">分数</button>
+            <button class="divp-chip on" id="divpCatPow"  onclick="divpToggleCat('pow',this)">累乗</button>
+            <button class="divp-chip" id="divpCatHatten" onclick="divpToggleCat('hatten',this)">発展</button>
+          </div>
+        </div>
+        <div class="divp-sg">
+          <label>項の数</label>
+          <div class="divp-chips">
+            <select class="divp-sel" id="divpTmin" onchange="divpFixTerm()"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select>
+            <span class="tilde">〜</span>
+            <select class="divp-sel" id="divpTmax" onchange="divpFixTerm()"><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option></select>
+            <span class="tilde">項</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- スコアバー -->
+    <div class="divp-panel">
+      <div class="divp-scorebar">
+        <div class="divp-sc"><div class="n" id="divpScT" style="color:var(--blue)">0</div><div class="l">TOTAL</div></div>
+        <div class="divp-sc"><div class="n" id="divpScC" style="color:var(--green)">0</div><div class="l">正解</div></div>
+        <div class="divp-sc"><div class="n" id="divpScW" style="color:var(--red)">0</div><div class="l">不正解</div></div>
+        <div class="divp-sc"><div class="n" id="divpScR" style="color:var(--amber)">—</div><div class="l">正答率</div></div>
+      </div>
+    </div>
+
+    <!-- 問題 -->
+    <div class="divp-panel divp-prob">
+      <div class="divp-prob-no" id="divpProbNo">問題 #1</div>
+      <div id="divpProbCard"><div id="divpProb">…</div></div>
+
+      <div class="divp-ans-row" id="divpAnsRow">
+        <span class="divp-eq">=</span>
+        <button class="divp-sign pos" id="divpSignBtn" onclick="divpToggleSign()">＋</button>
+        <div class="divp-frac-input">
+          <div class="divp-field active" id="divpFnum" onclick="divpSetActive('num')"><span id="divpNumTxt"></span><span class="divp-cur"></span></div>
+          <div class="divp-divider divp-hide" id="divpDiv"></div>
+          <div class="divp-field divp-hide" id="divpFden" onclick="divpSetActive('den')"><span id="divpDenTxt"></span><span class="divp-cur"></span></div>
+        </div>
+      </div>
+
+      <div class="divp-tip">符号はタップで切り替え／分数は「分数入力」→分母／小数は「・」</div>
+      <div class="divp-fb" id="divpFb"></div>
+
+      <div class="divp-btnrow">
+        <button class="divp-btn divp-btn-g" id="divpBtnChk" onclick="divpCheck()">答え合わせ</button>
+        <button class="divp-btn divp-btn-o divp-hide" id="divpBtnNxt" onclick="divpNext()">次の問題 →</button>
+        <button class="divp-btn divp-btn-o" onclick="divpNext()">スキップ</button>
+      </div>
+
+      <div class="divp-khint" id="divpKhint">タップして答えを入力</div>
+      <div class="divp-keypad" id="divpKeypad">
+        <button class="divp-kbtn" onclick="divpKNum('7')">7</button>
+        <button class="divp-kbtn" onclick="divpKNum('8')">8</button>
+        <button class="divp-kbtn" onclick="divpKNum('9')">9</button>
+        <button class="divp-kbtn back" onclick="divpKBack()">⌫</button>
+        <button class="divp-kbtn" onclick="divpKNum('4')">4</button>
+        <button class="divp-kbtn" onclick="divpKNum('5')">5</button>
+        <button class="divp-kbtn" onclick="divpKNum('6')">6</button>
+        <button class="divp-kbtn slash" id="divpKslash" onclick="divpKSlash()">分数入力</button>
+        <button class="divp-kbtn" onclick="divpKNum('1')">1</button>
+        <button class="divp-kbtn" onclick="divpKNum('2')">2</button>
+        <button class="divp-kbtn" onclick="divpKNum('3')">3</button>
+        <button class="divp-kbtn dot" id="divpKdot" onclick="divpKDot()">・</button>
+        <button class="divp-kbtn clear" onclick="divpKClear()">クリア</button>
+        <button class="divp-kbtn zero" onclick="divpKNum('0')">0</button>
+        <button class="divp-kbtn back" onclick="divpKBack()">⌫</button>
+      </div>
+    </div>
+
+  </div>
+  <div id="divpPrintArea"></div>
+</div>
+
+<script>
+/* ===== 厳密な有理数演算 ===== */
+function divpGcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){var t=b;b=a%b;a=t;}return a||1;}
+function divpR(n,d){d=(d===undefined)?1:d;if(d<0){n=-n;d=-d;}var g=divpGcd(n,d);return{n:n/g,d:d/g};}
+function divpAdd(x,y){return divpR(x.n*y.d+y.n*x.d,x.d*y.d);}
+function divpSub(x,y){return divpR(x.n*y.d-y.n*x.d,x.d*y.d);}
+function divpMul(x,y){return divpR(x.n*y.n,x.d*y.d);}
+function divpDvd(x,y){return divpR(x.n*y.d,x.d*y.n);}
+function divpPow(x,e){var r=divpR(1,1);for(var i=0;i<e;i++)r=divpMul(r,x);return r;}
+function divpRandint(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function divpChoice(a){return a[Math.floor(Math.random()*a.length)];}
+function divpFloatToR(v){var d=1,x=v;while(Math.abs(x*d-Math.round(x*d))>1e-9&&d<10000)d*=10;return divpR(Math.round(x*d),d);}
+function divpTermFactors(v){v=Math.abs(v);while(v%2===0)v/=2;while(v%5===0)v/=5;return v;}
+function divpDivisors(n){n=Math.abs(n);var ds=[];for(var d=1;d<=n;d++)if(n%d===0)ds.push(d);return ds;}
+
+/* ===== オペランド ===== */
+function divpDecOp(){var v=divpChoice([-3,-2.5,-2,-1.5,-1,-0.5,0.5,1,1.5,2,2.5,3,0.2,0.4,0.6,0.8,-0.2,-0.4,-0.8]);return{r:divpFloatToR(v),disp:'dec',dispVal:v};}
+function divpFracOp(){var den=divpChoice([2,3,4,5,6]),num=divpRandint(-6,6);if(num===0)num=divpChoice([-1,1,2,3]);return{r:divpR(num,den),disp:'frac'};}
+function divpIntOp(){var v=divpRandint(-9,9);if(v===0)v=divpChoice([-2,2,3,4]);return{r:divpR(v,1),disp:'int'};}
+/* 分母ファミリー：和の分母が必ず12以下になる組（多項でもきれいに） */
+var divpFAM={mix:{dens:[2,3,4,6],pows:[[1,2,2],[3,2,2],[-1,2,2],[-3,2,2]]},
+  two:{dens:[2,4,8],pows:[[1,2,2],[3,2,2],[-1,2,2],[-3,2,2],[1,2,3],[-1,2,3],[3,2,3],[-3,2,3]]},
+  three:{dens:[3,9],pows:[[1,3,2],[2,3,2],[4,3,2],[-1,3,2],[-2,3,2],[-4,3,2]]}};
+function divpFracOpFam(fam){var den=divpChoice(divpFAM[fam].dens),num=divpRandint(-5,5);if(num===0)num=divpChoice([-1,1,2,3]);return{r:divpR(num,den),disp:'frac'};}
+function divpFracPowOpFam(fam){var s=divpChoice(divpFAM[fam].pows);return{r:divpPow(divpR(s[0],s[1]),s[2]),disp:'fracpow',bn:s[0],bd:s[1],exp:s[2]};}
+/* 「整数 ÷ 分数」が必ず整数になるペアを生成（A ÷ n/d = k*d で整数） */
+function divpMkDivFrac(){
+  var f=divpChoice([[1,2],[1,3],[2,3],[1,4],[3,4],[1,5],[2,5],[3,5],[1,6],[5,6]]);
+  var n=f[0],d=f[1],km=Math.max(1,Math.floor(8/n)),k=divpRandint(-km,km);if(k===0)k=divpChoice([-1,1,2,-2]);
+  return{intOp:{r:divpR(n*k,1),disp:'int'},fracOp:{r:divpR(n,d),disp:'frac'}};
+}
+function divpPowOp(){var e=divpChoice([2,2,2,3]),b;if(e===2)b=divpChoice([-5,-4,-3,-2,2,3,4,5]);else b=divpChoice([-3,-2,2,3]);return{r:divpPow(divpR(b,1),e),disp:'pow',base:b,exp:e};}
+function divpNPowOp(){var e=divpChoice([2,2,3]),b;if(e===2)b=divpChoice([2,3,4,5]);else b=divpChoice([2,3]);return{r:divpR(-Math.pow(b,e),1),disp:'npow',base:b,exp:e};}
+function divpDecPowOp(){var e=(Math.random()<0.7)?2:3;var b=divpChoice(e===2?[0.5,-0.5,1.5,-1.5,2.5,-2.5,0.2,-0.2,0.4,-0.4,0.3,-0.3]:[0.5,-0.5,0.2,-0.2,1.5,-1.5]);return{r:divpPow(divpFloatToR(b),e),disp:'decpow',baseVal:b,exp:e};}
+function divpFracPowOp(){var den=divpChoice([2,3]),e,num;if(den===2){e=divpChoice([2,3]);num=divpChoice([1,-1,3,-3]);}else{e=2;num=divpChoice([1,-1,2,-2,4,-4]);}return{r:divpPow(divpR(num,den),e),disp:'fracpow',bn:num,bd:den,exp:e};}
+
+/* ===== 整数の乗除チェーン（必ず整数） ===== */
+function divpIntChain(maxF){
+  var m=divpRandint(1,maxF),ops=[],opers=[];
+  var first=divpRandint(-9,9);if(first===0)first=divpChoice([-2,2,3,4]);
+  ops.push({r:divpR(first,1),disp:'int'});var prod=first;
+  for(var i=1;i<m;i++){
+    var useDiv=(Math.random()<0.5)&&(Math.abs(prod)>1);
+    var ds=useDiv?divpDivisors(prod).filter(function(d){return d>1&&d<Math.abs(prod);}):[];
+    if(useDiv&&ds.length>0){var d=divpChoice(ds);if(Math.random()<0.5)d=-d;ops.push({r:divpR(d,1),disp:'int'});opers.push('/');prod=prod/d;}
+    else{var f=divpRandint(2,6);if(Math.random()<0.5)f=-f;ops.push({r:divpR(f,1),disp:'int'});opers.push('*');prod*=f;}
+  }
+  return{ops:ops,opers:opers};
+}
+/* ===== かっこ（加減を先に計算）問題 ===== */
+function divpNZ(lo,hi){var v=divpRandint(lo,hi);if(Math.random()<0.5)v=-v;return{r:divpR(v,1),disp:'int'};}
+function divpMkGroup(maxTerms,nonzero){
+  for(var tries=0;tries<50;tries++){
+    var k=divpRandint(2,maxTerms||3),first=divpRandint(-9,9);if(first===0)first=divpChoice([-4,4,5,-5]);
+    var gops=[{r:divpR(first,1),disp:'int'}],gopers=[];
+    for(var i=1;i<k;i++){var v=divpRandint(1,9);gopers.push(Math.random()<0.5?'+':'-');gops.push({r:divpR(v,1),disp:'int'});}
+    var r=divpEval(gops,gopers);
+    if(nonzero&&r.n===0)continue;
+    if(Math.abs(r.n)>20)continue;
+    return{disp:'group',gops:gops,gopers:gopers,r:r};
+  }
+  return{disp:'group',gops:[{r:divpR(5,1),disp:'int'},{r:divpR(2,1),disp:'int'}],gopers:['-'],r:divpR(3,1)};
+}
+function divpGenGroup(){
+  var t=divpRandint(1,7),g,n,V,divs,k,m;
+  if(t<=2){g=divpMkGroup(divpChoice([2,2,3]));n=divpNZ(2,9);return(Math.random()<0.5)?{ops:[g,n],opers:['*']}:{ops:[n,g],opers:['*']};}
+  if(t===3){return{ops:[divpMkGroup(2),divpMkGroup(2)],opers:['*']};}
+  if(t===4){g=divpMkGroup(2);n=divpNZ(2,9);m=divpNZ(1,9);return{ops:[g,n,m],opers:['*',(Math.random()<0.5?'+':'-')]};}
+  if(t===5){g=divpMkGroup(2);n=divpNZ(2,9);m=divpNZ(1,9);return{ops:[m,g,n],opers:[(Math.random()<0.5?'+':'-'),'*']};}
+  if(t===6){g=divpMkGroup(2,true);V=g.r.n;divs=divpDivisors(Math.abs(V)).filter(function(d){return d>1;});if(divs.length===0)divs=[Math.abs(V)];n=divpChoice(divs);if(Math.random()<0.5)n=-n;return{ops:[g,{r:divpR(n,1),disp:'int'}],opers:['/']};}
+  g=divpMkGroup(2,true);V=g.r.n;k=divpRandint(1,Math.max(1,Math.floor(12/Math.abs(V))));if(Math.random()<0.5)k=-k;return{ops:[{r:divpR(V*k,1),disp:'int'},g],opers:['/']};
+}
+/* ===== 発展：中括弧の入れ子・括弧内の累乗 ===== */
+function divpPowOpSmall(){var e=divpChoice([2,2,3]),b;if(e===2)b=divpChoice([-4,-3,-2,2,3,4]);else b=divpChoice([-2,2]);return{r:divpPow(divpR(b,1),e),disp:'pow',base:b,exp:e};}
+function divpNPowOpSmall(){var e=divpChoice([2,2,3]),b;if(e===2)b=divpChoice([2,3,4]);else b=2;return{r:divpR(-Math.pow(b,e),1),disp:'npow',base:b,exp:e};}
+function divpPowInGroup(first){return(first&&Math.random()<0.4)?divpNPowOpSmall():divpPowOpSmall();}
+/* 内部に括弧付きの要素（負の底の累乗・小数/分数の累乗・入れ子）を含むか */
+function divpHasParens(o){if(o.disp==='pow')return o.base<0;return o.disp==='decpow'||o.disp==='fracpow'||o.disp==='group';}
+function divpMkGroupPow(){
+  for(var t=0;t<60;t++){
+    var k=divpRandint(2,3),ops=[],opers=[],pp=divpRandint(0,k-1);
+    for(var i=0;i<k;i++){
+      if(i>0)opers.push(Math.random()<0.5?'+':'-');
+      if(i===pp)ops.push(divpPowInGroup(i===0));
+      else{var v=(i===0)?divpRandint(-9,9):divpRandint(1,9);if(v===0)v=3;ops.push({r:divpR(v,1),disp:'int'});}
+    }
+    var r=divpEval(ops,opers);
+    if(r.n===0||Math.abs(r.n)>30)continue;
+    return{disp:'group',bk:(ops.some(divpHasParens)?'curly':'paren'),gops:ops,gopers:opers,r:r};
+  }
+  var fo=[divpNPowOpSmall(),{r:divpR(6,1),disp:'int'}],fp=['+'];return{disp:'group',bk:'paren',gops:fo,gopers:fp,r:divpEval(fo,fp)};
+}
+function divpMkGroupNested(){
+  for(var t=0;t<60;t++){
+    var inner=divpMkGroup(2,true),ops=[inner],opers=[];
+    if(Math.random()<0.7){opers.push('*');ops.push(divpNZ(2,5));}
+    if(Math.random()<0.7||opers.length===0){opers.push(Math.random()<0.5?'+':'-');ops.push({r:divpR(divpRandint(1,9),1),disp:'int'});}
+    var r=divpEval(ops,opers);
+    if(r.n===0||Math.abs(r.n)>40)continue;
+    return{disp:'group',bk:'curly',gops:ops,gopers:opers,r:r};
+  }
+  var inn=divpMkGroup(2,true),fo=[inn,divpNZ(2,4)],fp=['*'];return{disp:'group',bk:'curly',gops:fo,gopers:fp,r:divpEval(fo,fp)};
+}
+function divpGenGroupAdv(){
+  if(Math.random()<0.5){
+    var g=divpMkGroupPow(),n=divpNZ(2,9);
+    return(Math.random()<0.5)?{ops:[g,n],opers:['*']}:{ops:[n,g],opers:['*']};
+  }
+  var gn=divpMkGroupNested();
+  if(Math.random()<0.55){var n2=divpNZ(2,5);return(Math.random()<0.5)?{ops:[gn,n2],opers:['*']}:{ops:[n2,gn],opers:['*']};}
+  var V=gn.r.n,divs=divpDivisors(Math.abs(V)).filter(function(d){return d>1;});if(divs.length===0)divs=[Math.abs(V)||2];
+  var m=divpChoice(divs);if(Math.random()<0.5)m=-m;
+  return{ops:[gn,{r:divpR(m,1),disp:'int'}],opers:['/']};
+}
+
+/* ===== 評価（累乗→×÷→＋−） ===== */
+function divpEval(ops,opers){
+  var vals=[ops[0].r],add2=[];
+  for(var i=0;i<opers.length;i++){var o=opers[i];
+    if(o==='*'||o==='/')vals[vals.length-1]=(o==='*')?divpMul(vals[vals.length-1],ops[i+1].r):divpDvd(vals[vals.length-1],ops[i+1].r);
+    else{add2.push(o);vals.push(ops[i+1].r);}}
+  var res=vals[0];for(var j=0;j<add2.length;j++)res=(add2[j]==='+')?divpAdd(res,vals[j+1]):divpSub(res,vals[j+1]);return res;
+}
+function divpClean(flavor,ans){
+  if(!isFinite(ans.n)||!isFinite(ans.d))return false;
+  if(flavor==='int')return ans.d===1&&Math.abs(ans.n)<=300;
+  if(flavor==='dec')return divpTermFactors(ans.d)===1&&(100%ans.d===0)&&Math.abs(ans.n/ans.d)<=300;
+  if(flavor==='frac')return ans.d<=12&&Math.abs(ans.n)<=99;
+  return false;
+}
+
+/* ===== 混在(整数＋分数 または 整数＋小数)の生成 ===== */
+function divpCleanMix(sec,ans){
+  if(!isFinite(ans.n)||!isFinite(ans.d))return false;
+  if(Math.abs(ans.n/ans.d)>300)return false;
+  if(ans.d===1)return true;
+  if(sec==='frac')return ans.d<=12&&Math.abs(ans.n)<=99;
+  return divpTermFactors(ans.d)===1&&(100%ans.d===0)&&ans.d<=1000;
+}
+function divpGenMixed(secondary,K){
+  var cats=divpCats,ops=[],opers=[],used=0,types=[],fam=divpChoice(['mix','mix','two','three']);
+  while(used<K){
+    var remaining=K-used,tt=(Math.random()<0.5)?'int':secondary;
+    if(used>0)opers.push(Math.random()<0.5?'+':'-');
+    if(tt==='int'){
+      if(cats.pow&&used===0&&Math.random()<0.18){ops.push(divpNPowOp());types.push('int');used+=1;continue;}
+      if(cats.pow&&Math.random()<0.22){ops.push(divpPowOp());types.push('int');used+=1;continue;}
+      var ch=divpIntChain(Math.min(3,remaining));
+      ops.push(ch.ops[0]);for(var ci=1;ci<ch.ops.length;ci++){opers.push(ch.opers[ci-1]);ops.push(ch.ops[ci]);}
+      types.push('int');used+=ch.ops.length;
+    }else if(secondary==='frac'){
+      if(cats.pow&&Math.random()<0.3){ops.push(divpFracPowOpFam(fam));types.push('frac');used+=1;}
+      else if(remaining>=2&&Math.random()<0.28){
+        var dp3=divpMkDivFrac();ops.push(dp3.intOp);opers.push('/');ops.push(dp3.fracOp);types.push('frac');used+=2;
+      }else if(remaining>=2&&Math.random()<0.35){ops.push(divpIntOp());opers.push('*');ops.push(divpFracOpFam(fam));types.push('frac');used+=2;}
+      else{ops.push(divpFracOpFam(fam));types.push('frac');used+=1;}
+    }else{
+      if(cats.pow&&Math.random()<0.3){ops.push(divpDecPowOp());types.push('dec');used+=1;}
+      else{ops.push(divpDecOp());types.push('dec');used+=1;}
+    }
+  }
+  var hasI=types.indexOf('int')>=0,hasS=false;for(var t=0;t<types.length;t++)if(types[t]!=='int')hasS=true;
+  if(!hasI||!hasS)return null;
+  return{ops:ops,opers:opers};
+}
+
+/* ===== 問題生成 ===== */
+function divpGen(){
+  var cats=divpCats,tmin=parseInt(divpDoc('divpTmin').value,10),tmax=parseInt(divpDoc('divpTmax').value,10);
+  if(isNaN(tmin))tmin=2;if(isNaN(tmax))tmax=6;if(tmin>tmax){var sw=tmin;tmin=tmax;tmax=sw;}
+  var K=divpRandint(Math.max(2,tmin),Math.max(2,tmax));   /* 項数を最初に固定 → 範囲内が均等に出る */
+  for(var attempt=0;attempt<800;attempt++){
+    var pool=[];if(cats.int)pool.push('int');if(cats.dec)pool.push('dec');if(cats.frac)pool.push('frac');
+    if(pool.length===0)pool=['int'];
+    var secOpts=[];if(cats.dec)secOpts.push('dec');if(cats.frac)secOpts.push('frac');
+    var flavor,ops=[],opers=[],secondary=null;
+
+    if(cats.int&&cats.hatten&&Math.random()<0.30){
+      /* 発展：中括弧の入れ子・括弧内の累乗 */
+      var ga=divpGenGroupAdv();ops=ga.ops;opers=ga.opers;flavor='int';
+    }else if(cats.int&&Math.random()<0.20){
+      /* かっこ（加減を先に計算）問題 */
+      var gg=divpGenGroup();ops=gg.ops;opers=gg.opers;flavor='int';
+    }else if(cats.int&&secOpts.length>0&&Math.random()<0.7){
+      /* 混在モード：整数 ＋（分数 または 小数） */
+      secondary=divpChoice(secOpts);
+      var mm=divpGenMixed(secondary,K);
+      if(!mm)continue;
+      ops=mm.ops;opers=mm.opers;flavor='mix';
+    }else{
+      flavor=divpChoice(pool);
+      if(flavor==='int'){
+        var used=0;
+        while(used<K){
+          var remaining=K-used;
+          if(cats.pow&&used===0&&Math.random()<0.20){ops.push(divpNPowOp());used+=1;continue;}
+          if(cats.pow&&Math.random()<0.24){if(used>0)opers.push(Math.random()<0.5?'+':'-');ops.push(divpPowOp());used+=1;continue;}
+          if(cats.frac&&remaining>=2&&Math.random()<0.22){
+            /* 整数 ÷ 分数（答えが整数になる） */
+            var dp=divpMkDivFrac();
+            if(used>0)opers.push(Math.random()<0.5?'+':'-');
+            ops.push(dp.intOp);opers.push('/');ops.push(dp.fracOp);used+=2;continue;
+          }
+          var ch=divpIntChain(Math.min(3,remaining));
+          if(used>0)opers.push(Math.random()<0.5?'+':'-');
+          ops.push(ch.ops[0]);for(var ci=1;ci<ch.ops.length;ci++){opers.push(ch.opers[ci-1]);ops.push(ch.ops[ci]);}
+          used+=ch.ops.length;
+        }
+      }else if(flavor==='dec'){
+        if(K===2&&Math.random()<0.4){
+          var d1=divpChoice([0.5,1.5,2.5,0.2,0.4,-0.5,-1.5,2,-2,0.25,-0.25]);
+          var d2=divpChoice([0.5,1.5,2,-2,0.4,-0.4,2.5,-0.5,4,-4]);
+          ops=[{r:divpFloatToR(d1),disp:'dec',dispVal:d1},{r:divpFloatToR(d2),disp:'dec',dispVal:d2}];opers=['*'];
+        }else{
+          for(var i=0;i<K;i++)ops.push((cats.pow&&Math.random()<0.34)?divpDecPowOp():divpDecOp());
+          for(var i2=0;i2<K-1;i2++)opers.push(Math.random()<0.5?'+':'-');
+        }
+      }else{ /* frac：ファミリーで多項でもきれい */
+        if(K===2&&Math.random()<0.5){
+          /* 2項：×/÷（÷分数を積極的に） */
+          var f1=divpFracOp(),f2=divpFracOp();if(f2.r.n===0)continue;ops=[f1,f2];opers=[Math.random()<0.5?'*':'/'];
+        }else{
+          var fam=divpChoice(['mix','mix','two','three']);
+          var j=0;
+          while(j<K){
+            var rem2=K-j;
+            if(j>0)opers.push(Math.random()<0.5?'+':'-');
+            if(rem2>=2&&Math.random()<0.28){
+              /* 整数 ÷ 分数ペア（答えが整数になるので和がきれい） */
+              var dp2=divpMkDivFrac();ops.push(dp2.intOp);opers.push('/');ops.push(dp2.fracOp);j+=2;
+            }else if(cats.pow&&Math.random()<0.30){ops.push(divpFracPowOpFam(fam));j+=1;}
+            else{ops.push(divpFracOpFam(fam));j+=1;}
+          }
+        }
+      }
+    }
+
+    var bad=false;for(var z=0;z<opers.length;z++)if(opers[z]==='/'&&ops[z+1].r.n===0){bad=true;break;}
+    if(bad)continue;
+    var ans=divpEval(ops,opers);
+    if(flavor==='mix'){if(!divpCleanMix(secondary,ans))continue;}
+    else{if(!divpClean(flavor,ans))continue;}
+    return{flavor:flavor,mixSec:secondary,ops:ops,opers:opers,ans:ans};
+  }
+  return{flavor:'int',ops:[{r:divpR(3,1),disp:'int'},{r:divpR(-5,1),disp:'int'}],opers:['+'],ans:divpR(-2,1)};
+}
+
+/* ===== 表示（トークン分割：各数字・記号を均等ギャップで配置） ===== */
+function divpFracHTML(n,d){return '<span class="divp-fr"><span class="divp-fn">'+n+'</span><span class="divp-fd">'+d+'</span></span>';}
+function divpDecStr(r,mag){var neg=(r.n<0)&&!mag,n=Math.abs(r.n);var th=Math.round(n*1000/r.d),ip=Math.floor(th/1000),rem=th%1000,s=''+ip;
+  if(rem>0){var f=('00'+rem).slice(-3).replace(/0+$/,'');s+='.'+f;}return(neg?'−':'')+s;}
+function divpDecMag(o){if(o.dispVal!==undefined)return ''+Math.abs(o.dispVal);return divpDecStr(o.r,true);}
+function divpPowBase(sg,mag,exp){return '<span class="divp-grp"><span class="divp-brk">(</span>'+sg+'<span>'+mag+'</span><span class="divp-brk">)</span></span><sup>'+exp+'</sup>';}
+function divpMag(o){
+  if(o.disp==='frac')return (o.r.d===1)?(''+Math.abs(o.r.n)):divpFracHTML(Math.abs(o.r.n),o.r.d);
+  if(o.disp==='dec')return divpDecMag(o);
+  return ''+Math.abs(o.r.n);
+}
+function divpIsPlain(o){return o.disp==='int'||o.disp==='dec'||o.disp==='frac';}
+/* 先頭の負号は独立トークンにして、引き算と同じ間隔で並べる */
+function divpHeadTok(o,cls){
+  if(divpIsPlain(o)&&o.r.n<0)return '<span class="'+cls+' divp-op">−</span><span class="'+cls+'">'+divpMag(o)+'</span>';
+  if(o.disp==='npow')return '<span class="'+cls+' divp-op">−</span><span class="'+cls+'">'+o.base+'<sup>'+o.exp+'</sup></span>';
+  return '<span class="'+cls+'">'+divpOperandInner(o,true)+'</span>';
+}
+function divpGroupInner(gops,gopers){
+  var sym={'+':'+','-':'−','*':'×','/':'÷'};
+  var s=divpHeadTok(gops[0],'divp-gtok');
+  for(var i=0;i<gopers.length;i++){
+    s+='<span class="divp-gtok divp-op">'+sym[gopers[i]]+'</span>';
+    s+='<span class="divp-gtok">'+divpOperandInner(gops[i+1],false)+'</span>';
+  }
+  return s;
+}
+function divpOperandInner(o,first,parens){
+  if(o.disp==='group'){var lb=(o.bk==='curly')?'{':'(',rb=(o.bk==='curly')?'}':')';
+    return '<span class="divp-grp"><span class="divp-brk">'+lb+'</span>'+divpGroupInner(o.gops,o.gopers)+'<span class="divp-brk">'+rb+'</span></span>';}
+  if(o.disp==='npow')return '<span class="divp-sgn">−</span>'+o.base+'<sup>'+o.exp+'</sup>';
+  if(o.disp==='pow'){var b=o.base;
+    if(b<0)return divpPowBase('<span class="divp-op">−</span>',''+Math.abs(b),o.exp);
+    return ''+b+'<sup>'+o.exp+'</sup>';}
+  if(o.disp==='decpow'){var bv=o.baseVal;return divpPowBase(bv<0?'<span class="divp-op">−</span>':'',''+Math.abs(bv),o.exp);}
+  if(o.disp==='fracpow'){return divpPowBase(o.bn<0?'<span class="divp-op">−</span>':'',divpFracHTML(Math.abs(o.bn),o.bd),o.exp);}
+  var r=o.r,neg=r.n<0,bd;
+  if(o.disp==='frac')bd=(r.d===1)?(''+Math.abs(r.n)):divpFracHTML(Math.abs(r.n),r.d);
+  else if(o.disp==='dec')bd=divpDecMag(o);
+  else bd=''+Math.abs(r.n);
+  if(neg)return first?('<span class="divp-sgn">−</span>'+bd):('<span class="divp-grp"><span class="divp-brk">(</span><span class="divp-op">−</span><span>'+bd+'</span><span class="divp-brk">)</span></span>');
+  /* ÷ の除数で分数・小数のとき括弧をつける（例：3 ÷ (1/2)） */
+  if(parens&&r.d>1)return '<span class="divp-brk">(</span>'+bd+'<span class="divp-brk">)</span>';
+  return bd;
+}
+function divpExprHTML(ops,opers){
+  var sym={'+':'+','-':'−','*':'×','/':'÷'};
+  var s=divpHeadTok(ops[0],'divp-tok');
+  for(var i=0;i<opers.length;i++){
+    s+='<span class="divp-tok divp-op">'+sym[opers[i]]+'</span>';
+    s+='<span class="divp-tok">'+divpOperandInner(ops[i+1],false)+'</span>';
+  }
+  return s;
+}
+function divpAnsCanon(p){var a=p.ans;
+  if(p.flavor==='mix'){if(a.d===1)return(a.n<0?'−':'')+Math.abs(a.n);
+    if(p.mixSec==='frac')return(a.n<0?'<span class="divp-sgn">−</span>':'')+divpFracHTML(Math.abs(a.n),a.d);
+    return divpDecStr(a,false);}
+  if(p.flavor==='frac'){if(a.d===1)return(a.n<0?'−':'')+Math.abs(a.n);return(a.n<0?'<span class="divp-sgn">−</span>':'')+divpFracHTML(Math.abs(a.n),a.d);}
+  if(p.flavor==='dec')return divpDecStr(a,false);
+  return(a.n<0?'−':'')+Math.abs(a.n);
+}
+
+/* ===== 状態 ===== */
+var divpCats={int:true,dec:true,frac:true,pow:true,hatten:false};
+var divpCur=null,divpLocked=false,divpProbNum=0;
+var divpSign='+',divpNum='',divpDen='',divpIsFrac=false,divpActive='num';
+var divpScore={total:0,correct:0,wrong:0},divpStgOpen=true;
+function divpDoc(id){return document.getElementById(id);}
+
+function divpToggleStg(){divpStgOpen=!divpStgOpen;divpDoc('divpStgBody').className='divp-stg-body'+(divpStgOpen?'':' divp-hide');divpDoc('divpCaret').className='divp-caret2'+(divpStgOpen?'':' closed');divpDoc('divpStgHint').innerHTML=divpStgOpen?'タップで閉じれます':'タップで開けます';}
+function divpToggleCat(k,el){divpCats[k]=!divpCats[k];el.className='divp-chip'+(divpCats[k]?' on':'');
+  if(k!=='pow'&&k!=='hatten'&&!divpCats.int&&!divpCats.dec&&!divpCats.frac){divpCats[k]=true;el.className='divp-chip on';}}
+function divpFixTerm(){var mn=parseInt(divpDoc('divpTmin').value,10),mx=parseInt(divpDoc('divpTmax').value,10);if(mn>mx)divpDoc('divpTmax').value=mn;}
+
+/* ===== 入力UI ===== */
+function divpUpdateInput(){
+  divpDoc('divpNumTxt').innerHTML=divpNum;
+  divpDoc('divpDenTxt').innerHTML=divpDen;
+  divpDoc('divpFnum').className='divp-field'+(divpActive==='num'?' active':'');
+  divpDoc('divpFden').className='divp-field'+(divpIsFrac?'':' divp-hide')+(divpActive==='den'?' active':'');
+  divpDoc('divpDiv').className='divp-divider'+(divpIsFrac?'':' divp-hide');
+  divpDoc('divpKdot').className='divp-kbtn dot'+((divpIsFrac||divpActive==='den')?' kdis':'');
+  var sb=divpDoc('divpKslash');
+  if(divpIsFrac){sb.className='divp-kbtn slash active';sb.innerHTML='戻す';}
+  else{sb.className='divp-kbtn slash'+(divpNum.indexOf('.')>=0?' kdis':'');sb.innerHTML='分数入力';}
+}
+function divpSetActive(f){if(divpLocked)return;if(f==='den'&&!divpIsFrac)return;divpActive=f;divpUpdateInput();}
+function divpToggleSign(){if(divpLocked)return;divpSign=(divpSign==='+')?'-':'+';var b=divpDoc('divpSignBtn');b.innerHTML=(divpSign==='+')?'＋':'−';b.className='divp-sign '+(divpSign==='+'?'pos':'neg');}
+function divpKNum(ch){if(divpLocked)return;
+  if(divpActive==='num'){if(divpNum.replace(/[^0-9]/g,'').length>=6)return;if(ch==='0'&&divpNum===''&&!divpIsFrac){divpNum='0';divpUpdateInput();return;}divpNum+=ch;}
+  else{if(divpDen.length>=2)return;if(ch==='0'&&divpDen==='')return;divpDen+=ch;}
+  divpUpdateInput();}
+function divpKSlash(){
+  if(divpLocked||divpNum.indexOf('.')>=0)return;
+  if(divpIsFrac){divpIsFrac=false;divpDen='';divpActive='num';divpUpdateInput();return;}
+  divpIsFrac=true;divpActive=(divpNum==='')?'num':'den';divpUpdateInput();
+}
+function divpKDot(){if(divpLocked||divpIsFrac||divpActive==='den')return;if(divpNum.indexOf('.')>=0)return;if(divpNum==='')divpNum='0';divpNum+='.';divpUpdateInput();}
+function divpKBack(){if(divpLocked)return;
+  if(divpActive==='den'){if(divpDen.length>0)divpDen=divpDen.slice(0,-1);else{divpIsFrac=false;divpActive='num';}}
+  else{if(divpNum.length>0)divpNum=divpNum.slice(0,-1);}
+  divpUpdateInput();}
+function divpKClear(){if(divpLocked)return;divpSign='+';divpNum='';divpDen='';divpIsFrac=false;divpActive='num';
+  var b=divpDoc('divpSignBtn');b.innerHTML='＋';b.className='divp-sign pos';divpUpdateInput();}
+
+function divpGetAnswer(){
+  if(divpNum===''||divpNum==='.'||divpNum==='0.')return null;
+  var s=(divpSign==='-')?-1:1;
+  if(divpIsFrac){if(divpDen==='')return null;var n=parseInt(divpNum,10),d=parseInt(divpDen,10);if(isNaN(n)||isNaN(d)||d===0)return null;return divpR(s*n,d);}
+  if(divpNum.indexOf('.')>=0){var p=divpNum.split('.');if(p.length!==2||!/^[0-9]*$/.test(p[0])||!/^[0-9]+$/.test(p[1]))return null;
+    var den=Math.pow(10,p[1].length),ip=p[0]===''?0:parseInt(p[0],10);return divpR(s*(ip*den+parseInt(p[1],10)),den);}
+  if(!/^[0-9]+$/.test(divpNum))return null;return divpR(s*parseInt(divpNum,10),1);
+}
+
+/* ===== ゲーム進行 ===== */
+function divpFit(){
+  var el=divpDoc('divpProb');if(!el)return;
+  el.style.fontSize='';el.style.flexWrap='nowrap';el.style.justifyContent='flex-start';
+  var avail=el.clientWidth,content=el.scrollWidth;
+  if(avail>0&&content>avail+1){
+    var base=parseFloat(getComputedStyle(el).fontSize),target=base*(avail/content)*0.96,min=15;
+    if(target<min){el.style.fontSize=min+'px';el.style.flexWrap='wrap';}
+    else{el.style.fontSize=target+'px';}
+  }
+  el.style.justifyContent='';
+}
+function divpNewProblem(){
+  divpCur=divpGen();divpLocked=false;divpProbNum++;
+  var el=divpDoc('divpProb');
+  el.innerHTML=divpExprHTML(divpCur.ops,divpCur.opers);
+  divpFit();
+  el.className='';void el.offsetWidth;el.className='show';
+  divpDoc('divpProbNo').innerHTML='問題 #'+divpProbNum;
+  divpSign='+';divpNum='';divpDen='';divpIsFrac=false;divpActive='num';
+  var sb=divpDoc('divpSignBtn');sb.innerHTML='＋';sb.className='divp-sign pos';
+  divpDoc('divpAnsRow').className='divp-ans-row';
+  divpDoc('divpFnum').className='divp-field active';divpDoc('divpFden').className='divp-field divp-hide';divpDoc('divpDiv').className='divp-divider divp-hide';
+  divpUpdateInput();
+  divpDoc('divpFb').innerHTML='';
+  divpDoc('divpBtnChk').className='divp-btn divp-btn-g';
+  divpDoc('divpBtnNxt').className='divp-btn divp-btn-o divp-hide';
+  divpDoc('divpKeypad').className='divp-keypad';divpDoc('divpKhint').className='divp-khint';
+}
+function divpCheck(){
+  if(divpLocked)return;
+  var ua=divpGetAnswer();
+  if(!ua){divpDoc('divpFb').innerHTML='<span style="color:var(--amber)">⚠ 答えを入力してください</span>';return;}
+  divpLocked=true;divpScore.total++;
+  var a=divpCur.ans,ok=(ua.n===a.n&&ua.d===a.d);
+  divpDoc('divpAnsRow').className='divp-ans-row divp-locked';
+  var nf=divpDoc('divpFnum'),df=divpDoc('divpFden'),dv=divpDoc('divpDiv');
+  if(ok){divpScore.correct++;nf.className='divp-field ok divp-pulsing';if(divpIsFrac){df.className='divp-field ok';dv.className='divp-divider ok';}
+    setTimeout(function(){nf.className='divp-field ok';},600);
+    divpDoc('divpFb').innerHTML='<span style="color:var(--green);font-size:1.05rem">✓ 正解！</span>';}
+  else{divpScore.wrong++;nf.className='divp-field ng divp-shaking';if(divpIsFrac){df.className='divp-field ng';dv.className='divp-divider ng';}
+    setTimeout(function(){nf.className='divp-field ng';},400);
+    divpDoc('divpFb').innerHTML='<span style="color:var(--red)">✗ 不正解</span><span style="color:var(--muted)">　正解：</span><span style="color:var(--green);font-family:\'Fira Mono\',monospace">'+divpAnsCanon(divpCur)+'</span>';}
+  divpDoc('divpBtnChk').className='divp-btn divp-btn-g divp-hide';
+  divpDoc('divpBtnNxt').className='divp-btn divp-btn-o';
+  divpDoc('divpKeypad').className='divp-keypad divp-kpad-off';divpDoc('divpKhint').className='divp-khint divp-hide';
+  divpUpdateScore();
+}
+function divpNext(){divpNewProblem();}
+function divpUpdateScore(){var s=divpScore,rate=s.total>0?Math.round(s.correct/s.total*100):null;
+  divpDoc('divpScT').innerHTML=s.total;divpDoc('divpScC').innerHTML=s.correct;divpDoc('divpScW').innerHTML=s.wrong;
+  divpDoc('divpScR').innerHTML=rate!==null?(rate+'%'):'—';}
+
+/* ===== 印刷（A4・10問＋解答） ===== */
+function divpOpenPrint(){var items='',keys='';
+  for(var i=1;i<=10;i++){var p=divpGen();
+    items+='<div class="divp-pitem"><span class="no">('+i+')</span><span class="divp-pex">'+divpExprHTML(p.ops,p.opers)+'</span></div>';
+    keys+='<div><span class="no">('+i+')</span> &nbsp;'+divpAnsCanon(p)+'</div>';}
+  var now=new Date(),ymd=now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日';
+  divpDoc('divpPrintArea').innerHTML=''
+   +'<div class="divp-sheet"><div class="ph-head"><div class="ph-title">正負の数 四則計算ドリル</div>'
+   +'<div class="ph-school">中京個別指導学院　www.chukyokobetsu.com</div></div>'
+   +'<div class="ph-meta"><span class="ph-name">名前：</span><span>得点：　　／10</span></div>'
+   +'<div class="divp-pgrid">'+items+'</div>'
+   +'<div class="divp-keypage divp-sheet"><div class="ph-head"><div class="ph-title">解答</div><div class="ph-school">中京個別指導学院</div></div>'
+   +'<div class="divp-kgrid">'+keys+'</div></div></div>';
+  window.print();
+}
+
+/* ===== 初期化 ===== */
+function divpKeydown(e){var k=e.key;
+  if(divpLocked){if(k==='Enter')divpNext();return;}
+  if(k==='Enter'){divpCheck();if(e.preventDefault)e.preventDefault();return;}
+  if(k==='Backspace'){divpKBack();if(e.preventDefault)e.preventDefault();return;}
+  if(k==='Delete'){divpKClear();return;}
+  if(k==='-'||k==='−'||k==='+'){divpToggleSign();return;}
+  if(k==='/'){divpKSlash();return;}
+  if(k==='.'){divpKDot();return;}
+  if(/^[0-9]$/.test(k)){divpKNum(k);if(e.preventDefault)e.preventDefault();}
+}
+function divpInit(){
+  document.onkeydown=divpKeydown;
+  window.onresize=function(){divpFit();};
+  /* 埋め込み（固定高さ）：設定は閉じた状態で開始 */
+  if(divpStgOpen)divpToggleStg();
+  divpNewProblem();
+}
+divpInit();
+</script>
