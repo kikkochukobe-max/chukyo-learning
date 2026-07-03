@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>register_teacher / register_student 動作確認</title>
+<style>
+  body { font-family: sans-serif; max-width: 480px; margin: 40px auto; }
+  fieldset { margin-top: 24px; }
+  label { display: block; margin-top: 12px; }
+  input, select { width: 100%; padding: 6px; box-sizing: border-box; }
+  button { margin-top: 16px; padding: 8px 16px; }
+  pre { background: #f4f4f4; padding: 12px; white-space: pre-wrap; word-break: break-all; }
+  textarea { width: 100%; height: 160px; box-sizing: border-box; font-family: monospace; }
+  table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+  th, td { border: 1px solid #ccc; padding: 4px 8px; font-size: 14px; text-align: left; }
+  .ok { color: green; }
+  .ng { color: red; }
+</style>
+</head>
+<body>
+<h1>register_teacher / register_student 動作確認</h1>
+<p>先に <a href="test_auth.html">test_auth.html</a> でログインしてから使う（同じブラウザタブでセッションを共有）。</p>
+
+<fieldset>
+  <legend>講師登録</legend>
+  <form id="teacher-form">
+    <label>ログインID <input type="text" name="login_id" required></label>
+    <label>初期パスワード(8文字以上) <input type="text" name="password" required autocomplete="off"></label>
+    <label>氏名 <input type="text" name="teacher_name" required></label>
+    <label>役割
+      <select name="role">
+        <option value="teacher">teacher（閲覧のみ）</option>
+        <option value="classroom_admin">classroom_admin（教室管理者）</option>
+        <option value="super_admin">super_admin（統括）</option>
+      </select>
+    </label>
+    <label>担当教室ID（カンマ区切り、super_admin以外は必須。例: 1,3）
+      <input type="text" name="classroom_ids">
+    </label>
+    <button type="submit">講師を登録</button>
+  </form>
+</fieldset>
+
+<fieldset>
+  <legend>生徒登録</legend>
+  <form id="student-form">
+    <label>教室ID <input type="number" name="classroom_id" required></label>
+    <label>生徒氏名 <input type="text" name="student_name" required></label>
+    <label>学年（例: es4, js1。任意） <input type="text" name="grade"></label>
+    <label>PIN（4桁数字） <input type="text" name="pin" pattern="\d{4}" maxlength="4" required autocomplete="off"></label>
+    <button type="submit">生徒を登録</button>
+  </form>
+</fieldset>
+
+<fieldset>
+  <legend>生徒一括登録</legend>
+  <p>1行1人、列の順番は「教室ID・生徒名・学年・PIN」（学年は空欄可）。次のどちらかで入力:</p>
+  <ul>
+    <li>Excelで教室ID・生徒名・学年・PINの4列を範囲選択してコピーし、下の欄にそのまま貼り付け</li>
+    <li>CSVファイル（文字コードUTF-8で保存したもの）を選んで読み込み</li>
+  </ul>
+  <label>CSVファイルを読み込む <input type="file" id="csv-file" accept=".csv,.txt"></label>
+  <form id="bulk-form">
+    <textarea name="rows" placeholder="1&#9;山田太郎&#9;es4&#9;1234&#10;2&#9;鈴木花子&#9;&#9;5678"></textarea>
+    <button type="submit">一括登録を実行</button>
+  </form>
+  <table id="bulk-table" style="display:none;">
+    <thead><tr><th>#</th><th>入力</th><th>結果</th><th>生徒コード / エラー</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</fieldset>
+
+<fieldset>
+  <legend>生徒名の変更</legend>
+  <form id="rename-form">
+    <label>生徒コード <input type="text" name="login_id" required></label>
+    <label>新しい氏名 <input type="text" name="student_name" required></label>
+    <button type="submit">名前を変更</button>
+  </form>
+</fieldset>
+
+<fieldset>
+  <legend>生徒一覧</legend>
+  <button id="list-students-btn" type="button">一覧を表示</button>
+  <table id="students-table" style="display:none;">
+    <thead><tr><th>生徒コード</th><th>氏名</th><th>教室</th><th>学年</th><th>登録日</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</fieldset>
+
+<h2>結果</h2>
+<pre id="result">（まだ実行していません）</pre>
+
+<script>
+const resultEl = document.getElementById('result');
+
+async function post(url, body) {
+  resultEl.textContent = '送信中...';
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    let display = text;
+    try { display = JSON.stringify(JSON.parse(text), null, 2); } catch (_) {}
+    resultEl.textContent = `HTTP ${res.status}\n\n${display}`;
+  } catch (err) {
+    resultEl.textContent = '通信エラー: ' + err;
+  }
+}
+
+document.getElementById('teacher-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const classroomIds = f.classroom_ids.value
+    .split(',')
+    .map(s => s.trim())
+    .filter(s => s !== '')
+    .map(Number);
+  post('register_teacher.php', {
+    login_id: f.login_id.value,
+    password: f.password.value,
+    teacher_name: f.teacher_name.value,
+    role: f.role.value,
+    classroom_ids: classroomIds,
+  });
+});
+
+document.getElementById('student-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const f = e.target;
+  post('register_student.php', {
+    classroom_id: Number(f.classroom_id.value),
+    student_name: f.student_name.value,
+    grade: f.grade.value || null,
+    pin: f.pin.value,
+  });
+});
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+document.getElementById('csv-file').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    document.querySelector('#bulk-form textarea[name="rows"]').value = reader.result;
+  };
+  reader.readAsText(file, 'UTF-8');
+});
+
+document.getElementById('bulk-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const lines = e.target.rows.value.split('\n').map(l => l.trim()).filter(l => l !== '');
+  const table = document.getElementById('bulk-table');
+  const tbody = table.querySelector('tbody');
+  tbody.innerHTML = '';
+  table.style.display = '';
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${i + 1}</td><td>${line}</td><td>実行中...</td><td></td>`;
+    tbody.appendChild(row);
+
+    // Excelのセルコピーはタブ区切りになるので、タブがあれば優先的にそちらで分割する
+    const parts = (line.includes('\t') ? line.split('\t') : line.split(','));
+    if (parts.length !== 4) {
+      row.children[2].innerHTML = '<span class="ng">形式エラー</span>';
+      row.children[3].textContent = '教室ID,生徒名,学年,PINの4項目で区切ってください';
+      continue;
+    }
+    const [classroomId, studentName, grade, pin] = parts.map(s => s.trim());
+
+    try {
+      const res = await fetch('register_student.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          classroom_id: Number(classroomId),
+          student_name: studentName,
+          grade: grade || null,
+          pin: pin,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data && data.ok) {
+        row.children[2].innerHTML = '<span class="ok">OK</span>';
+        row.children[3].textContent = data.login_id;
+      } else {
+        row.children[2].innerHTML = '<span class="ng">失敗</span>';
+        row.children[3].textContent = `HTTP ${res.status} ${data ? data.error : ''}`;
+      }
+    } catch (err) {
+      row.children[2].innerHTML = '<span class="ng">通信エラー</span>';
+      row.children[3].textContent = String(err);
+    }
+
+    await sleep(300);
+  }
+});
+
+document.getElementById('rename-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const f = e.target;
+  post('update_student.php', {
+    login_id: f.login_id.value,
+    student_name: f.student_name.value,
+  });
+});
+
+document.getElementById('list-students-btn').addEventListener('click', async () => {
+  const table = document.getElementById('students-table');
+  const tbody = table.querySelector('tbody');
+  try {
+    const res = await fetch('list_students.php', { credentials: 'same-origin' });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      resultEl.textContent = `HTTP ${res.status}\n\n${JSON.stringify(data, null, 2)}`;
+      return;
+    }
+    tbody.innerHTML = data.students.map(s => `
+      <tr>
+        <td>${s.login_id}</td>
+        <td>${s.student_name}</td>
+        <td>${s.classroom_name}</td>
+        <td>${s.grade ?? ''}</td>
+        <td>${s.created_at}</td>
+      </tr>
+    `).join('');
+    table.style.display = '';
+  } catch (err) {
+    resultEl.textContent = '通信エラー: ' + err;
+  }
+});
+</script>
+</body>
+</html>

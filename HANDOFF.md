@@ -1,0 +1,179 @@
+# 引き継ぎ: 学習記録システム DB設計〜日曜運用開始
+
+中京個別指導学院（chukyokobetsu.com / Heteml共有サーバー）の学習ツール群に
+生徒の学習記録機能を追加するプロジェクト。本ドキュメントは設計会話の引き継ぎ用。
+添付の `schema_full.sql` とセットで使うこと。
+
+## 現在地
+
+- `schema_full.sql`（16テーブル・検証済み）は **Hetemlに適用済み**
+- 次はAPI疎通（auth.php / start_session.php / save_answer.php / end_session.php）から
+- **締切: 日曜日に運用開始**。平方根マスターが必須、「計算どぅする？」は余裕があれば
+
+## 前提知識
+
+- 学習ツールは単一HTMLファイル群（85本以上）。共通基盤は divp-core
+  （`assets/divp-core.js` / `divp-header.js` / `divp-correct.js`）
+- `unit_key` = コンテンツの論理ID（例 `math_js3_heihokon`）。ファイルパスや
+  製作者コードから自動生成してはならない（進捗が分断されるため）
+- `question_key` = ツール内の問題タイプ（モード名をそのまま使う）
+- 物理教室は8つ: 焼山・吉根・長久手・神丘・高針台・一社・貴船・有松
+  （植田・志段味はSEO用地名。表記は「神丘」が正、「神岡」は誤り）
+- 正解エフェクトは es（小学生）ツールのみ `divp-correct.js`、jh は
+  `divp-correct-jh.js`（スタンプ）。js/jh に星エフェクトは付けない
+
+## スキーマ（schema_full.sql / 16テーブル）
+
+| 区分 | テーブル | 要点 |
+|---|---|---|
+| 基盤 | classrooms | 8教室シード済み |
+| 基盤 | teachers | role: super_admin(統括・全教室) / classroom_admin(自教室の生徒登録可) / teacher(閲覧のみ) |
+| 基盤 | teacher_classrooms | 兼任講師の多対多 |
+| 基盤 | students | login_id=生徒コード, password_hash=4桁PINのhash, created_by=登録者監査 |
+| 基盤 | devices | UUIDクッキー divp_device(httponly,1年)で端末識別。labelは管理側で後付け |
+| 追跡 | login_logs | actor_type(student/teacher/guardian)で3ロール共用 |
+| 追跡 | study_sessions | 学習時間。ended_at確定時にduration_sec算出。device_id/ip/ua記録 |
+| 追跡 | answer_logs | 1問=1行。question_key(種類別集計の軸), question_params(JSON), params_hash, student_answer(誤解答閲覧用), retry_of |
+| 追跡 | retry_queue | 誤答をキュー化。correct_streak 2連続正解で mastered |
+| 保護者 | guardians / guardian_students | 兄弟対応の多対多。**専用ログインは後日リリース**(器だけ先行) |
+| 確認テスト | paper_tests / paper_test_results | アナログ確認テスト。attempt_no=1が本試、2以降が追試。合格率・追試数は集計で算出 |
+| XP | xp_events / xp_logs | イベント期間の倍率。**XPは付与時点で確定値を記録**(再計算禁止)。レベルはカラムに持たず累計XPから式で算出: floor(sqrt(totalXp/100))+1 |
+| カタログ | question_catalog | (unit_key,question_key)→日本語ラベル+base_xp。平方根8モードシード済み。当面は難易度を分けずbase_xp=1で統一 |
+
+## 主要な設計判断（この会話で確定）
+
+1. **正誤判定はツール側の責務、判定後の処理を共通化**。divp-core に
+   `Divp.answer(ok, {question_key, question_params, question_text, correct_answer, wrong_answer})` を新設し、
+   中で log送信 → 正解エフェクト(校種判定) → retry_queue 連携まで一括。
+   ツールへの組み込みは「判定関数の直後に1行挿入」のみ。
+   未ログイン・ローカル起動時は黙ってスキップする guard を内蔵
+   （safeDivpCorrect() と同じ思想。未組み込みツールと混在しても壊れない）
+2. **問題は「機械用」と「人間用」の二重表現で保存する**。
+   question_params(JSON) = 再生成用（ランダム問題は生成パラメータ 例 {n:72}、
+   固定問題は問題ID 例 {qid:12}）。question_text / correct_answer(文字列) =
+   講師・保護者画面の表示用。4値とも出題時点でツールの手元に揃っている変数を
+   そのまま渡すだけ。**PHP側でparamsから問題文を復元する実装は禁止**
+   （サーバーにツールと同じ数学ロジックを持ち込まない）。
+   params_hash が同一問題の判定キーで、retry_queue の再出題と
+   2連続正解マスター判定はこのハッシュの同一性で成立する
+3. **question_key はツールのモード変数をそのまま使う**。命名ブレ防止のため
+   question_catalog が台帳を兼ね、カタログに無い question_key が飛んできたら
+   save_answer.php が警告ログを出す
+4. **教室は常に students 経由でJOIN**（ログ側に classroom_id を非正規化しない）
+5. **保護者は当面、生徒アカウントのマイページを親子共用**。マイページは
+   保護者向け仕様（学習時間・種類別の解答数/正解数/正答率）で作り、
+   誤解答詳細・端末情報は出さない（それらは講師画面専用）。
+   guardian 専用ログインは確認テスト機能と同時に後日リリース
+6. **ランキングは全てスキーマ変更なしの集計**。権限フィルタ
+   （super_admin=全教室 / それ以外=teacher_classrooms でJOIN）を共通関数化
+7. **正答率ランキングには最低問題数の足切りを入れる**（3問全問正解が1位になる事故防止）
+8. XPの不正対策方針: 正解のみ付与、同一question_keyの大量連打は減衰、1日上限
+9. **ログインは divp-header のログイン窓に一本化する**（実装済み）。各ツールに
+   ログイン画面は作らない。.html はPHPが動かないため、ヘッダーJSが読み込み時に
+   whoami.php（設計時の仮称は check_session.php）を fetch してログイン状態を取得し、
+   未ログインなら生徒コード+PIN入力窓、ログイン済みなら「◯◯さん／ログアウト」を描画する。
+   ログインは fetch で auth.php にPOST、維持はPHPセッション(クッキー、同一ドメイン)。
+   ログインさえすれば、どのツールを開いても Divp.answer() の記録が
+   セッション経由で生徒に紐づく。入力欄は inputmode="numeric"、PINは
+   type="password"。**auth.php にPIN試行制限実装済み**(4桁=1万通りのため。
+   同一アカウントで直近10分に5回失敗したら10分ロック=HTTP 429。
+   失敗も login_logs に success=0 で記録)。
+   **自動ログイン実装済み**: 生徒ログイン時に divp_remember クッキー
+   (selector:validator方式、180日) を発行し auth_tokens テーブルに保存。
+   セッション切れ時は whoami/require_login が自動復元する。
+   ログアウトでトークン失効。LINE内ブラウザとSafari等はクッキーが別なので、
+   ブラウザごとに最初の1回だけログインが必要（仕様）
+
+## 日曜までのロードマップ
+
+1. ~~**DB構築**: schema_full.sql を phpMyAdmin で実行~~ **→ 完了（Hetemlに適用済み）**
+   → 次は setup_first_admin.php で統括管理者作成(実行後削除) →
+   register_teacher.php / register_student.php でアカウント発行
+   （これらのPHPは過去に作成済みのはず。無ければ作る）
+2. **API疎通（最優先・詰まりやすい）**: auth.php / start_session.php /
+   save_answer.php / end_session.php を Heteml に置き、手動POSTで
+   answer_logs に1行入るまで確認。save_answer.php は
+   question_catalog をJOINして base_xp×イベント倍率で xp_logs にも書く
+3. ~~**Divp.answer() 実装**（divp-core.js に追加）~~ **→ 完了**
+4. ~~**平方根マスター組み込み**: math_js3_heihokon の8モード
+   （truefalse/simplify/addsub/muldiv/mixed/approx/intval/subst）の判定直後に Divp.answer() 挿入~~ **→ 完了**
+   （intvalは2種類の出題形式(gradeIntMulti/selectIntAnswer)があるが、question_keyは両方とも`intval`に統一）
+5. ~~**マイページ1枚**: 生徒ログイン→学習時間・種類別集計の表示。
+   ラベルは question_catalog から取得。親子で見る前提のデザイン~~ **→ 完了（/mypage.php）**
+   期間タブ（今週/先週/今月/全期間）付き。解き直しボタン→ /retry.php
+   （pending問題の復習リスト+ツール導線。正解は見せない）。
+   単元名・ツールURLの台帳は api/units.php。
+   **同一問題の再出題は実装済み**: question_paramsに完全な生成情報を保存、
+   ツールを ?retry=1 で開くと list_retries.php から取得してモード別リトライ
+   キューに流し込み再出題。2連続正解でmastered
+5b. **講師確認ページ → 完了（/teacher.php）**: 生徒一覧（期間・教室タブ）→
+   生徒詳細（単元カルテ・誤答一覧・セッション+端末）。権限フィルタ実装済み。
+   基調は藍。誤答詳細・端末情報はこのページのみ
+6. **実機で1周**: ログイン→解く→answer_logs→マイページ反映まで確認
+7. 土曜時点で平方根が1周通っていれば「計算どぅする？」
+   (math_es_keisan_dousuru、13カテゴリのIDをquestion_keyに)も横展開
+
+## 検証済み事項
+
+schema_full.sql は MariaDB 10.11 で実行検証済み: 16テーブル作成、
+FK整合、7教室+カタログ5行のシード、実データINSERT一式、
+種類別正答率の GROUP BY 集計、確認テストの一発合格率・追試数集計まで動作確認済み。
+
+## 種類別集計の基本クエリ（マイページ用）
+
+```sql
+SELECT COALESCE(qc.label, al.question_key) AS label,
+       COUNT(*) AS solved, SUM(al.is_correct) AS correct,
+       ROUND(100*SUM(al.is_correct)/COUNT(*),1) AS rate
+FROM answer_logs al
+LEFT JOIN question_catalog qc
+  ON qc.unit_key = al.unit_key AND qc.question_key = al.question_key
+WHERE al.student_id = ? AND al.unit_key = ?
+GROUP BY al.question_key;
+```
+
+## デザイン仕様（マイページ・管理画面 共通）
+
+添付の `mypage_mock.html` が生徒マイページの確定デザイン。
+**このモックの見た目のまま mypage.php として実装する**（データ部分をPHPに差し替え）。
+
+コンセプト: 塾の「丸つけ」文化。方眼ノートの紙面 + 朱色の採点ペン + 花丸。
+管理画面然とさせない「がんばりの記録帳」。
+
+デザイントークン（CSS変数として定義済み）:
+- 紙 #FBFAF6 / 方眼 #ECE9E0 / 墨 #33312B / 薄墨 #8B877C
+- 朱色 #C73E2E（丸つけ・アクセント。ロゴの実色と合わせて微調整可）
+- 藍 #2C5F8A（リンク・講師画面の基調色）/ 金 #C9A227（XP・レベル）
+- フォント: 見出し = Zen Maru Gothic（丸ゴ）/ 本文 = Zen Kaku Gothic New
+  **本番はHetemlに自前ホスティング+サブセット必須**（モックのCDN参照は差し替える）
+- ロゴ: `https://chukyokobetsu.com/manage/wp-content/themes/chukyo/images/common/logo_chukyo.png`
+  （本サイト共通ロゴ。同一ドメインなので相対パス化してもよい）
+
+デザインルール:
+- 正答率90%以上のバーには「◎」の丸つけマークを付ける
+- 60%未満は橙 #D89A45（「がんばりどころ」。赤で責めない）
+- 保護者と一緒に見る前提: 誤解答の詳細・端末情報はマイページに出さない
+- 講師画面も同じトークンで作るが、基調を朱→藍に反転し、
+  情報密度を上げてよい（テーブル可）。世界観は共通、役割で色が変わる
+
+## 注意（Heteml固有）
+
+- Heteml はリモートMySQL接続不可 → ローカル開発はMySQLミラーで
+- .html はPHPを実行しない → ヘッダーはJS注入方式（divp-header.js）
+- キャッシュは ?v= ではなく .htaccess の ETag 固定URL方式
+- フォントはCDN不可、自前ホスティング必須
+- `config.php`（DB接続情報）は第一候補として公開ルート直下（`learning/`と同階層）
+  に配置。置けない場合のみ `api/config.php` に置く（`api/.htaccess` で直アクセス拒否済み）
+- 公開ルート直下の `.htaccess` は保守会社管理の本番ファイル（WordPress /
+  Wordfence WAF / SiteGuard 設定込み）をgitに丸ごと反映済み。末尾の
+  `BEGIN/END chukyo-learning config.php protection` が追加分。本番へは
+  既存ファイルを日付付きバックアップ（保守会社の慣習に合わせる）してから
+  上書きアップロードする。WordPressの`BEGIN/END WordPress`区間はWP側で
+  自動再生成されるため、本番で変わっていたらgit側も同期し直すこと
+
+## 生徒コード採番ルール（確定）
+
+6桁の数字のみ: **[入塾年度下2桁][全教室通し連番4桁]**（例: 2026年度38人目 → 260038）
+- register_student.php が自動採番する（同年度の最大連番+1。同時登録の重複はDBのUNIQUE制約とリトライで担保）
+- 教室番号・学年はコードに入れない（転籍・進級で変わる情報のため）。教室はDBの所属欄が正
+- コードは卒塾まで不変。数字のみなのでテンキー入力で完結（PIN 4桁も数字）

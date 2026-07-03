@@ -716,6 +716,8 @@
 
 <script src="/assets/divp-header.js"></script>
 <script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script>Divp.init('math_js3_heihokon');</script>
 
 <main>
   <div class="quiz-title">
@@ -1527,6 +1529,13 @@ function checkAnswer() {
 
   if (isCorrect) { correctCount++; safeDivpCorrect('.question-card'); }
   else { wrongCount++; tfWrongQs.push(questions[currentQ]); }
+  Divp.answer(isCorrect, {
+    question_key: 'truefalse',
+    question_params: { mode: questions[currentQ].mode, statements: questions[currentQ].statements },
+    question_text: questions[currentQ].statements.map((s, i) => ['ア','イ','ウ','エ'][i] + '. ' + s.text).join(' / '),
+    correct_answer: correctAnswers.map(i => ['ア','イ','ウ','エ'][i]).join('・'),
+    wrong_answer: [...userSet].map(i => ['ア','イ','ウ','エ'][i]).join('・'),
+  });
 
   const labels = ['ア','イ','ウ','エ'];
 
@@ -1835,9 +1844,12 @@ function simplifyHTML(a, b) {
 }
 
 function renderSimplifyQuestion() {
-  if (sCurrentQ >= S_TOTAL) { renderSimplifyResult(); return; }
+  const _sTotal = _sRetryQueue !== null ? _sRetryTotal : S_TOTAL;
+  if (sCurrentQ >= _sTotal) { renderSimplifyResult(); return; }
   updateSimplifyScoreBar();
-  const s = sQuestions[sCurrentQ];
+  const s = (_sRetryQueue && _sRetryQueue.length > 0)
+    ? (() => { const q = _sRetryQueue.shift(); sQuestions[sCurrentQ] = q; return q; })()
+    : sQuestions[sCurrentQ];
   const wrongs = makeWrongOptions(s);
   // Build 4 options: 1 correct + 3 wrong, shuffled
   const options = [{ a: s.a, b: s.b, correct: true }, ...wrongs.map(w => ({...w, correct: false}))];
@@ -1873,7 +1885,14 @@ function renderSimplifyQuestion() {
 
 function selectSimplifyAnswer(chosen, s, options) {
   const isCorrect = chosen.a === s.a && chosen.b === s.b;
-  if (isCorrect) { sCorrect++; safeDivpCorrect('.simplify-problem'); } else { sWrong++; sWrongProbs.push(sProblems[sCurrentQ]); }
+  if (isCorrect) { sCorrect++; safeDivpCorrect('.simplify-problem'); } else { sWrong++; sWrongProbs.push(sQuestions[sCurrentQ]); }
+  Divp.answer(isCorrect, {
+    question_key: 'simplify',
+    question_params: { n: s.n, a: s.a, b: s.b },
+    question_text: `√${s.n} を簡単にすると？`,
+    correct_answer: `${s.a}√${s.b}`,
+    wrong_answer: `${chosen.a}√${chosen.b}`,
+  });
 
   // Style all buttons
   options.forEach((o, i) => {
@@ -1962,7 +1981,7 @@ function renderSimplifyResult() {
     document.getElementById('score-correct').textContent=0;
     document.getElementById('score-wrong').textContent=0;
     document.getElementById('progress-fill').style.width='0%';
-    renderSQuestion();
+    renderSimplifyQuestion();
   });
 }
 
@@ -2933,6 +2952,13 @@ function renderMDQuestion() {
 function selectMDAnswer(chosen, prob, opts) {
   const isCorrect = chosen.correct;
   if (isCorrect) { mdCorrect++; safeDivpCorrect('.muldiv-problem'); } else { mdWrong++; mdWrongProbs.push(prob); }
+  Divp.answer(isCorrect, {
+    question_key: 'muldiv',
+    question_params: prob,
+    question_text: prob.probLatex || prob.latex,
+    correct_answer: (opts.find(o => o.correct) || {}).latex,
+    wrong_answer: chosen.latex,
+  });
 
   opts.forEach((o,i) => {
     const btn = document.getElementById(`mdopt-${i}`);
@@ -3283,6 +3309,13 @@ function renderASQuestion() {
 function selectASAnswer(chosen, prob, opts) {
   const isCorrect = chosen.correct;
   if (isCorrect) { asCorrect++; safeDivpCorrect('.muldiv-problem'); } else { asWrong++; asWrongProbs.push(prob); }
+  Divp.answer(isCorrect, {
+    question_key: 'addsub',
+    question_params: prob,
+    question_text: prob.latex,
+    correct_answer: (opts.find(o => o.correct) || {}).latex,
+    wrong_answer: chosen.latex,
+  });
 
   opts.forEach((o,i)=>{
     const btn=document.getElementById(`asopt-${i}`);
@@ -3520,6 +3553,13 @@ function renderMixQuestion(){
 function selectMixAnswer(chosen, prob, opts){
   const isCorrect = chosen.correct;
   if (isCorrect){ mixCorrect++; safeDivpCorrect('.muldiv-problem'); } else { mixWrong++; mixWrongProbs.push(prob); }
+  Divp.answer(isCorrect, {
+    question_key: 'mixed',
+    question_params: prob,
+    question_text: prob._signedQuestionLatex || prob.latex || prob.probLatex,
+    correct_answer: (opts.find(o => o.correct) || {}).latex,
+    wrong_answer: chosen.latex,
+  });
   opts.forEach((o,i)=>{
     const btn=document.getElementById(`mixopt-${i}`); btn.disabled=true;
     if(o.correct) btn.classList.add('result-correct');
@@ -3776,6 +3816,13 @@ function selectApxAnswer(chosen, prob, opts){
   const isCorrect = chosen.correct;
   if (isCorrect) { apxCorrect++; safeDivpCorrect('.muldiv-problem'); }
   else { apxWrong++; apxWrongProbs.push(prob); }
+  Divp.answer(isCorrect, {
+    question_key: 'approx',
+    question_params: prob,
+    question_text: prob.qLatex,
+    correct_answer: apxFmt(prob.ans),
+    wrong_answer: chosen.txt,
+  });
 
   opts.forEach((o,i)=>{
     const btn = document.getElementById('apxopt-'+i);
@@ -4053,6 +4100,13 @@ function gradeIntMulti(prob){
   });
   const checkBtn=document.getElementById('int-check'); if(checkBtn)checkBtn.remove();
   if(isCorrect){ intCorrect++; safeDivpCorrect('.muldiv-problem'); } else { intWrong++; intWrongProbs.push(prob); }
+  Divp.answer(isCorrect, {
+    question_key: 'intval',
+    question_params: prob,
+    question_text: prob.qLatex,
+    correct_answer: prob.ans.join(', '),
+    wrong_answer: [...selSet].join(', '),
+  });
   const expDiv=document.createElement('div'); expDiv.className='explanation';
   const msg=isCorrect?'<span style="color:#166534;font-weight:700;">✓ 正解！</span>':'<span style="color:#991b1b;font-weight:700;">✗ 不正解</span>';
   const lineHtml=intExpLinesC(prob).map(l=>'<div style="margin-bottom:6px;">'+K(l)+'</div>').join('');
@@ -4072,6 +4126,13 @@ function gradeIntMulti(prob){
 function selectIntAnswer(chosen, prob, opts){
   const isCorrect=chosen.correct;
   if(isCorrect){ intCorrect++; safeDivpCorrect('.muldiv-problem'); } else { intWrong++; intWrongProbs.push(prob); }
+  Divp.answer(isCorrect, {
+    question_key: 'intval',
+    question_params: prob,
+    question_text: prob.qLatex,
+    correct_answer: (opts.find(o => o.correct) || {}).txt,
+    wrong_answer: chosen.txt,
+  });
   opts.forEach((o,i)=>{ const btn=document.getElementById('intopt-'+i); btn.disabled=true; if(o.correct)btn.classList.add('result-correct'); else if(o===chosen&&!isCorrect)btn.classList.add('result-wrong'); });
   const expDiv=document.createElement('div'); expDiv.className='explanation';
   const msg=isCorrect?'<span style="color:#166534;font-weight:700;">✓ 正解！</span>':'<span style="color:#991b1b;font-weight:700;">✗ 不正解</span>';
@@ -4360,6 +4421,13 @@ function renderSubstQuestion(){
 function selectSubstAnswer(chosen,prob,opts){
   const isCorrect=chosen.correct;
   if(isCorrect){ subCorrect++; safeDivpCorrect('.muldiv-problem'); } else { subWrong++; subWrongProbs.push(prob); }
+  Divp.answer(isCorrect, {
+    question_key: 'subst',
+    question_params: prob,
+    question_text: prob.condLatex + ' / ' + prob.exprLatex,
+    correct_answer: (opts.find(o => o.correct) || {}).txt,
+    wrong_answer: chosen.txt,
+  });
   opts.forEach((o,i)=>{ const btn=document.getElementById('subopt-'+i); btn.disabled=true; if(o.correct)btn.classList.add('result-correct'); else if(o===chosen&&!isCorrect)btn.classList.add('result-wrong'); });
   const expDiv=document.createElement('div'); expDiv.className='explanation';
   const msg=isCorrect?'<span style="color:#166534;font-weight:700;">✓ 正解！</span>':'<span style="color:#991b1b;font-weight:700;">✗ 不正解</span>';
@@ -4548,6 +4616,112 @@ function printApprox(){
 
 // Start
 initQuiz();
+
+// ====== DBの解き直しキュー（?retry=1 で mypage の「きょうの解き直し」から遷移） ======
+// list_retries.php から pending の question_params を取得し、各モードの
+// 既存リトライキューに流し込んで「全く同じ問題」を再出題する。
+// 同じ問題(params_hash)に2連続正解するとサーバー側で mastered になる。
+(function () {
+  if (!/[?&]retry=1/.test(location.search)) return;
+  if (!window.Divp || !Divp.getRetries) return;
+
+  const MODE_NAMES = {
+    truefalse: '正誤問題', simplify: '簡略化', addsub: '加減', muldiv: '乗除',
+    mixed: '四則混合', approx: '近似値', intval: '整数値', subst: '代入',
+  };
+
+  // question_params が再出題に必要な形かの検証（古い形式・欠損データを弾く）
+  const PARAM_VALIDATORS = {
+    truefalse: p => p && p.mode && Array.isArray(p.statements)
+      && p.statements.length === 4 && typeof p.statements[0] === 'object'
+      && p.statements[0] !== null && 'text' in p.statements[0],
+    simplify: p => p && p.n && p.a && p.b,
+    muldiv:   p => p && (p._signedQuestionLatex || p.latex || p.probLatex) && p.type,
+    addsub:   p => p && p.latex && p.type,
+    mixed:    p => p && (p._signedQuestionLatex || p.latex || p.probLatex) && p.type,
+    approx:   p => p && p.base && p.qLatex && Array.isArray(p.lines),
+    intval:   p => p && p.qLatex && p.subtype,
+    subst:    p => p && p.condLatex && p.exprLatex && Array.isArray(p.expLines),
+  };
+
+  function resetScoreBar() {
+    document.getElementById('q-count').textContent = 1;
+    document.getElementById('score-correct').textContent = 0;
+    document.getElementById('score-wrong').textContent = 0;
+    document.getElementById('progress-fill').style.width = '0%';
+  }
+
+  function startDbRetry(key, items) {
+    const probs = items.map(it => it.question_params);
+    switchMode(key);
+    if (key === 'truefalse') {
+      _tfRetryQueue = probs.map(p => ({ mode: p.mode, statements: p.statements, qIndex: 0 }));
+      _tfRetryTotal = _tfRetryQueue.length;
+      tfWrongQs = []; currentQ = 0; correctCount = 0; wrongCount = 0;
+      resetScoreBar(); renderQuestion();
+    } else if (key === 'simplify') {
+      _sRetryQueue = [...probs]; _sRetryTotal = _sRetryQueue.length;
+      sWrongProbs = []; sCurrentQ = 0; sCorrect = 0; sWrong = 0;
+      resetScoreBar(); renderSimplifyQuestion();
+    } else if (key === 'muldiv') {
+      _mdRetryQueue = [...probs]; _mdRetryTotal = _mdRetryQueue.length;
+      mdWrongProbs = []; mdCurrentQ = 0; mdCorrect = 0; mdWrong = 0;
+      resetScoreBar(); renderMDQuestion();
+    } else if (key === 'addsub') {
+      _asRetryQueue = [...probs]; _asRetryTotal = _asRetryQueue.length;
+      asWrongProbs = []; asCurrentQ = 0; asCorrect = 0; asWrong = 0;
+      resetScoreBar(); renderASQuestion();
+    } else if (key === 'mixed') {
+      _mixRetryQueue = [...probs]; _mixRetryTotal = _mixRetryQueue.length;
+      mixWrongProbs = []; mixCurrentQ = 0; mixCorrect = 0; mixWrong = 0;
+      resetScoreBar(); renderMixQuestion();
+    } else if (key === 'approx') {
+      _apxRetryQueue = [...probs]; _apxRetryTotal = _apxRetryQueue.length;
+      apxWrongProbs = []; apxCurrentQ = 0; apxCorrect = 0; apxWrong = 0;
+      resetScoreBar(); renderApxQuestion();
+    } else if (key === 'intval') {
+      _intRetryQueue = [...probs]; _intRetryTotal = _intRetryQueue.length;
+      intWrongProbs = []; intCurrentQ = 0; intCorrect = 0; intWrong = 0;
+      resetScoreBar(); renderIntQuestion();
+    } else if (key === 'subst') {
+      _subRetryQueue = [...probs]; _subRetryTotal = _subRetryQueue.length;
+      subWrongProbs = []; subCurrentQ = 0; subCorrect = 0; subWrong = 0;
+      resetScoreBar(); renderSubstQuestion();
+    }
+  }
+
+  Divp.getRetries().then(function (items) {
+    if (!items || !items.length) return;
+    const byKey = {};
+    items.forEach(function (it) {
+      if (!MODE_NAMES[it.question_key]) return;
+      const validator = PARAM_VALIDATORS[it.question_key];
+      if (!validator || !validator(it.question_params)) return;   // 古い形式は再出題不可
+      (byKey[it.question_key] = byKey[it.question_key] || []).push(it);
+    });
+    const keys = Object.keys(byKey);
+    if (!keys.length) return;
+
+    const btns = keys.map(function (k) {
+      return '<button class="btn-retry-wrong" data-retry-key="' + k + '" style="display:block;width:100%;margin-top:10px;">'
+        + '🔁 ' + MODE_NAMES[k] + ' の解き直し（' + byKey[k].length + '問）</button>';
+    }).join('');
+
+    document.getElementById('quiz-area').innerHTML =
+      '<div class="result-screen">'
+      + '<div style="font-size:14px;color:#64748b;letter-spacing:0.1em;margin-bottom:8px;">RETRY</div>'
+      + '<div style="font-size:20px;font-weight:900;color:#0a1628;margin-bottom:4px;">きょうの解き直し</div>'
+      + '<div style="font-size:13px;color:#64748b;">まちがえた問題と全く同じ問題が出ます。<br>2回連続で正解すると「マスター」になります。</div>'
+      + btns
+      + '<button class="btn-retry" id="retry-cancel-btn" style="margin-top:16px;">ふつうに練習する</button>'
+      + '</div>';
+
+    document.querySelectorAll('[data-retry-key]').forEach(function (btn) {
+      btn.addEventListener('click', function () { startDbRetry(btn.dataset.retryKey, byKey[btn.dataset.retryKey]); });
+    });
+    document.getElementById('retry-cancel-btn').addEventListener('click', function () { initQuiz(); });
+  });
+})();
 </script>
 </body>
 </html>

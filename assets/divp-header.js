@@ -44,7 +44,17 @@
     + '.divp-header a{text-decoration:none;display:flex;align-items:center;gap:12px;}'
     + '.divp-header img.divp-logo{width:44px;height:44px;object-fit:contain;flex-shrink:0;display:block;}'
     + '.divp-header .divp-text{font-size:15px;font-weight:700;color:#fff;letter-spacing:0.05em;line-height:1.2;}'
-    + '.divp-header .divp-sub{font-size:10px;color:#e8a020;font-weight:500;letter-spacing:0.1em;}';
+    + '.divp-header .divp-sub{font-size:10px;color:#e8a020;font-weight:500;letter-spacing:0.1em;}'
+    + '.divp-auth{margin-left:auto;position:relative;font-family:"Zen Maru Gothic","Noto Sans JP",sans-serif;flex-shrink:0;}'
+    + '.divp-auth-btn{background:#e8a020;color:#0a1628;border:none;border-radius:20px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}'
+    + '.divp-auth-logged{display:flex;align-items:center;}'
+    + '.divp-auth-name{color:#fff;font-size:12px;font-weight:700;margin-right:8px;white-space:nowrap;}'
+    + '.divp-auth-logout{background:transparent;color:#e8a020;border:1px solid #e8a020;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}'
+    + '.divp-auth-pop{position:absolute;top:52px;right:0;background:#fff;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.3);padding:16px;width:220px;z-index:200;}'
+    + '.divp-auth-pop label{display:block;font-size:11px;color:#334155;margin-top:8px;font-weight:700;}'
+    + '.divp-auth-pop input{width:100%;padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:14px;box-sizing:border-box;margin-top:2px;}'
+    + '.divp-auth-pop button{margin-top:12px;width:100%;background:#0a1628;color:#fff;border:none;border-radius:6px;padding:8px;font-size:13px;font-weight:700;cursor:pointer;}'
+    + '.divp-auth-error{color:#c0392b;font-size:11px;margin-top:6px;min-height:14px;}';
 
   function injectFont() {
     if (document.getElementById('divp-font-zenmaru')) return;
@@ -69,7 +79,99 @@
       + '<img class="divp-logo" src="' + LOGO + '" alt="' + SCHOOL_NAME + '">'
       + '<div><div class="divp-text">' + SCHOOL_NAME + '</div>'
       + '<div class="divp-sub">' + SCHOOL_SUB + '</div></div>'
-      + '</a>';
+      + '</a>'
+      + '<div class="divp-auth" id="divp-auth"></div>';
+  }
+
+  // ===== ログイン窓（生徒用。全ツール共通） =====
+  function isLocalFile() {
+    return location.protocol === 'file:';
+  }
+
+  function authFetch(path, opts) {
+    opts = opts || {};
+    opts.credentials = 'same-origin';
+    return fetch('/api/' + path, opts);
+  }
+
+  function loggedInHTML(name) {
+    return '<div class="divp-auth-logged">'
+      + '<span class="divp-auth-name">' + name + 'さん</span>'
+      + '<button class="divp-auth-logout" id="divp-logout-btn" type="button">ログアウト</button>'
+      + '</div>';
+  }
+
+  function loggedOutHTML() {
+    return '<button class="divp-auth-btn" id="divp-login-btn" type="button">ログイン</button>'
+      + '<div class="divp-auth-pop" id="divp-login-pop" style="display:none;">'
+      + '<label>生徒コード<input type="text" inputmode="numeric" pattern="[0-9]*" id="divp-login-id" autocomplete="off"></label>'
+      + '<label>PIN（4桁）<input type="password" inputmode="numeric" pattern="[0-9]*" id="divp-login-pin" maxlength="4" autocomplete="off"></label>'
+      + '<button id="divp-login-submit" type="button">ログイン</button>'
+      + '<div class="divp-auth-error" id="divp-login-error"></div>'
+      + '</div>';
+  }
+
+  function attachLoggedOut() {
+    var btn = document.getElementById('divp-login-btn');
+    var pop = document.getElementById('divp-login-pop');
+    if (!btn || !pop) return;
+    btn.addEventListener('click', function () {
+      pop.style.display = (pop.style.display === 'none') ? 'block' : 'none';
+    });
+    document.getElementById('divp-login-submit').addEventListener('click', function () {
+      var loginId = document.getElementById('divp-login-id').value.trim();
+      var pin = document.getElementById('divp-login-pin').value.trim();
+      var errEl = document.getElementById('divp-login-error');
+      errEl.textContent = '';
+      if (!loginId || !pin) { errEl.textContent = '生徒コードとPINを入力してください'; return; }
+      authFetch('auth.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ actor_type: 'student', login_id: loginId, password: pin }),
+      }).then(function (res) {
+        return res.json().catch(function () { return null; }).then(function (data) {
+          return { ok: res.ok, data: data };
+        });
+      }).then(function (r) {
+        if (r.ok && r.data && r.data.ok) {
+          location.reload();
+        } else if (r.data && r.data.error === 'locked') {
+          errEl.textContent = '失敗が続いたためロック中です。10分後にやり直してください';
+        } else {
+          errEl.textContent = '生徒コードかPINが違います';
+        }
+      }).catch(function () {
+        errEl.textContent = '通信エラーが発生しました';
+      });
+    });
+  }
+
+  function attachLoggedIn() {
+    var btn = document.getElementById('divp-logout-btn');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      authFetch('logout.php', { method: 'POST' }).then(function () { location.reload(); });
+    });
+  }
+
+  function renderAuth() {
+    var area = document.getElementById('divp-auth');
+    if (!area) return;
+    if (isLocalFile()) { area.style.display = 'none'; return; }
+    authFetch('whoami.php').then(function (res) {
+      return res.json();
+    }).then(function (data) {
+      if (data && data.ok && data.actor && data.actor.type === 'student') {
+        area.innerHTML = loggedInHTML(data.actor.name);
+        attachLoggedIn();
+      } else {
+        area.innerHTML = loggedOutHTML();
+        attachLoggedOut();
+      }
+    }).catch(function () {
+      area.innerHTML = loggedOutHTML();
+      attachLoggedOut();
+    });
   }
 
   function render() {
@@ -101,4 +203,5 @@
   }
 
   render();
+  renderAuth();
 })();
