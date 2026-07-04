@@ -440,6 +440,16 @@ INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('math_es6_mojishiki', 'area', '面積を文字式で表す',  1)
 ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
 
+-- 仮平均マスター（数学・中1）のシード
+-- question_key は math_js1_kariheikin.html 内のサブタイプ(prob.sub)と一致させる。
+-- 実戦モードは内部で basic/applied/reference のいずれかを出題するため、モードではなくサブタイプを軸にする。
+-- （難易度 easy/normal はモードではなく question_params 側に入る）
+INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
+  ('math_js1_kariheikin', 'basic',     '基本（平均を求める）', 1),
+  ('math_js1_kariheikin', 'applied',   '応用（□を求める）',   1),
+  ('math_js1_kariheikin', 'reference', '基準値型',             1)
+ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
+
 -- ============================================================
 -- 完了。導入順:
 --   1) この schema_full.sql を phpMyAdmin で実行

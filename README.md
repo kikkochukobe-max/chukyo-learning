@@ -49,6 +49,7 @@ learning/
 | `math_js3_heihokon` | math_js3_heihokonmaster.html（平方根マスター） | truefalse / simplify / addsub / muldiv / mixed / approx / intval / subst |
 | `math_js3_nijihoteishiki` | math_js3_nijihoteishiki.html（2次方程式マスター） | heihokon / katamari / heihokansei / insu_zumi / insu_jibun / kai_koshiki / random |
 | `math_js1_zettaichi` | math_js1_absolutevalue.html（絶対値 練習道場） | abs2num / num2abs / range / count / sort |
+| `math_js1_kariheikin` | math_js1_kariheikin.html（仮平均マスター） | basic / applied / reference（実戦モードは3種をランダム出題。難易度はquestion_params側） |
 
 ### 新しいツールへの組み込み手順
 

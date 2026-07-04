@@ -42,6 +42,11 @@ return [
         'sub'   => '数学・中1',
         'url'   => '/learning/math/math_js1_absolutevalue.html',
     ],
+    'math_js1_kariheikin' => [
+        'title' => '仮平均マスター',
+        'sub'   => '数学・中1',
+        'url'   => '/learning/math/math_js1_kariheikin.html',
+    ],
     'math_es6_mojishiki' => [
         'title' => '文字式マスター',
         'sub'   => '算数・小6',

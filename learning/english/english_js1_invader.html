@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="ja">
+<!--
+  english_js1_invader.html  英単語インベーダー（中1英語：並べかえ × 動詞の形変化）
+  配置先: /learning/english/ （命名規約に合わせて製作者コードを付ける場合はリネーム）
+  unit_key: english_js1_invader （ファイル名・パスとは独立の論理ID）
+  依存: /assets/divp-correct-jh.js（正解演出ハンコ。未ロードでも単体で完全動作）
+        中ボスBGM: /assets/bgm/boss.mp3（未配置なら合成音にフォールバック）
+        ※共通ヘッダー(divp-header.js)は使わない。ロゴ「中京個別GAMES」を表示。
+  正解演出: jh用ハンコ (divp-correct-jh.js) を流用。星エフェクト(es用)は不使用。
+  調整パラメータ: 下部 <script> 冒頭の CONFIG にまとめてある
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>英単語インベーダー｜中1英語｜中京個別指導学院</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Maru+Gothic:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --divp-bg:#bfe9ff;
+  --divp-panel:#ffffff;
+  --divp-border:#7cc4f0;
+  --divp-accent:#ff6f9c;
+  --divp-accent2:#ff9b2f;
+  --divp-text:#1f3a5c;
+  --divp-sub:#5a7ea6;
+  --divp-overlay:rgba(240,250,255,.93);
+}
+body.divp-dark{
+  --divp-bg:#07000d;
+  --divp-panel:#150a20;
+  --divp-border:#41205e;
+  --divp-accent:#b57bff;
+  --divp-accent2:#ff4d6d;
+  --divp-text:#e9d5ff;
+  --divp-sub:#9a7bc0;
+  --divp-overlay:rgba(5,0,12,.9);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent; touch-action:manipulation;} /* touch-actionは継承されないので全要素に指定してダブルタップ拡大を抑止 */
+html,body{margin:0;padding:0;height:100%;touch-action:manipulation;}
+body{
+  background:var(--divp-bg);
+  color:var(--divp-text);
+  font-family:'DotGothic16','Zen Maru Gothic',sans-serif;
+  transition:background .8s;
+  overscroll-behavior:none;
+  position:fixed;width:100%;height:100%;overflow:hidden; /* ページ自体をスクロールさせない */
+}
+#divp-game-wrap{
+  max-width:540px;margin:0 auto;
+  padding:4px 8px max(10px, env(safe-area-inset-bottom));
+  height:100vh;height:100svh;   /* Safariバー分を除いた実表示高さ。svh固定（dvhだとバー開閉で伸縮）。svh非対応の旧環境はvhにフォールバック */
+  display:flex;flex-direction:column;gap:4px;
+  overflow:hidden;
+}
+#divp-canvas-box{flex:1 1 auto;min-height:0;} /* 残り高さをキャンバスが吸収 */
+#divp-brand{
+  text-align:center;font-size:22px;letter-spacing:1px;
+  color:var(--divp-accent);
+  text-shadow:2px 2px 0 var(--divp-accent2), 3px 3px 0 rgba(0,0,0,.25);
+  padding:2px 0 2px;line-height:1;flex:0 0 auto;
+  transition:color .8s;
+}
+#divp-brand span{color:var(--divp-accent2);text-shadow:2px 2px 0 rgba(0,0,0,.2);}
+body.divp-dark #divp-brand{color:var(--divp-accent);text-shadow:2px 2px 0 #7b2fff,3px 3px 0 rgba(0,0,0,.4);}
+body.divp-dark #divp-brand span{color:#ff4d6d;}
+#divp-top-row{display:flex;gap:6px;align-items:stretch;flex:0 0 auto;}
+#divp-ja-bar{
+  flex:1;
+  background:var(--divp-panel);
+  border:2px solid var(--divp-accent);
+  border-radius:6px;
+  padding:8px 10px;
+  font-size:17px;
+  line-height:1.4;
+  min-height:48px;
+  display:flex;align-items:center;
+  transition:border-color .8s, box-shadow .8s;
+}
+body.divp-dark #divp-ja-bar{box-shadow:0 0 14px rgba(181,123,255,.35);}
+#divp-btn-sound,#divp-btn-pause{
+  width:48px;background:var(--divp-panel);
+  border:2px solid var(--divp-border);border-radius:6px;
+  color:var(--divp-text);font-size:20px;cursor:pointer;
+}
+#divp-btn-pause{border-color:var(--divp-accent);color:var(--divp-accent);}
+/* 一時停止：全画面を覆って英文を完全に隠す */
+#divp-pause{
+  position:fixed;inset:0;z-index:9999;display:none;
+  flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  background:var(--divp-bg);color:var(--divp-text);text-align:center;padding:24px;
+  font-family:'DotGothic16','Zen Maru Gothic',sans-serif;
+}
+#divp-pause.divp-show{display:flex;}
+.divp-pause-logo{font-size:clamp(28px,10vw,44px);color:var(--divp-accent);text-shadow:3px 3px 0 var(--divp-accent2),4px 4px 0 rgba(0,0,0,.2);letter-spacing:2px;line-height:1.1;}
+.divp-pause-sub{font-size:14px;color:var(--divp-sub);line-height:1.8;}
+.divp-pause-mark{font-size:64px;color:var(--divp-accent2);}
+#divp-canvas-box{position:relative;border:2px solid var(--divp-border);border-radius:6px;overflow:hidden;background:#9fdcff;flex:1 1 auto;min-height:0;}
+#divp-canvas{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;touch-action:none;}
+#divp-scanlines{
+  position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,rgba(255,255,255,0) 0 2px,rgba(0,0,0,.06) 2px 3px);
+  mix-blend-mode:multiply;
+}
+body.divp-dark #divp-scanlines{
+  background:repeating-linear-gradient(to bottom,rgba(255,255,255,0) 0 2px,rgba(0,0,0,.18) 2px 3px);
+}
+#divp-overlay{
+  position:absolute;inset:0;display:none;
+  align-items:center;justify-content:center;
+  background:var(--divp-overlay);text-align:center;padding:12px;
+  overflow-y:auto;
+}
+#divp-overlay.divp-show{display:flex;}
+.divp-panel-in{max-width:96%;max-height:100%;overflow-y:auto;}
+.divp-title-logo{font-size:clamp(22px,7vw,32px);color:var(--divp-accent);text-shadow:3px 3px 0 #ffd76e;letter-spacing:1px;line-height:1.1;white-space:nowrap;}
+.divp-title-sub{font-size:14px;color:var(--divp-accent);margin:6px 0 10px;}
+/* プロローグ（ストーリー） */
+.divp-story{max-width:340px;margin:0 auto;text-align:center;}
+.divp-story-eyebrow{font-size:12px;letter-spacing:.34em;color:var(--divp-sub);}
+.divp-story-title{font-size:26px;color:var(--divp-accent);text-shadow:2px 2px 0 #ffd76e;margin:4px 0 16px;}
+.divp-story-body{text-align:left;font-size:13.5px;line-height:1.9;color:var(--divp-text);}
+.divp-story-body p{margin:0 0 15px;animation:divp-story-in .5s ease both;}
+.divp-story-body p:nth-child(1){animation-delay:.05s;}
+.divp-story-body p:nth-child(2){animation-delay:.35s;}
+.divp-story-body p:nth-child(3){animation-delay:.65s;}
+.divp-story-body p:nth-child(4){animation-delay:.95s;}
+.divp-story-no{display:inline-block;min-width:2.1em;color:var(--divp-accent2);font-weight:700;}
+.divp-story-enemy{color:#e0322b;font-weight:700;text-shadow:0 0 8px rgba(224,50,43,.45);letter-spacing:1px;}
+.divp-story-body b{color:var(--divp-accent);}
+@keyframes divp-story-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion:reduce){.divp-story-body p{animation:none;}}
+.divp-howto{font-size:12px;color:var(--divp-sub);line-height:1.7;text-align:left;display:inline-block;margin-bottom:10px;}
+.divp-big-btn{
+  font-family:inherit;font-size:18px;padding:12px 34px;cursor:pointer;
+  background:var(--divp-accent2);color:#fff;border:0;border-radius:4px;
+  box-shadow:0 4px 0 #b96a12;
+}
+.divp-big-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #b96a12;}
+.divp-sub-btn{
+  display:block;margin:10px auto 0;font-family:inherit;font-size:13px;
+  padding:8px 18px;cursor:pointer;color:var(--divp-accent);
+  background:transparent;border:2px solid var(--divp-accent);border-radius:4px;
+}
+.divp-sub-btn:active{transform:translateY(2px);}
+.divp-rank-letter{font-size:64px;line-height:1;margin:6px 0;text-shadow:4px 4px 0 rgba(0,0,0,.5);}
+.divp-result-stats{font-size:14px;line-height:2;color:var(--divp-text);margin-bottom:14px;}
+.divp-model{
+  display:inline-block;margin-top:2px;padding:8px 14px;
+  border:2px dashed var(--divp-accent);border-radius:6px;
+  font-size:19px;color:var(--divp-text);background:var(--divp-panel);
+}
+.divp-warning{font-size:34px;color:#ff3355;animation:divp-blink .35s steps(1) infinite;letter-spacing:4px;}
+@keyframes divp-blink{50%{opacity:.15;}}
+/* 裏ボス エンカウント：画面全体が激しく揺れる */
+@keyframes divp-encshake{
+  0%,100%{transform:translate(0,0);}
+  12%{transform:translate(-8px,6px);}
+  24%{transform:translate(9px,-7px);}
+  36%{transform:translate(-10px,-5px);}
+  48%{transform:translate(8px,8px);}
+  60%{transform:translate(-7px,6px);}
+  72%{transform:translate(9px,-8px);}
+  84%{transform:translate(-6px,5px);}
+}
+#divp-canvas-box.divp-encshake{animation:divp-encshake .24s linear infinite;}
+.divp-extra-title{font-size:26px;color:#b57bff;text-shadow:0 0 12px #7b2fff;margin-top:10px;}
+.divp-boss-title{font-size:26px;color:#ffb547;text-shadow:0 0 14px #ff8c3a;letter-spacing:2px;}
+body.divp-boss #divp-ja-bar{border-color:#ffb547;box-shadow:0 0 12px rgba(255,140,58,.55);}
+.divp-hidden-title{font-size:30px;color:#ff2200;text-shadow:0 0 16px #8a0000;letter-spacing:3px;animation:divp-blink .5s steps(1) infinite;}
+body.divp-hidden{background:#000!important;}
+body.divp-hidden #divp-ja-bar{border-color:#8a0000;box-shadow:0 0 14px rgba(170,0,0,.6);color:#ff6666;}
+body.divp-hidden #divp-brand{color:#8a0000;text-shadow:2px 2px 0 #300,3px 3px 0 rgba(0,0,0,.6);}
+body.divp-hidden #divp-brand span{color:#c0392b;}
+.divp-unit-label{font-size:11px;color:var(--divp-sub);margin-bottom:5px;}
+#divp-unit-gram{font-size:12px;color:var(--divp-accent2);min-height:16px;margin-bottom:10px;line-height:1.5;}
+.divp-mode-select{
+  font-family:inherit;font-size:16px;padding:9px 12px;cursor:pointer; /* 16px未満だとiOSがタップ時に自動ズームする */
+  border:2px solid var(--divp-accent);border-radius:6px;
+  background:var(--divp-panel);color:var(--divp-text);
+  display:block;margin:0 auto 8px;max-width:94%;width:auto;
+}
+.divp-unitrow{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;}
+.divp-unit{
+  font-family:inherit;font-size:12px;padding:8px 10px;cursor:pointer;
+  border:2px solid var(--divp-border);border-radius:6px;
+  background:var(--divp-panel);color:var(--divp-text);
+}
+.divp-unit.divp-sel{background:var(--divp-accent);border-color:var(--divp-accent);color:#fff;}
+#divp-sentence-bar{
+  min-height:40px;background:var(--divp-panel);
+  border:2px solid var(--divp-border);border-radius:6px;
+  padding:6px 8px;flex:0 0 auto;
+  display:flex;flex-wrap:wrap;gap:5px;align-items:center;
+  font-size:15px;max-height:78px;overflow-y:auto;
+}
+.divp-chip{
+  background:#e6f4ff;border:1px solid var(--divp-accent);
+  border-radius:3px;padding:2px 7px;color:var(--divp-text);
+}
+body.divp-dark .divp-chip{background:#241233;}
+.divp-cursor{display:inline-block;width:10px;height:18px;background:var(--divp-accent);animation:divp-blink .8s steps(1) infinite;}
+#divp-progress{margin-left:auto;font-size:12px;color:var(--divp-sub);}
+#divp-controls{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:0 0 auto;
+}
+.divp-ctrl{
+  font-family:inherit;height:60px;border-radius:8px;cursor:pointer;
+  font-size:15px;line-height:1.2;color:var(--divp-text);
+  border:3px solid var(--divp-border);background:var(--divp-panel);
+  user-select:none;touch-action:none;
+  opacity:.45;filter:grayscale(.35);
+  transition:opacity .18s, box-shadow .18s, font-size .12s, filter .18s;
+}
+.divp-ctrl span{font-size:10px;color:var(--divp-sub);display:block;}
+.divp-ctrl:active{transform:translateY(2px);}
+#divp-btn-morph{border-color:#00c2a8;color:#007a68;}
+#divp-btn-shoot{border-color:#ff4d88;color:#d81b60;}
+#divp-btn-morph.divp-active{background:#00c2a8;border-color:#00c2a8;color:#fff;}
+#divp-btn-shoot.divp-active{background:#ff4d88;border-color:#ff4d88;color:#fff;}
+/* 選択中のモードをはっきり大きく見せる */
+.divp-ctrl.divp-active{
+  opacity:1;filter:none;font-size:19px;font-weight:700;
+  box-shadow:0 0 0 4px rgba(255,255,255,.5), 0 6px 16px rgba(0,0,0,.3);
+}
+.divp-ctrl.divp-active::before{content:'✓ ';}
+.divp-ctrl.divp-active span{color:rgba(255,255,255,.9);font-weight:400;}
+.divp-tut-glow{animation:divp-tutglow .7s ease-in-out infinite;}
+@keyframes divp-tutglow{0%,100%{box-shadow:0 0 0 0 rgba(255,210,63,.7);}50%{box-shadow:0 0 0 6px rgba(255,210,63,0);}}
+body.divp-dark #divp-btn-morph{border-color:#b57bff;color:#dcbaff;}
+body.divp-dark #divp-btn-shoot{border-color:#ff4d6d;color:#ff8fa3;}
+body.divp-dark #divp-btn-morph.divp-active{background:#7b2fff;border-color:#7b2fff;color:#fff;}
+body.divp-dark #divp-btn-shoot.divp-active{background:#ff4d6d;border-color:#ff4d6d;color:#fff;}
+</style>
+</head>
+<body data-unit-key="english_js1_invader" data-theme="retro" data-access="student">
+
+<div id="divp-game-wrap">
+  <div id="divp-brand">中京個別<span>GAMES</span></div>
+  <div id="divp-top-row">
+    <div id="divp-ja-bar">よみこみ中…</div>
+    <button id="divp-btn-pause" type="button" aria-label="一時停止">⏸</button>
+    <button id="divp-btn-sound" type="button" aria-label="サウンド切替">♪</button>
+  </div>
+
+  <div id="divp-canvas-box">
+    <canvas id="divp-canvas" width="480" height="520"></canvas>
+    <div id="divp-scanlines"></div>
+    <div id="divp-overlay"><div class="divp-panel-in" id="divp-overlay-in"></div></div>
+  </div>
+
+  <div id="divp-sentence-bar"><span class="divp-cursor"></span><span id="divp-progress"></span></div>
+
+  <div id="divp-controls">
+    <button class="divp-ctrl" id="divp-btn-morph" type="button">かたちをかえる<span>[ Z ]</span></button>
+    <button class="divp-ctrl" id="divp-btn-shoot" type="button">じゅんばんをきめる<span>[ X ]</span></button>
+  </div>
+</div>
+
+<div id="divp-pause">
+  <div class="divp-pause-mark">⏸</div>
+  <div class="divp-pause-logo">一時停止中</div>
+  <div class="divp-pause-sub">きゅうけい中… もんだいは かくれています。<br>じゅんびが できたら つづけよう！</div>
+  <button class="divp-big-btn" id="divp-btn-resume" type="button">▶ つづける</button>
+</div>
+
+<script src="/assets/divp-correct-jh.js" defer></script>
+<script>
+(function(){
+'use strict';
+
+/* ================= CONFIG（調整はここ） ================= */
+var CONFIG={
+  UNIT_KEY:'english_js1_invader',
+  TEST_MODE:true,           // ★動作確認用：各段階を短縮（下のSEQ_TESTを使用）。本番は false
+  MISS_PENALTY:20,          // 1ミスあたりの減点
+  BASE_SCORE:100,           // 通常問題の基礎点
+  TIME_BONUS_MAX:150,       // 通常のタイムボーナス上限
+  BOSS_BASE:200,            // 中ボスの基礎点
+  LAST_BASE:300,            // ラスボスの基礎点（減点なし）
+  LAST_BONUS_MAX:300,       // ラスボスのタイムボーナス上限
+  HIDDEN_BASE:500,          // 裏ボスの基礎点（減点なし）
+  PAR_PER_WORD:2.5,         // パー時間 = 4 + 単語数×これ（秒）
+  RETRY_DELAY:3,            // ミスした問題を何問後に再出題するか
+  INVADER_SPEED:16,         // 群れの初速(px/s)（通常・中ボス）
+  LAST_SPEED:21,            // ラスボスの初速（加速しない分、初めから少し速く）
+  HIDDEN_SPEED:25,          // 裏ボスの初速（ラスボスよりわずかに速く）
+  INVADER_ACCEL:0,          // 経過秒ごとの加速（0＝加速なし・一定速度）
+  INVADER_SPEED_MAX:70,
+  INVADER_STEP:14,          // 折り返し時の降下量
+  RETREAT_PER_WORD:7,       // 1単語正解ごとに群れが後退（上に戻る）する量
+  RETREAT_MAX_UP:-40,       // 後退の上限（スタート位置より上へ行き過ぎない下限grpY）
+  MULTIROW_SPEED_MUL:0.6,   // 2行（ラスボス等）は落下速度を落とす
+  MULTIROW_STEP_MUL:0.7,    // 2行は折り返しの降下量も小さく
+  TRIPLEROW_SPEED_MUL:0.42, // 3行以上はさらにゆっくり
+  TRIPLEROW_STEP_MUL:0.55,  // 3行以上は降下量もさらに小さく
+  BULLET_SPEED:520,
+  SHIP_SPEED:280
+};
+/* 本番の進行シーケンス（各段階：種類×問数）。ノーミス継続で次段階へ。
+   normal=通常, boss=中ボス, last=ラスボス, hidden=裏ボス */
+var SEQ=[
+  {kind:'normal',n:10},
+  {kind:'boss',  n:1},
+  {kind:'normal',n:10},
+  {kind:'boss',  n:2},
+  {kind:'last',  n:2},
+  {kind:'hidden',n:1}
+];
+/* 動作確認用の短縮シーケンス */
+var SEQ_TEST=[
+  {kind:'normal',n:2},
+  {kind:'boss',  n:1},
+  {kind:'normal',n:2},
+  {kind:'boss',  n:2},
+  {kind:'last',  n:2},
+  {kind:'hidden',n:1}
+];
+function seq(){return CONFIG.TEST_MODE?SEQ_TEST:SEQ;}
+
+/* ================= 問題データ ================= */
+var B=['be','am','is','are'], Bc=['Be','Am','Is','Are'];
+var D=['do','does'],          Dc=['Do','Does'];
+function W(t){return {f:[t],c:0};}
+function M(f,c){return {f:f,c:c};}
+
+/* ===== New Horizon 中1 Unit1「Hello, Everyone!」の英文のみで構成 =====
+   すべての問題に「かたちをかえる」タイル(●)を必ず1つ入れる（形を変えないと正解にならない）。
+   ・be動詞は M(B,..)/M(Bc,..)（be→am/are）。
+   ・一般動詞は M(['〜s','〜'],1)：3単現の -s 形からスタートし、I・you・複数主語では
+     原形に直させる（＝sをつけない練習）。 */
+/* 通常：Unit1の基本文（1文法ずつ・短め） */
+var NORMAL=[
+{ja:'私はエドワード・トラウトです。',w:[W('I'),M(B,1),W('Edward'),W('Trout'),W('.')]},
+{ja:'私は12さいです。',w:[W('I'),M(B,1),W('twelve'),W('.')]},
+{ja:'私は南アフリカの出身です。',w:[W('I'),M(B,1),W('from'),W('South'),W('Africa'),W('.')]},
+{ja:'私はラグビーファンです。',w:[W('I'),M(B,1),W('a'),W('rugby'),W('fan'),W('.')]},
+{ja:'私は美術部に入っています。',w:[W('I'),M(B,1),W('in'),W('the'),W('art'),W('club'),W('.')]},
+{ja:'私は和菓子が好きです。',w:[W('I'),M(['likes','like'],1),W('Japanese'),W('sweets'),W('.')]},
+{ja:'私はすしが好きです。',w:[W('I'),M(['likes','like'],1),W('sushi'),W('.')]},
+{ja:'私はピザが好きです。',w:[W('I'),M(['likes','like'],1),W('pizza'),W('.')]},
+{ja:'私は抹茶が大好きです。',w:[W('I'),M(['loves','love'],1),W('matcha'),W('.')]},
+{ja:'私はサッカーをします。',w:[W('I'),M(['plays','play'],1),W('soccer'),W('.')]},
+{ja:'私はまんがをかきます。',w:[W('I'),M(['draws','draw'],1),W('comics'),W('.')]},
+{ja:'あなたはラグビーが好きですか。',w:[W('Do'),W('you'),M(['likes','like'],1),W('rugby'),W('?')]},
+{ja:'あなたはまんがが好きですか。',w:[W('Do'),W('you'),M(['likes','like'],1),W('comics'),W('?')]},
+{ja:'あなたはピアノをひきますか。',w:[W('Do'),W('you'),M(['plays','play'],1),W('the'),W('piano'),W('?')]},
+{ja:'あなたはアニメファンですか。',w:[M(Bc,3),W('you'),W('an'),W('anime'),W('fan'),W('?')]},
+{ja:'あなたはサッカーファンですか。',w:[M(Bc,3),W('you'),W('a'),W('soccer'),W('fan'),W('?')]},
+{ja:'私はラグビーをしません。',w:[W('I'),W('do'),W('not'),M(['plays','play'],1),W('rugby'),W('.')]},
+{ja:'私はまんがが好きではありません。',w:[W('I'),W('do'),W('not'),M(['likes','like'],1),W('comics'),W('.')]},
+{ja:'私はアニメファンではありません。',w:[W('I'),M(B,1),W('not'),W('an'),W('anime'),W('fan'),W('.')]}
+];
+
+/* ラスボス：Unit1のやや長い文＋不要語(デコイ)を2語混入（中ボスより難しく）。減点なし・高得点 */
+var EXTRA=[
+{ja:'私は抹茶も大好きです。',w:[W('I'),M(['loves','love'],1),W('matcha'),W(','),W('too'),W('.')],d:[W('like'),W('and')]},
+{ja:'私は大福とあんみつが大好きです。',w:[W('I'),M(['loves','love'],1),W('daifuku'),W('and'),W('anmitsu'),W('.')],d:[W('too'),W('like')]},
+{ja:'私は茶道部に入りたいです。',w:[W('I'),M(['wants','want'],1),W('to'),W('join'),W('the'),W('sado'),W('club'),W('!')],d:[W('a'),W('in')]},
+{ja:'私はよく友達とラグビーを見ます。',w:[W('I'),W('often'),M(['watches','watch'],1),W('rugby'),W('with'),W('my'),W('friends'),W('.')],d:[W('play'),W('and')]},
+{ja:'私はラグビーをしませんが、サッカーはします。',w:[W('I'),W('do'),W('not'),M(['plays','play'],1),W('rugby'),W(','),W('but'),W('I'),W('play'),W('soccer'),W('.')],d:[W('am')]},
+{ja:'私は今、学校のクラブには入っていません。',w:[W('I'),M(B,1),W('not'),W('in'),W('a'),W('school'),W('club'),W('now'),W('.')],d:[W('on'),W('do')]}
+];
+
+/* 裏ボス：Unit1で最長・複合の文。減点なし・高得点 */
+var HIDDEN=[
+{ja:'私は今学校のクラブには入っていませんが、水泳のレッスンを受けています。',w:[W('I'),M(B,1),W('not'),W('in'),W('a'),W('school'),W('club'),W('now'),W(','),W('but'),W('I'),M(['takes','take'],1),W('swimming'),W('lessons'),W('.')]},
+{ja:'私の友達はよく私の兄とサッカーを見たがります。',w:[W('My'),W('friends'),W('often'),M(['wants','want'],1),W('to'),W('watch'),W('soccer'),W('with'),W('my'),W('brother'),W('.')]},
+{ja:'私はラグビーファンで、よく友達とラグビーを見ます。',w:[W('I'),M(B,1),W('a'),W('rugby'),W('fan'),W(','),W('and'),W('I'),W('often'),M(['watches','watch'],1),W('rugby'),W('with'),W('my'),W('friends'),W('.')]}
+];
+
+/* 中ボス：Unit1の文に不要な単語(d)が1つまざっている */
+var BOSS=[
+{ja:'私は和菓子が好きです。',w:[W('I'),M(['likes','like'],1),W('Japanese'),W('sweets'),W('.')],d:[W('am')]},
+{ja:'あなたはラグビーが好きですか。',w:[W('Do'),W('you'),M(['likes','like'],1),W('rugby'),W('?')],d:[W('are')]},
+{ja:'私は南アフリカの出身です。',w:[W('I'),M(B,1),W('from'),W('South'),W('Africa'),W('.')],d:[W('in')]},
+{ja:'あなたはアニメファンですか。',w:[M(Bc,3),W('you'),W('an'),W('anime'),W('fan'),W('?')],d:[W('do')]},
+{ja:'私はサッカーをします。',w:[W('I'),M(['plays','play'],1),W('soccer'),W('.')],d:[W('a')]},
+{ja:'私は美術部に入っています。',w:[W('I'),M(B,1),W('in'),W('the'),W('art'),W('club'),W('.')],d:[W('on')]},
+{ja:'私はテニス部に入っています。',w:[W('I'),M(B,1),W('on'),W('the'),W('tennis'),W('team'),W('.')],d:[W('in')]},
+{ja:'私は野球部に入っています。',w:[W('I'),M(B,1),W('on'),W('the'),W('baseball'),W('team'),W('.')],d:[W('in')]},
+{ja:'私は音楽部に入っています。',w:[W('I'),M(B,1),W('in'),W('the'),W('music'),W('club'),W('.')],d:[W('on')]},
+{ja:'私の友達はテニス部に入っています。',w:[W('My'),W('friends'),M(B,3),W('on'),W('the'),W('tennis'),W('team'),W('.')],d:[W('in')]},
+{ja:'私の友達は美術部に入っています。',w:[W('My'),W('friends'),M(B,3),W('in'),W('the'),W('art'),W('club'),W('.')],d:[W('on')]},
+{ja:'あなたはピアノをひきますか。',w:[W('Do'),W('you'),M(['plays','play'],1),W('the'),W('piano'),W('?')],d:[W('a')]},
+{ja:'私はラグビーをしません。',w:[W('I'),W('do'),W('not'),M(['plays','play'],1),W('rugby'),W('.')],d:[W('am')]}
+];
+
+/* Unit1のみ運用のため、単元フィルタ(CAT)・疑問詞(WH/QW/QWN/WHQ)・Unit本文モード(UNITS)は削除。
+   ラスボス/裏ボスもUnit1の英文(EXTRA/HIDDEN)で構成している。 */
+
+/* ベル：撃つと色（効果）が変わる */
+var BELLS=[
+  {c:'#ffd23f',label:'+100'},
+  {c:'#54c8ff',label:'スロー'},
+  {c:'#58d68d',label:'ヒント'},
+  {c:'#ff6f9c',label:'×2'},
+  {c:'#f0f0f0',label:'バリア'}
+];
+
+/* ================= DOM / Canvas ================= */
+var cv=document.getElementById('divp-canvas');
+var ctx=cv.getContext('2d');
+var CW=480, CH=520, HUD_H=34, DANGER_Y=418, SHIP_Y=470;
+var JA_BAND=26;  /* 和訳バナー用の帯（先頭行の真上・単語と一緒に降りる） */
+var jaBar=document.getElementById('divp-ja-bar');
+var sentBar=document.getElementById('divp-sentence-bar');
+var overlay=document.getElementById('divp-overlay');
+var overlayIn=document.getElementById('divp-overlay-in');
+var TILE_FONT="22px 'DotGothic16', monospace"; /* 表示1.5倍 */
+
+/* ================= パレット ================= */
+var PAL={
+  normal:{bg1:'#8fd4ff',bg2:'#dff4ff',star:'#ffffff',cloud:'rgba(255,255,255,.92)',
+          tile:'#ffffff',tileB:'#3aa0e8',tileT:'#1f3a5c',
+          punct:'#ff6f9c',morphDot:'#ff9b2f',
+          shipBody:'#ffffff',shipTrim:'#ff6f9c',shipDome:'#54c8ff',
+          bullet:'#ff4d88',morphB:'#00c2a8',danger:'#ff3355',
+          hudBg:'rgba(255,255,255,.78)',hud:'#1f3a5c',
+          flashF:'#ffdbe2',flashB:'#ff3355',
+          ground1:'#5fc46a',ground2:'#8fe08f'},
+  boss:{bg1:'#1b2a6b',bg2:'#ff9a56',star:'#ffd8a8',cloud:'rgba(255,205,160,.85)',
+        tile:'#101a3d',tileB:'#ffb547',tileT:'#ffe9d0',
+        punct:'#54c8ff',morphDot:'#54c8ff',
+        shipBody:'#ffffff',shipTrim:'#ff8c3a',shipDome:'#54c8ff',
+        bullet:'#ffd23f',morphB:'#54c8ff',danger:'#ff3355',
+        hudBg:'rgba(10,16,50,.62)',hud:'#ffd8a8',
+        flashF:'#5a1020',flashB:'#ff5566',
+        ground1:'#2a1a4a',ground2:'#45306e'},
+  dark:{bg1:'#07000d',bg2:'#150726',star:'#7b4fa8',cloud:'rgba(60,20,90,.5)',
+        tile:'#1c0b2a',tileB:'#b57bff',tileT:'#efe0ff',
+        punct:'#ff4d6d',morphDot:'#ff4d6d',
+        shipBody:'#c9a6ff',shipTrim:'#7b2fff',shipDome:'#ff4d6d',
+        bullet:'#ff4d6d',morphB:'#b57bff',danger:'#ff2244',
+        hudBg:'rgba(0,0,0,.55)',hud:'#c9a6ff',
+        flashF:'#5a1020',flashB:'#ff5566',
+        ground1:'#1c0b2a',ground2:'#2a1240'},
+  hidden:{bg1:'#000000',bg2:'#050505',star:'#2a2a2a',cloud:'rgba(20,20,20,.4)',
+        tile:'#0a0a0a',tileB:'#8a0000',tileT:'#ff6666',
+        punct:'#c0392b',morphDot:'#c0392b',
+        shipBody:'#333333',shipTrim:'#8a0000',shipDome:'#c0392b',
+        bullet:'#ff2200',morphB:'#8a0000',danger:'#ff0000',
+        hudBg:'rgba(0,0,0,.75)',hud:'#aa2222',
+        flashF:'#1a0000',flashB:'#ff0000',
+        ground1:'#000000',ground2:'#0a0000'}
+};
+function palette(){return isHiddenMode?PAL.hidden:(isExtraMode?PAL.dark:(isBossMode?PAL.boss:PAL.normal));}
+
+/* ================= ゲーム状態 ================= */
+var state='title';         // title | play | wait | result | extraintro | extraresult
+var paused=false, pauseStart=0;  // 一時停止
+var tiles=[], bullets=[], particles=[], floats=[], stars=[], clouds=[];
+var fireSeq=0;   /* 発射順の連番。弾は必ずこの順に着弾させる（遠い的でも先に押せば先に当たる扱い） */
+var grpX=0,grpY=0,grpDir=1;
+var ship={x:CW/2,tx:null};
+var moveL=false,moveR=false;
+var cdShoot=0,cdMorph=0,shake=0,tempoMul=1;
+var curQ=null, progress=0, built=[], misses=0, qStart=0, curRows=1;
+var score=0, qCount=0, setScore=0, setMiss=0, noMissStreak=0;
+var isExtraMode=false;
+var isBossMode=false;
+var isHiddenMode=false;         /* 裏ボス */
+/* 段階進行マシン */
+var phaseIdx=0;                 /* seq() 内のインデックス */
+var phaseDone=0;                /* 現段階で解いた問数 */
+var poolH=[], hiddenDone=0, hiddenScore=0;
+var encounterFx=0;   /* 裏ボス出現フラッシュ演出（1→0に減衰） */
+var combo=0, maxCombo=0;
+var fx={slowT:0,hintT:0,doubleQ:false,shield:0};
+var bell=null;
+var retryQ=[];
+var poolN=[], poolE=[], poolB=[], flashMsg=null;
+var announce=null;  /* 画面中央の操作アナウンス（「まず形をととのえよう」等）。{t,life} */
+/* ===== チュートリアル ===== */
+var isTutorial=false, tutStep=0, tutMsg='', tutArrow=null, tutPulse=0;
+/* 各ステップ: {want:'mode'|'tap'|'morph', mode?, wordIndex(built基準), msg, done} */
+var TUT_STEPS=null;
+
+function shuffle(a){var i,j,t;for(i=a.length-1;i>0;i--){j=Math.floor(Math.random()*(i+1));t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function nextFromPool(pool,src){if(pool.length===0){var idx=[];for(var i=0;i<src.length;i++)idx.push(i);shuffle(idx);for(i=0;i<idx.length;i++)pool.push(idx[i]);}return src[pool.shift()];}
+function comboMult(){return Math.min(1.5,1+0.1*Math.floor(combo/4));}
+function nextNormal(){
+  return nextFromPool(poolN,NORMAL); /* Unit1のNORMALを巡回 */
+}
+function queueRetry(q){
+  for(var i=0;i<retryQ.length;i++)if(retryQ[i].q.ja===q.ja)return;
+  retryQ.push({q:q,due:qCount+CONFIG.RETRY_DELAY});
+}
+function spawnNormalNext(){
+  if(retryQ.length&&qCount>=retryQ[0].due){
+    var r=retryQ.shift();
+    spawnQuestion(r.q,true);
+  }else{
+    spawnQuestion(nextNormal(),false);
+  }
+}
+
+/* ================= Divp 連携（全てガード付き） ================= */
+function divpSessionStart(){try{if(window.Divp&&Divp.session&&Divp.session.start)Divp.session.start(CONFIG.UNIT_KEY);}catch(e){}}
+function sentenceOf(q){var s='';for(var i=0;i<q.w.length;i++){var t=q.w[i].f[q.w[i].c];if(t==='.'||t==='?'||t==='!'||t===',')s+=t;else s+=(s?' ':'')+t;}return s;}
+function divpLogAnswer(q,ok,pts,ms,missN){
+  try{
+    if(window.Divp&&Divp.answer){
+      Divp.answer({
+        unit_key:CONFIG.UNIT_KEY,
+        question_key:isHiddenMode?'hidden':(isExtraMode?'last':(isBossMode?'boss':'normal')),
+        is_correct:ok,
+        score:pts,
+        time_ms:Math.round(ms),
+        question_params:JSON.stringify({ja:q.ja,tokens:q.w.map(function(w){return w.f[w.c];}),misses:missN,last:isExtraMode,boss:isBossMode,hidden:isHiddenMode,maxCombo:maxCombo}),
+        question_text:q.ja,
+        correct_answer:sentenceOf(q)
+      });
+    }
+  }catch(e){}
+}
+function divpSave(){try{if(window.Divp&&Divp.save)Divp.save({unit_key:CONFIG.UNIT_KEY,score:score});}catch(e){}}
+function correctEffect(){
+  try{if(window.Divp&&typeof Divp.correct==='function'){Divp.correct({scale:1.5});return;}}catch(e){}
+  flashMsg={t:'CLEAR!',life:1.0};
+}
+
+/* ================= サウンド ================= */
+var ac=null,master=null,muted=false,noiseBuf=null;
+var mix=null,rev=null,distCurve=null,ps1Out=null; /* PS1級音源用 */
+var bgm={mode:null,step:0,next:0,timer:null,src:null,gain:null,buffer:null,loading:false};
+var BOSS_BGM_URL='/assets/bgm/boss.mp3';         /* 中ボスBGM */
+var HIDDEN_BGM_URL='/assets/bgm/hiddenboss.m4a'; /* 裏ボスBGM */
+var ENCOUNTER_SE_URL='/assets/bgm/encounter.mp3';/* 裏ボス出現の効果音 */
+var fileBufs={};                                  /* URL -> AudioBuffer キャッシュ */
+var encounterBuf=null;
+function initAudio(){
+  if(ac)return;
+  var AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC)return;
+  ac=new AC();
+  master=ac.createGain();master.gain.value=0.5;master.connect(ac.destination);
+  var len=ac.sampleRate*0.5;
+  noiseBuf=ac.createBuffer(1,len,ac.sampleRate);
+  var d=noiseBuf.getChannelData(0);
+  for(var i=0;i<len;i++)d[i]=Math.random()*2-1;
+  /* PS1級音源チェーン（中ボス用）：コンプ＋リバーブ＋歪みカーブ */
+  ps1Out=ac.createGain();ps1Out.gain.value=0.8;ps1Out.connect(master);
+  mix=ac.createDynamicsCompressor();
+  mix.threshold.value=-16;mix.knee.value=20;mix.ratio.value=6;
+  mix.attack.value=0.004;mix.release.value=0.18;
+  mix.connect(ps1Out);
+  var isec=1.8,ilen=Math.floor(ac.sampleRate*isec);
+  var imp=ac.createBuffer(2,ilen,ac.sampleRate);
+  for(var ch2=0;ch2<2;ch2++){
+    var dd=imp.getChannelData(ch2);
+    for(var ii=0;ii<ilen;ii++)dd[ii]=(Math.random()*2-1)*Math.pow(1-ii/ilen,2.4);
+  }
+  rev=ac.createConvolver();rev.buffer=imp;
+  var rg=ac.createGain();rg.gain.value=0.4;rev.connect(rg);rg.connect(mix);
+  var kk=70,nn=1024;distCurve=new Float32Array(nn);
+  for(ii=0;ii<nn;ii++){var xx=ii*2/nn-1;distCurve[ii]=(1+kk)*xx/(1+kk*Math.abs(xx));}
+}
+function nf(n){return 440*Math.pow(2,(n-69)/12);}
+function tone(t,f,dur,type,vol,slideTo){
+  if(!ac||muted)return;
+  var o=ac.createOscillator(),g=ac.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t);
+  if(slideTo)o.frequency.exponentialRampToValueAtTime(slideTo,t+dur);
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(vol,t+0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g);g.connect(master);
+  o.start(t);o.stop(t+dur+0.02);
+}
+function noiseHit(t,dur,vol,freq){
+  if(!ac||muted)return;
+  var s=ac.createBufferSource();s.buffer=noiseBuf;s.loop=true;
+  var f=ac.createBiquadFilter();f.type='bandpass';f.frequency.value=freq||6000;f.Q.value=0.8;
+  var g=ac.createGain();
+  g.gain.setValueAtTime(vol,t);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  s.connect(f);f.connect(g);g.connect(master);
+  s.start(t);s.stop(t+dur+0.02);
+}
+/* ===== PS1級音源（中ボス用ボイス） ===== */
+function ps1Pan(node,p,revAmt){
+  if(ac.createStereoPanner&&p){
+    var pn=ac.createStereoPanner();pn.pan.value=Math.max(-1,Math.min(1,p));
+    node.connect(pn);pn.connect(mix);
+  }else{node.connect(mix);}
+  if(revAmt){var sg=ac.createGain();sg.gain.value=revAmt;node.connect(sg);sg.connect(rev);}
+}
+function ps1Env(t,dur,vol,atk){
+  var g=ac.createGain();
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(vol,t+(atk||0.008));
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  return g;
+}
+function supersaw(t,f,dur,vol,det,nv,p,revAmt,cutoff){
+  if(!ac||muted)return;
+  var g=ps1Env(t,dur,vol,0.01);
+  var flt=ac.createBiquadFilter();flt.type='lowpass';flt.Q.value=1;
+  flt.frequency.setValueAtTime(cutoff,t);
+  flt.frequency.exponentialRampToValueAtTime(Math.max(500,cutoff*0.22),t+dur);
+  flt.connect(g);ps1Pan(g,p,revAmt);
+  for(var i=0;i<nv;i++){
+    var o=ac.createOscillator();o.type='sawtooth';
+    o.frequency.value=f;o.detune.value=(i-(nv-1)/2)*det;
+    o.connect(flt);o.start(t);o.stop(t+dur+0.05);
+  }
+}
+function distTone(t,fs,dur,vol,p){
+  if(!ac||muted)return;
+  var g=ps1Env(t,dur,vol,0.012);
+  var flt=ac.createBiquadFilter();flt.type='lowpass';flt.frequency.value=2800;flt.Q.value=0.7;
+  var sh=ac.createWaveShaper();sh.curve=distCurve;sh.oversample='2x';
+  sh.connect(flt);flt.connect(g);ps1Pan(g,p,0.25);
+  for(var i=0;i<fs.length;i++){
+    for(var dtn=-6;dtn<=6;dtn+=12){
+      var o=ac.createOscillator();o.type='sawtooth';
+      o.frequency.value=fs[i];o.detune.value=dtn;
+      o.connect(sh);o.start(t);o.stop(t+dur+0.05);
+    }
+  }
+}
+function stabChord(t,notes,sd){
+  for(var i=0;i<notes.length;i++)
+    supersaw(t,nf(notes[i]),sd*1.3,0.028,10,2,(i-1)*0.25,0.3,3200);
+}
+function bassMono(t,f,dur,vol,cut){
+  if(!ac||muted)return;
+  var g=ps1Env(t,dur,vol,0.006);
+  var flt=ac.createBiquadFilter();flt.type='lowpass';flt.frequency.value=cut;flt.Q.value=1.2;
+  var o=ac.createOscillator();o.type='sawtooth';o.frequency.value=f;
+  o.connect(flt);flt.connect(g);g.connect(mix);
+  o.start(t);o.stop(t+dur+0.05);
+}
+function noiseShot(t,dur,vol,freq,p,revAmt,hp){
+  if(!ac||muted)return;
+  var src=ac.createBufferSource();src.buffer=noiseBuf;src.loop=true;
+  var f=ac.createBiquadFilter();f.type=hp?'highpass':'bandpass';f.frequency.value=freq;f.Q.value=0.9;
+  var g=ac.createGain();
+  g.gain.setValueAtTime(vol,t);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  src.connect(f);f.connect(g);ps1Pan(g,p,revAmt||0);
+  src.start(t);src.stop(t+dur+0.02);
+}
+function ps1Kick(t,v){
+  if(!ac||muted)return;
+  var o=ac.createOscillator();o.type='sine';
+  o.frequency.setValueAtTime(165,t);
+  o.frequency.exponentialRampToValueAtTime(44,t+0.11);
+  var g=ac.createGain();
+  g.gain.setValueAtTime(v,t);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.17);
+  o.connect(g);g.connect(mix);o.start(t);o.stop(t+0.22);
+  noiseShot(t,0.015,v*0.3,3500,0);
+}
+function ps1Snare(t,v){
+  if(!ac||muted)return;
+  noiseShot(t,0.14,v,1900,0.05,0.3);
+  var o=ac.createOscillator();o.type='sine';o.frequency.value=190;
+  var g=ac.createGain();
+  g.gain.setValueAtTime(v*0.7,t);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.08);
+  o.connect(g);g.connect(mix);o.start(t);o.stop(t+0.1);
+}
+function ps1Hat(t,v,open,p){noiseShot(t,open?0.24:0.045,v,8500,p||0.3,0,true);}
+/* FM音源（鐘・エレピ・重低音） */
+function fmTone(t,f,dur,vol,ratio,index,p,revAmt,modDecay){
+  if(!ac||muted)return;
+  var car=ac.createOscillator();car.frequency.value=f;
+  var mod=ac.createOscillator();mod.frequency.value=f*ratio;
+  var mg=ac.createGain();
+  mg.gain.setValueAtTime(f*index,t);
+  mg.gain.exponentialRampToValueAtTime(0.5,t+modDecay);
+  mod.connect(mg);mg.connect(car.frequency);
+  var g=ps1Env(t,dur,vol,0.006);
+  car.connect(g);ps1Pan(g,p,revAmt);
+  car.start(t);car.stop(t+dur+0.05);
+  mod.start(t);mod.stop(t+dur+0.05);
+}
+/* 聖歌隊風パッド */
+function choir(t,notes,dur,vol,p){
+  if(!ac||muted)return;
+  var g=ps1Env(t,dur,vol,dur*0.3);
+  var flt=ac.createBiquadFilter();flt.type='bandpass';flt.frequency.value=800;flt.Q.value=0.7;
+  flt.connect(g);ps1Pan(g,p,0.7);
+  for(var i=0;i<notes.length;i++)
+    for(var dtn=-9;dtn<=9;dtn+=9){
+      var o=ac.createOscillator();o.type='sawtooth';
+      o.frequency.value=nf(notes[i]);o.detune.value=dtn;
+      o.connect(flt);o.start(t);o.stop(t+dur+0.1);
+    }
+}
+/* ティンパニ */
+function timpani(t,v){
+  if(!ac||muted)return;
+  var o=ac.createOscillator();o.type='sine';
+  o.frequency.setValueAtTime(96,t);
+  o.frequency.exponentialRampToValueAtTime(52,t+0.35);
+  var g=ac.createGain();
+  g.gain.setValueAtTime(v,t);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.5);
+  o.connect(g);ps1Pan(g,0,0.5);
+  o.start(t);o.stop(t+0.55);
+  noiseShot(t,0.06,v*0.25,300,0,0.4);
+}
+/* 教会の鐘（非整数倍FM） */
+function bellDark(t,f,dur,vol,p){fmTone(t,f,dur,vol,2.76,7,p||0,0.7,dur*0.5);}
+/* ライザー */
+function riser(t,dur,vol){
+  if(!ac||muted)return;
+  var src=ac.createBufferSource();src.buffer=noiseBuf;src.loop=true;
+  var f=ac.createBiquadFilter();f.type='bandpass';f.Q.value=1;
+  f.frequency.setValueAtTime(300,t);
+  f.frequency.exponentialRampToValueAtTime(4500,t+dur);
+  var g=ac.createGain();
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(vol,t+dur*0.9);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur+0.05);
+  src.connect(f);f.connect(g);ps1Pan(g,0,0.6);
+  src.start(t);src.stop(t+dur+0.1);
+}
+
+/* BGMパターン */
+var MEL=[76,0,79,0,81,0,79,76, 74,0,76,0,72,0,69,0, 76,0,79,0,81,0,84,81, 79,0,76,0,74,0,72,0];
+var BAS=[48,48,0,48,0,48,55,0, 45,45,0,45,0,45,52,0, 41,41,0,41,0,41,48,0, 43,43,0,43,0,43,50,0];
+var ARP=[57,60,64,69,64,60,57,60, 56,59,64,68,64,59,56,59, 57,60,64,69,64,60,57,60, 55,59,62,67,62,59,55,50];
+var BOSSM=[69,72,71,72,75,72,71,72, 69,72,71,72,76,75,72,71, 69,72,71,72,75,72,71,72, 77,76,75,74,72,71,69,68];
+var BOSSB=[45,45,45,45,41,41,43,43, 45,45,45,45,41,41,43,43, 45,45,45,45,41,41,43,43, 41,41,43,43,44,44,45,45];
+var BOSSC=[69,72,75]; /* dimスタブ */
+/* EXTRA(ラスボス)=L2：混声コーラスの儀式（100bpm） */
+var EXB=[40,40,43,40,46,40,43,40, 40,40,43,40,46,43,40,38, 40,40,43,40,46,40,43,40, 41,41,44,41,47,44,41,44];
+var EXM=[0,0,0,0,76,0,75,0, 0,0,74,0,0,0,70,0, 0,0,0,0,76,0,77,0, 79,0,0,0,0,0,0,0];
+var EXC=[64,67,70,73];
+/* タイトル：ポップで明るいチップチューン（C-G-Am-F・約140bpm） */
+var TITLE_MEL=[72,0,76,79, 0,76,0,0, 74,0,79,0, 71,0,74,0, 76,0,72,0, 81,0,79,0, 77,0,76,74, 72,0,0,0];
+var TITLE_BAS=[48,0,48,55, 43,0,43,50, 45,0,45,52, 41,0,41,48, 48,0,48,55, 43,0,43,50, 45,0,45,52, 41,0,43,0];
+function bgmStep(mode,step,t,stepDur){
+  if(mode==='normal'){
+    if(MEL[step])tone(t,nf(MEL[step]),0.13,'square',0.055);
+    if(BAS[step])tone(t,nf(BAS[step]-12),0.15,'triangle',0.11);
+    if(step%2===0)noiseHit(t,0.03,0.02,8000);
+    if(step%8===4)noiseHit(t,0.09,0.05,2500);
+  }else if(mode==='boss'){
+    /* 中ボス：ロックマン3ボス戦風（A8移植・PS1級音源・178bpm） */
+    var sd=stepDur;
+    if(BOSSM[step]){
+      distTone(t,[nf(BOSSM[step])],sd*1.4,0.05,0.15);
+      supersaw(t,nf(BOSSM[step]),sd*1.2,0.02,8,2,-0.2,0.3,5000);
+    }
+    if(step%8===0||step%8===6)stabChord(t,BOSSC,sd);
+    if(BOSSB[step])bassMono(t,nf(BOSSB[step]-12),sd*0.85,0.18,800);
+    if(step%2===0)ps1Kick(t,0.95);
+    if(step%8===3)ps1Kick(t,0.6);
+    ps1Hat(t,(step%2?0.07:0.045),false,0.3);
+    ps1Hat(t+sd/2,0.03,false,-0.3);
+    if(step%8===4)ps1Snare(t,0.5);
+    if(step===30||step===31){ps1Snare(t,0.32);ps1Snare(t+sd/2,0.32);}
+  }else if(mode==='title'){
+    /* タイトル：ポップなチップチューン */
+    if(TITLE_MEL[step])tone(t,nf(TITLE_MEL[step]),0.12,'square',0.06);
+    if(TITLE_BAS[step])tone(t,nf(TITLE_BAS[step]-12),0.16,'triangle',0.10);
+    if(step%4===0)noiseHit(t,0.05,0.035,2500);  /* キック */
+    if(step%2===1)noiseHit(t,0.02,0.02,9000);   /* ハット */
+  }else{
+    /* EXTRA=ラスボスL2：混声コーラスの儀式（PS1級音源・100bpm） */
+    var sd=stepDur;
+    if(EXB[step]){
+      bassMono(t,nf(EXB[step]-12),sd*0.8,0.17,900);
+      supersaw(t,nf(EXB[step]),sd*0.8,0.02,8,2,0.1,0.3,2500);
+    }
+    if(step===0||step===6||step===10||step===16||step===22||step===26)choir(t,EXC,sd*3.2,0.06,0);
+    if(EXM[step])bellDark(t,nf(EXM[step]),sd*4,0.06,0.25);
+    if(step%8===0)timpani(t,0.45);
+    if(step%16===14)timpani(t,0.3);
+    if(step%16===8)ps1Snare(t,0.5);
+    if(step%4===3)noiseShot(t,0.05,0.04,3000,(step%8===3?0.4:-0.4),0.3);
+    if(step===28)riser(t,sd*4,0.05);
+  }
+}
+/* 裏ボス撃破後の神秘的な音楽（FFプレリュード風：上行→下行を繰り返す流れるアルペジオ） */
+var MYST_UP=[
+  [48,55,60,64,67,72,76,79], /* I  ：C majを2オクターブに分散 */
+  [45,52,57,60,64,69,72,76]  /* vi ：A minを2オクターブに分散 */
+];
+var MYST_PAD=[[48,55,60,64,67],[45,52,57,60,64]]; /* 持続パッド用コードトーン */
+var MYST_ROOT=[48,45];
+function mystHarp(t,f,dur,vol,p){
+  /* ハープ/チェレスタ風のやわらかいプラック（三角波＋1オクターブ上のサイン） */
+  var o=ac.createOscillator();o.type='triangle';o.frequency.value=f;
+  var o2=ac.createOscillator();o2.type='sine';o2.frequency.value=f*2;
+  var g=ps1Env(t,dur,vol,0.005);
+  var g2=ps1Env(t,dur*0.55,vol*0.28,0.004);
+  o.connect(g);o2.connect(g2);ps1Pan(g,p,0.4);ps1Pan(g2,p,0.5);
+  o.start(t);o.stop(t+dur+0.05);o2.start(t);o2.stop(t+dur*0.55+0.05);
+}
+function bgmStepMystic(step,t,sd){
+  var c=(step<16)?0:1;   /* 16ステップごとにコード交代（I→vi） */
+  var s=step%16;         /* 0..15：前半8で上行、後半8で下行 */
+  var up=MYST_UP[c];
+  var note=(s<8)?up[s]:up[15-s];
+  mystHarp(t,nf(note),sd*2.4,0.1,((s%2)?0.26:-0.26)); /* アルペジオのみ（パッド・低音なし） */
+}
+function bgmStart(mode){
+  if(!ac)return;
+  bgmStop();
+  bgm.mode=mode;
+  if(mode==='boss'){bgmStartFile(BOSS_BGM_URL,0.72,false);return;}   /* 中ボス：一定テンポ（加速しない） */
+  if(mode==='hidden'){bgmStartFile(HIDDEN_BGM_URL,0.8,false);return;} /* 裏ボス：加速しない */
+  bgm.step=0;bgm.next=ac.currentTime+0.06;
+  bgm.timer=setInterval(function(){
+    if(!ac||muted)return;
+    var baseDur=(bgm.mode==='normal')?(60/132/2):(bgm.mode==='mystic'?(60/160/2):(bgm.mode==='title'?(60/140/2):(60/100/2)));
+    var stepDur=(bgm.mode==='mystic'||bgm.mode==='title')?baseDur:baseDur/tempoMul; /* mystic/titleは一定テンポ、他はインベーダー接近でテンポUP */
+    while(bgm.next<ac.currentTime+0.14){
+      if(bgm.mode==='mystic')bgmStepMystic(bgm.step,bgm.next,stepDur);
+      else bgmStep(bgm.mode,bgm.step,bgm.next,stepDur);
+      bgm.next+=stepDur;
+      bgm.step=(bgm.step+1)%32;
+    }
+  },30);
+}
+/* ---- ファイルBGMのループ再生（中ボス/裏ボス共通） ---- */
+function bgmStartFile(url,vol,followTempo){
+  var wantMode=bgm.mode;
+  var startNow=function(buf){
+    if(bgm.mode!==wantMode||!buf)return; /* すでに別モードへ移っていたら鳴らさない */
+    var src=ac.createBufferSource();
+    src.buffer=buf;src.loop=true;
+    var g=ac.createGain();g.gain.value=muted?0:vol;
+    src.connect(g);g.connect(master);
+    if(followTempo)src.playbackRate.value=tempoMul;
+    src.start();
+    bgm.src=src;bgm.gain=g;bgm.follow=followTempo;
+  };
+  if(fileBufs[url]){startNow(fileBufs[url]);return;}
+  if(bgm.loading)return;
+  bgm.loading=true;
+  fetch(url).then(function(r){return r.arrayBuffer();})
+    .then(function(ab){return ac.decodeAudioData(ab);})
+    .then(function(buf){fileBufs[url]=buf;bgm.loading=false;startNow(buf);})
+    .catch(function(){bgm.loading=false;if(wantMode==='boss')bgmStartSynthBoss();}); /* 中ボスだけ合成フォールバック */
+}
+function bgmStartSynthBoss(){
+  /* MP3が読めない環境用：合成A8を178bpmで鳴らす */
+  if(bgm.mode!=='boss')return;
+  bgm.step=0;bgm.next=ac.currentTime+0.06;
+  bgm.timer=setInterval(function(){
+    if(!ac||muted)return;
+    var stepDur=(60/178/2); /* 中ボスは加速しない（tempoMulを使わない） */
+    while(bgm.next<ac.currentTime+0.14){
+      bgmStep('boss',bgm.step,bgm.next,stepDur);
+      bgm.next+=stepDur;
+      bgm.step=(bgm.step+1)%32;
+    }
+  },30);
+}
+function bgmStop(){
+  if(bgm.timer){clearInterval(bgm.timer);bgm.timer=null;}
+  if(bgm.src){try{bgm.src.stop();}catch(e){}bgm.src=null;bgm.gain=null;}
+}
+/* SFX */
+function sfxShoot(){if(ac)tone(ac.currentTime,880,0.08,'square',0.08,1500);}
+function sfxMorphShot(){if(ac)tone(ac.currentTime,440,0.09,'square',0.07,660);}
+function sfxMorph(){if(!ac)return;var t=ac.currentTime;tone(t,330,0.07,'sine',0.09,500);tone(t+0.07,500,0.09,'sine',0.09,330);}
+function sfxDud(){if(ac)tone(ac.currentTime,180,0.06,'square',0.05);}
+function sfxHit(n){if(!ac)return;var sh=Math.min(12,n||0);var t=ac.currentTime;tone(t,nf(76+sh),0.07,'square',0.08);tone(t+0.06,nf(79+sh),0.07,'square',0.08);tone(t+0.12,nf(84+sh),0.1,'square',0.08);noiseHit(t,0.12,0.06,3000);}
+function sfxMiss(){if(!ac)return;var t=ac.currentTime;tone(t,220,0.26,'sawtooth',0.1,70);noiseHit(t,0.18,0.05,900);}
+function sfxClear(){if(!ac)return;var t=ac.currentTime;var seq=[72,76,79,84];for(var i=0;i<4;i++)tone(t+i*0.09,nf(seq[i]),0.12,'square',0.09);}
+function sfxFail(){if(!ac)return;var t=ac.currentTime;tone(t,300,0.5,'sawtooth',0.12,60);noiseHit(t,0.5,0.1,500);}
+function sfxAlarm(){if(!ac)return;var t=ac.currentTime;for(var i=0;i<6;i++)tone(t+i*0.22,(i%2?150:210),0.2,'sawtooth',0.063);} /* ラスボス エンカウント音（0.09の0.7倍） */
+function sfxBossAlarm(){if(!ac)return;var t=ac.currentTime;var sq=[52,59,64,71];for(var i=0;i<4;i++)tone(t+i*0.14,nf(sq[i]),0.16,'sawtooth',0.1);noiseHit(t+0.6,0.3,0.08,1500);}
+/* 裏ボス出現の効果音（ファイル）。読めなければ合成のアラームで代用 */
+function sfxEncounter(){
+  if(!ac||muted)return;
+  var play=function(buf){var s=ac.createBufferSource();s.buffer=buf;var g=ac.createGain();g.gain.value=0.6;s.connect(g);g.connect(master);s.start();};
+  if(encounterBuf){play(encounterBuf);return;}
+  fetch(ENCOUNTER_SE_URL).then(function(r){return r.arrayBuffer();})
+    .then(function(ab){return ac.decodeAudioData(ab);})
+    .then(function(buf){encounterBuf=buf;play(buf);})
+    .catch(function(){var t=ac.currentTime;for(var i=0;i<3;i++)tone(t+i*0.09,nf(48-i*3),0.3,'sawtooth',0.12);noiseHit(t,0.5,0.1,400);});
+}
+function sfxPop(){if(!ac)return;var t=ac.currentTime;noiseHit(t,0.1,0.06,4000);tone(t,600,0.08,'triangle',0.07,900);}
+function sfxBellFlip(){if(!ac)return;tone(ac.currentTime,1300,0.06,'square',0.07,1700);}
+function sfxBellGet(){if(!ac)return;var t=ac.currentTime;tone(t,1568,0.12,'sine',0.1);tone(t+0.09,2093,0.2,'sine',0.1);}
+
+/* ================= レイアウト・出題 ================= */
+function tileWidth(word){
+  ctx.font=TILE_FONT;
+  var mx=0;
+  for(var i=0;i<word.f.length;i++){var w=ctx.measureText(word.f[i]).width;if(w>mx)mx=w;}
+  return Math.max(45,Math.ceil(mx)+26);
+}
+function spawnQuestion(q,isRetry){
+  curQ=q;progress=0;built=[];misses=0;
+  tiles=[];bullets=[];grpX=0;grpY=0;grpDir=1;tempoMul=1;bell=null;fireSeq=0;
+  ctx.font=TILE_FONT;
+  var list=q.w.slice();
+  if(q.d)for(var k=0;k<q.d.length;k++)list.push(q.d[k]); /* 不要語デコイ */
+  var order=[];
+  for(var i=0;i<list.length;i++)order.push(i);
+  shuffle(order);
+  var gap=12,rowH=62,avail=CW-24,rows=[[]],rw=0;
+  for(i=0;i<order.length;i++){
+    var wd=list[order[i]];
+    var tw=tileWidth(wd);
+    if(rw+tw+gap>avail&&rows[rows.length-1].length>0){rows.push([]);rw=0;}
+    rows[rows.length-1].push({wd:wd,w:tw});
+    rw+=tw+gap;
+  }
+  for(var r=0;r<rows.length;r++){
+    var totalW=-gap;
+    for(i=0;i<rows[r].length;i++)totalW+=rows[r][i].w+gap;
+    var x=(CW-totalW)/2;
+    for(i=0;i<rows[r].length;i++){
+      var it=rows[r][i];
+      var fi0=0;
+      if(it.wd.wh&&it.wd.f.length>1){
+        /* 疑問詞は正解以外の形からスタート（生徒が変形して選ぶ） */
+        fi0=(it.wd.c+1+Math.floor(Math.random()*(it.wd.f.length-1)))%it.wd.f.length;
+        if(fi0===it.wd.c)fi0=(it.wd.c+1)%it.wd.f.length;
+      }
+      tiles.push({word:it.wd,fi:fi0,alive:true,flash:0,bx:x,by:HUD_H+14+JA_BAND+r*rowH,w:it.w,h:44});
+      x+=it.w+gap;
+    }
+  }
+  curRows=rows.length;
+  /* ●（形をかえる）タイルが有るか。有れば「まず形をととのえよう」から始める */
+  var hasMorph=false;
+  for(i=0;i<tiles.length;i++)if(tiles[i].alive&&tiles[i].word.f.length>1){hasMorph=true;break;}
+  if(!isTutorial){
+    setMode(hasMorph?'morph':'order'); /* ●が無い問題は最初から「じゅんばん」 */
+    announce=hasMorph
+      ? {t:'① ●のことばは 必要なら かたちをかえよう！',life:2.8}
+      : {t:'和訳どおりに じゅんばんに タップ！',life:2.2};
+  }
+  qStart=performance.now();
+  jaBar.textContent=(isRetry?'🔁もういちど！ ':'')+q.ja;
+  renderSentence();
+}
+function renderSentence(){
+  var html='';
+  for(var i=0;i<built.length;i++)html+='<span class="divp-chip">'+built[i]+'</span>';
+  html+='<span class="divp-cursor"></span>';
+  html+='<span id="divp-progress">'+progress+' / '+(curQ?curQ.w.length:0)+'</span>';
+  sentBar.innerHTML=html;
+}
+
+/* ================= 判定 ================= */
+function calcScore(sec,missN,n){
+  var par=4+CONFIG.PAR_PER_WORD*n;
+  if(isHiddenMode){
+    /* 裏ボス：減点なし・超高得点 */
+    return CONFIG.HIDDEN_BASE+Math.max(0,Math.round(400*(1-sec/(par*2.2))));
+  }
+  if(isExtraMode){
+    /* ラスボス：減点なし */
+    return CONFIG.LAST_BASE+Math.max(0,Math.round(CONFIG.LAST_BONUS_MAX*(1-sec/(par*2))));
+  }
+  if(isBossMode){
+    var bb=Math.max(0,Math.round(200*(1-sec/(par*1.8))));
+    return Math.max(20,CONFIG.BOSS_BASE+bb-CONFIG.MISS_PENALTY*missN);
+  }
+  var bonus=Math.max(0,Math.round(CONFIG.TIME_BONUS_MAX*(1-sec/(par*1.8))));
+  return Math.max(10,CONFIG.BASE_SCORE+bonus-CONFIG.MISS_PENALTY*missN);
+}
+function onShootHit(tile){
+  var exp=curQ.w[progress];
+  var expTxt=exp.f[exp.c];
+  var cur=tile.word.f[tile.fi];
+  if(cur===expTxt){
+    tile.alive=false;
+    combo++;if(combo>maxCombo)maxCombo=combo;
+    explode(tile.bx+grpX+tile.w/2,tile.by+grpY+tile.h/2,palette().bullet);
+    built.push(cur);progress++;renderSentence();sfxHit(combo);
+    if(!isExtraMode&&!isHiddenMode)grpY=Math.max(CONFIG.RETREAT_MAX_UP,grpY-CONFIG.RETREAT_PER_WORD); /* 1単語正解ごとに群れがわずかに後退（ラスボス・裏ボスは後退なし） */
+    addFloat(tile.bx+grpX+tile.w/2,tile.by+grpY,'OK',palette().morphDot);
+    if(isTutorial){
+      if(progress===curQ.w.length){correctEffect();sfxClear();tutFinish();return;}
+      tutAdvance();return;
+    }
+    if(progress===curQ.w.length)questionClear();
+  }else{
+    var formWrong=(tile.word===exp)||(tile.word.f.indexOf(expTxt)>=0&&tile.word.f.length>1);
+    miss(tile,formWrong?'かたちがちがう！':'じゅんばんがちがう！');
+  }
+}
+function miss(tile,msg){
+  if(fx.shield>0){
+    /* ベルのバリアでミス1回無効 */
+    fx.shield--;
+    tile.flash=0.3;sfxDud();
+    addFloat(tile.bx+grpX+tile.w/2,tile.by+grpY,'バリアで セーフ！','#888888');
+    return;
+  }
+  combo=0;
+  var noPenalty=(isExtraMode||isHiddenMode); /* ラスボス・裏ボスは減点なし */
+  if(!noPenalty){misses++;setMiss++;}
+  noMissStreak=0;
+  tile.flash=0.5;shake=0.35;sfxMiss();
+  addFloat(tile.bx+grpX+tile.w/2,tile.by+grpY,msg,'#ff5566');
+  if(!noPenalty)addFloat(ship.x,SHIP_Y-40,'-'+CONFIG.MISS_PENALTY,'#ff5566');
+}
+function curPhase(){return seq()[phaseIdx];}
+function phaseKind(){var p=curPhase();return p?p.kind:'normal';}
+/* 各段階に応じて問題を1問出す */
+function spawnPhaseQuestion(){
+  var k=phaseKind();
+  if(k==='normal'){spawnNormalNext();return;}
+  if(k==='boss'){spawnQuestion(nextFromPool(poolB,BOSS),false);return;}
+  if(k==='last'){spawnQuestion(nextFromPool(poolE,EXTRA),false);return;}
+  if(k==='hidden'){spawnQuestion(nextFromPool(poolH,HIDDEN),false);return;}
+}
+/* 現段階の見た目・BGM・フラグをセット */
+function enterPhaseVisual(){
+  var k=phaseKind();
+  isBossMode=(k==='boss');
+  isExtraMode=(k==='last');
+  isHiddenMode=(k==='hidden');
+  document.body.classList.toggle('divp-boss',k==='boss');
+  document.body.classList.toggle('divp-dark',k==='last');
+  document.body.classList.toggle('divp-hidden',k==='hidden');
+}
+
+function questionClear(){
+  state='wait';
+  var ms=performance.now()-qStart;
+  var basePts=calcScore(ms/1000,misses,curQ.w.length);
+  var mult=comboMult();
+  var pts=Math.round(basePts*mult);
+  if(fx.doubleQ){pts*=2;fx.doubleQ=false;addFloat(CW/2,CH/2-14,'ベルこうか ×2！','#ff6f9c');}
+  score+=pts;
+  correctEffect();sfxClear();
+  addFloat(CW/2,CH/2-40,'+'+pts+(mult>1?'（コンボ×'+mult.toFixed(1)+'）':''),palette().bullet);
+  divpLogAnswer(curQ,true,pts,ms,misses);
+  var noMiss=(misses===0);
+  if(noMiss)noMissStreak++; else{noMissStreak=0;if(phaseKind()==='normal'||phaseKind()==='boss')queueRetry(curQ);}
+  qCount++;setScore+=pts;
+  if(phaseKind()==='hidden')hiddenScore+=pts;
+  setTimeout(function(){advancePhase(noMiss);},1400);
+}
+function questionFail(){
+  state='wait';
+  shake=0.6;sfxFail();
+  explode(ship.x,SHIP_Y,'#ff5566');explode(ship.x-20,SHIP_Y+8,'#ffaa33');explode(ship.x+20,SHIP_Y+8,'#ffaa33');
+  noMissStreak=0;combo=0;
+  divpLogAnswer(curQ,false,0,performance.now()-qStart,misses);
+  qCount++;
+  if(phaseKind()==='normal'||phaseKind()==='boss')queueRetry(curQ);
+  setTimeout(showFailAnswer,900);
+}
+function showFailAnswer(){
+  overlayIn.innerHTML=
+    '<div class="divp-title-sub" style="color:#ff3355">とっぱされた！</div>'+
+    '<div class="divp-result-stats">'+curQ.ja+'<br>もはんかいとう：</div>'+
+    '<div class="divp-model">'+sentenceOf(curQ)+'</div><br><br>'+
+    '<button class="divp-big-btn" id="divp-btn-failnext" type="button">つぎへ ▶</button>';
+  overlay.classList.add('divp-show');
+  document.getElementById('divp-btn-failnext').addEventListener('click',function(){
+    overlay.classList.remove('divp-show');
+    advancePhase(false); /* ミスしたので段階はやり直し（先へ進めない） */
+  });
+}
+
+/* ===== 段階進行の中枢 =====
+   noMiss: 直前の問題をノーミスでクリアしたか
+   ボス系(boss/last/hidden)はノーミスが突破条件。ミスすると同じ段階を最初からやり直す。
+   通常は n 問こなしたら次段階へ（ミスしても段階内カウントは進むが、次のボス条件は別途）。 */
+function advancePhase(noMiss){
+  var p=curPhase();
+  if(!p){ // 全段階クリア＝ゲーム完走
+    showFinalResult();return;
+  }
+  var k=p.kind;
+
+  if(k==='normal'){
+    phaseDone++;
+    if(phaseDone>=p.n){
+      // 10問終了→結果発表→次段階へ
+      phaseDone=0;
+      showStageResult(function(){goNextPhase();});
+    }else{
+      state='play';spawnPhaseQuestion();
+    }
+    return;
+  }
+
+  // boss / last / hidden：ノーミス継続が突破条件
+  if(!noMiss){
+    // ミス→この段階を最初からやり直し
+    phaseDone=0;
+    startPhaseIntro(true); // リトライintro
+    return;
+  }
+  phaseDone++;
+  if(phaseDone>=p.n){
+    phaseDone=0;
+    if(k==='hidden'){showHiddenResult();return;}
+    if(k==='last'){showLastResult(function(){goNextPhase();});return;}
+    // boss突破→通常へ戻る（段階を進める）
+    goNextPhase();
+  }else{
+    state='play';spawnPhaseQuestion();
+  }
+}
+function goNextPhase(){
+  phaseIdx++;phaseDone=0;
+  var p=curPhase();
+  if(!p){showFinalResult();return;}
+  // BGM/見た目を段階に合わせて切替
+  if(p.kind==='normal'){
+    isBossMode=isExtraMode=isHiddenMode=false;
+    document.body.classList.remove('divp-boss','divp-dark','divp-hidden');
+    bgmStop();bgmStart('normal');
+    state='play';spawnPhaseQuestion();
+  }else{
+    startPhaseIntro(false);
+  }
+}
+
+/* 段階の突入演出（ボス/ラスボス/裏ボス共通の入口） */
+function startPhaseIntro(isRetry){
+  var k=phaseKind();
+  poolB=[];poolE=[];poolH=[]; // 各ボスプールをリセット
+  enterPhaseVisual();
+  if(k==='boss'){
+    state='wait';bgmStop();sfxBossAlarm();
+    overlayIn.innerHTML=
+      '<div class="divp-boss-title">中ボス しゅつげん！！'+(isRetry?'（もういちど）':'')+'</div>'+
+      '<div class="divp-result-stats">つかわない単語が <b>1つ</b> まざっているぞ！<br>ノーミスで '+curPhase().n+' 問 うちおとせ！</div>';
+    overlay.classList.add('divp-show');
+    setTimeout(function(){overlay.classList.remove('divp-show');bgmStart('boss');state='play';spawnPhaseQuestion();},2000);
+  }else if(k==='last'){
+    state='wait';bgmStop();sfxAlarm();
+    overlayIn.innerHTML='<div class="divp-warning">！！ WARNING ！！</div>';
+    overlay.classList.add('divp-show');
+    setTimeout(function(){
+      overlayIn.innerHTML='<div class="divp-warning">！！ WARNING ！！</div>'+
+        '<div class="divp-extra-title">LAST BOSS'+(isRetry?'（もういちど）':'')+'</div>'+
+        '<div class="divp-result-stats">つかわない単語がまざった長文が しゅつげん！<br>ノーミスで '+curPhase().n+' 問／減点なし・高得点</div>';
+    },1200);
+    setTimeout(function(){overlay.classList.remove('divp-show');bgmStart('dark');state='play';spawnPhaseQuestion();},3200);
+  }else if(k==='hidden'){
+    startHiddenEncounter(isRetry);
+  }
+}
+
+/* 裏ボス：FF風エンカウント演出（効果音＋画面フラッシュ→真っ黒→BGM） */
+function startHiddenEncounter(isRetry){
+  state='wait';
+  bgmStop();
+  isHiddenMode=true;
+  document.body.classList.add('divp-hidden');
+  sfxEncounter();
+  encounterFx=1.0; // 画面フラッシュ/揺れ演出のトリガ（drawで使用）
+  shake=0.8;
+  /* 画面全体（キャンバス枠ごと）を激しく揺らす。赤フラッシュが収まる頃に停止 */
+  var encBox=document.getElementById('divp-canvas-box');
+  encBox.classList.add('divp-encshake');
+  setTimeout(function(){encBox.classList.remove('divp-encshake');},1100);
+  overlayIn.innerHTML='';
+  overlay.classList.remove('divp-show');
+  // 効果音の余韻→タイトル表示
+  setTimeout(function(){
+    overlayIn.innerHTML=
+      '<div class="divp-hidden-title">? ? ?</div>'+
+      '<div class="divp-result-stats" style="color:#aa2222">なにかが あらわれた…<br>習っていない ことば の たたかい</div>';
+    overlay.classList.add('divp-show');
+  },1000);
+  setTimeout(function(){
+    overlay.classList.remove('divp-show');
+    bgmStart('hidden');
+    state='play';spawnPhaseQuestion();
+  },2800);
+}
+
+/* ================= 結果画面 ================= */
+function rankOf(avg){
+  if(avg>=200)return{l:'S',c:'#ff9b2f'};
+  if(avg>=160)return{l:'A',c:'#ff6f9c'};
+  if(avg>=120)return{l:'B',c:'#3aa0e8'};
+  if(avg>=80)return{l:'C',c:'#5a7ea6'};
+  return{l:'D',c:'#999'};
+}
+function showStageResult(next){
+  state='result';divpSave();
+  var p=curPhase();
+  var avg=setScore/Math.max(1,p.n);
+  var rk=rankOf(avg);
+  overlayIn.innerHTML=
+    '<div class="divp-title-sub">ステージ けっか</div>'+
+    '<div class="divp-rank-letter" style="color:'+rk.c+'">'+rk.l+'</div>'+
+    '<div class="divp-result-stats">このステージ: '+setScore+'<br>ミス: '+setMiss+' 回<br>ノーミスれんぞく: '+noMissStreak+' 問<br>さいだいコンボ: '+maxCombo+'<br>トータル: '+score+'</div>'+
+    '<button class="divp-big-btn" id="divp-btn-next" type="button">つぎへ ▶</button>';
+  overlay.classList.add('divp-show');
+  document.getElementById('divp-btn-next').addEventListener('click',function(){
+    overlay.classList.remove('divp-show');
+    setScore=0;setMiss=0;
+    next();
+  });
+}
+function showLastResult(next){
+  state='result';divpSave();
+  overlayIn.innerHTML=
+    '<div class="divp-extra-title">LAST BOSS CLEAR</div>'+
+    '<div class="divp-result-stats">かくとく: '+setScore+'<br>トータル: '+score+'</div>'+
+    '<button class="divp-big-btn" id="divp-btn-next" type="button">つぎへ ▶</button>';
+  overlay.classList.add('divp-show');
+  document.getElementById('divp-btn-next').addEventListener('click',function(){
+    overlay.classList.remove('divp-show');setScore=0;setMiss=0;next();
+  });
+}
+function showHiddenResult(){
+  state='result';divpSave();
+  bgmStop();bgmStart('mystic'); /* 裏ボス撃破 → 神秘的な音楽 */
+  overlayIn.innerHTML=
+    '<div class="divp-hidden-title">CONGRATULATIONS</div>'+
+    '<div class="divp-result-stats" style="color:#ff6666">裏ボスを たおした！<br>裏ボスとくてん: '+hiddenScore+'<br>トータル: '+score+'</div>'+
+    '<button class="divp-big-btn" id="divp-btn-clear" type="button">クリア！ ▶</button>';
+  overlay.classList.add('divp-show');
+  document.getElementById('divp-btn-clear').addEventListener('click',function(){
+    overlay.classList.remove('divp-show');showFinalResult();
+  });
+}
+function showFinalResult(){
+  state='result';divpSave();
+  isBossMode=isExtraMode=isHiddenMode=false;
+  document.body.classList.remove('divp-boss','divp-dark','divp-hidden');
+  bgmStop();bgmStart('normal');
+  overlayIn.innerHTML=
+    '<div class="divp-title-logo" style="font-size:clamp(20px,6vw,30px)">ALL CLEAR!</div>'+
+    '<div class="divp-result-stats" style="margin-top:12px">さいしゅうスコア: '+score+'<br>さいだいコンボ: '+maxCombo+'</div>'+
+    '<button class="divp-big-btn" id="divp-btn-fin" type="button">タイトルへ ▶</button>';
+  overlay.classList.add('divp-show');
+  document.getElementById('divp-btn-fin').addEventListener('click',function(){
+    overlay.classList.remove('divp-show');bgmStop();showTitle();
+  });
+}
+
+/* ================= エフェクト ================= */
+function explode(x,y,color){
+  for(var i=0;i<16;i++){
+    var a=Math.random()*Math.PI*2,sp=60+Math.random()*160;
+    particles.push({x:x,y:y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:0.5+Math.random()*0.3,color:color,size:2+Math.random()*3});
+  }
+}
+function sparkle(x,y,color){
+  for(var i=0;i<7;i++){
+    var a=Math.random()*Math.PI*2,sp=30+Math.random()*70;
+    particles.push({x:x,y:y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-40,life:0.35,color:color,size:2});
+  }
+}
+function addFloat(x,y,txt,color){floats.push({x:x,y:y,t:txt,life:1.1,color:color});}
+
+/* ================= 更新 ================= */
+function update(dt){
+  if(paused)return; /* 一時停止中は一切進めない（英文は全画面オーバーレイで隠す） */
+  if(shake>0)shake-=dt;
+  if(encounterFx>0)encounterFx=Math.max(0,encounterFx-dt*1.2);
+  cdShoot-=dt;cdMorph-=dt;
+  for(var i=particles.length-1;i>=0;i--){
+    var p=particles[i];p.life-=dt;
+    if(p.life<=0){particles.splice(i,1);continue;}
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=260*dt;
+  }
+  for(i=floats.length-1;i>=0;i--){
+    floats[i].life-=dt;floats[i].y-=26*dt;
+    if(floats[i].life<=0)floats.splice(i,1);
+  }
+  if(flashMsg){flashMsg.life-=dt;if(flashMsg.life<=0)flashMsg=null;}
+  if(announce){announce.life-=dt;if(announce.life<=0)announce=null;}
+  for(i=0;i<stars.length;i++){
+    stars[i].y+=stars[i].s*dt;
+    if(stars[i].y>CH)stars[i].y=0;
+  }
+  for(i=0;i<clouds.length;i++){
+    clouds[i].x+=clouds[i].v*dt;
+    if(clouds[i].x-clouds[i].s*2>CW)clouds[i].x=-clouds[i].s*2;
+  }
+  if(state!=='play')return;
+
+  /* ベル効果タイマー・雲クールダウン */
+  fx.slowT=Math.max(0,fx.slowT-dt);
+  fx.hintT=Math.max(0,fx.hintT-dt);
+  for(i=0;i<clouds.length;i++)clouds[i].cd=Math.max(0,(clouds[i].cd||0)-dt);
+
+  /* 自機 */
+  if(moveL)ship.x-=CONFIG.SHIP_SPEED*dt;
+  if(moveR)ship.x+=CONFIG.SHIP_SPEED*dt;
+  if(ship.tx!==null){
+    var d=ship.tx-ship.x;
+    ship.x+=Math.max(-CONFIG.SHIP_SPEED*1.6*dt,Math.min(CONFIG.SHIP_SPEED*1.6*dt,d));
+    if(Math.abs(d)<2&&tapSlide){ship.tx=null;tapSlide=false;}
+  }
+  ship.x=Math.max(20,Math.min(CW-20,ship.x));
+
+  /* ベル落下・キャッチ */
+  if(bell){
+    bell.t+=dt;
+    bell.vy=Math.min(60,bell.vy+90*dt);
+    bell.y+=bell.vy*dt;
+    bell.x+=Math.sin(bell.t*2.6)*24*dt;
+    if(bell.vy>0&&bell.y>SHIP_Y-26&&Math.abs(bell.x-ship.x)<34){
+      applyBell(bell.ci);bell=null;
+    }else if(bell.y>CH-30){
+      bell=null;
+    }
+  }
+
+  /* 群れの移動 */
+  var elapsed=(performance.now()-qStart)/1000;
+  var base=isHiddenMode?CONFIG.HIDDEN_SPEED:(isExtraMode?CONFIG.LAST_SPEED:CONFIG.INVADER_SPEED); /* ラスボス/裏ボスは初速を上げる（加速しない分） */
+  var spd=Math.min(CONFIG.INVADER_SPEED_MAX,base+elapsed*CONFIG.INVADER_ACCEL);
+  /* 行数が多い（＝読む時間がいる）ほど落下を遅く。3行以上はさらにゆっくり */
+  var spdMul=1,stepMul=1;
+  if(curRows>=3){spdMul=CONFIG.TRIPLEROW_SPEED_MUL;stepMul=CONFIG.TRIPLEROW_STEP_MUL;}
+  else if(curRows>=2){spdMul=CONFIG.MULTIROW_SPEED_MUL;stepMul=CONFIG.MULTIROW_STEP_MUL;}
+  spd*=spdMul;
+  if(fx.slowT>0)spd*=0.45; /* ベル：スロー */
+  if(isTutorial)spd=0; /* チュートリアルは降下停止 */
+  grpX+=grpDir*spd*dt;
+  var stepDown=CONFIG.INVADER_STEP*stepMul;
+  var minX=1e9,maxX=-1e9,maxB=-1e9;
+  for(i=0;i<tiles.length;i++){
+    var tl=tiles[i];if(!tl.alive)continue;
+    if(tl.flash>0)tl.flash-=dt;
+    if(tl.bx+grpX<minX)minX=tl.bx+grpX;
+    if(tl.bx+tl.w+grpX>maxX)maxX=tl.bx+tl.w+grpX;
+    if(tl.by+tl.h+grpY>maxB)maxB=tl.by+tl.h+grpY;
+  }
+  if(maxX>CW-8&&grpDir>0){grpDir=-1;grpY+=stepDown;}
+  if(minX<8&&grpDir<0){grpDir=1;grpY+=stepDown;}
+  var zone0=HUD_H+180;
+  tempoMul=1+0.7*Math.max(0,Math.min(1,(maxB-zone0)/(DANGER_Y-zone0)));
+  if(bgm.src&&bgm.follow)bgm.src.playbackRate.value=tempoMul; /* 中ボスのみ接近で加速 */
+  if(maxB>=DANGER_Y){questionFail();return;}
+
+  /* 弾：着弾は必ず発射順（seqが最小の弾から）。近い的でも、先に撃った遠い弾が着くまで待つ */
+  var minSeq=Infinity;
+  for(i=0;i<bullets.length;i++){var bs=bullets[i];if(typeof bs.seq==='number'&&bs.seq<minSeq)minSeq=bs.seq;}
+  for(i=bullets.length-1;i>=0;i--){
+    var b=bullets[i];
+    var ttx,tty;
+    if(b.tBell){
+      if(!bell){bullets.splice(i,1);continue;}
+      ttx=bell.x;tty=bell.y;
+    }else if(b.tCloud){
+      ttx=b.tCloud.x;tty=b.tCloud.y;
+    }else if(b.target){
+      if(!b.target.alive){bullets.splice(i,1);continue;}
+      ttx=b.target.bx+grpX+b.target.w/2;
+      tty=b.target.by+grpY+b.target.h/2;
+    }else{
+      /* まっすぐ上（キーボード用） */
+      b.y-=CONFIG.BULLET_SPEED*dt;
+      if(b.y<HUD_H){bullets.splice(i,1);continue;}
+      var hit=null,hy=-1e9;
+      for(var j=0;j<tiles.length;j++){
+        var t=tiles[j];if(!t.alive)continue;
+        var tx=t.bx+grpX,ty=t.by+grpY;
+        if(b.x>=tx&&b.x<=tx+t.w&&b.y>=ty&&b.y<=ty+t.h){
+          if(ty>hy){hy=ty;hit=t;}
+        }
+      }
+      if(hit){
+        bullets.splice(i,1);
+        applyHit(b,hit);
+        if(state!=='play')break;
+      }
+      continue;
+    }
+    /* ホーミング処理（単語・雲・ベル共通） */
+    var dx=ttx-b.x,dy=tty-b.y;
+    var dist=Math.sqrt(dx*dx+dy*dy);
+    var stp=CONFIG.BULLET_SPEED*dt;
+    if(dist<=stp+12){
+      /* 発射順の待機：まだ先に撃った弾が飛んでいるなら、的の上で待つ */
+      if(typeof b.seq==='number'&&b.seq!==minSeq){b.x=ttx;b.y=tty;continue;}
+      bullets.splice(i,1);
+      if(b.tBell){bellFlip();}
+      else if(b.tCloud){popCloud(b.tCloud);}
+      else{applyHit(b,b.target);if(state!=='play')break;}
+      continue;
+    }
+    b.x+=dx/dist*stp;b.y+=dy/dist*stp;
+  }
+}
+function applyHit(b,hit){
+  if(b.type==='m'){
+    if(hit.word.f.length>1){
+      hit.fi=(hit.fi+1)%hit.word.f.length;
+      sfxMorph();
+      sparkle(hit.bx+grpX+hit.w/2,hit.by+grpY+hit.h/2,palette().morphB);
+      if(isTutorial){
+        var st=tutCur();
+        /* 目的の形(am)になったら次へ。ちがう形なら「もう一回」促し */
+        if(st&&st.want==='morph'){
+          if(hit.word.f[hit.fi]==='am'){addFloat(hit.bx+grpX+hit.w/2,hit.by+grpY,'できた！',palette().morphDot);tutAdvance();}
+          else{addFloat(hit.bx+grpX+hit.w/2,hit.by+grpY,'"am"にしよう','#ff9b2f');}
+        }
+      }
+    }else{
+      sfxDud();
+      addFloat(hit.bx+grpX+hit.w/2,hit.by+grpY,'かわらない',palette().hud);
+    }
+  }else{
+    onShootHit(hit);
+  }
+}
+
+/* ================= 描画 ================= */
+function draw(){
+  var p=palette();
+  var grad=ctx.createLinearGradient(0,0,0,CH);
+  grad.addColorStop(0,p.bg1);grad.addColorStop(1,p.bg2);
+  ctx.fillStyle=grad;ctx.fillRect(0,0,CW,CH);
+  ctx.save();
+  if(shake>0)ctx.translate((Math.random()-0.5)*8,(Math.random()-0.5)*8);
+  var i;
+  if(isExtraMode||isHiddenMode){
+    /* ラスボス/裏ボス：星 */
+    ctx.fillStyle=p.star;
+    for(i=0;i<stars.length;i++)ctx.fillRect(stars[i].x,stars[i].y,2,2);
+  }else{
+    /* 通常/BOSS：流れる雲（撃つとベルが出る） */
+    for(i=0;i<clouds.length;i++){
+      var cl=clouds[i];
+      ctx.globalAlpha=(cl.cd>0)?0.4:1;
+      ctx.fillStyle=p.cloud;
+      ctx.beginPath();
+      ctx.arc(cl.x,cl.y,cl.s*0.7,0,Math.PI*2);
+      ctx.arc(cl.x+cl.s*0.8,cl.y+3,cl.s*0.55,0,Math.PI*2);
+      ctx.arc(cl.x-cl.s*0.8,cl.y+4,cl.s*0.5,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }
+  /* 地面 */
+  ctx.fillStyle=p.ground1;ctx.fillRect(0,CH-24,CW,24);
+  ctx.fillStyle=p.ground2;ctx.fillRect(0,CH-24,CW,5);
+  /* モード表示（背景ウォーターマーク） */
+  if(state==='play'){
+    ctx.font="19px 'DotGothic16', monospace";
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.globalAlpha=(isExtraMode||isHiddenMode)?0.4:0.28;
+    ctx.fillStyle=(mode==='morph')?p.morphB:p.bullet;
+    ctx.fillText(mode==='morph'?'① かたちをかえる：●は必要なら変形':'② じゅんばん：和訳どおりに タップ',CW/2,252);
+    ctx.globalAlpha=1;
+    /* 使わない単語（デコイ）が混ざっている問題は常に警告 */
+    if(curQ&&curQ.d&&curQ.d.length){
+      ctx.font="15px 'DotGothic16', monospace";
+      ctx.fillStyle='#ffb547';
+      ctx.globalAlpha=0.95;
+      ctx.fillText('⚠ つかわない単語が '+curQ.d.length+'つ まざっている！',CW/2,282);
+      ctx.globalAlpha=1;
+    }
+  }
+  /* デンジャーライン */
+  ctx.strokeStyle=p.danger;ctx.lineWidth=1;ctx.setLineDash([6,6]);
+  ctx.beginPath();ctx.moveTo(0,DANGER_Y);ctx.lineTo(CW,DANGER_Y);ctx.stroke();ctx.setLineDash([]);
+  /* タイル */
+  ctx.font=TILE_FONT;ctx.textAlign='center';ctx.textBaseline='middle';
+  var hintTxt=null;
+  if(fx.hintT>0&&state==='play'&&curQ&&progress<curQ.w.length){
+    hintTxt=curQ.w[progress].f[curQ.w[progress].c];
+  }
+  for(i=0;i<tiles.length;i++){
+    var t=tiles[i];if(!t.alive)continue;
+    var x=t.bx+grpX,y=t.by+grpY;
+    var txt=t.word.f[t.fi];
+    var isP=(txt==='.'||txt==='?'||txt==='!'||txt===',');
+    if(t.flash>0&&Math.floor(t.flash*12)%2===0){
+      ctx.fillStyle=p.flashF;ctx.strokeStyle=p.flashB;
+    }else{
+      ctx.fillStyle=p.tile;ctx.strokeStyle=isP?p.punct:p.tileB;
+    }
+    ctx.lineWidth=2;
+    ctx.fillRect(x,y,t.w,t.h);ctx.strokeRect(x,y,t.w,t.h);
+    if(hintTxt&&t.word.f.indexOf(hintTxt)>=0){
+      /* ベル：ヒント光 */
+      ctx.strokeStyle='#ffd23f';
+      ctx.lineWidth=3+2*Math.abs(Math.sin(performance.now()/180));
+      ctx.strokeRect(x-4,y-4,t.w+8,t.h+8);
+    }
+    ctx.fillStyle=isP?p.punct:p.tileT;
+    ctx.fillText(txt,x+t.w/2,y+t.h/2+1);
+    if(t.word.f.length>1){ctx.fillStyle=p.morphDot;ctx.fillRect(x+t.w-10,y+4,6,6);}
+  }
+  /* 和訳バナー：問題文が単語と一緒に降りてくる（先頭行の真上・grpYに追従） */
+  if(state==='play'&&curQ){
+    var bandY=HUD_H+14+grpY;
+    var jaTxt=curQ.ja;
+    var fs=17;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    while(fs>11){
+      ctx.font=fs+"px 'DotGothic16','Zen Maru Gothic',sans-serif";
+      if(ctx.measureText(jaTxt).width<=CW-20)break;
+      fs--;
+    }
+    var jw=ctx.measureText(jaTxt).width,padX=10;
+    var bw=Math.min(CW-8,jw+padX*2),bx0=CW/2-bw/2;
+    ctx.globalAlpha=0.9;ctx.fillStyle=p.hudBg;
+    ctx.fillRect(bx0,bandY-2,bw,JA_BAND-4);
+    ctx.globalAlpha=1;
+    ctx.strokeStyle=p.tileB;ctx.lineWidth=1;
+    ctx.strokeRect(bx0,bandY-2,bw,JA_BAND-4);
+    ctx.fillStyle=p.hud;
+    ctx.fillText(jaTxt,CW/2,bandY-2+(JA_BAND-4)/2+1);
+    ctx.font=TILE_FONT;
+  }
+  /* 弾 */
+  for(i=0;i<bullets.length;i++){
+    var b=bullets[i];
+    if(b.type==='m'){
+      ctx.strokeStyle=p.morphB;ctx.lineWidth=4;
+      ctx.beginPath();ctx.arc(b.x,b.y,10,0,Math.PI*2);ctx.stroke();
+    }else{
+      ctx.fillStyle=p.bullet;
+      ctx.fillRect(b.x-3,b.y-10,6,20);
+    }
+  }
+  /* 自機（ツインビー風・丸型ポップ機体） */
+  var sx=Math.round(ship.x),sy=SHIP_Y;
+  ctx.fillStyle=p.shipTrim;
+  ctx.fillRect(sx-28,sy-3,11,15);  /* 左ポッド */
+  ctx.fillRect(sx+17,sy-3,11,15);  /* 右ポッド */
+  ctx.beginPath();ctx.arc(sx,sy,18,0,Math.PI*2);
+  ctx.fillStyle=p.shipBody;ctx.fill();
+  ctx.lineWidth=4;ctx.strokeStyle=p.shipTrim;ctx.stroke();
+  ctx.beginPath();ctx.arc(sx,sy-4,9,Math.PI,0);  /* ドーム */
+  ctx.fillStyle=p.shipDome;ctx.fill();
+  ctx.fillStyle=p.shipTrim;
+  ctx.fillRect(sx-8,sy+14,16,6);  /* 足 */
+  /* ベル */
+  if(bell){
+    var bc=BELLS[bell.ci];
+    ctx.fillStyle=bc.c;
+    ctx.beginPath();ctx.arc(bell.x,bell.y,11,Math.PI,0);ctx.fill();
+    ctx.fillRect(bell.x-11,bell.y,22,7);
+    ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(bell.x-11,bell.y+5,22,2);
+    ctx.fillStyle=bc.c;ctx.fillRect(bell.x-3,bell.y+9,6,4);
+    ctx.font="12px 'DotGothic16', monospace";
+    ctx.fillStyle=p.hud;
+    ctx.fillText(bc.label,bell.x,bell.y+26);
+    ctx.font=TILE_FONT;
+  }
+  /* パーティクル */
+  for(i=0;i<particles.length;i++){
+    var pa=particles[i];
+    ctx.globalAlpha=Math.max(0,pa.life*2);
+    ctx.fillStyle=pa.color;
+    ctx.fillRect(pa.x,pa.y,pa.size,pa.size);
+  }
+  ctx.globalAlpha=1;
+  /* フロートテキスト */
+  ctx.font="16px 'DotGothic16', monospace";
+  for(i=0;i<floats.length;i++){
+    var fl=floats[i];
+    ctx.globalAlpha=Math.min(1,fl.life);
+    ctx.fillStyle=fl.color;
+    ctx.fillText(fl.t,fl.x,fl.y);
+  }
+  ctx.globalAlpha=1;
+  if(flashMsg){
+    ctx.font="30px 'DotGothic16', monospace";
+    ctx.fillStyle=p.bullet;
+    ctx.globalAlpha=Math.min(1,flashMsg.life*1.6);
+    ctx.fillText(flashMsg.t,CW/2,CH/2-60);
+    ctx.globalAlpha=1;
+  }
+  /* 操作アナウンス（まず形をととのえよう 等）：上部中央に帯で強調 */
+  if(announce&&state==='play'){
+    var aFs=18;ctx.textAlign='center';ctx.textBaseline='middle';
+    while(aFs>12){ctx.font=aFs+"px 'DotGothic16','Zen Maru Gothic',sans-serif";if(ctx.measureText(announce.t).width<=CW-28)break;aFs--;}
+    var aw=ctx.measureText(announce.t).width,aPad=14,ay=CH*0.36;
+    ctx.globalAlpha=Math.min(1,announce.life*2);
+    ctx.fillStyle='rgba(0,0,0,.7)';
+    ctx.fillRect(CW/2-aw/2-aPad,ay-17,aw+aPad*2,34);
+    ctx.fillStyle=(mode==='morph')?'#7effe6':'#ffd23f';
+    ctx.fillText(announce.t,CW/2,ay+1);
+    ctx.globalAlpha=1;
+    ctx.font=TILE_FONT;
+  }
+  /* チュートリアル：ターゲットタイルの上に光る矢印 */
+  if(isTutorial&&tutArrow&&tutArrow.type==='tile'){
+    var tt=tutFindTile(tutArrow.token);
+    if(tt){
+      var ax=tt.bx+grpX+tt.w/2,ay=tt.by+grpY;
+      var bob=Math.sin(performance.now()/180)*5;
+      /* 光る枠 */
+      ctx.strokeStyle='#ffd23f';
+      ctx.lineWidth=3+2*Math.abs(Math.sin(performance.now()/200));
+      ctx.strokeRect(tt.bx+grpX-4,tt.by+grpY-4,tt.w+8,tt.h+8);
+      /* 下向き矢印 */
+      ctx.fillStyle='#ffd23f';
+      ctx.beginPath();
+      ctx.moveTo(ax,ay-8+bob);
+      ctx.lineTo(ax-11,ay-24+bob);
+      ctx.lineTo(ax+11,ay-24+bob);
+      ctx.closePath();ctx.fill();
+    }
+  }
+  ctx.restore();
+  /* 裏ボス エンカウント：赤×白の全画面フラッシュ（FF風） */
+  if(encounterFx>0){
+    var ph=Math.floor(encounterFx*10)%2;
+    ctx.globalAlpha=Math.min(1,encounterFx);
+    ctx.fillStyle=ph?'#ff0000':'#ffffff';
+    ctx.fillRect(0,0,CW,CH);
+    ctx.globalAlpha=1;
+  }
+  ctx.font="15px 'DotGothic16', monospace";ctx.textAlign='left';
+  ctx.fillStyle=p.hud;
+  var sec=(state==='play')?Math.floor((performance.now()-qStart)/1000):0;
+  ctx.fillText('SCORE '+String(score),10,HUD_H/2+1);
+  ctx.fillText('Q'+(qCount+1),165,HUD_H/2+1);
+  ctx.fillText('ミス '+misses,230,HUD_H/2+1);
+  ctx.fillText('⏱'+sec,315,HUD_H/2+1);
+  if(isHiddenMode){
+    ctx.fillStyle='#ff2200';
+    ctx.fillText('?? '+(phaseDone+1)+'/'+curPhase().n,370,HUD_H/2+1);
+  }else if(isExtraMode){
+    ctx.fillStyle='#ff4d6d';
+    ctx.fillText('LAST '+(phaseDone+1)+'/'+curPhase().n,370,HUD_H/2+1);
+  }else if(isBossMode){
+    ctx.fillStyle='#ffb547';
+    ctx.fillText('BOSS '+(phaseDone+1)+'/'+curPhase().n,370,HUD_H/2+1);
+  }else{
+    ctx.fillStyle=p.hud;
+    var pn=curPhase()?curPhase().n:10;
+    ctx.fillText((phaseDone+1)+'/'+pn,370,HUD_H/2+1);
+  }
+  /* コンボ表示 */
+  if(combo>=4){
+    ctx.textAlign='right';
+    ctx.font="14px 'DotGothic16', monospace";
+    ctx.fillStyle='#ff9b2f';
+    ctx.fillText('COMBO '+combo+' ×'+comboMult().toFixed(1),CW-8,HUD_H+16);
+  }
+  /* ベル効果ステータス */
+  var stArr=[];
+  if(fx.slowT>0)stArr.push('スロー'+Math.ceil(fx.slowT));
+  if(fx.hintT>0)stArr.push('ヒント'+Math.ceil(fx.hintT));
+  if(fx.doubleQ)stArr.push('つぎ×2');
+  if(fx.shield>0)stArr.push('バリア×'+fx.shield);
+  if(stArr.length){
+    ctx.textAlign='left';
+    ctx.font="13px 'DotGothic16', monospace";
+    ctx.fillStyle=p.hud;
+    ctx.fillText(stArr.join(' / '),8,HUD_H+16);
+  }
+  ctx.textAlign='center';
+  /* チュートリアル：ボタン誘導のハイライト */
+  if(isTutorial&&tutArrow&&tutArrow.type==='btn'){
+    btnMorph.classList.toggle('divp-tut-glow',tutArrow.which==='morph');
+    btnShoot.classList.toggle('divp-tut-glow',tutArrow.which==='order');
+  }else{
+    btnMorph.classList.remove('divp-tut-glow');
+    btnShoot.classList.remove('divp-tut-glow');
+  }
+  /* チュートリアル：メッセージ帯（画面下部） */
+  if(isTutorial&&tutMsg){
+    var by=CH-70,bh=54;
+    ctx.fillStyle='rgba(20,24,50,.92)';
+    ctx.fillRect(10,by,CW-20,bh);
+    ctx.strokeStyle='#ffd23f';ctx.lineWidth=2;
+    ctx.strokeRect(10,by,CW-20,bh);
+    ctx.fillStyle='#ffd23f';
+    ctx.font="13px 'DotGothic16', monospace";
+    ctx.textAlign='left';ctx.textBaseline='top';
+    /* 折り返し描画 */
+    var words=tutMsg.split(''),line='',lines=[],maxw=CW-40;
+    for(var wi=0;wi<words.length;wi++){
+      var test=line+words[wi];
+      if(ctx.measureText(test).width>maxw){lines.push(line);line=words[wi];}
+      else line=test;
+    }
+    if(line)lines.push(line);
+    for(var li=0;li<lines.length&&li<3;li++)ctx.fillText(lines[li],20,by+8+li*16);
+    ctx.textAlign='center';ctx.textBaseline='middle';
+  }
+}
+var mode='order';   /* 'order'＝順番を決める / 'morph'＝形を変える */
+var tapSlide=false;
+var btnMorph=document.getElementById('divp-btn-morph');
+var btnShoot=document.getElementById('divp-btn-shoot');
+function setMode(m){
+  mode=m;
+  btnMorph.classList.toggle('divp-active',m==='morph');
+  btnShoot.classList.toggle('divp-active',m==='order');
+  if(ac&&!muted)tone(ac.currentTime,m==='morph'?520:740,0.06,'square',0.06);
+}
+btnMorph.addEventListener('pointerdown',function(e){e.preventDefault();
+  if(isTutorial&&!tutAllowMode('morph')){tutNudge();return;}
+  var was=mode;setMode('morph');
+  if(!isTutorial&&was!=='morph'&&state==='play')announce={t:'① ●のことばは 必要なら かたちをかえよう！',life:2.0};
+  if(isTutorial&&was!=='morph'&&tutCur()&&tutCur().want==='morph_setmode')tutAdvance();
+});
+btnShoot.addEventListener('pointerdown',function(e){e.preventDefault();
+  if(isTutorial&&!tutAllowMode('order')){tutNudge();return;}
+  var was=mode;setMode('order');
+  if(!isTutorial&&was!=='order'&&state==='play')announce={t:'② 和訳どおりに じゅんばんに タップ！',life:2.0};
+  if(isTutorial&&was!=='order'&&tutCur()&&tutCur().want==='setmode_order')tutAdvance();
+});
+function tutNudge(){tutPulse=0.01;shake=0.12;sfxDud();} /* 誤操作は軽く弾く */
+
+function fireAt(tile){
+  if(state!=='play'||cdShoot>0)return;
+  cdShoot=0.18;
+  var cx=tile.bx+grpX+tile.w/2;
+  ship.tx=Math.max(20,Math.min(CW-20,cx));
+  tapSlide=true;
+  bullets.push({x:ship.x,y:SHIP_Y-20,type:(mode==='morph'?'m':'s'),target:tile,seq:fireSeq++});
+  if(mode==='morph')sfxMorphShot();else sfxShoot();
+}
+function fireStraight(){
+  if(state!=='play'||cdShoot>0)return;
+  cdShoot=0.18;
+  bullets.push({x:ship.x,y:SHIP_Y-20,type:(mode==='morph'?'m':'s'),target:null});
+  if(mode==='morph')sfxMorphShot();else sfxShoot();
+}
+document.addEventListener('keydown',function(e){
+  if(e.repeat&&e.key!==' ')return;
+  if(e.key==='ArrowLeft'||e.key==='a'){moveL=true;e.preventDefault();}
+  else if(e.key==='ArrowRight'||e.key==='d'){moveR=true;e.preventDefault();}
+  else if(e.key===' '||e.key==='Enter'){fireStraight();e.preventDefault();}
+  else if(e.key==='z'||e.key==='Z'){setMode('morph');e.preventDefault();}
+  else if(e.key==='x'||e.key==='X'){setMode('order');e.preventDefault();}
+});
+document.addEventListener('keyup',function(e){
+  if(e.key==='ArrowLeft'||e.key==='a')moveL=false;
+  if(e.key==='ArrowRight'||e.key==='d')moveR=false;
+});
+/* キャンバス：単語タップ＝そこへ発射、空タップ＝自機移動 */
+function canvasPos(e){
+  var r=cv.getBoundingClientRect();
+  /* object-fit:contain の実描画矩形を求めて座標を逆算 */
+  var scale=Math.min(r.width/CW,r.height/CH);
+  var dw=CW*scale,dh=CH*scale;
+  var ox=(r.width-dw)/2,oy=(r.height-dh)/2;
+  var x=(e.clientX-r.left-ox)/scale;
+  var y=(e.clientY-r.top-oy)/scale;
+  return {x:x,y:y};
+}
+function tileAt(x,y){
+  for(var j=tiles.length-1;j>=0;j--){
+    var t=tiles[j];if(!t.alive)continue;
+    var tx=t.bx+grpX,ty=t.by+grpY;
+    if(x>=tx-4&&x<=tx+t.w+4&&y>=ty-6&&y<=ty+t.h+6)return t;
+  }
+  return null;
+}
+function bellAt(x,y){return !!(bell&&Math.abs(x-bell.x)<24&&Math.abs(y-bell.y)<26);}
+function cloudAt(x,y){
+  if(isExtraMode||isHiddenMode)return null;
+  for(var i=0;i<clouds.length;i++){
+    var cl=clouds[i];
+    if(cl.cd>0)continue;
+    var dx=x-cl.x,dy=y-cl.y;
+    if(dx*dx+dy*dy<cl.s*cl.s*1.6)return cl;
+  }
+  return null;
+}
+function fireAtBell(){
+  if(state!=='play'||cdShoot>0)return;
+  cdShoot=0.18;
+  bullets.push({x:ship.x,y:SHIP_Y-20,type:(mode==='morph'?'m':'s'),tBell:true});
+  sfxShoot();
+}
+function fireAtCloud(cl){
+  if(state!=='play'||cdShoot>0)return;
+  cdShoot=0.18;
+  bullets.push({x:ship.x,y:SHIP_Y-20,type:(mode==='morph'?'m':'s'),tCloud:cl});
+  sfxShoot();
+}
+function spawnBell(x,y){bell={x:x,y:Math.max(HUD_H+30,y),vy:20,ci:0,t:0};}
+function popCloud(cl){
+  cl.cd=8;
+  sparkle(cl.x,cl.y,'#ffffff');
+  sfxPop();
+  if(!bell)spawnBell(cl.x,cl.y);
+}
+function bellFlip(){
+  if(!bell)return;
+  bell.ci=(bell.ci+1)%BELLS.length;
+  bell.vy=-110;
+  sparkle(bell.x,bell.y,BELLS[bell.ci].c);
+  sfxBellFlip();
+}
+function applyBell(ci){
+  var bl=BELLS[ci];
+  sfxBellGet();
+  sparkle(ship.x,SHIP_Y-24,bl.c);
+  if(ci===0){score+=100;addFloat(ship.x,SHIP_Y-46,'+100','#d4a017');}
+  else if(ci===1){fx.slowT=8;addFloat(ship.x,SHIP_Y-46,'スロー！','#2a7fb8');}
+  else if(ci===2){fx.hintT=8;addFloat(ship.x,SHIP_Y-46,'ヒント！','#2fb56a');}
+  else if(ci===3){fx.doubleQ=true;addFloat(ship.x,SHIP_Y-46,'つぎのクリア×2！','#ff6f9c');}
+  else{fx.shield=Math.min(3,fx.shield+1);addFloat(ship.x,SHIP_Y-46,'バリア！','#888888');}
+}
+cv.addEventListener('pointerdown',function(e){
+  e.preventDefault();
+  var p=canvasPos(e);
+  if(state==='play'){
+    var t=tileAt(p.x,p.y);
+    if(isTutorial){
+      /* チュートリアル：許可タイルのみ発射、他は弾く。雲/ベル/自機移動は無効 */
+      if(t&&tutAllowTap(t)){fireAt(t);}
+      else{tutNudge();}
+      return;
+    }
+    if(t){fireAt(t);return;}
+    if(bellAt(p.x,p.y)){fireAtBell();return;}
+    var cl=cloudAt(p.x,p.y);
+    if(cl){fireAtCloud(cl);return;}
+  }
+  ship.tx=p.x;tapSlide=false;
+});
+cv.addEventListener('pointermove',function(e){if(ship.tx!==null&&!tapSlide)ship.tx=canvasPos(e).x;});
+cv.addEventListener('pointerup',function(){if(!tapSlide)ship.tx=null;});
+cv.addEventListener('pointercancel',function(){if(!tapSlide)ship.tx=null;});
+/* iOS Safari のズーム抑止：ピンチ(gesture)・ダブルタップ拡大を全面禁止（user-scalable=noが無視されるため） */
+['gesturestart','gesturechange','gestureend'].forEach(function(ev){
+  document.addEventListener(ev,function(e){e.preventDefault();},{passive:false});
+});
+var _lastTouchEnd=0;
+document.addEventListener('touchend',function(e){
+  var now=performance.now();
+  if(now-_lastTouchEnd<=350)e.preventDefault(); /* 素早い2回タップ＝ダブルタップ拡大を無効化 */
+  _lastTouchEnd=now;
+},{passive:false});
+document.addEventListener('touchmove',function(e){
+  if(e.touches&&e.touches.length>1)e.preventDefault(); /* 2本指ピンチを無効化 */
+},{passive:false});
+/* 自動再生できないので、最初のユーザー操作で音を解錠し、タイトル中ならポップBGMを開始 */
+document.addEventListener('pointerdown',function(){
+  initAudio();
+  if(ac&&ac.state==='suspended')ac.resume();
+  if(state==='title'&&!muted)bgmStart('title');
+},{once:true});
+setMode('morph'); /* 初期は「かたちをかえる」モード */
+/* サウンド切替 */
+document.getElementById('divp-btn-sound').addEventListener('click',function(){
+  initAudio();
+  muted=!muted;
+  if(master)master.gain.value=muted?0:0.5;
+  if(bgm.gain)bgm.gain.gain.value=muted?0:0.85;
+  this.textContent=muted?'×':'♪';
+});
+/* 一時停止：全画面オーバーレイで英文を隠し、ゲームを凍結 */
+var pauseEl=document.getElementById('divp-pause');
+function pauseGame(){
+  if(state!=='play'||paused)return;
+  paused=true;pauseStart=performance.now();
+  pauseEl.classList.add('divp-show');
+  bgmStop(); /* BGMも止める（再開時に鳴らし直す） */
+}
+function resumeGame(){
+  if(!paused)return;
+  paused=false;
+  pauseEl.classList.remove('divp-show');
+  var d=performance.now()-pauseStart;
+  qStart+=d; /* 停止していた分は経過時間に数えない（タイムボーナス・⏱を公平に） */
+  last=performance.now(); /* 再開直後のdtが跳ねないように */
+  if(ac&&!muted&&bgm.mode)bgmStart(bgm.mode);
+}
+document.getElementById('divp-btn-pause').addEventListener('click',pauseGame);
+document.getElementById('divp-btn-resume').addEventListener('click',resumeGame);
+
+/* ================= チュートリアル ================= */
+function startTutorial(){
+  isTutorial=true;isExtraMode=false;isBossMode=false;isHiddenMode=false;
+  document.body.classList.remove('divp-dark','divp-boss','divp-hidden');
+  score=0;qCount=0;combo=0;maxCombo=0;noMissStreak=0;
+  setScore=0;setMiss=0;retryQ=[];
+  fx={slowT:0,hintT:0,doubleQ:false,shield:0};
+  overlay.classList.remove('divp-show');
+  initAudio();
+  if(ac&&ac.state==='suspended')ac.resume();
+  bgmStart('normal');
+  /* 題材: I am a student.（be→am へ変形させる） */
+  var q={ja:'私は 学生です。',w:[W('I'),M(['be','am','is','are'],1),W('a'),W('student'),W('.')]};
+  TUT_STEPS=[
+   {want:'morph',token:'be',msg:'まず ●のことばの かたちから！ 「かたちをかえる」で "be" を "am" に。"be" をタップ！'},
+   {want:'setmode_order',msg:'かたちが "am" になった！ つぎは「じゅんばんをきめる」ボタンをおそう！'},
+   {want:'tap',token:'I',msg:'ここからは じゅんばん。和訳どおり、はじめに "I" をタップ！'},
+   {want:'tap',token:'am',msg:'つぎは "am" をタップして2ばんめにきめる！'},
+   {want:'tap',token:'a',msg:'つぎは "a" をタップ！'},
+   {want:'tap',token:'student',msg:'"student" をタップ！'},
+   {want:'tap',token:'.',msg:'さいごに "." （ピリオド）をタップ！ 自動さいてん！'}
+  ];
+  tutStep=0;
+  spawnQuestion(q,false);
+  ship.x=CW/2;ship.tx=null;
+  setMode('morph');  /* まず形をととのえる流れに合わせて morph から */
+  tutSync();
+  state='play';
+}
+function tutCur(){return TUT_STEPS&&TUT_STEPS[tutStep];}
+function tutFindTile(token){
+  for(var i=0;i<tiles.length;i++){
+    var t=tiles[i];if(!t.alive)continue;
+    if(t.word.f.indexOf(token)>=0)return t;
+  }
+  return null;
+}
+function tutSync(){
+  var st=tutCur();
+  if(!st){tutMsg='';tutArrow=null;return;}
+  tutMsg=st.msg;tutPulse=0;
+  if(st.want==='tap'||st.want==='morph'){
+    tutArrow={type:'tile',token:st.token};
+  }else if(st.want==='morph_setmode'){
+    tutArrow={type:'btn',which:'morph'};
+  }else if(st.want==='setmode_order'){
+    tutArrow={type:'btn',which:'order'};
+  }
+}
+function tutAllowTap(tile){
+  var st=tutCur();if(!st)return false;
+  if(st.want==='tap'&&mode==='order')return tile&&tile.word.f[tile.fi]===st.token;
+  if(st.want==='morph'&&mode==='morph')return tile&&tile.word.f.indexOf(st.token)>=0&&tile.word.f.length>1;
+  return false;
+}
+function tutAllowMode(m){
+  var st=tutCur();if(!st)return false;
+  if(st.want==='morph_setmode')return m==='morph';
+  if(st.want==='setmode_order')return m==='order';
+  return false;
+}
+function tutAdvance(){
+  tutStep++;
+  if(!tutCur()){tutMsg='';tutArrow=null;}
+  else tutSync();
+}
+function tutFinish(){
+  state='wait';
+  isTutorial=false;TUT_STEPS=null;tutArrow=null;
+  overlayIn.innerHTML=
+    '<div class="divp-title-logo" style="font-size:clamp(20px,6vw,28px)">TUTORIAL CLEAR!</div>'+
+    '<div class="divp-result-stats" style="margin-top:12px">じゅんばん と かたち、おぼえたね！<br>本番であそんでみよう！</div>'+
+    '<button class="divp-big-btn" id="divp-btn-tutend" type="button">タイトルへ ▶</button>';
+  overlay.classList.add('divp-show');
+  document.getElementById('divp-btn-tutend').addEventListener('click',function(){
+    overlay.classList.remove('divp-show');
+    bgmStop();showTitle();
+  });
+}
+
+/* ================= タイトル・開始 ================= */
+function showTitle(){
+  state='title';
+  jaBar.textContent='英単語インベーダー';
+  overlayIn.innerHTML=
+    '<div class="divp-title-logo">WORD INVADERS</div>'+
+    '<div class="divp-title-sub">— 中1英語 ならべかえ —</div>'+
+    '<div class="divp-howto">'+
+    '❶「じゅんばん」で和訳どおり単語をタップ／❷ ●つきは「かたち」で変形（be→am/is/are・ニセ形注意）／❸ ．？で自動さいてん<br>'+
+    '☁雲でベル出現・はやいほど高得点／ミス -'+CONFIG.MISS_PENALTY+'点／中ボス→ラスボス→…？</div>'+
+    '<div class="divp-unit-label">中1 Unit 1「Hello, Everyone!」</div>'+
+    '<button class="divp-big-btn" id="divp-btn-start" type="button">GAME START</button>'+
+    '<button class="divp-sub-btn" id="divp-btn-story" type="button">📖 ストーリーを みる</button>'+
+    '<button class="divp-sub-btn" id="divp-btn-tut" type="button">▶ あそびかた（テストプレイ）</button>';
+  overlay.classList.add('divp-show');
+  bgmStart('title'); /* ポップなタイトルBGM。ac未生成(初回)はno-op→最初のタップで鳴り始める */
+  document.getElementById('divp-btn-start').addEventListener('click',function(){
+    initAudio();
+    if(ac&&ac.state==='suspended')ac.resume();
+    divpSessionStart();
+    overlay.classList.remove('divp-show');
+    /* 段階進行の初期化 */
+    phaseIdx=0;phaseDone=0;
+    score=0;qCount=0;combo=0;maxCombo=0;noMissStreak=0;
+    setScore=0;setMiss=0;retryQ=[];hiddenScore=0;
+    isBossMode=isExtraMode=isHiddenMode=false;
+    document.body.classList.remove('divp-boss','divp-dark','divp-hidden');
+    bgmStart('normal');
+    state='play';
+    spawnPhaseQuestion();
+  });
+  document.getElementById('divp-btn-tut').addEventListener('click',function(){
+    startTutorial();
+  });
+  document.getElementById('divp-btn-story').addEventListener('click',showStory);
+}
+/* ===== プロローグ（ストーリー） ===== */
+function showStory(){
+  state='title';
+  jaBar.textContent='PROLOGUE';
+  overlayIn.innerHTML=
+    '<div class="divp-story">'+
+      '<div class="divp-story-eyebrow">PROLOGUE</div>'+
+      '<div class="divp-story-title">プロローグ</div>'+
+      '<div class="divp-story-body">'+
+        '<p><span class="divp-story-no">01</span>英語を もういちど やり直したい——。'+
+        'そう願った キミは、タイムマシンに乗って <b>「4月」</b> へと 時をさかのぼった。</p>'+
+        '<p><span class="divp-story-no">02</span>だが、そこは 見知らぬ世界。'+
+        '地球は 地球外生命体 <span class="divp-story-enemy">エイゴロイド</span> に 支配されていた…！</p>'+
+        '<p><span class="divp-story-no">03</span>過去が 書きかえられると、その えいきょうは <b>「現在（いま）」</b> にも 及んでしまう。</p>'+
+        '<p><span class="divp-story-no">04</span>過去の平和を とりもどし、安心して 現在へ 帰るために——。'+
+        'いまこそ 英語の力で エイゴロイドを ぶっ倒せ！</p>'+
+      '</div>'+
+      '<button class="divp-big-btn" id="divp-btn-story-close" type="button">タイトルへ ▶</button>'+
+    '</div>';
+  overlay.classList.add('divp-show');
+  document.getElementById('divp-btn-story-close').addEventListener('click',showTitle);
+}
+
+/* ================= メインループ ================= */
+for(var i=0;i<60;i++)stars.push({x:Math.random()*CW,y:Math.random()*CH,s:8+Math.random()*26});
+for(i=0;i<7;i++)clouds.push({x:Math.random()*CW,y:HUD_H+20+Math.random()*(CH-160),s:18+Math.random()*24,v:6+Math.random()*12,cd:0});
+var last=performance.now();
+function loop(now){
+  var dt=Math.min(0.1,(now-last)/1000); /* 上限0.1s(10fps相当)。低fps端末でも実時間どおりの速度に（0.05だと20fps未満で遅くなる） */
+  last=now;
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+function boot(){
+  showTitle();
+  requestAnimationFrame(loop);
+}
+if(document.fonts&&document.fonts.load){
+  document.fonts.load("15px 'DotGothic16'").then(boot,boot);
+}else{
+  boot();
+}
+})();
+</script>
+</body>
+</html>
