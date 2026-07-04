@@ -404,6 +404,17 @@ INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('math_js1_seihunomahojin', 'grid4', '魔法陣 4×4', 1)
 ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
 
+-- 絶対値 練習道場（正負の数・中1）のシード
+-- question_key は math_js1_absolutevalue.html 内の問題タイプ(q.tp)と一致させる
+-- （難易度 easy/normal/hard はモードではなく question_params 側に入る）
+INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
+  ('math_js1_zettaichi', 'abs2num', '絶対値→数',     1),
+  ('math_js1_zettaichi', 'num2abs', '数→絶対値',     1),
+  ('math_js1_zettaichi', 'range',   '範囲の整数',     1),
+  ('math_js1_zettaichi', 'count',   '個数問題',       1),
+  ('math_js1_zettaichi', 'sort',    '大小順に並べる', 1)
+ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
+
 -- わり算れんしゅう（分けて計算）のシード
 -- 出題は1種類のみ（2けた÷1けたを位ごとに分けて計算）
 INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
@@ -418,6 +429,15 @@ INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('japanese_js1_kaeriten', 'mix',    '一二点＋レ点',   1),
   ('japanese_js1_kaeriten', 'ichire', '一レ点',         1),
   ('japanese_js1_kaeriten', 'jouge',  '上下点',         1)
+ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
+
+-- 文字式マスター（算数・小6）のシード
+-- question_key は math_es6_mojishiki.html 内の問題カテゴリ（S.q.cat）と一致させる
+INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
+  ('math_es6_mojishiki', 'noy',  '式に表す（yなし）',   1),
+  ('math_es6_mojishiki', 'y',    'xとyの関係式',        1),
+  ('math_es6_mojishiki', 'val',  '値を求める（代入）',  1),
+  ('math_es6_mojishiki', 'area', '面積を文字式で表す',  1)
 ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
 
 -- ============================================================

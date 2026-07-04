@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="light">
+<title>文字式マスター｜中京個別指導学院</title>
+<meta name="description" content="小学6年生向け 文字を使った式の練習。xを使った式・xとyの関係式・値を求める問題・面積を文字式で表す問題が選べる。印刷対応。中京個別指導学院（焼山・植田・長久手・神岡・一社・高針・吉根・志段味・有松）。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LearningResource",
+  "name": "文字式マスター",
+  "educationalLevel": "小学6年生",
+  "learningResourceType": "練習問題",
+  "teaches": "文字を使った式（xを使った式・xとyの関係・面積の式）",
+  "provider": {
+    "@type": "EducationalOrganization",
+    "name": "中京個別指導学院",
+    "areaServed": ["焼山","植田","長久手","神丘","一社","高針","吉根","志段味","有松"]
+  }
+}
+</script>
+<script src="/assets/print-watermark.js"></script>
+<style>
+:root{
+  color-scheme:only light;
+  --brand:#16386b;
+  --brand-dark:#0f2a52;
+  --accent:#3e8bcf;          /* 文字式アクセント（青） */
+  --accent2:#7d3c98;         /* 文字 x の紫 */
+  --ink:#23303a;
+  --paper:#fbf8f1;
+  --grid:#ece3d1;
+  --correct:#2f9e5b;
+  --wrong:#e0533d;
+  --soft:#fff;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{margin:0;padding:0;min-height:100%;background:linear-gradient(var(--paper),var(--paper)) fixed;}
+body{margin:0;padding:0;}
+body{
+  font-family:"Zen Maru Gothic",system-ui,"Hiragino Sans","Noto Sans JP",sans-serif;
+  color:var(--ink);
+  min-height:100dvh;
+  background:
+    linear-gradient(var(--grid) 1px,transparent 1px) 0 0/22px 22px,
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/22px 22px,
+    linear-gradient(var(--paper),var(--paper));
+  -webkit-text-size-adjust:100%;
+}
+
+main{max-width:560px;margin:0 auto;padding:12px clamp(8px,3vw,16px) 40px;}
+.tool-title{margin:2px 2px 10px;font-size:clamp(16px,4.6vw,19px);font-weight:900;color:var(--brand);display:flex;align-items:center;gap:8px;}
+.tool-title::before{content:"";width:9px;height:20px;background:var(--accent);border-radius:3px;flex:0 0 auto;}
+.tool-title #btnPrint{
+  margin-left:auto;flex:0 0 auto;font-family:inherit;font-weight:900;
+  font-size:12px;padding:7px 13px;border-radius:999px;cursor:pointer;
+  background:#fff;color:var(--brand);border:1.5px solid #d9ccb2;
+  box-shadow:0 2px 0 #e7dcc6;transition:.12s;white-space:nowrap;
+}
+.tool-title #btnPrint:active{transform:translateY(1px);box-shadow:0 1px 0 #e7dcc6;}
+
+/* ===== 設定パネル ===== */
+.panel{
+  background:var(--soft);border:1.5px solid #e7dcc6;border-radius:16px;
+  padding:11px 12px;margin-bottom:12px;box-shadow:0 2px 0 #efe6d4;
+}
+.panel h2{margin:0 0 9px;font-size:13px;font-weight:700;color:var(--brand);
+  display:flex;align-items:center;gap:6px;}
+.panel h2::before{content:"";width:7px;height:16px;background:var(--accent);border-radius:3px;}
+.panel-h{cursor:pointer;-webkit-user-select:none;user-select:none;}
+.fold-hint{margin-left:auto;font-size:11px;font-weight:700;color:#9a8b6f;display:inline-flex;align-items:center;gap:4px;}
+.chev{display:inline-block;transition:transform .15s ease;}
+.panel.collapsed h2{margin-bottom:0;}
+.panel.collapsed .panel-body{display:none;}
+.panel.collapsed .chev{transform:rotate(-90deg);}
+.row{display:flex;flex-wrap:wrap;gap:7px 8px;align-items:center;margin-bottom:9px;}
+.row:last-child{margin-bottom:0;}
+.row .lab{font-size:12px;font-weight:700;color:#6b5d44;min-width:62px;}
+.seg{display:inline-flex;flex-wrap:wrap;background:#f2ead9;border-radius:10px;padding:3px;gap:2px;}
+.seg button{
+  border:0;background:transparent;color:#7a6a4d;font-family:inherit;font-weight:700;
+  font-size:13px;padding:6px 11px;border-radius:8px;cursor:pointer;transition:.12s;
+}
+.seg button.on{background:#fff;color:var(--brand);box-shadow:0 1px 4px rgba(0,0,0,.12);}
+.seg.acc button.on{background:var(--accent);color:#fff;}
+
+/* ===== スコア ===== */
+.scorebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 2px 10px;font-size:12.5px;font-weight:700;color:#6b5d44;}
+.scorebar b{color:var(--correct);font-size:14px;}
+.streak{background:linear-gradient(135deg,#ef7d3e,#f0b03e);color:#fff;font-size:11px;font-weight:900;padding:2px 9px;border-radius:999px;}
+
+/* ===== 問題カード ===== */
+.problem{
+  background:var(--soft);border:1.5px solid #e7dcc6;border-radius:18px;
+  padding:10px 12px 14px;box-shadow:0 2px 0 #efe6d4;
+}
+.qhead{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.qno{font-size:12px;font-weight:700;color:#fff;background:var(--brand);padding:3px 10px;border-radius:999px;}
+.qbadge{font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px;}
+.qb-noy{background:#e3eefb;color:#1d5b9e;}
+.qb-y{background:#fdeede;color:#b5601f;}
+.qb-val{background:#e3f5ea;color:#1e7a45;}
+.qb-area{background:#f0e6f7;color:#6b2f8a;}
+.qtext{font-size:clamp(14px,4.2vw,16px);font-weight:700;line-height:1.8;margin:2px 2px 8px;}
+.qtext .qemoji{font-size:22px;margin-right:6px;vertical-align:-2px;}
+.q-fml{font-weight:900;font-size:clamp(15px,4.6vw,18px);color:var(--brand);background:#f3f7fc;
+  border:1.5px solid #cfe0f0;border-radius:10px;padding:8px 12px;margin:6px 0;text-align:center;letter-spacing:.05em;}
+.q-sub{font-size:14px;font-weight:800;color:#555;text-align:center;margin:4px 0 8px;}
+.q-note{font-size:11px;color:#8a7a5e;line-height:1.6;margin:0 2px 8px;}
+.q-note .hx{color:var(--wrong);font-weight:800;}
+.q-note .vx{color:var(--accent2);font-weight:800;font-style:italic;font-family:Georgia,"Times New Roman",serif;}
+.fig{display:flex;justify-content:center;margin:2px 0 10px;}
+.fig svg{max-width:min(100%,320px);height:auto;}
+
+/* ===== 選択肢 ===== */
+.choices{display:flex;flex-direction:column;gap:7px;}
+.ch{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  background:#fff;border:2px solid #d9e5ef;border-radius:12px;padding:10px 12px;
+  cursor:pointer;font-family:inherit;transition:.12s;box-shadow:0 2px 0 #edf2f7;
+}
+.ch:not([disabled]):active{transform:translateY(1px);box-shadow:none;}
+.ch .cno{flex:0 0 auto;width:26px;height:26px;display:grid;place-items:center;border-radius:8px;
+  background:var(--accent);color:#fff;font-weight:900;font-size:13px;}
+.ch .ctext{font-weight:800;font-size:clamp(13px,4vw,15px);letter-spacing:.05em;color:var(--ink);}
+.ch[disabled]{cursor:default;}
+.ch.ok{background:#e7f6ec;border-color:var(--correct);}
+.ch.ok .cno{background:var(--correct);}
+.ch.ng{background:#fdecea;border-color:var(--wrong);animation:shake .3s ease;}
+.ch.ng .cno{background:var(--wrong);}
+.ch.dim{opacity:.45;box-shadow:none;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+/* ===== ヒント・判定 ===== */
+.hintbtn{width:100%;margin-top:9px;background:#fdf6e8;border:1.5px dashed #d8c49a;border-radius:10px;
+  padding:8px;font-size:12.5px;font-weight:700;color:#8a6b2f;cursor:pointer;font-family:inherit;}
+.hintshow{margin-top:9px;background:#fdf6e8;border:1px solid #ecd9ae;border-radius:10px;
+  padding:9px 12px;font-size:12.5px;color:#6d5424;line-height:1.7;}
+.verdict{min-height:26px;text-align:center;margin-top:10px;font-weight:900;font-size:15px;}
+.verdict.good{color:var(--correct);}
+.verdict.bad{color:var(--wrong);}
+.verdict .small{display:block;font-weight:700;font-size:12.5px;color:#8a7a5e;margin-top:3px;}
+.verdict .small b{color:var(--correct);letter-spacing:.04em;}
+.next-wrap{display:flex;justify-content:flex-end;margin-top:10px;}
+.btn{
+  border:0;border-radius:13px;font-family:inherit;font-weight:900;
+  font-size:15px;padding:11px 20px;cursor:pointer;transition:.12s;
+  box-shadow:0 3px 0 rgba(0,0,0,.16);
+}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.16);}
+.btn.primary{background:var(--accent);color:#fff;}
+.btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;transform:none;filter:grayscale(.5);}
+
+/* ===== 印刷 ===== */
+.print-area{display:none;}
+@media print{
+  @page{size:A4 portrait;margin:10mm 9mm;}
+  .divp-header,main{display:none !important;}
+  body,html{background:#fff;min-height:0 !important;}
+  .print-area{display:block !important;}
+  .sheet{position:relative;page-break-after:always;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .sheet:last-child{page-break-after:auto;}
+  .p-head{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:2px solid #16386b;padding-bottom:4px;margin-bottom:6px;}
+  .p-school{font-size:12px;font-weight:800;color:#16386b;}
+  .p-title{font-weight:900;font-size:21px;color:#16386b;margin-top:1px;}
+  .p-sub{font-size:11px;color:#555;}
+  .p-name{font-size:12px;white-space:nowrap;}
+  .p-name span{display:inline-block;border-bottom:1px solid #000;min-width:180px;margin-left:6px;}
+  .p-inst{position:relative;z-index:1;font-size:12px;color:#222;margin:0 0 8px;}
+  .p-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:5mm 8mm;}
+  .p-item{position:relative;z-index:1;padding:2px 4px;box-sizing:border-box;overflow:hidden;break-inside:avoid;}
+  .p-no{font-weight:900;font-size:13px;background:#000;color:#fff;border-radius:5px;padding:1px 8px;display:inline-block;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .p-q{font-size:11.5px;line-height:1.7;margin:4px 0 3px;min-height:16mm;}
+  .p-figwrap{display:flex;justify-content:center;}
+  .p-figwrap svg{max-width:52mm;height:auto;}
+  .p-ansline{border-bottom:1px solid #333;height:9mm;margin-top:2mm;}
+  .p-anslabel{font-size:9.5px;color:#555;}
+  .ans .p-item{min-height:auto;}
+  .a-line{font-size:12px;margin:3px 0;line-height:1.6;}
+  .a-line b{font-size:13px;}
+}
+</style>
+</head>
+<body>
+
+<script src="/assets/divp-header.js"></script>
+
+<main>
+  <div class="tool-title">文字式マスター<button id="btnPrint" type="button" title="プリント作成">🖨 プリント</button></div>
+
+  <section class="panel" aria-label="設定" id="panel">
+    <h2 class="panel-h" id="panelToggle" role="button" tabindex="0" aria-expanded="true">
+      <span>問題の設定</span>
+      <span class="fold-hint">タップで開閉<span class="chev">▾</span></span>
+    </h2>
+    <div class="panel-body" id="panelBody">
+      <div class="row">
+        <span class="lab">問題の種類</span>
+        <div class="seg acc" id="segMode">
+          <button data-mode="mix" class="on">ミックス</button>
+          <button data-mode="noy">式に表す</button>
+          <button data-mode="y">yの式</button>
+          <button data-mode="val">値を求める</button>
+          <button data-mode="area">面積の式</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="scorebar" id="scorebar"></div>
+
+  <section class="problem" aria-label="問題" id="problemCard"></section>
+
+</main>
+
+<div class="print-area" id="printArea"></div>
+
+<script src="/assets/divp-correct.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script>window.Divp && Divp.init && Divp.init('math_es6_mojishiki');</script>
+
+<script>
+"use strict";
+
+/* ===================== 共通ヘルパー ===================== */
+function rN(a,b){ a=a||2;b=b||10;return Math.floor(Math.random()*(b-a+1))+a; }
+function ri(n){ return Math.floor(Math.random()*n); }
+function pickA(a){ return a[ri(a.length)]; }
+function shuffle(a){ a=[...a];for(let i=a.length-1;i>0;i--){const j=ri(i+1);[a[i],a[j]]=[a[j],a[i]];}return a; }
+function rPaid(){ return [500,1000,1500,2000][ri(4)]; }
+function rPrice(){ return 300+ri(21)*10; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+// 演算子のスペースを統一（5x→5 × x、x÷2→x ÷ 2）
+function fmtExpr(s){
+  if(!s)return s;
+  s=s.replace(/(\d)×x/g,'$1 × x');
+  s=s.replace(/(\d)x/g,'$1 × x');
+  s=s.replace(/([x\d])÷(\d)/g,'$1 ÷ $2');
+  return s;
+}
+
+/* ===================== 図形SVG（面積の式） =====================
+ * 寸法線は hdim/vdim ヘルパーで統一:
+ *   両端に目盛線＋内向き矢印、ラベルは白フチ付きで線と重なっても読める。
+ * 文字 x は紫のイタリック（数学書体）、高さは赤の点線で示す。 */
+const C1="#7db8e0", C2="#c9e2f3", C3="#e6f1f9", CS="#2b6a99";
+const HGT="#e0533d", DIM="#8a7a5e";
+function isX(v){ return String(v).indexOf('x')>=0; }
+
+function lbl(x,y,v,o){
+  o=o||{};
+  const sz=o.sz||19;
+  const fill=isX(v)?"#7d3c98":(o.h?HGT:"#16386b");
+  const it=isX(v)?'font-style="italic" font-family="Georgia,\'Times New Roman\',serif"':'';
+  return `<text x="${x}" y="${y}" text-anchor="${o.anc||'middle'}" font-size="${sz}" font-weight="bold" fill="${fill}" ${it} style="paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round;">${esc(v)}</text>`;
+}
+function guide(x,y,t,anc){ return `<text x="${x}" y="${y}" text-anchor="${anc||'start'}" font-size="10" fill="#9a8b6f">${t}</text>`; }
+
+// 水平寸法線: x1〜x2、高さy。ラベルは線の上（o.below=trueで下）
+function hdim(x1,x2,y,v,o){
+  o=o||{};
+  const a=6, sz=o.sz||18;
+  const ly=o.below?y+sz+3:y-7;
+  return `<g stroke="${DIM}" stroke-width="1.4" fill="${DIM}">`
+    +`<line x1="${x1}" y1="${y-6}" x2="${x1}" y2="${y+6}"/>`
+    +`<line x1="${x2}" y1="${y-6}" x2="${x2}" y2="${y+6}"/>`
+    +`<line x1="${x1+1.5}" y1="${y}" x2="${x2-1.5}" y2="${y}"/>`
+    +`<polygon points="${x1+1},${y} ${x1+1+a},${y-3.2} ${x1+1+a},${y+3.2}" stroke="none"/>`
+    +`<polygon points="${x2-1},${y} ${x2-1-a},${y-3.2} ${x2-1-a},${y+3.2}" stroke="none"/>`
+    +`</g>`+lbl((x1+x2)/2,ly,v,{sz:sz,h:o.h});
+}
+// 垂直寸法線: y1〜y2、位置x。ラベルは右側（o.left=trueで左側）
+function vdim(x,y1,y2,v,o){
+  o=o||{};
+  const a=6, sz=o.sz||18;
+  const lx=o.left?x-10:x+10;
+  const anc=o.left?'end':'start';
+  return `<g stroke="${DIM}" stroke-width="1.4" fill="${DIM}">`
+    +`<line x1="${x-6}" y1="${y1}" x2="${x+6}" y2="${y1}"/>`
+    +`<line x1="${x-6}" y1="${y2}" x2="${x+6}" y2="${y2}"/>`
+    +`<line x1="${x}" y1="${y1+1.5}" x2="${x}" y2="${y2-1.5}"/>`
+    +`<polygon points="${x},${y1+1} ${x-3.2},${y1+1+a} ${x+3.2},${y1+1+a}" stroke="none"/>`
+    +`<polygon points="${x},${y2-1} ${x-3.2},${y2-1-a} ${x+3.2},${y2-1-a}" stroke="none"/>`
+    +`</g>`+lbl(lx,(y1+y2)/2+6,v,{sz:sz,anc:anc,h:o.h});
+}
+// 高さの赤点線＋直角マーク
+function heightLine(x,y1,y2,dir){ // dir: 直角マークの向き -1=左 1=右
+  dir=dir||-1;
+  return `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="${HGT}" stroke-width="2" stroke-dasharray="6,5"/>`
+    +`<polyline points="${x},${y2-12} ${x+12*dir},${y2-12} ${x+12*dir},${y2}" fill="none" stroke="${HGT}" stroke-width="2"/>`;
+}
+function svgWrap(vb,inner){ return `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`; }
+
+const SHAPES = {
+  triangle(d){
+    return svgWrap("-10 20 280 220",
+      `<polygon points="25,180 235,180 130,50" fill="${C1}" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+      +heightLine(130,50,180,-1)
+      +hdim(25,235,198,d.base,{below:true})
+      +vdim(148,50,180,d.height,{h:true})
+      +guide(160,56,"高さ")+guide(25,234,"底辺"));
+  },
+  parallelogram(d){
+    return svgWrap("0 30 290 200",
+      `<polygon points="25,178 210,178 255,63 70,63" fill="${C1}" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+      +heightLine(210,63,178,-1)
+      +hdim(25,210,196,d.base,{below:true})
+      +vdim(226,63,178,d.height,{h:true})
+      +guide(238,70,"高さ")+guide(25,230,"底辺"));
+  },
+  rhombus(d){
+    return svgWrap("0 15 265 200",
+      `<polygon points="32,105 132,35 233,105 132,175" fill="${C1}" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+      +`<line x1="32" y1="105" x2="233" y2="105" stroke="${HGT}" stroke-width="2" stroke-dasharray="6,5"/>`
+      +`<line x1="132" y1="35" x2="132" y2="175" stroke="${HGT}" stroke-width="2" stroke-dasharray="6,5"/>`
+      +lbl(96,99,d.d1,{h:true})+lbl(148,136,d.d2,{h:true})
+      +guide(36,97,"対角線①")+guide(140,32,"対角線②"));
+  },
+  compound(d){
+    const SC=18, DEF=5;
+    const vw1=isX(d.w1)?DEF:parseInt(d.w1), vh1=isX(d.h1)?DEF:parseInt(d.h1);
+    const vw2=isX(d.w2)?DEF:parseInt(d.w2);
+    const vh2=isX(d.h2)?Math.min(DEF,vh1-1):Math.min(parseInt(d.h2),vh1-1);
+    const ox=40, oy=44;
+    const x0=ox, x1=ox+vw1*SC, x2=ox+(vw1+vw2)*SC;
+    const y0=oy, y1=oy+(vh1-vh2)*SC, y2=oy+vh1*SC;
+    const vbW=(vw1+vw2)*SC+150, vbH=vh1*SC+96;
+    return svgWrap(`-55 0 ${vbW} ${vbH}`,
+      `<rect x="${x0}" y="${y0}" width="${x1-x0}" height="${y2-y0}" fill="${C1}"/>`
+      +`<rect x="${x1}" y="${y1}" width="${x2-x1}" height="${y2-y1}" fill="${C2}"/>`
+      +`<polygon points="${x0},${y0} ${x1},${y0} ${x1},${y1} ${x2},${y1} ${x2},${y2} ${x0},${y2}" fill="none" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+      +hdim(x0,x1,y0-14,d.w1,{sz:17})
+      +hdim(x1,x2,y2+16,d.w2,{sz:17,below:true})
+      +vdim(x0-17,y0,y2,d.h1,{sz:17,left:true,h:true})
+      +vdim(x2+17,y1,y2,d.h2,{sz:17,h:true}));
+  },
+  compound_sub(d){
+    const SC=18, DEF=5;
+    const vw1=isX(d.w1)?DEF:parseInt(d.w1);
+    const vTotal=isX(d.totalW)?DEF*2+2:parseInt(d.totalW);
+    const vh1=isX(d.h1)?DEF:parseInt(d.h1);
+    const vh2=isX(d.h2)?Math.min(DEF,vh1-1):Math.min(parseInt(d.h2),vh1-1);
+    const vw2=Math.max(1,vTotal-vw1);
+    const ox=40, oy=44;
+    const x0=ox, x1=ox+vw1*SC, x2=ox+(vw1+vw2)*SC;
+    const y0=oy, y1=oy+(vh1-vh2)*SC, y2=oy+vh1*SC;
+    const vbW=(vw1+vw2)*SC+150, vbH=vh1*SC+96;
+    return svgWrap(`-55 0 ${vbW} ${vbH}`,
+      `<rect x="${x0}" y="${y0}" width="${x1-x0}" height="${y2-y0}" fill="${C1}"/>`
+      +`<rect x="${x1}" y="${y1}" width="${x2-x1}" height="${y2-y1}" fill="${C2}"/>`
+      +`<polygon points="${x0},${y0} ${x1},${y0} ${x1},${y1} ${x2},${y1} ${x2},${y2} ${x0},${y2}" fill="none" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+      +hdim(x0,x1,y0-14,d.w1,{sz:17})
+      +hdim(x0,x2,y2+16,d.totalW,{sz:17,below:true})
+      +vdim(x0-17,y0,y2,d.h1,{sz:17,left:true,h:true})
+      +vdim(x2+17,y1,y2,d.h2,{sz:17,h:true}));
+  },
+  para_decomp(d){
+    return svgWrap("0 30 290 202",
+      `<polygon points="25,178 210,178 255,63" fill="${C1}" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+      +`<polygon points="25,178 255,63 70,63" fill="${C2}" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+      +`<line x1="25" y1="178" x2="255" y2="63" stroke="${CS}" stroke-width="2.2" stroke-dasharray="7,5"/>`
+      +heightLine(210,63,178,-1)
+      +hdim(25,210,196,d.base,{below:true})
+      +vdim(228,63,178,d.height,{h:true})
+      +guide(240,70,"高さ")+guide(25,230,"底辺"));
+  },
+  trapezoid(d){
+    return svgWrap("0 12 275 224",
+      `<polygon points="20,178 68,178 68,62" fill="${C2}" stroke="${CS}" stroke-width="2" stroke-linejoin="round"/>`
+      +`<rect x="68" y="62" width="124" height="116" fill="${C1}" stroke="${CS}" stroke-width="2"/>`
+      +`<polygon points="192,62 240,178 192,178" fill="${C2}" stroke="${CS}" stroke-width="2" stroke-linejoin="round"/>`
+      +`<polygon points="20,178 240,178 192,62 68,62" fill="none" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+      +`<line x1="68" y1="62" x2="68" y2="178" stroke="${CS}" stroke-width="1.5"/>`
+      +`<line x1="192" y1="62" x2="192" y2="178" stroke="${CS}" stroke-width="1.5"/>`
+      +`<polyline points="68,166 80,166 80,178" fill="none" stroke="${CS}" stroke-width="1.3"/>`
+      +`<polyline points="192,166 180,166 180,178" fill="none" stroke="${CS}" stroke-width="1.3"/>`
+      +heightLine(218,62,178,-1)
+      +hdim(68,192,46,d.top,{sz:17})
+      +hdim(20,68,196,d.side,{sz:16,below:true})
+      +vdim(234,62,178,d.height,{sz:17,h:true})
+      +guide(246,70,"高さ"));
+  },
+  trapezoid_std(d){
+    return svgWrap("0 8 285 228",
+      `<polygon points="20,178 240,178 192,62 68,62" fill="${C1}" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+      +heightLine(192,62,178,1)
+      +hdim(68,192,46,d.top,{sz:17})
+      +guide(130,58,"上底","middle")
+      +hdim(20,240,196,d.bottom,{sz:17,below:true})
+      +guide(130,230,"下底","middle")
+      +vdim(256,62,178,d.height,{sz:17,h:true})
+      +guide(256,58,"高さ"));
+  },
+  trapezoid_para(d){
+    return svgWrap("0 8 285 228",
+      `<polygon points="20,178 144,178 192,62 68,62" fill="${C1}" stroke="${CS}" stroke-width="2" stroke-linejoin="round"/>`
+      +`<polygon points="144,178 240,178 192,62" fill="${C2}" stroke="${CS}" stroke-width="2" stroke-linejoin="round"/>`
+      +`<polygon points="20,178 240,178 192,62 68,62" fill="none" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+      +`<line x1="192" y1="62" x2="144" y2="178" stroke="${CS}" stroke-width="1.5" stroke-dasharray="5,4"/>`
+      +heightLine(192,62,178,1)
+      +hdim(68,192,46,d.top,{sz:17})
+      +guide(130,58,"上底","middle")
+      +hdim(20,240,196,d.bottom,{sz:17,below:true})
+      +guide(130,230,"下底","middle")
+      +vdim(256,62,178,d.height,{sz:17,h:true})
+      +guide(256,58,"高さ"));
+  },
+  trap_para(d){
+    return svgWrap("-8 8 325 212",
+      `<polygon points="10,168 160,168 118,60 48,60" fill="none" stroke="${CS}" stroke-width="1.2" stroke-dasharray="4,3" opacity="0.35"/>`
+      +`<polygon points="48,60 118,60 139,114 29,114" fill="${C3}" stroke="${CS}" stroke-width="1.2" stroke-dasharray="4,3" stroke-linejoin="round" opacity="0.6"/>`
+      +`<line x1="29" y1="114" x2="139" y2="114" stroke="${CS}" stroke-width="1.6" stroke-dasharray="5,4"/>`
+      +`<polygon points="29,114 139,114 160,168 10,168" fill="${C1}" stroke="${CS}" stroke-width="2" stroke-linejoin="round"/>`
+      +`<polygon points="139,114 249,114 230,168 160,168" fill="${C2}" stroke="${CS}" stroke-width="2" stroke-linejoin="round"/>`
+      +`<polygon points="10,168 230,168 249,114 29,114" fill="none" stroke="${CS}" stroke-width="2.2" stroke-linejoin="round"/>`
+      +hdim(48,118,44,d.top,{sz:16})
+      +guide(83,56,"上底","middle")
+      +hdim(10,160,186,d.bottom,{sz:16,below:true})
+      +guide(85,212,"下底","middle")
+      +`<line x1="186" y1="60" x2="186" y2="168" stroke="${HGT}" stroke-width="2" stroke-dasharray="6,5"/>`
+      +vdim(200,60,168,d.height,{sz:16,h:true})
+      +guide(206,56,"高さ"));
+  },
+  rhombus_decomp(d){
+    return svgWrap("0 20 272 190",
+      `<polygon points="136,40 36,110 136,110" fill="${C1}" stroke="${CS}" stroke-width="2" stroke-linejoin="round"/>`
+      +`<polygon points="136,40 136,110 236,110" fill="${C2}" stroke="${CS}" stroke-width="2" stroke-linejoin="round"/>`
+      +`<polygon points="36,110 136,180 136,110" fill="${C2}" stroke="${CS}" stroke-width="2" stroke-linejoin="round"/>`
+      +`<polygon points="136,110 236,110 136,180" fill="${C1}" stroke="${CS}" stroke-width="2" stroke-linejoin="round"/>`
+      +`<polygon points="36,110 136,40 236,110 136,180" fill="none" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+      +`<line x1="36" y1="110" x2="236" y2="110" stroke="${CS}" stroke-width="1.3"/>`
+      +`<line x1="136" y1="40" x2="136" y2="180" stroke="${CS}" stroke-width="1.3"/>`
+      +hdim(136,236,126,d.halfD1,{sz:16,below:true})
+      +vdim(156,110,180,d.halfD2,{sz:16,h:true}));
+  },
+  tri_half_base(d){
+    return svgWrap("-5 12 290 224",
+      `<polygon points="30,180 230,180 130,50" fill="${C3}" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+      +`<rect x="80" y="50" width="100" height="130" fill="${C1}" stroke="${CS}" stroke-width="2.2" stroke-dasharray="6,4"/>`
+      +`<polygon points="30,180 230,180 130,50" fill="none" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+      +vdim(202,50,180,d.height,{sz:18,h:true})
+      +guide(214,56,"高さ")
+      +hdim(30,230,198,d.base,{sz:18,below:true})
+      +guide(30,232,"底辺"));
+  },
+  tri_rect(d){
+    return svgWrap("-48 12 335 222",
+      `<rect x="30" y="115" width="200" height="65" fill="none" stroke="#27ae60" stroke-width="2" stroke-dasharray="8,5"/>`
+      +`<polygon points="30,115 80,115 30,180" fill="${C3}" stroke="${CS}" stroke-width="1.5" stroke-dasharray="5,3"/>`
+      +`<polygon points="180,115 230,115 230,180" fill="${C3}" stroke="${CS}" stroke-width="1.5" stroke-dasharray="5,3"/>`
+      +`<polygon points="30,180 230,180 180,115 80,115" fill="${C1}" stroke="${CS}" stroke-width="2" stroke-linejoin="round"/>`
+      +`<polygon points="80,115 180,115 130,50" fill="${C2}" stroke="${CS}" stroke-width="2" stroke-linejoin="round"/>`
+      +`<line x1="30" y1="115" x2="80" y2="115" stroke="${CS}" stroke-width="1.5" stroke-dasharray="5,4"/>`
+      +`<line x1="180" y1="115" x2="230" y2="115" stroke="${CS}" stroke-width="1.5" stroke-dasharray="5,4"/>`
+      +vdim(-16,50,180,d.fullH,{sz:18,left:true,h:true})
+      +guide(-30,44,"高さ")
+      +vdim(248,115,180,"",{sz:1})
+      +hdim(30,230,198,d.base,{sz:18,below:true})
+      +guide(30,232,"底辺"));
+  },
+  rhombus_rect(d){
+    return svgWrap("0 -2 300 214",
+      `<rect x="25" y="32" width="210" height="155" fill="${C3}" stroke="${CS}" stroke-width="1.5" stroke-dasharray="6,4"/>`
+      +`<polygon points="25,32 130,32 25,110" fill="${C2}" stroke="${CS}" stroke-width="1.2" stroke-dasharray="4,3"/>`
+      +`<polygon points="130,32 235,32 235,110" fill="${C2}" stroke="${CS}" stroke-width="1.2" stroke-dasharray="4,3"/>`
+      +`<polygon points="25,110 25,187 130,187" fill="${C2}" stroke="${CS}" stroke-width="1.2" stroke-dasharray="4,3"/>`
+      +`<polygon points="235,110 235,187 130,187" fill="${C2}" stroke="${CS}" stroke-width="1.2" stroke-dasharray="4,3"/>`
+      +`<polygon points="25,110 130,32 235,110 130,187" fill="${C1}" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+      +hdim(25,235,16,d.d1,{sz:17})
+      +guide(130,30,"対角線①","middle")
+      +vdim(255,32,187,d.d2,{sz:17,h:true})
+      +guide(258,26,"対角線②"));
+  },
+  rhombus_formula(d){
+    const rh="30,110 130,30 230,110 130,190";
+    let body="";
+    if(d.variant===1){
+      body=`<rect x="30" y="30" width="200" height="80" fill="${C2}" stroke="${CS}" stroke-width="1.8" stroke-dasharray="5,4"/>`
+        +`<polygon points="${rh}" fill="${C1}" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+        +`<line x1="30" y1="110" x2="230" y2="110" stroke="${CS}" stroke-width="1.8" stroke-dasharray="5,4"/>`
+        +`<line x1="244" y1="110" x2="256" y2="110" stroke="#aaa" stroke-width="1.2"/>`;
+    } else {
+      body=`<rect x="130" y="30" width="100" height="160" fill="${C2}" stroke="${CS}" stroke-width="1.8" stroke-dasharray="5,4"/>`
+        +`<polygon points="${rh}" fill="${C1}" stroke="${CS}" stroke-width="2.5" stroke-linejoin="round"/>`
+        +`<line x1="130" y1="30" x2="130" y2="190" stroke="${CS}" stroke-width="1.8" stroke-dasharray="5,4"/>`
+        +`<line x1="130" y1="8" x2="130" y2="20" stroke="#aaa" stroke-width="1.2"/>`;
+    }
+    return svgWrap("-5 -12 315 216",
+      body
+      +hdim(30,230,14,d.d1,{sz:17})
+      +vdim(250,30,190,d.d2,{sz:17,h:true}));
+  }
+};
+
+/* ===================== 面積問題ジェネレータ ===================== */
+function genArea(forceType){
+  const ALL=["triangle","parallelogram","rhombus","rhombus_rect","rhombus_formula","compound","compound_sub","para_decomp","trapezoid","trapezoid_std","trapezoid_para","trap_para","rhombus_decomp","tri_half_base","tri_rect"];
+  const type=forceType||ALL[ri(ALL.length)];
+  let dims,correct,wrongs,name,hint;
+
+  if(type==="triangle"){
+    const bv=rN(2,15),hv=rN(2,15);
+    const [base,height]=Math.random()<.5?["x",String(hv)]:[String(bv),"x"];
+    dims={base,height};name="三角形";hint="底辺 × 高さ ÷ 2 だよ！";
+    correct=`${base} × ${height} ÷ 2`;
+    wrongs=shuffle([`${base} × ${height}`,`(${base} + ${height}) × 2`,`(${base} + ${height}) ÷ 2`,`${base} ÷ 2 + ${height} ÷ 2`]);
+
+  } else if(type==="parallelogram"){
+    const bv=rN(2,15),hv=rN(2,15);
+    const [base,height]=Math.random()<.5?["x",String(hv)]:[String(bv),"x"];
+    dims={base,height};name="平行四辺形";hint="底辺 × 高さ だよ！";
+    correct=`${base} × ${height}`;
+    wrongs=shuffle([`${base} × ${height} ÷ 2`,`(${base} + ${height}) × 2`,`${base} + ${height} × 2`,`${base} × ${height} × 2`]);
+
+  } else if(type==="rhombus"){
+    const v1=rN(2,15),v2=rN(2,15);
+    const [d1,d2]=Math.random()<.5?["x",String(v2)]:[String(v1),"x"];
+    dims={d1,d2};name="ひし形";hint="対角線① × 対角線② ÷ 2 だよ！";
+    correct=`${d1} × ${d2} ÷ 2`;
+    wrongs=shuffle([`${d1} × ${d2}`,`(${d1} + ${d2}) × 2`,`(${d1} + ${d2}) ÷ 2`,`${d1} ÷ 2 + ${d2} ÷ 2`]);
+
+  } else if(type==="compound"){
+    const w1v=rN(3,9),h1v=rN(5,14),w2v=rN(3,9),h2v=rN(2,Math.max(2,h1v-2));
+    const ls=[String(w1v),String(h1v),String(w2v),String(h2v)];
+    ls[ri(4)]="x";
+    const [w1,h1,w2,h2]=ls;
+    dims={w1,h1,w2,h2};name="長方形を2つくっつけた形";
+    hint=`左の面積（${w1}×${h1}）と右の面積（${w2}×${h2}）を足すよ！`;
+    correct=`${w1} × ${h1} + ${w2} × ${h2}`;
+    wrongs=shuffle([`(${w1} + ${w2}) × (${h1} + ${h2})`,`${w1} × ${h2} + ${w2} × ${h1}`,`${w1} × ${h1} × ${w2} × ${h2}`,`(${w1} + ${w2}) × ${h1}`]);
+
+  } else if(type==="compound_sub"){
+    const w1v=rN(3,8),w2v=rN(2,7),h1v=rN(5,12),h2v=rN(2,h1v-1),twv=w1v+w2v;
+    const ls=[String(w1v),String(twv),String(h1v),String(h2v)];
+    ls[ri(4)]="x";
+    const [w1,totalW,h1,h2]=ls;
+    dims={w1,totalW,h1,h2};name="長方形を2つくっつけた形";
+    hint=`左の面積（${w1}×${h1}）＋右の面積（(${totalW}−${w1})×${h2}）だよ！右の横幅は全体（${totalW}）から左（${w1}）を引くよ！`;
+    correct=`${w1} × ${h1} + (${totalW} - ${w1}) × ${h2}`;
+    wrongs=shuffle([`${w1} × ${h1} + ${totalW} × ${h2}`,`${totalW} × ${h1} + ${w1} × ${h2}`,`${totalW} × (${h1} + ${h2})`,`(${totalW} - ${w1}) × (${h1} + ${h2})`]);
+
+  } else if(type==="rhombus_rect"){
+    const v1=rN(2,14),v2=rN(2,14);
+    const [d1,d2]=Math.random()<.5?["x",String(v2)]:[String(v1),"x"];
+    dims={d1,d2};name="ひし形（長方形の半分）";
+    hint="ひし形は対角線①×対角線②の長方形のちょうど半分だよ！だから ÷2 するよ！";
+    correct=`${d1} × ${d2} ÷ 2`;
+    wrongs=shuffle([`${d1} × ${d2}`,`(${d1} + ${d2}) × 2`,`(${d1} + ${d2}) ÷ 2`,`${d1} ÷ 2 + ${d2} ÷ 2`]);
+
+  } else if(type==="rhombus_formula"){
+    const d1v=rN(2,7)*2,d2v=rN(2,7)*2;
+    const useXForD1=Math.random()<0.5;
+    const d1=useXForD1?"x":String(d1v);
+    const d2=useXForD1?String(d2v):"x";
+    const halfD1=useXForD1?"x÷2":String(d1v/2);
+    const halfD2=useXForD1?String(d2v/2):"x÷2";
+    const variant=Math.random()<0.5?1:2;
+    const hd1f=isX(halfD1)?"(x ÷ 2)":halfD1;
+    const hd2f=isX(halfD2)?"(x ÷ 2)":halfD2;
+    const fs=[`${d1} × ${d2} ÷ 2`,`${d1} × ${hd2f}`,`${hd1f} × ${d2}`];
+    correct=fs[variant];
+    wrongs=fs.filter((_,i)=>i!==variant);
+    dims={d1,d2,halfD1,halfD2,variant};
+    name="ひし形";
+    hint=variant===1
+      ?`色の長方形の縦は対角線÷2 だよ！だから ${d1}×(${d2}÷2) と表すよ！`
+      :`色の長方形の横は対角線÷2 だよ！だから (${d1}÷2)×${d2} と表すよ！`;
+
+  } else if(type==="para_decomp"){
+    const bv=rN(2,15),hv=rN(2,15);
+    const [base,height]=Math.random()<.5?["x",String(hv)]:[String(bv),"x"];
+    dims={base,height};name="平行四辺形（三角形2つ）";
+    hint="対角線で2つの三角形に分けると、それぞれ 底辺×高さ÷2 だよ！";
+    correct=`2 × (${base} × ${height} ÷ 2)`;
+    wrongs=shuffle([`${base} × ${height} ÷ 2`,`2 × ${base} × ${height}`,`2 × (${base} + ${height} ÷ 2)`,`(${base} × ${height}) × 2 ÷ 2`]);
+
+  } else if(type==="trapezoid"){
+    const tv=rN(2,8),sv=rN(1,4),hv=rN(2,10);
+    const ls=[String(tv),String(sv),String(hv)];
+    ls[ri(3)]="x";
+    const [top,side,height]=ls;
+    dims={top,side,height};name="台形（長方形＋三角形×2）";
+    hint=`長方形（${top}×${height}）＋左△（${side}×${height}÷2）＋右△（${side}×${height}÷2）を足すよ！`;
+    correct=`${top} × ${height} + 2 × (${side} × ${height} ÷ 2)`;
+    wrongs=shuffle([`${top} × ${height} + ${side} × ${height} ÷ 2`,`${top} × ${height} + 2 × ${side} × ${height}`,`(${top} + ${side}) × ${height}`,`(${top} + ${side} × 2) × ${height} ÷ 2`]);
+
+  } else if(type==="trapezoid_std"){
+    const topV=rN(2,8),extraV=rN(1,4),bottomV=topV+2*extraV,hV=rN(2,12);
+    const ls=[String(topV),String(bottomV),String(hV)];
+    ls[ri(3)]="x";
+    const [top,bottom,height]=ls;
+    dims={top,bottom,height};name="台形";
+    hint=`（上底＋下底）×高さ÷2 だよ！（${top}＋${bottom}）×${height}÷2 を計算しよう！`;
+    correct=`(${top} + ${bottom}) × ${height} ÷ 2`;
+    wrongs=shuffle([`(${top} + ${bottom}) × ${height}`,`${top} × ${height} ÷ 2`,`${top} × ${height} + ${bottom} × ${height}`,`(${top} + ${bottom}) × ${height} × 2`]);
+
+  } else if(type==="trapezoid_para"){
+    const topV=rN(2,8),extraV=rN(1,4),bottomV=topV+2*extraV,hV=rN(2,12);
+    const ls=[String(topV),String(bottomV),String(hV)];
+    ls[ri(3)]="x";
+    const [top,bottom,height]=ls;
+    dims={top,bottom,height};name="台形（平行四辺形＋△）";
+    hint=`平行四辺形（${top}×${height}）＋三角形（(${bottom}−${top})×${height}÷2）を足すよ！`;
+    correct=`${top} × ${height} + (${bottom} - ${top}) × ${height} ÷ 2`;
+    wrongs=shuffle([`${top} × ${height} + ${bottom} × ${height} ÷ 2`,`${top} × ${height} + (${bottom} - ${top}) × ${height}`,`(${top} + ${bottom}) × ${height}`,`${bottom} × ${height} + ${top} × ${height} ÷ 2`]);
+
+  } else if(type==="trap_para"){
+    const topV=rN(2,7),bottomV=rN(topV+2,14),heightV=rN(2,7)*2;
+    const ls=[String(topV),String(bottomV),String(heightV)];
+    ls[ri(3)]="x";
+    const [top,bottom,height]=ls;
+    dims={top,bottom,height};name="台形（平行四辺形に変形）";
+    hint=`上底と下底を合わせた底辺・高さを半分にした平行四辺形に変形するよ！（${top}＋${bottom}）×（${height}÷2）だよ！`;
+    const halfHf=isX(height)?"(x ÷ 2)":String(parseInt(height)/2);
+    correct=`(${top} + ${bottom}) × ${halfHf}`;
+    wrongs=shuffle([`(${top} + ${bottom}) × ${height}`,`(${top} - ${bottom}) × ${halfHf}`,`(${top} × ${bottom}) × ${halfHf}`,`(${top} + ${bottom}) × ${isX(height)?`${height} × 2`:String(parseInt(height)*2)}`]);
+
+  } else if(type==="rhombus_decomp"){
+    const hd1v=rN(1,7),hd2v=rN(1,7);
+    const [halfD1,halfD2]=Math.random()<.5?["x",String(hd2v)]:[String(hd1v),"x"];
+    dims={halfD1,halfD2};name="ひし形（直角三角形×4）";
+    hint="2本の対角線で直角三角形4つに分けると、それぞれ 底辺×高さ÷2 だよ！";
+    correct=`4 × (${halfD1} × ${halfD2} ÷ 2)`;
+    wrongs=shuffle([`2 × (${halfD1} × ${halfD2} ÷ 2)`,`4 × ${halfD1} × ${halfD2}`,`(${halfD1} × ${halfD2}) ÷ 2`,`4 × (${halfD1} + ${halfD2}) ÷ 2`]);
+
+  } else if(type==="tri_half_base"){
+    const halfBaseV=rN(2,10),baseV=halfBaseV*2,hV=rN(2,12);
+    const useXForBase=Math.random()<0.5;
+    const base=useXForBase?"x":String(baseV);
+    const height=useXForBase?String(hV):"x";
+    const halfF=useXForBase?"(x ÷ 2)":String(halfBaseV);
+    dims={base,height};name="三角形（底辺÷2の長方形）";
+    hint=useXForBase
+      ?`底辺がxなので半分は(x÷2)！長方形の面積は (x÷2)×${hV} だよ！`
+      :`底辺（${baseV}）を半分にすると${halfBaseV}！長方形の面積は ${halfBaseV}×x だよ！`;
+    correct=`${halfF} × ${height}`;
+    wrongs=shuffle([`${base} × ${height}`,`${halfF} × ${height} ÷ 2`,`(${base} + ${height}) × 2`,`${halfF} + ${height}`]);
+
+  } else { // tri_rect
+    const halfHv=rN(2,9),fullH=halfHv*2,bv=rN(3,14);
+    const xCase=Math.random()<0.5?0:2;
+    let base,halfH,fullHStr;
+    if(xCase===0){
+      base="x";halfH=String(halfHv);fullHStr=String(fullH);
+      correct=`x × ${halfH}`;
+      wrongs=shuffle([`x × ${halfH} ÷ 2`,`x × ${halfH} × 2`,`(x + ${halfH}) × 2`,`x ÷ 2 × ${halfH}`]);
+    } else {
+      base=String(bv);halfH="x ÷ 2";fullHStr="x";
+      correct=`${base} × (x ÷ 2)`;
+      wrongs=shuffle([`${base} × x`,`${base} × x × 2`,`(${base} + x) × 2`,`${base} ÷ x × 2`]);
+    }
+    dims={base,halfH,fullH:fullHStr};name="三角形（長方形に変形）";
+    hint=xCase===2
+      ?`三角形の高さがxなら、長方形の縦は x÷2 だよ！だから面積は ${base} × (x ÷ 2) だよ！`
+      :`三角形を折り返すと底辺×（高さ÷2）の長方形になるよ！`;
+  }
+
+  return {cat:"area",type,dims,name,hint,c:correct,choices:shuffle([correct,...wrongs.slice(0,2)])};
+}
+
+/* ===================== 文章題ジェネレータ ===================== */
+const NOY=[
+  ()=>{ const p=pickA([100,150,200,250,300]),b=pickA([50,100,150,200]),[n,e]=pickA([["リンゴ","🍎"],["みかん","🍊"],["もも","🍑"],["バナナ","🍌"]]);
+    return{e,q:`1個${p}円の${n}をx個買って、${b}円の箱に入れてもらったときの代金は？`,h:`（${n}の代金）＋（箱の代金）で考えよう`,c:`${p}x + ${b}（円）`,w:[`${p}x − ${b}（円）`,`${p+b}x（円）`]}; },
+  ()=>{ const p=pickA([60,70,80,90,100,120]),pd=rPaid(),[n,e]=pickA([["えんぴつ","✏️"],["ペン","🖊️"],["クレヨン","🖍️"]]);
+    return{e,q:`1本${p}円の${n}をx本買って、${pd}円を払ったときのおつりは？`,h:`（払ったお金）−（${n}の代金）で考えよう`,c:`${pd} − ${p}x（円）`,w:[`${p}x − ${pd}（円）`,`${pd} + ${p}x（円）`]}; },
+  ()=>{ const n=rN(),p=pickA([100,120,150,200,250,300]);
+    return{e:"🖊️",q:`1個x円のけしごむを${n}個と、1本${p}円のシャープペンを1本買ったときの代金は？`,h:`（けしごむの代金）＋（シャープペンの代金）で考えよう`,c:`x × ${n} + ${p}（円）`,w:[`x + ${p}（円）`,`x × ${n} − ${p}（円）`]}; },
+  ()=>{ const n=rN(),[nm,e]=pickA([["みかん","🍊"],["あめ","🍬"],["クッキー","🍪"],["チョコ","🍫"]]);
+    return{e,q:`x個の${nm}を${n}人で同じ数ずつ分けたとき、一人分の数は？`,h:`（${nm}の数）÷（人数）で考えよう`,c:`x ÷ ${n}（個）`,w:[`${n} ÷ x（個）`,`${n}x（個）`]}; },
+  ()=>{ const n=rN(),[nm,e]=pickA([["クッキー","🍪"],["あめ","🍬"],["グミ","🍬"],["チョコ","🍫"]]);
+    return{e,q:`x個の${nm}のうち${n}個食べたとき、残りは何個？`,h:`（はじめの数）−（食べた数）で考えよう`,c:`x − ${n}（個）`,w:[`${n} − x（個）`,`x + ${n}（個）`]}; },
+  ()=>{ const n=rN(),[nm,e]=pickA([["シール","⭐"],["カード","🃏"],["スタンプ","📮"]]);
+    return{e,q:`x枚の${nm}を持っている兄が弟に${n}枚あげた。兄の${nm}は何枚？`,h:`（はじめの枚数）−（あげた枚数）で考えよう`,c:`x − ${n}（枚）`,w:[`x + ${n}（枚）`,`${n} − x（枚）`]}; },
+  ()=>{ const n=rN(),[nm,e]=pickA([["色紙","🎨"],["ノート","📔"],["ふせん","📝"]]);
+    return{e,q:`1枚x円の${nm}を${n}枚買ったときの代金は？`,h:`（1枚のねだん）×（枚数）で考えよう`,c:`x × ${n}（円）`,w:[`x ÷ ${n}（円）`,`x + ${n}（円）`]}; },
+  ()=>{ const n=rN();
+    return{e:"🧑‍🏫",q:`x人のクラスで男子が${n}人のとき、女子は何人？`,h:`（全体の人数）−（男子の人数）で考えよう`,c:`x − ${n}（人）`,w:[`x + ${n}（人）`,`${n} − x（人）`]}; },
+  ()=>{ const n=rN(2,6),[nm,e]=pickA([["チョコレート","🍫"],["グミ","🍬"],["クッキー","🍪"]]);
+    return{e,q:`x個入りの${nm}を${n}袋買ったとき、${nm}は全部で何個？`,h:`（1袋の数）×（袋の数）で考えよう`,c:`${n}x（個）`,w:[`x + ${n}（個）`,`x ÷ ${n}（個）`]}; },
+  ()=>{ const n=rN(3,12);
+    return{e:"📐",q:`縦x cm、横${n}cmの長方形の面積は？`,h:`長方形の面積＝縦×横 で考えよう`,c:`x × ${n}（cm²）`,w:[`x + ${2*n}（cm²）`,`x + ${n}（cm²）`]}; },
+  ()=>{ const n=rN(2,8),[nm,e]=pickA([["リボン","🎀"],["ロープ","🪢"],["ひも","🧵"]]);
+    return{e,q:`x mの${nm}を${n}等分したとき、1本の長さは？`,h:`（${nm}全体）÷（等分する数）で考えよう`,c:`x ÷ ${n}（m）`,w:[`${n} ÷ x（m）`,`${n}x（m）`]}; },
+  ()=>{ const n=rN(),[nm,e]=pickA([["ボール","⚽"],["みかん","🍊"],["リンゴ","🍎"]]);
+    return{e,q:`1個x gの${nm}が${n}個あるとき、合計の重さは？`,h:`（1個の重さ）×（個数）で考えよう`,c:`x × ${n}（g）`,w:[`x + ${n}（g）`,`x ÷ ${n}（g）`]}; },
+  ()=>{ const n=rN(2,6),pd=rPaid(),[nm,e]=pickA([["ジュース","🧃"],["お茶","🍵"],["コーヒー","☕"]]);
+    return{e,q:`1本x円の${nm}を${n}本買って、${pd}円を出したときのおつりは？`,h:`（払ったお金）−（${nm}の代金）で考えよう`,c:`${pd} − x × ${n}（円）`,w:[`x × ${n} − ${pd}（円）`,`${pd} + x × ${n}（円）`]}; },
+  ()=>{ const n=rN(2,8);
+    return{e:"🚴",q:`時速x kmで${n}時間走ったときの距離は？`,h:`距離＝（速さ）×（時間）で考えよう`,fml:'道のり ＝ 速さ × 時間',c:`x × ${n}（km）`,w:[`x ÷ ${n}（km）`,`x + ${n}（km）`]}; },
+  ()=>{ const n=rN(2,9);
+    return{e:"🚗",q:`x kmの道のりを${n}時間で進んだときの速さは？`,h:`速さ＝（距離）÷（時間）で考えよう`,fml:'速さ ＝ 道のり ÷ 時間',c:`x ÷ ${n}（km/h）`,w:[`${n} ÷ x（km/h）`,`${n}x（km/h）`]}; },
+  ()=>{ const v=rN(2,9);
+    return{e:"⏱️",q:`x kmの道のりを時速${v}kmで進んだときにかかる時間は？`,h:`時間＝（距離）÷（速さ）で考えよう`,fml:'時間 ＝ 道のり ÷ 速さ',c:`x ÷ ${v}（時間）`,w:[`${v} ÷ x（時間）`,`${v}x（時間）`]}; },
+  ()=>{ const v=pickA([30,40,50,60,80,100,120]);
+    return{e:"🚂",q:`時速${v}kmの列車がx時間走ったときの距離は？`,h:`距離＝（速さ）×（時間）で考えよう`,fml:'道のり ＝ 速さ × 時間',c:`${v}x（km）`,w:[`x ÷ ${v}（km）`,`x + ${v}（km）`]}; },
+  ()=>{ const h=pickA([4,6,8,10,12,14,16]);
+    return{e:"📐",q:`底辺x cm、高さ${h}cmの三角形の面積は？`,h:`三角形の面積＝底辺×高さ÷2 で考えよう`,fml:'三角形の面積 ＝ 底辺 × 高さ ÷ 2',fmlNote:'÷2を忘れやすいので注意！底辺と高さをかけたら必ず÷2しよう！',c:`${h}×x÷2（cm²）`,w:[`${h}×x（cm²）`,`x÷2（cm²）`]}; },
+  ()=>{ const b=pickA([4,6,8,10,12,14,16]);
+    return{e:"📐",q:`底辺${b}cm、高さx cmの三角形の面積は？`,h:`三角形の面積＝底辺×高さ÷2 で考えよう`,fml:'三角形の面積 ＝ 底辺 × 高さ ÷ 2',fmlNote:'÷2を忘れやすいので注意！底辺と高さをかけたら必ず÷2しよう！',c:`${b}×x÷2（cm²）`,w:[`${b}×x（cm²）`,`x÷2（cm²）`]}; },
+  ()=>{ const n=rN();const [nm,e]=pickA([["リンゴ","🍎"],["みかん","🍊"],["もも","🍑"],["バナナ","🍌"]]);
+    return{e,q:`1個x円の${nm}を${n}個買ったときの代金は？`,h:`（1個のねだん）×（個数）で考えよう`,c:`x × ${n}（円）`,w:[`x ÷ ${n}（円）`,`x + ${n}（円）`]}; },
+  ()=>{ const p=pickA([50,80,100,120,150,200]);const [nm,e]=pickA([["色紙","🎨"],["ノート","📔"],["ふせん","📝"]]);
+    return{e,q:`1枚${p}円の${nm}をx枚買ったときの代金は？`,h:`（1枚のねだん）×（枚数）で考えよう`,c:`${p}x（円）`,w:[`x ÷ ${p}（円）`,`x + ${p}（円）`]}; },
+  ()=>{ const n=rN(2,8);const [nm,e]=pickA([["チョコレート","🍫"],["グミ","🍬"],["クッキー","🍪"]]);
+    return{e,q:`${n}個入りの${nm}をx袋買ったとき、${nm}は全部で何個？`,h:`（1袋の数）×（袋の数）で考えよう`,c:`${n}x（個）`,w:[`x + ${n}（個）`,`x ÷ ${n}（個）`]}; },
+  ()=>{ const p=pickA([50,80,100,120,150,200]);const [nm,e]=pickA([["ボール","⚽"],["みかん","🍊"],["リンゴ","🍎"]]);
+    return{e,q:`1個${p}gの${nm}がx個あるとき、合計の重さは？`,h:`（1個の重さ）×（個数）で考えよう`,c:`${p}x（g）`,w:[`x + ${p}（g）`,`x ÷ ${p}（g）`]}; },
+  ()=>{ const L=pickA([12,16,20,24,30,36,40,48,60]);const [nm,e]=pickA([["ロープ","🪢"],["リボン","🎀"],["ひも","🧵"]]);
+    return{e,q:`${L}mの${nm}をx等分したとき、1本の長さは？`,h:`（${nm}全体）÷（等分する数）で考えよう`,c:`${L} ÷ x（m）`,w:[`x ÷ ${L}（m）`,`${L}x（m）`]}; },
+  ()=>{ const D=rPaid(),n=rN(2,9);
+    return{e:"🚶",q:`${D}mの道のりを分速x mで${n}分進んだときの残りの道のりは？`,h:`（残り）＝（全体）−（分速×時間）で考えよう`,fml:'残り ＝ 全体の道のり − 速さ × 時間',c:`${D} − x × ${n}（m）`,w:[`x × ${n}（m）`,`${D} + x × ${n}（m）`]}; },
+  ()=>{ const D=rPaid(),v=rN(2,9);
+    return{e:"🚶",q:`${D}mの道のりを分速${v}mでx分進んだときの残りの道のりは？`,h:`（残り）＝（全体）−（分速×時間）で考えよう`,fml:'残り ＝ 全体の道のり − 速さ × 時間',c:`${D} − ${v}x（m）`,w:[`${v}x（m）`,`${D} + ${v}x（m）`]}; },
+  ()=>{ const p=rPrice(),r=pickA([30,50,80,100,150,200]);const [nm,e]=pickA([["ケーキ","🎂"],["シュークリーム","🍮"],["おにぎり","🍙"]]);
+    return{e,q:`1個${p}円の${nm}をx個買ったら${r}円残った。はじめの所持金は？`,h:`（はじめの所持金）＝（買った代金）＋（残ったお金）で考えよう`,c:`${p}x + ${r}（円）`,w:[`${p}x − ${r}（円）`,`${p}x（円）`]}; },
+  ()=>{ const n=rN(2,15),r=pickA([30,50,80,100,150,200]);const [nm,e]=pickA([["ケーキ","🎂"],["シュークリーム","🍮"],["おにぎり","🍙"]]);
+    return{e,q:`1個x円の${nm}を${n}個買ったら${r}円残った。はじめの所持金は？`,h:`（はじめの所持金）＝（買った代金）＋（残ったお金）で考えよう`,c:`x × ${n} + ${r}（円）`,w:[`x × ${n} − ${r}（円）`,`x × ${n}（円）`]}; },
+  ()=>{ const n=rN(2,9);const [nm,e]=pickA([["クッキー","🍪"],["チョコ","🍫"],["あめ","🍬"],["グミ","🍬"]]);
+    return{e,q:`${nm}が何個かあって、${n}個食べたら残りがx個になった。食べる前は何個あった？`,h:`（はじめの数）＝（残り）＋（食べた数）で考えよう`,fml:'食べた数 ＋ 残った数 ＝ はじめにあった数',fmlNote:`x個残って${n}個食べたなら、はじめは x + ${n} 個あったということだよ！`,c:`x + ${n}（個）`,w:[`x − ${n}（個）`,`${n} − x（個）`]}; },
+  ()=>{ const r=rN(2,9);const [nm,e]=pickA([["クッキー","🍪"],["チョコ","🍫"],["あめ","🍬"],["グミ","🍬"]]);
+    return{e,q:`${nm}が何個かあって、x個食べたら残りが${r}個になった。食べる前は何個あった？`,h:`（はじめの数）＝（残り）＋（食べた数）で考えよう`,fml:'食べた数 ＋ 残った数 ＝ はじめにあった数',fmlNote:`${r}個残ってx個食べたなら、はじめは x + ${r} 個あったということだよ！`,c:`x + ${r}（個）`,w:[`x − ${r}（個）`,`${r} − x（個）`]}; },
+];
+
+const YT=[
+  ()=>{ const p=pickA([60,70,80,90,100,120]),pd=rPaid(),[n,e]=pickA([["えんぴつ","✏️"],["ペン","🖊️"]]);
+    return{e,q:`1本${p}円の${n}をx本買って、${pd}円を払ったときのおつりをy円とする。\nxとyの関係式は？`,h:`y＝（払ったお金）−（${n}の代金）と考えよう`,c:`y = ${pd} − ${p}x`,w:[`y = ${p}x − ${pd}`,`y = ${pd} + ${p}x`]}; },
+  ()=>{ const n=rN(),p=pickA([100,120,150,200,250]);
+    return{e:"🖊️",q:`1個x円のけしごむを${n}個と、1本${p}円のシャープペンを1本買ったときの代金をy円とする。\nxとyの関係式は？`,h:`y＝（けしごむの代金）＋（シャープペンの代金）と考えよう`,c:`y = x × ${n} + ${p}`,w:[`y = x + ${p}`,`y = x × ${n} − ${p}`]}; },
+  ()=>{ const n=rN(),[nm,e]=pickA([["みかん","🍊"],["あめ","🍬"],["チョコ","🍫"]]);
+    return{e,q:`x個の${nm}を${n}人で同じ数ずつ分けたとき、一人分の数をy個とする。\nxとyの関係式は？`,h:`y＝（${nm}の数）÷（人数）と考えよう`,c:`y = x ÷ ${n}`,w:[`y = ${n} ÷ x`,`y = ${n}x`]}; },
+  ()=>{ const n=rN();
+    return{e:"⭐",q:`x枚のシールを持っている兄が弟に${n}枚あげたらy枚になった。\nxとyの関係式は？`,h:`y＝（はじめの枚数）−（あげた枚数）と考えよう`,c:`y = x − ${n}`,w:[`y = x + ${n}`,`y = ${n} − x`]}; },
+  ()=>{ const n=rN(),[nm,e]=pickA([["ケーキ","🎂"],["アイス","🍦"],["ジュース","🧃"]]);
+    return{e,q:`1個x円の${nm}を${n}個買ったときの代金をy円とする。\nxとyの関係式は？`,h:`y＝（1個のねだん）×（個数）と考えよう`,c:`y = x × ${n}`,w:[`y = x ÷ ${n}`,`y = x + ${n}`]}; },
+  ()=>{ const n=rN(2,8);
+    return{e:"🚴",q:`時速x kmで${n}時間走ったときの距離をy kmとする。\nxとyの関係式は？`,h:`y＝（速さ）×（時間）と考えよう`,fml:'道のり ＝ 速さ × 時間',c:`y = x × ${n}`,w:[`y = x + ${n}`,`y = x ÷ ${n}`]}; },
+  ()=>{ const n=rN(2,8),[nm,e]=pickA([["ロープ","🪢"],["リボン","🎀"],["ひも","🧵"]]);
+    return{e,q:`x mの${nm}を${n}等分したときの1本の長さをy mとする。\nxとyの関係式は？`,h:`y＝（${nm}全体）÷（等分する数）と考えよう`,c:`y = x ÷ ${n}`,w:[`y = ${n} ÷ x`,`y = ${n}x`]}; },
+  ()=>{ const p=pickA([100,150,200,250,300]),b=pickA([50,100,150,200,300]),[nm,e]=pickA([["ケーキ","🍰"],["クッキー","🍪"],["和菓子","🍡"]]);
+    return{e,q:`1個${p}円の${nm}をx個買って、${b}円の箱に入れてもらったときの代金をy円とする。\nxとyの関係式は？`,h:`y＝（${nm}の代金）＋（箱の代金）と考えよう`,c:`y = ${p}x + ${b}`,w:[`y = ${p}x − ${b}`,`y = ${b}x + ${p}`]}; },
+  ()=>{ const n=rN(3,12);
+    return{e:"📐",q:`縦x cm、横${n}cmの長方形の面積をy cm²とする。\nxとyの関係式は？`,h:`y＝縦×横 と考えよう`,c:`y = x × ${n}`,w:[`y = x + ${n}`,`y = x + ${2*n}`]}; },
+  ()=>{ const n=rN();
+    return{e:"👥",q:`x人の生徒を${n}人ずつのグループに分けたときのグループ数をyとする。\nxとyの関係式は？`,h:`y＝（全体の人数）÷（1グループの人数）と考えよう`,c:`y = x ÷ ${n}`,w:[`y = ${n} ÷ x`,`y = ${n}x`]}; },
+  ()=>{ const n=rN(2,8),pd=rPaid(),[nm,e]=pickA([["ペン","🖋️"],["シャープペン","✏️"]]);
+    return{e,q:`1本x円の${nm}を${n}本買って、${pd}円を出したときのおつりをy円とする。\nxとyの関係式は？`,h:`y＝（払ったお金）−（${nm}の代金）と考えよう`,c:`y = ${pd} − x × ${n}`,w:[`y = x × ${n} − ${pd}`,`y = ${pd} + x × ${n}`]}; },
+  ()=>{ const n=rN(2,9);
+    return{e:"🚗",q:`x kmの道のりを${n}時間で進んだときの速さをy km/hとする。\nxとyの関係式は？`,h:`y＝（距離）÷（時間）と考えよう`,fml:'速さ ＝ 道のり ÷ 時間',c:`y = x ÷ ${n}`,w:[`y = ${n} ÷ x`,`y = ${n}x`]}; },
+  ()=>{ const v=rN(2,9);
+    return{e:"⏱️",q:`x kmの道のりを時速${v}kmで進んだときにかかる時間をy時間とする。\nxとyの関係式は？`,h:`y＝（距離）÷（速さ）と考えよう`,fml:'時間 ＝ 道のり ÷ 速さ',c:`y = x ÷ ${v}`,w:[`y = ${v} ÷ x`,`y = ${v}x`]}; },
+  ()=>{ const v=pickA([30,40,50,60,80,100,120]);
+    return{e:"🚂",q:`時速${v}kmの列車がx時間走ったときの距離をy kmとする。\nxとyの関係式は？`,h:`y＝（速さ）×（時間）と考えよう`,fml:'道のり ＝ 速さ × 時間',c:`y = ${v}x`,w:[`y = x ÷ ${v}`,`y = x + ${v}`]}; },
+  ()=>{ const h=pickA([4,6,8,10,12,14,16]);
+    return{e:"📐",q:`底辺x cm、高さ${h}cmの三角形の面積をy cm²とする。\nxとyの関係式は？`,h:`y＝底辺×高さ÷2 と考えよう`,fml:'三角形の面積 ＝ 底辺 × 高さ ÷ 2',fmlNote:'÷2を忘れやすいので注意！底辺と高さをかけたら必ず÷2しよう！',c:`y = ${h}×x÷2`,w:[`y = ${h}×x`,`y = x÷2`]}; },
+  ()=>{ const b=pickA([4,6,8,10,12,14,16]);
+    return{e:"📐",q:`底辺${b}cm、高さx cmの三角形の面積をy cm²とする。\nxとyの関係式は？`,h:`y＝底辺×高さ÷2 と考えよう`,fml:'三角形の面積 ＝ 底辺 × 高さ ÷ 2',fmlNote:'÷2を忘れやすいので注意！底辺と高さをかけたら必ず÷2しよう！',c:`y = ${b}×x÷2`,w:[`y = ${b}×x`,`y = x÷2`]}; },
+  ()=>{ const n=rN();const [nm,e]=pickA([["リンゴ","🍎"],["みかん","🍊"],["ケーキ","🎂"]]);
+    return{e,q:`1個x円の${nm}を${n}個買ったときの代金をy円とする。\nxとyの関係式は？`,h:`y＝（1個のねだん）×（個数）と考えよう`,c:`y = x × ${n}`,w:[`y = x ÷ ${n}`,`y = x + ${n}`]}; },
+  ()=>{ const p=pickA([50,80,100,120,150,200]);const [nm,e]=pickA([["色紙","🎨"],["ノート","📔"],["ふせん","📝"]]);
+    return{e,q:`1枚${p}円の${nm}をx枚買ったときの代金をy円とする。\nxとyの関係式は？`,h:`y＝（1枚のねだん）×（枚数）と考えよう`,c:`y = ${p}x`,w:[`y = x ÷ ${p}`,`y = x + ${p}`]}; },
+  ()=>{ const L=pickA([12,16,20,24,30,36,40,48,60]);const [nm,e]=pickA([["ロープ","🪢"],["リボン","🎀"],["ひも","🧵"]]);
+    return{e,q:`${L}mの${nm}をx等分したときの1本の長さをy mとする。\nxとyの関係式は？`,h:`y＝（${nm}全体）÷（等分する数）と考えよう`,c:`y = ${L} ÷ x`,w:[`y = x ÷ ${L}`,`y = ${L}x`]}; },
+  ()=>{ const D=rPaid(),n=rN(2,9);
+    return{e:"🚶",q:`${D}mの道のりを分速x mで${n}分進んだときの残りの道のりをy mとする。\nxとyの関係式は？`,h:`y＝（全体）−（分速×時間）と考えよう`,fml:'残り ＝ 全体の道のり − 速さ × 時間',c:`y = ${D} − x × ${n}`,w:[`y = x × ${n}`,`y = ${D} + x × ${n}`]}; },
+  ()=>{ const D=rPaid(),v=rN(2,9);
+    return{e:"🚶",q:`${D}mの道のりを分速${v}mでx分進んだときの残りの道のりをy mとする。\nxとyの関係式は？`,h:`y＝（全体）−（分速×時間）と考えよう`,fml:'残り ＝ 全体の道のり − 速さ × 時間',c:`y = ${D} − ${v}x`,w:[`y = ${v}x`,`y = ${D} + ${v}x`]}; },
+  ()=>{ const p=rPrice(),r=pickA([30,50,80,100,150,200]);const [nm,e]=pickA([["ケーキ","🎂"],["シュークリーム","🍮"],["おにぎり","🍙"]]);
+    return{e,q:`1個${p}円の${nm}をx個買ったら${r}円残った。はじめの所持金をy円とする。\nxとyの関係式は？`,h:`y＝（買った代金）＋（残ったお金）と考えよう`,c:`y = ${p}x + ${r}`,w:[`y = ${p}x − ${r}`,`y = ${p}x`]}; },
+  ()=>{ const n=rN(2,15),r=pickA([30,50,80,100,150,200]);const [nm,e]=pickA([["ケーキ","🎂"],["シュークリーム","🍮"],["おにぎり","🍙"]]);
+    return{e,q:`1個x円の${nm}を${n}個買ったら${r}円残った。はじめの所持金をy円とする。\nxとyの関係式は？`,h:`y＝（買った代金）＋（残ったお金）と考えよう`,c:`y = x × ${n} + ${r}`,w:[`y = x × ${n} − ${r}`,`y = x × ${n}`]}; },
+  ()=>{ const n=rN(2,9);const [nm,e]=pickA([["クッキー","🍪"],["チョコ","🍫"],["あめ","🍬"],["グミ","🍬"]]);
+    return{e,q:`y個あった${nm}を${n}個食べたら残りがx個になった。\nyとxの関係式は？`,h:`y＝（残り）＋（食べた数）と考えよう`,fml:'食べた数 ＋ 残った数 ＝ はじめにあった数',fmlNote:`y個あって${n}個食べたらx個残る → y ＝ x + ${n} だよ！`,c:`y = x + ${n}`,w:[`y = x − ${n}`,`y = ${n} − x`]}; },
+  ()=>{ const r=rN(2,9);const [nm,e]=pickA([["クッキー","🍪"],["チョコ","🍫"],["あめ","🍬"],["グミ","🍬"]]);
+    return{e,q:`y個あった${nm}をx個食べたら残りが${r}個になった。\nyとxの関係式は？`,h:`y＝（残り）＋（食べた数）と考えよう`,fml:'食べた数 ＋ 残った数 ＝ はじめにあった数',fmlNote:`y個あってx個食べたら${r}個残る → y ＝ x + ${r} だよ！`,c:`y = x + ${r}`,w:[`y = x − ${r}`,`y = ${r} − x`]}; },
+];
+
+const VAL=[
+  ()=>{ const b=pickA([4,6,8,10,12]),xv=pickA([2,4,6,8,10]),yv=b*xv/2,yw=b*xv;
+    return{e:'📐',q:`底辺${b}cm、高さx cmの三角形の面積をy cm²とするとき`,qfml:`y = ${b} × x ÷ 2`,sub:`x = ${xv} のとき、y の値は？`,h:`x = ${xv} を代入すると…\ny = ${b} × ${xv} ÷ 2`,c:`y = ${yv}`,w:[`y = ${yw}`,`${yv}`,`${yw}`]}; },
+  ()=>{ const h=pickA([4,6,8,10,12]),xv=pickA([2,4,6,8,10]),yv=h*xv/2,yw=h*xv;
+    return{e:'📐',q:`底辺x cm、高さ${h}cmの三角形の面積をy cm²とするとき`,qfml:`y = ${h} × x ÷ 2`,sub:`x = ${xv} のとき、y の値は？`,h:`x = ${xv} を代入すると…\ny = ${h} × ${xv} ÷ 2`,c:`y = ${yv}`,w:[`y = ${yw}`,`${yv}`,`${yw}`]}; },
+  ()=>{ const b=pickA([3,4,5,6,7,8]),xv=rN(2,10),yv=b*xv,yw=b+xv;
+    return{e:'📐',q:`縦${b}cm、横x cmの長方形の面積をy cm²とするとき`,qfml:`y = ${b} × x`,sub:`x = ${xv} のとき、y の値は？`,h:`x = ${xv} を代入すると…\ny = ${b} × ${xv}`,c:`y = ${yv}`,w:[`y = ${yw}`,`${yv}`,`${yw}`]}; },
+  ()=>{ const p=pickA([100,150,200,250,300]),xv=rN(2,8),yv=p*xv,yw=p*(xv+1);
+    const [nm,e]=pickA([["りんご","🍎"],["みかん","🍊"],["ノート","📔"],["えんぴつ","✏️"]]);
+    return{e,q:`1個${p}円の${nm}をx個買ったときの代金をy円とするとき`,qfml:`y = ${p} × x`,sub:`x = ${xv} のとき、y の値は？`,h:`x = ${xv} を代入すると…\ny = ${p} × ${xv}`,c:`y = ${yv}`,w:[`y = ${yw}`,`${yv}`,`${yw}`]}; },
+  ()=>{ const p=rPrice(),r=pickA([30,50,80,100]),xv=rN(2,6),yv=p*xv+r,yw=p*xv;
+    const [nm,e]=pickA([["ケーキ","🎂"],["シュークリーム","🍮"],["おにぎり","🍙"]]);
+    return{e,q:`1個${p}円の${nm}をx個買ったら${r}円残った。はじめの所持金をy円とするとき`,qfml:`y = ${p} × x + ${r}`,sub:`x = ${xv} のとき、y の値は？`,h:`x = ${xv} を代入すると…\ny = ${p} × ${xv} + ${r}`,c:`y = ${yv}`,w:[`y = ${yw}`,`${yv}`,`${yw}`]}; },
+  ()=>{ const v=pickA([40,50,60,80,100]),xv=rN(2,6),yv=v*xv,yw=v+xv;
+    return{e:'🚴',q:`時速${v}kmでx時間走ったときの距離をy kmとするとき`,qfml:`y = ${v} × x`,sub:`x = ${xv} のとき、y の値は？`,h:`x = ${xv} を代入すると…\ny = ${v} × ${xv}`,c:`y = ${yv}`,w:[`y = ${yw}`,`${yv}`,`${yw}`]}; },
+  ()=>{ const v=pickA([40,50,60,80]),xv=rN(2,5),extra=pickA([100,200,300]),D=v*xv+extra,yv=extra,yw=D+v*xv;
+    return{e:'🚶',q:`${D}mの道のりを分速${v}mでx分進んだときの残りをy mとするとき`,qfml:`y = ${D} − ${v} × x`,sub:`x = ${xv} のとき、y の値は？`,h:`x = ${xv} を代入すると…\ny = ${D} − ${v} × ${xv}`,c:`y = ${yv}`,w:[`y = ${yw}`,`${yv}`,`${yw}`]}; },
+  ()=>{ const n=rN(2,9),xv=rN(5,15),yv=xv+n,yw=xv>n?xv-n:xv+n+2;
+    const [nm,e]=pickA([["クッキー","🍪"],["チョコ","🍫"],["あめ","🍬"]]);
+    return{e,q:`${nm}が何個かあって${n}個食べたら残りがx個になった。食べる前の数をy個とするとき`,qfml:`y = x + ${n}`,sub:`x = ${xv} のとき、y の値は？`,h:`x = ${xv} を代入すると…\ny = ${xv} + ${n}`,c:`y = ${yv}`,w:[`y = ${yw}`,`${yv}`,`${yw}`]}; },
+  ()=>{ const b=pickA([4,6,8,10,12]),xv=pickA([2,4,6,8,10]),yv=b*xv/2,xw=xv+2;
+    return{e:'📐',q:`底辺${b}cm、高さx cmの三角形の面積をy cm²とするとき`,qfml:`y = ${b} × x ÷ 2`,sub:`y = ${yv} のとき、x の値は？`,h:`y = ${yv} なので…\n${b} × x ÷ 2 = ${yv} → x = ${yv} × 2 ÷ ${b}`,c:`x = ${xv}`,w:[`x = ${xw}`,`${xv}`,`${xw}`]}; },
+  ()=>{ const b=pickA([3,4,5,6,7,8]),xv=rN(2,10),yv=b*xv,xw=xv+3;
+    return{e:'📐',q:`縦${b}cm、横x cmの長方形の面積をy cm²とするとき`,qfml:`y = ${b} × x`,sub:`y = ${yv} のとき、x の値は？`,h:`y = ${yv} なので…\n${b} × x = ${yv} → x = ${yv} ÷ ${b}`,c:`x = ${xv}`,w:[`x = ${xw}`,`${xv}`,`${xw}`]}; },
+  ()=>{ const p=pickA([100,150,200,250,300]),xv=rN(2,8),yv=p*xv,xw=xv+2;
+    const [nm,e]=pickA([["りんご","🍎"],["みかん","🍊"],["ノート","📔"],["えんぴつ","✏️"]]);
+    return{e,q:`1個${p}円の${nm}をx個買ったときの代金をy円とするとき`,qfml:`y = ${p} × x`,sub:`y = ${yv} のとき、x の値は？`,h:`y = ${yv} なので…\n${p} × x = ${yv} → x = ${yv} ÷ ${p}`,c:`x = ${xv}`,w:[`x = ${xw}`,`${xv}`,`${xw}`]}; },
+  ()=>{ const v=pickA([40,50,60,80,100]),xv=rN(2,6),yv=v*xv,xw=xv+1;
+    return{e:'🚴',q:`時速${v}kmでx時間走ったときの距離をy kmとするとき`,qfml:`y = ${v} × x`,sub:`y = ${yv} のとき、x の値は？`,h:`y = ${yv} なので…\n${v} × x = ${yv} → x = ${yv} ÷ ${v}`,c:`x = ${xv}`,w:[`x = ${xw}`,`${xv}`,`${xw}`]}; },
+  ()=>{ const b=pickA([4,6,8,10,12]),xv=pickA([2,4,6,8,10]),yv=b*xv/2,yw=b*xv;
+    return{e:'📐',q:`底辺${b}cm、高さx cmの三角形の面積をy cm²とするとき`,qfml:`y = ${b} × x ÷ 2`,sub:`高さが${xv}cmのとき、面積を求めなさい`,h:`x = ${xv} を代入すると…\ny = ${b} × ${xv} ÷ 2`,c:`${yv} cm²`,w:[`y = ${yv}`,`${yv}`,`${yw} cm²`]}; },
+  ()=>{ const h=pickA([4,6,8,10,12]),xv=pickA([2,4,6,8,10]),yv=h*xv/2,yw=h*xv;
+    return{e:'📐',q:`底辺x cm、高さ${h}cmの三角形の面積をy cm²とするとき`,qfml:`y = ${h} × x ÷ 2`,sub:`底辺が${xv}cmのとき、面積を求めなさい`,h:`x = ${xv} を代入すると…\ny = ${h} × ${xv} ÷ 2`,c:`${yv} cm²`,w:[`y = ${yv}`,`${yv}`,`${yw} cm²`]}; },
+  ()=>{ const b=pickA([3,4,5,6,7,8]),xv=rN(2,10),yv=b*xv,yw=b+xv;
+    return{e:'📐',q:`縦${b}cm、横x cmの長方形の面積をy cm²とするとき`,qfml:`y = ${b} × x`,sub:`横が${xv}cmのとき、面積を求めなさい`,h:`x = ${xv} を代入すると…\ny = ${b} × ${xv}`,c:`${yv} cm²`,w:[`y = ${yv}`,`${yv}`,`${yw} cm²`]}; },
+  ()=>{ const v=pickA([40,50,60,80,100]),xv=rN(2,6),yv=v*xv,yw=v+xv;
+    return{e:'🚴',q:`時速${v}kmでx時間走ったときの距離をy kmとするとき`,qfml:`y = ${v} × x`,sub:`${xv}時間走ったとき、距離を求めなさい`,h:`x = ${xv} を代入すると…\ny = ${v} × ${xv}`,c:`${yv} km`,w:[`y = ${yv}`,`${yv}`,`${yw} km`]}; },
+  ()=>{ const p=pickA([100,150,200,250,300]),xv=rN(2,8),yv=p*xv,yw=p*(xv+1);
+    const [nm,e]=pickA([["りんご","🍎"],["みかん","🍊"],["ノート","📔"],["えんぴつ","✏️"]]);
+    return{e,q:`1個${p}円の${nm}をx個買ったときの代金をy円とするとき`,qfml:`y = ${p} × x`,sub:`${xv}個買ったとき、代金を求めなさい`,h:`x = ${xv} を代入すると…\ny = ${p} × ${xv}`,c:`${yv} 円`,w:[`y = ${yv}`,`${yv}`,`${yw} 円`]}; },
+  ()=>{ const p=pickA([50,80,100,120,150]),xv=rN(2,8),yv=p*xv,yw=p+xv;
+    const [nm,e]=pickA([["ボール","⚽"],["みかん","🍊"],["リンゴ","🍎"]]);
+    return{e,q:`1個${p}gの${nm}がx個あるとき合計の重さをy gとするとき`,qfml:`y = ${p} × x`,sub:`${xv}個あるとき、合計の重さを求めなさい`,h:`x = ${xv} を代入すると…\ny = ${p} × ${xv}`,c:`${yv} g`,w:[`y = ${yv}`,`${yv}`,`${yw} g`]}; },
+  ()=>{ const v=pickA([40,50,60,80]),xv=rN(2,5),extra=pickA([100,200,300]),D=v*xv+extra,yv=extra,yw=D+v*xv;
+    return{e:'🚶',q:`${D}mの道のりを分速${v}mでx分進んだときの残りをy mとするとき`,qfml:`y = ${D} − ${v} × x`,sub:`${xv}分進んだとき、残りの道のりを求めなさい`,h:`x = ${xv} を代入すると…\ny = ${D} − ${v} × ${xv}`,c:`${yv} m`,w:[`y = ${yv}`,`${yv}`,`${yw} m`]}; },
+];
+
+function genWord(cat){
+  const pool=cat==='noy'?NOY:cat==='y'?YT:VAL;
+  const p=pool[ri(pool.length)]();
+  p.cat=cat;
+  p.c=fmtExpr(p.c);
+  p.w=p.w.map(fmtExpr);
+  p.choices=shuffle([p.c,...p.w]);
+  return p;
+}
+
+/* ===================== メイン ===================== */
+const CIR=['①','②','③','④'];
+const CAT_BADGE={
+  noy:['qb-noy','📘 xを使って式で表そう'],
+  y:['qb-y','📙 xとyの関係を式で表そう'],
+  val:['qb-val','🔢 代入して値を求めよう'],
+  area:['qb-area','📐 面積を文字式で表そう'],
+};
+let S={mode:'mix',qno:0,score:0,total:0,streak:0,q:null,sel:null,hint:false};
+
+function newQ(){
+  let cat=S.mode;
+  if(cat==='mix') cat=pickA(['noy','noy','y','y','val','area','area']);
+  S.q = cat==='area' ? genArea() : genWord(cat);
+  S.sel=null; S.hint=false; S.qno++;
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderScore(){
+  const rate=S.total>0?Math.round(S.score/S.total*100):null;
+  document.getElementById('scorebar').innerHTML=
+    `<span>✅ <b>${S.score}</b> 問正解</span><span>／ ${S.total} 問</span>`
+    +(rate!==null?`<span>正答率 ${rate}%</span>`:'')
+    +(S.streak>=3?`<span class="streak">🔥 ${S.streak}連続！</span>`:'');
+}
+
+function render(){
+  renderScore();
+  const q=S.q, answered=S.sel!==null, ok=answered&&S.sel===q.c;
+  const [bcls,btxt]=CAT_BADGE[q.cat];
+  let body='';
+
+  if(q.cat==='area'){
+    body+=`<div class="qtext">次の図形は<strong style="color:var(--brand)">「${q.name}」</strong>です。`
+      +(q.type==='rhombus_formula'?'色のついた長方形の考え方を表す式を選びましょう。':'面積を求める正しい式を選びましょう。')+`</div>`
+      +`<div class="q-note">※赤い点線は<span class="hx">高さ</span>、<span class="vx">x</span> は長さを表す文字です。`
+      +(q.type==='tri_rect'?'<span style="color:#27ae60"> 緑の枠＝変形後の長方形</span>':'')+`</div>`
+      +`<div class="fig">${SHAPES[q.type](q.dims)}</div>`;
+  } else {
+    body+=`<div class="qtext"><span class="qemoji">${q.e}</span>${esc(q.q).replace(/\n/g,'<br>')}</div>`
+      +(q.qfml?`<div class="q-fml">${esc(q.qfml)}</div>`:'')
+      +(q.sub?`<div class="q-sub">${esc(q.sub)}</div>`:'');
+  }
+
+  body+='<div class="choices">'+q.choices.map((ch,i)=>{
+    let cls='ch',mark=CIR[i];
+    if(answered){
+      if(ch===q.c){cls='ch ok';mark='○';}
+      else if(ch===S.sel){cls='ch ng';mark='✕';}
+      else cls='ch dim';
+    }
+    return `<button type="button" class="${cls}" data-i="${i}" ${answered?'disabled':''}><span class="cno">${mark}</span><span class="ctext">${esc(ch)}</span></button>`;
+  }).join('')+'</div>';
+
+  if(!answered){
+    body+=S.hint
+      ?`<div class="hintshow">💡 ${esc(q.hint||q.h).replace(/\n/g,'<br>')}</div>`
+      :`<button type="button" class="hintbtn" id="btnHint">💡 ヒントを見る</button>`;
+  } else {
+    let v='';
+    if(ok){ v=`<div class="verdict good">🎉 正解！よくできました！</div>`; }
+    else {
+      v=`<div class="verdict bad">ざんねん…<span class="small">正解は ${CIR[q.choices.indexOf(q.c)]}　<b>${esc(q.c)}</b></span></div>`;
+    }
+    v+=`<div class="hintshow">💡 ${esc(q.hint||q.h).replace(/\n/g,'<br>')}`
+      +(q.fml?`<br>📐 <b>${esc(q.fml)}</b>`:'')
+      +(q.fmlNote?`<br>${esc(q.fmlNote)}`:'')+`</div>`;
+    body+=v;
+    body+=`<div class="next-wrap"><button type="button" class="btn primary" id="btnNext">次の問題へ →</button></div>`;
+  }
+
+  document.getElementById('problemCard').innerHTML=
+    `<div class="qhead"><span class="qno">第${S.qno}もん</span><span class="qbadge ${bcls}">${btxt}</span></div>`+body;
+
+  // イベント
+  document.querySelectorAll('#problemCard .ch:not([disabled])').forEach(b=>{
+    b.addEventListener('click',()=>pickChoice(q.choices[+b.dataset.i]));
+  });
+  const hb=document.getElementById('btnHint');
+  if(hb) hb.addEventListener('click',()=>{S.hint=true;render();});
+  const nb=document.getElementById('btnNext');
+  if(nb) nb.addEventListener('click',newQ);
+}
+
+function pickChoice(ch){
+  if(S.sel!==null) return;
+  S.sel=ch; S.total++;
+  const ok=ch===S.q.c;
+  if(ok){S.score++;S.streak++;}
+  else S.streak=0;
+  // 学習記録（未ログイン・ローカル時は divp-core 側で黙ってスキップ）
+  try{
+    if(window.Divp && Divp.answer){
+      Divp.answer(ok,{
+        question_key:S.q.cat,
+        question_params:{cat:S.q.cat, type:S.q.type||null},
+        question_text:S.q.cat==='area'?`${S.q.name}の面積の式`:(S.q.q+(S.q.sub?'\n'+S.q.sub:'')),
+        correct_answer:S.q.c,
+        wrong_answer:ok?null:ch,
+      });
+    }
+  }catch(_){}
+  render();
+}
+
+/* ===== 設定パネル ===== */
+document.getElementById('segMode').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#segMode button').forEach(x=>x.classList.toggle('on',x===b));
+  S.mode=b.dataset.mode;
+  S.qno=0; newQ();
+});
+(function(){
+  const p=document.getElementById('panel'),t=document.getElementById('panelToggle');
+  function toggle(){const c=p.classList.toggle('collapsed');t.setAttribute('aria-expanded',String(!c));}
+  t.addEventListener('click',toggle);
+  t.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();}});
+})();
+
+/* ===== 印刷 ===== */
+function buildPrint(){
+  const today=new Date();
+  const dateStr=`${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
+  // 文章題6問＋面積2問
+  const words=[];
+  for(let i=0;i<3;i++) words.push(genWord('noy'));
+  for(let i=0;i<2;i++) words.push(genWord('y'));
+  words.push(genWord('val'));
+  const areas=[genArea(),genArea()];
+  const items=[...words,...areas];
+
+  const head=(sub)=>`<div class="p-head"><div><div class="p-school">中京個別指導学院</div><div class="p-title">文字式マスター</div><div class="p-sub">${sub}</div></div><div class="p-name">${dateStr}　名前<span></span></div></div>`;
+  const wm=window.ChukyoPrint?ChukyoPrint.img():'';
+
+  let qhtml='';
+  items.forEach((q,i)=>{
+    let inner='';
+    if(q.cat==='area'){
+      inner=`<div class="p-q">次の図形は「${q.name}」です。面積を求める式を書きましょう。（xは長さを表す文字）</div>`
+        +`<div class="p-figwrap">${SHAPES[q.type](q.dims)}</div>`;
+    } else {
+      inner=`<div class="p-q">${esc(q.q).replace(/\n/g,'<br>')}`
+        +(q.qfml?`<br><b>${esc(q.qfml)}</b>`:'')+(q.sub?`<br>${esc(q.sub)}`:'')+`</div>`;
+    }
+    qhtml+=`<div class="p-item"><span class="p-no">${i+1}</span>${inner}<div class="p-anslabel">答え</div><div class="p-ansline"></div></div>`;
+  });
+
+  let ahtml='';
+  items.forEach((q,i)=>{
+    ahtml+=`<div class="a-line"><span class="p-no">${i+1}</span>　<b>${esc(q.c)}</b></div>`;
+  });
+
+  return `<div class="sheet">${wm}${head('問題プリント')}<p class="p-inst">次の問いに答えましょう。文字式で表すときは x を使いましょう。</p><div class="p-grid">${qhtml}</div></div>`
+    +`<div class="sheet ans">${wm}${head('答え')}<div>${ahtml}</div></div>`;
+}
+document.getElementById('btnPrint').addEventListener('click',()=>{
+  const wmCss=window.ChukyoPrint?'<style>'+ChukyoPrint.css({zIndex:0})+'.wm{position:fixed;}</style>':'';
+  document.getElementById('printArea').innerHTML=wmCss+buildPrint();
+  window.print();
+});
+
+/* ===== 起動 ===== */
+newQ();
+</script>
+</body>
+</html>

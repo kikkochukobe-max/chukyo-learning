@@ -37,6 +37,16 @@ return [
         'sub'   => '数学・中1',
         'url'   => '/learning/math/math_js1_seihunomahojin.html',
     ],
+    'math_js1_zettaichi' => [
+        'title' => '絶対値 練習道場',
+        'sub'   => '数学・中1',
+        'url'   => '/learning/math/math_js1_absolutevalue.html',
+    ],
+    'math_es6_mojishiki' => [
+        'title' => '文字式マスター',
+        'sub'   => '算数・小6',
+        'url'   => '/learning/math/math_es6_mojishiki.html',
+    ],
     'math_es3_warizanwakete' => [
         'title' => 'わり算れんしゅう（分けて計算）',
         'sub'   => '算数・小3',
