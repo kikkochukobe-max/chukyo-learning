@@ -381,9 +381,9 @@ var EXTRA=[
 
 /* 裏ボス：Unit1で最長・複合の文。減点なし・高得点 */
 var HIDDEN=[
-{ja:'私たちは今学校のクラブには入っていませんが、水泳のレッスンを受けています。',w:[W('We'),M(B,3),W('not'),W('in'),W('a'),W('school'),W('club'),W('now'),W(','),W('but'),W('we'),M(['takes','take'],1),W('swimming'),W('lessons'),W('.')]},
-{ja:'どんなフルーツを朝食に食べたいですか。おいしいりんごです。',w:[W('What'),W('fruit'),W('do'),W('you'),M(['wants','want'],1),W('to'),W('eat'),W('for'),W('breakfast'),W('?'),W('A'),W('delicious'),W('apple'),W('.')]},
-{ja:'私はラグビーファンで、よく友達とラグビーを見ます。',w:[W('I'),M(B,1),W('a'),W('rugby'),W('fan'),W(','),W('and'),W('I'),W('often'),M(['watches','watch'],1),W('rugby'),W('with'),W('my'),W('friends'),W('.')]}
+{ja:'私たちは今学校のクラブには入っていませんが、水泳のレッスンを受けています。',w:[W('We'),M(B,3),W('not'),W('in'),W('a'),W('school'),W('club'),W('now'),W(','),W('but'),W('we'),M(['takes','take'],1),W('swimming'),W('lessons'),W('.')],d:[M(D,0),W('often'),W('much')]},
+{ja:'どんなフルーツを朝食に食べたいですか。おいしいりんごです。',w:[W('What'),W('fruit'),W('do'),W('you'),M(['wants','want'],1),W('to'),W('eat'),W('for'),W('breakfast'),W('?'),W('A'),W('delicious'),W('apple'),W('.')],d:[M(B,2),W('does'),W('much')]},
+{ja:'私はラグビーファンで、よく友達とラグビーを見ます。',w:[W('I'),M(B,1),W('a'),W('rugby'),W('fan'),W(','),W('and'),W('I'),W('often'),M(['watches','watch'],1),W('rugby'),W('with'),W('my'),W('friends'),W('.')],d:[M(D,0),W('much'),W('too')]}
 ];
 
 /* 中ボス：Unit1の文（不要語1語＋出題時に10語以上へ自動増量）。今はこの5問だけ運用 */
@@ -421,20 +421,15 @@ var NORMAL2=[
 {ja:'私は速く走れます。',w:[W('I'),W('can'),M(['runs','run'],1),W('fast'),W('.')]},
 {ja:'私はピアノをひけます。',w:[W('I'),W('can'),M(['plays','play'],1),W('the'),W('piano'),W('.')]}
 ];
-/* 中ボス：不要語(d)が1つ。変形できる語のデコイは「ひっかけ」（答えの語と絶対に衝突しない品詞のみ） */
+/* 中ボス：8語以上の2文セット（be動詞変換＋一般動詞/canの変形・不要語2語）。今はこの7問だけ運用 */
 var BOSS2=[
-{ja:'これは純（ジュン）です。',w:[W('This'),M(B,2),W('Jun'),W('.')],d:[M(D,0)]},          /* do/doesデコイ＝ひっかけ */
-{ja:'彼女は私たちの新しい先生です。',w:[W('She'),M(B,2),W('our'),W('new'),W('teacher'),W('.')],d:[W('a')]},
-{ja:'彼女はカナダ出身です。',w:[W('She'),M(B,2),W('from'),W('Canada'),W('.')],d:[M(['comes','come'],1)]}, /* come/comesデコイ */
-{ja:'彼はサッカーチームに入っています。',w:[W('He'),M(B,2),W('on'),W('the'),W('soccer'),W('team'),W('.')],d:[W('in')]}, /* in/on の紛らわしさ */
-{ja:'彼はアメリカ出身ではありません。',w:[W('He'),M(B,2),W('not'),W('from'),W('America'),W('.')],d:[M(D,0)]}, /* do/doesデコイ */
-{ja:'彼はサッカーチームに入っていますか。',w:[M(Bc,2),W('he'),W('on'),W('the'),W('soccer'),W('team'),W('?')],d:[M(Dc,0)]}, /* Do/Doesデコイ */
-{ja:'これは鳥ですか。',w:[M(Bc,2),W('this'),W('a'),W('bird'),W('?')],d:[W('it')]},
-{ja:'私はぎょうざを作れます。',w:[W('I'),W('can'),M(['makes','make'],1),W('gyoza'),W('.')],d:[M(B,2)]}, /* be動詞デコイ＝ひっかけ（答えにbe動詞なし） */
-{ja:'あなたはひらがなを読めますか。',w:[W('Can'),W('you'),M(['reads','read'],1),W('hiragana'),W('?')],d:[M(Bc,2)]}, /* Be/Am/Is/Areデコイ */
-{ja:'私はしゅうまいを作れません。',w:[W('I'),W('cannot'),M(['makes','make'],1),W('shumai'),W('.')],d:[M(B,2)]}, /* be動詞デコイ */
-{ja:'私はピアノをひけます。',w:[W('I'),W('can'),M(['plays','play'],1),W('the'),W('piano'),W('.')],d:[W('a')]},
-{ja:'あなたはカレーを作れますか。',w:[W('Can'),W('you'),M(['cooks','cook'],1),W('curry'),W('?')],d:[M(B,2)]}
+{ja:'こちらはジュンです。彼はサッカーが得意です。',w:[W('This'),M(B,2),W('Jun'),W('.'),W('He'),M(B,2),W('good'),W('at'),M(['play','playing'],1),W('soccer'),W('.')],d:[W('does'),W('to')]},
+{ja:'彼は私の友達です。彼はとても速く走れます。',w:[W('He'),M(B,2),W('my'),W('friend'),W('.'),W('He'),W('can'),M(['runs','run'],1),W('very'),W('fast'),W('.')],d:[W('does'),W('a')]},
+{ja:'彼女は歌が得意です。彼女は上手なダンサーです。',w:[W('She'),M(B,2),W('good'),W('at'),M(['sing','singing'],1),W('.'),W('She'),M(B,2),W('a'),W('good'),W('dancer'),W('.')],d:[W('does'),W('very')]},
+{ja:'あちらはジュンです。彼は漢字を少し読めます。',w:[W('That'),M(B,2),W('Jun'),W('.'),W('He'),W('can'),M(['reads','read'],1),W('some'),W('kanji'),W('.')],d:[W('does'),W('a')]},
+{ja:'彼女はカナダ出身です。彼女は中華料理を作れます。',w:[W('She'),M(B,2),W('from'),W('Canada'),W('.'),W('She'),W('can'),M(['cooks','cook'],1),W('Chinese'),W('food'),W('.')],d:[W('does'),W('a')]},
+{ja:'彼はサッカー部に入っています。彼はサッカーが上手にできます。',w:[W('He'),M(B,2),W('on'),W('the'),W('soccer'),W('team'),W('.'),W('He'),W('can'),M(['plays','play'],1),W('soccer'),W('well'),W('.')],d:[W('does'),W('a')]},
+{ja:'彼はサッカー部に入っていますか。はい、彼はサッカーが得意です。',w:[M(Bc,2),W('he'),W('on'),W('the'),W('soccer'),W('team'),W('?'),W('Yes'),W(','),W('he'),M(B,2),W('good'),W('at'),M(['play','playing'],1),W('soccer'),W('.')],d:[W('does'),W('much')]}
 ];
 /* ラスボス：やや長い文＋デコイ2語。減点なし・高得点 */
 var EXTRA2=[
@@ -453,7 +448,7 @@ var EXTRA2=[
    未習の疑問文（How many … do you know?）＋変形2か所（singer→singers / knows→know）。
    デコイ2語：does(do/doesのわな)・much(many/muchのわな） */
 var HIDDEN2=[
-{ja:'世界で有名な歌手を何人知っていますか？',w:[W('How'),W('many'),W('famous'),M(['singer','singers'],1),W('in'),W('the'),W('world'),W('do'),W('you'),M(['knows','know'],1),W('?')],d:[W('does'),W('much')]}
+{ja:'世界で有名な歌手を何人知っていますか？',w:[W('How'),W('many'),W('famous'),M(['singer','singers'],1),W('in'),W('the'),W('world'),W('do'),W('you'),M(['knows','know'],1),W('?')],d:[W('does'),W('much'),M(B,2)]}
 ];
 /* 予備（もとの裏ボス候補。使いたくなったら HIDDEN2 に移す。現在は未使用） */
 var HIDDEN2_RESERVE=[
@@ -484,7 +479,7 @@ var NEW_WORDS={
      'gyoza','shumai','hiragana','kanji','curry','cook','cooks','run','runs','fast','swim',
      'wolf','fox','panda','koala','banana','kiwi','fruit','dancer','friendly','singing',
      'usually','comic','cooking','playing','much','book','books','team',
-     'on','and','but','too'] /* ラスボス追加文の新出語＋デコイ語＋基本語(on/and/but/too：Unit1改訂で基準から外れたため明示登録) */
+     'on','and','but','too','friend','sing'] /* ラスボス追加文の新出語＋デコイ語＋基本語（friend/sing＝中ボス追加文） */
   /* 3:[…], 4:[…] と足していく */
 };
 /* あるUnitの通常/中ボス/ラスボスで使う英単語の集合（小文字・記号/数字は除外）。
