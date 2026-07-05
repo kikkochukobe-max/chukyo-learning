@@ -425,7 +425,7 @@ var NORMAL2=[
 var BOSS2=[
 {ja:'こちらはジュンです。彼はサッカーが得意です。',w:[W('This'),M(B,2),W('Jun'),W('.'),W('He'),M(B,2),W('good'),W('at'),M(['play','playing'],1),W('soccer'),W('.')],d:[W('does'),W('to')]},
 {ja:'彼は私の友達です。彼はとても速く走れます。',w:[W('He'),M(B,2),W('my'),W('friend'),W('.'),W('He'),W('can'),M(['runs','run'],1),W('very'),W('fast'),W('.')],d:[W('does'),W('a')]},
-{ja:'彼女は歌が得意です。彼女は上手なダンサーです。',w:[W('She'),M(B,2),W('good'),W('at'),M(['sing','singing'],1),W('.'),W('She'),M(B,2),W('a'),W('good'),W('dancer'),W('.')],d:[W('does'),W('very')]},
+{ja:'メアリーは歌うことが得意です。彼女はダンスも得意です。',w:[W('Mary'),M(B,2),W('good'),W('at'),M(['sing','singing'],1),W('.'),W('She'),M(B,2),W('good'),W('at'),M(['dance','dancing'],1),W(','),W('too'),W('.')],d:[W('does'),W('very')]},
 {ja:'あちらはジュンです。彼は漢字を少し読めます。',w:[W('That'),M(B,2),W('Jun'),W('.'),W('He'),W('can'),M(['reads','read'],1),W('some'),W('kanji'),W('.')],d:[W('does'),W('a')]},
 {ja:'彼女はカナダ出身です。彼女は中華料理を作れます。',w:[W('She'),M(B,2),W('from'),W('Canada'),W('.'),W('She'),W('can'),M(['cooks','cook'],1),W('Chinese'),W('food'),W('.')],d:[W('does'),W('a')]},
 {ja:'彼はサッカー部に入っています。彼はサッカーが上手にできます。',w:[W('He'),M(B,2),W('on'),W('the'),W('soccer'),W('team'),W('.'),W('He'),W('can'),M(['plays','play'],1),W('soccer'),W('well'),W('.')],d:[W('does'),W('a')]},
@@ -479,7 +479,7 @@ var NEW_WORDS={
      'gyoza','shumai','hiragana','kanji','curry','cook','cooks','run','runs','fast','swim',
      'wolf','fox','panda','koala','banana','kiwi','fruit','dancer','friendly','singing',
      'usually','comic','cooking','playing','much','book','books','team',
-     'on','and','but','too','friend','sing'] /* ラスボス追加文の新出語＋デコイ語＋基本語（friend/sing＝中ボス追加文） */
+     'on','and','but','too','friend','sing','Mary','dance','dancing'] /* ラスボス追加文の新出語＋デコイ語＋基本語（friend/sing/Mary/dance/dancing＝中ボス追加文） */
   /* 3:[…], 4:[…] と足していく */
 };
 /* あるUnitの通常/中ボス/ラスボスで使う英単語の集合（小文字・記号/数字は除外）。
@@ -623,17 +623,9 @@ function comboMult(){return Math.min(1.5,1+0.1*Math.floor(combo/4));}
 function nextNormal(){
   return nextFromPool(poolN,UD().NORMAL); /* 選択中UnitのNORMALを巡回 */
 }
-function queueRetry(q){
-  for(var i=0;i<retryQ.length;i++)if(retryQ[i].q.ja===q.ja)return;
-  retryQ.push({q:q,due:qCount+CONFIG.RETRY_DELAY});
-}
+function queueRetry(q){/* 解き直し機能は廃止（ボス問題が通常フェーズに混ざるのを防ぐため無効化） */}
 function spawnNormalNext(){
-  if(retryQ.length&&qCount>=retryQ[0].due){
-    var r=retryQ.shift();
-    spawnQuestion(r.q,true);
-  }else{
-    spawnQuestion(nextNormal(),false);
-  }
+  spawnQuestion(nextNormal(),false);
 }
 
 /* ================= Divp 連携（全てガード付き） ================= */
@@ -2189,7 +2181,7 @@ for(var i=0;i<60;i++)stars.push({x:Math.random()*CW,y:Math.random()*CH,s:8+Math.
 for(i=0;i<7;i++)clouds.push({x:Math.random()*CW,y:HUD_H+20+Math.random()*(CH-160),s:18+Math.random()*24,v:6+Math.random()*12,cd:0});
 var last=performance.now();
 function loop(now){
-  var dt=Math.min(0.1,(now-last)/1000); /* 上限0.1s(10fps相当)。低fps端末でも実時間どおりの速度に（0.05だと20fps未満で遅くなる） */
+  var dt=Math.min(0.2,(now-last)/1000); /* 上限0.2s(5fps相当)。Safari等でfpsが落ちても実時間どおりの速度を保つ（0.1だと10fps未満でスロー再生になっていた）。インベーダーは低速なので大ジャンプの心配なし */
   last=now;
   update(dt);
   draw();
