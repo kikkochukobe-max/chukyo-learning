@@ -92,6 +92,9 @@ body.divp-menu #divp-sentence-bar,
 body.divp-menu #divp-controls,
 body.divp-menu #divp-btn-pause{display:none;}
 body.divp-menu #divp-btn-sound{margin-left:auto;}
+/* 単語練習モード：変形ボタンは不要なので隠し、操作ボタンを1列に */
+body.divp-spell #divp-btn-morph{display:none;}
+body.divp-spell #divp-controls{grid-template-columns:1fr;}
 #divp-btn-sound,#divp-btn-pause{
   width:48px;background:var(--divp-panel);
   border:2px solid var(--divp-border);border-radius:6px;
@@ -291,7 +294,7 @@ body.divp-dark #divp-btn-shoot.divp-active{background:#ff4d6d;border-color:#ff4d
 /* ================= CONFIG（調整はここ） ================= */
 var CONFIG={
   UNIT_KEY:'english_js1_invader',
-  TEST_MODE:true,           // ★動作確認用：各段階を短縮（下のSEQ_TESTを使用）。本番は false
+  TEST_MODE:false,          // ★動作確認用：各段階を短縮（下のSEQ_TESTを使用）。本番は false
   MISS_PENALTY:20,          // 1ミスあたりの減点
   BASE_SCORE:100,           // 通常問題の基礎点
   TIME_BONUS_MAX:150,       // 通常のタイムボーナス上限
@@ -464,7 +467,7 @@ var UNIT_DATA={
 };
 var curUnit=1;
 function UD(){return UNIT_DATA[curUnit];}
-function setUnit(n){curUnit=(n===2?2:1);poolN=[];poolB=[];poolE=[];poolH=[];} /* 選択時に各プールをリセット */
+function setUnit(n){curUnit=(n===2?2:1);poolN=[];poolB=[];poolE=[];poolH=[];spoolN=[];spoolH=[];} /* 選択時に各プールをリセット */
 
 /* ===== 既出語レジストリ（作文の検算用） =====
    各Unitで「新しく出す語」を登録。Unit1は既存データ全体を基準(baseline)とする。
@@ -583,6 +586,7 @@ var score=0, qCount=0, setScore=0, setMiss=0, noMissStreak=0;
 var isExtraMode=false;
 var isBossMode=false;
 var isHiddenMode=false;         /* 裏ボス */
+var isSpellMode=false;          /* 単語練習モード（1文字ずつ綴る）。タイトルで選択 */
 /* 段階進行マシン */
 var phaseIdx=0;                 /* seq() 内のインデックス */
 var phaseDone=0;                /* 現段階で解いた問数 */
@@ -620,6 +624,64 @@ function padBossDecoys(q){
   }
   return {ja:q.ja,w:q.w,d:extra}; /* 元の問題は壊さずクローンを返す */
 }
+
+/* ===== 単語練習モード（1文字ずつ撃って綴る） ===== */
+/* 通常/中ボス：そのUnitの新出単語。ラスボス/裏ボス：習っていない先の難単語。 */
+/* 教科書New Horizonの New Words＋小学校既習（画像から採取）。2語句(South Africa/totem pole)と略号(Mr/Ms)は綴り練習に不向きなので除外 */
+var SPELL_WORDS={
+  1:[/* Unit1 New Words */
+     {en:'call',ja:'呼ぶ'},{en:'love',ja:'大好きだ'},{en:'fan',ja:'ファン'},{en:'often',ja:'よく'},
+     {en:'with',ja:'〜と'},{en:'but',ja:'しかし'},{en:'draw',ja:'（絵を）かく'},{en:'an',ja:'1つの'},
+     {en:'anime',ja:'アニメ'},{en:'so',ja:'それで'},{en:'about',ja:'〜について'},{en:'lessons',ja:'レッスン'},
+     /* Unit1 小学校既習 */
+     {en:'everyone',ja:'みんな'},{en:'me',ja:'私を'},{en:'from',ja:'〜出身'},{en:'Japanese',ja:'日本の'},
+     {en:'sweets',ja:'お菓子'},{en:'and',ja:'そして'},{en:'too',ja:'〜も'},{en:'join',ja:'参加する'},
+     {en:'the',ja:'その'},{en:'club',ja:'部・クラブ'},{en:'rugby',ja:'ラグビー'},{en:'watch',ja:'見る'},
+     {en:'friends',ja:'友達'},{en:'great',ja:'すばらしい'},{en:'no',ja:'いいえ'},{en:'not',ja:'〜でない'},
+     {en:'comics',ja:'まんが'},{en:'are',ja:'〜です'},{en:'in',ja:'〜の中に'},{en:'art',ja:'美術'},
+     {en:'how',ja:'どう'},{en:'school',ja:'学校'},{en:'now',ja:'今'},{en:'take',ja:'受ける'},{en:'swimming',ja:'水泳'}],
+  2:[/* Unit2 New Words */
+     {en:'class',ja:'クラス・組'},{en:'our',ja:'私たちの'},{en:'Canada',ja:'カナダ'},{en:'America',ja:'アメリカ'},
+     {en:'Chinese',ja:'中国の・中国語'},{en:'cannot',ja:'〜できない'},{en:'some',ja:'いくつかの'},{en:'parents',ja:'両親'},
+     {en:'China',ja:'中国'},{en:'excuse',ja:'許す'},{en:'here',ja:'ここに'},{en:'welcome',ja:'ようこそ'},
+     {en:'thunderbird',ja:'サンダーバード'},
+     /* Unit2 小学校既習 */
+     {en:'he',ja:'彼は'},{en:'she',ja:'彼女は'},{en:'new',ja:'新しい'},{en:'teacher',ja:'先生'},
+     {en:'on',ja:'〜に所属して'},{en:'team',ja:'チーム'},{en:'at',ja:'〜が（得意）'},{en:'cool',ja:'かっこいい'},
+     {en:'food',ja:'食べ物'},{en:'father',ja:'父'},{en:'can',ja:'〜できる'},{en:'make',ja:'作る'},
+     {en:'very',ja:'とても'},{en:'well',ja:'上手に'},{en:'that',ja:'あれ'},{en:'read',ja:'読む'},
+     {en:'really',ja:'本当に'},{en:'see',ja:'わかる'},{en:'your',ja:'あなたの'},{en:'thank',ja:'感謝する'},
+     {en:'it',ja:'それ'},{en:'bird',ja:'鳥'}]
+};
+/* 裏ボス専用：上記以外の激ムズ（長い・つづりにくい）単語 */
+var SPELL_HARD=[
+  {en:'delicious',ja:'とてもおいしい'},{en:'beautiful',ja:'美しい'},{en:'restaurant',ja:'レストラン'},
+  {en:'vegetable',ja:'野菜'},{en:'dictionary',ja:'辞書'},{en:'interesting',ja:'おもしろい'},
+  {en:'wonderful',ja:'すばらしい'},{en:'difficult',ja:'難しい'},{en:'important',ja:'重要な'},
+  {en:'refrigerator',ja:'冷蔵庫'},{en:'temperature',ja:'温度・気温'},{en:'comfortable',ja:'快適な'},
+  {en:'environment',ja:'環境'},{en:'grandmother',ja:'祖母'},{en:'necessary',ja:'必要な'}
+];
+var spoolN=[],spoolH=[];
+/* お題の単語→「各文字＝正解タイル」＋ひっかけ文字(単語に無い文字)decoyN個 */
+function makeSpellQ(entry,decoyN){
+  var letters=entry.en.split(''),w=[],have={},i;
+  for(i=0;i<letters.length;i++){w.push(W(letters[i]));have[letters[i].toLowerCase()]=1;}
+  var alpha='abcdefghijklmnopqrstuvwxyz'.split(''),pool=[];
+  for(i=0;i<alpha.length;i++)if(!have[alpha[i]])pool.push(alpha[i]);
+  shuffle(pool);
+  var d=[],want=decoyN;
+  /* ひっかけ：単語に含まれる文字の「余分な1つ」を混ぜる（例 often に余分な e）。撃っても順番が合えば無害だが紛らわしい */
+  if(decoyN>=2&&letters.length>1){d.push(W(letters[Math.floor(Math.random()*letters.length)]));want=decoyN-1;}
+  for(i=0;i<want&&i<pool.length;i++)d.push(W(pool[i]));
+  return {ja:entry.ja,en:entry.en,spell:true,w:w,d:d};
+}
+function spawnSpellQuestion(k){
+  var entry,decoyN;
+  if(k==='hidden'){entry=nextFromPool(spoolH,SPELL_HARD);decoyN=6;} /* 裏ボスだけ「これら以外の激ムズ単語」 */
+  else{entry=nextFromPool(spoolN,SPELL_WORDS[curUnit]);decoyN=(k==='last')?5:(k==='boss')?4:2;} /* 通常/中ボス/ラスボスは調べた単語 */
+  spawnQuestion(makeSpellQ(entry,decoyN),false);
+}
+
 function comboMult(){return Math.min(1.5,1+0.1*Math.floor(combo/4));}
 function nextNormal(){
   return nextFromPool(poolN,UD().NORMAL); /* 選択中UnitのNORMALを巡回 */
@@ -631,13 +693,13 @@ function spawnNormalNext(){
 
 /* ================= Divp 連携（全てガード付き） ================= */
 function divpSessionStart(){try{if(window.Divp&&Divp.session&&Divp.session.start)Divp.session.start(CONFIG.UNIT_KEY);}catch(e){}}
-function sentenceOf(q){var s='';for(var i=0;i<q.w.length;i++){var t=q.w[i].f[q.w[i].c];if(t==='.'||t==='?'||t==='!'||t===',')s+=t;else s+=(s?' ':'')+t;}return s;}
+function sentenceOf(q){if(q&&q.spell&&q.en)return q.en; /* 単語モードは綴りをそのまま返す */ var s='';for(var i=0;i<q.w.length;i++){var t=q.w[i].f[q.w[i].c];if(t==='.'||t==='?'||t==='!'||t===',')s+=t;else s+=(s?' ':'')+t;}return s;}
 function divpLogAnswer(q,ok,pts,ms,missN){
   try{
     if(window.Divp&&Divp.answer){
       Divp.answer({
         unit_key:CONFIG.UNIT_KEY,
-        question_key:isHiddenMode?'hidden':(isExtraMode?'last':(isBossMode?'boss':'normal')),
+        question_key:(isSpellMode?'spell_':'')+(isHiddenMode?'hidden':(isExtraMode?'last':(isBossMode?'boss':'normal'))),
         is_correct:ok,
         score:pts,
         time_ms:Math.round(ms),
@@ -1063,12 +1125,14 @@ function spawnQuestion(q,isRetry){
   for(i=0;i<tiles.length;i++)if(tiles[i].alive&&tiles[i].word.f.length>1){hasMorph=true;break;}
   if(!isTutorial){
     setMode(hasMorph?'morph':'order'); /* ●が無い問題は最初から「じゅんばん」 */
-    announce=hasMorph
-      ? {t:'① ■のことばは 必要なら かたちをかえよう！',life:2.8}
-      : {t:'和訳どおりに じゅんばんに タップ！',life:2.2};
+    announce=isSpellMode
+      ? {t:'文字を じゅんばんに 撃って つづろう！',life:2.6}
+      : (hasMorph
+        ? {t:'① ■のことばは 必要なら かたちをかえよう！',life:2.8}
+        : {t:'和訳どおりに じゅんばんに タップ！',life:2.2});
   }
   qStart=performance.now();
-  jaBar.textContent=(isRetry?'🔁もういちど！ ':'')+q.ja;
+  jaBar.textContent=q.spell?('「'+q.ja+'」を 英語で！'):((isRetry?'🔁もういちど！ ':'')+q.ja);
   renderSentence();
 }
 function renderSentence(){
@@ -1127,18 +1191,20 @@ function miss(tile,msg){
     return;
   }
   combo=0;
-  var noPenalty=(isExtraMode||isHiddenMode); /* ラスボス・裏ボスは減点なし */
-  if(!noPenalty){misses++;setMiss++;}
+  var countMiss=!isHiddenMode;                     /* 裏ボス以外はミスを数える（ラスボスも数える＝ノーミスでないと突破できない→自動で裏ボスに行かない） */
+  var scorePenalty=!(isExtraMode||isHiddenMode);   /* 減点(と-20表示)はラスボス・裏ボスなし。カウントはするが点は引かない */
+  if(countMiss){misses++;setMiss++;}
   noMissStreak=0;
   tile.flash=0.5;shake=0.35;sfxMiss();
   addFloat(tile.bx+grpX+tile.w/2,tile.by+grpY,msg,'#ff5566');
-  if(!noPenalty)addFloat(ship.x,SHIP_Y-40,'-'+CONFIG.MISS_PENALTY,'#ff5566');
+  if(scorePenalty)addFloat(ship.x,SHIP_Y-40,'-'+CONFIG.MISS_PENALTY,'#ff5566');
 }
 function curPhase(){return seq()[phaseIdx];}
 function phaseKind(){var p=curPhase();return p?p.kind:'normal';}
 /* 各段階に応じて問題を1問出す */
 function spawnPhaseQuestion(){
   var k=phaseKind();
+  if(isSpellMode){spawnSpellQuestion(k);return;} /* 単語練習モード */
   if(k==='normal'){spawnNormalNext();return;}
   if(k==='boss'){spawnQuestion(padBossDecoys(nextFromPool(poolB,UD().BOSS)),false);return;}
   if(k==='last'){spawnQuestion(nextFromPool(poolE,UD().EXTRA),false);return;}
@@ -1260,7 +1326,7 @@ function startPhaseIntro(isRetry){
     state='wait';bgmStop();sfxBossAlarm();
     overlayIn.innerHTML=
       '<div class="divp-boss-title">中ボス しゅつげん！！'+(isRetry?'（もういちど）':'')+'</div>'+
-      '<div class="divp-result-stats">つかわない単語も まざって <b>ぜんぶで10語いじょう</b>！<br>ノーミスで '+curPhase().n+' 問 うちおとせ！</div>';
+      '<div class="divp-result-stats">'+(isSpellMode?'つかわない文字が まざっているぞ！':'つかわない単語も まざって <b>ぜんぶで10語いじょう</b>！')+'<br>ノーミスで '+curPhase().n+' 問 うちおとせ！</div>';
     overlay.classList.add('divp-show');
     setTimeout(function(){overlay.classList.remove('divp-show');bgmStart('boss');state='play';spawnPhaseQuestion();},2000);
   }else if(k==='last'){
@@ -1270,7 +1336,7 @@ function startPhaseIntro(isRetry){
     setTimeout(function(){
       overlayIn.innerHTML='<div class="divp-warning">！！ WARNING ！！</div>'+
         '<div class="divp-extra-title">LAST BOSS'+(isRetry?'（もういちど）':'')+'</div>'+
-        '<div class="divp-result-stats">つかわない単語がまざった長文が しゅつげん！<br>ノーミスで '+curPhase().n+' 問／減点なし・高得点</div>';
+        '<div class="divp-result-stats">'+(isSpellMode?'習っていない むずかしい単語が しゅつげん！':'つかわない単語がまざった長文が しゅつげん！')+'<br>ノーミスで '+curPhase().n+' 問／減点なし・高得点</div>';
     },1200);
     setTimeout(function(){overlay.classList.remove('divp-show');bgmStart('dark');state='play';spawnPhaseQuestion();},3200);
   }else if(k==='hidden'){
@@ -1442,7 +1508,7 @@ function update(dt){
 
   /* 群れの移動 */
   var elapsed=(performance.now()-qStart)/1000;
-  var base=isHiddenMode?CONFIG.HIDDEN_SPEED:(isExtraMode?CONFIG.LAST_SPEED:CONFIG.INVADER_SPEED); /* ラスボス/裏ボスは初速を上げる（加速しない分） */
+  var base=CONFIG.INVADER_SPEED; /* 全モード共通の落下初速（ラスボス/裏ボスも通常と同じ速度に統一） */
   var spd=Math.min(CONFIG.INVADER_SPEED_MAX,base+elapsed*CONFIG.INVADER_ACCEL);
   /* 行数が多い（＝読む時間がいる）ほど落下を遅く。3行以上はさらにゆっくり */
   var spdMul=1,stepMul=1;
@@ -1578,15 +1644,15 @@ function draw(){
     ctx.font="24px 'DotGothic16', monospace";
     ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.globalAlpha=(isExtraMode||isHiddenMode)?0.85:0.78;
-    ctx.fillStyle=isMorphWm?p.morphDot:p.bullet; /* ■印と同じオレンジ(morphDot)に統一 */
-    ctx.fillText(isMorphWm?'① かたちをかえる：■は必要なら変形':'② じゅんばん：和訳どおりに タップ',CW/2,252);
+    ctx.fillStyle=isSpellMode?p.bullet:(isMorphWm?p.morphDot:p.bullet);
+    ctx.fillText(isSpellMode?'文字を じゅんばんに 撃って つづろう！':(isMorphWm?'① かたちをかえる：■は必要なら変形':'② じゅんばん：和訳どおりに タップ'),CW/2,252);
     ctx.globalAlpha=1;
-    /* 使わない単語（デコイ）が混ざっている問題は常に警告 */
+    /* デコイ（不要）が混ざっている問題は常に警告 */
     if(curQ&&curQ.d&&curQ.d.length){
       ctx.font="15px 'DotGothic16', monospace";
       ctx.fillStyle='#ffb547';
       ctx.globalAlpha=0.95;
-      ctx.fillText('⚠ つかわない単語が '+curQ.d.length+'つ まざっている！',CW/2,282);
+      ctx.fillText('⚠ つかわない'+(isSpellMode?'文字':'単語')+'が '+curQ.d.length+(isSpellMode?'こ':'つ')+' まざっている！',CW/2,282);
       ctx.globalAlpha=1;
     }
   }
@@ -1829,6 +1895,7 @@ var tapSlide=false;
 var btnMorph=document.getElementById('divp-btn-morph');
 var btnShoot=document.getElementById('divp-btn-shoot');
 function setMode(m){
+  if(isSpellMode)m='order'; /* 単語モードは常に「じゅんばん（撃つ）」。変形は使わない */
   mode=m;
   btnMorph.classList.toggle('divp-active',m==='morph');
   btnShoot.classList.toggle('divp-active',m==='order');
@@ -2016,8 +2083,8 @@ document.getElementById('divp-btn-resume').addEventListener('click',resumeGame);
 
 /* ================= チュートリアル ================= */
 function startTutorial(){
-  isTutorial=true;isExtraMode=false;isBossMode=false;isHiddenMode=false;
-  document.body.classList.remove('divp-dark','divp-boss','divp-hidden','divp-menu'); /* 練習中は操作ボタン等を表示 */
+  isTutorial=true;isExtraMode=false;isBossMode=false;isHiddenMode=false;isSpellMode=false;
+  document.body.classList.remove('divp-dark','divp-boss','divp-hidden','divp-menu','divp-spell'); /* 練習中は操作ボタン等を表示（文章モードで説明） */
   score=0;qCount=0;combo=0;maxCombo=0;noMissStreak=0;
   setScore=0;setMiss=0;retryQ=[];
   fx={slowT:0,hintT:0,doubleQ:false,shield:0};
@@ -2109,6 +2176,10 @@ function showTitle(){
       '<option value="1"'+(curUnit===1?' selected':'')+'>Unit 1「Hello, Everyone!」</option>'+
       '<option value="2"'+(curUnit===2?' selected':'')+'>Unit 2「Our New Teacher」</option>'+
     '</select>'+
+    '<select class="divp-mode-select" id="divp-gamemode-select" aria-label="モードをえらぶ">'+
+      '<option value="sentence">📖 ぶんを ならべる モード</option>'+
+      '<option value="spell">🔤 単語を つづる モード</option>'+
+    '</select>'+
     '<button class="divp-big-btn" id="divp-btn-start" type="button">GAME START</button>'+
     '<button class="divp-sub-btn" id="divp-btn-story" type="button">📖 ストーリーを みる</button>'+
     '<button class="divp-sub-btn" id="divp-btn-tut" type="button">▶ あそびかた（テストプレイ）</button>';
@@ -2120,6 +2191,9 @@ function showTitle(){
     initAudio();
     if(ac&&ac.state==='suspended')ac.resume();
     setUnit(uSel?parseInt(uSel.value,10):1); /* 選択中Unitを確定 */
+    var gmSel=document.getElementById('divp-gamemode-select');
+    isSpellMode=!!(gmSel&&gmSel.value==='spell'); /* モード確定 */
+    document.body.classList.toggle('divp-spell',isSpellMode);
     divpSessionStart();
     overlay.classList.remove('divp-show');
     document.body.classList.remove('divp-menu'); /* 英文枠・操作ボタンを表示 */
