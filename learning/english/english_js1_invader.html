@@ -322,18 +322,18 @@ var CONFIG={
 /* 本番の進行シーケンス（各段階：種類×問数）。ノーミス継続で次段階へ。
    normal=通常, boss=中ボス, last=ラスボス, hidden=裏ボス */
 var SEQ=[
-  {kind:'normal',n:10},
-  {kind:'boss',  n:1},
-  {kind:'normal',n:10},
+  {kind:'normal',n:10},                 /* ウォームアップ：ミスOK */
+  {kind:'boss',  n:2},                  /* 中ボス：2連続ノーミス（ミスで全体リスタート） */
+  {kind:'normal',n:5, noMiss:true},     /* 通常5問だが「ノーミス5連続」ゲート（ミスで全体リスタート） */
   {kind:'boss',  n:2},
-  {kind:'last',  n:2},
-  {kind:'hidden',n:1}
+  {kind:'last',  n:2},                  /* ラスボス：2連続ノーミス→裏ボス（ミスでおしまい） */
+  {kind:'hidden',n:1}                   /* 裏ボス：完全ノーミス（ミス/突破で全体リスタート） */
 ];
 /* 動作確認用の短縮シーケンス */
 var SEQ_TEST=[
   {kind:'normal',n:2},
-  {kind:'boss',  n:1},
-  {kind:'normal',n:2},
+  {kind:'boss',  n:2},
+  {kind:'normal',n:2, noMiss:true},
   {kind:'boss',  n:2},
   {kind:'last',  n:2},
   {kind:'hidden',n:1}
@@ -451,7 +451,7 @@ var EXTRA2=[
    未習の疑問文（How many … do you know?）＋変形2か所（singer→singers / knows→know）。
    デコイ2語：does(do/doesのわな)・much(many/muchのわな） */
 var HIDDEN2=[
-{ja:'世界で有名な歌手を何人知っていますか？',w:[W('How'),W('many'),W('famous'),M(['singer','singers'],1),W('in'),W('the'),W('world'),W('do'),W('you'),M(['knows','know'],1),W('?')],d:[W('does'),W('much'),M(B,2)]}
+{ja:'世界中の有名な歌手を何人知っていますか？',w:[W('How'),W('many'),W('famous'),M(['singer','singers'],1),W('around'),W('the'),W('world'),W('do'),W('you'),M(['knows','know'],1),W('?')],d:[W('does'),W('much'),M(B,2)]}
 ];
 /* 予備（もとの裏ボス候補。使いたくなったら HIDDEN2 に移す。現在は未使用） */
 var HIDDEN2_RESERVE=[
@@ -1273,9 +1273,10 @@ function advancePhase(noMiss){
   var k=p.kind;
 
   if(k==='normal'){
+    if(p.noMiss&&!noMiss){showRestartRun();return;} /* ノーミス必須の通常ゲートでミス→ゲーム全体を初めから */
     phaseDone++;
     if(phaseDone>=p.n){
-      // 10問終了→結果発表→次段階へ
+      // 規定問数クリア→結果発表→次段階へ
       phaseDone=0;
       showStageResult(function(){goNextPhase();});
     }else{
@@ -1284,23 +1285,53 @@ function advancePhase(noMiss){
     return;
   }
 
-  // boss / last / hidden：ノーミス継続が突破条件
-  if(!noMiss){
-    // ミス→この段階を最初からやり直し
-    phaseDone=0;
-    startPhaseIntro(true); // リトライintro
+  // ラスボス：ノーミスで n(=2) 回連続クリアで裏ボス出現。
+  // ミスがあったら、その問題をクリアした時点で「おしまい」（裏ボスに行かず終了→通常/タイトルへ）。やり直しはしない。
+  if(k==='last'){
+    if(!noMiss){showFinalResult();return;}                                    // ミスあり → 終了（裏ボスなし）
+    phaseDone++;
+    if(phaseDone>=p.n){phaseDone=0;showLastResult(function(){goNextPhase();});return;} // 2連続ノーミス → 裏ボスへ
+    state='play';spawnPhaseQuestion();                                        // 1問目ノーミス → 2問目へ
     return;
   }
-  phaseDone++;
-  if(phaseDone>=p.n){
-    phaseDone=0;
-    if(k==='hidden'){showHiddenResult();return;}
-    if(k==='last'){showLastResult(function(){goNextPhase();});return;}
-    // boss突破→通常へ戻る（段階を進める）
-    goNextPhase();
-  }else{
-    state='play';spawnPhaseQuestion();
+
+  // 中ボス：2連続ノーミスで突破。ミスがあったら「ゲーム全体を初めから」やり直し（やりこみ要素）
+  if(k==='boss'){
+    if(!noMiss){showRestartRun();return;}
+    phaseDone++;
+    if(phaseDone>=p.n){phaseDone=0;goNextPhase();}
+    else{state='play';spawnPhaseQuestion();}
+    return;
   }
+
+  // 裏ボス(hidden)：完全ノーミスでクリアが条件。ミス/突破されたら → ゲーム全体を初めから
+  if(!noMiss){showRestartRun();return;}
+  phaseDone++;
+  if(phaseDone>=p.n){phaseDone=0;showHiddenResult();return;}
+  state='play';spawnPhaseQuestion();
+}
+/* 中ボス失敗：ゲーム全体を初めからやり直し（同じモード・Unitのまま） */
+function showRestartRun(){
+  state='result';bgmStop();
+  document.body.classList.remove('divp-boss','divp-dark','divp-hidden');
+  overlayIn.innerHTML=
+    '<div class="divp-title-sub" style="color:#ff3355">ミス！ とっぱ ならず…</div>'+
+    '<div class="divp-result-stats"><b>ノーミス</b>で とっぱできず…<br>はじめから やりなおし！</div>'+
+    '<div class="divp-result-stats" style="margin-bottom:14px">ここまでのスコア: '+score+'</div>'+
+    '<button class="divp-big-btn" id="divp-btn-restart" type="button">▶ はじめから</button>';
+  overlay.classList.add('divp-show');
+  document.getElementById('divp-btn-restart').addEventListener('click',function(){
+    overlay.classList.remove('divp-show');restartRun();
+  });
+}
+function restartRun(){
+  phaseIdx=0;phaseDone=0;
+  score=0;qCount=0;combo=0;maxCombo=0;noMissStreak=0;
+  setScore=0;setMiss=0;retryQ=[];hiddenScore=0;
+  isBossMode=isExtraMode=isHiddenMode=false;
+  document.body.classList.remove('divp-boss','divp-dark','divp-hidden');
+  bgmStop();bgmStart('normal');
+  state='play';spawnPhaseQuestion();
 }
 function goNextPhase(){
   phaseIdx++;phaseDone=0;
@@ -1312,6 +1343,7 @@ function goNextPhase(){
     document.body.classList.remove('divp-boss','divp-dark','divp-hidden');
     bgmStop();bgmStart('normal');
     state='play';spawnPhaseQuestion();
+    if(p.noMiss)announce={t:'ここから '+p.n+'問 ノーミス！ ミスで はじめから',life:3.2}; /* ノーミスゲートの警告 */
   }else{
     startPhaseIntro(false);
   }
