@@ -41,7 +41,10 @@ body.divp-dark{
   --divp-sub:#9a7bc0;
   --divp-overlay:rgba(5,0,12,.9);
 }
-*{box-sizing:border-box; -webkit-tap-highlight-color:transparent; touch-action:manipulation;} /* touch-actionは継承されないので全要素に指定してダブルタップ拡大を抑止 */
+/* manipulation＝スクロール(パン)は許可・ダブルタップ拡大は無効（iOSはこの値でのみ確実に切れる。pan-y/noneだと双打ズームが残る個体がある）。
+   ピンチはCSS上は許容されるが、JS(gesture*・2本指touch)で抑止する。
+   ゲーム面(#divp-canvas)だけは個別にnoneで全ジェスチャー抑止（スクロール不要）。 */
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent; touch-action:manipulation;}
 html,body{margin:0;padding:0;height:100%;touch-action:manipulation;}
 body{
   background:var(--divp-bg);
@@ -83,6 +86,12 @@ body.divp-dark #divp-brand span{color:#ff4d6d;}
   transition:border-color .8s, box-shadow .8s;
 }
 body.divp-dark #divp-ja-bar{box-shadow:0 0 14px rgba(181,123,255,.35);}
+/* メニュー画面(タイトル/ストーリー/あそびかた説明)では、英文枠・英文チップ枠・操作2ボタン・一時停止を隠す（サウンドボタンだけ右に残す） */
+body.divp-menu #divp-ja-bar,
+body.divp-menu #divp-sentence-bar,
+body.divp-menu #divp-controls,
+body.divp-menu #divp-btn-pause{display:none;}
+body.divp-menu #divp-btn-sound{margin-left:auto;}
 #divp-btn-sound,#divp-btn-pause{
   width:48px;background:var(--divp-panel);
   border:2px solid var(--divp-border);border-radius:6px;
@@ -101,6 +110,11 @@ body.divp-dark #divp-ja-bar{box-shadow:0 0 14px rgba(181,123,255,.35);}
 .divp-pause-sub{font-size:14px;color:var(--divp-sub);line-height:1.8;}
 .divp-pause-mark{font-size:64px;color:var(--divp-accent2);}
 #divp-canvas-box{position:relative;border:2px solid var(--divp-border);border-radius:6px;overflow:hidden;background:#9fdcff;flex:1 1 auto;min-height:0;}
+/* キャンバスは object-fit:contain なので枠の余白(レターボックス)が見える。
+   暗い段階で枠の水色が「明るい縦線」に見えるのを防ぐため、段階の空色に合わせる */
+body.divp-boss #divp-canvas-box{background:#1b2a6b;}
+body.divp-dark #divp-canvas-box{background:#07000d;}
+body.divp-hidden #divp-canvas-box{background:#000;}
 #divp-canvas{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;touch-action:none;}
 #divp-scanlines{
   position:absolute;inset:0;pointer-events:none;
@@ -123,9 +137,9 @@ body.divp-dark #divp-scanlines{
 /* プロローグ（ストーリー） */
 .divp-story{max-width:340px;margin:0 auto;text-align:center;}
 .divp-story-eyebrow{font-size:12px;letter-spacing:.34em;color:var(--divp-sub);}
-.divp-story-title{font-size:26px;color:var(--divp-accent);text-shadow:2px 2px 0 #ffd76e;margin:4px 0 16px;}
-.divp-story-body{text-align:left;font-size:13.5px;line-height:1.9;color:var(--divp-text);}
-.divp-story-body p{margin:0 0 15px;animation:divp-story-in .5s ease both;}
+.divp-story-title{font-size:24px;color:var(--divp-accent);text-shadow:2px 2px 0 #ffd76e;margin:2px 0 10px;}
+.divp-story-body{text-align:left;font-size:13.5px;line-height:1.6;color:var(--divp-text);}
+.divp-story-body p{margin:0 0 9px;animation:divp-story-in .5s ease both;}
 .divp-story-body p:nth-child(1){animation-delay:.05s;}
 .divp-story-body p:nth-child(2){animation-delay:.35s;}
 .divp-story-body p:nth-child(3){animation-delay:.65s;}
@@ -193,11 +207,11 @@ body.divp-hidden #divp-brand span{color:#c0392b;}
 }
 .divp-unit.divp-sel{background:var(--divp-accent);border-color:var(--divp-accent);color:#fff;}
 #divp-sentence-bar{
-  min-height:40px;background:var(--divp-panel);
+  height:72px;background:var(--divp-panel);   /* 高さ固定：チップ増減で下段が伸縮→キャンバスが再レイアウト（横幅が細くなる）のを防ぐ */
   border:2px solid var(--divp-border);border-radius:6px;
   padding:6px 8px;flex:0 0 auto;
-  display:flex;flex-wrap:wrap;gap:5px;align-items:center;
-  font-size:15px;max-height:78px;overflow-y:auto;
+  display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start;
+  font-size:15px;overflow-y:auto;
 }
 .divp-chip{
   background:#e6f4ff;border:1px solid var(--divp-accent);
@@ -357,50 +371,158 @@ var NORMAL=[
 {ja:'私はアニメファンではありません。',w:[W('I'),M(B,1),W('not'),W('an'),W('anime'),W('fan'),W('.')]}
 ];
 
-/* ラスボス：Unit1のやや長い文＋不要語(デコイ)を2語混入（中ボスより難しく）。減点なし・高得点 */
+/* ラスボス：Unit1（不要語3語・減点なし・高得点）。今はこの4問だけ運用。be動詞デコイは■変形ひっかけ */
 var EXTRA=[
-{ja:'私は抹茶も大好きです。',w:[W('I'),M(['loves','love'],1),W('matcha'),W(','),W('too'),W('.')],d:[W('like'),W('and')]},
-{ja:'私は大福とあんみつが大好きです。',w:[W('I'),M(['loves','love'],1),W('daifuku'),W('and'),W('anmitsu'),W('.')],d:[W('too'),W('like')]},
-{ja:'私は茶道部に入りたいです。',w:[W('I'),M(['wants','want'],1),W('to'),W('join'),W('the'),W('sado'),W('club'),W('!')],d:[W('a'),W('in')]},
-{ja:'私はよく友達とラグビーを見ます。',w:[W('I'),W('often'),M(['watches','watch'],1),W('rugby'),W('with'),W('my'),W('friends'),W('.')],d:[W('play'),W('and')]},
-{ja:'私はラグビーをしませんが、サッカーはします。',w:[W('I'),W('do'),W('not'),M(['plays','play'],1),W('rugby'),W(','),W('but'),W('I'),W('play'),W('soccer'),W('.')],d:[W('am')]},
-{ja:'私は今、学校のクラブには入っていません。',w:[W('I'),M(B,1),W('not'),W('in'),W('a'),W('school'),W('club'),W('now'),W('.')],d:[W('on'),W('do')]}
+{ja:'あなたの家族はよくサッカーを見ますか。はい、私たちは毎日見ます。',w:[W('Does'),W('your'),W('family'),W('often'),M(['watches','watch'],1),W('soccer'),W('?'),W('Yes'),W(','),W('we'),M(['watches','watch'],1),W('it'),W('every'),W('day'),W('.')],d:[M(B,2),W('do'),W('much')]},
+{ja:'あなたはピアノを弾きますか。いいえ、妹たちはよく家でピアノを弾きます。',w:[W('Do'),W('you'),M(['plays','play'],1),W('the'),W('piano'),W('?'),W('No'),W(','),W('my'),W('sisters'),W('often'),M(['plays','play'],1),W('the'),W('piano'),W('at'),W('home'),W('.')],d:[W('does'),M(B,2),W('a')]},
+{ja:'あなたはよく音楽を聴きますか。はい、聴きます。',w:[W('Do'),W('you'),W('often'),M(['listens','listen'],1),W('to'),W('music'),W('?'),W('Yes'),W(','),W('I'),W('do'),W('.')],d:[W('does'),M(B,2),W('much')]},
+{ja:'どんな食べ物が好きですか。寿司が好きです。あなたはどうですか。',w:[W('What'),W('food'),W('do'),W('you'),M(['likes','like'],1),W('?'),W('I'),M(['likes','like'],1),W('sushi'),W('.'),W('How'),W('about'),W('you'),W('?')],d:[W('does'),M(B,2),W('much')]}
 ];
 
 /* 裏ボス：Unit1で最長・複合の文。減点なし・高得点 */
 var HIDDEN=[
-{ja:'私は今学校のクラブには入っていませんが、水泳のレッスンを受けています。',w:[W('I'),M(B,1),W('not'),W('in'),W('a'),W('school'),W('club'),W('now'),W(','),W('but'),W('I'),M(['takes','take'],1),W('swimming'),W('lessons'),W('.')]},
-{ja:'私の友達はよく私の兄とサッカーを見たがります。',w:[W('My'),W('friends'),W('often'),M(['wants','want'],1),W('to'),W('watch'),W('soccer'),W('with'),W('my'),W('brother'),W('.')]},
+{ja:'私たちは今学校のクラブには入っていませんが、水泳のレッスンを受けています。',w:[W('We'),M(B,3),W('not'),W('in'),W('a'),W('school'),W('club'),W('now'),W(','),W('but'),W('we'),M(['takes','take'],1),W('swimming'),W('lessons'),W('.')]},
+{ja:'どんなフルーツを朝食に食べたいですか。おいしいりんごです。',w:[W('What'),W('fruit'),W('do'),W('you'),M(['wants','want'],1),W('to'),W('eat'),W('for'),W('breakfast'),W('?'),W('A'),W('delicious'),W('apple'),W('.')]},
 {ja:'私はラグビーファンで、よく友達とラグビーを見ます。',w:[W('I'),M(B,1),W('a'),W('rugby'),W('fan'),W(','),W('and'),W('I'),W('often'),M(['watches','watch'],1),W('rugby'),W('with'),W('my'),W('friends'),W('.')]}
 ];
 
-/* 中ボス：Unit1の文に不要な単語(d)が1つまざっている */
+/* 中ボス：Unit1の文（不要語1語＋出題時に10語以上へ自動増量）。今はこの5問だけ運用 */
 var BOSS=[
-{ja:'私は和菓子が好きです。',w:[W('I'),M(['likes','like'],1),W('Japanese'),W('sweets'),W('.')],d:[W('am')]},
-{ja:'あなたはラグビーが好きですか。',w:[W('Do'),W('you'),M(['likes','like'],1),W('rugby'),W('?')],d:[W('are')]},
-{ja:'私は南アフリカの出身です。',w:[W('I'),M(B,1),W('from'),W('South'),W('Africa'),W('.')],d:[W('in')]},
-{ja:'あなたはアニメファンですか。',w:[M(Bc,3),W('you'),W('an'),W('anime'),W('fan'),W('?')],d:[W('do')]},
-{ja:'私はサッカーをします。',w:[W('I'),M(['plays','play'],1),W('soccer'),W('.')],d:[W('a')]},
-{ja:'私は美術部に入っています。',w:[W('I'),M(B,1),W('in'),W('the'),W('art'),W('club'),W('.')],d:[W('on')]},
-{ja:'私はテニス部に入っています。',w:[W('I'),M(B,1),W('on'),W('the'),W('tennis'),W('team'),W('.')],d:[W('in')]},
-{ja:'私は野球部に入っています。',w:[W('I'),M(B,1),W('on'),W('the'),W('baseball'),W('team'),W('.')],d:[W('in')]},
-{ja:'私は音楽部に入っています。',w:[W('I'),M(B,1),W('in'),W('the'),W('music'),W('club'),W('.')],d:[W('on')]},
-{ja:'私の友達はテニス部に入っています。',w:[W('My'),W('friends'),M(B,3),W('on'),W('the'),W('tennis'),W('team'),W('.')],d:[W('in')]},
-{ja:'私の友達は美術部に入っています。',w:[W('My'),W('friends'),M(B,3),W('in'),W('the'),W('art'),W('club'),W('.')],d:[W('on')]},
-{ja:'あなたはピアノをひきますか。',w:[W('Do'),W('you'),M(['plays','play'],1),W('the'),W('piano'),W('?')],d:[W('a')]},
-{ja:'私はラグビーをしません。',w:[W('I'),W('do'),W('not'),M(['plays','play'],1),W('rugby'),W('.')],d:[W('am')]}
+{ja:'あなたはよく友達とラグビーを見ますか。はい、そうです。',w:[W('Do'),W('you'),W('often'),M(['watches','watch'],1),W('rugby'),W('with'),W('your'),W('friends'),W('?'),W('Yes'),W(','),W('I'),W('do'),W('.')],d:[M(B,2)]},
+{ja:'わたしは茶道部に参加したくありません。',w:[W('I'),W('do'),W('not'),M(['wants','want'],1),W('to'),W('join'),W('the'),W('sado'),W('club'),W('.')],d:[M(B,1)]},
+{ja:'あなたはマンガ部に入っていますか。いいえ、入っていません。',w:[M(Bc,3),W('you'),W('in'),W('the'),W('comic'),W('club'),W('?'),W('No'),W(','),W('I'),M(B,1),W('not'),W('.')],d:[M(D,0)]},
+{ja:'あなたは水泳のレッスンを受けていますか。はい、受けています。',w:[W('Do'),W('you'),M(['takes','take'],1),W('swimming'),W('lessons'),W('?'),W('Yes'),W(','),W('I'),W('do'),W('.')],d:[M(B,1)]},
+{ja:'あなたはよくマンガを描きますか。はい、描きます。',w:[W('Do'),W('you'),W('often'),M(['draws','draw'],1),W('comics'),W('?'),W('Yes'),W(','),W('I'),W('do'),W('.')],d:[M(B,1)]}
 ];
 
-/* Unit1のみ運用のため、単元フィルタ(CAT)・疑問詞(WH/QW/QWN/WHQ)・Unit本文モード(UNITS)は削除。
-   ラスボス/裏ボスもUnit1の英文(EXTRA/HIDDEN)で構成している。 */
+/* ===== New Horizon 中1 Unit2「Our New Teacher」 =====
+   文法: Part1/3 = be動詞(he/she/this/that)→ is（morphでbe→is に直させる）／
+         Part2 = can/cannot + 動詞の原形（morphで -s形→原形 に直させる）。
+   すべての問題に「かたちをかえる」■タイルを1つ入れる方針はUnit1と同じ。 */
+/* 通常：Unit2の基本文（be→is・can+原形） */
+var NORMAL2=[
+{ja:'これは純（ジュン）です。',w:[W('This'),M(B,2),W('Jun'),W('.')]},
+{ja:'彼は1年1組です。',w:[W('He'),M(B,2),W('in'),W('Class'),W('1-1'),W('.')]},
+{ja:'彼女は私たちの新しい先生です。',w:[W('She'),M(B,2),W('our'),W('new'),W('teacher'),W('.')]},
+{ja:'彼女はカナダ出身です。',w:[W('She'),M(B,2),W('from'),W('Canada'),W('.')]},
+{ja:'彼はアメリカ出身ではありません。',w:[W('He'),M(B,2),W('not'),W('from'),W('America'),W('.')]},
+{ja:'これは私のペンです。',w:[W('This'),M(B,2),W('my'),W('pen'),W('.')]},
+{ja:'あれは私のペンです。',w:[W('That'),M(B,2),W('my'),W('pen'),W('.')]},
+{ja:'あなたのペンはかっこいい。',w:[W('Your'),W('pen'),M(B,2),W('cool'),W('.')]},
+{ja:'彼はサッカーチームに入っています。',w:[W('He'),M(B,2),W('on'),W('the'),W('soccer'),W('team'),W('.')]},
+{ja:'それはカナダのものです。',w:[W('It'),M(B,2),W('from'),W('Canada'),W('.')]},
+{ja:'彼はサッカーチームに入っていますか。',w:[M(Bc,2),W('he'),W('on'),W('the'),W('soccer'),W('team'),W('?')]},
+{ja:'これは鳥ですか。',w:[M(Bc,2),W('this'),W('a'),W('bird'),W('?')]},
+{ja:'私はぎょうざを作れます。',w:[W('I'),W('can'),M(['makes','make'],1),W('gyoza'),W('.')]},
+{ja:'私はしゅうまいを作れません。',w:[W('I'),W('cannot'),M(['makes','make'],1),W('shumai'),W('.')]},
+{ja:'あなたはひらがなを読めますか。',w:[W('Can'),W('you'),M(['reads','read'],1),W('hiragana'),W('?')]},
+{ja:'私は漢字を少し読めます。',w:[W('I'),W('can'),M(['reads','read'],1),W('some'),W('kanji'),W('.')]},
+{ja:'あなたはカレーを作れますか。',w:[W('Can'),W('you'),M(['cooks','cook'],1),W('curry'),W('?')]},
+{ja:'私は速く走れます。',w:[W('I'),W('can'),M(['runs','run'],1),W('fast'),W('.')]},
+{ja:'私はピアノをひけます。',w:[W('I'),W('can'),M(['plays','play'],1),W('the'),W('piano'),W('.')]}
+];
+/* 中ボス：不要語(d)が1つ。変形できる語のデコイは「ひっかけ」（答えの語と絶対に衝突しない品詞のみ） */
+var BOSS2=[
+{ja:'これは純（ジュン）です。',w:[W('This'),M(B,2),W('Jun'),W('.')],d:[M(D,0)]},          /* do/doesデコイ＝ひっかけ */
+{ja:'彼女は私たちの新しい先生です。',w:[W('She'),M(B,2),W('our'),W('new'),W('teacher'),W('.')],d:[W('a')]},
+{ja:'彼女はカナダ出身です。',w:[W('She'),M(B,2),W('from'),W('Canada'),W('.')],d:[M(['comes','come'],1)]}, /* come/comesデコイ */
+{ja:'彼はサッカーチームに入っています。',w:[W('He'),M(B,2),W('on'),W('the'),W('soccer'),W('team'),W('.')],d:[W('in')]}, /* in/on の紛らわしさ */
+{ja:'彼はアメリカ出身ではありません。',w:[W('He'),M(B,2),W('not'),W('from'),W('America'),W('.')],d:[M(D,0)]}, /* do/doesデコイ */
+{ja:'彼はサッカーチームに入っていますか。',w:[M(Bc,2),W('he'),W('on'),W('the'),W('soccer'),W('team'),W('?')],d:[M(Dc,0)]}, /* Do/Doesデコイ */
+{ja:'これは鳥ですか。',w:[M(Bc,2),W('this'),W('a'),W('bird'),W('?')],d:[W('it')]},
+{ja:'私はぎょうざを作れます。',w:[W('I'),W('can'),M(['makes','make'],1),W('gyoza'),W('.')],d:[M(B,2)]}, /* be動詞デコイ＝ひっかけ（答えにbe動詞なし） */
+{ja:'あなたはひらがなを読めますか。',w:[W('Can'),W('you'),M(['reads','read'],1),W('hiragana'),W('?')],d:[M(Bc,2)]}, /* Be/Am/Is/Areデコイ */
+{ja:'私はしゅうまいを作れません。',w:[W('I'),W('cannot'),M(['makes','make'],1),W('shumai'),W('.')],d:[M(B,2)]}, /* be動詞デコイ */
+{ja:'私はピアノをひけます。',w:[W('I'),W('can'),M(['plays','play'],1),W('the'),W('piano'),W('.')],d:[W('a')]},
+{ja:'あなたはカレーを作れますか。',w:[W('Can'),W('you'),M(['cooks','cook'],1),W('curry'),W('?')],d:[M(B,2)]}
+];
+/* ラスボス：やや長い文＋デコイ2語。減点なし・高得点 */
+var EXTRA2=[
+{ja:'私の父はぎょうざをとても上手に作れます。',w:[W('My'),W('father'),W('can'),M(['makes','make'],1),W('gyoza'),W('very'),W('well'),W('.')],d:[M(B,2),W('and')]}, /* be動詞デコイ */
+{ja:'私はひらがなは読めませんが、漢字は少し読めます。',w:[W('I'),W('cannot'),M(['reads','read'],1),W('hiragana'),W(','),W('but'),W('I'),W('can'),W('read'),W('some'),W('kanji'),W('.')],d:[M(B,2),W('too')]},
+{ja:'彼女はカナダ出身の新しい英語の先生です。',w:[W('She'),M(B,2),W('our'),W('new'),W('English'),W('teacher'),W('from'),W('Canada'),W('.')],d:[M(D,0),W('a')]}, /* do/doesデコイ */
+{ja:'これはカナダのトーテムポールです。',w:[W('This'),M(B,2),W('a'),W('totem'),W('pole'),W('from'),W('Canada'),W('.')],d:[M(['comes','come'],1),W('and')]},
+{ja:'私の父はカレーを作れて、ぎょうざも作れます。',w:[W('My'),W('father'),W('can'),M(['cooks','cook'],1),W('curry'),W('and'),W('make'),W('gyoza'),W('.')],d:[M(B,2),W('to')]},
+{ja:'私はマンガファンです。あなたはよくマンガを読みますか。',w:[W('I'),M(B,1),W('a'),W('comic'),W('fan'),W('.'),W('Do'),W('you'),W('often'),M(['reads','read'],1),W('comics'),W('?')],d:[W('does'),W('much')]},
+{ja:'私は料理が得意ではありません。私はぎょうざを作れません。',w:[W('I'),M(B,1),W('not'),W('good'),W('at'),M(['cook','cooking'],1),W('.'),W('I'),W('cannot'),M(['makes','make'],1),W('gyoza'),W('.')],d:[W('does'),W('a')]},
+{ja:'私はサッカーが得意です。私はたいてい友達とサッカーをします。',w:[W('I'),M(B,1),W('good'),W('at'),M(['play','playing'],1),W('soccer'),W('.'),W('I'),W('usually'),M(['plays','play'],1),W('soccer'),W('with'),W('my'),W('friends'),W('.')],d:[W('does'),W('much')]},
+{ja:'あなたはよく本を読みますか。私の両親はたいてい本を読んでいます。',w:[W('Do'),W('you'),W('often'),M(['reads','read'],1),W('books'),W('?'),W('My'),W('parents'),W('usually'),M(['reads','read'],1),W('books'),W('.')],d:[W('does'),W('much')]} /* often(疑問)×usually(平叙)の対比 */
+];
+/* 裏ボス：最長・複合の文。減点なし・高得点（デコイなし） */
+/* 裏ボス：Unit2はこの1問で固定（クライマックス）。
+   未習の疑問文（How many … do you know?）＋変形2か所（singer→singers / knows→know）。
+   デコイ2語：does(do/doesのわな)・much(many/muchのわな） */
+var HIDDEN2=[
+{ja:'世界で有名な歌手を何人知っていますか？',w:[W('How'),W('many'),W('famous'),M(['singer','singers'],1),W('in'),W('the'),W('world'),W('do'),W('you'),M(['knows','know'],1),W('?')],d:[W('does'),W('much')]}
+];
+/* 予備（もとの裏ボス候補。使いたくなったら HIDDEN2 に移す。現在は未使用） */
+var HIDDEN2_RESERVE=[
+{ja:'彼はアメリカ出身ではありませんが、私たちの新しい英語の先生です。',w:[W('He'),M(B,2),W('not'),W('from'),W('America'),W(','),W('but'),W('he'),W('is'),W('our'),W('new'),W('English'),W('teacher'),W('.')]},
+{ja:'私はしゅうまいは作れませんが、父はぎょうざをとても上手に作れます。',w:[W('I'),W('cannot'),M(['makes','make'],1),W('shumai'),W(','),W('but'),W('my'),W('father'),W('can'),W('make'),W('gyoza'),W('very'),W('well'),W('.')]},
+{ja:'これはカナダのトーテムポールで、あれはサンダーバードです。',w:[W('This'),M(B,2),W('a'),W('totem'),W('pole'),W(','),W('and'),W('that'),W('is'),W('a'),W('thunderbird'),W('.')]}
+];
+
+/* ===== Unit台帳：ドロップリストで選択。curUnitで参照データを切替 ===== */
+var UNIT_DATA={
+  1:{label:'中1 Unit 1「Hello, Everyone!」',NORMAL:NORMAL,BOSS:BOSS,EXTRA:EXTRA,HIDDEN:HIDDEN},
+  2:{label:'中1 Unit 2「Our New Teacher」',NORMAL:NORMAL2,BOSS:BOSS2,EXTRA:EXTRA2,HIDDEN:HIDDEN2}
+};
+var curUnit=1;
+function UD(){return UNIT_DATA[curUnit];}
+function setUnit(n){curUnit=(n===2?2:1);poolN=[];poolB=[];poolE=[];poolH=[];} /* 選択時に各プールをリセット */
+
+/* ===== 既出語レジストリ（作文の検算用） =====
+   各Unitで「新しく出す語」を登録。Unit1は既存データ全体を基準(baseline)とする。
+   後のUnitで過去の語(often/want to/draw…)は自由に再利用してよい。
+   Unit3以降を作るときは NEW_WORDS[3]=[…] のようにその号の新出語を足すだけ。
+   起動時(TEST_MODE)に各Unitの文が「そのUnitまでの語」で作れているかconsoleで検算する。 */
+var NEW_WORDS={
+  2:['class','our','Canada','America','Ms','Mr','he','she','new','teacher','cool','at','good',
+     'Chinese','cannot','some','parent','parents','China','food','father','can','make','makes',
+     'very','well','that','read','reads','really','see','this','your','thank','it','bird','pen','English',
+     'excuse','oops','here','welcome','totem','pole','thunderbird','come','comes','Jun',
+     'gyoza','shumai','hiragana','kanji','curry','cook','cooks','run','runs','fast','swim',
+     'wolf','fox','panda','koala','banana','kiwi','fruit','dancer','friendly','singing',
+     'usually','comic','cooking','playing','much','book','books','team',
+     'on','and','but','too'] /* ラスボス追加文の新出語＋デコイ語＋基本語(on/and/but/too：Unit1改訂で基準から外れたため明示登録) */
+  /* 3:[…], 4:[…] と足していく */
+};
+/* あるUnitの通常/中ボス/ラスボスで使う英単語の集合（小文字・記号/数字は除外）。
+   裏ボス(HIDDEN)は「習っていない言葉の戦い」＝わざと未習語を使う設計なので検算対象外。 */
+function invaderWords(unit){
+  var out={},d=UNIT_DATA[unit];
+  ['NORMAL','BOSS','EXTRA'].forEach(function(k){
+    (d[k]||[]).forEach(function(q){
+      var list=q.w.slice(); if(q.d)list=list.concat(q.d);
+      list.forEach(function(tk){tk.f.forEach(function(s){
+        var w=String(s).toLowerCase();
+        if(/[a-z]/.test(w)&&!/[0-9]/.test(w))out[w]=1; /* 英字を含み数字を含まない語だけ（記号・"1-1"等は無視） */
+      });});
+    });
+  });
+  return out;
+}
+function validateUnits(){
+  var allowed={},base=invaderWords(1),w;
+  for(w in base)allowed[w]=1;                       /* Unit1=基準 */
+  Object.keys(UNIT_DATA).map(Number).sort(function(a,b){return a-b;}).forEach(function(u){
+    if(NEW_WORDS[u])NEW_WORDS[u].forEach(function(x){allowed[x.toLowerCase()]=1;}); /* 新出語を積み上げ */
+    var used=invaderWords(u),missing=[];
+    for(w in used)if(!allowed[w])missing.push(w);
+    if(missing.length)console.warn('[invader] Unit'+u+' 未登録/先出しの語 → '+missing.join(', ')+'  （NEW_WORDS['+u+'] に追記を）');
+    else console.log('[invader] Unit'+u+' 語彙OK');
+  });
+}
 
 /* ベル：撃つと色（効果）が変わる */
+/* 撃つたびに次の効果へ変わる。順番＝この配列順（1つめ=キャッチ時、2つめ=1回撃つと…）。
+   「2回目でバリア」＝ci=1をバリアに。効果はfxキーで判定（applyBell）するので並べ替え自由 */
 var BELLS=[
-  {c:'#ffd23f',label:'+100'},
-  {c:'#54c8ff',label:'スロー'},
-  {c:'#58d68d',label:'ヒント'},
-  {c:'#ff6f9c',label:'×2'},
-  {c:'#f0f0f0',label:'バリア'}
+  {c:'#ffd23f',label:'+100',fx:'score'},
+  {c:'#f0f0f0',label:'バリア',fx:'shield'},
+  {c:'#54c8ff',label:'スロー',fx:'slow'},
+  {c:'#58d68d',label:'ヒント',fx:'hint'},
+  {c:'#ff6f9c',label:'×2',fx:'double'}
 ];
 
 /* ================= DOM / Canvas ================= */
@@ -483,9 +605,28 @@ var TUT_STEPS=null;
 
 function shuffle(a){var i,j,t;for(i=a.length-1;i>0;i--){j=Math.floor(Math.random()*(i+1));t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function nextFromPool(pool,src){if(pool.length===0){var idx=[];for(var i=0;i<src.length;i++)idx.push(i);shuffle(idx);for(i=0;i<idx.length;i++)pool.push(idx[i]);}return src[pool.shift()];}
+/* 中ボス増量用のデコイ候補（すべてUnit1既出語＝どのUnitでも安全）。答えの語と重なるものは除外して使う */
+var BOSS_DECOY_POOL=['am','are','is','do','does','a','an','the','in','on','not','and','but','too','my','from','like','play','soccer','rugby','club','music','art','fan','you','the'];
+var BOSS_MIN_TILES=10; /* 中ボスは不要語込みで必ずこの数以上のタイルにする */
+/* 中ボス問題に、答えの語と衝突しないデコイを足して合計タイル数を BOSS_MIN_TILES 以上にする */
+function padBossDecoys(q){
+  var have=q.w.length+(q.d?q.d.length:0);
+  if(have>=BOSS_MIN_TILES)return q;
+  var used={};
+  q.w.forEach(function(t){t.f.forEach(function(s){used[String(s).toLowerCase()]=1;});});
+  if(q.d)q.d.forEach(function(t){t.f.forEach(function(s){used[String(s).toLowerCase()]=1;});});
+  var pool=BOSS_DECOY_POOL.filter(function(w){return !used[w.toLowerCase()];});
+  shuffle(pool);
+  var extra=q.d?q.d.slice():[];
+  for(var i=0;i<pool.length&&(q.w.length+extra.length)<BOSS_MIN_TILES;i++){
+    if(used[pool[i].toLowerCase()])continue;
+    extra.push(W(pool[i]));used[pool[i].toLowerCase()]=1;
+  }
+  return {ja:q.ja,w:q.w,d:extra}; /* 元の問題は壊さずクローンを返す */
+}
 function comboMult(){return Math.min(1.5,1+0.1*Math.floor(combo/4));}
 function nextNormal(){
-  return nextFromPool(poolN,NORMAL); /* Unit1のNORMALを巡回 */
+  return nextFromPool(poolN,UD().NORMAL); /* 選択中UnitのNORMALを巡回 */
 }
 function queueRetry(q){
   for(var i=0;i<retryQ.length;i++)if(retryQ[i].q.ja===q.ja)return;
@@ -512,7 +653,7 @@ function divpLogAnswer(q,ok,pts,ms,missN){
         is_correct:ok,
         score:pts,
         time_ms:Math.round(ms),
-        question_params:JSON.stringify({ja:q.ja,tokens:q.w.map(function(w){return w.f[w.c];}),misses:missN,last:isExtraMode,boss:isBossMode,hidden:isHiddenMode,maxCombo:maxCombo}),
+        question_params:JSON.stringify({unit:curUnit,ja:q.ja,tokens:q.w.map(function(w){return w.f[w.c];}),misses:missN,last:isExtraMode,boss:isBossMode,hidden:isHiddenMode,maxCombo:maxCombo}),
         question_text:q.ja,
         correct_answer:sentenceOf(q)
       });
@@ -803,7 +944,7 @@ function bgmStepMystic(step,t,sd){
   var s=step%16;         /* 0..15：前半8で上行、後半8で下行 */
   var up=MYST_UP[c];
   var note=(s<8)?up[s]:up[15-s];
-  mystHarp(t,nf(note),sd*2.4,0.1,((s%2)?0.26:-0.26)); /* アルペジオのみ（パッド・低音なし） */
+  mystHarp(t,nf(note),sd*2.4,0.22,((s%2)?0.26:-0.26)); /* アルペジオのみ（パッド・低音なし）。音量アップ 0.1→0.22 */
 }
 function bgmStart(mode){
   if(!ac)return;
@@ -935,7 +1076,7 @@ function spawnQuestion(q,isRetry){
   if(!isTutorial){
     setMode(hasMorph?'morph':'order'); /* ●が無い問題は最初から「じゅんばん」 */
     announce=hasMorph
-      ? {t:'① ●のことばは 必要なら かたちをかえよう！',life:2.8}
+      ? {t:'① ■のことばは 必要なら かたちをかえよう！',life:2.8}
       : {t:'和訳どおりに じゅんばんに タップ！',life:2.2};
   }
   qStart=performance.now();
@@ -1011,9 +1152,9 @@ function phaseKind(){var p=curPhase();return p?p.kind:'normal';}
 function spawnPhaseQuestion(){
   var k=phaseKind();
   if(k==='normal'){spawnNormalNext();return;}
-  if(k==='boss'){spawnQuestion(nextFromPool(poolB,BOSS),false);return;}
-  if(k==='last'){spawnQuestion(nextFromPool(poolE,EXTRA),false);return;}
-  if(k==='hidden'){spawnQuestion(nextFromPool(poolH,HIDDEN),false);return;}
+  if(k==='boss'){spawnQuestion(padBossDecoys(nextFromPool(poolB,UD().BOSS)),false);return;}
+  if(k==='last'){spawnQuestion(nextFromPool(poolE,UD().EXTRA),false);return;}
+  if(k==='hidden'){spawnQuestion(nextFromPool(poolH,UD().HIDDEN),false);return;}
 }
 /* 現段階の見た目・BGM・フラグをセット */
 function enterPhaseVisual(){
@@ -1131,7 +1272,7 @@ function startPhaseIntro(isRetry){
     state='wait';bgmStop();sfxBossAlarm();
     overlayIn.innerHTML=
       '<div class="divp-boss-title">中ボス しゅつげん！！'+(isRetry?'（もういちど）':'')+'</div>'+
-      '<div class="divp-result-stats">つかわない単語が <b>1つ</b> まざっているぞ！<br>ノーミスで '+curPhase().n+' 問 うちおとせ！</div>';
+      '<div class="divp-result-stats">つかわない単語も まざって <b>ぜんぶで10語いじょう</b>！<br>ノーミスで '+curPhase().n+' 問 うちおとせ！</div>';
     overlay.classList.add('divp-show');
     setTimeout(function(){overlay.classList.remove('divp-show');bgmStart('boss');state='play';spawnPhaseQuestion();},2000);
   }else if(k==='last'){
@@ -1444,11 +1585,13 @@ function draw(){
   ctx.fillStyle=p.ground2;ctx.fillRect(0,CH-24,CW,5);
   /* モード表示（背景ウォーターマーク） */
   if(state==='play'){
-    ctx.font="19px 'DotGothic16', monospace";
+    var isMorphWm=(mode==='morph');
+    /* 両モードとも大きく・濃く（morphは緑=morphB、orderは既存色） */
+    ctx.font="24px 'DotGothic16', monospace";
     ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.globalAlpha=(isExtraMode||isHiddenMode)?0.4:0.28;
-    ctx.fillStyle=(mode==='morph')?p.morphB:p.bullet;
-    ctx.fillText(mode==='morph'?'① かたちをかえる：●は必要なら変形':'② じゅんばん：和訳どおりに タップ',CW/2,252);
+    ctx.globalAlpha=(isExtraMode||isHiddenMode)?0.85:0.78;
+    ctx.fillStyle=isMorphWm?p.morphDot:p.bullet; /* ■印と同じオレンジ(morphDot)に統一 */
+    ctx.fillText(isMorphWm?'① かたちをかえる：■は必要なら変形':'② じゅんばん：和訳どおりに タップ',CW/2,252);
     ctx.globalAlpha=1;
     /* 使わない単語（デコイ）が混ざっている問題は常に警告 */
     if(curQ&&curQ.d&&curQ.d.length){
@@ -1576,11 +1719,11 @@ function draw(){
   if(announce&&state==='play'){
     var aFs=18;ctx.textAlign='center';ctx.textBaseline='middle';
     while(aFs>12){ctx.font=aFs+"px 'DotGothic16','Zen Maru Gothic',sans-serif";if(ctx.measureText(announce.t).width<=CW-28)break;aFs--;}
-    var aw=ctx.measureText(announce.t).width,aPad=14,ay=CH*0.36;
+    var aw=ctx.measureText(announce.t).width,aPad=14,ay=HUD_H+24; /* 画面中央→スコアのすぐ下へ */
     ctx.globalAlpha=Math.min(1,announce.life*2);
     ctx.fillStyle='rgba(0,0,0,.7)';
     ctx.fillRect(CW/2-aw/2-aPad,ay-17,aw+aPad*2,34);
-    ctx.fillStyle=(mode==='morph')?'#7effe6':'#ffd23f';
+    ctx.fillStyle=(mode==='morph')?'#ffb454':'#ffd23f'; /* morphは■印と同じオレンジ系 */
     ctx.fillText(announce.t,CW/2,ay+1);
     ctx.globalAlpha=1;
     ctx.font=TILE_FONT;
@@ -1664,13 +1807,13 @@ function draw(){
   }
   /* チュートリアル：メッセージ帯（画面下部） */
   if(isTutorial&&tutMsg){
-    var by=CH-70,bh=54;
-    ctx.fillStyle='rgba(20,24,50,.92)';
+    var by=CH-150,bh=134;             /* フォント2倍に合わせて帯も拡大 */
+    ctx.fillStyle='rgba(214,240,255,.96)'; /* 薄い水色 */
     ctx.fillRect(10,by,CW-20,bh);
-    ctx.strokeStyle='#ffd23f';ctx.lineWidth=2;
+    ctx.strokeStyle='#3aa0e8';ctx.lineWidth=2;
     ctx.strokeRect(10,by,CW-20,bh);
-    ctx.fillStyle='#ffd23f';
-    ctx.font="13px 'DotGothic16', monospace";
+    ctx.fillStyle='#1a1a1a';           /* テキストは黒 */
+    ctx.font="26px 'DotGothic16', monospace"; /* 13px→2倍 */
     ctx.textAlign='left';ctx.textBaseline='top';
     /* 折り返し描画 */
     var words=tutMsg.split(''),line='',lines=[],maxw=CW-40;
@@ -1680,7 +1823,16 @@ function draw(){
       else line=test;
     }
     if(line)lines.push(line);
-    for(var li=0;li<lines.length&&li<3;li++)ctx.fillText(lines[li],20,by+8+li*16);
+    /* 1文字ずつ描画し、■だけオレンジ・他は黒に */
+    for(var li=0;li<lines.length&&li<4;li++){
+      var lx=20,ly=by+12+li*30,ls=lines[li];
+      for(var ci=0;ci<ls.length;ci++){
+        var ch=ls.charAt(ci);
+        ctx.fillStyle=(ch==='■')?'#ff9b2f':'#1a1a1a';
+        ctx.fillText(ch,lx,ly);
+        lx+=ctx.measureText(ch).width;
+      }
+    }
     ctx.textAlign='center';ctx.textBaseline='middle';
   }
 }
@@ -1697,7 +1849,7 @@ function setMode(m){
 btnMorph.addEventListener('pointerdown',function(e){e.preventDefault();
   if(isTutorial&&!tutAllowMode('morph')){tutNudge();return;}
   var was=mode;setMode('morph');
-  if(!isTutorial&&was!=='morph'&&state==='play')announce={t:'① ●のことばは 必要なら かたちをかえよう！',life:2.0};
+  if(!isTutorial&&was!=='morph'&&state==='play')announce={t:'① ■のことばは 必要なら かたちをかえよう！',life:2.0};
   if(isTutorial&&was!=='morph'&&tutCur()&&tutCur().want==='morph_setmode')tutAdvance();
 });
 btnShoot.addEventListener('pointerdown',function(e){e.preventDefault();
@@ -1795,11 +1947,11 @@ function applyBell(ci){
   var bl=BELLS[ci];
   sfxBellGet();
   sparkle(ship.x,SHIP_Y-24,bl.c);
-  if(ci===0){score+=100;addFloat(ship.x,SHIP_Y-46,'+100','#d4a017');}
-  else if(ci===1){fx.slowT=8;addFloat(ship.x,SHIP_Y-46,'スロー！','#2a7fb8');}
-  else if(ci===2){fx.hintT=8;addFloat(ship.x,SHIP_Y-46,'ヒント！','#2fb56a');}
-  else if(ci===3){fx.doubleQ=true;addFloat(ship.x,SHIP_Y-46,'つぎのクリア×2！','#ff6f9c');}
-  else{fx.shield=Math.min(3,fx.shield+1);addFloat(ship.x,SHIP_Y-46,'バリア！','#888888');}
+  if(bl.fx==='score'){score+=100;addFloat(ship.x,SHIP_Y-46,'+100','#d4a017');}
+  else if(bl.fx==='shield'){fx.shield=Math.min(3,fx.shield+1);addFloat(ship.x,SHIP_Y-46,'バリア！','#888888');}
+  else if(bl.fx==='slow'){fx.slowT=8;addFloat(ship.x,SHIP_Y-46,'スロー！','#2a7fb8');}
+  else if(bl.fx==='hint'){fx.hintT=8;addFloat(ship.x,SHIP_Y-46,'ヒント！','#2fb56a');}
+  else if(bl.fx==='double'){fx.doubleQ=true;addFloat(ship.x,SHIP_Y-46,'つぎのクリア×2！','#ff6f9c');}
 }
 cv.addEventListener('pointerdown',function(e){
   e.preventDefault();
@@ -1824,13 +1976,17 @@ cv.addEventListener('pointerup',function(){if(!tapSlide)ship.tx=null;});
 cv.addEventListener('pointercancel',function(){if(!tapSlide)ship.tx=null;});
 /* iOS Safari のズーム抑止：ピンチ(gesture)・ダブルタップ拡大を全面禁止（user-scalable=noが無視されるため） */
 ['gesturestart','gesturechange','gestureend'].forEach(function(ev){
-  document.addEventListener(ev,function(e){e.preventDefault();},{passive:false});
+  document.addEventListener(ev,function(e){e.preventDefault();},{passive:false,capture:true});
+  window.addEventListener(ev,function(e){e.preventDefault();},{passive:false,capture:true});
 });
 var _lastTouchEnd=0;
 document.addEventListener('touchend',function(e){
   var now=performance.now();
   if(now-_lastTouchEnd<=350)e.preventDefault(); /* 素早い2回タップ＝ダブルタップ拡大を無効化 */
   _lastTouchEnd=now;
+},{passive:false});
+document.addEventListener('touchstart',function(e){
+  if(e.touches&&e.touches.length>1)e.preventDefault(); /* ピンチの起点(2本目の指)を掴んだ時点で無効化。touchmoveだけだとズームが始まってしまう */
 },{passive:false});
 document.addEventListener('touchmove',function(e){
   if(e.touches&&e.touches.length>1)e.preventDefault(); /* 2本指ピンチを無効化 */
@@ -1873,7 +2029,7 @@ document.getElementById('divp-btn-resume').addEventListener('click',resumeGame);
 /* ================= チュートリアル ================= */
 function startTutorial(){
   isTutorial=true;isExtraMode=false;isBossMode=false;isHiddenMode=false;
-  document.body.classList.remove('divp-dark','divp-boss','divp-hidden');
+  document.body.classList.remove('divp-dark','divp-boss','divp-hidden','divp-menu'); /* 練習中は操作ボタン等を表示 */
   score=0;qCount=0;combo=0;maxCombo=0;noMissStreak=0;
   setScore=0;setMiss=0;retryQ=[];
   fx={slowT:0,hintT:0,doubleQ:false,shield:0};
@@ -1884,9 +2040,9 @@ function startTutorial(){
   /* 題材: I am a student.（be→am へ変形させる） */
   var q={ja:'私は 学生です。',w:[W('I'),M(['be','am','is','are'],1),W('a'),W('student'),W('.')]};
   TUT_STEPS=[
-   {want:'morph',token:'be',msg:'まず ●のことばの かたちから！ 「かたちをかえる」で "be" を "am" に。"be" をタップ！'},
-   {want:'setmode_order',msg:'かたちが "am" になった！ つぎは「じゅんばんをきめる」ボタンをおそう！'},
-   {want:'tap',token:'I',msg:'ここからは じゅんばん。和訳どおり、はじめに "I" をタップ！'},
+   {want:'morph',token:'be',msg:'■のついた単語は形をかえる。画面左下の緑ボタンが選択されている状態で単語をタップ！形がかわるよ！'},
+   {want:'setmode_order',msg:'かたちがamになった！つぎは画面右下のピンクのボタン「じゅんばんをきめる」をおしてモードを切りかえよう！'},
+   {want:'tap',token:'I',msg:'ここからは、単語を和訳どおりにタップしていこう！Iをタップしてみて！'},
    {want:'tap',token:'am',msg:'つぎは "am" をタップして2ばんめにきめる！'},
    {want:'tap',token:'a',msg:'つぎは "a" をタップ！'},
    {want:'tap',token:'student',msg:'"student" をタップ！'},
@@ -1941,7 +2097,7 @@ function tutFinish(){
   isTutorial=false;TUT_STEPS=null;tutArrow=null;
   overlayIn.innerHTML=
     '<div class="divp-title-logo" style="font-size:clamp(20px,6vw,28px)">TUTORIAL CLEAR!</div>'+
-    '<div class="divp-result-stats" style="margin-top:12px">じゅんばん と かたち、おぼえたね！<br>本番であそんでみよう！</div>'+
+    '<div class="divp-result-stats" style="margin-top:12px">かたちのかえ方と じゅんばんの決め方を おぼえたね！<br>本番であそんでみよう！</div>'+
     '<button class="divp-big-btn" id="divp-btn-tutend" type="button">タイトルへ ▶</button>';
   overlay.classList.add('divp-show');
   document.getElementById('divp-btn-tutend').addEventListener('click',function(){
@@ -1953,24 +2109,32 @@ function tutFinish(){
 /* ================= タイトル・開始 ================= */
 function showTitle(){
   state='title';
+  document.body.classList.add('divp-menu'); /* メニュー中は英文枠・操作ボタンを隠す */
   jaBar.textContent='英単語インベーダー';
   overlayIn.innerHTML=
     '<div class="divp-title-logo">WORD INVADERS</div>'+
     '<div class="divp-title-sub">— 中1英語 ならべかえ —</div>'+
     '<div class="divp-howto">'+
-    '❶「じゅんばん」で和訳どおり単語をタップ／❷ ●つきは「かたち」で変形（be→am/is/are・ニセ形注意）／❸ ．？で自動さいてん<br>'+
+    '❶「じゅんばん」で和訳どおり単語をタップ／❷ ■つきは「かたち」で変形（be→am/is/are・ニセ形注意）／❸ ．？で自動さいてん<br>'+
     '☁雲でベル出現・はやいほど高得点／ミス -'+CONFIG.MISS_PENALTY+'点／中ボス→ラスボス→…？</div>'+
-    '<div class="divp-unit-label">中1 Unit 1「Hello, Everyone!」</div>'+
+    '<select class="divp-mode-select" id="divp-unit-select" aria-label="ユニットをえらぶ">'+
+      '<option value="1"'+(curUnit===1?' selected':'')+'>Unit 1「Hello, Everyone!」</option>'+
+      '<option value="2"'+(curUnit===2?' selected':'')+'>Unit 2「Our New Teacher」</option>'+
+    '</select>'+
     '<button class="divp-big-btn" id="divp-btn-start" type="button">GAME START</button>'+
     '<button class="divp-sub-btn" id="divp-btn-story" type="button">📖 ストーリーを みる</button>'+
     '<button class="divp-sub-btn" id="divp-btn-tut" type="button">▶ あそびかた（テストプレイ）</button>';
   overlay.classList.add('divp-show');
   bgmStart('title'); /* ポップなタイトルBGM。ac未生成(初回)はno-op→最初のタップで鳴り始める */
+  var uSel=document.getElementById('divp-unit-select');
+  if(uSel)uSel.addEventListener('change',function(){setUnit(parseInt(this.value,10));});
   document.getElementById('divp-btn-start').addEventListener('click',function(){
     initAudio();
     if(ac&&ac.state==='suspended')ac.resume();
+    setUnit(uSel?parseInt(uSel.value,10):1); /* 選択中Unitを確定 */
     divpSessionStart();
     overlay.classList.remove('divp-show');
+    document.body.classList.remove('divp-menu'); /* 英文枠・操作ボタンを表示 */
     /* 段階進行の初期化 */
     phaseIdx=0;phaseDone=0;
     score=0;qCount=0;combo=0;maxCombo=0;noMissStreak=0;
@@ -1981,10 +2145,26 @@ function showTitle(){
     state='play';
     spawnPhaseQuestion();
   });
-  document.getElementById('divp-btn-tut').addEventListener('click',function(){
-    startTutorial();
-  });
+  document.getElementById('divp-btn-tut').addEventListener('click',showTutorialIntro);
   document.getElementById('divp-btn-story').addEventListener('click',showStory);
+}
+/* ===== テストプレイ前：ゲーム全体像の説明 ===== */
+function showTutorialIntro(){
+  state='title';
+  jaBar.textContent='あそびかた';
+  overlayIn.innerHTML=
+    '<div class="divp-story">'+
+      '<div class="divp-story-eyebrow">HOW TO PLAY</div>'+
+      '<div class="divp-story-title">ゲームの ながれ</div>'+
+      '<div class="divp-story-body" style="text-align:center">'+
+        '<p>単語を <b>てきせつな形</b> に直して、<b>正しいじゅんばん</b> でタップするゲームだよ。</p>'+
+        '<p>これで <b>地球の平和</b> が守られるんだ！</p>'+
+        '<p>さっそく <b>練習プレイ</b> を してみよう！</p>'+
+      '</div>'+
+      '<button class="divp-big-btn" id="divp-btn-tutstart" type="button">▶ 練習プレイへ</button>'+
+    '</div>';
+  overlay.classList.add('divp-show');
+  document.getElementById('divp-btn-tutstart').addEventListener('click',startTutorial);
 }
 /* ===== プロローグ（ストーリー） ===== */
 function showStory(){
@@ -2021,6 +2201,7 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 function boot(){
+  if(CONFIG.TEST_MODE){try{validateUnits();}catch(e){}} /* 開発時のみ語彙を検算（本番=TEST_MODE:falseでは走らない） */
   showTitle();
   requestAnimationFrame(loop);
 }
