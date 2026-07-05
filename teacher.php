@@ -136,17 +136,18 @@ $allowedClassroomIds = array_map(fn($c) => (int)$c['classroom_id'], $classrooms)
 
 // ---- 期間 ----
 $period = (string)($_GET['period'] ?? 'week');
-if (!in_array($period, ['week', 'last_week', 'month', 'all'], true)) {
+if (!in_array($period, ['today', 'week', 'last_week', 'month', 'all'], true)) {
     $period = 'week';
 }
 $thisMonday = new DateTimeImmutable('monday this week');
 switch ($period) {
+    case 'today':     $from = new DateTimeImmutable('today 00:00:00'); $to = $from->modify('+1 day'); break;
     case 'last_week': $from = $thisMonday->modify('-7 days'); $to = $thisMonday; break;
     case 'month':     $from = new DateTimeImmutable('first day of this month 00:00:00'); $to = $from->modify('+1 month'); break;
     case 'all':       $from = null; $to = null; break;
     default:          $from = $thisMonday; $to = $thisMonday->modify('+7 days'); break;
 }
-$periodLabels = ['week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => '全期間'];
+$periodLabels = ['today' => '今日', 'week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => '全期間'];
 $fromStr = $from ? $from->format('Y-m-d 00:00:00') : null;
 $toStr = $to ? $to->format('Y-m-d 00:00:00') : null;
 
@@ -209,9 +210,10 @@ if ($rankView) {
     }
     $rankData = [
         'cids'   => $cids,
-        'solved' => ranking_ranked($rows, 'solved'),
-        'rate'   => ranking_ranked($rows, 'rate'),
-        'xp'     => ranking_ranked($rows, 'xp'),
+        'solved'  => ranking_ranked($rows, 'solved'),
+        'correct' => ranking_ranked($rows, 'correct'),
+        'rate'    => ranking_ranked($rows, 'rate'),
+        'xp'      => ranking_ranked($rows, 'xp'),
     ];
 }
 
@@ -373,6 +375,7 @@ function qtab(array $extra): string
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="/assets/print-watermark.js"></script>
 <style>
   :root{
     --paper:#FBFAF6;--grid:#ECE9E0;--ink:#33312B;--ink-soft:#8B877C;
@@ -427,6 +430,10 @@ function qtab(array $extra): string
   .math{overflow-x:auto}
   .wrong-ans{color:var(--shu);font-weight:700}
   .scroll{overflow-x:auto}
+  /* ランキングはPCの広い横幅では2枚ずつ横並び、狭い画面では1枚ずつ縦積み */
+  .rank-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start;margin-top:14px}
+  .rank-grid .card{margin:0}
+  @media (max-width:820px){.rank-grid{grid-template-columns:1fr}}
   footer{margin-top:28px;text-align:center;font-size:11px;color:var(--ink-soft)}
 </style>
 </head>
@@ -515,7 +522,12 @@ function qtab(array $extra): string
   </div>
 
   <div class="card">
-    <h2>直近の誤答（最大30件）</h2>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <h2 style="margin:0;">直近の誤答（最大30件）</h2>
+<?php if (count($dWrongs) > 0): ?>
+      <button type="button" id="print-wrongs-btn" class="ptab" style="cursor:pointer;border-color:var(--shu);color:var(--shu);">🖨 解き直しプリント</button>
+<?php endif; ?>
+    </div>
 <?php if (count($dWrongs) === 0): ?>
     <p style="font-size:13px;color:var(--ink-soft);">この期間の誤答はありません</p>
 <?php else: ?>
@@ -536,6 +548,20 @@ function qtab(array $extra): string
 <?php endforeach; ?>
     </table>
     </div>
+    <script type="application/json" id="print-wrongs-data"><?= json_encode([
+      'student' => $detail['student_name'],
+      'meta'    => $detail['classroom_name'] . '教室' . ($detail['grade'] ? '・' . grade_label($detail['grade']) : ''),
+      'period'  => $periodLabels[$period] . ($filterSubject !== '' ? '・' . subject_label($filterSubject) : ''),
+      'items'   => array_map(function ($w) use ($unitMeta) {
+          return [
+              'unit'  => (($unitMeta[$w['unit_key']] ?? null)['title'] ?? $w['unit_key']),
+              'label' => $w['label'],
+              'q'     => $w['question_text'],
+              'a'     => $w['correct_answer'],
+              'sa'    => $w['student_answer'],
+          ];
+      }, $dWrongs),
+    ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
 <?php endif; ?>
   </div>
 
@@ -604,11 +630,13 @@ function qtab(array $extra): string
 
 <?php
     $rankSections = [
-        ['key' => 'solved', 'title' => '解答数ランキング', 'unit' => '問'],
-        ['key' => 'rate',   'title' => '正答率ランキング', 'unit' => '%'],
-        ['key' => 'xp',     'title' => 'XPランキング',     'unit' => 'XP'],
+        ['key' => 'solved',  'title' => '解答数ランキング', 'unit' => '問'],
+        ['key' => 'correct', 'title' => '正解数ランキング', 'unit' => '正解'],
+        ['key' => 'rate',    'title' => '正答率ランキング', 'unit' => '%'],
+        ['key' => 'xp',      'title' => 'XPランキング',     'unit' => 'XP'],
     ];
 ?>
+  <div class="rank-grid">
 <?php foreach ($rankSections as $sec): $list = $rankData[$sec['key']]; ?>
   <div class="card">
     <h2><?= h($sec['title']) ?><?php if ($sec['key'] === 'rate'): ?> <span style="font-size:11px;color:var(--ink-soft);font-weight:500;">（<?= RANK_MIN_SOLVED ?>問以上解いた生徒のみ）</span><?php endif; ?></h2>
@@ -616,7 +644,10 @@ function qtab(array $extra): string
     <p style="font-size:13px;color:var(--ink-soft);">この期間の対象者はいません</p>
 <?php else: ?>
     <div class="scroll">
-    <table>
+    <table style="table-layout:fixed;width:auto;min-width:476px;">
+      <colgroup>
+        <col style="width:72px"><col style="width:140px"><col style="width:90px"><col style="width:64px"><col style="width:110px"><?php if ($sec['key'] === 'rate'): ?><col style="width:110px"><?php endif; ?>
+      </colgroup>
       <tr><th class="num">順位</th><th>生徒</th><th>教室</th><th>学年</th>
         <th class="num"><?= h($sec['unit']) ?></th><?php if ($sec['key'] === 'rate'): ?><th class="num">解答数</th><?php endif; ?></tr>
 <?php foreach ($list as $r): ?>
@@ -641,6 +672,7 @@ function qtab(array $extra): string
 <?php endif; ?>
   </div>
 <?php endforeach; ?>
+  </div>
 
 <?php else: ?>
   <!-- ============ 生徒一覧 ============ -->
@@ -716,6 +748,112 @@ document.querySelectorAll('.math').forEach(function (el) {
   if (!/[\\^_{}]/.test(src)) return;
   try { katex.render(src, el, { throwOnError: true, displayMode: false }); } catch (e) {}
 });
+
+// ===== 解き直しプリント（誤答をアナログで解き直す用紙）=====
+(function () {
+  var btn = document.getElementById('print-wrongs-btn');
+  var dataEl = document.getElementById('print-wrongs-data');
+  if (!btn || !dataEl) return;
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  // LaTeXっぽければKaTeXでHTML化、そうでなければそのまま（改行は<br>）
+  function fmt(src) {
+    src = String(src == null ? '' : src);
+    if (/[\\^_{}]/.test(src)) {
+      try { return katex.renderToString(src, { throwOnError: false, displayMode: false }); }
+      catch (e) { /* fall through */ }
+    }
+    return esc(src).replace(/\n/g, '<br>');
+  }
+
+  btn.addEventListener('click', function () {
+    var data;
+    try { data = JSON.parse(dataEl.textContent || '{}'); } catch (e) { return; }
+    var items = data.items || [];
+    if (!items.length) { alert('印刷できる誤答がありません'); return; }
+
+    var PER_PAGE = 5;   // 1枚あたりの問題数（A4に確実に収まる数。増やすと溢れて空白ページが出る）
+    var pages = [];
+    for (var i = 0; i < items.length; i += PER_PAGE) pages.push(items.slice(i, i + PER_PAGE));
+
+    var n = 0;
+    var body = pages.map(function (page) {
+      var qs = page.map(function (it) {
+        n++;
+        return '<div class="q">'
+          + '<div class="q-head"><span class="q-no">' + n + '</span>'
+          + '<span class="q-meta">' + esc(it.unit) + '　<span class="q-tag">' + esc(it.label) + '</span></span></div>'
+          + '<div class="q-body">' + fmt(it.q) + '</div>'
+          + '<div class="q-space"></div>'
+          + '</div>';
+      }).join('');
+      return '<div class="page"><div class="sheet-head">'
+        + '<div><div class="sh-title">解き直しプリント</div>'
+        + '<div class="sh-sub">' + esc(data.period || '') + '</div></div>'
+        + '<div class="sh-name"><span class="sh-label">なまえ</span>' + esc(data.student) + '</div>'
+        + '</div>' + qs + '</div>';
+    }).join('');
+
+    // 講師用の解答（別紙・最後のページ）
+    var m = 0;
+    var keyRows = items.map(function (it) {
+      m++;
+      return '<tr><td class="k-no">' + m + '</td>'
+        + '<td>' + fmt(it.q) + '</td>'
+        + '<td class="k-ans">' + fmt(it.a) + '</td>'
+        + '<td class="k-wa">' + fmt(it.sa) + '</td></tr>';
+    }).join('');
+    var keyPage = '<div class="page key-page"><div class="sheet-head">'
+      + '<div><div class="sh-title">解答（講師用）</div>'
+      + '<div class="sh-sub">' + esc(data.student) + '　' + esc(data.meta || '') + '</div></div></div>'
+      + '<table class="key"><tr><th>No.</th><th>問題</th><th>正解</th><th>前回の誤答</th></tr>'
+      + keyRows + '</table></div>';
+
+    var html = '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">'
+      + '<title>解き直しプリント ' + esc(data.student) + '</title>'
+      + '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">'
+      + '<style>'
+      + '@page{size:A4;margin:14mm 14mm 12mm;}'
+      + '*{box-sizing:border-box;}'
+      + 'body{font-family:"Zen Kaku Gothic New",system-ui,sans-serif;color:#222;margin:0;}'
+      + '.page{page-break-after:always;}.page:last-child{page-break-after:auto;}'
+      + '.sheet-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #C73E2E;padding-bottom:6px;margin-bottom:14px;}'
+      + '.sh-title{font-size:20px;font-weight:700;}'
+      + '.sh-sub{font-size:12px;color:#777;margin-top:2px;}'
+      + '.sh-name{font-size:13px;color:#555;}'
+      + '.sh-label{display:inline-block;border:1px solid #bbb;border-radius:4px;padding:1px 8px;margin-right:8px;color:#888;}'
+      + '.sh-name{border-bottom:1px solid #999;min-width:150px;text-align:right;padding-bottom:2px;}'
+      + '.q{margin-bottom:11px;page-break-inside:avoid;}'
+      + '.q-head{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;}'
+      + '.q-no{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;background:#C73E2E;color:#fff;border-radius:6px;font-weight:700;font-size:13px;padding:0 4px;}'
+      + '.q-meta{font-size:12px;color:#888;}'
+      + '.q-tag{background:#F3EFE6;color:#8a7a52;border-radius:4px;padding:1px 6px;font-size:11px;}'
+      + '.q-body{font-size:17px;line-height:1.6;margin-left:34px;}'
+      + '.q-space{height:2.2cm;margin:5px 0 0 34px;border:1px dashed #cbcbcb;border-radius:8px;}'
+      + '.key-page{page-break-before:always;}'
+      + '.key{width:100%;border-collapse:collapse;font-size:13px;}'
+      + '.key th,.key td{border:1px solid #ccc;padding:6px 8px;text-align:left;vertical-align:top;}'
+      + '.key th{background:#f4f4f4;font-size:12px;}'
+      + '.k-no{width:32px;text-align:center;color:#888;}'
+      + '.k-ans{color:#1f7a3d;font-weight:700;}'
+      + '.k-wa{color:#C73E2E;}'
+      + '</style></head><body>' + body + keyPage + '</body></html>';
+
+    if (window.ChukyoPrint && ChukyoPrint.inject) html = ChukyoPrint.inject(html);
+
+    var w = window.open('', '_blank');
+    if (!w) { alert('ポップアップがブロックされました。印刷を許可してください'); return; }
+    w.document.write(html);
+    w.document.close();
+    // KaTeXのCSS(CDN)読み込み後に印刷。少し待ってからダイアログを出す
+    w.focus();
+    setTimeout(function () { try { w.print(); } catch (e) {} }, 500);
+  });
+})();
 </script>
 </body>
 </html>

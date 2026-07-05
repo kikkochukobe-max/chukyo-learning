@@ -29,6 +29,10 @@
   var enabled = false;
   var sessionId = null;
   var sessionStarting = null;
+  // 'in' = ログイン済 / 'out' = サーバーは応答したが未ログイン(401) /
+  // 'unknown' = API未到達など判別不能（この時は案内を出さない）
+  var authState = 'unknown';
+  var NUDGE_KEY = 'divp_login_nudge_shown';   // 同一タブで一度だけ出す目印(sessionStorage)
 
   function isLocal() {
     return !!(global.location && global.location.protocol === 'file:');
@@ -47,17 +51,24 @@
     if (sessionStarting) return sessionStarting;
     sessionStarting = postJSON('start_session.php', { unit_key: unitKey })
       .then(function (res) {
-        if (!res.ok) { enabled = false; return; }
+        if (!res.ok) {
+          // サーバーは応答した（例: 401 未ログイン）→ 案内対象
+          enabled = false;
+          authState = 'out';
+          return;
+        }
         return res.json().then(function (data) {
           if (data && data.ok) {
             sessionId = data.session_id;
             enabled = true;
+            authState = 'in';
           } else {
             enabled = false;
+            authState = 'out';
           }
         });
       })
-      .catch(function () { enabled = false; });
+      .catch(function () { enabled = false; authState = 'unknown'; });
     return sessionStarting;
   }
 
@@ -94,7 +105,11 @@
     if (!unitKey || isLocal()) return;
 
     var send = function () {
-      if (!enabled) return;
+      if (!enabled) {
+        // 未ログイン（サーバー応答あり）なら、このタブで初回1問だけそっと案内
+        if (authState === 'out') maybeNudgeLogin();
+        return;
+      }
       postJSON('save_answer.php', {
         session_id: sessionId,
         unit_key: unitKey,
@@ -120,6 +135,87 @@
       .then(function (res) { return res.ok ? res.json() : null; })
       .then(function (data) { return (data && data.ok) ? data.items : []; })
       .catch(function () { return []; });
+  }
+
+  // 未ログインで問題を解いたとき、そのタブで一度だけ出すログイン案内。
+  // しつこくしない思想：sessionStorageで「見た」印を付け、以後そのタブでは出さない。
+  function maybeNudgeLogin() {
+    try {
+      if (sessionStorage.getItem(NUDGE_KEY)) return;
+      sessionStorage.setItem(NUDGE_KEY, '1');
+    } catch (e) {
+      // プライベートモード等でsessionStorage不可 → その場合は出さない（しつこさ回避を優先）
+      return;
+    }
+    if (!global.document || document.getElementById('divp-login-nudge')) return;
+
+    var bar = document.createElement('div');
+    bar.id = 'divp-login-nudge';
+    bar.setAttribute('role', 'status');
+    bar.style.cssText = [
+      'position:fixed', 'left:12px', 'right:12px', 'bottom:12px',
+      'z-index:2147483000', 'margin:0 auto', 'max-width:520px',
+      'background:#FBFAF6', 'color:#33312B',
+      'border:1px solid #E4E0D5', 'border-left:5px solid #C73E2E',
+      'border-radius:12px', 'box-shadow:0 6px 24px rgba(0,0,0,.16)',
+      'padding:12px 14px', 'display:flex', 'align-items:center', 'gap:10px',
+      "font-family:'Zen Kaku Gothic New',system-ui,sans-serif", 'font-size:14px',
+      'line-height:1.5', 'animation:divpNudgeIn .28s ease-out'
+    ].join(';');
+
+    var msg = document.createElement('div');
+    msg.style.cssText = 'flex:1;min-width:0;';
+    msg.innerHTML = 'ログインすると、解いた記録がマイページに残るよ📒'
+      + '<br><span style="color:#8B877C;font-size:12px;">今は記録されていません</span>';
+
+    var loginBtn = document.createElement('button');
+    loginBtn.type = 'button';
+    loginBtn.textContent = 'ログイン';
+    loginBtn.style.cssText = [
+      'flex:0 0 auto', 'background:#C73E2E', 'color:#fff', 'border:0',
+      'border-radius:9px', 'padding:8px 14px', 'font-size:14px',
+      "font-family:inherit", 'font-weight:700', 'cursor:pointer'
+    ].join(';');
+    loginBtn.addEventListener('click', function () {
+      close();
+      // 共通ヘッダーのログイン窓を開く。ヘッダー未読込なら上部へ誘導のみ。
+      var hdrBtn = document.getElementById('divp-login-btn');
+      if (hdrBtn) {
+        try { global.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { global.scrollTo(0, 0); }
+        hdrBtn.click();
+      } else {
+        try { global.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { global.scrollTo(0, 0); }
+      }
+    });
+
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.setAttribute('aria-label', 'とじる');
+    closeBtn.textContent = '×';
+    closeBtn.style.cssText = [
+      'flex:0 0 auto', 'background:transparent', 'color:#8B877C', 'border:0',
+      'font-size:22px', 'line-height:1', 'padding:2px 4px', 'cursor:pointer'
+    ].join(';');
+    closeBtn.addEventListener('click', close);
+
+    function close() {
+      if (bar.parentNode) bar.parentNode.removeChild(bar);
+    }
+
+    if (!document.getElementById('divp-nudge-anim')) {
+      var st = document.createElement('style');
+      st.id = 'divp-nudge-anim';
+      st.textContent = '@keyframes divpNudgeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}';
+      document.head.appendChild(st);
+    }
+
+    bar.appendChild(msg);
+    bar.appendChild(loginBtn);
+    bar.appendChild(closeBtn);
+    (document.body || document.documentElement).appendChild(bar);
+
+    // 12秒で自動的に引っ込む（sessionStorageの印は残るので再表示はしない）
+    setTimeout(close, 12000);
   }
 
   answer._divpCore = true;

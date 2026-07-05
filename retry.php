@@ -53,7 +53,7 @@ function h(?string $s): string
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きょうの解き直し | 中京個別指導学院</title>
+<title>過去のまちがいを解き直す | 中京個別指導学院</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -131,8 +131,8 @@ function h(?string $s): string
   </header>
 
   <section class="hero">
-    <h1>きょうの解き直し</h1>
-    <p>まちがえた問題のリストです。「再チャレンジ」から全く同じ問題がもう一度出ます。2回連続で正解するとマスター！</p>
+    <h1>過去のまちがいを解き直す</h1>
+    <p>これまでにまちがえた問題のリストです。「再チャレンジ」から全く同じ問題がもう一度出ます。<br><strong>同じ問題に2回連続で正解すると、リストから消えます。</strong></p>
   </section>
 
 <?php if (count($units) === 0): ?>
@@ -152,7 +152,7 @@ function h(?string $s): string
       <?php if ($item['question_text']): ?>
       <div class="qtext" data-math="<?= h($item['question_text']) ?>"><?= h($item['question_text']) ?></div>
       <?php endif; ?>
-      <div class="meta">まちがえた回数: <?= (int)$item['wrong_count'] ?>回<?= (int)$item['correct_streak'] === 1 ? ' ・ あと1回正解でマスター！' : '' ?></div>
+      <div class="meta">まちがえた回数: <?= (int)$item['wrong_count'] ?>回 ・ <?= (int)$item['correct_streak'] === 1 ? 'あと1回連続で正解すると消えるよ' : '2回連続で正解すると消えるよ' ?></div>
     </div>
 <?php endforeach; ?>
 <?php if (!empty($meta['url'])): ?>

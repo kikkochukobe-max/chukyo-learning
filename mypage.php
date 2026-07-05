@@ -106,7 +106,8 @@ $stmt = $pdo->prepare(
 $stmt->execute($params);
 $week = $stmt->fetch();
 $weekSolved = (int)$week['total'];
-$weekRate = $weekSolved > 0 ? (int)round(100 * (int)$week['correct'] / $weekSolved) : 0;
+$weekCorrect = (int)$week['correct'];
+$weekRate = $weekSolved > 0 ? (int)round(100 * $weekCorrect / $weekSolved) : 0;
 
 // ---- レベル(累計XPから算出: floor(sqrt(totalXp/100))+1) ----
 $stmt = $pdo->prepare('SELECT COALESCE(SUM(amount),0) FROM xp_logs WHERE student_id = :id');
@@ -129,7 +130,7 @@ $rankFromStr = $from ? $from->format('Y-m-d 00:00:00') : null;
 $rankToStr = $to ? $to->format('Y-m-d 00:00:00') : null;
 $rankRows = ranking_rows($pdo, [(int)$student['classroom_id']], $rankFromStr, $rankToStr);
 $myRanks = [];
-foreach (['solved' => '解いた問題', 'rate' => '正答率', 'xp' => 'ゲットしたXP'] as $metric => $metricLabel) {
+foreach (['solved' => '解いた問題', 'correct' => '正解数', 'rate' => '正答率', 'xp' => 'ゲットしたXP'] as $metric => $metricLabel) {
     $list = ranking_ranked($rankRows, $metric);
     $mine = null;
     foreach ($list as $r) {
@@ -155,7 +156,7 @@ if ($activeEvent) {
         if ((int)$r['student_id'] === $studentId) { $evSolved = (int)$r['solved']; break; }
     }
     $eventRanks = [];
-    foreach (['solved' => '解いた問題', 'rate' => '正答率', 'xp' => 'ゲットしたXP'] as $metric => $metricLabel) {
+    foreach (['solved' => '解いた問題', 'correct' => '正解数', 'rate' => '正答率', 'xp' => 'ゲットしたXP'] as $metric => $metricLabel) {
         $list = ranking_ranked($evRows, $metric);
         $mine = null;
         foreach ($list as $r) {
@@ -272,6 +273,8 @@ function h(?string $s): string
   }
   header img.logo{height:34px;width:auto;display:block}
   .who{text-align:right;font-size:12px;color:var(--ink-soft)}
+  .tolist{display:inline-block;margin:0 2px 6px;font-size:13px;color:var(--ai);
+    text-decoration:none;font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
   .who b{display:block;font-size:15px;color:var(--ink);
     font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
 
@@ -289,7 +292,7 @@ function h(?string $s): string
     font-family:'Zen Maru Gothic',sans-serif;font-weight:900;
     font-size:22px;letter-spacing:.02em;margin-top:2px;
   }
-  .stats{display:flex;gap:26px;margin-top:14px}
+  .stats{display:flex;flex-wrap:wrap;gap:16px 22px;margin-top:14px}
   .stat .num{
     font-family:'Zen Maru Gothic',sans-serif;font-weight:900;
     font-size:38px;line-height:1;font-feature-settings:'tnum';
@@ -397,6 +400,8 @@ function h(?string $s): string
     <div class="who"><b><?= h($student['student_name']) ?> さん</b><?= h($student['classroom_name']) ?>教室<?= $student['grade'] ? '・' . h(grade_label($student['grade'])) : '' ?></div>
   </header>
 
+  <a class="tolist" href="/learning/index.php">← 学習ツールの目次へ</a>
+
   <!-- 期間タブ -->
   <nav class="ptabs">
 <?php foreach ($periodLabels as $key => $label): ?>
@@ -411,6 +416,7 @@ function h(?string $s): string
     <div class="stats">
       <div class="stat"><div class="num"><?= $weekMinutes ?><small>分</small></div><div class="lbl">学習時間</div></div>
       <div class="stat"><div class="num"><?= $weekSolved ?><small>問</small></div><div class="lbl">解いた問題</div></div>
+      <div class="stat"><div class="num"><?= $weekCorrect ?><small>問</small></div><div class="lbl">正解</div></div>
       <div class="stat"><div class="num"><?= $weekRate ?><small>%</small></div><div class="lbl">正答率</div></div>
     </div>
     <div class="level">
@@ -422,7 +428,7 @@ function h(?string $s): string
 <?php if ($retryCount > 0): ?>
   <!-- 解き直し -->
   <a class="retry" href="/retry.php">
-    <span class="t">きょうの解き直し<small>まちがえた問題に もう一度チャレンジ</small></span>
+    <span class="t">過去のまちがいを解き直す<small>2回連続で正解すると リストから消えるよ</small></span>
     <span class="badge"><?= $retryCount ?>問</span>
   </a>
 <?php endif; ?>
