@@ -745,11 +745,54 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   await fetch('/api/logout.php', { method: 'POST', credentials: 'same-origin' });
   location.reload();
 });
-// LaTeX形式のセルをKaTeXで整形（数式でなければそのまま）
+// ===== 数式整形の共通処理 =====
+// (1) 全体がLaTeXのセル、(2) 日本語に Unicode の √ / ² が混じった文（正誤問題など）の
+//     どちらもKaTeXで整形する。混在文は √ の部分だけを \sqrt{} に変換して描画する。
+function _mescape(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _texWhole(src){ try { return katex.renderToString(src, { throwOnError: true, displayMode: false }); } catch (e) { return _mescape(src); } }
+function _texFrag(tex){ try { return katex.renderToString(tex, { throwOnError: false, displayMode: false }); } catch (e) { return _mescape(tex); } }
+function _sup(t){ return String(t).replace(/²/g, '^{2}').replace(/³/g, '^{3}'); }
+// √ の被開平数（数字 or 釣り合った括弧グループ）を取り出す
+function _captureRad(s, pos){
+  if (pos >= s.length) return null;
+  if (s.charAt(pos) === '(') {
+    var depth = 0, k = pos;
+    for (; k < s.length; k++) { var c = s.charAt(k); if (c === '(') depth++; else if (c === ')') { depth--; if (depth === 0) { k++; break; } } }
+    return { latex: _sup(s.slice(pos + 1, k - 1)), end: k };   // 外側の括弧は外す
+  }
+  var m = /^[0-9]+(?:\.[0-9]+)?/.exec(s.slice(pos));
+  return m ? { latex: m[0], end: pos + m[0].length } : null;
+}
+function mathifyHTML(raw){
+  raw = String(raw == null ? '' : raw);
+  var out = '', i = 0, n = raw.length;
+  while (i < n) {
+    var ch = raw.charAt(i);
+    if (ch >= '0' && ch <= '9') {   // 係数付き（例 6√2）を拾う
+      var j = i; while (j < n && raw.charAt(j) >= '0' && raw.charAt(j) <= '9') j++;
+      if (raw.charAt(j) === '√') {
+        var rad = _captureRad(raw, j + 1);
+        if (rad) { out += _texFrag(raw.slice(i, j) + '\\sqrt{' + rad.latex + '}'); i = rad.end; continue; }
+      }
+      out += _mescape(raw.slice(i, j)); i = j; continue;
+    }
+    if (ch === '√') {
+      var rad2 = _captureRad(raw, i + 1);
+      if (rad2) { out += _texFrag('\\sqrt{' + rad2.latex + '}'); i = rad2.end; continue; }
+      out += _mescape('√'); i++; continue;
+    }
+    out += _mescape(ch); i++;
+  }
+  return out.replace(/\n/g, '<br>');
+}
+function renderMathToHTML(src){
+  src = String(src == null ? '' : src);
+  if (/[\\^_{}]/.test(src)) return _texWhole(src);   // 既にLaTeX
+  if (/[√²³]/.test(src)) return mathifyHTML(src);    // Unicode数式混じりの日本語文
+  return _mescape(src).replace(/\n/g, '<br>');
+}
 document.querySelectorAll('.math').forEach(function (el) {
-  var src = el.getAttribute('data-math') || '';
-  if (!/[\\^_{}]/.test(src)) return;
-  try { katex.render(src, el, { throwOnError: true, displayMode: false }); } catch (e) {}
+  el.innerHTML = renderMathToHTML(el.getAttribute('data-math') || '');
 });
 
 // ===== 解き直しプリント（誤答をアナログで解き直す用紙）=====
@@ -763,14 +806,9 @@ document.querySelectorAll('.math').forEach(function (el) {
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   }
-  // LaTeXっぽければKaTeXでHTML化、そうでなければそのまま（改行は<br>）
+  // 全体LaTeX / Unicode√混じり日本語文 のどちらもKaTeX整形（共通処理に委譲）
   function fmt(src) {
-    src = String(src == null ? '' : src);
-    if (/[\\^_{}]/.test(src)) {
-      try { return katex.renderToString(src, { throwOnError: false, displayMode: false }); }
-      catch (e) { /* fall through */ }
-    }
-    return esc(src).replace(/\n/g, '<br>');
+    return renderMathToHTML(src);
   }
 
   btn.addEventListener('click', function () {

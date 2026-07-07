@@ -37,6 +37,11 @@ switch ($period) {
 }
 $periodLabels = ['week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => 'これまで'];
 
+// 学習の足あと（日別ドット）は週表示のときだけ出す
+$showWeekDots = in_array($period, ['week', 'last_week'], true);
+$todayStr = (new DateTimeImmutable('today'))->format('Y-m-d');
+$dayLabels = ['月', '火', '水', '木', '金', '土', '日'];
+
 function period_where(string $column, ?DateTimeImmutable $from, ?DateTimeImmutable $to, array &$params): string
 {
     if ($from === null) return '';
@@ -115,6 +120,20 @@ if ($isGuardian) {
             $units[$row['unit_key']][] = $row;
         }
 
+        // 学習の足あと（週表示時のみ・日別学習秒数）
+        $daily = [];
+        if ($showWeekDots) {
+            $st = $pdo->prepare(
+                'SELECT DATE(started_at) AS d, COALESCE(SUM(duration_sec),0) AS sec FROM study_sessions
+                 WHERE student_id = :id AND started_at >= :from AND started_at < :to
+                 GROUP BY DATE(started_at)'
+            );
+            $st->execute(['id' => $sid, 'from' => $from->format('Y-m-d 00:00:00'), 'to' => $to->format('Y-m-d 00:00:00')]);
+            foreach ($st->fetchAll() as $row) {
+                $daily[$row['d']] = (int)$row['sec'];
+            }
+        }
+
         $children[] = [
             'name' => $kid['student_name'],
             'classroom' => $kid['classroom_name'],
@@ -125,6 +144,7 @@ if ($isGuardian) {
             'rate' => $rate,
             'level' => $level,
             'pending' => $pending,
+            'daily' => $daily,
             'units' => $units,
         ];
     }
@@ -173,6 +193,14 @@ if ($isGuardian) {
   .stat .lbl{font-size:11px;color:var(--ink-soft);margin-top:4px}
   .lv{color:var(--kin)}
   .pending{margin-top:10px;font-size:13px;color:var(--shu);font-weight:700}
+
+  /* 学習の足あと（週ドット） */
+  .week-title{font-size:12px;color:var(--ink-soft);font-weight:700;margin:14px 0 6px}
+  .week{display:flex;justify-content:space-between;background:var(--paper);border-radius:10px;padding:12px 10px}
+  .day{text-align:center;font-size:11px;color:var(--ink-soft)}
+  .dot{width:30px;height:30px;border-radius:50%;margin:0 auto 4px;border:2px dashed var(--grid);display:flex;align-items:center;justify-content:center}
+  .dot.on{border:none;background:var(--shu);color:#fff;font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:13px}
+  .dot.today{outline:2px solid var(--ai);outline-offset:2px}
 
   .unit{margin-top:14px}
   .unit .ut{font-size:13px;font-weight:700;font-family:'Zen Maru Gothic',sans-serif}
@@ -255,6 +283,21 @@ document.getElementById('lpin').addEventListener('keydown', (e) => { if (e.key =
     </div>
 <?php if ($c['pending'] > 0): ?>
     <div class="pending">解き直しが <?= $c['pending'] ?>問 のこっています</div>
+<?php endif; ?>
+
+<?php if ($showWeekDots): ?>
+    <div class="week-title">学習の足あと（ドットの数字は学習時間・分）</div>
+    <div class="week">
+<?php for ($i = 0; $i < 7; $i++):
+      $day = $from->modify("+{$i} days");
+      $dayStr = $day->format('Y-m-d');
+      $mins = isset($c['daily'][$dayStr]) ? (int)floor($c['daily'][$dayStr] / 60) : 0;
+      $isToday = $dayStr === $todayStr;
+      $classes = 'dot' . ($mins > 0 ? ' on' : '') . ($isToday ? ' today' : '');
+?>
+      <div class="day"><div class="<?= $classes ?>"><?= $mins > 0 ? $mins : '' ?></div><?= $dayLabels[$i] ?></div>
+<?php endfor; ?>
+    </div>
 <?php endif; ?>
 
 <?php if (count($c['units']) === 0): ?>
