@@ -21,18 +21,15 @@ if (!in_array($requesterRole, ['super_admin', 'classroom_admin'], true)) {
 }
 
 $input = json_input();
-$loginId = trim((string)($input['login_id'] ?? ''));
-$password = (string)($input['password'] ?? '');
+$pin = (string)($input['pin'] ?? '');
 $guardianName = trim((string)($input['guardian_name'] ?? ''));
 $studentCodes = is_array($input['student_codes'] ?? null)
     ? array_values(array_filter(array_map(fn($v) => trim((string)$v), $input['student_codes']), fn($v) => $v !== ''))
     : [];
 
-if ($loginId === '' || mb_strlen($loginId) > 50) {
-    json_response(['ok' => false, 'error' => 'invalid_login_id'], 400);
-}
-if (mb_strlen($password) < 8) {
-    json_response(['ok' => false, 'error' => 'invalid_password'], 400);
+// 保護者PINは生徒と同じ4桁数字（テンキー完結）
+if (!preg_match('/^\d{4}$/', $pin)) {
+    json_response(['ok' => false, 'error' => 'invalid_pin'], 400);
 }
 if ($guardianName === '' || mb_strlen($guardianName) > 50) {
     json_response(['ok' => false, 'error' => 'invalid_guardian_name'], 400);
@@ -40,6 +37,11 @@ if ($guardianName === '' || mb_strlen($guardianName) > 50) {
 if (count($studentCodes) === 0) {
     json_response(['ok' => false, 'error' => 'student_codes_required'], 400);
 }
+
+// 保護者ログインIDは「代表のお子さま（最初に指定した生徒）の生徒コード」に g を付けて自動採番。
+// 例: 260038 → g260038。兄弟は下の guardian_students で複数ひもづける。
+// 同じ代表の子で二重登録すると login_id が重複し 409 になる（＝すでに登録済み）。
+$loginId = 'g' . $studentCodes[0];
 
 // 生徒コード→student_id を解決。存在しないコードがあれば登録しない
 $studentIds = [];
@@ -68,7 +70,7 @@ try {
     );
     $stmt->execute([
         'login_id'      => $loginId,
-        'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+        'password_hash' => password_hash($pin, PASSWORD_DEFAULT),
         'guardian_name' => $guardianName,
     ]);
     $guardianId = (int)$pdo->lastInsertId();
@@ -89,5 +91,6 @@ try {
 json_response([
     'ok'          => true,
     'guardian_id' => $guardianId,
+    'login_id'    => $loginId,
     'linked'      => count($studentIds),
 ]);

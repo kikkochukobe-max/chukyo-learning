@@ -268,13 +268,12 @@ if ($role === 'super_admin') {
   <div class="pane" id="pane-guardian" style="display:none;">
   <div class="card">
     <h2>保護者登録</h2>
-    <p class="note">お子さまの生徒コードと紐づけて登録します（兄弟はカンマ区切りで複数可）。保護者専用ログインは後日リリース予定で、アカウントの発行だけ先に行えます。</p>
+    <p class="note">お子さまの生徒コードと紐づけて登録します（兄弟はカンマ区切りで複数可）。<strong>保護者IDは「最初に入力したお子さまの生徒コードに g を付けたもの」を自動発行</strong>します（例: 260038 → g260038）。保護者専用ログインは後日リリース予定で、アカウントの発行だけ先に行えます。</p>
     <form id="guardian-form">
       <div class="row2">
-        <label>ログインID<input type="text" name="login_id" required maxlength="50"></label>
-        <label>初期パスワード（8文字以上）<input type="text" name="password" required minlength="8" autocomplete="off"></label>
         <label>保護者氏名<input type="text" name="guardian_name" required maxlength="50"></label>
-        <label>お子さまの生徒コード（例: 260001, 260002）<input type="text" name="student_codes" required placeholder="260001, 260002"></label>
+        <label>PIN（4桁数字）<input type="text" name="pin" pattern="\d{4}" maxlength="4" inputmode="numeric" required autocomplete="off"></label>
+        <label>お子さまの生徒コード（例: 260001, 260002 ／ 先頭が代表）<input type="text" name="student_codes" required placeholder="260001, 260002"></label>
       </div>
       <button class="go" type="submit">保護者を登録</button>
       <div class="msg" id="guardian-msg"></div>
@@ -753,17 +752,15 @@ document.getElementById('guardian-form').addEventListener('submit', async (e) =>
   e.preventDefault();
   const f = e.target;
   const codes = f.student_codes.value.split(/[,、\s]+/).map(s => s.trim()).filter(s => s !== '');
-  const loginId = f.login_id.value.trim();
   try {
     const { res, data } = await post('/api/register_guardian.php', {
-      login_id: loginId,
-      password: f.password.value,
+      pin: f.pin.value,
       guardian_name: f.guardian_name.value.trim(),
       student_codes: codes,
     });
     if (res.ok && data && data.ok) {
-      recent.guardians.add(loginId);
-      showMsg('guardian-msg', true, '登録しました（お子さま' + data.linked + '人と紐づけ済み。登録一覧タブで確認できます）');
+      recent.guardians.add(data.login_id);
+      showMsg('guardian-msg', true, '登録しました。保護者ID: ' + data.login_id + '（お子さま' + data.linked + '人と紐づけ済み。登録一覧タブで確認できます）');
       f.reset();
     } else {
       showMsg('guardian-msg', false, errText(data, res.status));

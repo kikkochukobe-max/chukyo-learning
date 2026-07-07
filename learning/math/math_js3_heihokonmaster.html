@@ -1619,38 +1619,44 @@ function nextQuestion() {
 
 function renderResult() {
   document.getElementById('progress-fill').style.width = '100%';
-  document.getElementById('q-count').textContent = TOTAL;
+  const isRetry = (_tfRetryQueue !== null);
+  const effTotal = isRetry ? _tfRetryTotal : TOTAL;
+  const showGrade = effTotal >= 10;   // 解き直し等10問未満はランクを付けない
+  document.getElementById('q-count').textContent = effTotal;
   document.getElementById('score-correct').textContent = correctCount;
   document.getElementById('score-wrong').textContent = wrongCount;
 
-  const pct = Math.round(correctCount / TOTAL * 100);
-  // 連続全問正解カウント更新
-  if (correctCount === TOTAL) consecutivePerfect++;
-  else consecutivePerfect = 0;
+  const pct = Math.round(correctCount / effTotal * 100);
+  // 連続全問正解カウントは通常ラウンドのみ更新（解き直しでは進めない/減らさない）
+  if (!isRetry) {
+    if (correctCount === effTotal) consecutivePerfect++;
+    else consecutivePerfect = 0;
+  }
 
   let grade, color, msg;
-  if (consecutivePerfect >= 3) {
-    grade = 'SSS'; color = '#ff4dff'; msg = '30問連続全問正解！平方根マスター！！';
-  } else if (consecutivePerfect >= 2) {
-    grade = 'SS';  color = '#ff9000'; msg = '20問連続全問正解！圧巻！';
-  } else if (correctCount === TOTAL) {
-    grade = 'S';   color = '#f5c842'; msg = '10問全問正解！完璧！';
-  } else if (pct >= 90) {
-    grade = 'A';   color = '#22c55e'; msg = 'あと1問！よくできました！';
-  } else if (pct >= 70) {
-    grade = 'B';   color = '#3b82f6'; msg = 'もう少し！復習しよう。';
-  } else if (pct >= 50) {
-    grade = 'C';   color = '#f97316'; msg = '復習してもう一度！';
-  } else {
-    grade = 'D';   color = '#ef4444'; msg = '基礎から復習しよう。';
+  if (showGrade) {
+    if (consecutivePerfect >= 3) {
+      grade = 'SSS'; color = '#ff4dff'; msg = '30問連続全問正解！平方根マスター！！';
+    } else if (consecutivePerfect >= 2) {
+      grade = 'SS';  color = '#ff9000'; msg = '20問連続全問正解！圧巻！';
+    } else if (correctCount === effTotal) {
+      grade = 'S';   color = '#f5c842'; msg = '10問全問正解！完璧！';
+    } else if (pct >= 90) {
+      grade = 'A';   color = '#22c55e'; msg = 'あと1問！よくできました！';
+    } else if (pct >= 70) {
+      grade = 'B';   color = '#3b82f6'; msg = 'もう少し！復習しよう。';
+    } else if (pct >= 50) {
+      grade = 'C';   color = '#f97316'; msg = '復習してもう一度！';
+    } else {
+      grade = 'D';   color = '#ef4444'; msg = '基礎から復習しよう。';
+    }
   }
 
   document.getElementById('quiz-area').innerHTML = `
     <div class="result-screen">
       <div style="font-size:14px;color:#64748b;letter-spacing:0.1em;margin-bottom:8px;">RESULT</div>
-      <div class="result-grade" style="color:${color};">${grade}</div>
-      <div class="result-msg">${msg}</div>
-      <div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">${correctCount} <span style="font-size:18px;color:#64748b;">/ ${TOTAL}問正解</span></div>
+      ${showGrade ? `<div class="result-grade" style="color:${color};">${grade}</div><div class="result-msg">${msg}</div>` : `<div class="result-msg" style="margin-top:6px;">解き直しおつかれさま！</div>`}
+      <div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">${correctCount} <span style="font-size:18px;color:#64748b;">/ ${effTotal}問正解</span></div>
       <div class="result-breakdown">
         <div class="result-item c">✓ 正解 ${correctCount}問</div>
         <div class="result-item w">✗ 不正解 ${wrongCount}問</div>
@@ -1889,9 +1895,9 @@ function selectSimplifyAnswer(chosen, s, options) {
   Divp.answer(isCorrect, {
     question_key: 'simplify',
     question_params: { n: s.n, a: s.a, b: s.b },
-    question_text: `√${s.n} を簡単にすると？`,
-    correct_answer: `${s.a}√${s.b}`,
-    wrong_answer: `${chosen.a}√${chosen.b}`,
+    question_text: `\\sqrt{${s.n}}`,
+    correct_answer: `${s.a}\\sqrt{${s.b}}`,
+    wrong_answer: `${chosen.a}\\sqrt{${chosen.b}}`,
   });
 
   // Style all buttons
@@ -1933,38 +1939,43 @@ function selectSimplifyAnswer(chosen, s, options) {
 
 function renderSimplifyResult() {
   document.getElementById('progress-fill').style.width = '100%';
-  document.getElementById('q-count').textContent = S_TOTAL;
+  const isRetry = (_sRetryQueue !== null);
+  const effTotal = isRetry ? _sRetryTotal : S_TOTAL;
+  const showGrade = effTotal >= 10;   // 解き直し等10問未満はランクを付けない
+  document.getElementById('q-count').textContent = effTotal;
   document.getElementById('score-correct').textContent = sCorrect;
   document.getElementById('score-wrong').textContent = sWrong;
 
-  const pct = Math.round(sCorrect / S_TOTAL * 100);
-  // 連続全問正解カウント更新
-  if (sCorrect === S_TOTAL) consecutivePerfect++;
-  else consecutivePerfect = 0;
+  const pct = Math.round(sCorrect / effTotal * 100);
+  if (!isRetry) {
+    if (sCorrect === effTotal) consecutivePerfect++;
+    else consecutivePerfect = 0;
+  }
 
   let grade, color, msg;
-  if (consecutivePerfect >= 3) {
-    grade = 'SSS'; color = '#ff4dff'; msg = '30問連続全問正解！簡略化マスター！！';
-  } else if (consecutivePerfect >= 2) {
-    grade = 'SS';  color = '#ff9000'; msg = '20問連続全問正解！圧巻！';
-  } else if (sCorrect === S_TOTAL) {
-    grade = 'S';   color = '#f5c842'; msg = '10問全問正解！完璧！';
-  } else if (pct >= 90) {
-    grade = 'A';   color = '#22c55e'; msg = 'あと1問！よくできました！';
-  } else if (pct >= 70) {
-    grade = 'B';   color = '#3b82f6'; msg = 'もう少し！因数分解を復習しよう。';
-  } else if (pct >= 50) {
-    grade = 'C';   color = '#f97316'; msg = '復習してもう一度！';
-  } else {
-    grade = 'D';   color = '#ef4444'; msg = '完全平方数を探す練習をしよう。';
+  if (showGrade) {
+    if (consecutivePerfect >= 3) {
+      grade = 'SSS'; color = '#ff4dff'; msg = '30問連続全問正解！簡略化マスター！！';
+    } else if (consecutivePerfect >= 2) {
+      grade = 'SS';  color = '#ff9000'; msg = '20問連続全問正解！圧巻！';
+    } else if (sCorrect === effTotal) {
+      grade = 'S';   color = '#f5c842'; msg = '10問全問正解！完璧！';
+    } else if (pct >= 90) {
+      grade = 'A';   color = '#22c55e'; msg = 'あと1問！よくできました！';
+    } else if (pct >= 70) {
+      grade = 'B';   color = '#3b82f6'; msg = 'もう少し！因数分解を復習しよう。';
+    } else if (pct >= 50) {
+      grade = 'C';   color = '#f97316'; msg = '復習してもう一度！';
+    } else {
+      grade = 'D';   color = '#ef4444'; msg = '完全平方数を探す練習をしよう。';
+    }
   }
 
   document.getElementById('quiz-area').innerHTML = `
     <div class="result-screen">
       <div style="font-size:14px;color:#64748b;letter-spacing:0.1em;margin-bottom:8px;">RESULT</div>
-      <div class="result-grade" style="color:${color};">${grade}</div>
-      <div class="result-msg">${msg}</div>
-      <div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">${sCorrect} <span style="font-size:18px;color:#64748b;">/ ${S_TOTAL}問正解</span></div>
+      ${showGrade ? `<div class="result-grade" style="color:${color};">${grade}</div><div class="result-msg">${msg}</div>` : `<div class="result-msg" style="margin-top:6px;">解き直しおつかれさま！</div>`}
+      <div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">${sCorrect} <span style="font-size:18px;color:#64748b;">/ ${effTotal}問正解</span></div>
       <div class="result-breakdown">
         <div class="result-item c">✓ 正解 ${sCorrect}問</div>
         <div class="result-item w">✗ 不正解 ${sWrong}問</div>
@@ -2998,25 +3009,29 @@ function selectMDAnswer(chosen, prob, opts) {
 
 function renderMDResult() {
   document.getElementById('progress-fill').style.width = '100%';
-  document.getElementById('q-count').textContent = MD_TOTAL;
+  const isRetry = (_mdRetryQueue !== null);
+  const effTotal = isRetry ? _mdRetryTotal : MD_TOTAL;
+  const showGrade = effTotal >= 10;
+  document.getElementById('q-count').textContent = effTotal;
   document.getElementById('score-correct').textContent = mdCorrect;
   document.getElementById('score-wrong').textContent = mdWrong;
-  const pct = Math.round(mdCorrect/MD_TOTAL*100);
-  if (mdCorrect===MD_TOTAL) consecutivePerfect++; else consecutivePerfect=0;
+  const pct = Math.round(mdCorrect/effTotal*100);
+  if (!isRetry) { if (mdCorrect===effTotal) consecutivePerfect++; else consecutivePerfect=0; }
   let grade,color,msg;
-  if (consecutivePerfect>=3){grade='SSS';color='#ff4dff';msg='30問連続全問正解！乗除算マスター！！';}
-  else if(consecutivePerfect>=2){grade='SS';color='#ff9000';msg='20問連続全問正解！圧巻！';}
-  else if(mdCorrect===MD_TOTAL){grade='S';color='#f5c842';msg='10問全問正解！完璧！';}
-  else if(pct>=90){grade='A';color='#22c55e';msg='あと1問！よくできました！';}
-  else if(pct>=70){grade='B';color='#3b82f6';msg='もう少し！計算を復習しよう。';}
-  else if(pct>=50){grade='C';color='#f97316';msg='復習してもう一度！';}
-  else{grade='D';color='#ef4444';msg='基礎から復習しよう。';}
+  if (showGrade) {
+    if (consecutivePerfect>=3){grade='SSS';color='#ff4dff';msg='30問連続全問正解！乗除算マスター！！';}
+    else if(consecutivePerfect>=2){grade='SS';color='#ff9000';msg='20問連続全問正解！圧巻！';}
+    else if(mdCorrect===effTotal){grade='S';color='#f5c842';msg='10問全問正解！完璧！';}
+    else if(pct>=90){grade='A';color='#22c55e';msg='あと1問！よくできました！';}
+    else if(pct>=70){grade='B';color='#3b82f6';msg='もう少し！計算を復習しよう。';}
+    else if(pct>=50){grade='C';color='#f97316';msg='復習してもう一度！';}
+    else{grade='D';color='#ef4444';msg='基礎から復習しよう。';}
+  }
   document.getElementById('quiz-area').innerHTML=`
     <div class="result-screen">
       <div style="font-size:14px;color:#64748b;letter-spacing:0.1em;margin-bottom:8px;">RESULT</div>
-      <div class="result-grade" style="color:${color};">${grade}</div>
-      <div class="result-msg">${msg}</div>
-      <div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">${mdCorrect} <span style="font-size:18px;color:#64748b;">/ ${MD_TOTAL}問正解</span></div>
+      ${showGrade ? `<div class="result-grade" style="color:${color};">${grade}</div><div class="result-msg">${msg}</div>` : `<div class="result-msg" style="margin-top:6px;">解き直しおつかれさま！</div>`}
+      <div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">${mdCorrect} <span style="font-size:18px;color:#64748b;">/ ${effTotal}問正解</span></div>
       <div class="result-breakdown">
         <div class="result-item c">✓ 正解 ${mdCorrect}問</div>
         <div class="result-item w">✗ 不正解 ${mdWrong}問</div>
@@ -3353,22 +3368,26 @@ function selectASAnswer(chosen, prob, opts) {
 
 function renderASResult() {
   document.getElementById('progress-fill').style.width='100%';
-  const pct=Math.round(asCorrect/AS_TOTAL*100);
-  if(asCorrect===AS_TOTAL) consecutivePerfect++; else consecutivePerfect=0;
+  const isRetry = (_asRetryQueue !== null);
+  const effTotal = isRetry ? _asRetryTotal : AS_TOTAL;
+  const showGrade = effTotal >= 10;
+  const pct=Math.round(asCorrect/effTotal*100);
+  if(!isRetry){ if(asCorrect===effTotal) consecutivePerfect++; else consecutivePerfect=0; }
   let grade,color,msg;
-  if(consecutivePerfect>=3){grade='SSS';color='#ff4dff';msg='30問連続全問正解！加減算マスター！！';}
-  else if(consecutivePerfect>=2){grade='SS';color='#ff9000';msg='20問連続全問正解！';}
-  else if(asCorrect===AS_TOTAL){grade='S';color='#f5c842';msg='10問全問正解！完璧！';}
-  else if(pct>=90){grade='A';color='#22c55e';msg='あと1問！よくできました！';}
-  else if(pct>=70){grade='B';color='#3b82f6';msg='もう少し！計算を復習しよう。';}
-  else if(pct>=50){grade='C';color='#f97316';msg='復習してもう一度！';}
-  else{grade='D';color='#ef4444';msg='基礎から復習しよう。';}
+  if (showGrade) {
+    if(consecutivePerfect>=3){grade='SSS';color='#ff4dff';msg='30問連続全問正解！加減算マスター！！';}
+    else if(consecutivePerfect>=2){grade='SS';color='#ff9000';msg='20問連続全問正解！';}
+    else if(asCorrect===effTotal){grade='S';color='#f5c842';msg='10問全問正解！完璧！';}
+    else if(pct>=90){grade='A';color='#22c55e';msg='あと1問！よくできました！';}
+    else if(pct>=70){grade='B';color='#3b82f6';msg='もう少し！計算を復習しよう。';}
+    else if(pct>=50){grade='C';color='#f97316';msg='復習してもう一度！';}
+    else{grade='D';color='#ef4444';msg='基礎から復習しよう。';}
+  }
   document.getElementById('quiz-area').innerHTML=`
     <div class="result-screen">
       <div style="font-size:14px;color:#64748b;letter-spacing:0.1em;margin-bottom:8px;">RESULT</div>
-      <div class="result-grade" style="color:${color};">${grade}</div>
-      <div class="result-msg">${msg}</div>
-      <div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">${asCorrect} <span style="font-size:18px;color:#64748b;">/ ${AS_TOTAL}問正解</span></div>
+      ${showGrade ? `<div class="result-grade" style="color:${color};">${grade}</div><div class="result-msg">${msg}</div>` : `<div class="result-msg" style="margin-top:6px;">解き直しおつかれさま！</div>`}
+      <div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">${asCorrect} <span style="font-size:18px;color:#64748b;">/ ${effTotal}問正解</span></div>
       <div class="result-breakdown">
         <div class="result-item c">✓ 正解 ${asCorrect}問</div>
         <div class="result-item w">✗ 不正解 ${asWrong}問</div>
@@ -3584,22 +3603,26 @@ function selectMixAnswer(chosen, prob, opts){
 
 function renderMixResult(){
   document.getElementById('progress-fill').style.width='100%';
-  const pct=Math.round(mixCorrect/MIX_TOTAL*100);
-  if(mixCorrect===MIX_TOTAL) consecutivePerfect++; else consecutivePerfect=0;
+  const isRetry = (_mixRetryQueue !== null);
+  const effTotal = isRetry ? _mixRetryTotal : MIX_TOTAL;
+  const showGrade = effTotal >= 10;
+  const pct=Math.round(mixCorrect/effTotal*100);
+  if(!isRetry){ if(mixCorrect===effTotal) consecutivePerfect++; else consecutivePerfect=0; }
   let grade,color,msg;
-  if(consecutivePerfect>=3){grade='SSS';color='#ff4dff';msg='30問連続全問正解！四則混合マスター！！';}
-  else if(consecutivePerfect>=2){grade='SS';color='#ff9000';msg='20問連続全問正解！';}
-  else if(mixCorrect===MIX_TOTAL){grade='S';color='#f5c842';msg='10問全問正解！完璧！';}
-  else if(pct>=90){grade='A';color='#22c55e';msg='あと1問！よくできました！';}
-  else if(pct>=70){grade='B';color='#3b82f6';msg='もう少し！計算を復習しよう。';}
-  else if(pct>=50){grade='C';color='#f97316';msg='復習してもう一度！';}
-  else{grade='D';color='#ef4444';msg='基礎から復習しよう。';}
+  if (showGrade) {
+    if(consecutivePerfect>=3){grade='SSS';color='#ff4dff';msg='30問連続全問正解！四則混合マスター！！';}
+    else if(consecutivePerfect>=2){grade='SS';color='#ff9000';msg='20問連続全問正解！';}
+    else if(mixCorrect===effTotal){grade='S';color='#f5c842';msg='10問全問正解！完璧！';}
+    else if(pct>=90){grade='A';color='#22c55e';msg='あと1問！よくできました！';}
+    else if(pct>=70){grade='B';color='#3b82f6';msg='もう少し！計算を復習しよう。';}
+    else if(pct>=50){grade='C';color='#f97316';msg='復習してもう一度！';}
+    else{grade='D';color='#ef4444';msg='基礎から復習しよう。';}
+  }
   document.getElementById('quiz-area').innerHTML=`
     <div class="result-screen">
       <div style="font-size:14px;color:#64748b;letter-spacing:0.1em;margin-bottom:8px;">RESULT</div>
-      <div class="result-grade" style="color:${color};">${grade}</div>
-      <div class="result-msg">${msg}</div>
-      <div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">${mixCorrect} <span style="font-size:18px;color:#64748b;">/ ${MIX_TOTAL}問正解</span></div>
+      ${showGrade ? `<div class="result-grade" style="color:${color};">${grade}</div><div class="result-msg">${msg}</div>` : `<div class="result-msg" style="margin-top:6px;">解き直しおつかれさま！</div>`}
+      <div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">${mixCorrect} <span style="font-size:18px;color:#64748b;">/ ${effTotal}問正解</span></div>
       <div class="result-breakdown">
         <div class="result-item c">✓ 正解 ${mixCorrect}問</div>
         <div class="result-item w">✗ 不正解 ${mixWrong}問</div>
@@ -3863,25 +3886,29 @@ function selectApxAnswer(chosen, prob, opts){
 
 function renderApxResult(){
   document.getElementById('progress-fill').style.width = '100%';
-  document.getElementById('q-count').textContent = APX_TOTAL;
+  const isRetry = (_apxRetryQueue !== null);
+  const effTotal = isRetry ? _apxRetryTotal : APX_TOTAL;
+  const showGrade = effTotal >= 10;
+  document.getElementById('q-count').textContent = effTotal;
   document.getElementById('score-correct').textContent = apxCorrect;
   document.getElementById('score-wrong').textContent = apxWrong;
-  const pct = Math.round(apxCorrect/APX_TOTAL*100);
-  if (apxCorrect===APX_TOTAL) consecutivePerfect++; else consecutivePerfect=0;
+  const pct = Math.round(apxCorrect/effTotal*100);
+  if(!isRetry){ if (apxCorrect===effTotal) consecutivePerfect++; else consecutivePerfect=0; }
   let grade,color,msg;
-  if (consecutivePerfect>=3){grade='SSS';color='#ff4dff';msg='30問連続全問正解！近似値マスター！！';}
-  else if(consecutivePerfect>=2){grade='SS';color='#ff9000';msg='20問連続全問正解！圧巻！';}
-  else if(apxCorrect===APX_TOTAL){grade='S';color='#f5c842';msg='10問全問正解！完璧！';}
-  else if(pct>=90){grade='A';color='#22c55e';msg='あと1問！よくできました！';}
-  else if(pct>=70){grade='B';color='#3b82f6';msg='もう少し！考え方を復習しよう。';}
-  else if(pct>=50){grade='C';color='#f97316';msg='復習してもう一度！';}
-  else{grade='D';color='#ef4444';msg='基準の値の使い方を復習しよう。';}
+  if (showGrade) {
+    if (consecutivePerfect>=3){grade='SSS';color='#ff4dff';msg='30問連続全問正解！近似値マスター！！';}
+    else if(consecutivePerfect>=2){grade='SS';color='#ff9000';msg='20問連続全問正解！圧巻！';}
+    else if(apxCorrect===effTotal){grade='S';color='#f5c842';msg='10問全問正解！完璧！';}
+    else if(pct>=90){grade='A';color='#22c55e';msg='あと1問！よくできました！';}
+    else if(pct>=70){grade='B';color='#3b82f6';msg='もう少し！考え方を復習しよう。';}
+    else if(pct>=50){grade='C';color='#f97316';msg='復習してもう一度！';}
+    else{grade='D';color='#ef4444';msg='基準の値の使い方を復習しよう。';}
+  }
   document.getElementById('quiz-area').innerHTML =
     '<div class="result-screen">'
     + '<div style="font-size:14px;color:#64748b;letter-spacing:0.1em;margin-bottom:8px;">RESULT</div>'
-    + '<div class="result-grade" style="color:'+color+';">'+grade+'</div>'
-    + '<div class="result-msg">'+msg+'</div>'
-    + '<div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">'+apxCorrect+' <span style="font-size:18px;color:#64748b;">/ '+APX_TOTAL+'問正解</span></div>'
+    + (showGrade ? '<div class="result-grade" style="color:'+color+';">'+grade+'</div><div class="result-msg">'+msg+'</div>' : '<div class="result-msg" style="margin-top:6px;">解き直しおつかれさま！</div>')
+    + '<div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">'+apxCorrect+' <span style="font-size:18px;color:#64748b;">/ '+effTotal+'問正解</span></div>'
     + '<div class="result-breakdown">'
     +   '<div class="result-item c">✓ 正解 '+apxCorrect+'問</div>'
     +   '<div class="result-item w">✗ 不正解 '+apxWrong+'問</div>'
@@ -4152,25 +4179,29 @@ function selectIntAnswer(chosen, prob, opts){
 }
 function renderIntResult(){
   document.getElementById('progress-fill').style.width='100%';
-  document.getElementById('q-count').textContent=INT_TOTAL;
+  const isRetry = (_intRetryQueue !== null);
+  const effTotal = isRetry ? _intRetryTotal : INT_TOTAL;
+  const showGrade = effTotal >= 10;
+  document.getElementById('q-count').textContent=effTotal;
   document.getElementById('score-correct').textContent=intCorrect;
   document.getElementById('score-wrong').textContent=intWrong;
-  const pct=Math.round(intCorrect/INT_TOTAL*100);
-  if(intCorrect===INT_TOTAL) consecutivePerfect++; else consecutivePerfect=0;
+  const pct=Math.round(intCorrect/effTotal*100);
+  if(!isRetry){ if(intCorrect===effTotal) consecutivePerfect++; else consecutivePerfect=0; }
   let grade,color,msg;
-  if(consecutivePerfect>=3){grade='SSS';color='#ff4dff';msg='30問連続全問正解！素因数分解マスター！！';}
-  else if(consecutivePerfect>=2){grade='SS';color='#ff9000';msg='20問連続全問正解！圧巻！';}
-  else if(intCorrect===INT_TOTAL){grade='S';color='#f5c842';msg='10問全問正解！完璧！';}
-  else if(pct>=90){grade='A';color='#22c55e';msg='あと1問！よくできました！';}
-  else if(pct>=70){grade='B';color='#3b82f6';msg='もう少し！素因数分解を復習しよう。';}
-  else if(pct>=50){grade='C';color='#f97316';msg='復習してもう一度！';}
-  else{grade='D';color='#ef4444';msg='素因数分解から復習しよう。';}
+  if (showGrade) {
+    if(consecutivePerfect>=3){grade='SSS';color='#ff4dff';msg='30問連続全問正解！素因数分解マスター！！';}
+    else if(consecutivePerfect>=2){grade='SS';color='#ff9000';msg='20問連続全問正解！圧巻！';}
+    else if(intCorrect===effTotal){grade='S';color='#f5c842';msg='10問全問正解！完璧！';}
+    else if(pct>=90){grade='A';color='#22c55e';msg='あと1問！よくできました！';}
+    else if(pct>=70){grade='B';color='#3b82f6';msg='もう少し！素因数分解を復習しよう。';}
+    else if(pct>=50){grade='C';color='#f97316';msg='復習してもう一度！';}
+    else{grade='D';color='#ef4444';msg='素因数分解から復習しよう。';}
+  }
   document.getElementById('quiz-area').innerHTML =
     '<div class="result-screen">'
     + '<div style="font-size:14px;color:#64748b;letter-spacing:0.1em;margin-bottom:8px;">RESULT</div>'
-    + '<div class="result-grade" style="color:'+color+';">'+grade+'</div>'
-    + '<div class="result-msg">'+msg+'</div>'
-    + '<div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">'+intCorrect+' <span style="font-size:18px;color:#64748b;">/ '+INT_TOTAL+'問正解</span></div>'
+    + (showGrade ? '<div class="result-grade" style="color:'+color+';">'+grade+'</div><div class="result-msg">'+msg+'</div>' : '<div class="result-msg" style="margin-top:6px;">解き直しおつかれさま！</div>')
+    + '<div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">'+intCorrect+' <span style="font-size:18px;color:#64748b;">/ '+effTotal+'問正解</span></div>'
     + '<div class="result-breakdown">'
     +   '<div class="result-item c">✓ 正解 '+intCorrect+'問</div>'
     +   '<div class="result-item w">✗ 不正解 '+intWrong+'問</div>'
@@ -4449,25 +4480,29 @@ function selectSubstAnswer(chosen,prob,opts){
 
 function renderSubstResult(){
   document.getElementById('progress-fill').style.width='100%';
-  document.getElementById('q-count').textContent=SUB_TOTAL;
+  const isRetry = (_subRetryQueue !== null);
+  const effTotal = isRetry ? _subRetryTotal : SUB_TOTAL;
+  const showGrade = effTotal >= 10;
+  document.getElementById('q-count').textContent=effTotal;
   document.getElementById('score-correct').textContent=subCorrect;
   document.getElementById('score-wrong').textContent=subWrong;
-  const pct=Math.round(subCorrect/SUB_TOTAL*100);
-  if(subCorrect===SUB_TOTAL) consecutivePerfect++; else consecutivePerfect=0;
+  const pct=Math.round(subCorrect/effTotal*100);
+  if(!isRetry){ if(subCorrect===effTotal) consecutivePerfect++; else consecutivePerfect=0; }
   let grade,color,msg;
-  if(consecutivePerfect>=3){grade='SSS';color='#ff4dff';msg='30問連続全問正解！代入マスター！！';}
-  else if(consecutivePerfect>=2){grade='SS';color='#ff9000';msg='20問連続全問正解！圧巻！';}
-  else if(subCorrect===SUB_TOTAL){grade='S';color='#f5c842';msg='10問全問正解！完璧！';}
-  else if(pct>=90){grade='A';color='#22c55e';msg='あと1問！よくできました！';}
-  else if(pct>=70){grade='B';color='#3b82f6';msg='もう少し！';}
-  else if(pct>=50){grade='C';color='#f97316';msg='復習してもう一度！';}
-  else{grade='D';color='#ef4444';msg='式変形を復習しよう。';}
+  if (showGrade) {
+    if(consecutivePerfect>=3){grade='SSS';color='#ff4dff';msg='30問連続全問正解！代入マスター！！';}
+    else if(consecutivePerfect>=2){grade='SS';color='#ff9000';msg='20問連続全問正解！圧巻！';}
+    else if(subCorrect===effTotal){grade='S';color='#f5c842';msg='10問全問正解！完璧！';}
+    else if(pct>=90){grade='A';color='#22c55e';msg='あと1問！よくできました！';}
+    else if(pct>=70){grade='B';color='#3b82f6';msg='もう少し！';}
+    else if(pct>=50){grade='C';color='#f97316';msg='復習してもう一度！';}
+    else{grade='D';color='#ef4444';msg='式変形を復習しよう。';}
+  }
   document.getElementById('quiz-area').innerHTML =
     '<div class="result-screen">'
     + '<div style="font-size:14px;color:#64748b;letter-spacing:0.1em;margin-bottom:8px;">RESULT</div>'
-    + '<div class="result-grade" style="color:'+color+';">'+grade+'</div>'
-    + '<div class="result-msg">'+msg+'</div>'
-    + '<div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">'+subCorrect+' <span style="font-size:18px;color:#64748b;">/ '+SUB_TOTAL+'問正解</span></div>'
+    + (showGrade ? '<div class="result-grade" style="color:'+color+';">'+grade+'</div><div class="result-msg">'+msg+'</div>' : '<div class="result-msg" style="margin-top:6px;">解き直しおつかれさま！</div>')
+    + '<div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">'+subCorrect+' <span style="font-size:18px;color:#64748b;">/ '+effTotal+'問正解</span></div>'
     + '<div class="result-breakdown"><div class="result-item c">✓ 正解 '+subCorrect+'問</div><div class="result-item w">✗ 不正解 '+subWrong+'問</div></div>'
     + '<button class="btn-retry" id="retry-btn">もう一度チャレンジ</button>'
     + (subWrongProbs.length>0?'<button class="btn-retry-wrong" id="wrong-retry-btn">🔁 間違えた '+subWrongProbs.length+' 問を解き直す</button>':'')

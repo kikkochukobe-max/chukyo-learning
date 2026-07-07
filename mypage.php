@@ -128,7 +128,9 @@ $retryCount = (int)$stmt->fetchColumn();
 require_once __DIR__ . '/api/ranking.php';
 $rankFromStr = $from ? $from->format('Y-m-d 00:00:00') : null;
 $rankToStr = $to ? $to->format('Y-m-d 00:00:00') : null;
-$rankRows = ranking_rows($pdo, [(int)$student['classroom_id']], $rankFromStr, $rankToStr);
+// テスト生は通常ランキングから除外。ただし本人がテスト生なら含める（動作確認用）
+$viewerIsTest = mb_strpos((string)$student['student_name'], 'テスト') !== false;
+$rankRows = ranking_rows($pdo, [(int)$student['classroom_id']], $rankFromStr, $rankToStr, $viewerIsTest);
 $myRanks = [];
 foreach (['solved' => '解いた問題', 'correct' => '正解数', 'rate' => '正答率', 'xp' => 'ゲットしたXP'] as $metric => $metricLabel) {
     $list = ranking_ranked($rankRows, $metric);
@@ -150,7 +152,7 @@ $eventRanks = null;
 if ($activeEvent) {
     $evFromStr = $activeEvent['from'] . ' 00:00:00';
     $evToStr = (new DateTimeImmutable($activeEvent['to']))->modify('+1 day')->format('Y-m-d 00:00:00');
-    $evRows = ranking_rows($pdo, $activeEvent['classroom_ids'] ?? null, $evFromStr, $evToStr);
+    $evRows = ranking_rows($pdo, $activeEvent['classroom_ids'] ?? null, $evFromStr, $evToStr, $viewerIsTest);
     $evSolved = 0;   // 足切りメッセージ用に自分のイベント期間内解答数を控えておく
     foreach ($evRows as $r) {
         if ((int)$r['student_id'] === $studentId) { $evSolved = (int)$r['solved']; break; }

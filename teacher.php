@@ -190,12 +190,13 @@ $rankEvent = null;
 $evMode = false;
 if ($rankView) {
     require_once __DIR__ . '/api/ranking.php';
+    $showTest = isset($_GET['showtest']);   // テスト生を表示するトグル（既定は除外）
     $rankEvent = ranking_active_event(require __DIR__ . '/api/ranking_events.php');
     $evMode = $rankEvent !== null && (string)($_GET['ev'] ?? '') === '1';
     if ($evMode) {
         $evFromStr = $rankEvent['from'] . ' 00:00:00';
         $evToStr = (new DateTimeImmutable($rankEvent['to']))->modify('+1 day')->format('Y-m-d 00:00:00');
-        $rows = ranking_rows($pdo, $rankEvent['classroom_ids'] ?? null, $evFromStr, $evToStr);
+        $rows = ranking_rows($pdo, $rankEvent['classroom_ids'] ?? null, $evFromStr, $evToStr, $showTest);
         $cids = [];
     } else {
         $cids = $_GET['cids'] ?? [];
@@ -206,7 +207,7 @@ if ($rankView) {
         if (count($cids) === 0) {
             $cids = $allowedClassroomIds;   // 未指定は担当全教室の混合
         }
-        $rows = ranking_rows($pdo, $cids, $fromStr, $toStr);
+        $rows = ranking_rows($pdo, $cids, $fromStr, $toStr, $showTest);
     }
     $rankData = [
         'cids'   => $cids,
@@ -600,6 +601,8 @@ function qtab(array $extra): string
 <?php if ($rankEvent !== null): ?>
     <a class="ptab<?= $evMode ? ' active' : '' ?>" style="<?= $evMode ? 'background:var(--kin);border-color:var(--kin);' : 'border-color:var(--kin);color:var(--kin);' ?>" href="<?= h(qtab(['ev' => '1'])) ?>"><?= h($rankEvent['label']) ?></a>
 <?php endif; ?>
+    <span style="flex:1"></span>
+    <a class="ptab<?= $showTest ? ' active' : '' ?>" href="<?= h(qtab(['showtest' => $showTest ? null : '1'])) ?>"><?= $showTest ? 'テスト生を隠す' : 'テスト生を表示' ?></a>
   </div>
 
 <?php if ($evMode): ?>
