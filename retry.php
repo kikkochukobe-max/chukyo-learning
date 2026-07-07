@@ -165,48 +165,50 @@ function h(?string $s): string
   <footer>中京個別指導学院 学習の記録</footer>
 </div>
 <script>
-// question_text を KaTeX で整形。全体がLaTeXのもの、Unicodeの√/²が混じった
-// 日本語文（正誤問題など）の両方に対応し、混在文は √ 部分だけ \sqrt{} 化する。
+// question_text を KaTeX で整形。全体がLaTeXのものと、Unicodeの√/²・分数F(a/b)が
+// 混じった日本語文（正誤問題など）の両方に対応する。混在文はクイズ本体
+// (math_js3_heihokonmaster.html) と同じ規則で数式トークンを LaTeX 化して描画する。
 function _mescape(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function _texWhole(src){ try { return katex.renderToString(src, { throwOnError: true, displayMode: false }); } catch (e) { return _mescape(src); } }
-function _texFrag(tex){ try { return katex.renderToString(tex, { throwOnError: false, displayMode: false }); } catch (e) { return _mescape(tex); } }
-function _sup(t){ return String(t).replace(/²/g, '^{2}').replace(/³/g, '^{3}'); }
-function _captureRad(s, pos){
-  if (pos >= s.length) return null;
-  if (s.charAt(pos) === '(') {
-    var depth = 0, k = pos;
-    for (; k < s.length; k++) { var c = s.charAt(k); if (c === '(') depth++; else if (c === ')') { depth--; if (depth === 0) { k++; break; } } }
-    return { latex: _sup(s.slice(pos + 1, k - 1)), end: k };
-  }
-  var m = /^[0-9]+(?:\.[0-9]+)?/.exec(s.slice(pos));
-  return m ? { latex: m[0], end: pos + m[0].length } : null;
+// KaTeXでLaTeX片を描画。未読込・失敗時は fallback（なければ生LaTeX）にする。
+function _K(latex, fallback){
+  try { if (typeof katex === 'undefined') throw 0;
+    return katex.renderToString(latex, { throwOnError: false, displayMode: false }); }
+  catch (e) { return _mescape(fallback != null ? fallback : latex); }
 }
-function mathifyHTML(raw){
-  raw = String(raw == null ? '' : raw);
-  var out = '', i = 0, n = raw.length;
-  while (i < n) {
-    var ch = raw.charAt(i);
-    if (ch >= '0' && ch <= '9') {
-      var j = i; while (j < n && raw.charAt(j) >= '0' && raw.charAt(j) <= '9') j++;
-      if (raw.charAt(j) === '√') {
-        var rad = _captureRad(raw, j + 1);
-        if (rad) { out += _texFrag(raw.slice(i, j) + '\\sqrt{' + rad.latex + '}'); i = rad.end; continue; }
-      }
-      out += _mescape(raw.slice(i, j)); i = j; continue;
-    }
-    if (ch === '√') {
-      var rad2 = _captureRad(raw, i + 1);
-      if (rad2) { out += _texFrag('\\sqrt{' + rad2.latex + '}'); i = rad2.end; continue; }
-      out += _mescape('√'); i++; continue;
-    }
-    out += _mescape(ch); i++;
+// 数式トークン → LaTeX（クイズ本体 toLatex と同じ変換規則）
+function _toLatex(token){
+  var m = token.match(/^\([-－]√([\d.]+)\)²$/);   if (m) return '(-\\sqrt{' + m[1] + '})^2';
+  m = token.match(/^\(√([\d.]+)\)²$/);            if (m) return '(\\sqrt{' + m[1] + '})^2';
+  m = token.match(/^±√([\d.]+)$/);                 if (m) return '\\pm\\sqrt{' + m[1] + '}';
+  m = token.match(/^(\d+)√([\d.]+)$/);             if (m) return m[1] + '\\sqrt{' + m[2] + '}';
+  m = token.match(/^[-－]√([\d.]+)$/);             if (m) return '-\\sqrt{' + m[1] + '}';
+  m = token.match(/^√\((\d+)\/(\d+)\)$/);          if (m) return '\\sqrt{\\dfrac{' + m[1] + '}{' + m[2] + '}}';
+  m = token.match(/^F\((\d+)\/(\d+)\)$/);          if (m) return '\\dfrac{' + m[1] + '}{' + m[2] + '}';
+  m = token.match(/^[-－]√\(\(-(\d+)\)²\)$/);      if (m) return '-\\sqrt{(-' + m[1] + ')^2}';
+  m = token.match(/^√\(\(-(\d+)\)²\)$/);           if (m) return '\\sqrt{(-' + m[1] + ')^2}';
+  m = token.match(/^√([\d.]+)$/);                  if (m) return '\\sqrt{' + m[1] + '}';
+  return token;
+}
+// 地の文（数式トークン以外）だけをエスケープ＋整形。改行→<br> はここだけで行い、
+// KaTeX出力（SVGパスに改行を含む）は絶対に触らない。
+function _plain(t){ return _mescape(t).replace(/(?<!\d)-([\d])/g, '－$1').replace(/\n/g, '<br>'); }
+// 日本語文中の数式トークンだけをKaTeX描画し、地の文はエスケープして返す
+function _renderMath(str){
+  var re = /[-－]√\(\(-\d+\)²\)|√\(\(-\d+\)²\)|\([-－]√[\d.]+\)²|\(√[\d.]+\)²|√\(\d+\/\d+\)|±√[\d.]+|\d+√[\d.]+|[-－]√[\d.]+|√[\d.]+|F\(\d+\/\d+\)/g;
+  var out = '', last = 0, mt;
+  while ((mt = re.exec(str)) !== null) {
+    out += _plain(str.slice(last, mt.index));
+    out += _K(_toLatex(mt[0]), mt[0]);
+    last = mt.index + mt[0].length;
   }
-  return out.replace(/\n/g, '<br>');
+  out += _plain(str.slice(last));
+  return out;
 }
 function renderMathToHTML(src){
   src = String(src == null ? '' : src);
   if (/[\\^_{}]/.test(src)) return _texWhole(src);
-  if (/[√²³]/.test(src)) return mathifyHTML(src);
+  if (/[√²³]/.test(src) || /F\(\d+\/\d+\)/.test(src)) return _renderMath(src);
   return _mescape(src).replace(/\n/g, '<br>');
 }
 document.querySelectorAll('.qtext').forEach(function (el) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/bootstrap.php';
 
 const DAILY_XP_CAP = 300;
+const DEFAULT_BASE_XP = 1;   // question_catalog 未登録の (unit_key, question_key) に与える既定XP
 
 // 同一question_keyの当日の解答回数に応じてXPを減衰させる（連打対策）
 function xp_decay_factor(int $answeredTodayCount): float
@@ -149,7 +150,8 @@ try {
         }
     }
 
-    // XPは正解のみ。カタログ未登録は警告ログのみでXP付与なし
+    // XPは正解のみ。カタログ未登録でも既定1XPを付与する（全モードで必ずXPが入るように）。
+    // 未登録は警告ログを残し、講師/保護者画面のラベル整備のためにカタログ追加を促す。
     $xpAwarded = 0;
     if ($isCorrect) {
         $stmt = $pdo->prepare('SELECT base_xp FROM question_catalog WHERE unit_key = :unit_key AND question_key = :question_key');
@@ -157,8 +159,8 @@ try {
         $baseXp = $stmt->fetchColumn();
 
         if ($baseXp === false) {
-            error_log("[save_answer] question_catalog未登録: unit_key={$unitKey} question_key={$questionKey}");
-            $baseXp = 0;
+            error_log("[save_answer] question_catalog未登録(既定XPで付与): unit_key={$unitKey} question_key={$questionKey}");
+            $baseXp = DEFAULT_BASE_XP;
         }
         $baseXp = (int)$baseXp;
 

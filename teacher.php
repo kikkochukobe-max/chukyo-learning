@@ -55,7 +55,7 @@ if (!$actor || $actor['type'] !== 'teacher') {
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'Zen Kaku Gothic New',sans-serif;color:var(--ink);background-color:var(--paper);
     background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-    background-size:24px 24px;line-height:1.6}
+    background-size:24px 24px;line-height:1.6;zoom:1.2}
   .box{max-width:360px;margin:80px auto;background:var(--white);border-radius:var(--radius);
     box-shadow:var(--shadow);border-top:4px solid var(--ai);padding:28px}
   h1{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:18px;color:var(--ai)}
@@ -188,12 +188,40 @@ $rankView = ((string)($_GET['view'] ?? '')) === 'ranking' && $detailStudentId ==
 $rankData = null;
 $rankEvent = null;
 $evMode = false;
+$rankUnit = '';       // モード（単元）フィルタ。'' なら全モード
+$rankGrade = '';      // 学年フィルタ。'' なら全学年
+$rankGradeOptions = [];
 if ($rankView) {
     require_once __DIR__ . '/api/ranking.php';
     $showTest = isset($_GET['showtest']);   // テスト生を表示するトグル（既定は除外）
+
+    // モード（単元）フィルタ: units.php の台帳に載っている unit_key のみ有効
+    $rankUnit = (string)($_GET['unit'] ?? '');
+    if ($rankUnit !== '' && !isset($unitMeta[$rankUnit])) {
+        $rankUnit = '';
+    }
+    // 学年フィルタ: es1-6 / js1-3 / hs1-3 のみ有効
+    $rankGrade = (string)($_GET['grade'] ?? '');
+    if ($rankGrade !== '' && !preg_match('/^(es[1-6]|js[1-3]|hs[1-3])$/', $rankGrade)) {
+        $rankGrade = '';
+    }
+    // 学年プルダウンの選択肢: 担当教室に在籍する学年だけを規定の並び順で
+    if (count($allowedClassroomIds) > 0) {
+        $existingGrades = $pdo->query(
+            'SELECT DISTINCT grade FROM students
+              WHERE is_active = 1 AND grade IS NOT NULL
+                AND classroom_id IN (' . implode(',', $allowedClassroomIds) . ')'
+        )->fetchAll(PDO::FETCH_COLUMN);
+        $gradeOrder = ['es1','es2','es3','es4','es5','es6','js1','js2','js3','hs1','hs2','hs3'];
+        $rankGradeOptions = array_values(array_filter($gradeOrder, fn($g) => in_array($g, $existingGrades, true)));
+    }
+
     $rankEvent = ranking_active_event(require __DIR__ . '/api/ranking_events.php');
     $evMode = $rankEvent !== null && (string)($_GET['ev'] ?? '') === '1';
     if ($evMode) {
+        // イベントは「生徒のマイページと同じ集計」を見せるものなので単元/学年フィルタは掛けない
+        $rankUnit = '';
+        $rankGrade = '';
         $evFromStr = $rankEvent['from'] . ' 00:00:00';
         $evToStr = (new DateTimeImmutable($rankEvent['to']))->modify('+1 day')->format('Y-m-d 00:00:00');
         $rows = ranking_rows($pdo, $rankEvent['classroom_ids'] ?? null, $evFromStr, $evToStr, $showTest);
@@ -207,7 +235,7 @@ if ($rankView) {
         if (count($cids) === 0) {
             $cids = $allowedClassroomIds;   // 未指定は担当全教室の混合
         }
-        $rows = ranking_rows($pdo, $cids, $fromStr, $toStr, $showTest);
+        $rows = ranking_rows($pdo, $cids, $fromStr, $toStr, $showTest, $rankUnit ?: null, $rankGrade ?: null);
     }
     $rankData = [
         'cids'   => $cids,
@@ -322,6 +350,28 @@ if (!$detail && !$rankView) {
         $filterClassroom = 0;
     }
 
+    // 学年フィルタ。表示対象に実在する学年だけをタブに出す（表記は問わない）。
+    // 標準表記(es1-6/js1-3/hs1-3)は小→中→高の順で前に、それ以外の表記は後ろに並べる。
+    $filterGrade = (string)($_GET['grade'] ?? '');
+    $gradeScopeIds = $filterClassroom > 0 ? [$filterClassroom] : $allowedClassroomIds;
+    $gradeOptions = [];
+    if (count($gradeScopeIds) > 0) {
+        $existingGrades = $pdo->query(
+            "SELECT DISTINCT grade FROM students
+              WHERE is_active = 1 AND grade IS NOT NULL AND grade <> ''
+                AND classroom_id IN (" . implode(',', array_map('intval', $gradeScopeIds)) . ")"
+        )->fetchAll(PDO::FETCH_COLUMN);
+        $gradeOrder = ['es1','es2','es3','es4','es5','es6','js1','js2','js3','hs1','hs2','hs3'];
+        $known  = array_values(array_filter($gradeOrder, fn($g) => in_array($g, $existingGrades, true)));
+        $others = array_values(array_filter($existingGrades, fn($g) => !in_array($g, $gradeOrder, true)));
+        sort($others);
+        $gradeOptions = array_merge($known, $others);
+    }
+    // 選択中の学年が対象範囲に無ければ解除（教室切替で空リストにならないように）
+    if ($filterGrade !== '' && !in_array($filterGrade, $gradeOptions, true)) {
+        $filterGrade = '';
+    }
+
     // 同名プレースホルダは再利用できない(エミュレーション無効)ため、サブクエリごとに別名にする
     $params = [];
     $wSess = pf('ss.started_at', $fromStr, 's', $params) . sf('ss.unit_key', 's', $params);
@@ -356,6 +406,10 @@ if (!$detail && !$rankView) {
         $sql .= ' AND s.classroom_id = :cid';
         $params['cid'] = $filterClassroom;
     }
+    if ($filterGrade !== '') {
+        $sql .= ' AND s.grade = :grade';
+        $params['grade'] = $filterGrade;
+    }
     $sql .= ' ORDER BY c.classroom_id, s.login_id';
 
     $stmt = $pdo->prepare($sql);
@@ -387,7 +441,7 @@ function qtab(array $extra): string
   body{
     font-family:'Zen Kaku Gothic New',sans-serif;color:var(--ink);background-color:var(--paper);
     background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-    background-size:24px 24px;line-height:1.6;-webkit-font-smoothing:antialiased;
+    background-size:24px 24px;line-height:1.6;-webkit-font-smoothing:antialiased;zoom:1.2;
   }
   .wrap{max-width:1240px;margin:0 auto;padding:0 16px 64px}
   header{display:flex;align-items:center;justify-content:space-between;padding:14px 2px 10px;flex-wrap:wrap;gap:8px}
@@ -435,6 +489,9 @@ function qtab(array $extra): string
   .rank-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start;margin-top:14px}
   .rank-grid .card{margin:0}
   @media (max-width:820px){.rank-grid{grid-template-columns:1fr}}
+  .fsel{font-size:12px;font-weight:700;color:var(--ink-soft);display:inline-flex;align-items:center;gap:6px}
+  .fsel select{font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;font-weight:500;color:var(--ink);
+    border:1.5px solid var(--grid);border-radius:8px;padding:4px 8px;background:var(--white);cursor:pointer}
   footer{margin-top:28px;text-align:center;font-size:11px;color:var(--ink-soft)}
 </style>
 </head>
@@ -594,7 +651,7 @@ function qtab(array $extra): string
 <?php elseif ($rankView): ?>
   <!-- ============ ランキング ============ -->
   <div class="bar-row">
-    <a class="back" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null])) ?>">← 生徒一覧へ</a>
+    <a class="back" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'grade' => null])) ?>">← 生徒一覧へ</a>
 <?php foreach ($periodLabels as $key => $label): ?>
     <a class="ptab<?= !$evMode && $period === $key ? ' active' : '' ?>" href="<?= h(qtab(['period' => $key, 'ev' => null])) ?>"><?= h($label) ?></a>
 <?php endforeach; ?>
@@ -611,23 +668,57 @@ function qtab(array $extra): string
     <p style="font-size:11px;color:var(--ink-soft);margin-top:4px;">生徒のマイページに表示している順位と同じ集計です（期間タブとは独立にイベント期間内の実績で集計）</p>
   </div>
 <?php else: ?>
+<?php
+    $rankTitleSuffix = $periodLabels[$period];
+    if ($rankUnit !== '') $rankTitleSuffix .= '・' . (($unitMeta[$rankUnit] ?? null)['title'] ?? $rankUnit);
+    if ($rankGrade !== '') $rankTitleSuffix .= '・' . grade_label($rankGrade);
+?>
   <div class="card">
-    <h1>ランキング <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">（<?= h($periodLabels[$period]) ?>）</span></h1>
-<?php if (count($classrooms) > 1): ?>
-    <form method="get" class="bar-row" style="margin-top:10px;">
+    <h1>ランキング <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">（<?= h($rankTitleSuffix) ?>）</span></h1>
+    <form method="get" style="margin-top:10px;display:flex;flex-direction:column;gap:10px;">
       <input type="hidden" name="view" value="ranking">
       <input type="hidden" name="period" value="<?= h($period) ?>">
-<?php foreach ($classrooms as $c): ?>
-      <label style="font-size:13px;display:inline-flex;align-items:center;gap:4px;background:var(--white);border:1.5px solid var(--grid);border-radius:999px;padding:3px 12px;cursor:pointer;">
-        <input type="checkbox" name="cids[]" value="<?= (int)$c['classroom_id'] ?>"
-          <?= in_array((int)$c['classroom_id'], $rankData['cids'], true) ? 'checked' : '' ?>>
-        <?= h($c['classroom_name']) ?>
-      </label>
-<?php endforeach; ?>
-      <button type="submit" class="ptab active" style="cursor:pointer;">表示</button>
-    </form>
-    <p style="font-size:11px;color:var(--ink-soft);margin-top:4px;">1教室だけチェックすると教室別、複数チェックすると混合ランキングになります</p>
+<?php if ($showTest): ?>
+      <input type="hidden" name="showtest" value="1">
 <?php endif; ?>
+      <div class="bar-row" style="margin:0;">
+        <label class="fsel">モード
+          <select name="unit">
+            <option value="">全モード</option>
+<?php foreach ($unitMeta as $uk => $um): ?>
+            <option value="<?= h($uk) ?>"<?= $rankUnit === $uk ? ' selected' : '' ?>><?= h($um['title']) ?></option>
+<?php endforeach; ?>
+          </select>
+        </label>
+<?php if (count($rankGradeOptions) > 0): ?>
+        <label class="fsel">学年
+          <select name="grade">
+            <option value="">全学年</option>
+<?php foreach ($rankGradeOptions as $g): ?>
+            <option value="<?= h($g) ?>"<?= $rankGrade === $g ? ' selected' : '' ?>><?= h(grade_label($g)) ?></option>
+<?php endforeach; ?>
+          </select>
+        </label>
+<?php endif; ?>
+      </div>
+<?php if (count($classrooms) > 1): ?>
+      <div class="bar-row" style="margin:0;">
+<?php foreach ($classrooms as $c): ?>
+        <label style="font-size:13px;display:inline-flex;align-items:center;gap:4px;background:var(--white);border:1.5px solid var(--grid);border-radius:999px;padding:3px 12px;cursor:pointer;">
+          <input type="checkbox" name="cids[]" value="<?= (int)$c['classroom_id'] ?>"
+            <?= in_array((int)$c['classroom_id'], $rankData['cids'], true) ? 'checked' : '' ?>>
+          <?= h($c['classroom_name']) ?>
+        </label>
+<?php endforeach; ?>
+      </div>
+<?php endif; ?>
+      <div class="bar-row" style="margin:0;align-items:center;">
+        <button type="submit" class="ptab active" style="cursor:pointer;">表示</button>
+<?php if (count($classrooms) > 1): ?>
+        <span style="font-size:11px;color:var(--ink-soft);">1教室だけチェックすると教室別、複数チェックすると混合ランキング</span>
+<?php endif; ?>
+      </div>
+    </form>
   </div>
 <?php endif; ?>
 
@@ -658,7 +749,7 @@ function qtab(array $extra): string
         <td class="num" style="font-weight:700;<?= $r['rank'] <= 3 ? 'color:var(--kin);' : '' ?>"><?= $r['rank'] ?>位</td>
         <?php // 担当外教室の生徒は詳細を開けないのでリンクにしない（イベントランキングで載りうる） ?>
 <?php if (in_array((int)$r['classroom_id'], $allowedClassroomIds, true)): ?>
-        <td><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
+        <td><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'grade' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
 <?php else: ?>
         <td><?= h($r['student_name']) ?></td>
 <?php endif; ?>
@@ -705,8 +796,18 @@ function qtab(array $extra): string
 <?php endif; ?>
   </div>
 
+<?php if (count($gradeOptions) > 1): ?>
+  <div class="bar-row">
+    <span style="font-size:12px;color:var(--ink-soft);font-weight:700;align-self:center;">学年</span>
+    <a class="ptab<?= $filterGrade === '' ? ' active' : '' ?>" href="<?= h(qtab(['grade' => null])) ?>">全学年</a>
+<?php foreach ($gradeOptions as $g): ?>
+    <a class="ptab<?= $filterGrade === $g ? ' active' : '' ?>" href="<?= h(qtab(['grade' => $g])) ?>"><?= h(grade_label($g)) ?></a>
+<?php endforeach; ?>
+  </div>
+<?php endif; ?>
+
   <div class="card">
-    <h1>生徒一覧 <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">（<?= h($periodLabels[$period]) ?><?= $filterSubject !== '' ? '・' . h(subject_label($filterSubject)) : '' ?>の学習状況）</span></h1>
+    <h1>生徒一覧 <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">（<?= h($periodLabels[$period]) ?><?= $filterSubject !== '' ? '・' . h(subject_label($filterSubject)) : '' ?><?= $filterGrade !== '' ? '・' . h(grade_label($filterGrade)) : '' ?>の学習状況）</span></h1>
 <?php if (count($students) === 0): ?>
     <p style="font-size:13px;color:var(--ink-soft);margin-top:8px;">表示できる生徒がいません</p>
 <?php else: ?>
@@ -746,49 +847,50 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   location.reload();
 });
 // ===== 数式整形の共通処理 =====
-// (1) 全体がLaTeXのセル、(2) 日本語に Unicode の √ / ² が混じった文（正誤問題など）の
-//     どちらもKaTeXで整形する。混在文は √ の部分だけを \sqrt{} に変換して描画する。
+// (1) 全体がLaTeXのセル、(2) 日本語に Unicode の √ / ² ・分数F(a/b) が混じった文
+//     （正誤問題など）の両方をKaTeXで整形する。混在文はクイズ本体
+//     (math_js3_heihokonmaster.html) と同じ規則で数式トークンを LaTeX 化して描画する。
 function _mescape(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function _texWhole(src){ try { return katex.renderToString(src, { throwOnError: true, displayMode: false }); } catch (e) { return _mescape(src); } }
-function _texFrag(tex){ try { return katex.renderToString(tex, { throwOnError: false, displayMode: false }); } catch (e) { return _mescape(tex); } }
-function _sup(t){ return String(t).replace(/²/g, '^{2}').replace(/³/g, '^{3}'); }
-// √ の被開平数（数字 or 釣り合った括弧グループ）を取り出す
-function _captureRad(s, pos){
-  if (pos >= s.length) return null;
-  if (s.charAt(pos) === '(') {
-    var depth = 0, k = pos;
-    for (; k < s.length; k++) { var c = s.charAt(k); if (c === '(') depth++; else if (c === ')') { depth--; if (depth === 0) { k++; break; } } }
-    return { latex: _sup(s.slice(pos + 1, k - 1)), end: k };   // 外側の括弧は外す
-  }
-  var m = /^[0-9]+(?:\.[0-9]+)?/.exec(s.slice(pos));
-  return m ? { latex: m[0], end: pos + m[0].length } : null;
+// KaTeXでLaTeX片を描画。未読込・失敗時は fallback（なければ生LaTeX）にする。
+function _K(latex, fallback){
+  try { if (typeof katex === 'undefined') throw 0;
+    return katex.renderToString(latex, { throwOnError: false, displayMode: false }); }
+  catch (e) { return _mescape(fallback != null ? fallback : latex); }
 }
-function mathifyHTML(raw){
-  raw = String(raw == null ? '' : raw);
-  var out = '', i = 0, n = raw.length;
-  while (i < n) {
-    var ch = raw.charAt(i);
-    if (ch >= '0' && ch <= '9') {   // 係数付き（例 6√2）を拾う
-      var j = i; while (j < n && raw.charAt(j) >= '0' && raw.charAt(j) <= '9') j++;
-      if (raw.charAt(j) === '√') {
-        var rad = _captureRad(raw, j + 1);
-        if (rad) { out += _texFrag(raw.slice(i, j) + '\\sqrt{' + rad.latex + '}'); i = rad.end; continue; }
-      }
-      out += _mescape(raw.slice(i, j)); i = j; continue;
-    }
-    if (ch === '√') {
-      var rad2 = _captureRad(raw, i + 1);
-      if (rad2) { out += _texFrag('\\sqrt{' + rad2.latex + '}'); i = rad2.end; continue; }
-      out += _mescape('√'); i++; continue;
-    }
-    out += _mescape(ch); i++;
+// 数式トークン → LaTeX（クイズ本体 toLatex と同じ変換規則）
+function _toLatex(token){
+  var m = token.match(/^\([-－]√([\d.]+)\)²$/);   if (m) return '(-\\sqrt{' + m[1] + '})^2';
+  m = token.match(/^\(√([\d.]+)\)²$/);            if (m) return '(\\sqrt{' + m[1] + '})^2';
+  m = token.match(/^±√([\d.]+)$/);                 if (m) return '\\pm\\sqrt{' + m[1] + '}';
+  m = token.match(/^(\d+)√([\d.]+)$/);             if (m) return m[1] + '\\sqrt{' + m[2] + '}';
+  m = token.match(/^[-－]√([\d.]+)$/);             if (m) return '-\\sqrt{' + m[1] + '}';
+  m = token.match(/^√\((\d+)\/(\d+)\)$/);          if (m) return '\\sqrt{\\dfrac{' + m[1] + '}{' + m[2] + '}}';
+  m = token.match(/^F\((\d+)\/(\d+)\)$/);          if (m) return '\\dfrac{' + m[1] + '}{' + m[2] + '}';
+  m = token.match(/^[-－]√\(\(-(\d+)\)²\)$/);      if (m) return '-\\sqrt{(-' + m[1] + ')^2}';
+  m = token.match(/^√\(\(-(\d+)\)²\)$/);           if (m) return '\\sqrt{(-' + m[1] + ')^2}';
+  m = token.match(/^√([\d.]+)$/);                  if (m) return '\\sqrt{' + m[1] + '}';
+  return token;
+}
+// 地の文（数式トークン以外）だけをエスケープ＋整形。改行→<br> はここだけで行い、
+// KaTeX出力（SVGパスに改行を含む）は絶対に触らない。
+function _plain(t){ return _mescape(t).replace(/(?<!\d)-([\d])/g, '－$1').replace(/\n/g, '<br>'); }
+// 日本語文中の数式トークンだけをKaTeX描画し、地の文はエスケープして返す
+function _renderMath(str){
+  var re = /[-－]√\(\(-\d+\)²\)|√\(\(-\d+\)²\)|\([-－]√[\d.]+\)²|\(√[\d.]+\)²|√\(\d+\/\d+\)|±√[\d.]+|\d+√[\d.]+|[-－]√[\d.]+|√[\d.]+|F\(\d+\/\d+\)/g;
+  var out = '', last = 0, mt;
+  while ((mt = re.exec(str)) !== null) {
+    out += _plain(str.slice(last, mt.index));
+    out += _K(_toLatex(mt[0]), mt[0]);
+    last = mt.index + mt[0].length;
   }
-  return out.replace(/\n/g, '<br>');
+  out += _plain(str.slice(last));
+  return out;
 }
 function renderMathToHTML(src){
   src = String(src == null ? '' : src);
   if (/[\\^_{}]/.test(src)) return _texWhole(src);   // 既にLaTeX
-  if (/[√²³]/.test(src)) return mathifyHTML(src);    // Unicode数式混じりの日本語文
+  if (/[√²³]/.test(src) || /F\(\d+\/\d+\)/.test(src)) return _renderMath(src);   // Unicode数式混じりの日本語文
   return _mescape(src).replace(/\n/g, '<br>');
 }
 document.querySelectorAll('.math').forEach(function (el) {

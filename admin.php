@@ -393,6 +393,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 const ERROR_TEXT = {
   invalid_login_id: 'ログインIDが不正です（50文字以内）',
   duplicate_login_id: 'そのログインIDは既に使われています',
+  login_id_taken: 'そのログインIDは既に使われています（別のIDにしてください）',
   invalid_password: 'パスワードは8文字以上にしてください',
   invalid_teacher_name: '氏名が不正です',
   invalid_guardian_name: '氏名が不正です',
