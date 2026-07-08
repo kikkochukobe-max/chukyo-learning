@@ -1305,11 +1305,15 @@ function skipProblem() {
 function showResult() {
   $('progress-fill').style.width = '100%';
   var rate = roundTotal > 0 ? Math.round(correctCount / roundTotal * 100) : 0;
+  // 解き直し等で10問未満のときはランク(S/A/B/C)を付けない
+  var showGrade = roundTotal >= 10;
   var grade, color, msg;
-  if (rate === 100) { grade = 'S'; color = '#f5c842'; msg = 'パーフェクト！すばらしい！'; }
-  else if (rate >= 80) { grade = 'A'; color = '#22c55e'; msg = 'よくできました！'; }
-  else if (rate >= 60) { grade = 'B'; color = '#3b82f6'; msg = 'あと少し！くり返し練習しよう'; }
-  else { grade = 'C'; color = '#ef4444'; msg = 'まちがえた問題を解き直そう'; }
+  if (showGrade) {
+    if (rate === 100) { grade = 'S'; color = '#f5c842'; msg = 'パーフェクト！すばらしい！'; }
+    else if (rate >= 80) { grade = 'A'; color = '#22c55e'; msg = 'よくできました！'; }
+    else if (rate >= 60) { grade = 'B'; color = '#3b82f6'; msg = 'あと少し！くり返し練習しよう'; }
+    else { grade = 'C'; color = '#ef4444'; msg = 'まちがえた問題を解き直そう'; }
+  }
 
   var wrongBtn = (wrongProbs.length > 0)
     ? '<button class="btn-retry-wrong" id="btn-wrong-retry">✍ まちがえた問題を解き直す（' + wrongProbs.length + '問）</button>'
@@ -1317,8 +1321,9 @@ function showResult() {
 
   $('quiz-area').innerHTML =
     '<div class="result-screen">'
-    + '<div class="result-grade" style="color:' + color + '">' + grade + '</div>'
-    + '<div class="result-msg">' + msg + '</div>'
+    + (showGrade
+        ? '<div class="result-grade" style="color:' + color + '">' + grade + '</div><div class="result-msg">' + msg + '</div>'
+        : '<div class="result-msg" style="margin-top:6px;">解き直しおつかれさま！</div>')
     + '<div class="result-breakdown">'
     +   '<div class="result-item c">正解 ' + correctCount + '問</div>'
     +   '<div class="result-item w">不正解 ' + wrongCount + '問</div>'

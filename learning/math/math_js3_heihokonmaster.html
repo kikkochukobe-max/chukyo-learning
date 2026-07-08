@@ -721,8 +721,8 @@
 
 <main>
   <div class="quiz-title">
-    <h1 id="main-title">平方根 正誤クイズ</h1>
-    <div class="subtitle" id="main-subtitle">SQUARE ROOT TRUE / FALSE QUIZ</div>
+    <h1 id="main-title">平方根マスター</h1>
+    <div class="subtitle" id="main-subtitle">正誤クイズ</div>
     <button class="title-print-btn" id="title-print-btn" type="button" title="プリント" aria-label="印刷"><span class="pi">🖨</span><span class="pl">印刷</span></button>
   </div>
 
@@ -1732,37 +1732,31 @@ function switchMode(mode) {
   ['truefalse','simplify','muldiv','addsub','mixed','approx','intval','subst'].forEach(m =>
     document.getElementById('mode-'+m)?.classList.toggle('active', mode===m)
   );
+  // タイトル(H1)はサイト名「平方根マスター」で固定。現在のモード名はサブタイトルに出す
+  var _sub = document.getElementById('main-subtitle');
   if (mode==='truefalse') {
-    document.getElementById('main-title').textContent = '平方根 正誤クイズ';
-    document.getElementById('main-subtitle').textContent = 'SQUARE ROOT TRUE / FALSE QUIZ';
+    _sub.textContent = '正誤クイズ';
     initQuiz();
   } else if (mode==='simplify') {
-    document.getElementById('main-title').textContent = '根号の簡略化';
-    document.getElementById('main-subtitle').textContent = 'SIMPLIFY RADICAL EXPRESSIONS';
+    _sub.textContent = '根号の簡略化';
     initSimplify();
   } else if (mode==='muldiv') {
-    document.getElementById('main-title').textContent = '根号の乗除算';
-    document.getElementById('main-subtitle').textContent = 'MULTIPLICATION & DIVISION OF RADICALS';
+    _sub.textContent = '根号の乗除算';
     initMulDiv();
   } else if (mode==='approx') {
-    document.getElementById('main-title').textContent = '平方根の近似値';
-    document.getElementById('main-subtitle').textContent = 'APPROXIMATE VALUE OF SQUARE ROOTS';
+    _sub.textContent = '平方根の近似値';
     initApprox();
   } else if (mode==='mixed') {
-    document.getElementById('main-title').textContent = '根号の四則混合';
-    document.getElementById('main-subtitle').textContent = 'MIXED OPERATIONS OF RADICALS';
+    _sub.textContent = '根号の四則混合';
     initMix();
   } else if (mode==='intval') {
-    document.getElementById('main-title').textContent = '整数になる最小の数';
-    document.getElementById('main-subtitle').textContent = 'SMALLEST INTEGER MULTIPLIER';
+    _sub.textContent = '整数になる最小の数';
     initIntval();
   } else if (mode==='subst') {
-    document.getElementById('main-title').textContent = '式の値を求める';
-    document.getElementById('main-subtitle').textContent = 'SUBSTITUTION & EVALUATION';
+    _sub.textContent = '式の値を求める';
     initSubst();
   } else {
-    document.getElementById('main-title').textContent = '根号の加減算';
-    document.getElementById('main-subtitle').textContent = 'ADDITION & SUBTRACTION OF RADICALS';
+    _sub.textContent = '根号の加減算';
     initAddSub();
   }
 }
@@ -3087,6 +3081,20 @@ function genAddSubProblem(numTerms) {
     }
 
     if (total === 0) continue; // 答えが0は除外（負はOK）
+
+    // 打ち消し合う項ペアを除外（例: +2√3 と -2√3）。全項同じ√rなので
+    // 符号付きの係数が +v と -v で揃うと実質項数が減って簡単になる。
+    const signed = terms.map((t, i) =>
+      i === 0 ? t.lead * t.simpCoeff : (t.op === '+' ? t.simpCoeff : -t.simpCoeff)
+    );
+    let hasCancelPair = false;
+    for (let x = 0; x < signed.length && !hasCancelPair; x++) {
+      for (let y = x + 1; y < signed.length; y++) {
+        if (signed[x] + signed[y] === 0) { hasCancelPair = true; break; }
+      }
+    }
+    if (hasCancelPair) continue;
+
     // 少なくとも1項が簡略化必要（なければ確率50%でリトライ）
     const hasSimpNeeded = terms.some(t => t.sq > 1);
     if (!hasSimpNeeded && Math.random() < 0.5) continue;
