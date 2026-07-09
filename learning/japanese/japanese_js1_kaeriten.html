@@ -426,14 +426,19 @@ function printSheet(){
   const list=[...T].sort(()=>Math.random()-0.5).slice(0,10);
   const probs=list.map((q,i)=>probBlock(q,i,false)).join('');
   const keys =list.map((q,i)=>probBlock(q,i,true)).join('');
+  // タイトル左の小ロゴ（印刷透かしと同じ埋め込みロゴ＝data URIなのでオフライン印刷可）
+  const logo=(window.ChukyoPrint&&ChukyoPrint.LOGO)?ChukyoPrint.LOGO:'';
+  const logoImg=logo?'<img class="sh-logo" src="'+logo+'" alt="">':'';
   const css='@page{size:A4;margin:0;}'
     +'*{box-sizing:border-box;}'
     +'body{font-family:"Noto Serif JP","Hiragino Mincho ProN",serif;color:#1a1408;margin:0;}'
     +'.page{position:relative;height:297mm;padding:12mm 12mm 10mm;overflow:hidden;page-break-after:always;}.page:last-child{page-break-after:auto;}'
     +'.sh-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #831818;padding-bottom:6px;margin-bottom:10px;}'
+    +'.sh-left{display:flex;align-items:center;gap:10px;}'
+    +'.sh-logo{height:36px;width:auto;flex:0 0 auto;}'
     +'.sh-title{font-size:19px;font-weight:900;}'
     +'.sh-sub{font-size:11px;color:#6b4620;margin-top:3px;}'
-    +'.sh-name{font-size:12px;color:#555;border-bottom:1px solid #999;min-width:150px;text-align:right;padding-bottom:2px;}'
+    +'.sh-name{font-size:12px;color:#555;border-bottom:1px solid #999;min-width:200px;text-align:left;padding:0 0 2px 2px;}'
     +'.p-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px 6px;justify-items:center;}'
     +'.p-prob{page-break-inside:avoid;}'
     +'.p-hd{display:flex;align-items:center;gap:6px;margin-bottom:6px;}'
@@ -450,12 +455,12 @@ function printSheet(){
     +'<title>漢文 返り点 練習プリント</title>'
     +'<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">'
     +'<style>'+css+'</style></head><body>'
-    +'<div class="page"><div class="sh-head"><div><div class="sh-title">漢文 返り点 練習プリント</div>'
-    +'<div class="sh-sub">マスの中に、読む順番（数字）を書きましょう。返り点（レ点・一二点・上下点）にしたがって考えよう。</div></div>'
+    +'<div class="page"><div class="sh-head"><div class="sh-left">'+logoImg+'<div><div class="sh-title">漢文 返り点 練習プリント</div>'
+    +'<div class="sh-sub">マスの中に、読む順番（数字）を書きましょう。返り点（レ点・一二点・上下点）にしたがって考えよう。</div></div></div>'
     +'<div class="sh-name">なまえ</div></div>'
     +'<div class="p-grid">'+probs+'</div></div>'
-    +'<div class="page"><div class="sh-head"><div><div class="sh-title key-title">解答（先生用）</div>'
-    +'<div class="sh-sub">マスの中の数字が読む順番です。</div></div></div>'
+    +'<div class="page"><div class="sh-head"><div class="sh-left">'+logoImg+'<div><div class="sh-title key-title">解答（先生用）</div>'
+    +'<div class="sh-sub">マスの中の数字が読む順番です。</div></div></div></div>'
     +'<div class="p-grid">'+keys+'</div></div>'
     +'</body></html>';
   if(window.ChukyoPrint&&typeof ChukyoPrint.inject==='function')html=ChukyoPrint.inject(html);
