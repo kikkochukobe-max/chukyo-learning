@@ -98,6 +98,12 @@ body{font-family:'Noto Serif JP','Hiragino Mincho ProN',serif;background:#18100a
 .comp p{color:rgba(255,255,255,.6);font-size:14px;line-height:2;margin-bottom:22px}
 .comp p strong{color:#f0dda8}
 .replay-btn{background:#b88a18;color:#0d0905;border:none;border-radius:4px;padding:12px 30px;font-size:15px;font-weight:900;font-family:inherit;cursor:pointer}
+
+/* 印刷（先生向け・常時表示のFABと完了画面のボタン） */
+.print-fab{position:fixed;left:10px;bottom:10px;z-index:60;background:#f3e5ba;color:#6b4620;border:1.5px solid #8b6030;border-radius:20px;padding:7px 13px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.4);-webkit-tap-highlight-color:transparent}
+.print-fab:active{opacity:.8}
+.print-btn2{display:block;margin:14px auto 0;background:none;color:#f0dda8;border:1.5px solid #b88a18;border-radius:4px;padding:9px 22px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer}
+.print-btn2:active{opacity:.75}
 </style>
 </head>
 <body data-unit-key="japanese_js1_kaeriten" data-theme="jh" data-access="student">
@@ -111,6 +117,7 @@ body{font-family:'Noto Serif JP','Hiragino Mincho ProN',serif;background:#18100a
 <script src="/assets/divp-header.js" defer></script>
 <script src="/assets/divp-core.js" defer></script>
 <script src="/assets/divp-correct-jh.js" defer></script>
+<script src="/assets/print-watermark.js" defer></script>
 
 <script>
 (function(){
@@ -140,6 +147,14 @@ const T=[
   {k:'jouge',  t:"上下＋一二①",m:["下","二","一","上",null,null],         h:"上下点は一二点を「挟む」ように使います。一→二→上→下の順。"},
   {k:'jouge',  t:"上下＋一二②",m:[null,"下","二","一","上",null,null],    h:"先頭に返り点なしのマスがある上下点の問題です。"},
   {k:'jouge',  t:"一レ＋上下",  m:["下","二","一レ","レ",null,null,"上"], h:"下点と上点が全体を挟み、間に一二・一レ・レ点が入ります。"},
+  {k:'ichini', t:"一二点⑤",     m:[null,"二",null,"一",null],           h:"間に返り点なしのマスがある一二点です。"},
+  {k:'ichini', t:"一二点⑥",     m:[null,null,"二","一",null,null],      h:"上の2マスを読んでから一二点で返ります。"},
+  {k:'re',     t:"レ点×２③",   m:[null,"レ",null,"レ",null],           h:"離れた2つのレ点。それぞれ直下を先に読みます。"},
+  {k:'re',     t:"レ点×３③",   m:["レ",null,"レ",null,"レ",null],      h:"3つの独立したレ点。各レ点の直下を先に読みます。"},
+  {k:'mix',    t:"レ＋一二②",  m:["レ",null,null,"二","一",null],      h:"先にレ点で直下を読み、離れた一二点へ返ります。"},
+  {k:'mix',    t:"一二＋レ③",  m:[null,"二","一","レ",null,null],      h:"一二点で返ってから、レ点で直下を先読みします。"},
+  {k:'ichire', t:"一・レ点③",  m:[null,"二","一レ",null,null],         h:"先頭のマスを読んでから、一レ点の処理に入ります。"},
+  {k:'jouge',  t:"上下＋一二③",m:["下","二","一",null,"上",null],      h:"下と上で一二点を挟みます。一→二→上→下の順。"},
 ];
 
 // ── 読み順アルゴリズム ────────────────────────────────────────
@@ -351,8 +366,10 @@ function showComp(){
       <h2>ラウンド完了！</h2>
       <p>${round.length}問クリアしました！<br><strong>返り点マスター</strong>への道を進んでいます。</p>
       <button class="replay-btn" id="replay-btn">次のラウンドへ 🔄</button>
+      <button class="print-btn2" id="print-btn2">🖨 練習プリントを作る</button>
     </div>`;
   document.getElementById('replay-btn').addEventListener('click',()=>startRound());
+  document.getElementById('print-btn2').addEventListener('click',printSheet);
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -383,10 +400,81 @@ function startDbRetry(){
   });
 }
 
+// ── 印刷用プリント（練習シート＋解答。先生が配布用に印刷する） ──
+function _pesc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function markPrint(m){
+  if(!m)return'';
+  if(m==='一レ')return'<span class="pmk-stack"><span>一</span><span>レ</span></span>';
+  return _pesc(m);
+}
+// 1問分のマス列。withAns=true なら○に読む順番を入れた解答表示。
+function probBlock(q,idx,withAns){
+  const ord=withAns?computeOrder(q.m):null;
+  const rows=q.m.map((m,i)=>
+    '<div class="p-row">'
+      +'<span class="p-mk">'+markPrint(m)+'</span>'
+      +'<span class="p-box'+(withAns?' filled':'')+'">'+(withAns?ord[i]:'')+'</span>'
+    +'</div>'
+  ).join('');
+  return '<div class="p-prob">'
+    +'<div class="p-hd"><span class="p-no">'+(idx+1)+'</span><span class="p-nm">'+_pesc(q.t)+'</span></div>'
+    +'<div class="p-col">'+rows+'</div>'
+  +'</div>';
+}
+function printSheet(){
+  // A4縦1枚に、ランダムで10問（毎回シャッフル）。解答は先生用に2枚目へ。
+  const list=[...T].sort(()=>Math.random()-0.5).slice(0,10);
+  const probs=list.map((q,i)=>probBlock(q,i,false)).join('');
+  const keys =list.map((q,i)=>probBlock(q,i,true)).join('');
+  const css='@page{size:A4;margin:0;}'
+    +'*{box-sizing:border-box;}'
+    +'body{font-family:"Noto Serif JP","Hiragino Mincho ProN",serif;color:#1a1408;margin:0;}'
+    +'.page{position:relative;height:297mm;padding:12mm 12mm 10mm;overflow:hidden;page-break-after:always;}.page:last-child{page-break-after:auto;}'
+    +'.sh-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #831818;padding-bottom:6px;margin-bottom:10px;}'
+    +'.sh-title{font-size:19px;font-weight:900;}'
+    +'.sh-sub{font-size:11px;color:#6b4620;margin-top:3px;}'
+    +'.sh-name{font-size:12px;color:#555;border-bottom:1px solid #999;min-width:150px;text-align:right;padding-bottom:2px;}'
+    +'.p-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px 6px;justify-items:center;}'
+    +'.p-prob{page-break-inside:avoid;}'
+    +'.p-hd{display:flex;align-items:center;gap:6px;margin-bottom:6px;}'
+    +'.p-no{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:#831818;color:#fff;border-radius:50%;font-size:12px;font-weight:700;}'
+    +'.p-nm{font-size:11px;font-weight:700;color:#3d2510;}'
+    +'.p-col{display:flex;flex-direction:column;gap:5px;align-items:center;}'
+    +'.p-row{display:flex;align-items:flex-end;justify-content:center;gap:4px;}'
+    +'.p-mk{width:16px;text-align:right;color:#8b1818;font-weight:900;font-size:13px;line-height:1;padding-bottom:0;margin-bottom:-6px;}'
+    +'.pmk-stack{display:inline-flex;flex-direction:column;line-height:1;font-size:9px;}'
+    +'.p-box{width:38px;height:38px;border:2px solid #3d2510;border-radius:3px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#1a1408;}'
+    +'.p-box.filled{color:#1f7a3d;border-color:#1f7a3d;}'
+    +'.key-title{color:#831818;}';
+  let html='<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">'
+    +'<title>漢文 返り点 練習プリント</title>'
+    +'<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">'
+    +'<style>'+css+'</style></head><body>'
+    +'<div class="page"><div class="sh-head"><div><div class="sh-title">漢文 返り点 練習プリント</div>'
+    +'<div class="sh-sub">マスの中に、読む順番（数字）を書きましょう。返り点（レ点・一二点・上下点）にしたがって考えよう。</div></div>'
+    +'<div class="sh-name">なまえ</div></div>'
+    +'<div class="p-grid">'+probs+'</div></div>'
+    +'<div class="page"><div class="sh-head"><div><div class="sh-title key-title">解答（先生用）</div>'
+    +'<div class="sh-sub">マスの中の数字が読む順番です。</div></div></div>'
+    +'<div class="p-grid">'+keys+'</div></div>'
+    +'</body></html>';
+  if(window.ChukyoPrint&&typeof ChukyoPrint.inject==='function')html=ChukyoPrint.inject(html);
+  const w=window.open('','_blank');
+  if(!w){alert('ポップアップがブロックされました。印刷を許可してください');return;}
+  w.document.write(html);w.document.close();w.focus();
+  // フォント読み込み後に印刷ダイアログ
+  setTimeout(function(){try{w.print();}catch(e){}},400);
+}
+
 // ── 起動 ──────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded',()=>{
   // 学習記録セッション開始（divp-coreはdefer読み込みなのでここで初期化）
   if(window.Divp&&typeof window.Divp.init==='function')window.Divp.init(UNIT_KEY);
+  // 印刷ボタン（先生向け・常時表示）。#app は再描画で中身が入れ替わるため body 直下に一度だけ置く
+  const fab=document.createElement('button');
+  fab.className='print-fab';fab.type='button';fab.textContent='🖨 プリント';
+  fab.addEventListener('click',printSheet);
+  document.body.appendChild(fab);
   startRound();
   startDbRetry(); // ?retry=1 のときは取得でき次第、解き直しラウンドに切替
 });
