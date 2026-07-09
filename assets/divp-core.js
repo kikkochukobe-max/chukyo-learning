@@ -153,27 +153,30 @@
     bar.id = 'divp-login-nudge';
     bar.setAttribute('role', 'status');
     bar.style.cssText = [
-      'position:fixed', 'left:12px', 'right:12px', 'bottom:12px',
-      'z-index:2147483000', 'margin:0 auto', 'max-width:520px',
+      'position:fixed', 'top:50%', 'left:50%', 'transform:translate(-50%,-50%)',
+      'z-index:2147483000', 'width:min(460px,90vw)', 'min-height:44vh',
       'background:#FBFAF6', 'color:#33312B',
-      'border:1px solid #E4E0D5', 'border-left:5px solid #C73E2E',
-      'border-radius:12px', 'box-shadow:0 6px 24px rgba(0,0,0,.16)',
-      'padding:12px 14px', 'display:flex', 'align-items:center', 'gap:10px',
-      "font-family:'Zen Kaku Gothic New',system-ui,sans-serif", 'font-size:14px',
+      'border:1px solid #E4E0D5', 'border-top:6px solid #C73E2E',
+      'border-radius:18px', 'box-shadow:0 12px 48px rgba(0,0,0,.28)',
+      'padding:28px 24px', 'display:flex', 'flex-direction:column',
+      'align-items:center', 'justify-content:center', 'text-align:center', 'gap:16px',
+      "font-family:'Zen Kaku Gothic New',system-ui,sans-serif",
       'line-height:1.5', 'animation:divpNudgeIn .28s ease-out'
     ].join(';');
 
     var msg = document.createElement('div');
-    msg.style.cssText = 'flex:1;min-width:0;';
-    msg.innerHTML = 'ログインすると、解いた記録がマイページに残るよ📒'
-      + '<br><span style="color:#8B877C;font-size:12px;">今は記録されていません</span>';
+    msg.style.cssText = 'flex:0 0 auto;';
+    msg.innerHTML = '<div style="font-size:44px;line-height:1;margin-bottom:6px;">📒</div>'
+      + '<div style="font-family:\'Zen Maru Gothic\',sans-serif;font-weight:900;font-size:22px;">ログインすると 記録が残るよ</div>'
+      + '<div style="color:#8B877C;font-size:14px;margin-top:10px;">今は記録されていません。<br>ログインすると、この問題もマイページに残せます。</div>';
 
     var loginBtn = document.createElement('button');
     loginBtn.type = 'button';
     loginBtn.textContent = 'ログイン';
     loginBtn.style.cssText = [
-      'flex:0 0 auto', 'background:#C73E2E', 'color:#fff', 'border:0',
-      'border-radius:9px', 'padding:8px 14px', 'font-size:14px',
+      'flex:0 0 auto', 'width:100%', 'max-width:280px',
+      'background:#C73E2E', 'color:#fff', 'border:0',
+      'border-radius:12px', 'padding:14px', 'font-size:17px',
       "font-family:inherit", 'font-weight:700', 'cursor:pointer'
     ].join(';');
     loginBtn.addEventListener('click', function () {
@@ -193,8 +196,9 @@
     closeBtn.setAttribute('aria-label', 'とじる');
     closeBtn.textContent = '×';
     closeBtn.style.cssText = [
-      'flex:0 0 auto', 'background:transparent', 'color:#8B877C', 'border:0',
-      'font-size:22px', 'line-height:1', 'padding:2px 4px', 'cursor:pointer'
+      'position:absolute', 'top:10px', 'right:14px',
+      'background:transparent', 'color:#8B877C', 'border:0',
+      'font-size:26px', 'line-height:1', 'padding:4px 8px', 'cursor:pointer'
     ].join(';');
     closeBtn.addEventListener('click', close);
 
@@ -205,7 +209,7 @@
     if (!document.getElementById('divp-nudge-anim')) {
       var st = document.createElement('style');
       st.id = 'divp-nudge-anim';
-      st.textContent = '@keyframes divpNudgeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}';
+      st.textContent = '@keyframes divpNudgeIn{from{opacity:0;transform:translate(-50%,-50%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}';
       document.head.appendChild(st);
     }
 

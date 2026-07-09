@@ -139,13 +139,31 @@ $period = (string)($_GET['period'] ?? 'week');
 if (!in_array($period, ['today', 'week', 'last_week', 'month', 'all'], true)) {
     $period = 'week';
 }
+
+// 任意期間（カレンダー指定）: ランキング画面で from/to が両方そろって妥当なら、期間タブより優先する。
+// 他のビューにURLのfrom/toが残っていても無視する（ランキング限定の機能）。
+$inRanking = ((string)($_GET['view'] ?? '')) === 'ranking' && !isset($_GET['student_id']);
+$ymd = function ($s) {   // 'YYYY-MM-DD' として妥当なら正規化して返す。不正なら null（例: 2/30 を弾く）
+    $s = (string)$s;
+    $d = DateTimeImmutable::createFromFormat('!Y-m-d', $s);
+    return ($d !== false && $d->format('Y-m-d') === $s) ? $s : null;
+};
+$customFrom = $inRanking ? $ymd($_GET['from'] ?? '') : null;
+$customTo   = $inRanking ? $ymd($_GET['to'] ?? '') : null;
+$isCustom = ($customFrom !== null && $customTo !== null && $customFrom <= $customTo);
+
 $thisMonday = new DateTimeImmutable('monday this week');
-switch ($period) {
-    case 'today':     $from = new DateTimeImmutable('today 00:00:00'); $to = $from->modify('+1 day'); break;
-    case 'last_week': $from = $thisMonday->modify('-7 days'); $to = $thisMonday; break;
-    case 'month':     $from = new DateTimeImmutable('first day of this month 00:00:00'); $to = $from->modify('+1 month'); break;
-    case 'all':       $from = null; $to = null; break;
-    default:          $from = $thisMonday; $to = $thisMonday->modify('+7 days'); break;
+if ($isCustom) {
+    $from = new DateTimeImmutable($customFrom . ' 00:00:00');
+    $to   = (new DateTimeImmutable($customTo . ' 00:00:00'))->modify('+1 day');  // 終了日を含める（排他上限にするため+1日）
+} else {
+    switch ($period) {
+        case 'today':     $from = new DateTimeImmutable('today 00:00:00'); $to = $from->modify('+1 day'); break;
+        case 'last_week': $from = $thisMonday->modify('-7 days'); $to = $thisMonday; break;
+        case 'month':     $from = new DateTimeImmutable('first day of this month 00:00:00'); $to = $from->modify('+1 month'); break;
+        case 'all':       $from = null; $to = null; break;
+        default:          $from = $thisMonday; $to = $thisMonday->modify('+7 days'); break;
+    }
 }
 $periodLabels = ['today' => '今日', 'week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => '全期間'];
 $fromStr = $from ? $from->format('Y-m-d 00:00:00') : null;
@@ -310,19 +328,35 @@ if ($detailStudentId > 0) {
         $dUnits[$row['unit_key']][] = $row;
     }
 
-    // 直近の誤答（講師のみ閲覧可の情報）
+    // 直近の誤答（講師のみ閲覧可の情報）。同じ問題(params_hash)は最新の1件にまとめ、最大60件。
+    // 重複排除はSQLサブクエリだと同名プレースホルダを再利用できないため、多めに取ってPHPで畳む。
+    $DWRONG_LIMIT = 60;      // 表示・印刷する誤答の上限（重複排除後）
+    $DWRONG_SCAN  = 600;     // 重複を畳む前に走査する行数の上限
     $params = ['id' => $detailStudentId];
     $w = pf('al.answered_at', $fromStr, 'd', $params) . sf('al.unit_key', 'd', $params);
     $stmt = $pdo->prepare(
-        "SELECT al.answered_at, al.unit_key, COALESCE(qc.label, al.question_key) AS label,
+        "SELECT al.answered_at, al.unit_key, al.params_hash,
+                COALESCE(qc.label, al.question_key) AS label,
                 al.question_text, al.correct_answer, al.student_answer
          FROM answer_logs al
          LEFT JOIN question_catalog qc ON qc.unit_key = al.unit_key AND qc.question_key = al.question_key
          WHERE al.student_id = :id AND al.is_correct = 0{$w}
-         ORDER BY al.answer_id DESC LIMIT 30"
+         ORDER BY al.answer_id DESC LIMIT {$DWRONG_SCAN}"
     );
     $stmt->execute($params);
-    $dWrongs = $stmt->fetchAll();
+    $dWrongs = [];
+    $seenHash = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $ph = $row['params_hash'];
+        // params_hash がある問題は最新1件だけ（ORDER BY DESC なので先に来た行が最新）。
+        // ハッシュが無い(NULL/空)問題は同一判定できないのでそのまま残す。
+        if ($ph !== null && $ph !== '') {
+            if (isset($seenHash[$ph])) continue;
+            $seenHash[$ph] = true;
+        }
+        $dWrongs[] = $row;
+        if (count($dWrongs) >= $DWRONG_LIMIT) break;
+    }
 
     // 直近の学習セッション（端末情報つき・講師のみ）
     $params = ['id' => $detailStudentId];
@@ -490,8 +524,8 @@ function qtab(array $extra): string
   .rank-grid .card{margin:0}
   @media (max-width:820px){.rank-grid{grid-template-columns:1fr}}
   .fsel{font-size:12px;font-weight:700;color:var(--ink-soft);display:inline-flex;align-items:center;gap:6px}
-  .fsel select{font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;font-weight:500;color:var(--ink);
-    border:1.5px solid var(--grid);border-radius:8px;padding:4px 8px;background:var(--white);cursor:pointer}
+  .fsel select,.fsel input[type=date]{font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;font-weight:500;color:var(--ink);
+    border:1.5px solid var(--grid);border-radius:8px;padding:4px 8px;background:var(--white);cursor:pointer;width:auto}
   footer{margin-top:28px;text-align:center;font-size:11px;color:var(--ink-soft)}
 </style>
 </head>
@@ -581,7 +615,7 @@ function qtab(array $extra): string
 
   <div class="card">
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-      <h2 style="margin:0;">直近の誤答（最大30件）</h2>
+      <h2 style="margin:0;">直近の誤答（最大60件・同じ問題は1件にまとめ）</h2>
 <?php if (count($dWrongs) > 0): ?>
       <button type="button" id="print-wrongs-btn" class="ptab" style="cursor:pointer;border-color:var(--shu);color:var(--shu);">🖨 解き直しプリント</button>
 <?php endif; ?>
@@ -589,13 +623,23 @@ function qtab(array $extra): string
 <?php if (count($dWrongs) === 0): ?>
     <p style="font-size:13px;color:var(--ink-soft);">この期間の誤答はありません</p>
 <?php else: ?>
+<?php $wrongModes = array_keys(array_reduce($dWrongs, function ($c, $w) { $c[$w['label']] = true; return $c; }, [])); ?>
+<?php if (count($wrongModes) > 1): ?>
+    <div class="bar-row" id="wrong-mode-filter" style="margin:6px 0 2px;">
+      <span style="font-size:12px;color:var(--ink-soft);font-weight:700;align-self:center;">種類でしぼる</span>
+      <button class="ptab active" type="button" data-mode="">すべて</button>
+<?php foreach ($wrongModes as $m): ?>
+      <button class="ptab" type="button" data-mode="<?= h($m) ?>"><?= h($m) ?></button>
+<?php endforeach; ?>
+    </div>
+<?php endif; ?>
     <div class="scroll">
-    <table>
+    <table id="wrongs-table">
       <tr><th>日時</th><th>単元</th><th>種類</th><th>問題</th><th>正解</th><th>生徒の答え</th></tr>
 <?php foreach ($dWrongs as $wr):
     $wUnitTitle = ($unitMeta[$wr['unit_key']] ?? null)['title'] ?? $wr['unit_key'];
 ?>
-      <tr>
+      <tr data-mode="<?= h($wr['label']) ?>">
         <td style="white-space:nowrap;"><?= h(substr($wr['answered_at'], 5, 11)) ?></td>
         <td style="white-space:nowrap;font-size:12px;"><?= h($wUnitTitle) ?></td>
         <td><span class="chip"><?= h($wr['label']) ?></span></td>
@@ -651,12 +695,12 @@ function qtab(array $extra): string
 <?php elseif ($rankView): ?>
   <!-- ============ ランキング ============ -->
   <div class="bar-row">
-    <a class="back" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'grade' => null])) ?>">← 生徒一覧へ</a>
+    <a class="back" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'grade' => null, 'from' => null, 'to' => null])) ?>">← 生徒一覧へ</a>
 <?php foreach ($periodLabels as $key => $label): ?>
-    <a class="ptab<?= !$evMode && $period === $key ? ' active' : '' ?>" href="<?= h(qtab(['period' => $key, 'ev' => null])) ?>"><?= h($label) ?></a>
+    <a class="ptab<?= !$evMode && !$isCustom && $period === $key ? ' active' : '' ?>" href="<?= h(qtab(['period' => $key, 'ev' => null, 'from' => null, 'to' => null])) ?>"><?= h($label) ?></a>
 <?php endforeach; ?>
 <?php if ($rankEvent !== null): ?>
-    <a class="ptab<?= $evMode ? ' active' : '' ?>" style="<?= $evMode ? 'background:var(--kin);border-color:var(--kin);' : 'border-color:var(--kin);color:var(--kin);' ?>" href="<?= h(qtab(['ev' => '1'])) ?>"><?= h($rankEvent['label']) ?></a>
+    <a class="ptab<?= $evMode ? ' active' : '' ?>" style="<?= $evMode ? 'background:var(--kin);border-color:var(--kin);' : 'border-color:var(--kin);color:var(--kin);' ?>" href="<?= h(qtab(['ev' => '1', 'from' => null, 'to' => null])) ?>"><?= h($rankEvent['label']) ?></a>
 <?php endif; ?>
     <span style="flex:1"></span>
     <a class="ptab<?= $showTest ? ' active' : '' ?>" href="<?= h(qtab(['showtest' => $showTest ? null : '1'])) ?>"><?= $showTest ? 'テスト生を隠す' : 'テスト生を表示' ?></a>
@@ -669,7 +713,9 @@ function qtab(array $extra): string
   </div>
 <?php else: ?>
 <?php
-    $rankTitleSuffix = $periodLabels[$period];
+    $rankTitleSuffix = $isCustom
+        ? (new DateTimeImmutable($customFrom))->format('Y/n/j') . '〜' . (new DateTimeImmutable($customTo))->format('Y/n/j')
+        : $periodLabels[$period];
     if ($rankUnit !== '') $rankTitleSuffix .= '・' . (($unitMeta[$rankUnit] ?? null)['title'] ?? $rankUnit);
     if ($rankGrade !== '') $rankTitleSuffix .= '・' . grade_label($rankGrade);
 ?>
@@ -681,6 +727,11 @@ function qtab(array $extra): string
 <?php if ($showTest): ?>
       <input type="hidden" name="showtest" value="1">
 <?php endif; ?>
+      <div class="bar-row" style="margin:0;align-items:center;">
+        <label class="fsel">開始<input type="date" name="from" value="<?= h($customFrom ?? '') ?>"></label>
+        <label class="fsel">終了<input type="date" name="to" value="<?= h($customTo ?? '') ?>"></label>
+        <span style="font-size:11px;color:var(--ink-soft);">日付を入れて「表示」で任意期間ランキング。空にして期間タブを押すと通常表示に戻ります</span>
+      </div>
       <div class="bar-row" style="margin:0;">
         <label class="fsel">モード
           <select name="unit">
@@ -786,15 +837,17 @@ function qtab(array $extra): string
 <?php endforeach; ?>
 <?php endif; ?>
     <a class="ptab" style="border-color:var(--kin);color:var(--kin);" href="<?= h(qtab(['view' => 'ranking'])) ?>">ランキング</a>
-    <span style="flex:1"></span>
+  </div>
+
 <?php if (count($classrooms) > 1): ?>
+  <div class="bar-row">
     <a class="ptab<?= empty($_GET['classroom_id']) ? ' active' : '' ?>" href="<?= h(qtab(['classroom_id' => null])) ?>">全教室</a>
 <?php foreach ($classrooms as $c): ?>
     <a class="ptab<?= (int)($_GET['classroom_id'] ?? 0) === (int)$c['classroom_id'] ? ' active' : '' ?>"
        href="<?= h(qtab(['classroom_id' => $c['classroom_id']])) ?>"><?= h($c['classroom_name']) ?></a>
 <?php endforeach; ?>
-<?php endif; ?>
   </div>
+<?php endif; ?>
 
 <?php if (count($gradeOptions) > 1): ?>
   <div class="bar-row">
@@ -917,6 +970,9 @@ document.querySelectorAll('.math').forEach(function (el) {
     var data;
     try { data = JSON.parse(dataEl.textContent || '{}'); } catch (e) { return; }
     var items = data.items || [];
+    // 種類(モード)で絞り込み中なら、その種類だけ印刷する
+    var modeFilter = window.__wrongModeFilter || '';
+    if (modeFilter) items = items.filter(function (it) { return it.label === modeFilter; });
     if (!items.length) { alert('印刷できる誤答がありません'); return; }
 
     var PER_PAGE = 5;   // 1枚あたりの問題数（A4に確実に収まる数。増やすと溢れて空白ページが出る）
@@ -963,7 +1019,8 @@ document.querySelectorAll('.math').forEach(function (el) {
       + '@page{size:A4;margin:14mm 14mm 12mm;}'
       + '*{box-sizing:border-box;}'
       + 'body{font-family:"Zen Kaku Gothic New",system-ui,sans-serif;color:#222;margin:0;}'
-      + '.page{page-break-after:always;}.page:last-child{page-break-after:auto;}'
+      /* 各ページの箱をA4印刷領域ぶんの高さに揃える。透かしロゴが毎ページ同じ位置に来る（高さがバラつくと上下にずれる） */
+      + '.page{page-break-after:always;min-height:260mm;}.page:last-child{page-break-after:auto;}'
       + '.sheet-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #C73E2E;padding-bottom:6px;margin-bottom:14px;}'
       + '.sh-title{font-size:20px;font-weight:700;}'
       + '.sh-sub{font-size:12px;color:#777;margin-top:2px;}'
@@ -986,7 +1043,7 @@ document.querySelectorAll('.math').forEach(function (el) {
       + '.k-wa{color:#C73E2E;}'
       + '</style></head><body>' + body + keyPage + '</body></html>';
 
-    if (window.ChukyoPrint && ChukyoPrint.inject) html = ChukyoPrint.inject(html);
+    if (window.ChukyoPrint && ChukyoPrint.inject) html = ChukyoPrint.inject(html, {opacity:0.15});
 
     var w = window.open('', '_blank');
     if (!w) { alert('ポップアップがブロックされました。印刷を許可してください'); return; }
@@ -995,6 +1052,24 @@ document.querySelectorAll('.math').forEach(function (el) {
     // KaTeXのCSS(CDN)読み込み後に印刷。少し待ってからダイアログを出す
     w.focus();
     setTimeout(function () { try { w.print(); } catch (e) {} }, 500);
+  });
+})();
+
+// ===== 誤答一覧の種類(モード)フィルタ：一覧表示と印刷対象の両方を絞る =====
+(function () {
+  var wrap = document.getElementById('wrong-mode-filter');
+  var table = document.getElementById('wrongs-table');
+  if (!wrap || !table) return;
+  var btns = wrap.querySelectorAll('button[data-mode]');
+  btns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var mode = b.dataset.mode || '';
+      window.__wrongModeFilter = mode;   // 解き直しプリントもこの値を見る
+      btns.forEach(function (o) { o.classList.toggle('active', o === b); });
+      table.querySelectorAll('tr[data-mode]').forEach(function (tr) {
+        tr.style.display = (!mode || tr.dataset.mode === mode) ? '' : 'none';
+      });
+    });
   });
 })();
 </script>

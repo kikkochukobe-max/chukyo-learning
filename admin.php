@@ -169,6 +169,9 @@ if ($role === 'super_admin') {
   table{border-collapse:collapse;width:100%;font-size:13px;margin-top:10px}
   th{font-size:11px;color:var(--ink-soft);font-weight:700;text-align:left;
     border-bottom:2px solid var(--ai-soft);padding:6px 8px;white-space:nowrap}
+  th.sortable{cursor:pointer;user-select:none}
+  th.sortable:hover{color:var(--ai,#2C5F8A)}
+  th.sortable .arw{font-size:9px;margin-left:3px;color:var(--ai,#2C5F8A)}
   td{border-bottom:1px solid #F3F0E8;padding:6px 8px}
   .ok-cell{color:#166534;font-weight:700}
   .ng-cell{color:var(--shu);font-weight:700}
@@ -217,7 +220,7 @@ if ($role === 'super_admin') {
 <?php if ($role === 'super_admin'): ?>
     <button class="tab" data-tab="teacher" type="button">講師登録</button>
 <?php endif; ?>
-    <button class="tab" data-tab="list" type="button">登録一覧</button>
+    <button class="tab" data-tab="list" type="button">生徒一覧・氏名修正</button>
   </div>
 
   <!-- ============ 生徒登録 ============ -->
@@ -338,19 +341,24 @@ if ($role === 'super_admin') {
 <?php endforeach; ?>
       </div>
 <?php endif; ?>
+      <h3 style="margin:14px 0 6px;font-family:'Zen Maru Gothic',sans-serif;color:var(--ai,#2C5F8A);font-size:15px;">氏名の修正</h3>
       <form id="rename-form" class="row2" style="align-items:end;">
-        <label>生徒コード（名前変更）<input type="text" name="login_id" maxlength="6" inputmode="numeric"></label>
+        <label>生徒コード<input type="text" name="login_id" maxlength="6" inputmode="numeric"></label>
         <label>新しい氏名
           <div style="display:flex;gap:8px;">
             <input type="text" name="student_name" maxlength="50" style="flex:1;">
-            <button class="go" type="submit" style="margin-top:4px;white-space:nowrap;">変更</button>
+            <button class="go" type="submit" style="margin-top:4px;white-space:nowrap;">氏名を修正</button>
           </div>
         </label>
       </form>
       <div class="msg" id="rename-msg"></div>
+      <label style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:13px;font-weight:700;color:var(--ink,#33312B);cursor:pointer;white-space:nowrap;">
+        <input type="checkbox" class="hide-test" checked style="width:auto;flex:none;margin:0;">テスト生（名前に「テスト」を含む）を非表示
+      </label>
+      <p style="margin:8px 0 4px;color:var(--ai,#2C5F8A);font-weight:700;font-size:13px;">列の見出し（生徒コード・教室・氏名など）をクリックすると、その項目で並び替えできます（もう一度クリックで昇順⇄降順、▲▼が今の並び順）。</p>
       <div class="scroll">
       <table id="students-table">
-        <thead><tr><th>生徒コード</th><th>教室</th><th>学年</th><th>氏名</th><th>状態</th><th>登録日</th><th>操作</th></tr></thead>
+        <thead><tr><th class="sortable" data-key="login_id">生徒コード</th><th class="sortable" data-key="classroom_name">教室</th><th class="sortable" data-key="grade">学年</th><th class="sortable" data-key="student_name">氏名</th><th class="sortable" data-key="is_active">状態</th><th class="sortable" data-key="created_at">登録日</th><th>操作</th></tr></thead>
         <tbody></tbody>
       </table>
       </div>
@@ -358,9 +366,13 @@ if ($role === 'super_admin') {
 
     <!-- 保護者一覧 -->
     <div id="list-guardians" style="display:none;">
+      <label style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:13px;font-weight:700;color:var(--ink,#33312B);cursor:pointer;white-space:nowrap;">
+        <input type="checkbox" class="hide-test" checked style="width:auto;flex:none;margin:0;">テスト生（名前に「テスト」を含む）を非表示
+      </label>
+      <p style="margin:8px 0 4px;color:var(--ai,#2C5F8A);font-weight:700;font-size:13px;">列の見出し（ログインID・氏名など）をクリックすると、その項目で並び替えできます（もう一度クリックで昇順⇄降順、▲▼が今の並び順）。</p>
       <div class="scroll">
       <table id="guardians-table">
-        <thead><tr><th>ログインID</th><th>氏名</th><th>お子さま</th><th>状態</th><th>登録日</th><th>操作</th></tr></thead>
+        <thead><tr><th class="sortable" data-key="login_id">ログインID</th><th class="sortable" data-key="guardian_name">氏名</th><th class="sortable" data-key="children">お子さま</th><th class="sortable" data-key="is_active">状態</th><th class="sortable" data-key="created_at">登録日</th><th>操作</th></tr></thead>
         <tbody></tbody>
       </table>
       </div>
@@ -369,9 +381,13 @@ if ($role === 'super_admin') {
 <?php if ($role === 'super_admin'): ?>
     <!-- 講師一覧 -->
     <div id="list-teachers" style="display:none;">
+      <label style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:13px;font-weight:700;color:var(--ink,#33312B);cursor:pointer;white-space:nowrap;">
+        <input type="checkbox" class="hide-test" checked style="width:auto;flex:none;margin:0;">テスト生（名前に「テスト」を含む）を非表示
+      </label>
+      <p style="margin:8px 0 4px;color:var(--ai,#2C5F8A);font-weight:700;font-size:13px;">列の見出し（ログインID・氏名・役割など）をクリックすると、その項目で並び替えできます（もう一度クリックで昇順⇄降順、▲▼が今の並び順）。</p>
       <div class="scroll">
       <table id="teachers-table">
-        <thead><tr><th>ログインID</th><th>氏名</th><th>役割</th><th>担当教室</th><th>状態</th><th>登録日</th><th>操作</th></tr></thead>
+        <thead><tr><th class="sortable" data-key="login_id">ログインID</th><th class="sortable" data-key="teacher_name">氏名</th><th class="sortable" data-key="role">役割</th><th class="sortable" data-key="classroom_names">担当教室</th><th class="sortable" data-key="is_active">状態</th><th class="sortable" data-key="created_at">登録日</th><th>操作</th></tr></thead>
         <tbody></tbody>
       </table>
       </div>
@@ -458,6 +474,13 @@ tabButtons.forEach((btn) => {
 
 // ---- 一覧の種類切替 ----
 let currentKind = 'students';
+// テスト生非表示チェックボックス（既定ON・各一覧に1つ）: 全一覧で状態を揃えて描き直す
+document.querySelectorAll('.hide-test').forEach((cb) => {
+  cb.addEventListener('change', () => {
+    document.querySelectorAll('.hide-test').forEach((o) => { o.checked = cb.checked; });
+    renderRows(currentKind);
+  });
+});
 const kindButtons = document.querySelectorAll('.tab[data-kind]');
 kindButtons.forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -610,6 +633,33 @@ clsButtons.forEach((btn) => {
 // 取得済みデータを覚えておき、教室タブの切替は再取得せずに描き直す
 const listCache = { students: null, guardians: null, teachers: null };
 
+// 列見出しクリックでの並び替え状態（kindごと）
+const sortState = { students: {key: null, dir: 1}, guardians: {key: null, dir: 1}, teachers: {key: null, dir: 1} };
+// 数値なら数値順、それ以外は日本語ロケールで文字列比較
+function cmpVal(a, b) {
+  if (a == null) a = '';
+  if (b == null) b = '';
+  const na = Number(a), nb = Number(b);
+  if (a !== '' && b !== '' && !isNaN(na) && !isNaN(nb)) return na - nb;
+  return String(a).localeCompare(String(b), 'ja');
+}
+['students', 'guardians', 'teachers'].forEach((kind) => {
+  const table = document.getElementById(kind + '-table');
+  if (!table) return;
+  table.querySelectorAll('th.sortable').forEach((th) => {
+    th.addEventListener('click', () => {
+      const s = sortState[kind];
+      if (s.key === th.dataset.key) { s.dir = -s.dir; } else { s.key = th.dataset.key; s.dir = 1; }
+      table.querySelectorAll('th .arw').forEach((el) => el.remove());
+      const arw = document.createElement('span');
+      arw.className = 'arw';
+      arw.textContent = s.dir === 1 ? '▲' : '▼';
+      th.appendChild(arw);
+      renderRows(kind);
+    });
+  });
+});
+
 async function loadList(kind) {
   const urls = {
     students: '/api/list_students.php',
@@ -638,6 +688,16 @@ function renderRows(kind) {
   if (kind === 'students' && classroomFilter !== '') {
     rows = rows.filter((r) => r.classroom_name === classroomFilter);
   }
+  // テスト生（名前に「テスト」を含む）非表示（teacher.php / ranking.php と同じ基準）
+  const hideTest = document.querySelector('#list-' + kind + ' .hide-test');
+  if (hideTest && hideTest.checked) {
+    const nameKey = kind === 'students' ? 'student_name' : (kind === 'guardians' ? 'guardian_name' : 'teacher_name');
+    rows = rows.filter((r) => !String(r[nameKey] || '').includes('テスト'));
+  }
+  const sort = sortState[kind];
+  if (sort.key) {
+    rows = rows.slice().sort((a, b) => cmpVal(a[sort.key], b[sort.key]) * sort.dir);
+  }
   tbody.innerHTML = '';
   if (rows.length === 0) {
     const text = (kind === 'students' && classroomFilter !== '')
@@ -664,8 +724,10 @@ function renderRows(kind) {
     actionCell(tr, kind, r.login_id, name, r.is_active);
     tbody.appendChild(tr);
   }
-  // 色違いの行(今回の登録・変更)を上に見せる
-  tbody.querySelectorAll('tr.new-row').forEach((tr) => tbody.prepend(tr));
+  // 色違いの行(今回の登録・変更)を上に見せる（並び替え中は順序を尊重してそのまま）
+  if (!sort.key) {
+    tbody.querySelectorAll('tr.new-row').forEach((tr) => tbody.prepend(tr));
+  }
 }
 
 // ---- 生徒登録 ----

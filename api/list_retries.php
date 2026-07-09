@@ -14,7 +14,7 @@ if (!preg_match('/^[a-z0-9_]{1,64}$/i', $unitKey)) {
 
 $pdo = db();
 $stmt = $pdo->prepare(
-    "SELECT retry_id, question_key, question_params, wrong_count, correct_streak
+    "SELECT retry_id, question_key, question_params, params_hash, wrong_count, correct_streak
      FROM retry_queue
      WHERE student_id = :id AND unit_key = :unit_key AND status = 'pending'
      ORDER BY updated_at DESC"
@@ -32,6 +32,7 @@ foreach ($stmt->fetchAll() as $row) {
         'retry_id'        => (int)$row['retry_id'],
         'question_key'    => $row['question_key'],
         'question_params' => $params,
+        'params_hash'     => (string)$row['params_hash'],
         'wrong_count'     => (int)$row['wrong_count'],
         'correct_streak'  => (int)$row['correct_streak'],
     ];

@@ -4733,8 +4733,21 @@ initQuiz();
     }
   }
 
+  // mypage「今日の1問」から &focus=<params_hash> で来たら、その1問だけ直接出題する
+  const focusHash = (location.search.match(/[?&]focus=([a-f0-9]{64})/i) || [])[1];
+
   Divp.getRetries().then(function (items) {
     if (!items || !items.length) return;
+
+    if (focusHash) {
+      const hit = items.find(function (it) {
+        const v = PARAM_VALIDATORS[it.question_key];
+        return it.params_hash === focusHash && MODE_NAMES[it.question_key] && v && v(it.question_params);
+      });
+      if (hit) { startDbRetry(hit.question_key, [hit]); return; }
+      // 見つからない（既にマスター済み等）ときは通常の解き直し画面にフォールバック
+    }
+
     const byKey = {};
     items.forEach(function (it) {
       if (!MODE_NAMES[it.question_key]) return;

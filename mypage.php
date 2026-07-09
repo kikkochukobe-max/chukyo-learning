@@ -124,6 +124,28 @@ $stmt = $pdo->prepare("SELECT COUNT(*) FROM retry_queue WHERE student_id = :id A
 $stmt->execute(['id' => $studentId]);
 $retryCount = (int)$stmt->fetchColumn();
 
+// ---- 今日の1問（pending の中でいちばん多くまちがえた問題を1つ）----
+// 問題文は最後に間違えた時の answer_logs から取る（retry.php と同じ引き方）。
+$stmt = $pdo->prepare(
+    "SELECT rq.unit_key, rq.question_key, rq.params_hash, rq.wrong_count,
+            COALESCE(qc.label, rq.question_key) AS label,
+            al.question_text
+     FROM retry_queue rq
+     LEFT JOIN question_catalog qc
+       ON qc.unit_key = rq.unit_key AND qc.question_key = rq.question_key
+     LEFT JOIN answer_logs al ON al.answer_id = (
+        SELECT MAX(al2.answer_id) FROM answer_logs al2
+        WHERE al2.student_id = rq.student_id AND al2.unit_key = rq.unit_key
+          AND al2.question_key = rq.question_key AND al2.params_hash = rq.params_hash
+          AND al2.is_correct = 0
+     )
+     WHERE rq.student_id = :id AND rq.status = 'pending'
+     ORDER BY rq.wrong_count DESC, rq.updated_at DESC
+     LIMIT 1"
+);
+$stmt->execute(['id' => $studentId]);
+$todaysProblem = $stmt->fetch();
+
 // ---- 教室内ランキング(自分の順位だけ表示。他の生徒の名前は出さない) ----
 require_once __DIR__ . '/api/ranking.php';
 $rankFromStr = $from ? $from->format('Y-m-d 00:00:00') : null;
@@ -196,22 +218,35 @@ foreach ($karteRows as $row) {
     $units[$row['unit_key']][] = $row;
 }
 
-// ---- 学習の足あと(週表示の時だけ・日別学習分数) ----
+// ---- 学習の足あと(週表示の時だけ・日別の学習時間と解いた問題数) ----
 $showWeekDots = in_array($period, ['week', 'last_week'], true);
 $dailySec = [];
+$dailySolved = [];
 if ($showWeekDots) {
+    $range = [
+        'id'   => $studentId,
+        'from' => $from->format('Y-m-d 00:00:00'),
+        'to'   => $to->format('Y-m-d 00:00:00'),
+    ];
+    // 学習時間（秒）を日別に
     $stmt = $pdo->prepare(
         'SELECT DATE(started_at) AS d, COALESCE(SUM(duration_sec),0) AS sec FROM study_sessions
          WHERE student_id = :id AND started_at >= :from AND started_at < :to
          GROUP BY DATE(started_at)'
     );
-    $stmt->execute([
-        'id'   => $studentId,
-        'from' => $from->format('Y-m-d 00:00:00'),
-        'to'   => $to->format('Y-m-d 00:00:00'),
-    ]);
+    $stmt->execute($range);
     foreach ($stmt->fetchAll() as $row) {
         $dailySec[$row['d']] = (int)$row['sec'];
+    }
+    // 解いた問題数を日別に
+    $stmt = $pdo->prepare(
+        'SELECT DATE(answered_at) AS d, COUNT(*) AS cnt FROM answer_logs
+         WHERE student_id = :id AND answered_at >= :from AND answered_at < :to
+         GROUP BY DATE(answered_at)'
+    );
+    $stmt->execute($range);
+    foreach ($stmt->fetchAll() as $row) {
+        $dailySolved[$row['d']] = (int)$row['cnt'];
     }
 }
 $dayLabels = ['月', '火', '水', '木', '金', '土', '日'];
@@ -238,6 +273,8 @@ function h(?string $s): string
 <title>学習の記録 | 中京個別指導学院</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <style>
   :root{
     /* ブランドトークン: 朱色はロゴの実色に合わせて微調整可 */
@@ -324,6 +361,22 @@ function h(?string $s): string
     min-width:44px;text-align:center;padding:6px 12px;
   }
 
+  /* ---------- 今日の1問（いちばん多くまちがえた問題）---------- */
+  .today{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:16px 18px;margin-top:16px;border-top:4px solid var(--shu)}
+  .today-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .today-badge{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:15px;color:var(--shu)}
+  .today-sub{font-size:11px;color:var(--ink-soft)}
+  .today-unit{margin-top:8px;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:14px;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .today .chip{display:inline-block;font-size:11px;font-weight:700;color:var(--shu);
+    background:var(--shu-soft);border-radius:999px;padding:1px 10px;font-family:'Zen Maru Gothic',sans-serif}
+  .today-q{margin-top:8px;font-size:16px;overflow-x:auto;padding:10px 12px;background:var(--paper);
+    border:1px dashed var(--grid);border-radius:10px}
+  .today-go{display:block;text-align:center;margin-top:12px;background:var(--shu);color:#fff;
+    border-radius:10px;padding:12px;text-decoration:none;
+    font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:14px}
+
   /* ---------- 教室内ランキング(自分の順位のみ) ---------- */
   .rankcard{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
     padding:16px 18px 8px;margin-top:16px;border-top:4px solid var(--kin)}
@@ -375,11 +428,14 @@ function h(?string $s): string
   .week{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
     padding:16px 18px;display:flex;justify-content:space-between}
   .day{text-align:center;font-size:11px;color:var(--ink-soft)}
-  .dot{width:30px;height:30px;border-radius:50%;margin:0 auto 4px;
-    border:2px dashed var(--grid);display:flex;align-items:center;justify-content:center}
-  .dot.on{border:none;background:var(--shu);color:#fff;
-    font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:13px}
+  .dot{width:26px;height:26px;border-radius:50%;margin:0 auto 5px;
+    border:2px dashed var(--grid)}
+  .dot.on{border:none;background:var(--shu)}
   .dot.today{outline:2px solid var(--ai);outline-offset:2px}
+  .dname{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--ink)}
+  .dstat{font-size:11px;line-height:1.5;font-feature-settings:'tnum'}
+  .dstat b{font-weight:900;color:var(--ink)}
+  .dstat.zero,.dstat.zero b{color:#C7C2B6;font-weight:700}
 
   footer{margin-top:28px;text-align:center;font-size:11px;color:var(--ink-soft)}
 
@@ -426,6 +482,28 @@ function h(?string $s): string
       <div class="bar"><i style="width:<?= $levelPct ?>%"></i></div>
     </div>
   </section>
+
+<?php if ($todaysProblem):
+    $tpMeta = $unitMeta[$todaysProblem['unit_key']] ?? ['title' => $todaysProblem['unit_key'], 'sub' => '', 'url' => null];
+?>
+  <!-- 今日の1問（いちばん多くまちがえた問題の解き直し） -->
+  <section class="today">
+    <div class="today-head">
+      <span class="today-badge">今日の1問</span>
+      <span class="today-sub">いちばん多くまちがえた問題だよ（これまで<?= (int)$todaysProblem['wrong_count'] ?>回）</span>
+    </div>
+    <div class="today-unit"><?= h($tpMeta['title'] ?? '') ?><span class="chip"><?= h($todaysProblem['label']) ?></span></div>
+<?php if (!empty($todaysProblem['question_text'])): ?>
+    <div class="today-q" data-math="<?= h($todaysProblem['question_text']) ?>"><?= h($todaysProblem['question_text']) ?></div>
+<?php endif; ?>
+<?php if (!empty($tpMeta['url'])):
+    // focus に params_hash を渡すと、ツールがモード選択画面を飛ばしてこの1問だけを直接出題する
+    $tpFocus = !empty($todaysProblem['params_hash']) ? '&focus=' . rawurlencode($todaysProblem['params_hash']) : '';
+?>
+    <a class="today-go" href="<?= h($tpMeta['url']) ?>?retry=1<?= h($tpFocus) ?>">この問題を解き直す →</a>
+<?php endif; ?>
+  </section>
+<?php endif; ?>
 
 <?php if ($retryCount > 0): ?>
   <!-- 解き直し -->
@@ -515,15 +593,67 @@ function h(?string $s): string
     $day = $from->modify("+{$i} days");
     $dayStr = $day->format('Y-m-d');
     $minutes = isset($dailySec[$dayStr]) ? (int)floor($dailySec[$dayStr] / 60) : 0;
+    $solved  = $dailySolved[$dayStr] ?? 0;
     $isToday = $dayStr === $todayStr;
-    $classes = 'dot' . ($minutes > 0 ? ' on' : '') . ($isToday ? ' today' : '');
+    $active  = $minutes > 0 || $solved > 0;
+    $classes = 'dot' . ($active ? ' on' : '') . ($isToday ? ' today' : '');
 ?>
-    <div class="day"><div class="<?= $classes ?>"><?= $minutes > 0 ? $minutes : '' ?></div><?= $dayLabels[$i] ?></div>
+    <div class="day">
+      <div class="<?= $classes ?>"></div>
+      <div class="dname"><?= $dayLabels[$i] ?></div>
+      <div class="dstat<?= $minutes > 0 ? '' : ' zero' ?>"><b><?= $minutes ?></b>分</div>
+      <div class="dstat<?= $solved > 0 ? '' : ' zero' ?>"><b><?= $solved ?></b>問</div>
+    </div>
 <?php endfor; ?>
   </section>
 <?php endif; ?>
 
-  <footer>中京個別指導学院 学習の記録<?= $showWeekDots ? ' ・ ドットの数字は学習時間(分)' : '' ?></footer>
+  <footer>中京個別指導学院 学習の記録<?= $showWeekDots ? ' ・ 分=学習時間 / 問=解いた問題数' : '' ?></footer>
 </div>
+<script>
+// 「今日の1問」の問題文を KaTeX で整形。retry.php と同じ規則:
+// 全体がLaTeXのものと、Unicodeの√/²・分数F(a/b)混じりの日本語文の両方に対応する。
+function _mescape(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _texWhole(src){ try { return katex.renderToString(src, { throwOnError: true, displayMode: false }); } catch (e) { return _mescape(src); } }
+function _K(latex, fallback){
+  try { if (typeof katex === 'undefined') throw 0;
+    return katex.renderToString(latex, { throwOnError: false, displayMode: false }); }
+  catch (e) { return _mescape(fallback != null ? fallback : latex); }
+}
+function _toLatex(token){
+  var m = token.match(/^\([-－]√([\d.]+)\)²$/);   if (m) return '(-\\sqrt{' + m[1] + '})^2';
+  m = token.match(/^\(√([\d.]+)\)²$/);            if (m) return '(\\sqrt{' + m[1] + '})^2';
+  m = token.match(/^±√([\d.]+)$/);                 if (m) return '\\pm\\sqrt{' + m[1] + '}';
+  m = token.match(/^(\d+)√([\d.]+)$/);             if (m) return m[1] + '\\sqrt{' + m[2] + '}';
+  m = token.match(/^[-－]√([\d.]+)$/);             if (m) return '-\\sqrt{' + m[1] + '}';
+  m = token.match(/^√\((\d+)\/(\d+)\)$/);          if (m) return '\\sqrt{\\dfrac{' + m[1] + '}{' + m[2] + '}}';
+  m = token.match(/^F\((\d+)\/(\d+)\)$/);          if (m) return '\\dfrac{' + m[1] + '}{' + m[2] + '}';
+  m = token.match(/^[-－]√\(\(-(\d+)\)²\)$/);      if (m) return '-\\sqrt{(-' + m[1] + ')^2}';
+  m = token.match(/^√\(\(-(\d+)\)²\)$/);           if (m) return '\\sqrt{(-' + m[1] + ')^2}';
+  m = token.match(/^√([\d.]+)$/);                  if (m) return '\\sqrt{' + m[1] + '}';
+  return token;
+}
+function _plain(t){ return _mescape(t).replace(/(?<!\d)-([\d])/g, '－$1').replace(/\n/g, '<br>'); }
+function _renderMath(str){
+  var re = /[-－]√\(\(-\d+\)²\)|√\(\(-\d+\)²\)|\([-－]√[\d.]+\)²|\(√[\d.]+\)²|√\(\d+\/\d+\)|±√[\d.]+|\d+√[\d.]+|[-－]√[\d.]+|√[\d.]+|F\(\d+\/\d+\)/g;
+  var out = '', last = 0, mt;
+  while ((mt = re.exec(str)) !== null) {
+    out += _plain(str.slice(last, mt.index));
+    out += _K(_toLatex(mt[0]), mt[0]);
+    last = mt.index + mt[0].length;
+  }
+  out += _plain(str.slice(last));
+  return out;
+}
+function renderMathToHTML(src){
+  src = String(src == null ? '' : src);
+  if (/[\\^_{}]/.test(src)) return _texWhole(src);
+  if (/[√²³]/.test(src) || /F\(\d+\/\d+\)/.test(src)) return _renderMath(src);
+  return _mescape(src).replace(/\n/g, '<br>');
+}
+document.querySelectorAll('.today-q').forEach(function (el) {
+  el.innerHTML = renderMathToHTML(el.getAttribute('data-math') || '');
+});
+</script>
 </body>
 </html>
