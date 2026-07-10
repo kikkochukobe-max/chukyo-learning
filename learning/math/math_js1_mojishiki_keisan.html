@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<title>文字式の計算マスター | 中1数学 | 中京個別指導学院</title>
+<meta name="description" content="中学1年生向け・文字式の計算練習サイト。項えらび・係数・1次式・同類項・加減・×÷・分配法則・四則ミックスをドリル形式で学べます。名古屋の個別指導塾 中京個別指導学院（焼山・植田・長久手・神丘・一社・高針・吉根・志段味・有松）の無料学習ツール。">
+<meta name="keywords" content="文字式,計算,中1,数学,同類項,係数,分配法則,中京個別指導学院,焼山,植田,長久手,神丘,一社,高針,吉根,志段味,有松">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="/assets/divp-core.js" defer></script>
+<script src="/assets/divp-header.js" defer></script>
+<script src="/assets/divp-correct-jh.js" defer></script>
+<style>
+:root{
+  --washi:#F7F3E9;        /* 和紙 */
+  --washi-deep:#EFE8D8;
+  --ink:#3A3226;          /* 墨 */
+  --ink-soft:#6B6152;
+  --sakura:#C9556B;       /* 山桜 */
+  --sakura-deep:#A63E54;
+  --sakura-pale:#F3DDE1;
+  --leaf:#5E7A5A;         /* 若葉（正解） */
+  --line:#D9CFBB;
+  --card:#FFFDF8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;color-scheme:light}
+body{
+  font-family:"M PLUS Rounded 1c",sans-serif;
+  color:var(--ink);
+  background:var(--washi);
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(201,85,107,.04), transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(94,122,90,.04), transparent 40%),
+    repeating-linear-gradient(0deg, transparent 0 2px, rgba(58,50,38,.012) 2px 4px);
+  min-height:100vh;
+}
+.wrap{max-width:780px;margin:0 auto;padding:0 14px 60px}
+
+/* ---- header ---- */
+.divp-header{min-height:0}
+header.site{
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  padding:18px 2px 10px;border-bottom:3px double var(--line);margin-bottom:14px;
+}
+h1{
+  font-family:"Shippori Mincho",serif;font-weight:700;font-size:1.5rem;letter-spacing:.06em;
+}
+h1 .accent{color:var(--sakura-deep)}
+.sub{font-size:.78rem;color:var(--ink-soft);letter-spacing:.05em}
+/* ---- control rows ---- */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(58,50,38,.05);overflow:hidden}
+.panel-toggle{
+  width:100%;display:flex;align-items:center;gap:10px;
+  background:none;border:none;cursor:pointer;font-family:inherit;color:var(--ink);
+  padding:12px 14px;text-align:left;
+}
+.panel-toggle .ptl{
+  font-family:"Shippori Mincho",serif;font-weight:600;font-size:.9rem;letter-spacing:.1em;
+}
+.panel-toggle .pt-now{
+  flex:1;font-size:.78rem;color:var(--ink-soft);font-weight:700;letter-spacing:.02em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:opacity .2s;
+}
+.panel-toggle .pt-caret{color:var(--ink-soft);font-size:.9rem;transition:transform .2s}
+.panel.collapsed .pt-caret{transform:rotate(-90deg)}
+.panel-body{
+  padding:2px 14px 12px;overflow:hidden;
+  max-height:400px;transition:max-height .28s ease, opacity .2s, padding .28s;
+}
+.panel.collapsed .panel-body{max-height:0;opacity:0;padding-top:0;padding-bottom:0}
+.panel:not(.collapsed) .pt-now{opacity:0}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 0}
+.rlbl{
+  font-family:"Shippori Mincho",serif;font-size:.78rem;font-weight:600;color:var(--ink-soft);
+  min-width:5.2em;letter-spacing:.1em;
+}
+/* 連結セグメント */
+.seg{
+  border:1px solid var(--line);border-radius:0;overflow:hidden;background:var(--washi-deep);
+  box-shadow:inset 0 1px 2px rgba(58,50,38,.06), 0 1px 2px rgba(58,50,38,.04);
+}
+.chip{
+  position:relative;padding:11px 12px;background:transparent;border:none;
+  font-family:"M PLUS Rounded 1c",sans-serif;font-size:.82rem;font-weight:700;
+  color:var(--ink-soft);cursor:pointer;user-select:none;letter-spacing:.03em;
+  text-align:center;transition:color .15s, background .2s;
+}
+.chip:hover{color:var(--sakura-deep);background:rgba(255,255,255,.5)}
+.chip.on{
+  color:#fff;background:var(--sakura);
+  background-image:linear-gradient(180deg, var(--sakura) 0%, var(--sakura-deep) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18), inset 0 -1px 3px rgba(0,0,0,.12);
+  text-shadow:0 1px 1px rgba(0,0,0,.15);
+}
+.chip.on:hover{color:#fff}
+/* モード: 4列グリッド → 縦横に罫線が入る */
+#catRow .seg{display:grid;grid-template-columns:repeat(4,1fr);width:100%}
+#catRow .chip{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+#catRow .chip:nth-child(4n){border-right:none}
+#catRow .chip:nth-last-child(-n+4){border-bottom:none}
+/* むずかしさ: 3等分フル幅 */
+#diffRow .seg{display:grid;grid-template-columns:repeat(3,1fr);width:100%}
+#diffRow .chip{border-right:1px solid var(--line)}
+#diffRow .chip:last-child{border-right:none}
+#diffRow .rlbl,#catRow .rlbl{min-width:100%;margin-bottom:6px}
+@media(max-width:520px){
+  .chip{padding:11px 8px;font-size:.8rem}
+  #catRow .seg{grid-template-columns:repeat(2,1fr)}
+  #catRow .chip{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+  #catRow .chip:nth-child(4n){border-right:1px solid var(--line)}
+  #catRow .chip:nth-child(2n){border-right:none}
+  #catRow .chip:nth-last-child(-n+4){border-bottom:1px solid var(--line)}
+  #catRow .chip:nth-last-child(-n+2){border-bottom:none}
+}
+
+/* ---- question card ---- */
+.qcard{
+  position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:22px 18px 20px;box-shadow:0 3px 14px rgba(58,50,38,.07);
+}
+.qtag{
+  position:absolute;top:-11px;left:16px;
+  font-family:"Shippori Mincho",serif;font-size:.75rem;font-weight:600;letter-spacing:.14em;
+  background:var(--ink);color:var(--washi);padding:3px 12px;border-radius:4px;
+}
+.prompt{
+  font-family:"Shippori Mincho",serif;font-size:1rem;font-weight:600;letter-spacing:.05em;
+  margin-bottom:14px;padding-left:2px;
+}
+.qtex{
+  text-align:center;font-size:1.7rem;min-height:2.4em;
+  padding:10px 6px 16px;overflow:hidden;white-space:nowrap;
+  display:flex;align-items:center;justify-content:center;
+}
+.qtex-inner{display:inline-block;transform-origin:center}
+
+/* ---- choices ---- */
+.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:520px){.choices{grid-template-columns:repeat(2,1fr)}}
+.choices.four{grid-template-columns:repeat(2,1fr)}
+.cbtn{
+  min-height:58px;display:flex;align-items:center;justify-content:center;
+  background:#fff;border:2px solid var(--line);border-radius:12px;cursor:pointer;
+  font-size:1.1rem;transition:all .12s;padding:8px 6px;overflow:hidden;
+}
+.cbtn:hover{border-color:var(--sakura);transform:translateY(-1px)}
+.cbtn.sel{border-color:var(--sakura);background:var(--sakura-pale)}
+.cbtn.ok{border-color:var(--leaf);background:#EAF1E8}
+.cbtn.ng{border-color:var(--sakura-deep);background:#F7E4E7;opacity:.85}
+.cbtn.dim{opacity:.45;pointer-events:none}
+.cbtn:disabled{cursor:default}
+.coef2{display:grid;grid-template-columns:1fr;gap:16px}
+.coefcol .collbl{
+  font-family:"Shippori Mincho",serif;font-size:.85rem;font-weight:600;text-align:center;
+  margin-bottom:8px;letter-spacing:.06em;
+}
+.coefcol .choices{grid-template-columns:repeat(3,1fr)}
+
+/* ---- verdict / actions ---- */
+.actions{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.btn{
+  font-family:inherit;font-size:.95rem;font-weight:800;letter-spacing:.04em;
+  padding:12px 30px;border-radius:0;border:none;cursor:pointer;transition:all .15s;
+}
+.btn-main{
+  background:var(--sakura);color:#fff;
+  background-image:linear-gradient(180deg, var(--sakura) 0%, var(--sakura-deep) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 2px 5px rgba(166,62,84,.28);
+  text-shadow:0 1px 1px rgba(0,0,0,.15);
+}
+.btn-main:hover{background:var(--sakura-deep)}
+.btn-sub{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+.btn-sub:hover{border-color:var(--sakura)}
+.btn:disabled{opacity:.4;cursor:default;box-shadow:none}
+.verdict{margin-top:14px;text-align:center;min-height:1.6em;font-weight:700}
+.verdict .ok{color:var(--leaf);font-size:1.1rem}
+.verdict .cheer{color:var(--sakura-deep);font-size:1.05rem}
+.verdict .ng{color:var(--sakura-deep)}
+.verdict .ans{margin-top:6px;font-weight:500;color:var(--ink);font-size:1.05rem}
+.expl{
+  margin-top:14px;text-align:left;background:var(--washi-deep);
+  border:1px solid var(--line);border-left:4px solid var(--leaf);
+  padding:12px 16px;
+}
+.expl-head{
+  font-family:"Shippori Mincho",serif;font-size:.78rem;font-weight:600;
+  color:var(--leaf);letter-spacing:.12em;margin-bottom:8px;
+}
+.expl-line{margin:5px 0;font-weight:500;line-height:1.6}
+.expl-line.expl-text{font-size:.86rem;color:var(--ink-soft);white-space:normal}
+.expl-line:not(.expl-text){font-size:1.05rem;padding-left:2px;white-space:nowrap;overflow:hidden}
+
+/* ---- score ---- */
+.score{
+  display:flex;gap:18px;justify-content:center;margin-top:16px;
+  font-family:"Shippori Mincho",serif;font-size:.85rem;color:var(--ink-soft);letter-spacing:.06em;
+}
+.score b{color:var(--sakura-deep);font-size:1.05rem;margin-left:4px}
+
+/* ---- local hanko fallback ---- */
+.hanko{
+  position:fixed;left:50%;top:42%;transform:translate(-50%,-50%) rotate(-8deg) scale(.3);
+  width:120px;height:120px;border:5px solid var(--sakura-deep);border-radius:50%;
+  color:var(--sakura-deep);font-family:"Shippori Mincho",serif;font-weight:700;font-size:2.2rem;
+  display:flex;align-items:center;justify-content:center;letter-spacing:.1em;
+  opacity:0;pointer-events:none;z-index:99;background:rgba(255,253,248,.6);
+}
+.hanko.show{animation:hk .9s ease forwards}
+@keyframes hk{
+  0%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(.3)}
+  30%{opacity:1;transform:translate(-50%,-50%) rotate(-8deg) scale(1.08)}
+  45%{transform:translate(-50%,-50%) rotate(-8deg) scale(1)}
+  80%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}
+}
+footer{margin-top:36px;text-align:center;font-size:.75rem;color:var(--ink-soft)}
+footer a{color:var(--sakura-deep)}
+</style>
+</head>
+<body>
+<div class="divp-header"></div>
+<div class="wrap">
+  <header class="site">
+    <h1>文字式の計算<span class="accent">マスター</span></h1>
+    <span class="sub">中1数学｜項・係数・1次式の計算</span>
+  </header>
+
+  <div class="panel" id="settingsPanel">
+    <button class="panel-toggle" id="panelToggle" aria-expanded="true" aria-controls="settingsBody">
+      <span class="ptl">設定</span>
+      <span class="pt-now" id="ptNow"></span>
+      <span class="pt-caret" aria-hidden="true">▾</span>
+    </button>
+    <div class="panel-body" id="settingsBody">
+      <div class="row" id="catRow">
+        <div class="rlbl">問題の種類</div>
+        <div class="seg">
+          <div class="chip on" data-cat="term">項えらび</div>
+          <div class="chip" data-cat="coef">係数</div>
+          <div class="chip" data-cat="linear">1次式えらび</div>
+          <div class="chip" data-cat="douruikou">同類項</div>
+          <div class="chip" data-cat="kagen">加減 (±)</div>
+          <div class="chip" data-cat="kakejowari">×÷ 数</div>
+          <div class="chip" data-cat="bunpai">分配・かっこ</div>
+          <div class="chip" data-cat="mix">四則ミックス</div>
+        </div>
+      </div>
+      <div class="row" id="diffRow">
+        <div class="rlbl">むずかしさ</div>
+        <div class="seg">
+          <div class="chip on" data-diff="easy">基本</div>
+          <div class="chip" data-diff="normal">標準</div>
+          <div class="chip" data-diff="hard">応用</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qcard">
+    <div class="qtag" id="qTag">項えらび</div>
+    <div class="prompt" id="qPrompt"></div>
+    <div class="qtex" id="qTex"><span class="qtex-inner" id="qTexInner"></span></div>
+    <div id="choiceArea"></div>
+    <div class="actions">
+      <button class="btn btn-main" id="btnCheck" style="display:none">答え合わせ</button>
+      <button class="btn btn-sub" id="btnNext">次の問題 ▶</button>
+    </div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+
+  <div class="score">
+    <span>正解<b id="scOk">0</b></span>
+    <span>問題数<b id="scAll">0</b></span>
+    <span>れんぞく<b id="scStreak">0</b></span>
+  </div>
+
+  </div>
+</div>
+<div class="hanko" id="hanko">正解</div>
+
+<script>
+(function(){
+"use strict";
+const UNIT_KEY = "math_js1_mojishiki_keisan";
+
+/* ================= util ================= */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v=0;while(v===0)v=ri(a,b);return v;};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{const r=a.slice();for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;};
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;}
+
+/* ================= 有理数 {n,d} ================= */
+function rmk(n,d){ if(d<0){n=-n;d=-d;} const g=gcd(n,d); return {n:n/g,d:d/g}; }
+const rint=n=>({n:n,d:1});
+const radd=(a,b)=>rmk(a.n*b.d+b.n*a.d, a.d*b.d);
+const rsub=(a,b)=>rmk(a.n*b.d-b.n*a.d, a.d*b.d);
+const rmul=(a,b)=>rmk(a.n*b.n, a.d*b.d);
+const rdiv=(a,b)=>rmk(a.n*b.d, a.d*b.n);
+const rneg=a=>({n:-a.n,d:a.d});
+const rzero=a=>a.n===0;
+const req=(a,b)=>a.n===b.n&&a.d===b.d;
+function decToR(s){ const neg=s<0; s=Math.abs(s); const st=String(s); const p=st.indexOf(".");
+  if(p<0) return rmk(neg?-s:s,1);
+  const dd=Math.pow(10,st.length-p-1); return rmk(Math.round(s*dd)*(neg?-1:1), dd); }
+/* 小数として1〜2桁で表せるか */
+function asDec(r){ if(r.d===1) return null; if(100%r.d!==0) return null;
+  const v=r.n/r.d; const s=(Math.round(v*100)/100).toString();
+  return s.includes(".")?s:null; }
+
+/* ================= TeX 表示 ================= */
+/* 分数（係数のみ）: -\dfrac{1}{2} */
+function fracTex(r){ if(r.d===1) return String(r.n);
+  return (r.n<0?"-":"")+"\\dfrac{"+Math.abs(r.n)+"}{"+r.d+"}"; }
+/* 計算モード用の項: 文字は分数バーの外 → \dfrac{1}{2}x */
+function coefTexCalc(r, v, style){
+  if(!v){ if(style==="dec"){const d=asDec(r); if(d)return d;} return fracTex(r); }
+  if(style==="dec"){ const d=asDec(r); if(d) return d+v; }
+  if(r.d===1){ if(r.n===1)return v; if(r.n===-1)return "-"+v; return r.n+v; }
+  return (r.n<0?"-":"")+"\\dfrac{"+Math.abs(r.n)+"}{"+r.d+"}"+v;
+}
+/* 項えらび・係数モード用: 文字は分子の中 → \dfrac{x}{2} */
+function coefTexInner(r, v, style){
+  if(!v) return coefTexCalc(r,"",style);
+  if(style==="dec"){ const d=asDec(r); if(d) return d+v; }
+  if(r.d===1){ if(r.n===1)return v; if(r.n===-1)return "-"+v; return r.n+v; }
+  const nAbs=Math.abs(r.n);
+  const num=(nAbs===1? v : nAbs+v);
+  return (r.n<0?"-":"")+"\\dfrac{"+num+"}{"+r.d+"}";
+}
+/* 項の配列 → 式TeX（先頭以外は符号つき） */
+function exprTex(terms, inner){
+  const f = inner? coefTexInner : coefTexCalc;
+  let s="";
+  terms.forEach((t,i)=>{
+    let piece=f(t.r, t.v, t.style);
+    if(i===0){ s+=piece; }
+    else{
+      if(piece.startsWith("-")) s+=" - "+piece.slice(1);
+      else s+=" + "+piece;
+    }
+  });
+  return s;
+}
+/* 1次式の答え ax+b → TeX */
+function ansTex(xc, cc, v){
+  v=v||"x"; const parts=[];
+  if(!rzero(xc)) parts.push({r:xc,v:v,style:"frac"});
+  if(!rzero(cc)) parts.push({r:cc,v:"",style:"frac"});
+  if(!parts.length) return "0";
+  return exprTex(parts,false);
+}
+const ansKey=(xc,cc)=>xc.n+"/"+xc.d+"|"+cc.n+"/"+cc.d;
+
+/* ================= 解説ヘルパー ================= */
+/* 係数リストを「a + b - c」の形の和のTeXに（先頭も符号を明示、負は()） */
+function sumTex(list, v){
+  return list.map((r,i)=>{
+    const t=coefTexCalc(r,v,r.d===1?"int":"frac");
+    if(i===0) return t.startsWith("-")? "("+t+")" : t;
+    return t.startsWith("-")? "+ ("+t+")" : "+ "+t;
+  }).join(" ");
+}
+/* まとめ結果 xc x + cc の答え式 */
+function combTex(xc,cc){ return ansTex(xc,cc); }
+
+/* ================= 係数生成 ================= */
+/* style: int / frac / dec */
+function genR(diff, allowStyle){
+  const styles = allowStyle || (diff==="easy" ? ["int"] :
+                 diff==="normal" ? ["int","frac","dec"] : ["frac","dec","int"]);
+  const st=pick(styles);
+  const sign = Math.random()<0.5 ? -1 : 1;
+  if(st==="int") return {r:rint(sign*nz(1,9).valueOf? nz(1,9):nz(1,9)), style:"int"};
+  if(st==="dec"){ const v=pick([0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.25,0.75,1.5]);
+    return {r:decToR(sign*v), style:"dec"}; }
+  const d=pick([2,3,4,5,6]); let n=Math.random()<0.5?1:nz(1,d-1);
+  const g=gcd(n,d);
+  return {r:rmk(sign*(n/g), d/g), style:"frac"};
+}
+function genInt(max){ return {r:rint(nz(-(max||9),max||9)), style:"int"}; }
+
+/* ================= 計算モード（1次式が答え） ================= */
+/* 同類項 */
+function genDouruikou(diff){
+  const V = diff==="hard" ? "x" : pick(VARS);
+  // 普通は式ごとに non-int スタイルを1つに固定（小数と分数を混ぜない）
+  const exprStyle = diff==="normal" ? pick(["frac","dec"]) : null;
+  const cnt = diff==="easy"? 3 : diff==="normal"? pick([3,4]) : 4;
+  let terms=[], xc=rint(0), cc=rint(0), hasNonInt=false;
+  const kinds=shuffle(diff==="easy"
+      ? ["x","x","c"].concat(cnt===4?["c"]:[])
+      : ["x","x","c","c"].slice(0,cnt));
+  kinds.forEach(k=>{
+    let c;
+    if(diff==="easy") c=genInt(9);
+    else if(diff==="normal"){ c=genR(diff,["int","int",exprStyle]); if(c.style!=="int") hasNonInt=true; }
+    else{ c=genR(diff); if(c.style!=="int") hasNonInt=true; }
+    if(k==="x"){ xc=radd(xc,c.r); terms.push({r:c.r,v:V,style:c.style}); }
+    else{ cc=radd(cc,c.r); terms.push({r:c.r,v:"",style:c.style}); }
+  });
+  if(diff!=="easy" && !hasNonInt) return genDouruikou(diff);
+  if(diff==="hard"){
+    const st=terms.map(t=>t.style);
+    if(!(st.includes("frac")&&st.includes("dec"))) return genDouruikou(diff);
+  }
+  const xParts=terms.filter(t=>t.v).map(t=>t.r);
+  const cParts=terms.filter(t=>!t.v).map(t=>t.r);
+  const expl=[{t:"同じ文字どうし・数だけの項どうしを、それぞれまとめよう。"}];
+  if(xParts.length) expl.push({tex:V+"\\text{の項：}"+sumTex(xParts,V)+" = "+coefTexCalc(xc,V,xc.d===1?"int":"frac")});
+  if(cParts.length) expl.push({tex:"\\text{数の項：}"+sumTex(cParts,"")+" = "+fracTex(cc)});
+  expl.push({tex:"\\text{答え　}"+ansTex(xc,cc,V)});
+  return calcQuestion("同類項をまとめて計算しよう", exprTex(terms,false), xc, cc, expl, V);
+}
+/* 加減 */
+function genKagen(diff){
+  const V = pick(VARS);
+  const exprStyle = diff==="normal" ? pick(["frac","dec"]) : null;
+  const coefOf=()=>{
+    if(diff==="easy") return genInt(7);
+    if(diff==="normal") return genR(diff,["int","int",exprStyle]);
+    return genR(diff,["int","int","frac","dec"]);
+  };
+  // 1辺を項リストで生成。応用のみ括弧内を2〜3項に。net xc/cc も返す
+  const makeSide=(nTerms)=>{
+    const nc = 1;              // 定数は必ず1つ
+    const nx = nTerms - nc;    // 残りはxの項（3項なら2つ）
+    const terms=[]; let xc=rint(0), cc=rint(0);
+    for(let i=0;i<nx;i++){ const c=coefOf(); xc=radd(xc,c.r); terms.push({r:c.r,v:V,style:c.style}); }
+    for(let i=0;i<nc;i++){ const c=coefOf(); cc=radd(cc,c.r); terms.push({r:c.r,v:"",style:c.style}); }
+    // 定数を末尾に固定し、xの項だけ順序をシャッフル
+    const xt=shuffle(terms.filter(t=>t.v)), ct=terms.filter(t=>!t.v);
+    return {terms:xt.concat(ct), xc, cc};
+  };
+  const op = Math.random()<0.5 ? "+" : "-";
+  const bare = Math.random()<(diff==="easy"?0.5:0.3);
+  const rTerms = diff==="hard" ? pick([2,2,3]) : 2;
+  const lTerms = diff==="hard" ? pick([2,2,3]) : 2;
+
+  // 左辺
+  let Lterms, xcL, ccL;
+  if(bare){ const La=coefOf(); Lterms=[{r:La.r,v:V,style:La.style}]; xcL=La.r; ccL=rint(0); }
+  else{ const Ls=makeSide(lTerms); Lterms=Ls.terms; xcL=Ls.xc; ccL=Ls.cc; }
+  // 右辺（かっこ）
+  const Rs=makeSide(rTerms);
+
+  // 標準は式内で分数小数が混ざらないよう保証＋非整数を1つ以上
+  if(diff==="normal"){
+    const styles=Lterms.map(t=>t.style).concat(Rs.terms.map(t=>t.style));
+    if(!styles.includes(exprStyle)) return genKagen(diff);
+  }
+
+  const inner=(terms)=>exprTex(terms,false);
+  const Lhead = bare ? coefTexCalc(Lterms[0].r,V,Lterms[0].style) : "\\left("+inner(Lterms)+"\\right)";
+  const tex = Lhead+" "+op+" \\left("+inner(Rs.terms)+"\\right)";
+
+  const xc = op==="+"? radd(xcL,Rs.xc) : rsub(xcL,Rs.xc);
+  const cc = op==="+"? radd(ccL,Rs.cc) : rsub(ccL,Rs.cc);
+
+  // 解説: かっこを外す（-なら右辺の符号反転）
+  const openR = Rs.terms.map(t=>({r: op==="-"? rneg(t.r): t.r, v:t.v, style:"frac"}));
+  const openTerms = Lterms.map(t=>({r:t.r,v:t.v,style:"frac"})).concat(openR);
+  const expl=[
+    {t: op==="-"? "うしろのかっこは −（マイナス）なので、中の符号を全部かえて外そう。" : "かっこをそのまま外そう。"},
+    {tex:"= "+exprTex(openTerms,false)},
+    {t:"同じ文字どうし・数どうしをまとめよう。"},
+    {tex:"= "+ansTex(xc,cc,V)}
+  ];
+  return calcQuestion("計算しよう", tex, xc, cc, expl, V);
+}
+/* ×÷ 数 */
+function genKakejowari(diff){
+  const V=pick(VARS);
+  const isMul = Math.random()<0.55;
+  // 応用: 分数どうし・小数どうしの乗除
+  if(diff==="hard"){
+    const style=pick(["frac","dec"]);
+    const c=genR("hard",[style]);
+    const kR=genR("hard",[style]);
+    const cTex=coefTexCalc(c.r,V,c.style);
+    const kNum=coefTexCalc(kR.r,"",style);
+    const kWrap=kR.r.n<0?"\\left("+kNum+"\\right)":kNum;
+    let tex, xc;
+    if(isMul){
+      if(Math.random()<0.5) tex=cTex+" \\times "+kWrap;
+      else tex=kWrap+" \\times "+(c.r.n<0?"\\left("+cTex+"\\right)":cTex);
+      xc=rmul(c.r,kR.r);
+    }else{
+      tex=cTex+" \\div "+kWrap;
+      xc=rdiv(c.r,kR.r);
+    }
+    const cNum=c.r.n<0?"\\left("+coefTexCalc(c.r,"",c.style)+"\\right)":coefTexCalc(c.r,"",c.style);
+    const expl=[
+      {t: isMul? "文字の前の数どうしをかけよう。" : (style==="frac"?"分数で割るときは、逆数をかけよう。":"文字の前の数を割ろう。")},
+      {tex:"= "+cNum+(isMul?" \\times ":" \\div ")+kWrap+"\\,"+V+" = "+coefTexCalc(xc,V,xc.d===1?"int":"frac")}
+    ];
+    return calcQuestion("計算しよう", tex, xc, rint(0), expl, V);
+  }
+  const c = diff==="easy"? genInt(8) : genR(diff);
+  const k = nz(2,8)*(Math.random()<0.4?-1:1);
+  const cTex=coefTexCalc(c.r,V,c.style);
+  const kTex = k<0 ? "(-"+Math.abs(k)+")" : String(k);
+  let tex, xc;
+  if(isMul){
+    if(Math.random()<0.4){ tex = kTex+" \\times "+(cTex.startsWith("-")?"\\left("+cTex+"\\right)":cTex); }
+    else{ tex = cTex+" \\times "+kTex; }
+    xc = rmul(c.r, rint(k));
+  }else{
+    tex = cTex+" \\div "+kTex;
+    xc = rdiv(c.r, rint(k));
+  }
+  const expl=[
+    {t: isMul? "文字の前の数どうしをかけよう。" : "文字の前の数を割ろう。"},
+    {tex:"= "+coefTexCalc(c.r,"","frac")+(isMul?" \\times ":" \\div ")+(k<0?"("+k+")":k)+"\\,"+V+" = "+coefTexCalc(xc,V,xc.d===1?"int":"frac")}
+  ];
+  return calcQuestion("計算しよう", tex, xc, rint(0), expl, V);
+}
+/* 分配・かっこ */
+function genBunpai(diff){
+  // 基本: 前から×, 後ろから×, 後ろから÷ の3パターン
+  if(diff==="easy"){
+    const mode=pick(["front","backMul","backDiv","fracMul","divFrac"]);
+    if(mode==="divFrac"){
+      // (ax+b) ÷ (p/d) = (ax+b) × d/p。a,b は p の倍数 → 答えは整数
+      const d=pick([2,3,4,5]);
+      const p=(Math.random()<0.7?1:nz(1,d-1));
+      const g=gcd(p,d); const pr=p/g, dr=d/g;
+      const s=Math.random()<0.35?-1:1;
+      const divisor=rmk(s*pr,dr);          // 割る数（分数）
+      const recip=rmk(s*dr,pr);            // 逆数
+      const qa=nz(-5,5), qb=nz(-5,5);
+      const a=rint(qa*pr), b=rint(qb*pr);
+      const inner=exprTex([{r:a,v:"x",style:"int"},{r:b,v:"",style:"int"}],false);
+      const tex="\\left("+inner+"\\right) \\div "+(divisor.n<0?"\\left("+fracTex(divisor)+"\\right)":fracTex(divisor));
+      const xc2=rmul(recip,a), cc2=rmul(recip,b);
+      const expl=[
+        {t:"分数で割るときは、その分数の逆数をかけよう。"},
+        {tex:"= \\left("+inner+"\\right) \\times "+(recip.n<0?"\\left("+fracTex(recip)+"\\right)":fracTex(recip))},
+        {tex:"= "+ansTex(xc2,cc2)}
+      ];
+      return calcQuestion("かっこをはずして計算しよう", tex, xc2, cc2, expl);
+    }
+    if(mode==="fracMul"){
+      // 外が分数: (±p/d)(ax+b) で、a,b は d の倍数 → 答えは整数
+      const d=pick([2,3,4,5]);
+      const p=(Math.random()<0.6?1:nz(1,d-1));
+      const g=gcd(p,d); const pr=p/g, dr=d/g;
+      const s=Math.random()<0.4?-1:1;
+      const m=rmk(s*pr,dr);
+      const qa=nz(-5,5), qb=nz(-5,5);
+      const a=rint(qa*dr), b=rint(qb*dr);
+      const inner=exprTex([{r:a,v:"x",style:"int"},{r:b,v:"",style:"int"}],false);
+      const tex=fracTex(m)+"\\left("+inner+"\\right)";
+      const xc2=rmul(m,a), cc2=rmul(m,b);
+      const expl=[
+        {t:"かっこの外の分数を、中のすべての項にかけよう（分配法則）。"},
+        {tex:"= "+fracTex(m)+"\\times "+a.n+"x + "+fracTex(m)+"\\times ("+b.n+")"},
+        {tex:"= "+ansTex(xc2,cc2)}
+      ];
+      return calcQuestion("かっこをはずして計算しよう", tex, xc2, cc2, expl);
+    }
+    if(mode==="backDiv"){
+      // (ax+b) ÷ k : a,b が k の倍数になるよう作る（整数のみ）
+      const k=nz(2,6);
+      const qa=nz(-6,6), qb=nz(-6,6);
+      const a=rint(qa*k), b=rint(qb*k);
+      const inner=exprTex([{r:a,v:"x",style:"int"},{r:b,v:"",style:"int"}],false);
+      const tex="\\left("+inner+"\\right) \\div "+k;
+      const xc2=rint(qa), cc2=rint(qb);
+      const expl=[
+        {t:"かっこの中のすべての項を、外の数で割ろう。"},
+        {tex:"= "+a.n+"x \\div "+k+" + ("+b.n+") \\div "+k},
+        {tex:"= "+ansTex(xc2,cc2)}
+      ];
+      return calcQuestion("かっこをはずして計算しよう", tex, xc2, cc2, expl);
+    }
+    // front / backMul（分数・小数OK、式内で混ぜない）
+    const exprStyle=pick(["int","int","frac","dec"]);
+    let a = exprStyle==="int" ? genInt(7) : genR("hard",["int",exprStyle]);
+    let b = exprStyle==="int" ? genInt(9) : genR("hard",["int",exprStyle]);
+    if(exprStyle!=="int" && a.style==="int" && b.style==="int"){ a=genR("hard",[exprStyle]); }
+    const k=nz(2,6)*(Math.random()<0.3?-1:1);
+    const inner=exprTex([{r:a.r,v:"x",style:a.style},{r:b.r,v:"",style:b.style}],false);
+    const tex = mode==="front"
+      ? String(k)+"\\left("+inner+"\\right)"
+      : "\\left("+inner+"\\right) \\times "+(k<0?"("+k+")":String(k));
+    const xc2=rmul(rint(k),a.r), cc2=rmul(rint(k),b.r);
+    const mShow=k<0?"("+k+")":String(k);
+    const expl=[
+      {t:"かっこの外の数を、中のすべての項にかけよう（分配法則）。"},
+      {tex:"= "+mShow+"\\times "+coefTexCalc(a.r,"x","frac")+" + "+mShow+"\\times "+coefTexCalc(b.r,"","frac")},
+      {tex:"= "+ansTex(xc2,cc2)}
+    ];
+    return calcQuestion("かっこをはずして計算しよう", tex, xc2, cc2, expl);
+  }
+  // 標準: 整数 × (式)/分母 の形（後ろから×・÷も）。分数式は約分できない形に限定
+  if(diff==="normal"){
+    const irr=(a,b,d)=> gcd(gcd(Math.abs(a),Math.abs(b)),d)===1;   // 約分不可判定
+    const mode=pick(["fFront","fBack","fDiv"]);
+    if(mode==="fDiv"){
+      const d=pick([2,3,4,5]); const k=pick([2,3,4]);
+      let a=nz(-6,6), b=nz(-9,9);
+      let guard=0;
+      while(!irr(a,b,d) && guard++<40){ a=nz(-6,6); b=nz(-9,9); }
+      if(!irr(a,b,d)) return genBunpai(diff);
+      const num=exprTex([{r:rint(a),v:"x",style:"int"},{r:rint(b),v:"",style:"int"}],false);
+      const tex="\\dfrac{"+num+"}{"+d+"} \\div "+k;
+      const D0=d*k;
+      // 約分して分母ひとつの単一分数に
+      const g=gcd(gcd(Math.abs(a),Math.abs(b)),D0);
+      const numA=a/g, numB=b/g, D=D0/g;
+      // 別解: 1項ずつ分けて約分（生徒が書きがちな形）
+      const xcR=rmk(numA,D), ccR=rmk(numB,D);
+      const splitX="\\dfrac{"+Math.abs(numA)+"}{"+D+"}x";
+      const splitC="\\dfrac{"+Math.abs(numB)+"}{"+D+"}";
+      const splitTex=(numA<0?"-":"")+splitX+((numB<0)?" - ":" + ")+splitC;
+      const expl=[
+        {t:"分数を数で割るときは、分母にその数をかけよう。"},
+        {tex:"= \\dfrac{"+num+"}{"+D0+"}"}
+      ];
+      if(D!==D0) expl.push({tex:"= "+singleFracTex(numA,numB,D)});
+      expl.push({t:"別解：1項ずつに分けて約分すると、こう書くこともできる。"});
+      const reduces = (gcd(Math.abs(numA),D)>1) || (numB!==0 && gcd(Math.abs(numB),D)>1);
+      expl.push({tex: reduces ? "= "+splitTex+" = "+ansTex(xcR,ccR) : "= "+splitTex});
+      return fracChoiceQuestion("計算しよう", tex, numA, numB, D, expl);
+    }
+    // fFront / fBack : k × (式)/d, k は d の倍数 → 答えは整数。分数式は約分不可
+    const d=pick([2,3,4,5,6]);
+    const m=nz(2,4)*(Math.random()<0.4?-1:1);
+    const k=m*d;
+    let a=nz(-5,5), b=nz(-9,9);
+    let guard=0;
+    while(!irr(a,b,d) && guard++<40){ a=nz(-5,5); b=nz(-9,9); }
+    if(!irr(a,b,d)) return genBunpai(diff);
+    const num=exprTex([{r:rint(b),v:"",style:"int"},{r:rint(a),v:"x",style:"int"}],false);
+    const frac="\\dfrac{"+num+"}{"+d+"}";
+    const tex = mode==="fFront"
+      ? String(k)+" \\times "+frac
+      : frac+" \\times "+(k<0?"("+k+")":String(k));
+    const xc2=rint(m*a), cc2=rint(m*b);
+    const mShow=m<0?"("+m+")":String(m);
+    const axTex=coefTexCalc(rint(a),"x","int");
+    const bTex=b<0?"("+b+")":String(b);
+    // 別解: 分子に先に外の数をかけて、1項ずつ分母で割る
+    const splitC="\\dfrac{"+(k*b<0?"-":"")+Math.abs(k*b)+"}{"+d+"}";
+    const splitX="\\dfrac{"+Math.abs(k*a)+"}{"+d+"}x";
+    const splitTex=splitC+((k*a)<0?" - ":" + ")+splitX;
+    const expl=[
+      {t:"外の数と分母を約分すると "+k+" ÷ "+d+" = "+m+"。分子の各項にかけよう。"},
+      {tex:"= "+mShow+"\\times "+bTex+" + "+mShow+"\\times\\left("+axTex+"\\right)"},
+      {tex:"= "+ansTex(xc2,cc2)},
+      {t:"別解：分子に先に外の数をかけて、1項ずつ分母で割っても同じ。"},
+      {tex:"= "+splitTex+" = "+ansTex(xc2,cc2)}
+    ];
+    return calcQuestion("計算しよう", tex, xc2, cc2, expl);
+  }
+  // 応用: 括弧内は2項。外の数・中の係数とも分数/小数OK（分数と小数を混在させる）
+  {
+    const V="x";
+    const gen=()=>{
+      const M=genR("hard",["int","frac","dec"]);
+      const a=genR("hard",["int","frac","dec"]);
+      const b=genR("hard",["int","frac","dec"]);
+      const st=[M.style,a.style,b.style];
+      if(!(st.includes("frac")&&st.includes("dec"))) return gen();  // 分数と小数を必ず混在
+      return {M,a,b};
+    };
+    const {M,a,b}=gen();
+    const inner=exprTex([{r:a.r,v:V,style:a.style},{r:b.r,v:"",style:b.style}],false);
+    const mNum=coefTexCalc(M.r,"",M.style);              // 外の数の表示
+    const back=Math.random()<0.4;
+    const tex = back
+      ? "\\left("+inner+"\\right) \\times "+(M.r.n<0?"\\left("+mNum+"\\right)":mNum)
+      : mNum+"\\left("+inner+"\\right)";
+    const xc2=rmul(M.r,a.r), cc2=rmul(M.r,b.r);
+    const mShow=M.r.n<0?"\\left("+mNum+"\\right)":mNum;
+    const expl=[
+      {t:"かっこの外の数を、中のすべての項にかけよう（分配法則）。"},
+      {tex:"= "+mShow+"\\times "+coefTexCalc(a.r,"x","frac")+" + "+mShow+"\\times "+coefTexCalc(b.r,"","frac")},
+      {tex:"= "+ansTex(xc2,cc2)}
+    ];
+    return calcQuestion("計算しよう", tex, xc2, cc2, expl);
+  }
+}
+/* 四則ミックス p(ax+b) ± q(cx+d) */
+function genMix(diff){
+  // 標準: 分数式の加減法（通分して計算）
+  if(diff==="normal"){
+    const lcm=(x,y)=>x*y/gcd(x,y);
+    const pairs=[[2,3],[3,4],[2,5],[3,5],[2,4],[3,6],[4,6],[2,6],[4,3],[5,2]];
+    const [d1,d2]=pick(pairs);
+    const a1=nz(-5,5), b1=nz(-9,9), a2=nz(-5,5), b2=nz(-9,9);
+    const op=Math.random()<0.5?"+":"-";
+    const num1=exprTex([{r:rint(a1),v:"x",style:"int"},{r:rint(b1),v:"",style:"int"}],false);
+    const num2=exprTex([{r:rint(a2),v:"x",style:"int"},{r:rint(b2),v:"",style:"int"}],false);
+    const tex="\\dfrac{"+num1+"}{"+d1+"} "+op+" \\dfrac{"+num2+"}{"+d2+"}";
+    const L=lcm(d1,d2), m1=L/d1, m2=L/d2;
+    const s=(op==="-")?-1:1;
+    const nX=m1*a1 + s*m2*a2, nC=m1*b1 + s*m2*b2;
+    const g=gcd(gcd(Math.abs(nX),Math.abs(nC)),L);
+    const numA=g?nX/g:nX, numB=g?nC/g:nC, D=L/g;
+    // 解説
+    const mult1=exprTex([{r:rint(m1*a1),v:"x",style:"int"},{r:rint(m1*b1),v:"",style:"int"}],false);
+    const mult2=exprTex([{r:rint(m2*a2),v:"x",style:"int"},{r:rint(m2*b2),v:"",style:"int"}],false);
+    const combined=exprTex([{r:rint(nX),v:"x",style:"int"},{r:rint(nC),v:"",style:"int"}],false);
+    const expl=[
+      {t:"分母をそろえよう（通分）。分母の最小公倍数は "+L+"。分子に "+(m1===1?"":m1+" や ")+m2+" をかけるよ。"},
+      {tex:"= \\dfrac{"+mult1+"}{"+L+"} "+op+" \\dfrac{"+mult2+"}{"+L+"}"},
+      {t:"分子を計算してまとめよう。"},
+      {tex:"= \\dfrac{"+combined+"}{"+L+"}"}
+    ];
+    if(D!==L) expl.push({tex:"= "+singleFracTex(numA,numB,D)});
+    return fracChoiceQuestion("計算しよう", tex, numA, numB, D, expl);
+  }
+  // 基本: 単項式 ± k(式) の形も出す（例 3x+2(x-9), 4(x-5)+6x, 7x-3(4x+1)）
+  if(diff==="easy"){
+    const pattern=pick(["both","both","bareFirst","bareSecond"]);
+    if(pattern!=="both"){
+      const px=nz(1,9)*(Math.random()<0.3?-1:1);
+      const k=nz(2,5);
+      const a=nz(1,6)*(Math.random()<0.3?-1:1), b=nz(1,9)*(Math.random()<0.5?-1:1);
+      const op=Math.random()<0.5?"+":"-";
+      const inner=exprTex([{r:rint(a),v:"x",style:"int"},{r:rint(b),v:"",style:"int"}],false);
+      const kExpr=String(k)+"\\left("+inner+"\\right)";
+      let tex;
+      if(pattern==="bareFirst"){
+        // 先頭の単項式は符号そのまま、続く k(式) を op で連結
+        const bareHead=coefTexCalc(rint(px),"x","int");
+        tex = bareHead+" "+op+" "+kExpr;
+      }else{
+        // 先頭の k(式)、続く単項式 px を符号込みで連結（op と px の符号を統合）
+        const eff = (op==="-"? -1:1)*px;      // 実際に足す単項式の符号
+        const j = eff<0 ? "-" : "+";
+        const bareTail=coefTexCalc(rint(Math.abs(px)),"x","int");
+        tex = kExpr+" "+j+" "+bareTail;
+      }
+      let kSign=1, bSign=1;
+      if(op==="-"){ if(pattern==="bareFirst") kSign=-1; else bSign=-1; }
+      const xc=rint(bSign*px + kSign*k*a);
+      const cc=rint(kSign*k*b);
+      const expTerms = pattern==="bareFirst"
+        ? [{r:rint(bSign*px),v:"x",style:"int"},{r:rint(kSign*k*a),v:"x",style:"int"},{r:rint(kSign*k*b),v:"",style:"int"}]
+        : [{r:rint(kSign*k*a),v:"x",style:"int"},{r:rint(kSign*k*b),v:"",style:"int"},{r:rint(bSign*px),v:"x",style:"int"}];
+      const expl=[
+        {t:"かっこを分配してはずそう。"+(op==="-"&&pattern==="bareFirst"?"うしろは −×なので符号がかわるよ。":"")},
+        {tex:"= "+exprTex(expTerms,false)},
+        {t:"同じ文字どうし・数どうしをまとめよう。"},
+        {tex:"= "+ansTex(xc,cc)}
+      ];
+      return calcQuestion("計算しよう", tex, xc, cc, expl);
+    }
+  }
+  // 応用: 整数×分数式の和差（画像①②③）／整数×(分数式の和差)（画像④⑤⑥）も出す
+  if(diff==="hard"){
+    const t=pick(["classic","typeA","typeB","typeA","typeB"]);
+    if(t!=="classic"){
+      const irr=(a,b,d)=>gcd(gcd(Math.abs(a),Math.abs(b)),d)===1;
+      const lcm=(x,y)=>x*y/gcd(x,y);
+      const V=pick(VARS);
+      const pairs=[[3,5],[4,3],[7,5],[4,6],[9,6],[12,8],[2,3],[3,4],[6,4],[5,2]];
+      const [d1,d2]=pick(pairs);
+      const mkE=(d)=>{ let a,b,g=0;
+        do{ a=nz(1,4)*(Math.random()<0.35?-1:1); b=nz(1,8)*(Math.random()<0.5?-1:1); g++; }
+        while(!irr(a,b,d) && g<40);
+        return {a,b};
+      };
+      const E1=mkE(d1), E2=mkE(d2);
+      const op=Math.random()<0.5?"+":"-";
+      const s=(op==="-")?-1:1;
+      const num1=exprTex([{r:rint(E1.a),v:V,style:"int"},{r:rint(E1.b),v:"",style:"int"}],false);
+      const num2=exprTex([{r:rint(E2.a),v:V,style:"int"},{r:rint(E2.b),v:"",style:"int"}],false);
+      if(t==="typeA"){
+        const m1=nz(2,4), m2=nz(2,4); const k1=m1*d1, k2=m2*d2;
+        const tex=k1+" \\times \\dfrac{"+num1+"}{"+d1+"} "+op+" "+k2+" \\times \\dfrac{"+num2+"}{"+d2+"}";
+        const xc=rint(m1*E1.a + s*m2*E2.a), cc=rint(m1*E1.b + s*m2*E2.b);
+        const dist=[{r:rmul(rint(m1),rint(E1.a)),v:V,style:"int"},{r:rmul(rint(m1),rint(E1.b)),v:"",style:"int"},
+                    {r:rint(s*m2*E2.a),v:V,style:"int"},{r:rint(s*m2*E2.b),v:"",style:"int"}];
+        const expl=[
+          {t:"整数と分母を約分してから、分子に分配しよう。"},
+          {tex:"= "+m1+"\\left("+num1+"\\right) "+op+" "+m2+"\\left("+num2+"\\right)"},
+          {tex:"= "+exprTex(dist,false)},
+          {t:"同じ文字どうし・数どうしをまとめよう。"},
+          {tex:"= "+ansTex(xc,cc,V)}
+        ];
+        return calcQuestion("計算しよう", tex, xc, cc, expl, V);
+      }
+      // typeB: M( e1/d1 ± e2/d2 )
+      const M=lcm(d1,d2), m1=M/d1, m2=M/d2;
+      const tex=M+"\\left(\\dfrac{"+num1+"}{"+d1+"} "+op+" \\dfrac{"+num2+"}{"+d2+"}\\right)";
+      const xc=rint(m1*E1.a + s*m2*E2.a), cc=rint(m1*E1.b + s*m2*E2.b);
+      const dist=[{r:rint(m1*E1.a),v:V,style:"int"},{r:rint(m1*E1.b),v:"",style:"int"},
+                  {r:rint(s*m2*E2.a),v:V,style:"int"},{r:rint(s*m2*E2.b),v:"",style:"int"}];
+      const expl=[
+        {t:"かっこの外の数を各分数にかけ、分母と約分しよう。最小公倍数は "+M+"。"},
+        {tex:"= "+m1+"\\left("+num1+"\\right) "+op+" "+m2+"\\left("+num2+"\\right)"},
+        {tex:"= "+exprTex(dist,false)},
+        {t:"同じ文字どうし・数どうしをまとめよう。"},
+        {tex:"= "+ansTex(xc,cc,V)}
+      ];
+      return calcQuestion("計算しよう", tex, xc, cc, expl, V);
+    }
+  }
+  const mk=()=>({a:diff==="easy"?genInt(5):genR(diff,["int","int","frac"]),
+                 b:diff==="easy"?genInt(7):genR(diff,["int","int","dec"])});
+  const L=mk(), R=mk();
+  const p=rint(nz(2,4)*(diff==="easy"?1:(Math.random()<0.5?-1:1)));
+  const q=rint(nz(2,4));
+  const op=Math.random()<0.5?"+":"-";
+  const inner=(t)=>exprTex([{r:t.a.r,v:"x",style:t.a.style},{r:t.b.r,v:"",style:t.b.style}],false);
+  const tex=p.n+"\\left("+inner(L)+"\\right) "+op+" "+q.n+"\\left("+inner(R)+"\\right)";
+  const xc=(op==="+"?radd:rsub)(rmul(p,L.a.r), rmul(q,R.a.r));
+  const cc=(op==="+"?radd:rsub)(rmul(p,L.b.r), rmul(q,R.b.r));
+  // 展開: 右側は op が - なら符号反転
+  const pLa=rmul(p,L.a.r), pLb=rmul(p,L.b.r);
+  const qRa=rmul(rint(op==="-"?-q.n:q.n),R.a.r), qRb=rmul(rint(op==="-"?-q.n:q.n),R.b.r);
+  const expl=[
+    {t:"それぞれのかっこを、外の数で分配してはずそう。"+(op==="-"?"うしろは −×なので符号がかわるよ。":"")},
+    {tex:"= "+exprTex([{r:pLa,v:"x",style:"frac"},{r:pLb,v:"",style:"frac"},{r:qRa,v:"x",style:"frac"},{r:qRb,v:"",style:"frac"}],false)},
+    {t:"同じ文字どうし・数どうしをまとめよう。"},
+    {tex:"= "+ansTex(xc,cc)}
+  ];
+  return calcQuestion("計算しよう", tex, xc, cc, expl);
+}
+
+/* 計算モード共通: 6択生成 */
+function calcQuestion(prompt, tex, xc, cc, expl, v){
+  v=v||"x";
+  const correct={xc,cc};
+  const seen=new Set([ansKey(xc,cc)]);
+  const cands=[];
+  const push=(x,c)=>{const k=ansKey(x,c); if(!seen.has(k)){seen.add(k); cands.push({xc:x,cc:c});}};
+  push(rneg(xc),cc); push(xc,rneg(cc)); push(rneg(xc),rneg(cc));
+  push(radd(xc,rint(1)),cc); push(xc,radd(cc,rint(1)));
+  push(rsub(xc,rint(1)),cc); push(xc,rsub(cc,rint(2)));
+  push(cc.d===1&&xc.d===1?rint(cc.n):cc, cc.d===1&&xc.d===1?rint(xc.n):xc); // 取り違え
+  push(radd(xc,cc),rint(0)); // 同類項でないのに足した誤答
+  const distract=shuffle(cands).slice(0,5);
+  const options=shuffle([correct].concat(distract)).map(o=>({
+    tex:ansTex(o.xc,o.cc,v), ok:req(o.xc,correct.xc)&&req(o.cc,correct.cc)
+  }));
+  return {kind:"single", prompt, tex, options, ansTexStr:ansTex(xc,cc,v), expl:expl||null};
+}
+
+/* 分母ひとつ・分子が式の単一分数で選択肢を作る（÷分数の答え用） */
+function singleFracTex(A,B,D){
+  const numTerms=[];
+  if(A!==0) numTerms.push({r:rint(A),v:"x",style:"int"});
+  if(B!==0||A===0) numTerms.push({r:rint(B),v:"",style:"int"});
+  const numStr = numTerms.length ? exprTex(numTerms,false) : "0";
+  return D===1 ? numStr : "\\dfrac{"+numStr+"}{"+D+"}";
+}
+function fracChoiceQuestion(prompt, tex, numA, numB, D, expl){
+  const key=(A,B)=>A+"|"+B;
+  const seen=new Set([key(numA,numB)]);
+  const cands=[];
+  const push=(A,B)=>{const k=key(A,B); if(!seen.has(k)){seen.add(k); cands.push([A,B]);}};
+  push(-numA,numB); push(numA,-numB); push(-numA,-numB);
+  push(numB,numA); push(numA+D,numB); push(numA,numB+D); push(numA-D,numB); push(numA,numB-D);
+  const distract=shuffle(cands).slice(0,5);
+  const options=shuffle([[numA,numB]].concat(distract)).map(([A,B])=>({
+    tex:singleFracTex(A,B,D), ok:A===numA&&B===numB
+  }));
+  return {kind:"single", prompt, tex, options, ansTexStr:singleFracTex(numA,numB,D), expl:expl||null};
+}
+
+/* ================= 項えらび ================= */
+const VARS=["x","y","a","b"];
+function genTerm(diff){
+  const vpool=shuffle(VARS);
+  const n = diff==="easy"?2 : diff==="normal"?3 : pick([3,4]);
+  const hasConst = diff==="easy" ? true : Math.random()<0.7;
+  const nVar = hasConst ? n-1 : n;      // 文字の項は全て別の文字 → 同類項なし
+  const slots = [];
+  for(let i=0;i<nVar;i++) slots.push(vpool[i]);
+  if(hasConst) slots.push("");
+  const terms = shuffle(slots).map(v=>{
+    const c = diff==="hard"? genR("hard",["int","frac","dec"]) : genInt(9);
+    return {r:c.r, v, style:c.style||"int"};
+  });
+  const tex=exprTex(terms,true);
+  // 正解チップ = 各項（符号込み）
+  const correct=terms.map(t=>coefTexInner(t.r,t.v,t.style));
+  const seen=new Set(correct);
+  const wrong=[];
+  const addW=s=>{if(!seen.has(s)&&wrong.length<6-correct.length){seen.add(s);wrong.push(s);}};
+  terms.forEach(t=>{
+    addW(coefTexInner(rneg(t.r),t.v,t.style));                 // 符号ちがい
+    if(t.v) addW(coefTexInner(t.r,"",t.style));                // 係数だけ
+    if(t.v && Math.abs(t.r.n)!==1) addW(t.v);                  // 文字だけ
+  });
+  while(wrong.length<6-correct.length){
+    const c=genInt(9); addW(coefTexInner(c.r,pick(VARS),"int"));
+  }
+  const options=shuffle(correct.map(s=>({tex:s,ok:true})).concat(wrong.map(s=>({tex:s,ok:false}))));
+  const expl=[
+    {t:"「項」は、式を ＋ で区切ったひとつひとつのまとまり。ひく数は「マイナスの項」として、符号もふくめて数えるよ。"},
+    {tex:"\\text{この式の項：}"+correct.join(",\\ ")}
+  ];
+  return {kind:"multi", prompt:"式の項をすべて選ぼう", tex, options,
+          ansTexStr: correct.join(",\\ "), expl};
+}
+
+/* ================= 係数 ================= */
+function genCoef(diff){
+  if(diff==="easy"){
+    // 単一文字: 係数は？ 分数37%・小数25%
+    const v=pick(VARS);
+    const r0=Math.random();
+    const style = r0<0.37?"frac" : r0<0.62?"dec" : "int";
+    const c=genR("hard",[style]);
+    const b=genInt(9);
+    const tex=exprTex([{r:c.r,v:v,style:c.style},{r:b.r,v:"",style:"int"}],true);
+    const correct=c.r;
+    const seen=new Set([ansKey(correct,rint(0))]);
+    const opts=[{r:correct,ok:true}];
+    const push=r=>{const k=ansKey(r,rint(0)); if(!seen.has(k)&&opts.length<6){seen.add(k);opts.push({r,ok:false});}};
+    push(rneg(correct)); push(b.r); push(rneg(b.r));
+    if(correct.d!==1) push(rmk(correct.d,Math.abs(correct.n))); // 逆数
+    push(radd(correct,rint(1))); push(rsub(correct,rint(1))); push(rint(1));
+    const options=shuffle(opts.slice(0,6)).map(o=>({
+      tex:(o.r.d===1? String(o.r.n) : (asDec(o.r)&&c.style==="dec"? asDec(o.r) : fracTex(o.r))), ok:o.ok}));
+    const at=(correct.d===1?String(correct.n):(c.style==="dec"&&asDec(correct)?asDec(correct):fracTex(correct)));
+    const expl=[
+      {t:"「係数」は、文字の前にかけられている数のこと。符号（＋−）もふくめるよ。"},
+      {tex:v+"\\text{ の係数は }"+at}
+    ];
+    return {kind:"single", prompt:v+" の係数を選ぼう", tex, options,
+            ansTexStr:at, expl};
+  }
+  return genCoef2(diff);
+}
+/* 普通/難しい: 2文字の係数を同時に問う（2列×3択） */
+function genCoef2(diff){
+  const [v1,v2]=shuffle(VARS).slice(0,2).sort();
+  const c1=genR(diff), c2=genR(diff);
+  const terms=[{r:c1.r,v:v1,style:c1.style},{r:c2.r,v:v2,style:c2.style}];
+  if(diff==="hard"){ const b=genR("hard",["int","frac","dec"]); terms.push({r:b.r,v:"",style:b.style}); }
+  const tex=exprTex(shuffle(terms).sort((a,b)=>(a.v==="")-(b.v===""))
+    .sort((a,b)=> a.v&&b.v ? (a.v<b.v?-1:1) : 0), true);
+  const mkCol=(v,c)=>{
+    const seen=new Set([ansKey(c.r,rint(0))]);
+    const arr=[{r:c.r,style:c.style,ok:true}];
+    const push=(r,st)=>{const k=ansKey(r,rint(0)); if(!seen.has(k)&&arr.length<3){seen.add(k);arr.push({r,style:st||c.style,ok:false});}};
+    push(rneg(c.r));
+    if(c.r.d!==1) push(rmk(c.r.d,Math.abs(c.r.n)));
+    if(diff==="hard"&&terms[2]) push(terms[2].r,terms[2].style);
+    push(radd(c.r,rint(1))); push(rint(1));
+    return {v, choices:shuffle(arr).map(o=>({
+      tex:(o.r.d===1?String(o.r.n):(o.style==="dec"&&asDec(o.r)?asDec(o.r):fracTex(o.r))), ok:o.ok}))};
+  };
+  const cols=[mkCol(v1,c1), mkCol(v2,c2)];
+  const at=(c)=> c.r.d===1?String(c.r.n):(c.style==="dec"&&asDec(c.r)?asDec(c.r):fracTex(c.r));
+  const expl=[
+    {t:"「係数」は文字の前の数（符号もふくむ）。それぞれの文字について読み取ろう。"},
+    {tex:v1+"\\text{ の係数：}"+at(c1)+"\\qquad "+v2+"\\text{ の係数：}"+at(c2)}
+  ];
+  return {kind:"coef2", prompt:"それぞれの文字の係数を選ぼう", tex, cols,
+          ansTexStr: v1+"\\text{の係数: }"+at(c1)+",\\ \\ "+v2+"\\text{の係数: }"+at(c2), expl};
+}
+
+/* ================= 1次式えらび ================= */
+function linExpr(diff){
+  const c=diff==="hard"?genR("hard",["int","frac","dec"]):genInt(6);
+  const v=pick(["x","x","y","a"]);
+  if(Math.random()<0.5){ const b=genInt(8);
+    return exprTex([{r:c.r,v:v,style:c.style||"int"},{r:b.r,v:"",style:"int"}],true); }
+  return coefTexInner(c.r,v,c.style||"int");
+}
+function notLinExpr(){
+  const t=pick(["sq","sq","const","prod","sq2"]);
+  const v=pick(["x","y","a"]);
+  const n=nz(1,6), m=nz(1,8);
+  if(t==="sq")   return (Math.abs(n)===1?(n<0?"-":""):n)+v+"^{2}"+(Math.random()<0.5?(m>0?" + "+m:" - "+Math.abs(m)):"");
+  if(t==="sq2")  return n+v+"^{2} "+(m>0?"+ ":"- ")+Math.abs(m)+v;
+  if(t==="const")return String(n*m);
+  return (Math.abs(n)===1?(n<0?"-":""):n)+"xy";
+}
+function genLinear(diff){
+  const lx=[
+    {t:"「1次式」は、文字の次数がいちばん高くても1の式（x² のような2乗や、xy のような文字どうしのかけ算をふくまない）。ただの数だけの式も1次式ではないよ。"}
+  ];
+  if(diff!=="hard"){
+    const correct=linExpr(diff);
+    const seen=new Set([correct]);
+    const wrong=[];
+    while(wrong.length<3){ const w=notLinExpr(); if(!seen.has(w)){seen.add(w);wrong.push(w);} }
+    const options=shuffle([{tex:correct,ok:true}].concat(wrong.map(s=>({tex:s,ok:false}))));
+    return {kind:"single", prompt:"1次式はどれ？", tex:"", options, four:true, ansTexStr:correct,
+            expl:lx.concat([{tex:"\\text{1次式は }"+correct}])};
+  }
+  const nOk=ri(2,3);
+  const seen=new Set(); const corr=[]; const wrong=[];
+  while(corr.length<nOk){ const s=linExpr("hard"); if(!seen.has(s)){seen.add(s);corr.push(s);} }
+  while(wrong.length<6-nOk){ const s=notLinExpr(); if(!seen.has(s)){seen.add(s);wrong.push(s);} }
+  const options=shuffle(corr.map(s=>({tex:s,ok:true})).concat(wrong.map(s=>({tex:s,ok:false}))));
+  return {kind:"multi", prompt:"1次式を全て選ぼう", tex:"", options, ansTexStr:corr.join(",\\ "),
+          expl:lx.concat([{tex:"\\text{1次式は }"+corr.join(",\\ ")}])};
+}
+
+/* ================= state / UI ================= */
+const GEN={term:genTerm, coef:genCoef, linear:genLinear,
+           douruikou:genDouruikou, kagen:genKagen, kakejowari:genKakejowari,
+           bunpai:genBunpai, mix:genMix};
+const CATNAME={term:"項えらび",coef:"係数",linear:"1次式えらび",douruikou:"同類項",
+               kagen:"加減",kakejowari:"×÷ 数",bunpai:"分配・かっこ",mix:"四則ミックス"};
+const state={cat:"term", diff:"easy", q:null, answered:false, ok:0, all:0, streak:0};
+/* 解き直しモード（?retry=1 / &focus=<hash>）用 */
+let retryMode=false;            // 解き直しキューを消化中か
+let retryQueue=[];              // 復元済みの問題オブジェクトの配列
+let retryTotal=0;              // 解き直しの総数（バナー表示用）
+
+const $=id=>document.getElementById(id);
+function ktx(el,tex){ try{katex.render(tex,el,{throwOnError:false});}catch(e){el.textContent=tex;} }
+/* コンテナ幅を超えたら内容を縮小（origin指定可） */
+function fitText(el, origin){
+  el.style.transform=""; el.style.transformOrigin=origin||"center";
+  const w=el.scrollWidth, box=el.clientWidth;
+  if(box>0 && w>box){ el.style.transform="scale("+Math.max(0.4, box/w)+")"; }
+}
+/* 選択肢ボタン内のspanを縮小 */
+function fitBtn(btn){
+  const sp=btn.firstChild; if(!sp) return;
+  sp.style.transform=""; sp.style.transformOrigin="center"; sp.style.display="inline-block";
+  const w=sp.scrollWidth, box=btn.clientWidth-14;
+  if(box>0 && w>box){ sp.style.transform="scale("+Math.max(0.45, box/w)+")"; }
+}
+
+function safeDivpCorrect(){
+  if(window.Divp && typeof Divp.correct==="function"){ try{Divp.correct();return;}catch(e){} }
+  const h=$("hanko"); h.classList.remove("show"); void h.offsetWidth; h.classList.add("show");
+}
+/* ===== 学習記録システム連携（divp-core.js の Divp.answer）=====
+ * 正誤判定の直後に1問=1行を送る。未ログイン・ローカル・API未疎通では
+ * divp-core 側で黙ってスキップされる（safeDivpCorrect と同じ思想）。*/
+// 再出題＆params_hash用の確定スナップショット（_sel/_el等の実行時プロパティは含めない）。
+// list_retries が返す question_params と同じ形なので、そのまま reconstructQ で復元できる。
+function qParams(q){
+  const p={ cat:state.cat, diff:state.diff, kind:q.kind,
+            prompt:q.prompt, tex:q.tex||"", ansTexStr:q.ansTexStr,
+            expl:q.expl||null, four:!!q.four };
+  if(q.kind==="coef2"){
+    p.cols=q.cols.map(c=>({v:c.v, choices:c.choices.map(o=>({tex:o.tex, ok:!!o.ok}))}));
+  }else{
+    p.options=q.options.map(o=>({tex:o.tex, ok:!!o.ok}));
+  }
+  return p;
+}
+// 講師・保護者画面向けの問題文。retry.php/teacher.php は \ を含む文字列を丸ごと
+// KaTeX描画するので、式(tex)はそのまま、tex無し(1次式えらび)は選択肢を並べて渡す。
+function qText(q){
+  if(q.tex) return q.tex;
+  return "\\text{【"+q.prompt+"】}\\ "+q.options.map(o=>o.tex).join(",\\ ");
+}
+// 生徒が実際に選んだ答え（wrong_answer）。日本語は \text{} に入れて1本のLaTeXにする。
+function studentAns(q){
+  if(q.kind==="coef2"){
+    return q.cols.map(c=>{ const s=c.choices.find(o=>o._sel);
+      return c.v+"="+(s?s.tex:"?"); }).join(",\\ ");
+  }
+  const sel=q.options.filter(o=>o._sel).map(o=>o.tex);
+  return sel.length ? sel.join(",\\ ") : "\\text{（未選択）}";
+}
+function sendAnswer(isOk){
+  if(!(window.Divp && typeof Divp.answer==="function")) return;
+  try{
+    Divp.answer(isOk, {
+      question_key: state.cat,
+      question_params: qParams(state.q),
+      question_text: qText(state.q),
+      correct_answer: state.q.ansTexStr,
+      wrong_answer: studentAns(state.q),
+    });
+  }catch(e){}
+}
+
+// 生成済み/復元済みの問題オブジェクトを描画する（出題ロジックとは分離）
+function showQuestion(q){
+  state.q=q;
+  state.answered=false;
+  $("qTag").textContent=CATNAME[state.cat];
+  $("qPrompt").textContent=q.prompt;
+  const qt=$("qTex"), qi=$("qTexInner");
+  if(q.tex){
+    qt.style.display="flex"; ktx(qi,q.tex);
+    const fitQ=()=>{ qi.style.transform="";
+      const w=qi.scrollWidth, box=qt.clientWidth-4;
+      qi.style.transform = (box>0 && w>box) ? "scale("+Math.max(0.35, box/w)+")" : ""; };
+    requestAnimationFrame(fitQ);
+    if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>requestAnimationFrame(fitQ));
+  }
+  else{ qt.style.display="none"; }
+  $("verdict").innerHTML="";
+  renderChoices();
+  $("btnCheck").style.display="";
+  $("btnCheck").disabled=false;
+}
+
+function newQuestion(){
+  if(retryMode && loadNextRetry()) return;   // 解き直しモード中はキューから
+  showQuestion(GEN[state.cat](state.diff));
+}
+
+function renderChoices(){
+  const area=$("choiceArea"); area.innerHTML="";
+  const q=state.q;
+  if(q.kind==="coef2"){
+    const grid=document.createElement("div"); grid.className="coef2";
+    q.cols.forEach((col,ci)=>{
+      const cd=document.createElement("div"); cd.className="coefcol";
+      const lb=document.createElement("div"); lb.className="collbl";
+      ktx(lb, col.v+"\\text{ の係数}"); cd.appendChild(lb);
+      const ch=document.createElement("div"); ch.className="choices";
+      col.choices.forEach((o,i)=>{
+        const b=mkBtn(o.tex);
+        b.onclick=()=>{ if(state.answered)return;
+          ch.querySelectorAll(".cbtn").forEach(x=>x.classList.remove("sel"));
+          b.classList.add("sel"); o._sel=true;
+          col.choices.forEach((x,j)=>{x._sel=(j===i);});
+        };
+        o._el=b; ch.appendChild(b);
+      });
+      cd.appendChild(ch); grid.appendChild(cd);
+    });
+    area.appendChild(grid);
+    requestAnimationFrame(()=>area.querySelectorAll(".cbtn").forEach(fitBtn));
+    return;
+  }
+  const ch=document.createElement("div");
+  ch.className="choices"+(q.four?" four":"");
+  q.options.forEach(o=>{
+    const b=mkBtn(o.tex);
+    b.onclick=()=>{
+      if(state.answered)return;
+      if(q.kind==="multi"){ o._sel=!o._sel; b.classList.toggle("sel",o._sel); }
+      else{
+        ch.querySelectorAll(".cbtn").forEach(x=>x.classList.remove("sel"));
+        b.classList.add("sel");
+        q.options.forEach(x=>{x._sel=(x===o);});
+      }
+    };
+    o._el=b; ch.appendChild(b);
+  });
+  area.appendChild(ch);
+  requestAnimationFrame(()=>ch.querySelectorAll(".cbtn").forEach(fitBtn));
+}
+function mkBtn(tex){
+  const b=document.createElement("button"); b.className="cbtn"; b.type="button";
+  const sp=document.createElement("span"); ktx(sp,tex); b.appendChild(sp);
+  return b;
+}
+
+function renderExpl(container, expl){
+  if(!expl || !expl.length) return;
+  const head=document.createElement("div"); head.className="expl-head"; head.textContent="考え方";
+  container.appendChild(head);
+  const texEls=[];
+  expl.forEach(line=>{
+    const el=document.createElement("div"); el.className="expl-line";
+    if(line.t){ el.textContent=line.t; el.classList.add("expl-text"); }
+    else if(line.tex){ ktx(el, line.tex); texEls.push(el); }
+    container.appendChild(el);
+  });
+  requestAnimationFrame(()=>texEls.forEach(el=>fitText(el,"left")));
+}
+
+function finish(isOk){
+  state.answered=true; state.all++;
+  if(isOk){ state.ok++; state.streak++; safeDivpCorrect();
+    $("verdict").innerHTML='<span class="ok">正解！</span>';
+  }else{
+    state.streak=0;
+    const v=$("verdict");
+    v.innerHTML='<span class="cheer">間違えても大丈夫！正しく覚え直そう！</span>'
+      +'<div class="ans">正しい答え → <span id="vAns"></span></div>'
+      +'<div class="expl" id="vExpl"></div>';
+    ktx($("vAns"), state.q.ansTexStr);
+    renderExpl($("vExpl"), state.q.expl);
+  }
+  sendAnswer(isOk);
+  $("scOk").textContent=state.ok; $("scAll").textContent=state.all; $("scStreak").textContent=state.streak;
+  $("btnCheck").disabled=true;
+  if(retryMode) updateRetryBanner();
+}
+
+function answerSingle(){
+  const sel=state.q.options.find(o=>o._sel);
+  if(!sel){ return false; }
+  state.q.options.forEach(o=>{
+    if(o.ok) o._el.classList.add("ok");
+    else if(o===sel) o._el.classList.add("ng");
+    else o._el.classList.add("dim");
+  });
+  finish(sel.ok); return true;
+}
+function answerMulti(){
+  let good=true;
+  state.q.options.forEach(o=>{
+    if(o.ok){ o._el.classList.add("ok"); if(!o._sel) good=false; }
+    else{ if(o._sel){ o._el.classList.add("ng"); good=false; } else o._el.classList.add("dim"); }
+  });
+  finish(good);
+}
+function answerCoef2(){
+  let good=true;
+  state.q.cols.forEach(col=>{
+    const sel=col.choices.find(o=>o._sel);
+    col.choices.forEach(o=>{
+      if(o.ok) o._el.classList.add("ok");
+      else if(o._sel) o._el.classList.add("ng");
+      else o._el.classList.add("dim");
+    });
+    if(!sel || !sel.ok) good=false;
+  });
+  finish(good);
+}
+
+$("btnCheck").onclick=()=>{ if(state.answered)return;
+  if(state.q.kind==="multi") answerMulti();
+  else if(state.q.kind==="coef2") answerCoef2();
+  else { if(!answerSingle()){ $("verdict").innerHTML='<span class="ng">答えを選んでね</span>'; } } };
+$("btnNext").onclick=newQuestion;
+
+const DIFFNAME={easy:"基本",normal:"標準",hard:"応用"};
+function updateNow(){ $("ptNow").textContent=CATNAME[state.cat]+"／"+DIFFNAME[state.diff]; }
+const panel=$("settingsPanel"), pToggle=$("panelToggle");
+pToggle.onclick=()=>{ const c=panel.classList.toggle("collapsed");
+  pToggle.setAttribute("aria-expanded", c?"false":"true"); };
+document.querySelectorAll("#diffRow .chip").forEach(c=>{
+  c.onclick=()=>{ document.querySelectorAll("#diffRow .chip").forEach(x=>x.classList.remove("on"));
+    c.classList.add("on"); state.diff=c.dataset.diff; exitRetry(); updateNow(); newQuestion(); };
+});
+document.querySelectorAll("#catRow .chip").forEach(c=>{
+  c.onclick=()=>{ document.querySelectorAll("#catRow .chip").forEach(x=>x.classList.remove("on"));
+    c.classList.add("on"); state.cat=c.dataset.cat; exitRetry(); updateNow(); newQuestion(); };
+});
+/* カテゴリ/難易度を state に合わせてチップ表示を同期（解き直しの復元時に使う） */
+function syncChips(){
+  document.querySelectorAll("#catRow .chip").forEach(x=>x.classList.toggle("on", x.dataset.cat===state.cat));
+  document.querySelectorAll("#diffRow .chip").forEach(x=>x.classList.toggle("on", x.dataset.diff===state.diff));
+  updateNow();
+}
+updateNow();
+
+/* ================= 解き直し（DB連携） =================
+ * ?retry=1 で開くと、divp-core の Divp.getRetries()（api/list_retries.php）から
+ * pending を取得し、question_params から「全く同じ問題」を復元して順番に出題する。
+ * 同じ params_hash に2連続正解するとサーバー側で mastered になる。
+ * &focus=<params_hash> 付きなら、その1問だけを出す（mypage「今日の1問」用）。*/
+// question_params → showQuestion で使える問題オブジェクトに復元
+function reconstructQ(p){
+  const q={ kind:p.kind, prompt:p.prompt, tex:p.tex||"", ansTexStr:p.ansTexStr, expl:p.expl||null };
+  if(p.four) q.four=true;
+  if(p.kind==="coef2"){
+    q.cols=(p.cols||[]).map(c=>({v:c.v, choices:(c.choices||[]).map(o=>({tex:o.tex, ok:!!o.ok}))}));
+  }else{
+    q.options=(p.options||[]).map(o=>({tex:o.tex, ok:!!o.ok}));
+  }
+  q._retry={cat:p.cat, diff:p.diff};   // 出題時のモードを復元して question_key を一致させる
+  return q;
+}
+// 古い形式・欠損データを弾く（再出題に必要な最低限を検証）
+function validRetryParams(key, p){
+  if(!CATNAME[key] || !p || typeof p!=="object" || !p.kind || typeof p.ansTexStr!=="string") return false;
+  if(p.kind==="coef2") return Array.isArray(p.cols) && p.cols.length>0;
+  return Array.isArray(p.options) && p.options.length>0;
+}
+let retryBanner=null;
+function updateRetryBanner(){
+  if(!retryBanner){
+    retryBanner=document.createElement("div");
+    retryBanner.style.cssText="background:#F3DDE1;border:1px solid var(--sakura);color:var(--sakura-deep);"
+      +"border-radius:12px;padding:9px 14px;margin-bottom:14px;font-weight:800;letter-spacing:.04em;"
+      +"font-size:.9rem;text-align:center;";
+    const wrap=document.querySelector(".wrap");
+    wrap.insertBefore(retryBanner, wrap.querySelector(".qcard"));
+  }
+  const done=retryTotal-retryQueue.length;   // いま出している分も消化済みに数える
+  if(!retryMode) retryBanner.textContent="🌸 解き直し完了！ よくがんばりました（"+retryTotal+"問）";
+  else retryBanner.textContent="🔁 解き直し中 "+done+" / "+retryTotal+"問";
+}
+// キューから次の1問を出す（あれば true）
+function loadNextRetry(){
+  if(!retryQueue.length){ retryMode=false; updateRetryBanner(); return false; }
+  const q=retryQueue.shift();
+  if(q._retry){ state.cat=q._retry.cat; state.diff=q._retry.diff; syncChips(); }
+  showQuestion(q);
+  updateRetryBanner();
+  return true;
+}
+function exitRetry(){
+  retryMode=false; retryQueue=[];
+  if(retryBanner){ retryBanner.remove(); retryBanner=null; }
+}
+// ?retry=1 の初回出題を担う。解き直しがあればキューから、無ければ通常出題に落とす。
+// （初回描画の入口はここか bootDivp の通常出題のどちらか一方だけ。二重描画・キュー取り違えを防ぐ）
+function initRetry(){
+  const focusHash=(location.search.match(/[?&]focus=([a-f0-9]{64})/i)||[])[1];
+  Divp.getRetries().then(function(items){
+    let use=(items||[]).filter(it=>validRetryParams(it.question_key, it.question_params));
+    if(focusHash) use=use.filter(it=>it.params_hash===focusHash);
+    if(!use.length){ newQuestion(); return; }   // 解き直し対象なし → 通常出題
+    retryQueue=use.map(it=>reconstructQ(it.question_params));
+    retryTotal=retryQueue.length;
+    retryMode=true;
+    if(panel) panel.classList.add("collapsed");   // 設定パネルは畳んでおく
+    if(pToggle) pToggle.setAttribute("aria-expanded","false");
+    loadNextRetry();
+  }).catch(function(){ newQuestion(); });
+}
+
+// divp-core は defer で head から読み込むため、DOMContentLoaded 時には Divp が使える。
+// 初回出題もここで一度だけ行う（?retry=1 は initRetry 経由、それ以外は通常出題）。
+function bootDivp(){
+  if(window.Divp && typeof Divp.init==="function"){ try{ Divp.init(UNIT_KEY); }catch(e){} }
+  if(/[?&]retry=1/.test(location.search) && window.Divp && typeof Divp.getRetries==="function"){
+    initRetry();
+  }else{
+    newQuestion();
+  }
+}
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", bootDivp);
+else bootDivp();
+})();
+</script>
+</body>
+</html>

@@ -309,6 +309,19 @@ if ($detailStudentId > 0) {
     $dSolved = (int)$dAns['total'];
     $dRate = $dSolved > 0 ? (int)round(100 * (int)$dAns['correct'] / $dSolved) : 0;
 
+    // 解き直し（分数表示）: 分母=解き直しキューに入った問題数, 分子=2連続正解でクリア(mastered)した数。
+    // retry_queue は現在の状態を表すので、一覧の解き直し列と同じく期間フィルタはかけない（教科タブには合わせる）。
+    $params = ['id' => $detailStudentId];
+    $w = sf('unit_key', 'rq', $params);
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*) AS total, COALESCE(SUM(status = 'mastered'),0) AS mastered
+         FROM retry_queue WHERE student_id = :id{$w}"
+    );
+    $stmt->execute($params);
+    $dRetry = $stmt->fetch();
+    $dRetryTotal = (int)$dRetry['total'];
+    $dRetryMastered = (int)$dRetry['mastered'];
+
     // 単元カルテ
     $params = ['id' => $detailStudentId];
     $w = pf('al.answered_at', $fromStr, 'c', $params) . sf('al.unit_key', 'c', $params);
@@ -515,6 +528,10 @@ function qtab(array $extra): string
   .stat .n{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:30px;line-height:1}
   .stat .n small{font-size:13px;color:var(--ink-soft);margin-left:2px}
   .stat .l{font-size:11px;color:var(--ink-soft);margin-top:2px}
+  /* 解き直し：分子(クリア数)/分母(解き直し問題数) の分数表示 */
+  .stat .frac{display:inline-flex;flex-direction:column;align-items:center;line-height:1.02;font-size:19px}
+  .stat .frac b{padding:0 7px 2px;border-bottom:2.5px solid currentColor;font-weight:900}
+  .stat .frac i{padding:2px 7px 0;font-style:normal;font-weight:900}
   .back{font-size:13px;color:var(--ai);text-decoration:none;font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
   .math{overflow-x:auto}
   .wrong-ans{color:var(--shu);font-weight:700}
@@ -567,6 +584,9 @@ function qtab(array $extra): string
       <div class="stat"><div class="n"><?= $dMinutes ?><small>分</small></div><div class="l">学習時間</div></div>
       <div class="stat"><div class="n"><?= $dSolved ?><small>問</small></div><div class="l">解いた問題</div></div>
       <div class="stat"><div class="n"><?= $dRate ?><small>%</small></div><div class="l">正答率</div></div>
+      <div class="stat" title="解き直しキューに入った問題数のうち、2連続正解でクリアした数（全期間）">
+        <div class="n"><?php if ($dRetryTotal > 0): ?><span class="frac"><b><?= $dRetryMastered ?></b><i><?= $dRetryTotal ?></i></span><?php else: ?>—<?php endif; ?></div>
+        <div class="l">解き直し</div></div>
     </div>
   </div>
 

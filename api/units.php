@@ -52,6 +52,11 @@ return [
         'sub'   => '算数・小6',
         'url'   => '/learning/math/math_es6_mojishiki.html',
     ],
+    'math_js1_mojishiki_keisan' => [
+        'title' => '文字式の計算マスター',
+        'sub'   => '数学・中1',
+        'url'   => '/learning/math/math_js1_mojishiki_keisan.html',
+    ],
     'math_es3_warizanwakete' => [
         'title' => 'わり算れんしゅう（分けて計算）',
         'sub'   => '算数・小3',
