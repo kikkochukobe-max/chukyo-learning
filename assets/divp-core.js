@@ -34,6 +34,18 @@
   var authState = 'unknown';
   var NUDGE_KEY = 'divp_login_nudge_shown';   // 同一タブで一度だけ出す目印(sessionStorage)
 
+  // ── 未ログインお試し上限（体験授業への誘導）─────────────────────────
+  // 未ログインで解けるのはツール(unit_key)ごとに TRIAL_LIMIT 問まで。
+  // 上限に達したら全画面ロックを出し、体験授業の申込ページへ誘導する。
+  // ログイン済(authState==='in')は無制限。API未到達(authState==='unknown')や
+  // file:// では一切カウントもロックもしない（ツールを壊さない思想）。
+  var TRIAL_LIMIT = 10;                     // ツールごとの無料お試し問題数
+  var TRIAL_KEY_PREFIX = 'divp_trial_';     // localStorage: divp_trial_<unitKey> に累計解答数
+  // 体験授業・お問い合わせページ
+  var TRIAL_APPLY_URL = 'https://chukyokobetsu.com/contact';
+  var trialCountMem = {};                   // localStorage不可時のフォールバック（このページ限り）
+  var trialWallShown = false;               // ロックの二重表示防止
+
   function isLocal() {
     return !!(global.location && global.location.protocol === 'file:');
   }
@@ -87,7 +99,10 @@
   function init(key) {
     unitKey = key;
     if (isLocal()) return;
-    startSession();
+    // 認証状態が判明したら、再訪時も既に上限超過なら即ロック復元
+    startSession().then(function () {
+      if (authState === 'out' && getTrialCount() >= TRIAL_LIMIT) showTrialWall();
+    });
     global.addEventListener('pagehide', endSession);
     global.addEventListener('beforeunload', endSession);
 
@@ -106,8 +121,13 @@
 
     var send = function () {
       if (!enabled) {
-        // 未ログイン（サーバー応答あり）なら、このタブで初回1問だけそっと案内
-        if (authState === 'out') maybeNudgeLogin();
+        // 未ログイン（サーバー応答あり）→ お試し回数をカウント。
+        // 上限に達したら全画面ロック、まだなら初回だけそっとログイン案内。
+        if (authState === 'out') {
+          var used = bumpTrialCount();
+          if (used >= TRIAL_LIMIT) showTrialWall();
+          else maybeNudgeLogin();
+        }
         return;
       }
       postJSON('save_answer.php', {
@@ -222,8 +242,121 @@
     setTimeout(close, 12000);
   }
 
+  // ── お試し上限のカウント（ツール=unit_keyごと・端末保存）─────────────
+  function trialKey() { return TRIAL_KEY_PREFIX + (unitKey || ''); }
+
+  function getTrialCount() {
+    try {
+      var v = global.localStorage.getItem(trialKey());
+      return v ? (parseInt(v, 10) || 0) : 0;
+    } catch (e) {
+      return trialCountMem[unitKey] || 0;   // プライベートモード等 → このページ限りで数える
+    }
+  }
+
+  function bumpTrialCount() {
+    var n = getTrialCount() + 1;
+    try { global.localStorage.setItem(trialKey(), String(n)); }
+    catch (e) { trialCountMem[unitKey] = n; }
+    return n;
+  }
+
+  // 動作確認・不具合時のリセット用（コンソールから Divp.resetTrial() で0に戻す）
+  function resetTrial() {
+    try { global.localStorage.removeItem(trialKey()); } catch (e) {}
+    trialCountMem[unitKey] = 0;
+  }
+
+  // 上限到達時の全画面ロック（閉じられない）。体験授業の申込ページへ誘導。
+  // 塾生を締め出さないよう、ヘッダーのログイン窓を開く小さな抜け道だけ用意する。
+  function showTrialWall() {
+    if (trialWallShown || !global.document) return;
+    if (document.getElementById('divp-trial-wall')) { trialWallShown = true; return; }
+    trialWallShown = true;
+
+    // 背後のツールを操作・スクロールできないようにする
+    try {
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+    } catch (e) {}
+
+    var overlay = document.createElement('div');
+    overlay.id = 'divp-trial-wall';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.style.cssText = [
+      'position:fixed', 'inset:0', 'z-index:2147483600',
+      'background:rgba(51,49,43,.55)',
+      'backdrop-filter:blur(3px)', '-webkit-backdrop-filter:blur(3px)',
+      'display:flex', 'align-items:center', 'justify-content:center',
+      'padding:20px', 'box-sizing:border-box',
+      "font-family:'Zen Kaku Gothic New',system-ui,sans-serif",
+      'animation:divpWallIn .3s ease-out'
+    ].join(';');
+
+    var card = document.createElement('div');
+    card.style.cssText = [
+      'width:min(480px,94vw)', 'max-height:90vh', 'overflow:auto',
+      'background:#FBFAF6', 'color:#33312B',
+      'border-radius:20px', 'border-top:7px solid #C73E2E',
+      'box-shadow:0 18px 60px rgba(0,0,0,.4)',
+      'padding:32px 26px', 'text-align:center', 'box-sizing:border-box'
+    ].join(';');
+    card.innerHTML =
+        '<div style="font-size:52px;line-height:1;margin-bottom:8px;">💮</div>'
+      + '<div style="font-family:\'Zen Maru Gothic\',sans-serif;font-weight:900;font-size:23px;line-height:1.4;">ここまで よくがんばったね！</div>'
+      + '<div style="color:#5c584f;font-size:15px;margin-top:14px;line-height:1.7;">'
+      +   'おためしで解ける<b style="color:#C73E2E;">' + TRIAL_LIMIT + '問</b>が おわりました。<br>'
+      +   'もっと解きたい人は、<b>無料体験授業</b>で<br>先生といっしょに勉強してみよう！'
+      + '</div>';
+
+    var cta = document.createElement('a');
+    cta.href = TRIAL_APPLY_URL;
+    cta.textContent = '無料体験授業を申し込む';
+    cta.style.cssText = [
+      'display:block', 'margin:22px auto 0', 'max-width:320px',
+      'background:#C73E2E', 'color:#fff', 'text-decoration:none',
+      'border-radius:13px', 'padding:15px 18px', 'font-size:17px',
+      "font-family:'Zen Maru Gothic',sans-serif", 'font-weight:700',
+      'box-shadow:0 4px 0 #9e2f22'
+    ].join(';');
+
+    // 塾生の抜け道：ヘッダーのログイン窓を開く（ログイン成功→reloadで自然に解除）
+    var loginLink = document.createElement('button');
+    loginLink.type = 'button';
+    loginLink.textContent = '塾生の方はこちら（ログイン）';
+    loginLink.style.cssText = [
+      'display:block', 'margin:16px auto 0', 'background:transparent',
+      'border:0', 'color:#2C5F8A', 'font-size:13px',
+      'text-decoration:underline', 'cursor:pointer', 'font-family:inherit'
+    ].join(';');
+    loginLink.addEventListener('click', function () {
+      overlay.style.display = 'none';
+      try {
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+      } catch (e) {}
+      try { global.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { global.scrollTo(0, 0); }
+      var hdrBtn = document.getElementById('divp-login-btn');
+      if (hdrBtn) hdrBtn.click();
+    });
+
+    if (!document.getElementById('divp-wall-anim')) {
+      var st = document.createElement('style');
+      st.id = 'divp-wall-anim';
+      st.textContent = '@keyframes divpWallIn{from{opacity:0}to{opacity:1}}';
+      document.head.appendChild(st);
+    }
+
+    card.appendChild(cta);
+    card.appendChild(loginLink);
+    overlay.appendChild(card);
+    (document.body || document.documentElement).appendChild(overlay);
+  }
+
   answer._divpCore = true;
   Divp.init = init;
   Divp.answer = answer;
   Divp.getRetries = getRetries;
+  Divp.resetTrial = resetTrial;
 })(window);
