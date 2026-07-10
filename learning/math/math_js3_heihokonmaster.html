@@ -543,6 +543,28 @@
   .muldiv-opt.sel    { border-color: #2563eb; background: #eff6ff; }
   .muldiv-opt.missed { border-color: #f5c842; background: #fffbeb; }
   .muldiv-opt.missed::after { content:" ◯"; color:#b45309; font-weight:700; }
+  /* 選択中（答え合わせ前）の強調 */
+  .muldiv-opt.picking, .simplify-opt.picking {
+    border-color:#2563eb; background:#dbeafe;
+    box-shadow:0 0 0 3px rgba(37,99,235,0.22);
+  }
+  .confirm-btn { width:100%; }
+  /* スマホ1画面に収める（狭幅で余白・文字を圧縮） */
+  @media (max-width: 480px) {
+    .muldiv-problem, .simplify-problem, .question-card { padding:16px 10px 14px; border-radius:16px; margin-bottom:14px; }
+    .muldiv-expr { min-height:42px; margin:10px 0 12px; }
+    .muldiv-expr .katex { font-size:1.5em !important; }
+    .muldiv-opts { gap:8px; }
+    .muldiv-opt { padding:11px 6px; font-size:16px; }
+    .simplify-options { gap:8px; }
+    .simplify-opt { padding:11px 6px; }
+    .options { gap:8px; }
+    .option-btn { padding:10px 10px; }
+    .term-selector { gap:5px; margin-bottom:10px; }
+    .term-btn { padding:5px 8px; font-size:11px; }
+    .action-row { margin-top:12px; gap:8px; }
+    .btn { padding:12px 16px; font-size:13px; }
+  }
 
   .frac {
     display: inline-flex;
@@ -754,6 +776,9 @@
     </button>
     <button class="mode-btn" id="mode-subst">
       ✒️ 代入<br><span style="font-weight:400;font-size:10px;">式の値を求める</span>
+    </button>
+    <button class="mode-btn" id="mode-exam">
+      🎯 入試問題<br><span style="font-weight:400;font-size:10px;">さいころと√の確率</span>
     </button>
   </div>
 
@@ -1711,6 +1736,37 @@ function fitToWidth() {
     }
   });
 }
+// ===== 選択→「答え合わせ」で確定する共通フロー（単一選択モード） =====
+// optSelector の選択肢はクリックで「選ぶ」だけ（.picking で強調）。カード末尾に
+// 「答え合わせ」ボタンを差し込み、押したときに初めて gradeFn(選んだidx) を呼んで採点する。
+function bindSingleConfirm(optSelector, cardSelector, gradeFn){
+  const card = document.querySelector(cardSelector);
+  if (!card) return;
+  const btns = Array.from(card.querySelectorAll(optSelector));
+  let sel = -1;
+  const idxOf = (btn) => (btn.dataset.idx !== undefined ? parseInt(btn.dataset.idx) : btns.indexOf(btn));
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      sel = idxOf(btn);
+      btns.forEach(b => b.classList.remove('picking'));
+      btn.classList.add('picking');
+      const cb = card.querySelector('.confirm-btn');
+      if (cb) cb.disabled = false;
+    });
+  });
+  const row = document.createElement('div');
+  row.className = 'action-row confirm-row';
+  row.style.marginTop = '14px';
+  row.innerHTML = '<button class="btn btn-primary confirm-btn" disabled>答え合わせ</button>';
+  card.appendChild(row);
+  row.querySelector('.confirm-btn').addEventListener('click', () => {
+    if (sel < 0) return;
+    btns.forEach(b => b.classList.remove('picking'));
+    row.remove();
+    gradeFn(sel);
+  });
+}
 function safeDivpCorrect(selector) {
   // /assets/divp-correct-jh.js が読み込めない環境（ローカル/未アップロード時）でも
   // 採点処理自体は止まらないようにする安全呼び出し
@@ -1729,7 +1785,7 @@ let _tfRetryQueue = null, _tfRetryTotal = 10; // 連続全問正解カウント�
 
 function switchMode(mode) {
   currentMode = mode;
-  ['truefalse','simplify','muldiv','addsub','mixed','approx','intval','subst'].forEach(m =>
+  ['truefalse','simplify','muldiv','addsub','mixed','approx','intval','subst','exam'].forEach(m =>
     document.getElementById('mode-'+m)?.classList.toggle('active', mode===m)
   );
   // タイトル(H1)はサイト名「平方根マスター」で固定。現在のモード名はサブタイトルに出す
@@ -1755,6 +1811,9 @@ function switchMode(mode) {
   } else if (mode==='subst') {
     _sub.textContent = '式の値を求める';
     initSubst();
+  } else if (mode==='exam') {
+    _sub.textContent = '入試問題';
+    initExam();
   } else {
     _sub.textContent = '根号の加減算';
     initAddSub();
@@ -1871,13 +1930,7 @@ function renderSimplifyQuestion() {
     </div>
   `;
 
-  document.querySelectorAll('.simplify-opt').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = parseInt(btn.dataset.idx);
-      const chosen = options[idx];
-      selectSimplifyAnswer(chosen, s, options);
-    });
-  });
+  bindSingleConfirm('.simplify-opt', '.simplify-problem', (idx) => selectSimplifyAnswer(options[idx], s, options));
   document.getElementById('card-reset-btn').addEventListener('click', () => {
     if (currentMode === 'truefalse') initQuiz(); else initSimplify();
   });
@@ -2125,7 +2178,7 @@ function printQuiz() {
   const chev=document.getElementById('mode-toggle-chev');
   const lbl=document.getElementById('mode-toggle-label');
   if(!tgl||!sw) return;
-  const names={truefalse:'正誤クイズ',simplify:'根号の簡略化',muldiv:'乗除算',addsub:'加減算',mixed:'四則混合',approx:'近似値',intval:'整数にする',subst:'式の値'};
+  const names={truefalse:'正誤クイズ',simplify:'根号の簡略化',muldiv:'乗除算',addsub:'加減算',mixed:'四則混合',approx:'近似値',intval:'整数にする',subst:'式の値',exam:'入試問題'};
   function refresh(){
     const collapsed=sw.classList.contains('collapsed');
     chev.textContent=collapsed?'▼':'▲';
@@ -2937,12 +2990,7 @@ function renderMDQuestion() {
       <div class="muldiv-opts" id="md-opts">${optBtns}</div>
     </div>`;
 
-  document.querySelectorAll('.muldiv-opt').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = parseInt(btn.dataset.idx);
-      selectMDAnswer(opts[idx], prob, opts);
-    });
-  });
+  bindSingleConfirm('.muldiv-opt', '.muldiv-problem', (idx) => selectMDAnswer(opts[idx], prob, opts));
   document.getElementById('card-reset-btn').addEventListener('click', () => switchMode('muldiv'));
   document.querySelectorAll('.term-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -3094,6 +3142,12 @@ function genAddSubProblem(numTerms) {
       }
     }
     if (hasCancelPair) continue;
+
+    // 見た目が同じ項（＝簡略化前の形が一致する同値項）を除外（例: 2√3 + 2√3、√12 + √12）。
+    // ただし「簡略化前(√12)」と「簡略化後(2√3)」のように表示形が違えば同値でもOK
+    // （それが加減算で係数をそろえる練習そのものなので）。
+    const shapes = terms.map(t => t.a + '_' + t.dispRad);
+    if (new Set(shapes).size !== shapes.length) continue;
 
     // 少なくとも1項が簡略化必要（なければ確率50%でリトライ）
     const hasSimpNeeded = terms.some(t => t.sq > 1);
@@ -3315,9 +3369,7 @@ function renderASQuestion() {
       <div class="muldiv-opts">${optBtns}</div>
     </div>`;
 
-  document.querySelectorAll('.muldiv-opt').forEach(btn=>{
-    btn.addEventListener('click',()=>selectASAnswer(opts[parseInt(btn.dataset.idx)],prob,opts));
-  });
+  bindSingleConfirm('.muldiv-opt', '.muldiv-problem', (idx) => selectASAnswer(opts[idx], prob, opts));
   document.getElementById('card-reset-btn').addEventListener('click',()=>switchMode('addsub'));
   document.querySelectorAll('.term-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
@@ -3446,7 +3498,46 @@ function genT3(){ const a=pick([2,3,5]); let c=pick([2,3,5,7]); while(c===a)c=pi
   const m=pick([1,2])*pick([1,-1]); const n=pick([1,2,3])*pick([1,-1]);
   const f1=[[1,a],[k,1],[m,c]], f2=[[1,a],[k,1],[n,c]];
   return {kind:'T3', tex:`${paren(f1)}${paren(f2)}`, ans:reMul(reFrom(f1),reFrom(f2))}; }
-function genAdv(){ for(let i=0;i<30;i++){ const g=pick([genT1,genT1,genT2,genT3])(); if(g&&Object.keys(g.ans).length>0) return {type:'adv',kind:g.kind,latex:g.tex,ans:g.ans,key:reKey(g.ans)}; }
+// (√r + 整数) 型の二項式（例: √3 + 4）
+function binomRI(){ const r=pick([2,3,5,6,7]); const s=pick([1,1,2])*pick([1,-1]); const b=pick([2,3,4,5])*pick([1,-1]); const terms=[[s,r],[b,1]]; return {terms, re:reFrom(terms), tex:paren(terms)}; }
+// 展開結果 prod に係数を掛ける。整数[2,3]、または答えが整数に収まる分数(1/2,1/3,2/3)。
+// 分数は「展開後の全係数の最大公約数」で割り切れるときだけ採用し、答えは必ず整数になる。
+function applyCoef(prod){
+  const vals=Object.values(prod).map(Math.abs);
+  let g=0; for(const v of vals) g=gcdFn(g,v);
+  const fracOpts=[];
+  for(const d of [2,3]){ if(g%d===0){ for(const num of [1,2]){ if(num<d && gcdFn(num,d)===1) fracOpts.push([num,d]); } } }
+  if(fracOpts.length && Math.random()<0.5){
+    const [num,d]=pick(fracOpts); const ans={};
+    for(const k in prod){ const v=prod[k]*num/d; if(v!==0) ans[k]=v; }
+    return {coefTex:`\\dfrac{${num}}{${d}}`, ans};
+  }
+  const c=pick([2,3]); const ans={}; for(const k in prod) ans[k]=c*prod[k];
+  return {coefTex:`${c}`, ans};
+}
+// 係数付きの乗法公式（発展）: 係数 ×（平方 / 和と差の積 / (x+a)(x+b)）
+// 例: 2(√3+4)^2、3(√5+√2)(√5-√2)、½(√6+√2)^2、⅔(√3+2)(√3-2)
+function genT4(){
+  const ty=pick(['sq','sq','diff','xab']);
+  let prod, body;
+  if(ty==='sq'){ // (二項式)^2
+    const bn=(Math.random()<0.5)?binomRI():binom2(...pickPair([2,3,5]));
+    prod=reMul(bn.re,bn.re); body=`${bn.tex}^2`;
+  } else if(ty==='diff'){ // (和)(差)＝和と差の積
+    let t1,t2;
+    if(Math.random()<0.5){ const [a,b]=pickPair([2,3,5,7]); t1=[[1,a],[1,b]]; t2=[[1,a],[-1,b]]; }
+    else { const a=pick([2,3,5,6,7,10]),b=pick([1,2,3,4]); t1=[[1,a],[b,1]]; t2=[[1,a],[-b,1]]; }
+    prod=reMul(reFrom(t1),reFrom(t2)); body=`${paren(t1)}${paren(t2)}`;
+  } else { // (√a+b)(√a+c)
+    const a=pick([2,3,5,6,7]),b=pick([1,2,3])*pick([1,-1]); let d=pick([1,2,3])*pick([1,-1]);
+    while(d===b) d=pick([1,2,3])*pick([1,-1]); // b=d は平方になるので避ける
+    const t1=[[1,a],[b,1]],t2=[[1,a],[d,1]];
+    prod=reMul(reFrom(t1),reFrom(t2)); body=`${paren(t1)}${paren(t2)}`;
+  }
+  const {coefTex, ans}=applyCoef(prod);
+  return {kind:'T4', tex:`${coefTex}${body}`, ans};
+}
+function genAdv(){ for(let i=0;i<30;i++){ const g=pick([genT1,genT1,genT2,genT3,genT4,genT4])(); if(g&&Object.keys(g.ans).length>0) return {type:'adv',kind:g.kind,latex:g.tex,ans:g.ans,key:reKey(g.ans)}; }
   const g=genT1(); return {type:'adv',kind:'T1',latex:g.tex,ans:g.ans,key:reKey(g.ans)}; }
 function advWrongs(ans){ const correctKey=reKey(ans); const seen=new Set([correctKey]); const out=[]; const ks=Object.keys(ans).map(Number);
   const push=(e)=>{ const k2=reKey(e); if(seen.has(k2))return; if(Object.keys(e).length===0)return; for(const k in e){ if(Math.abs(e[k])>140)return; } seen.add(k2); out.push({latex:reLatex(e),key:k2}); };
@@ -3563,9 +3654,7 @@ function renderMixQuestion(){
       <div class="muldiv-opts${prob.type==='adv'?' opts-wide':''}">${optBtns}</div>
     </div>`;
 
-  document.querySelectorAll('.muldiv-opt').forEach(btn=>{
-    btn.addEventListener('click',()=>selectMixAnswer(opts[parseInt(btn.dataset.idx)],prob,opts));
-  });
+  bindSingleConfirm('.muldiv-opt', '.muldiv-problem', (idx) => selectMixAnswer(opts[idx], prob, opts));
   document.getElementById('card-reset-btn').addEventListener('click',()=>switchMode('mixed'));
   document.querySelectorAll('.term-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
@@ -3833,12 +3922,7 @@ function renderApxQuestion(){
     + '<div class="muldiv-opts" id="apx-opts">'+optBtns+'</div>'
     + '</div>';
 
-  document.querySelectorAll('.muldiv-opt').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const idx = parseInt(btn.dataset.idx);
-      selectApxAnswer(opts[idx], prob, opts);
-    });
-  });
+  bindSingleConfirm('.muldiv-opt', '.muldiv-problem', (idx) => selectApxAnswer(opts[idx], prob, opts));
   document.getElementById('card-reset-btn').addEventListener('click', ()=>switchMode('approx'));
   fitToWidth();
 }
@@ -4094,7 +4178,7 @@ function renderIntQuestion(){
       + '<div class="near-ask" style="margin:2px 0 4px;">'+ask+'</div>'
       + '<div style="text-align:center;font-size:11px;color:#94a3b8;margin-bottom:8px;">（あてはまるものを全てタップ）</div>'
       + '<div class="muldiv-opts" id="int-opts">'+optBtns+'</div>'
-      + '<button class="btn btn-next" id="int-check" style="margin-top:12px;">確認する</button>'
+      + '<button class="btn btn-next" id="int-check" style="margin-top:12px;">答え合わせ</button>'
       + '</div>';
     document.querySelectorAll('.muldiv-opt').forEach(btn=>{ btn.addEventListener('click',()=>btn.classList.toggle('sel')); });
     document.getElementById('int-check').addEventListener('click',()=>gradeIntMulti(prob));
@@ -4112,9 +4196,7 @@ function renderIntQuestion(){
       + '<div class="near-ask" style="margin:2px 0 12px;">が整数となるような最小の自然数 '+prob.askVar+' は？</div>'
       + '<div class="muldiv-opts" id="int-opts">'+optBtns+'</div>'
       + '</div>';
-    document.querySelectorAll('.muldiv-opt').forEach(btn=>{
-      btn.addEventListener('click',()=>selectIntAnswer(opts[parseInt(btn.dataset.idx)],prob,opts));
-    });
+    bindSingleConfirm('.muldiv-opt', '.muldiv-problem', (idx) => selectIntAnswer(opts[idx], prob, opts));
   }
   document.getElementById('card-reset-btn').addEventListener('click',()=>switchMode('intval'));
   document.querySelectorAll('.term-btn').forEach(btn=>{
@@ -4451,7 +4533,7 @@ function renderSubstQuestion(){
     + '<div class="near-ask" style="margin:2px 0 12px;">の値は？</div>'
     + '<div class="muldiv-opts" id="sub-opts">'+optBtns+'</div>'
     + '</div>';
-  document.querySelectorAll('.muldiv-opt').forEach(btn=>{ btn.addEventListener('click',()=>selectSubstAnswer(opts[parseInt(btn.dataset.idx)],prob,opts)); });
+  bindSingleConfirm('.muldiv-opt', '.muldiv-problem', (idx) => selectSubstAnswer(opts[idx], prob, opts));
   document.getElementById('card-reset-btn').addEventListener('click',()=>switchMode('subst'));
   document.querySelectorAll('.term-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ subKind=btn.dataset.kind; document.querySelectorAll('.term-btn').forEach(b=>b.classList.toggle('active',b.dataset.kind===subKind)); renderSubstQuestion(); }); });
   fitToWidth();
@@ -4541,6 +4623,221 @@ function printSubst(){
 
 document.getElementById('mode-subst').addEventListener('click', ()=>switchMode('subst'));
 // ============================ /代入モード ============================
+
+
+// ============================ 入試問題モード ============================
+// 2つのさいころ A,B を投げ、出た目 a,b について √(ab) の条件が成り立つ確率を求める入試頻出タイプ。
+// （他モードと被らない「確率×平方根」。計算・簡略化・近似などは既存モードに任せる）
+const EX_TOTAL = 10;
+let exCurrentQ=0, exCorrect=0, exWrong=0, exWrongProbs=[], _exRetryQueue=null, _exRetryTotal=10, _exRecent=[];
+
+function _exReduce(num,den){ const g=gcdFn(num,den)||1; return [num/g, den/g]; }
+function _exFrac(num,den){ if(num===0) return '0'; const r=_exReduce(num,den); return r[1]===1 ? String(r[0]) : '\\dfrac{'+r[0]+'}{'+r[1]+'}'; }
+// a,b∈1..6 の36通りのうち pred(a*b) を満たす (a,b) を列挙
+function _exPairs(pred){ const ps=[]; for(let a=1;a<=6;a++)for(let b=1;b<=6;b++){ if(pred(a*b)) ps.push([a,b]); } return ps; }
+
+// √(ab) の条件（表示は \sqrt{ab}、判定は積 x=ab で行う）
+function _exCondition(){
+  const kind=pick(['range','range','range','int','ge','le','eq','lt']);
+  if(kind==='range'){ const k=pick([1,2,3,4,5]); return {kind, pred:x=>k*k<x&&x<(k+1)*(k+1), cond:k+' < \\sqrt{ab} < '+(k+1), plain:k+'<√(ab)<'+(k+1)}; }
+  if(kind==='int'){ return {kind, pred:x=>{const r=Math.round(Math.sqrt(x));return r*r===x;}, cond:'\\sqrt{ab}\\ \\text{が整数}', plain:'√(ab)が整数'}; }
+  if(kind==='ge'){ const k=pick([4,5]); return {kind, pred:x=>x>=k*k, cond:'\\sqrt{ab} \\geqq '+k, plain:'√(ab)≧'+k}; }
+  if(kind==='le'){ const k=2; return {kind, pred:x=>x<=k*k, cond:'\\sqrt{ab} \\leqq '+k, plain:'√(ab)≦'+k}; }
+  if(kind==='lt'){ const k=2; return {kind, pred:x=>x<k*k, cond:'\\sqrt{ab} < '+k, plain:'√(ab)<'+k}; }
+  const k=2; return {kind:'eq', pred:x=>x===k*k, cond:'\\sqrt{ab} = '+k, plain:'√(ab)='+k}; // ab=4
+}
+
+function genExamDice(){
+  for(let t=0;t<80;t++){
+    const c=_exCondition();
+    const pairs=_exPairs(c.pred), count=pairs.length;
+    if(count<2||count>12) continue;           // 0/全通り・列挙が長すぎるものは除外
+    if(_exRecent.includes(c.cond)) continue;
+    _exRecent.push(c.cond); if(_exRecent.length>6)_exRecent.shift();
+    // 選択肢（分数）: 正解 count/36 と、±した個数を分数化した罠
+    const correct=_exFrac(count,36); const seen=new Set([correct]);
+    const opts=[{txt:correct, correct:true}];
+    [count-1,count+1,count+2,count-2,count+3,count+4,count-3].forEach(v=>{
+      if(opts.length>=4||v<1||v>35) return; const f=_exFrac(v,36); if(!seen.has(f)){ seen.add(f); opts.push({txt:f, correct:false}); }
+    });
+    let add=5; while(opts.length<4){ const v=((count+add-1)%35)+1; const f=_exFrac(v,36); if(!seen.has(f)){ seen.add(f); opts.push({txt:f, correct:false}); } add++; }
+    _shuffle(opts);
+    const r=_exReduce(count,36);
+    const pairStr=pairs.map(p=>'('+p[0]+',\\,'+p[1]+')').join(',\\ ');
+    const expLines=[
+      '\\text{条件を満たす }(a,\\,b)\\text{ は次の}'+count+'\\text{通り}',
+      pairStr,
+      '\\text{確率}=\\dfrac{'+count+'}{36}'+(r[1]!==36?'='+_exFrac(count,36):'')
+    ];
+    return {type:'exam', family:'dice', subtype:c.kind, opts, latexOpts:true, cond:c.cond,
+      headline:'大小2つのさいころ A・B を同時に1回投げ、A の目を <b>a</b>、B の目を <b>b</b> とする。',
+      ask:'となる<b>確率</b>を求めよ',
+      qtext:c.plain+' となる確率', params:{kind:c.kind, cond:c.plain, count},
+      ansNote:'答え：'+count+'/36'+(r[1]!==36?' = '+r[0]+'/'+r[1]:''), expLines};
+  }
+  return null;
+}
+
+// 等式 √n ± √b = √c を成り立たせる正の整数 n を求める（例: √n + √12 = √75 → n=27）
+function genExamEqn(){
+  for(let t=0;t<80;t++){
+    const r=pick([2,3,5,6,7]);
+    const form=pick(['plus','plus','minusN','minusB']);
+    let pn,pb,pc,cond;
+    if(form==='plus'){        // √n + √b = √c  （pn+pb=pc）
+      pc=pick([3,4,5,6]); pb=pick([1,2,3,4].filter(x=>x<pc)); pn=pc-pb;
+      cond='\\sqrt{n} + \\sqrt{'+(pb*pb*r)+'} = \\sqrt{'+(pc*pc*r)+'}';
+    } else if(form==='minusN'){ // √n - √b = √c  （pn=pb+pc）
+      pb=pick([1,2,3]); pc=pick([1,2,3]); pn=pb+pc;
+      cond='\\sqrt{n} - \\sqrt{'+(pb*pb*r)+'} = \\sqrt{'+(pc*pc*r)+'}';
+    } else {                   // √b - √n = √c  （pn=pb-pc, pb>pc）
+      pb=pick([3,4,5,6]); pc=pick([1,2,3,4].filter(x=>x<pb)); pn=pb-pc;
+      cond='\\sqrt{'+(pb*pb*r)+'} - \\sqrt{n} = \\sqrt{'+(pc*pc*r)+'}';
+    }
+    const b=pb*pb*r, c=pc*pc*r, nVal=pn*pn*r;
+    if(pn<1||nVal<2||nVal>500||b>400||c>400) continue;
+    const sig='eq|'+cond;
+    if(_exRecent.includes(sig)) continue;
+    _exRecent.push(sig); if(_exRecent.length>6)_exRecent.shift();
+    // 選択肢：正解 nVal ＋ よくある誤答
+    const seen=new Set([nVal]); const opts=[{txt:String(nVal),correct:true}];
+    const pool=[
+      (form==='minusN'? c+b : Math.abs(c-b)),          // 根号の中どうしを±したミス
+      (pn+2*Math.min(pb,pc))*(pn+2*Math.min(pb,pc))*r, // 符号ミス相当
+      pn*r,                                            // 係数を2乗し忘れ
+      pn*pn,                                           // ×r し忘れ
+      nVal+r, Math.max(1,nVal-r), nVal+2*r
+    ];
+    for(const v of pool){ if(opts.length>=4) break; const x=Math.round(v); if(x>=1 && !seen.has(x)){ seen.add(x); opts.push({txt:String(x),correct:false}); } }
+    let k=2; while(opts.length<4){ const x=nVal+k*r; if(!seen.has(x)){ seen.add(x); opts.push({txt:String(x),correct:false}); } k++; }
+    _shuffle(opts);
+    const expLines=[
+      '\\sqrt{'+b+'}='+pb+'\\sqrt{'+r+'},\\quad \\sqrt{'+c+'}='+pc+'\\sqrt{'+r+'}',
+      '\\sqrt{n}='+pn+'\\sqrt{'+r+'}=\\sqrt{'+pn+'^2\\times '+r+'}=\\sqrt{'+nVal+'}',
+      '\\therefore n='+pn+'^2\\times '+r+'='+nVal
+    ];
+    return {type:'exam', family:'eqn', subtype:'eqn_'+form, opts, latexOpts:false, cond,
+      headline:'', ask:'を成り立たせる<b>正の整数 n</b> の値は？',
+      qtext:'√n±√'+b+'=√'+c+' の n', params:{form, r, pn, pb, pc, nVal},
+      ansNote:'答え：n = '+nVal, expLines};
+  }
+  return null;
+}
+
+function genExamProblem(){
+  for(let t=0;t<20;t++){
+    const p = Math.random()<0.55 ? genExamDice() : genExamEqn();
+    if(p) return p;
+  }
+  return genExamDice() || genExamEqn();
+}
+
+function initExam(){
+  _exRetryQueue=null; _exRetryTotal=EX_TOTAL;
+  exCurrentQ=0; exCorrect=0; exWrong=0; exWrongProbs=[]; _exRecent=[];
+  document.getElementById('q-count').textContent=1;
+  document.getElementById('score-correct').textContent=0;
+  document.getElementById('score-wrong').textContent=0;
+  document.getElementById('progress-fill').style.width='0%';
+  renderExamQuestion();
+}
+
+function renderExamQuestion(){
+  const _total=_exRetryQueue!==null?_exRetryTotal:EX_TOTAL;
+  if(exCurrentQ>=_total){ renderExamResult(); return; }
+  document.getElementById('q-count').textContent=Math.min(exCurrentQ+1,_total);
+  document.getElementById('score-correct').textContent=exCorrect;
+  document.getElementById('score-wrong').textContent=exWrong;
+  document.getElementById('progress-fill').style.width=(exCurrentQ/_total*100)+'%';
+  const prob=(_exRetryQueue&&_exRetryQueue.length>0)?_exRetryQueue.shift():genExamProblem();
+  const optBtns=prob.opts.map((o,i)=>'<button class="muldiv-opt" id="exopt-'+i+'" data-idx="'+i+'">'+(prob.latexOpts?K(o.txt):o.txt)+'</button>').join('');
+  document.getElementById('quiz-area').innerHTML=
+    '<div class="muldiv-problem">'
+    + '<button class="card-reset-btn" id="card-reset-btn">↩ 最初へ</button>'
+    + '<div class="simplify-label">高校入試</div>'
+    + (prob.headline ? '<div class="near-ask" style="font-size:13px;line-height:1.6;margin:4px 2px 10px;">'+prob.headline+'</div>' : '')
+    + '<div class="muldiv-expr">'+K(prob.cond)+'</div>'
+    + '<div class="near-ask" style="margin:2px 0 12px;">'+prob.ask+'</div>'
+    + '<div class="muldiv-opts" id="ex-opts">'+optBtns+'</div>'
+    + '</div>';
+  bindSingleConfirm('.muldiv-opt', '.muldiv-problem', (idx)=>selectExamAnswer(prob.opts[idx], prob, prob.opts));
+  document.getElementById('card-reset-btn').addEventListener('click',()=>switchMode('exam'));
+  fitToWidth();
+}
+
+function selectExamAnswer(chosen, prob, opts){
+  const isCorrect=chosen.correct;
+  if(isCorrect){ exCorrect++; safeDivpCorrect('.muldiv-problem'); } else { exWrong++; exWrongProbs.push(prob); }
+  Divp.answer(isCorrect, {
+    question_key:'exam',
+    question_params:{subtype:prob.subtype, ...(prob.params||{})},
+    question_text:prob.qtext,
+    correct_answer:(opts.find(o=>o.correct)||{}).txt,
+    wrong_answer:chosen.txt,
+  });
+  opts.forEach((o,i)=>{ const btn=document.getElementById('exopt-'+i); if(!btn)return; btn.disabled=true; if(o.correct)btn.classList.add('result-correct'); else if(o===chosen&&!isCorrect)btn.classList.add('result-wrong'); });
+  const expDiv=document.createElement('div'); expDiv.className='explanation';
+  const msg=isCorrect?'<span style="color:#166534;font-weight:700;">✓ 正解！</span>':'<span style="color:#991b1b;font-weight:700;">✗ 不正解</span>';
+  const lineHtml=prob.expLines.map(l=>'<div style="margin-bottom:6px;">'+K(l)+'</div>').join('');
+  expDiv.innerHTML=msg+'<br><br>'+lineHtml+(prob.ansNote?'<div style="font-size:12px;color:#64748b;margin-top:4px;">'+prob.ansNote+'</div>':'');
+  const _total=_exRetryQueue!==null?_exRetryTotal:EX_TOTAL;
+  const nextRow=document.createElement('div'); nextRow.className='action-row'; nextRow.style.marginTop='12px';
+  const nextBtn=document.createElement('button'); nextBtn.className='btn btn-next';
+  nextBtn.textContent=exCurrentQ+1>=_total?'結果を見る':'次の問題へ →';
+  nextBtn.addEventListener('click',()=>{ exCurrentQ++; renderExamQuestion(); });
+  nextRow.appendChild(nextBtn);
+  const card=document.querySelector('.muldiv-problem'); card.appendChild(nextRow);
+  const hint=document.createElement('div'); hint.style.cssText='text-align:center;font-size:11px;color:#94a3b8;margin-top:6px;'; hint.textContent='解説は下へスクロール ↓'; card.appendChild(hint);
+  card.appendChild(expDiv);
+  document.getElementById('score-correct').textContent=exCorrect;
+  document.getElementById('score-wrong').textContent=exWrong;
+}
+
+function renderExamResult(){
+  document.getElementById('progress-fill').style.width='100%';
+  const isRetry=(_exRetryQueue!==null);
+  const effTotal=isRetry?_exRetryTotal:EX_TOTAL;
+  const showGrade=effTotal>=10;
+  document.getElementById('q-count').textContent=effTotal;
+  document.getElementById('score-correct').textContent=exCorrect;
+  document.getElementById('score-wrong').textContent=exWrong;
+  const pct=Math.round(exCorrect/effTotal*100);
+  if(!isRetry){ if(exCorrect===effTotal) consecutivePerfect++; else consecutivePerfect=0; }
+  let grade,color,msg;
+  if(showGrade){
+    if(consecutivePerfect>=3){grade='SSS';color='#ff4dff';msg='30問連続全問正解！入試マスター！！';}
+    else if(consecutivePerfect>=2){grade='SS';color='#ff9000';msg='20問連続全問正解！圧巻！';}
+    else if(exCorrect===effTotal){grade='S';color='#f5c842';msg='10問全問正解！入試も安心！';}
+    else if(pct>=90){grade='A';color='#22c55e';msg='あと1問！よくできました！';}
+    else if(pct>=70){grade='B';color='#3b82f6';msg='もう少し！根号を簡略化してから考える練習を。';}
+    else if(pct>=50){grade='C';color='#f97316';msg='復習してもう一度！';}
+    else{grade='D';color='#ef4444';msg='√の中を整理し、条件を数式に直そう。';}
+  }
+  document.getElementById('quiz-area').innerHTML=
+    '<div class="result-screen">'
+    + '<div style="font-size:14px;color:#64748b;letter-spacing:0.1em;margin-bottom:8px;">RESULT</div>'
+    + (showGrade ? '<div class="result-grade" style="color:'+color+';">'+grade+'</div><div class="result-msg">'+msg+'</div>' : '<div class="result-msg" style="margin-top:6px;">解き直しおつかれさま！</div>')
+    + '<div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">'+exCorrect+' <span style="font-size:18px;color:#64748b;">/ '+effTotal+'問正解</span></div>'
+    + '<div class="result-breakdown">'
+    +   '<div class="result-item c">✓ 正解 '+exCorrect+'問</div>'
+    +   '<div class="result-item w">✗ 不正解 '+exWrong+'問</div>'
+    + '</div>'
+    + '<button class="btn-retry" id="retry-btn">もう一度チャレンジ</button>'
+    + (exWrongProbs.length>0?'<button class="btn-retry-wrong" id="wrong-retry-btn">🔁 間違えた '+exWrongProbs.length+' 問を解き直す</button>':'')
+    + '</div>';
+  document.getElementById('retry-btn').addEventListener('click', initExam);
+  document.getElementById('wrong-retry-btn')?.addEventListener('click', ()=>{
+    _exRetryQueue=[...exWrongProbs]; _exRetryTotal=_exRetryQueue.length;
+    exWrongProbs=[]; exCurrentQ=0; exCorrect=0; exWrong=0;
+    document.getElementById('q-count').textContent=1;
+    document.getElementById('score-correct').textContent=0;
+    document.getElementById('score-wrong').textContent=0;
+    document.getElementById('progress-fill').style.width='0%';
+    renderExamQuestion();
+  });
+}
+document.getElementById('mode-exam').addEventListener('click', ()=>switchMode('exam'));
+// ============================ /入試問題モード ============================
 
 
 
