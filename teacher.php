@@ -218,20 +218,25 @@ if ($rankView) {
     if ($rankUnit !== '' && !isset($unitMeta[$rankUnit])) {
         $rankUnit = '';
     }
-    // 学年フィルタ: es1-6 / js1-3 / hs1-3 のみ有効
-    $rankGrade = (string)($_GET['grade'] ?? '');
-    if ($rankGrade !== '' && !preg_match('/^(es[1-6]|js[1-3]|hs[1-3])$/', $rankGrade)) {
-        $rankGrade = '';
-    }
-    // 学年プルダウンの選択肢: 担当教室に在籍する学年だけを規定の並び順で
+    // 学年プルダウンの選択肢: 担当教室に在籍する学年だけ。表記は問わない
+    // （grade は自由入力なので es/js/hs 以外の表記=例「中3」も拾う。生徒一覧と同じ方針）。
+    // 標準表記(es1-6/js1-3/hs1-3)は小→中→高の順で前に、それ以外は後ろに並べる。
     if (count($allowedClassroomIds) > 0) {
         $existingGrades = $pdo->query(
             'SELECT DISTINCT grade FROM students
-              WHERE is_active = 1 AND grade IS NOT NULL
+              WHERE is_active = 1 AND grade IS NOT NULL AND grade <> \'\'
                 AND classroom_id IN (' . implode(',', $allowedClassroomIds) . ')'
         )->fetchAll(PDO::FETCH_COLUMN);
         $gradeOrder = ['es1','es2','es3','es4','es5','es6','js1','js2','js3','hs1','hs2','hs3'];
-        $rankGradeOptions = array_values(array_filter($gradeOrder, fn($g) => in_array($g, $existingGrades, true)));
+        $known  = array_values(array_filter($gradeOrder, fn($g) => in_array($g, $existingGrades, true)));
+        $others = array_values(array_filter($existingGrades, fn($g) => !in_array($g, $gradeOrder, true)));
+        sort($others);
+        $rankGradeOptions = array_merge($known, $others);
+    }
+    // 学年フィルタ: 実在する学年（$rankGradeOptions）に含まれるものだけ有効
+    $rankGrade = (string)($_GET['grade'] ?? '');
+    if ($rankGrade !== '' && !in_array($rankGrade, $rankGradeOptions, true)) {
+        $rankGrade = '';
     }
 
     $rankEvent = ranking_active_event(require __DIR__ . '/api/ranking_events.php');
@@ -517,19 +522,28 @@ function qtab(array $extra): string
     border-bottom:2px solid var(--ai-soft);padding:6px 8px;white-space:nowrap}
   td{border-bottom:1px solid #F3F0E8;padding:7px 8px;vertical-align:top}
   tr:last-child td{border-bottom:none}
-  .num{text-align:right;font-feature-settings:'tnum';white-space:nowrap}
+  /* 数字は等幅で桁を揃える。Zen Kaku Gothic New のWeb版は tnum 非対応で
+     読み込み後にプロポーショナル幅へ戻ってしまうため、数字だけ等幅数字を持つ
+     システムフォントで描画し、漢字(「位」等)は Zen にフォールバックさせる */
+  .num{text-align:right;white-space:nowrap;
+    font-family:system-ui,'Segoe UI','Helvetica Neue',Arial,'Zen Kaku Gothic New',sans-serif;
+    font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
   a.sname{color:var(--ai);font-weight:700;text-decoration:none}
   .lowrate{color:#B07B2E;font-weight:700}
   .okrate{color:#166534;font-weight:700}
   .chip{display:inline-block;font-size:11px;font-weight:700;color:var(--ai);
     background:var(--ai-soft);border-radius:999px;padding:0 10px;white-space:nowrap;
     font-family:'Zen Maru Gothic',sans-serif}
-  .stats{display:flex;gap:26px;margin-top:8px}
-  .stat .n{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:30px;line-height:1}
+  .stats{display:flex;gap:26px;margin-top:8px;align-items:flex-start}
+  /* 値の高さを固定して中央寄せ。1行の数字も2行の分数(解き直し)も同じ行に揃い、
+     下のラベルも一直線に並ぶ（分数だけ上下にずれない） */
+  .stat{display:flex;flex-direction:column}
+  .stat .n{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:30px;line-height:1;
+    display:flex;align-items:flex-end;height:44px}
   .stat .n small{font-size:13px;color:var(--ink-soft);margin-left:2px}
   .stat .l{font-size:11px;color:var(--ink-soft);margin-top:2px}
   /* 解き直し：分子(クリア数)/分母(解き直し問題数) の分数表示 */
-  .stat .frac{display:inline-flex;flex-direction:column;align-items:center;line-height:1.02;font-size:19px}
+  .stat .frac{display:inline-flex;flex-direction:column;align-items:center;line-height:1.02;font-size:18px}
   .stat .frac b{padding:0 7px 2px;border-bottom:2.5px solid currentColor;font-weight:900}
   .stat .frac i{padding:2px 7px 0;font-style:normal;font-weight:900}
   .back{font-size:13px;color:var(--ai);text-decoration:none;font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
