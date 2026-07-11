@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>方程式マスター｜中1数学 一次方程式ドリル｜中京個別指導学院</title>
+<meta name="description" content="中1数学「一次方程式」の計算ドリル。係数なし・係数あり・同類項・かっこ・分数・小数・応用の7モード。焼山・植田・長久手・神丘・一社・高針・吉根・志段味・有松の中京個別指導学院。">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="../../assets/divp-core.js" defer></script>
+<script src="../../assets/divp-header.js" defer></script>
+<script src="../../assets/divp-correct-jh.js" defer></script>
+<style>
+:root{
+  --washi:#F7F2E7;
+  --washi2:#EFE6D2;
+  --ink:#3A3226;
+  --ink-soft:#6E6353;
+  --sakura:#D98E9C;
+  --sakura-pale:#F3DDE1;
+  --sakura-deep:#B4636F;
+  --shu:#C73E2E;
+  --line:#D8CCB4;
+  --ok:#2E7D4F;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{min-height:calc(100svh + 1px);}
+body{
+  font-family:"Hiragino Maru Gothic ProN","Hiragino Kaku Gothic ProN","Yu Gothic","YuGothic",Meiryo,sans-serif;
+  background:var(--washi);
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(217,142,156,.06) 0 120px, transparent 140px),
+    radial-gradient(circle at 85% 75%, rgba(217,142,156,.05) 0 140px, transparent 160px);
+  color:var(--ink);
+  min-height:100svh;
+}
+.divp-wrap{max-width:560px;margin:0 auto;padding:10px 12px 32px;}
+
+/* ---- タイトル ---- */
+.divp-title{
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  padding:10px 4px 8px;border-bottom:3px double var(--sakura);margin-bottom:10px;
+}
+.divp-title h1{font-size:22px;letter-spacing:.06em;color:var(--ink);}
+.divp-title .divp-sub{font-size:12px;color:var(--ink-soft);}
+.divp-title .divp-petal{color:var(--sakura-deep);font-size:18px;}
+
+/* ---- 設定（開閉式） ---- */
+.divp-setting{
+  border:1px solid var(--line);background:#FFFDF7;
+  margin-bottom:10px;overflow:hidden;
+}
+.divp-setting-bar{
+  width:100%;display:flex;align-items:center;gap:8px;
+  padding:10px 12px;background:none;border:none;font:inherit;color:var(--ink);
+  font-size:14px;cursor:pointer;
+}
+.divp-setting-bar .divp-caret{transition:transform .2s;color:var(--sakura-deep);}
+.divp-setting.open .divp-caret{transform:rotate(90deg);}
+.divp-setting-bar .divp-current{
+  margin-left:auto;background:var(--sakura-pale);color:var(--sakura-deep);
+  padding:3px 12px;font-size:13px;font-weight:bold;
+}
+.divp-setting-body{display:none;padding:4px 12px 12px;}
+.divp-setting.open .divp-setting-body{display:block;}
+.divp-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.divp-chip{
+  font:inherit;font-size:14px;padding:8px 14px;
+  border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;
+}
+.divp-chip.on{
+  background:var(--sakura-deep);border-color:var(--sakura-deep);color:#fff;font-weight:bold;
+}
+
+/* ---- 進捗 ---- */
+.divp-progress{display:flex;align-items:center;gap:8px;margin:2px 4px 8px;}
+.divp-progress .divp-qnum{font-size:14px;font-weight:bold;color:var(--ink-soft);}
+.divp-dots{display:flex;gap:5px;margin-left:auto;}
+.divp-dot{width:12px;height:12px;background:var(--washi2);border:1px solid var(--line);}
+.divp-dot.ok{background:var(--sakura);border-color:var(--sakura-deep);}
+.divp-dot.ng{background:#fff;border-color:var(--ink-soft);position:relative;}
+.divp-dot.ng::after{content:"×";position:absolute;inset:0;font-size:10px;line-height:11px;text-align:center;color:var(--ink-soft);}
+.divp-dot.now{outline:2px solid var(--sakura-deep);outline-offset:1px;}
+
+/* ---- 問題カード ---- */
+.divp-qcard{
+  background:#FFFDF7;border:1px solid var(--line);
+  padding:18px 12px;min-height:96px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 1px 0 rgba(58,50,38,.06);
+  overflow:hidden;position:relative;
+}
+.divp-qtext{white-space:nowrap;font-size:30px;transform-origin:center center;}
+
+/* ---- 選択肢（解モード） ---- */
+.divp-qcaption{font-size:13px;color:var(--ink-soft);text-align:center;margin:0 0 6px;display:none;}
+.divp-qcaption.show{display:block;}
+.divp-choices{display:none;flex-direction:column;gap:8px;margin:12px auto 0;max-width:400px;}
+.divp-choices.show{display:flex;}
+.divp-choice{
+  font:inherit;display:flex;align-items:center;gap:10px;
+  padding:12px 12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);
+  cursor:pointer;text-align:left;overflow:hidden;
+}
+.divp-choice .divp-clabel{font-size:14px;font-weight:bold;color:var(--sakura-deep);flex:0 0 auto;}
+.divp-choice .divp-ceq{font-size:20px;white-space:nowrap;transform-origin:left center;}
+.divp-choice .divp-ctext{font-size:17px;}
+.divp-choice.sel{border-color:var(--sakura-deep);background:var(--sakura-pale);}
+.divp-choice.hit{border-color:var(--ok);background:#E9F3EC;}
+.divp-choice.miss{border-color:#C0392B;background:#FAE7E4;}
+.divp-choices.disabled{pointer-events:none;}
+
+/* ---- 解答欄 ---- */
+.divp-ansrow{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  margin:12px 0 10px;min-height:56px;
+}
+.divp-anslabel{font-size:26px;font-family:KaTeX_Math,serif;font-style:italic;}
+.divp-ansbox{
+  min-width:120px;min-height:52px;border-bottom:2.5px solid var(--sakura-deep);
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  font-size:28px;padding:2px 10px;background:rgba(255,255,255,.6);
+}
+.divp-ansbox .divp-empty{color:#C9BFA9;font-size:20px;}
+.divp-frac{display:inline-flex;flex-direction:column;align-items:center;line-height:1.1;}
+.divp-frac span{padding:0 8px;min-width:34px;text-align:center;font-size:24px;}
+.divp-frac .divp-num{border-bottom:2px solid var(--ink);}
+.divp-frac span.divp-active{background:var(--sakura-pale);}
+.divp-frac span:empty::before{content:"　";}
+
+/* ---- テンキー ---- */
+.divp-tenkey{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:7px;max-width:400px;margin:0 auto;
+}
+.divp-key{
+  font:inherit;font-size:22px;padding:12px 0;
+  border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;
+  box-shadow:0 2px 0 var(--line);user-select:none;
+}
+.divp-key:active{transform:translateY(2px);box-shadow:none;}
+.divp-key.fn{font-size:16px;background:var(--washi2);}
+.divp-key.frac-on{background:var(--sakura-pale);border-color:var(--sakura-deep);color:var(--sakura-deep);font-weight:bold;}
+.divp-tenkey.disabled{opacity:.4;pointer-events:none;}
+
+/* ---- 答え合わせ ---- */
+.divp-grade{
+  display:block;width:100%;max-width:400px;margin:12px auto 0;
+  font:inherit;font-size:18px;font-weight:bold;letter-spacing:.2em;
+  padding:14px 0;border:none;cursor:pointer;
+  background:var(--sakura-deep);color:#fff;box-shadow:0 3px 0 #8E4A54;
+}
+.divp-grade:active{transform:translateY(3px);box-shadow:none;}
+.divp-grade:disabled{opacity:.4;pointer-events:none;}
+
+/* ---- フィードバック ---- */
+.divp-fb{display:none;margin-top:12px;}
+.divp-fb.show{display:block;}
+.divp-fb-head{font-size:22px;font-weight:bold;text-align:center;margin-bottom:6px;}
+.divp-fb-head.ok{color:var(--shu);}
+.divp-fb-head.ng{color:var(--ink-soft);}
+.divp-fb-ans{text-align:center;font-size:20px;margin-bottom:8px;}
+.divp-steps{
+  margin-top:12px;
+  background:#FFFDF7;border:1px dashed var(--sakura);
+  padding:10px 12px;overflow:hidden;
+}
+.divp-steps .divp-steps-title{font-size:21px;color:var(--sakura-deep);font-weight:bold;margin-bottom:4px;}
+.divp-step{font-size:36px;margin:10px 0;white-space:nowrap;transform-origin:left center;}
+.divp-next{
+  display:block;width:100%;max-width:400px;margin:12px auto 0;
+  font:inherit;font-size:17px;font-weight:bold;padding:13px 0;
+  border:1.5px solid var(--sakura-deep);background:#fff;color:var(--sakura-deep);cursor:pointer;
+}
+.divp-toast{
+  position:fixed;left:50%;bottom:90px;transform:translateX(-50%);
+  background:var(--ink);color:#fff;font-size:14px;padding:9px 18px;
+  opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;
+}
+.divp-toast.show{opacity:.92;}
+
+/* ---- 結果 ---- */
+.divp-result{display:none;text-align:center;padding:18px 8px;}
+.divp-result.show{display:block;}
+.divp-rank{
+  font-size:64px;font-weight:bold;color:var(--shu);line-height:1.1;
+  font-family:Georgia,serif;letter-spacing:.05em;
+  text-shadow:2px 2px 0 var(--sakura-pale);
+}
+.divp-rank-label{font-size:13px;color:var(--ink-soft);margin-bottom:2px;}
+.divp-score{font-size:20px;margin:8px 0 4px;}
+.divp-streak{font-size:13px;color:var(--sakura-deep);margin-bottom:12px;}
+.divp-rbtns{display:flex;flex-direction:column;gap:10px;max-width:340px;margin:0 auto;}
+.divp-rbtn{
+  font:inherit;font-size:16px;font-weight:bold;padding:13px 0;cursor:pointer;
+  border:1.5px solid var(--sakura-deep);background:#fff;color:var(--sakura-deep);
+}
+.divp-rbtn.primary{background:var(--sakura-deep);color:#fff;border:none;box-shadow:0 3px 0 #8E4A54;}
+.divp-quiz.hide{display:none;}
+@media (max-width:380px){
+  .divp-qtext{font-size:26px;}
+  .divp-key{font-size:20px;padding:10px 0;}
+}
+</style>
+</head>
+<body data-unit-key="math_js1_houteishiki_master" data-theme="jh" data-effect="stamp">
+<div class="divp-wrap">
+
+  <div class="divp-title">
+    <span class="divp-petal">❀</span>
+    <h1>方程式マスター</h1>
+    <span class="divp-sub">中1数学・一次方程式</span>
+  </div>
+
+  <div class="divp-setting open" id="divpSetting">
+    <button class="divp-setting-bar" id="divpSettingBar" type="button">
+      <span class="divp-caret">▶</span>問題の種類
+      <span class="divp-current" id="divpCurrentMode">係数なし</span>
+    </button>
+    <div class="divp-setting-body">
+      <div class="divp-chips" id="divpChips"></div>
+    </div>
+  </div>
+
+  <div class="divp-quiz" id="divpQuiz">
+    <div class="divp-progress">
+      <span class="divp-qnum" id="divpQnum">第1問 / 10</span>
+      <div class="divp-dots" id="divpDots"></div>
+    </div>
+
+    <div class="divp-qcaption" id="divpQcaption">この解になる方程式を<b>すべて</b>選ぼう</div>
+    <div class="divp-qcard">
+      <div class="divp-qtext" id="divpQtext"></div>
+    </div>
+
+    <div class="divp-choices" id="divpChoices"></div>
+
+    <div class="divp-ansrow" id="divpAnsrow">
+      <span class="divp-anslabel">x =</span>
+      <div class="divp-ansbox" id="divpAnsbox"></div>
+    </div>
+
+    <div class="divp-tenkey" id="divpTenkey"></div>
+
+    <button class="divp-grade" id="divpGrade" type="button">答え合わせ</button>
+
+    <div class="divp-fb" id="divpFb">
+      <div class="divp-fb-head" id="divpFbHead"></div>
+      <div class="divp-fb-ans" id="divpFbAns"></div>
+      <button class="divp-next" id="divpNext" type="button">次の問題へ</button>
+      <div class="divp-steps">
+        <div class="divp-steps-title">解き方</div>
+        <div id="divpStepsBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divp-result" id="divpResult">
+    <div class="divp-rank-label" id="divpRankLabel">ランク</div>
+    <div class="divp-rank" id="divpRank">A</div>
+    <div class="divp-score" id="divpScore"></div>
+    <div class="divp-streak" id="divpStreak"></div>
+    <div class="divp-rbtns">
+      <button class="divp-rbtn primary" id="divpAgain" type="button">もう一度（10問）</button>
+      <button class="divp-rbtn" id="divpRetry" type="button">まちがい直し</button>
+    </div>
+  </div>
+
+</div>
+<div class="divp-toast" id="divpToast"></div>
+
+<script>
+(function(){
+'use strict';
+
+/*GEN-START*/
+/* ===== 有理数エンジン ===== */
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){var t=a%b;a=b;b=t;}return a||1;}
+function rmk(n,d){
+  d=(d===undefined)?1:d;
+  if(d<0){n=-n;d=-d;}
+  var g=gcd(n,d);
+  return [n/g,d/g];
+}
+function radd(a,b){return rmk(a[0]*b[1]+b[0]*a[1], a[1]*b[1]);}
+function rsub(a,b){return rmk(a[0]*b[1]-b[0]*a[1], a[1]*b[1]);}
+function rmul(a,b){return rmk(a[0]*b[0], a[1]*b[1]);}
+function rdiv(a,b){return rmk(a[0]*b[1], a[1]*b[0]);}
+function req(a,b){return a[0]*b[1]===b[0]*a[1];}
+function rIsInt(a){return a[1]===1;}
+
+function ri(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function rnz(a,b){var v=0;while(v===0)v=ri(a,b);return v;}
+function pick(arr){return arr[ri(0,arr.length-1)];}
+
+/* ===== LaTeX 整形 ===== */
+function fmtInt(n){return String(n);}
+function fmtR(r){ /* 有理数 → LaTeX */
+  if(r[1]===1)return String(r[0]);
+  var s=r[0]<0?"-":"";
+  return s+"\\dfrac{"+Math.abs(r[0])+"}{"+r[1]+"}";
+}
+/* 係数付き x 項: coef は整数 */
+function coefX(c){
+  if(c===1)return "x";
+  if(c===-1)return "-x";
+  return c+"x";
+}
+/* 先頭以外の項をつなぐ（+ / −） */
+function joinT(prev, latexTerm){
+  if(latexTerm.charAt(0)==="-")return prev+" - "+latexTerm.slice(1);
+  return prev+" + "+latexTerm;
+}
+/* 整数を式のあとに続ける */
+function joinN(prev, n){
+  return n<0 ? prev+" - "+(-n) : prev+" + "+n;
+}
+/* 0.x 表示（tenths: 10分の整数）*/
+function fmtDec(tenths){
+  var v=tenths/10;
+  var s=(Math.round(Math.abs(tenths))%10===0)? String(v) : v.toFixed(1);
+  return s;
+}
+function coefXDec(tenths){
+  if(tenths===10)return "x";
+  if(tenths===-10)return "-x";
+  return fmtDec(tenths)+"x";
+}
+/* 0.xx 表示（hundredths: 100分の整数） */
+function fmtDec2(h){
+  var v=h/100;
+  if(h%100===0)return String(v);
+  if(h%10===0)return v.toFixed(1);
+  return v.toFixed(2);
+}
+function coefXDec2(h){
+  if(h===100)return "x";
+  if(h===-100)return "-x";
+  return fmtDec2(h)+"x";
+}
+/* 分数係数の x 項: n/d * x → \dfrac{n x}{d} 表示（分子1のとき \dfrac{x}{d}） */
+function fracX(n,d){
+  var sign=n<0?"-":"";
+  n=Math.abs(n);
+  var top=(n===1)?"x":(n+"x");
+  return sign+"\\dfrac{"+top+"}{"+d+"}";
+}
+
+/* ax+b 形の分子 */
+function linNum(a,b){
+  return coefX(a)+(b<0?" - "+(-b):" + "+b);
+}
+function lcm2(a,b){return a*b/gcd(a,b);}
+
+/* ax = b 形の締めステップを共通生成 */
+function closeSteps(steps, a, b){ /* a:int(≠0,≠±?), b:[n,d] */
+  var ans=rdiv(b, rmk(a));
+  if(a!==1){
+    steps.push(coefX(a)+" = "+fmtR(b));
+    steps.push("x = "+fmtR(ans));
+  }else{
+    steps.push("x = "+fmtR(ans));
+  }
+  return ans;
+}
+
+/* ===== 出題ジェネレータ =====
+   返り値: {latex, ans:[n,d], steps:[latex...], text, params}
+   equations built constructively from chosen solution */
+
+function genKeisuNashi(){
+  var x=rnz(-12,12);
+  var a=rnz(-9,9);
+  var b=x+a;                       /* x + a = b */
+  var form=pick([0,1]);            /* 0: x+a=b / 1: a+x=b */
+  var lhs;
+  if(form===0){ lhs=joinN("x",a); }
+  else{ lhs=(a<0? "-"+(-a):String(a)); lhs=joinT(lhs,"x"); }
+  var latex=lhs+" = "+b;
+  var steps=["x = "+b+(a<0?" + "+(-a):" - "+a), "x = "+x];
+  return {latex:latex, ans:rmk(x), steps:steps,
+    params:{f:"kn",form:form,x:x,a:a,b:b}};
+}
+
+function genKeisuAri(){
+  var x=rnz(-9,9);
+  var a=rnz(-9,9); if(Math.abs(a)===1)a=a*ri(2,9);
+  if(Math.random()<0.5){            /* ax = b */
+    var b=a*x;
+    return {latex:coefX(a)+" = "+b, ans:rmk(x),
+      steps:["x = \\dfrac{"+b+"}{"+a+"}", "x = "+x],
+      params:{f:"ka1",x:x,a:a,b:b}};
+  }else{                            /* ax + c = d */
+    var c=rnz(-9,9);
+    var d=a*x+c;
+    var steps=[coefX(a)+" = "+d+(c<0?" + "+(-c):" - "+c)];
+    var ans=closeSteps(steps,a,rmk(d-c));
+    return {latex:joinN(coefX(a),c)+" = "+d, ans:ans, steps:steps,
+      params:{f:"ka2",x:x,a:a,c:c,d:d}};
+  }
+}
+
+function genDoruikou(){
+  var x=rnz(-9,9);
+  if(Math.random()<0.5){            /* ax + bx + c = d */
+    var a=rnz(-6,6), b=rnz(-6,6);
+    while(a+b===0 || Math.abs(a+b)===0) {b=rnz(-6,6);}
+    var s=a+b;
+    var c=rnz(-9,9);
+    var d=s*x+c;
+    var latex=joinT(coefX(a),coefX(b));
+    latex=joinN(latex,c)+" = "+d;
+    var steps=[joinN(coefX(s),c)+" = "+d,
+               coefX(s)+" = "+(d-c)];
+    var ans=closeSteps(steps,s,rmk(d-c));
+    steps.splice(1,1); /* closeSteps が同じ行を出すので重複除去 */
+    return {latex:latex, ans:ans, steps:steps, params:{f:"dr1",x:x,a:a,b:b,c:c,d:d}};
+  }else{                            /* ax + b = cx + d（両辺に x）*/
+    var a2=rnz(-7,7), c2=rnz(-7,7);
+    while(a2===c2){c2=rnz(-7,7);}
+    var b2=rnz(-9,9);
+    var d2=(a2-c2)*x+b2;
+    while(d2===0){b2=rnz(-9,9);d2=(a2-c2)*x+b2;}
+    var latex=joinN(coefX(a2),b2)+" = "+joinN(coefX(c2),d2);
+    var k=a2-c2;
+    var steps=[joinT(coefX(a2),coefX(-c2))+" = "+d2+(b2<0?" + "+(-b2):" - "+b2)];
+    var ans=closeSteps(steps,k,rmk(d2-b2));
+    return {latex:latex, ans:ans, steps:steps, params:{f:"dr2",x:x,a:a2,b:b2,c:c2,d:d2}};
+  }
+}
+
+function genKakko(){
+  var x=rnz(-9,9);
+  var t=pick([0,1,2]);
+  if(t===0){                        /* a(x + b) = c */
+    var a=rnz(-5,5); if(Math.abs(a)===1)a*=ri(2,5);
+    var b=rnz(-8,8);
+    var c=a*(x+b);
+    var latex=(a===-1?"-":String(a))+"\\left(x"+(b<0?" - "+(-b):" + "+b)+"\\right) = "+c;
+    var steps=[joinN(coefX(a),a*b)+" = "+c,
+               coefX(a)+" = "+(c-a*b)];
+    var ans=closeSteps(steps,a,rmk(c-a*b));
+    steps.splice(1,1);
+    return {latex:latex, ans:ans, steps:steps, params:{f:"kk1",x:x,a:a,b:b,c:c}};
+  }
+  if(t===1){                        /* a(x + b) + cx = d */
+    var a1=rnz(-4,4), c1=rnz(-6,6);
+    while(a1+c1===0){c1=rnz(-6,6);}
+    var b1=rnz(-6,6);
+    var d1=a1*(x+b1)+c1*x;
+    var lhs=(Math.abs(a1)===1?(a1<0?"-":""):String(a1))+"\\left(x"+(b1<0?" - "+(-b1):" + "+b1)+"\\right)";
+    lhs=joinT(lhs,coefX(c1));
+    var s2=[joinN(joinT(coefX(a1),coefX(c1)),a1*b1)+" = "+d1,
+            joinN(coefX(a1+c1),a1*b1)+" = "+d1,
+            coefX(a1+c1)+" = "+(d1-a1*b1)];
+    var ans2=closeSteps(s2,a1+c1,rmk(d1-a1*b1));
+    s2.splice(2,1);
+    return {latex:lhs+" = "+d1, ans:ans2, steps:s2, params:{f:"kk2",x:x,a:a1,b:b1,c:c1,d:d1}};
+  }
+  /* t===2: a(x + b) = c(x + d) */
+  var a3=rnz(-5,5), c3=rnz(-5,5);
+  while(a3===c3 || Math.abs(a3)===1 || Math.abs(c3)===1){a3=rnz(-5,5);c3=rnz(-5,5);}
+  var b3=rnz(-6,6);
+  /* c3(x+d3)=a3(x+b3) → d3=(a3(x+b3)-c3x)/c3 が整数になるまで引き直す */
+  var d3=null, tries=0;
+  while(tries++<200){
+    var cand=a3*(x+b3)-c3*x;
+    if(cand%c3===0 && cand!==0){d3=cand/c3;break;}
+    b3=rnz(-6,6);
+  }
+  if(d3===null){return genKakko();}
+  var L=(a3===-1?"-":String(a3))+"\\left(x"+(b3<0?" - "+(-b3):" + "+b3)+"\\right)";
+  var R=(c3===-1?"-":String(c3))+"\\left(x"+(d3<0?" - "+(-d3):" + "+d3)+"\\right)";
+  var s3=[joinN(coefX(a3),a3*b3)+" = "+joinN(coefX(c3),c3*d3)];
+  var ans3=closeSteps(s3,a3-c3,rmk(c3*d3-a3*b3));
+  return {latex:L+" = "+R, ans:ans3, steps:s3, params:{f:"kk3",x:x,a:a3,b:b3,c:c3,d:d3}};
+}
+
+function genBunsuu(){
+  var t=pick([0,1,2,3]);
+  if(t===0){                        /* x/a = b */
+    var a=ri(2,9), b=rnz(-9,9);
+    var x=a*b;
+    return {latex:"\\dfrac{x}{"+a+"} = "+b, ans:rmk(x),
+      steps:["x = "+b+" \\times "+a, "x = "+x],
+      params:{f:"bn1",a:a,b:b,x:x}};
+  }
+  if(t===1){                        /* x/a + b = c */
+    var a1=ri(2,8), b1=rnz(-8,8), k=rnz(-8,8);
+    var x1=a1*k, c1=k+b1;
+    var steps=["\\dfrac{x}{"+a1+"} = "+(c1-b1),
+               "x = "+(c1-b1)+" \\times "+a1,
+               "x = "+x1];
+    return {latex:joinN("\\dfrac{x}{"+a1+"}",b1)+" = "+c1, ans:rmk(x1), steps:steps,
+      params:{f:"bn2",a:a1,b:b1,c:c1,x:x1}};
+  }
+  if(t===2){                        /* (x + a)/b = c */
+    var b2=ri(2,8), c2=rnz(-7,7), a2=rnz(-9,9);
+    var x2=b2*c2-a2;
+    var steps2=["x"+(a2<0?" - "+(-a2):" + "+a2)+" = "+(b2*c2),
+                "x = "+(b2*c2)+(a2<0?" + "+(-a2):" - "+a2),
+                "x = "+x2];
+    return {latex:"\\dfrac{x"+(a2<0?" - "+(-a2):" + "+a2)+"}{"+b2+"} = "+c2,
+      ans:rmk(x2), steps:steps2, params:{f:"bn3",a:a2,b:b2,c:c2,x:x2}};
+  }
+  /* t===3: x/a + x/b = c  （x = k·ab, c = k(a+b)） */
+  var p=pick([[2,3],[2,5],[3,4],[2,4],[3,5],[4,5],[2,6]]);
+  var A=p[0],B=p[1];
+  var k3=rnz(-3,3);
+  var x3=k3*A*B, c3=k3*(A+B);
+  var L=Math.random()<0.5
+    ? "\\dfrac{x}{"+A+"} + \\dfrac{x}{"+B+"}"
+    : "\\dfrac{x}{"+B+"} + \\dfrac{x}{"+A+"}";
+  var lcm=A*B/gcd(A,B);
+  var ca=lcm/A, cb=lcm/B; /* 両辺×lcm 後の係数 */
+  var steps3=[joinT(coefX(ca),coefX(cb))+" = "+(c3*lcm/1),
+              coefX(ca+cb)+" = "+(c3*lcm)];
+  /* 注意: 上の2行は lcm 倍後。x係数 = lcm/A + lcm/B */
+  var ansR=rmk(x3);
+  steps3.push("x = "+fmtR(ansR));
+  return {latex:L+" = "+c3, ans:ansR, steps:steps3, params:{f:"bn4",a:A,b:B,c:c3,x:x3}};
+}
+
+function genShousuu(){
+  var x=rnz(-9,9);
+  if(Math.random()<0.55){           /* 0.a x + 0.b = (ax+b)/10 */
+    var a=rnz(-9,9); while(Math.abs(a)===0)a=rnz(-9,9);
+    if(Math.abs(a)===1)a=a*ri(2,9);
+    var b=rnz(-9,9);
+    var d=a*x+b;
+    var latex=coefXDec(a)+(b<0?" - "+fmtDec(-b):" + "+fmtDec(b))+" = "+fmtDec(d);
+    var steps=["10\\text{倍して } "+joinN(coefX(a),b)+" = "+d,
+               coefX(a)+" = "+(d-b)];
+    var ans=closeSteps(steps,a,rmk(d-b));
+    steps.splice(2,1);
+    return {latex:latex, ans:ans, steps:steps, params:{f:"ss1",x:x,a:a,b:b,d:d}};
+  }else{                            /* 0.ax = 0.b 形（1.2x = 3.6 等）*/
+    var a2=rnz(-9,9); if(Math.abs(a2)<2)a2=a2<0?-ri(2,9):ri(2,9);
+    var a10=a2+ (Math.random()<0.4? (a2>0?10:-10) : 0); /* 0.x or 1.x 係数 */
+    var b10=a10*x;
+    var latex2=coefXDec(a10)+" = "+fmtDec(b10);
+    var steps2=["10\\text{倍して } "+coefX(a10)+" = "+b10];
+    var ans2=closeSteps(steps2,a10,rmk(b10));
+    return {latex:latex2, ans:ans2, steps:steps2, params:{f:"ss2",x:x,a:a10,b:b10}};
+  }
+}
+
+function genHireishiki(){
+  var t=pick([0,1,2]);
+  if(t===0){                        /* a : b = x : c */
+    var a=ri(2,9), b=ri(2,9), c=ri(2,9);
+    while(a===b){b=ri(2,9);}
+    var ans=rmk(a*c,b);             /* x = ac/b */
+    return {latex:a+" : "+b+" = x : "+c, ans:ans,
+      steps:[coefX(b)+" = "+a+" \\times "+c, coefX(b)+" = "+(a*c), "x = "+fmtR(ans)],
+      params:{f:"hr1",a:a,b:b,c:c}};
+  }
+  if(t===1){                        /* x : a = b : c */
+    var a1=ri(2,9), b1=ri(2,9), c1=ri(2,9);
+    while(c1===a1){c1=ri(2,9);}
+    var ans1=rmk(a1*b1,c1);
+    return {latex:"x : "+a1+" = "+b1+" : "+c1, ans:ans1,
+      steps:[coefX(c1)+" = "+a1+" \\times "+b1, coefX(c1)+" = "+(a1*b1), "x = "+fmtR(ans1)],
+      params:{f:"hr2",a:a1,b:b1,c:c1}};
+  }
+  /* (x + a) : b = c : d  → d(x+a) = bc（整数解・比の項は正） */
+  var tries=0;
+  while(tries++<400){
+    var a2=rnz(-6,9), b2=ri(2,9), d2=ri(2,9), x2=rnz(-9,9);
+    if(x2+a2<1)continue;
+    var prod=d2*(x2+a2);
+    if(prod%b2!==0)continue;
+    var c2=prod/b2;
+    if(c2<1||c2>40)continue;
+    var inner="x"+(a2<0?" - "+(-a2):" + "+a2);
+    var latex2="\\left("+inner+"\\right) : "+b2+" = "+c2+" : "+d2;
+    var steps2=[d2+"\\left("+inner+"\\right) = "+b2+" \\times "+c2,
+                joinN(coefX(d2),d2*a2)+" = "+(b2*c2)];
+    var ans2=closeSteps(steps2,d2,rmk(b2*c2-d2*a2));
+    return {latex:latex2, ans:ans2, steps:steps2,
+      params:{f:"hr3",a:a2,b:b2,c:c2,d:d2,x:x2}};
+  }
+  return genHireishiki();
+}
+
+function genOuyou(){
+  var t=pick([1,4,5,6,7,8,9,9,10,10,12,12]);   /* 1:分数両辺 4:二重かっこ 5-7:比例式 8:小数第二位 9:分数複合 10:小数かっこ 12:分数入り比例式 */
+  if(t===5){                        /* 小数の比例式 */
+    var a=ri(2,9), b=ri(2,9), n=ri(2,9);
+    while(b===a){b=ri(2,9);}
+    var ans=rmk(a*n,b);             /* 0.b x = 0.a n → bx = an */
+    var latex, steps;
+    if(Math.random()<0.5){          /* 0.a : 0.b = x : n */
+      latex=fmtDec(a)+" : "+fmtDec(b)+" = x : "+n;
+      steps=[coefXDec(b)+" = "+fmtDec(a)+" \\times "+n,
+             "10\\text{倍して } "+coefX(b)+" = "+(a*n),
+             "x = "+fmtR(ans)];
+    }else{                          /* x : 0.a = n : 0.b ... 0.b x = 0.a n */
+      latex="x : "+fmtDec(a)+" = "+n+" : "+fmtDec(b);
+      steps=[coefXDec(b)+" = "+fmtDec(a)+" \\times "+n,
+             "10\\text{倍して } "+coefX(b)+" = "+(a*n),
+             "x = "+fmtR(ans)];
+    }
+    return {latex:latex, ans:ans, steps:steps, params:{f:"oy5",a:a,b:b,n:n}};
+  }
+  if(t===6){                        /* 分数の比例式: p/q : r/s = x : n */
+    var FR=[[1,2],[1,3],[2,3],[1,4],[3,4],[2,5],[3,5]];
+    var f1=pick(FR), f2=pick(FR);
+    while(f1[0]===f2[0]&&f1[1]===f2[1]){f2=pick(FR);}
+    var p=f1[0],q=f1[1],r=f2[0],s=f2[1];
+    var n6=ri(2,9);
+    var ans6=rmk(p*s*n6, q*r);      /* (r/s)x = (p/q)n */
+    var steps6=["\\dfrac{"+r+"}{"+s+"}x = \\dfrac{"+p+"}{"+q+"} \\times "+n6,
+                "x = \\dfrac{"+p+"}{"+q+"} \\times "+n6+" \\times \\dfrac{"+s+"}{"+r+"}",
+                "x = "+fmtR(ans6)];
+    return {latex:"\\dfrac{"+p+"}{"+q+"} : \\dfrac{"+r+"}{"+s+"} = x : "+n6,
+      ans:ans6, steps:steps6, params:{f:"oy6",p:p,q:q,r:r,s:s,n:n6}};
+  }
+  if(t===7){                        /* かっこ+小数の比例式: (x+a) : 0.p = q : 0.r */
+    var tries7=0;
+    while(tries7++<400){
+      var r7=ri(2,9), x7=rnz(-9,9), a7=rnz(-6,9);
+      if(x7+a7<1)continue;
+      var T=r7*(x7+a7);
+      var p7=ri(2,9);
+      if(T%p7!==0)continue;
+      var q7=T/p7;
+      if(q7<1||q7>40)continue;
+      var inner7="x"+(a7<0?" - "+(-a7):" + "+a7);
+      var latex7="\\left("+inner7+"\\right) : "+fmtDec(p7)+" = "+q7+" : "+fmtDec(r7);
+      var steps7=[fmtDec(r7)+"\\left("+inner7+"\\right) = "+fmtDec(p7)+" \\times "+q7,
+                  "10\\text{倍して } "+r7+"\\left("+inner7+"\\right) = "+(p7*q7),
+                  joinN(coefX(r7),r7*a7)+" = "+(p7*q7)];
+      var ans7=closeSteps(steps7,r7,rmk(p7*q7-r7*a7));
+      return {latex:latex7, ans:ans7, steps:steps7,
+        params:{f:"oy7",p:p7,q:q7,r:r7,a:a7,x:x7}};
+    }
+    return genOuyou();
+  }
+  if(t===12){                       /* 文字入り分数の比例式 */
+    var tr12=0;
+    while(tr12++<400){
+      var fm12=pick([0,1,2]);
+      if(fm12===0){                   /* x/p : a = b : c → cx = abp */
+        var p=ri(2,6), a=ri(2,9), b=ri(2,9), c=ri(2,9);
+        if(a*p===b&&c===1)continue;
+        var ans=rmk(a*b*p,c);
+        if(ans[0]>120)continue;
+        return {latex:"\\dfrac{x}{"+p+"} : "+a+" = "+b+" : "+c,
+          ans:ans,
+          steps:[c+" \\times \\dfrac{x}{"+p+"} = "+a+" \\times "+b,
+                 "\\dfrac{"+(c===1?"x":c+"x")+"}{"+p+"} = "+(a*b),
+                 coefX(c)+" = "+(a*b)+" \\times "+p,
+                 "x = "+fmtR(ans)],
+          params:{f:"oy12a",p:p,a:a,b:b,c:c}};
+      }
+      if(fm12===1){                   /* a : x/p = b : c → bx = acp */
+        var p1=ri(2,6), a1=ri(2,9), b1=ri(2,9), c1=ri(2,9);
+        var ans1=rmk(a1*c1*p1,b1);
+        if(ans1[0]>120)continue;
+        return {latex:a1+" : \\dfrac{x}{"+p1+"} = "+b1+" : "+c1,
+          ans:ans1,
+          steps:[b1+" \\times \\dfrac{x}{"+p1+"} = "+a1+" \\times "+c1,
+                 "\\dfrac{"+(b1===1?"x":b1+"x")+"}{"+p1+"} = "+(a1*c1),
+                 coefX(b1)+" = "+(a1*c1)+" \\times "+p1,
+                 "x = "+fmtR(ans1)],
+          params:{f:"oy12b",p:p1,a:a1,b:b1,c:c1}};
+      }
+      /* fm12===2: (x+d)/p : a = b : c → c(x+d) = abp（整数解・構成的） */
+      var p2=ri(2,6), a2=ri(2,9), b2=ri(2,9), c2=ri(2,9);
+      var T12=a2*b2*p2;
+      if(T12%c2!==0)continue;
+      var sum12=T12/c2;
+      if(sum12<1||sum12>40)continue;
+      var d2=rnz(-9,9);
+      var x2=sum12-d2;
+      if(x2===0)continue;
+      var in12="x"+(d2<0?" - "+(-d2):" + "+d2);
+      var st12=[c2+" \\times \\dfrac{"+in12+"}{"+p2+"} = "+a2+" \\times "+b2,
+                c2+"\\left("+in12+"\\right) = "+(a2*b2)+" \\times "+p2,
+                joinN(coefX(c2),c2*d2)+" = "+(a2*b2*p2)];
+      var an12=closeSteps(st12,c2,rmk(a2*b2*p2-c2*d2));
+      return {latex:"\\dfrac{"+in12+"}{"+p2+"} : "+a2+" = "+b2+" : "+c2,
+        ans:an12, steps:st12,
+        params:{f:"oy12c",p:p2,a:a2,b:b2,c:c2,d:d2,x:x2}};
+    }
+    return genOuyou();
+  }
+  if(t===9){                        /* 分数の複合（教科書型） */
+    var tr9=0;
+    while(tr9++<400){
+      var x9=rnz(-9,9);
+      if(Math.random()<0.6){          /* (a1x+b1)/p ± (a2x+b2)/q = R */
+        var p=pick([2,3,4,5]), q=pick([2,3,4,5,7]);
+        var sg=pick([1,-1]);
+        var a1=ri(1,3), b1=rnz(-9,9), a2=ri(1,3), b2=rnz(-9,9);
+        var L=lcm2(p,q), c1=L/p, c2=L/q;
+        var A=c1*a1+sg*c2*a2, B=c1*b1+sg*c2*b2;
+        if(A===0)continue;
+        var T=A*x9+B;
+        if(Math.abs(T)>150)continue;
+        var latex9="\\dfrac{"+linNum(a1,b1)+"}{"+p+"}"+(sg<0?" - ":" + ")+"\\dfrac{"+linNum(a2,b2)+"}{"+q+"} = "+fmtR(rmk(T,L));
+        var steps9=[L+"\\text{倍して } "+(c1===1?"":String(c1))+"\\left("+linNum(a1,b1)+"\\right)"+(sg<0?" - ":" + ")+(c2===1?"":String(c2))+"\\left("+linNum(a2,b2)+"\\right) = "+T];
+        if(B!==0)steps9.push(joinN(coefX(A),B)+" = "+T);
+        var ans9=closeSteps(steps9,A,rmk(T-B));
+        return {latex:latex9, ans:ans9, steps:steps9,
+          params:{f:"oy9a",x:x9,p:p,q:q,s:sg,a1:a1,b1:b1,a2:a2,b2:b2,T:T}};
+      }else{                          /* kx − (a2x+b2)/q (+m) = R */
+        var q2=pick([2,3,5,7]);
+        var k=rnz(-3,3), m=pick([0,0,1])?rnz(-12,12):0;
+        var a3=ri(1,7), b3=rnz(-9,9);
+        var A2=q2*k-a3, B2=-b3+q2*m;
+        if(A2===0)continue;
+        var T2=A2*x9+B2;
+        if(Math.abs(T2)>150)continue;
+        var latex10=coefX(k)+" - \\dfrac{"+linNum(a3,b3)+"}{"+q2+"}"+(m!==0?(m<0?" - "+(-m):" + "+m):"")+" = "+fmtR(rmk(T2,q2));
+        var steps10=[q2+"\\text{倍して } "+coefX(q2*k)+" - \\left("+linNum(a3,b3)+"\\right)"+(m!==0?(q2*m<0?" - "+(-q2*m):" + "+(q2*m)):"")+" = "+T2];
+        if(B2!==0)steps10.push(joinN(coefX(A2),B2)+" = "+T2);
+        var ans10=closeSteps(steps10,A2,rmk(T2-B2));
+        return {latex:latex10, ans:ans10, steps:steps10,
+          params:{f:"oy9b",x:x9,q:q2,k:k,m:m,a2:a3,b2:b3,T:T2}};
+      }
+    }
+    return genOuyou();
+  }
+  if(t===10){                       /* 小数×かっこ（教科書型） */
+    var tr10=0;
+    while(tr10++<400){
+      var xA=rnz(-9,9);
+      var fm=pick([0,1,2,3]);
+      if(fm===0){                     /* 0.t(x+a) = 0.u x + v */
+        var t0=ri(2,9), u0=ri(1,9);
+        if(u0===t0)continue;
+        var a0=rnz(-9,9);
+        var v0=t0*(xA+a0)-u0*xA;
+        if(v0===0||Math.abs(v0)>120)continue;
+        var in0="x"+(a0<0?" - "+(-a0):" + "+a0);
+        var lx=fmtDec(t0)+"\\left("+in0+"\\right) = "+coefXDec(u0)+(v0<0?" - "+fmtDec(-v0):" + "+fmtDec(v0));
+        var st=["10\\text{倍して } "+t0+"\\left("+in0+"\\right) = "+joinN(coefX(u0),v0),
+                joinN(coefX(t0),t0*a0)+" = "+joinN(coefX(u0),v0)];
+        var an=closeSteps(st,t0-u0,rmk(v0-t0*a0));
+        return {latex:lx, ans:an, steps:st, params:{f:"oy10a",x:xA,t:t0,u:u0,a:a0,v:v0}};
+      }
+      if(fm===1){                     /* 0.t x − 0.u(x+a) = w */
+        var t1=ri(1,9), u1=ri(1,9);
+        if(t1===u1)continue;
+        var a1d=rnz(-9,9);
+        var w1=t1*xA-u1*(xA+a1d);
+        if(w1===0||Math.abs(w1)>120)continue;
+        var in1="x"+(a1d<0?" - "+(-a1d):" + "+a1d);
+        var lx1=coefXDec(t1)+" - "+fmtDec(u1)+"\\left("+in1+"\\right) = "+fmtDec(w1);
+        var st1=["10\\text{倍して } "+coefX(t1)+" - "+u1+"\\left("+in1+"\\right) = "+w1,
+                 joinN(coefX(t1-u1),-u1*a1d)+" = "+w1];
+        var an1=closeSteps(st1,t1-u1,rmk(w1+u1*a1d));
+        return {latex:lx1, ans:an1, steps:st1, params:{f:"oy10b",x:xA,t:t1,u:u1,a:a1d,w:w1}};
+      }
+      if(fm===2){                     /* 0.t(x+a) = 0.u(x+b) */
+        var t2=ri(2,9), u2=ri(2,9);
+        if(t2===u2)continue;
+        var a2d=rnz(-9,9);
+        var num=t2*(xA+a2d)-u2*xA;
+        if(num%u2!==0)continue;
+        var b2d=num/u2;
+        if(b2d===0||Math.abs(b2d)>24)continue;
+        var inL="x"+(a2d<0?" - "+(-a2d):" + "+a2d);
+        var inR="x"+(b2d<0?" - "+(-b2d):" + "+b2d);
+        var lx2=fmtDec(t2)+"\\left("+inL+"\\right) = "+fmtDec(u2)+"\\left("+inR+"\\right)";
+        var st2=["10\\text{倍して } "+t2+"\\left("+inL+"\\right) = "+u2+"\\left("+inR+"\\right)",
+                 joinN(coefX(t2),t2*a2d)+" = "+joinN(coefX(u2),u2*b2d)];
+        var an2=closeSteps(st2,t2-u2,rmk(u2*b2d-t2*a2d));
+        return {latex:lx2, ans:an2, steps:st2, params:{f:"oy10c",x:xA,t:t2,u:u2,a:a2d,b:b2d}};
+      }
+      /* fm===3: 0.0p(cx+d) − 0.0q = 0.0r(x+e)（小数第二位×かっこ） */
+      var p3=ri(2,9), c3=ri(1,3), r3=ri(1,9);
+      if(p3*c3===r3)continue;
+      var d3=rnz(-9,9), q3=ri(1,9);
+      if(p3*d3-q3===0)continue;
+      var num3=p3*c3*xA+p3*d3-q3-r3*xA;
+      if(num3%r3!==0)continue;
+      var e3=num3/r3;
+      if(e3===0||Math.abs(e3)>24)continue;
+      var inC=linNum(c3,d3);
+      var inE="x"+(e3<0?" - "+(-e3):" + "+e3);
+      var lx3=fmtDec2(p3)+"\\left("+inC+"\\right) - "+fmtDec2(q3)+" = "+fmtDec2(r3)+"\\left("+inE+"\\right)";
+      var st3=["100\\text{倍して } "+p3+"\\left("+inC+"\\right) - "+q3+" = "+r3+"\\left("+inE+"\\right)",
+               joinN(coefX(p3*c3),p3*d3-q3)+" = "+joinN(coefX(r3),r3*e3)];
+      var an3=closeSteps(st3,p3*c3-r3,rmk(r3*e3-(p3*d3-q3)));
+      return {latex:lx3, ans:an3, steps:st3, params:{f:"oy11",x:xA,p:p3,c:c3,d:d3,q:q3,r:r3,e:e3}};
+    }
+    return genOuyou();
+  }
+  if(t===8){                        /* 小数第二位（0.25x など）*/
+    var x8=rnz(-9,9);
+    var A=ri(11,99)*pick([1,-1]);
+    while(A%10===0){A=ri(11,99)*pick([1,-1]);}   /* 係数は必ず第二位あり */
+    if(Math.random()<0.5){          /* Ax + B = D（×100法）*/
+      var B=rnz(-95,95);
+      var D=A*x8+B;
+      while(D===0){B=rnz(-95,95);D=A*x8+B;}
+      var latex8=coefXDec2(A)+(B<0?" - "+fmtDec2(-B):" + "+fmtDec2(B))+" = "+fmtDec2(D);
+      var steps8=["100\\text{倍して } "+coefX(A)+(B<0?" - "+(-B):" + "+B)+" = "+D,
+                  coefX(A)+" = "+(D-B)];
+      var ans8=closeSteps(steps8,A,rmk(D-B));
+      steps8.splice(2,1);
+      return {latex:latex8, ans:ans8, steps:steps8, params:{f:"oy8a",x:x8,a:A,b:B,d:D}};
+    }else{                          /* Ax + B = Cx + D（両辺・×100法）*/
+      var C=ri(5,95)*pick([1,-1]);
+      while(C===A||A-C===0){C=ri(5,95)*pick([1,-1]);}
+      var B2=rnz(-95,95);
+      var D2=(A-C)*x8+B2;
+      while(D2===0){B2=rnz(-95,95);D2=(A-C)*x8+B2;}
+      var latex9=coefXDec2(A)+(B2<0?" - "+fmtDec2(-B2):" + "+fmtDec2(B2))+" = "+coefXDec2(C)+(D2<0?" - "+fmtDec2(-D2):" + "+fmtDec2(D2));
+      var steps9=["100\\text{倍して } "+joinN(coefX(A),B2)+" = "+joinN(coefX(C),D2),
+                  coefX(A-C)+" = "+(D2-B2)];
+      var ans9=closeSteps(steps9,A-C,rmk(D2-B2));
+      steps9.splice(2,1);
+      return {latex:latex9, ans:ans9, steps:steps9, params:{f:"oy8b",x:x8,a:A,b:B2,c:C,d:D2}};
+    }
+  }
+  if(t===1){                        /* (x+a)/b = (x+c)/d */
+    var b1=pick([2,3,4]), d1=pick([2,3,4]);
+    while(d1===b1){d1=pick([2,3,4]);}
+    var x1=rnz(-9,9), a1=rnz(-6,6), c1=null, tries=0;
+    while(tries++<300){
+      var cand=d1*(x1+a1)-b1*x1;
+      if(cand%b1===0 && cand!==0 && cand/b1!==a1){c1=cand/b1;break;}
+      a1=rnz(-6,6); x1=rnz(-9,9);
+    }
+    if(c1===null)return genOuyou();
+    var L="\\dfrac{x"+(a1<0?" - "+(-a1):" + "+a1)+"}{"+b1+"}";
+    var R="\\dfrac{x"+(c1<0?" - "+(-c1):" + "+c1)+"}{"+d1+"}";
+    var steps1=[d1+"\\left(x"+(a1<0?" - "+(-a1):" + "+a1)+"\\right) = "+b1+"\\left(x"+(c1<0?" - "+(-c1):" + "+c1)+"\\right)",
+                joinN(coefX(d1),d1*a1)+" = "+joinN(coefX(b1),b1*c1)];
+    var k=d1-b1;
+    var ans1=closeSteps(steps1,k,rmk(b1*c1-d1*a1));
+    return {latex:L+" = "+R, ans:ans1, steps:steps1, params:{f:"oy2",a:a1,b:b1,c:c1,d:d1,x:x1}};
+  }
+  /* t===3: a(x−b) − c(x−d) = e */
+  var x3=rnz(-9,9);
+  var a3=rnz(-5,5), c3=rnz(-5,5);
+  while(a3-c3===0 || a3===0 || c3===0){a3=rnz(-5,5);c3=rnz(-5,5);}
+  var b3=rnz(-6,6), d3=rnz(-6,6);
+  while(-a3*b3+c3*d3===0){d3=rnz(-6,6);}
+  var e3=a3*(x3-b3)-c3*(x3-d3);
+  var LA=(Math.abs(a3)===1?(a3<0?"-":""):String(a3))+"\\left(x"+(b3>0?" - "+b3:" + "+(-b3))+"\\right)";
+  var LC=(Math.abs(c3)===1?"":String(Math.abs(c3)))+"\\left(x"+(d3>0?" - "+d3:" + "+(-d3))+"\\right)";
+  var mid=c3>0? LA+" - "+LC : LA+" + "+LC;
+  var s3=[joinN(joinT(coefX(a3),coefX(-c3)), -a3*b3+c3*d3)+" = "+e3];
+  var ans3=closeSteps(s3,a3-c3,rmk(e3+a3*b3-c3*d3));
+  return {latex:mid+" = "+e3, ans:ans3, steps:s3, params:{f:"oy4",x:x3,a:a3,b:b3,c:c3,d:d3,e:e3}};
+}
+
+function paren(v){return v<0? "\\left("+v+"\\right)" : String(v);}
+function kaiEq(sol){ /* 指定解の一次方程式を1本 */
+  var f=pick([0,1,2]);
+  if(f===0){                        /* x + a = c */
+    var a=rnz(-9,9);
+    return {latex:joinN("x",a)+" = "+(sol+a), f:0, a:a, b:0, c:sol+a, sol:sol};
+  }
+  if(f===1){                        /* ax = c */
+    var a1=rnz(-9,9); if(Math.abs(a1)===1)a1*=ri(2,9);
+    return {latex:coefX(a1)+" = "+(a1*sol), f:1, a:a1, b:0, c:a1*sol, sol:sol};
+  }
+  var a2=rnz(-6,6); if(Math.abs(a2)===1)a2*=ri(2,6);  /* ax + b = c */
+  var b2=rnz(-9,9);
+  return {latex:joinN(coefX(a2),b2)+" = "+(a2*sol+b2), f:2, a:a2, b:b2, c:a2*sol+b2, sol:sol};
+}
+function genKai(){
+  var x0=rnz(-9,9);
+  var nCorrect=pick([1,2,2,3]);     /* 正解数 1〜3（2がやや多め） */
+  var sols=[];
+  for(var i=0;i<nCorrect;i++)sols.push(x0);
+  var wrongSols=[];
+  while(sols.length<5){
+    var s=rnz(-9,9);
+    if(s!==x0 && wrongSols.indexOf(s)<0){wrongSols.push(s);sols.push(s);}
+  }
+  if(wrongSols.indexOf(-x0)<0){      /* 符号ちがいのひっかけを必ず混ぜる */
+    sols[sols.length-1]=-x0;
+  }
+  var choices=[], seen={};
+  for(var c=0;c<5;c++){
+    var eq=null, guard=0;
+    while(guard++<120){
+      eq=kaiEq(sols[c]);
+      if(!seen[eq.latex]){seen[eq.latex]=1;break;}
+      eq=null;
+    }
+    if(!eq)return genKai();
+    choices.push(eq);
+  }
+  for(var j=4;j>0;j--){var k=ri(0,j);var tmp=choices[j];choices[j]=choices[k];choices[k]=tmp;}
+  var corrects=[];
+  for(var m=0;m<5;m++)if(choices[m].sol===x0)corrects.push(m);
+  var steps=[];
+  corrects.forEach(function(idx){
+    var ce=choices[idx];
+    var sub;
+    if(ce.f===0)sub=paren(x0)+(ce.a<0?" - "+(-ce.a):" + "+ce.a)+" = "+ce.c;
+    else if(ce.f===1)sub=ce.a+" \\times "+paren(x0)+" = "+ce.c;
+    else sub=ce.a+" \\times "+paren(x0)+(ce.b<0?" - "+(-ce.b):" + "+ce.b)+" = "+ce.c;
+    steps.push(ce.latex+" \\text{ ： }"+sub+" \\;\\bigcirc");
+  });
+  return {type:"choice", multi:true, caption:"この解になる方程式を<b>すべて</b>選ぼう",
+    latex:"x = "+x0, choices:choices, corrects:corrects,
+    ans:rmk(x0), steps:steps,
+    params:{f:"kai",x:x0,eqs:choices.map(function(cc){return {f:cc.f,a:cc.a,b:cc.b,c:cc.c,sol:cc.sol};})}};
+}
+
+function genToushiki(){
+  var a=ri(2,9), x=rnz(-9,9);
+  var form=pick([0,1,2,3]);
+  var latex, correctOp, steps, ans;
+  if(form===0){                     /* x + a = b → 両辺から a をひく */
+    var b0=x+a;
+    latex="x + "+a+" = "+b0;
+    correctOp="sub";
+    steps=["\\text{両辺から }"+a+"\\text{ をひく}",
+           "x + "+a+" - "+a+" = "+b0+" - "+a,
+           "x = "+x];
+    ans=rmk(x);
+  }else if(form===1){               /* x − a = b → 両辺に a をたす */
+    var b1=x-a;
+    latex="x - "+a+" = "+b1;
+    correctOp="add";
+    steps=["\\text{両辺に }"+a+"\\text{ をたす}",
+           "x - "+a+" + "+a+" = "+b1+" + "+a,
+           "x = "+x];
+    ans=rmk(x);
+  }else if(form===2){               /* ax = b → 両辺を a でわる */
+    var b2=a*x;
+    latex=a+"x = "+b2;
+    correctOp="div";
+    steps=["\\text{両辺を }"+a+"\\text{ でわる}",
+           "\\dfrac{"+a+"x}{"+a+"} = \\dfrac{"+b2+"}{"+a+"}",
+           "x = "+x];
+    ans=rmk(x);
+  }else{                            /* x/a = b → 両辺に a をかける */
+    var b3=x;                        /* x = a*b3 とする */
+    x=a*b3;
+    latex="\\dfrac{x}{"+a+"} = "+b3;
+    correctOp="mul";
+    steps=["\\text{両辺に }"+a+"\\text{ をかける}",
+           "\\dfrac{x}{"+a+"} \\times "+a+" = "+b3+" \\times "+a,
+           "x = "+x];
+    ans=rmk(x);
+  }
+  var ops=[
+    {op:"add", text:"両辺に "+a+" をたす"},
+    {op:"sub", text:"両辺から "+a+" をひく"},
+    {op:"mul", text:"両辺に "+a+" をかける"},
+    {op:"div", text:"両辺を "+a+" でわる"}
+  ];
+  for(var j=3;j>0;j--){var k=ri(0,j);var tmp=ops[j];ops[j]=ops[k];ops[k]=tmp;}
+  var correct=0;
+  for(var m=0;m<4;m++)if(ops[m].op===correctOp)correct=m;
+  return {type:"choice", multi:false, caption:"x の値を求めるには？",
+    latex:latex, choices:ops, corrects:[correct], ans:ans, steps:steps,
+    params:{f:"tsp",form:form,a:a,x:x,op:correctOp}};
+}
+
+var GENS={
+  toushiki:genToushiki,
+  kai:genKai,
+  keisu_nashi:genKeisuNashi,
+  keisu_ari:genKeisuAri,
+  doruikou:genDoruikou,
+  kakko:genKakko,
+  bunsuu:genBunsuu,
+  shousuu:genShousuu,
+  hireishiki:genHireishiki,
+  ouyou:genOuyou
+};
+/*GEN-END*/
+
+/* ===== ここからUI（ブラウザのみ） ===== */
+if(typeof document==="undefined")return;
+
+var MODES=[
+  {key:"kai",label:"解"},
+  {key:"toushiki",label:"等式の性質"},
+  {key:"keisu_nashi",label:"係数なし"},
+  {key:"keisu_ari",label:"係数あり"},
+  {key:"doruikou",label:"同類項あり"},
+  {key:"kakko",label:"かっこあり"},
+  {key:"bunsuu",label:"分数"},
+  {key:"shousuu",label:"小数"},
+  {key:"hireishiki",label:"比例式"},
+  {key:"ouyou",label:"応用"}
+];
+var SET_SIZE=10;
+var UNIT_KEY="math_js1_houteishiki_master";
+
+var $=function(id){return document.getElementById(id);};
+
+var state={
+  mode:"keisu_nashi",
+  qIndex:0,
+  results:[],        /* true/false */
+  probs:[],
+  wrongs:[],         /* {prob} 解き直し用 */
+  retrying:false,
+  graded:false,
+  selected:[]
+};
+var CLABELS=["ア","イ","ウ","エ","オ"];
+
+/* --- 入力状態 --- */
+var inp={sign:1,frac:false,target:"int",int:"",num:"",den:""};
+function inpReset(){inp={sign:1,frac:false,target:"int",int:"",num:"",den:""};renderAns();}
+function inpKey(k){
+  if(k==="C"){inpReset();return;}
+  if(k==="±"){inp.sign*=-1;renderAns();return;}
+  if(k==="frac"){
+    if(!inp.frac){
+      inp.frac=true;
+      inp.num=inp.int.replace(".","");
+      inp.int="";
+      inp.target=inp.num?"den":"num";
+    }else{
+      inp.target=(inp.target==="num")?"den":"num";
+    }
+    renderAns();return;
+  }
+  if(k==="⌫"){
+    if(inp.frac){
+      if(inp[inp.target]){inp[inp.target]=inp[inp.target].slice(0,-1);}
+      else if(inp.target==="den"&&inp.num){inp.target="num";inp.num=inp.num.slice(0,-1);}
+      if(!inp.num&&!inp.den){inp.frac=false;inp.target="int";}
+    }else{
+      if(inp.int)inp.int=inp.int.slice(0,-1);
+      else if(inp.sign<0)inp.sign=1;
+    }
+    renderAns();return;
+  }
+  if(k==="."){
+    if(inp.frac)return;
+    if(inp.int.indexOf(".")>=0)return;
+    inp.int=(inp.int||"0")+".";
+    renderAns();return;
+  }
+  /* 数字 */
+  if(inp.frac){
+    if(inp[inp.target].length>=3)return;
+    inp[inp.target]+=k;
+  }else{
+    if(inp.int.replace(".","").length>=4)return;
+    inp.int+=k;
+  }
+  renderAns();
+}
+function inpValue(){ /* [n,d] or null */
+  if(inp.frac){
+    if(!inp.num||!inp.den)return null;
+    var n=parseInt(inp.num,10), d=parseInt(inp.den,10);
+    if(!d)return null;
+    return rmk(inp.sign*n,d);
+  }
+  if(!inp.int||inp.int===".")return null;
+  var s=inp.int;
+  if(s.indexOf(".")>=0){
+    var p=s.split(".");
+    var dec=p[1]||"";
+    if(!dec.length)return null;
+    var scale=Math.pow(10,dec.length);
+    return rmk(inp.sign*parseInt(p[0]+dec,10),scale);
+  }
+  return rmk(inp.sign*parseInt(s,10),1);
+}
+function inpDisplayText(){
+  if(inp.frac){
+    var t=(inp.sign<0?"-":"")+(inp.num||"□")+"/"+(inp.den||"□");
+    return t;
+  }
+  return (inp.sign<0?"-":"")+(inp.int||"");
+}
+function renderAns(){
+  var box=$("divpAnsbox");
+  box.innerHTML="";
+  var hasAny=inp.frac?(inp.num||inp.den):inp.int;
+  if(inp.sign<0){
+    var m=document.createElement("span");m.textContent="−";box.appendChild(m);
+  }
+  if(inp.frac){
+    var f=document.createElement("span");f.className="divp-frac";
+    var nu=document.createElement("span");nu.className="divp-num"+(inp.target==="num"?" divp-active":"");
+    nu.textContent=inp.num;
+    var de=document.createElement("span");de.className=(inp.target==="den"?"divp-active":"");
+    de.textContent=inp.den;
+    f.appendChild(nu);f.appendChild(de);
+    box.appendChild(f);
+  }else if(inp.int){
+    var s=document.createElement("span");s.textContent=inp.int;box.appendChild(s);
+  }
+  if(!hasAny&&inp.sign>0){
+    var e=document.createElement("span");e.className="divp-empty";e.textContent="タップで入力";
+    box.appendChild(e);
+  }
+}
+
+/* --- KaTeX 描画 + 縮小 --- */
+function kx(el,latex){
+  try{katex.render(latex,el,{throwOnError:false,displayMode:false,strict:false});}
+  catch(e){el.textContent=latex;}
+}
+function fitText(el,container,origin){
+  el.style.transform="";
+  var cw=container.clientWidth-16;
+  var w=el.scrollWidth;
+  if(w>cw){
+    var s=Math.max(0.4,cw/w);
+    el.style.transformOrigin=origin||"center center";
+    el.style.transform="scale("+s+")";
+  }
+}
+
+/* --- Divp guard --- */
+function safeDivpCorrect(){try{if(window.Divp&&Divp.correct)Divp.correct();}catch(e){}}
+function safeDivpAnswer(ok,meta){try{if(window.Divp&&Divp.answer)Divp.answer(ok,meta);}catch(e){}}
+
+/* ===== 学習記録システム連携（question_params の二重表現）=====
+ * 再出題に必要な「表示情報一式」をそのまま question_params に保存する
+ * （genXxx が返す問題オブジェクトを丸ごと復元できる形。params_hash はこの
+ * JSON形状で決まるので、形を変えると既存 pending 行のハッシュと合わなくなる）。*/
+function qParams(prob){
+  var p={
+    mode: prob.qkey||state.mode,
+    type: (prob.type==="choice")?"choice":"input",
+    latex: prob.latex,
+    ans: prob.ans,          /* [n,d] */
+    steps: prob.steps||[]
+  };
+  if(prob.type==="choice"){
+    p.multi=!!prob.multi;
+    p.caption=prob.caption||"";
+    p.corrects=(prob.corrects||[]).slice();
+    p.choices=(prob.choices||[]).map(function(c){
+      return {latex:(c.latex!=null?c.latex:null), text:(c.text!=null?c.text:null)};
+    });
+  }
+  return p;
+}
+/* question_params → showProblem で使える問題オブジェクトに復元 */
+function reconstructQ(p){
+  var q={latex:p.latex, ans:p.ans, steps:p.steps||[], qkey:p.mode};
+  if(p.type==="choice"){
+    q.type="choice"; q.multi=!!p.multi; q.caption=p.caption||"";
+    q.corrects=(p.corrects||[]).slice();
+    q.choices=(p.choices||[]).map(function(c){
+      var o={}; if(c.latex!=null)o.latex=c.latex; if(c.text!=null)o.text=c.text; return o;
+    });
+  }
+  return q;
+}
+/* 古い形式・欠損データを弾く（再出題に必要な最低限を検証） */
+function validRetryParams(key, p){
+  if(!GENS[key] || !p || typeof p!=="object") return false;
+  if(typeof p.latex!=="string" || !Array.isArray(p.ans)) return false;
+  if(p.type==="choice") return Array.isArray(p.choices)&&p.choices.length>0&&Array.isArray(p.corrects);
+  return true;
+}
+
+/* --- トースト --- */
+var toastTimer=null;
+function toast(msg){
+  var t=$("divpToast");t.textContent=msg;t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){t.classList.remove("show");},1600);
+}
+
+/* --- 進捗 --- */
+function renderProgress(){
+  var total=state.retrying?state.probs.length:SET_SIZE;
+  $("divpQnum").textContent=(state.retrying?"直し ":"第")+(state.qIndex+1)+"問 / "+total;
+  var dots=$("divpDots");dots.innerHTML="";
+  for(var i=0;i<total;i++){
+    var d=document.createElement("span");d.className="divp-dot";
+    if(i<state.results.length)d.classList.add(state.results[i]?"ok":"ng");
+    if(i===state.qIndex)d.classList.add("now");
+    dots.appendChild(d);
+  }
+}
+
+/* --- 出題 --- */
+function renderChoices(prob){
+  var wrap=$("divpChoices");
+  wrap.innerHTML="";
+  prob.choices.forEach(function(c,i){
+    var b=document.createElement("button");
+    b.type="button";b.className="divp-choice";
+    var lab=document.createElement("span");lab.className="divp-clabel";lab.textContent=CLABELS[i];
+    var eq=document.createElement("span");eq.className=c.text?"divp-ctext":"divp-ceq";
+    b.appendChild(lab);b.appendChild(eq);
+    wrap.appendChild(b);
+    if(c.text){eq.textContent=c.text;}
+    else{kx(eq,c.latex);fitText(eq,b,"left center");}
+    b.addEventListener("click",function(){
+      if(state.graded)return;
+      if(prob.multi===false){
+        state.selected=[i];
+        wrap.querySelectorAll(".divp-choice").forEach(function(x){x.classList.remove("sel");});
+        b.classList.add("sel");
+        return;
+      }
+      var pos=state.selected.indexOf(i);
+      if(pos>=0){state.selected.splice(pos,1);b.classList.remove("sel");}
+      else{state.selected.push(i);b.classList.add("sel");}
+    });
+  });
+}
+function showProblem(){
+  var prob=state.probs[state.qIndex];
+  var isChoice=(prob.type==="choice");
+  var q=$("divpQtext");
+  kx(q,prob.latex);
+  fitText(q,q.parentNode,"center center");
+  inpReset();
+  state.graded=false;
+  state.selected=[];
+  $("divpQcaption").classList.toggle("show",isChoice);
+  if(isChoice)$("divpQcaption").innerHTML=prob.caption||"";
+  $("divpChoices").classList.toggle("show",isChoice);
+  $("divpChoices").classList.remove("disabled");
+  $("divpAnsrow").style.display=isChoice?"none":"";
+  $("divpTenkey").style.display=isChoice?"none":"";
+  if(isChoice)renderChoices(prob);
+  $("divpFb").classList.remove("show");
+  $("divpTenkey").classList.remove("disabled");
+  $("divpGrade").disabled=false;
+  renderProgress();
+}
+
+function startSet(retry){
+  state.retrying=!!retry;
+  state.qIndex=0;
+  state.results=[];
+  if(retry){
+    state.probs=state.wrongs.map(function(w){return w;});
+    state.wrongs=[];
+  }else{
+    state.probs=[];
+    state.wrongs=[];
+    for(var i=0;i<SET_SIZE;i++)state.probs.push(GENS[state.mode]());
+  }
+  $("divpResult").classList.remove("show");
+  $("divpQuiz").classList.remove("hide");
+  showProblem();
+}
+
+/* --- 答え合わせ --- */
+function grade(){
+  if(state.graded)return;
+  var prob=state.probs[state.qIndex];
+  var isChoice=(prob.type==="choice");
+  var ok, wrongDisp;
+  if(isChoice){
+    if(state.selected.length===0){toast("答えを選んでね");return;}
+    var sel=state.selected.slice().sort(function(a,b){return a-b;});
+    ok=(sel.length===prob.corrects.length)&&sel.every(function(v,i){return v===prob.corrects[i];});
+    wrongDisp=sel.map(function(i){return CLABELS[i];}).join("・");
+    var btns=$("divpChoices").querySelectorAll(".divp-choice");
+    btns.forEach(function(b,i){
+      b.classList.remove("sel");
+      if(prob.corrects.indexOf(i)>=0)b.classList.add("hit");
+      else if(sel.indexOf(i)>=0)b.classList.add("miss");
+    });
+    $("divpChoices").classList.add("disabled");
+  }else{
+    var v=inpValue();
+    if(v===null){toast("答えを入力してね");return;}
+    ok=req(v,prob.ans);
+    wrongDisp=inpDisplayText();
+  }
+  state.graded=true;
+  state.results.push(ok);
+  if(!ok&&!state.retrying)state.wrongs.push(prob);
+  if(!ok&&state.retrying)state.wrongs.push(prob);
+
+  var head=$("divpFbHead");
+  head.textContent=ok?"◎ 正解！":"✕ ざんねん…";
+  head.className="divp-fb-head "+(ok?"ok":"ng");
+  if(isChoice){
+    var labs=prob.corrects.map(function(i){return CLABELS[i];}).join("・");
+    if(prob.choices[prob.corrects[0]].text){
+      $("divpFbAns").textContent="答え："+labs+"　"+prob.choices[prob.corrects[0]].text;
+    }else{
+      kx($("divpFbAns"),"\\text{答え：}\\text{"+labs+"}");
+    }
+  }else{
+    kx($("divpFbAns"),"x = "+fmtR(prob.ans));
+  }
+  var body=$("divpStepsBody");body.innerHTML="";
+  prob.steps.forEach(function(s){
+    var line=document.createElement("div");line.className="divp-step";
+    kx(line,s);
+    body.appendChild(line);
+    fitText(line,body.parentNode,"left center");
+  });
+  var last=(state.qIndex===state.probs.length-1);
+  $("divpNext").textContent=last?"結果を見る":"次の問題へ";
+  $("divpFb").classList.add("show");
+  $("divpTenkey").classList.add("disabled");
+  $("divpGrade").disabled=true;
+  renderProgress();
+
+  if(ok)safeDivpCorrect();
+  safeDivpAnswer(ok,{
+    question_key:prob.qkey||state.mode,
+    question_params:qParams(prob),
+    question_text:prob.latex,
+    correct_answer:isChoice?prob.corrects.map(function(i){return CLABELS[i];}).join("・"):("x = "+fmtR(prob.ans)),
+    wrong_answer:ok?null:wrongDisp
+  });
+}
+
+/* --- 結果・ランク --- */
+function streakKey(){return "divp_hmaster_streak_"+state.mode;}
+function calcRank(score){
+  if(score<=3)return "D";
+  if(score<=5)return "C";
+  if(score<=7)return "B";
+  if(score<=9)return "A";
+  /* パーフェクト */
+  var st=1;
+  try{
+    st=(parseInt(localStorage.getItem(streakKey())||"0",10))+1;
+    localStorage.setItem(streakKey(),String(st));
+  }catch(e){}
+  if(st>=3)return "SSS";
+  if(st===2)return "SS";
+  return "S";
+}
+function showResult(){
+  $("divpQuiz").classList.add("hide");
+  var score=state.results.filter(Boolean).length;
+  var total=state.probs.length;
+  if(state.retrying){
+    $("divpRankLabel").textContent="まちがい直し";
+    $("divpRank").textContent=(score===total)?"◎":"○";
+    $("divpScore").textContent=score+" / "+total+" 問クリア";
+    $("divpStreak").textContent=(state.wrongs.length?"まだ直せる問題があるよ":"全部直せた！");
+  }else{
+    var rank;
+    if(score===10){rank=calcRank(score);}
+    else{
+      rank=calcRank(score);
+      try{localStorage.setItem(streakKey(),"0");}catch(e){}
+    }
+    $("divpRankLabel").textContent="ランク";
+    $("divpRank").textContent=rank;
+    $("divpScore").textContent=score+" / "+total+" 問正解";
+    var st=0;
+    try{st=parseInt(localStorage.getItem(streakKey())||"0",10);}catch(e){}
+    $("divpStreak").textContent=(score===10)
+      ? "パーフェクト "+st+" 回連続！（3回連続でSSS）"
+      : "10問連続正解で S ランク";
+  }
+  $("divpRetry").style.display=state.wrongs.length?"":"none";
+  $("divpResult").classList.add("show");
+}
+
+/* --- 設定UI --- */
+function buildChips(){
+  var wrap=$("divpChips");
+  MODES.forEach(function(m){
+    var b=document.createElement("button");
+    b.type="button";b.className="divp-chip"+(m.key===state.mode?" on":"");
+    b.textContent=m.label;
+    b.addEventListener("click",function(){
+      state.mode=m.key;
+      wrap.querySelectorAll(".divp-chip").forEach(function(c){c.classList.remove("on");});
+      b.classList.add("on");
+      $("divpCurrentMode").textContent=m.label;
+      $("divpSetting").classList.remove("open");
+      startSet(false);
+    });
+    wrap.appendChild(b);
+  });
+}
+
+/* --- テンキー --- */
+function buildTenkey(){
+  var keys=[
+    "7","8","9","⌫","C",
+    "4","5","6","±","frac",
+    "1","2","3","0","."
+  ];
+  var wrap=$("divpTenkey");
+  keys.forEach(function(k){
+    var b=document.createElement("button");
+    b.type="button";
+    b.className="divp-key"+(("⌫C±frac.".indexOf(k)>=0&&k.length>1)||"⌫C±.".indexOf(k)>=0?" fn":"");
+    if(k==="frac"){b.classList.add("fn");b.id="divpFracKey";b.textContent="分数";}
+    else b.textContent=k;
+    b.addEventListener("click",function(){
+      inpKey(k);
+      var fk=$("divpFracKey");
+      if(fk)fk.classList.toggle("frac-on",inp.frac);
+    });
+    wrap.appendChild(b);
+  });
+}
+
+/* --- イベント --- */
+$("divpSettingBar").addEventListener("click",function(){
+  $("divpSetting").classList.toggle("open");
+});
+$("divpGrade").addEventListener("click",grade);
+$("divpNext").addEventListener("click",function(){
+  if(state.qIndex===state.probs.length-1){showResult();}
+  else{state.qIndex++;showProblem();}
+});
+$("divpAgain").addEventListener("click",function(){startSet(false);});
+$("divpRetry").addEventListener("click",function(){startSet(true);});
+window.addEventListener("resize",function(){
+  var q=$("divpQtext");
+  if(q.firstChild)fitText(q,q.parentNode,"center center");
+});
+
+buildChips();
+buildTenkey();
+
+/* ===== 解き直し（DB連携）=====
+ * ?retry=1 で開くと Divp.getRetries()（api/list_retries.php）から pending を取得し、
+ * question_params から全く同じ問題を復元して1セットとして出題する。
+ * &focus=<params_hash> 付きなら、その1問だけを出す（mypage「今日の1問」用）。
+ * 同じ params_hash に2連続正解でサーバー側 mastered。*/
+function startDbRetry(items){
+  state.retrying=true;
+  state.qIndex=0;
+  state.results=[];
+  state.wrongs=[];
+  state.probs=items.map(function(it){return reconstructQ(it.question_params);});
+  $("divpSetting").classList.remove("open");
+  $("divpResult").classList.remove("show");
+  $("divpQuiz").classList.remove("hide");
+  showProblem();
+}
+function initRetry(){
+  var focusHash=(location.search.match(/[?&]focus=([a-f0-9]{64})/i)||[])[1];
+  Divp.getRetries().then(function(items){
+    var use=(items||[]).filter(function(it){return validRetryParams(it.question_key,it.question_params);});
+    if(focusHash) use=use.filter(function(it){return it.params_hash===focusHash;});
+    if(!use.length){ startSet(false); return; }   /* 解き直し対象なし → 通常出題 */
+    startDbRetry(use);
+  }).catch(function(){ startSet(false); });
+}
+/* divp-core は defer で head から読み込むため DOMContentLoaded 時には Divp が使える。
+ * 初回出題はここで一度だけ行う（?retry=1 は initRetry 経由、それ以外は通常出題）。*/
+function bootDivp(){
+  if(window.Divp&&typeof Divp.init==="function"){try{Divp.init(UNIT_KEY);}catch(e){}}
+  if(/[?&]retry=1/.test(location.search)&&window.Divp&&typeof Divp.getRetries==="function"){
+    initRetry();
+  }else{
+    startSet(false);
+  }
+}
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", bootDivp);
+else bootDivp();
+
+})();
+</script>
+</body>
+</html>
