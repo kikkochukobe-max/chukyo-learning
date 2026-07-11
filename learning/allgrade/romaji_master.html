@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="only light">
+<title>ローマ字マスター｜中京個別指導学院</title>
+<!-- 本番(Heteml)ではサブセット自己ホストに差し替え -->
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- 学習記録システム共通モジュール -->
+<script src="/assets/divp-core.js" defer></script>
+<script src="/assets/divp-header.js" defer></script>
+<!-- 小学生も使う全学年ツールなので、正解時は星＋「正解！」演出を出す（自前の朱◎スタンプと併用） -->
+<script src="/assets/divp-correct.js" defer></script>
+<style>
+  :root{
+    --paper:#FBFAF6;
+    --grid:#ECE9E0;
+    --sumi:#33312B;
+    --usuzumi:#8B877C;
+    --shu:#C73E2E;
+    --kin:#C9A227;
+    --ai:#2C5F8A;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html{ scrollbar-gutter:stable; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:24px 24px;
+    color:var(--sumi);
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    touch-action:manipulation;
+  }
+  .app{
+    width:100%;
+    max-width:480px;
+    margin:0 auto;
+    padding:12px 14px calc(14px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    flex:1;
+  }
+
+  /* ---- ヘッダー ---- */
+  header{
+    display:flex; align-items:baseline; justify-content:space-between;
+  }
+  header h1{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700; margin:0;
+    letter-spacing:.06em;
+  }
+  header h1 .sub{
+    font-size:11px; font-weight:500; color:var(--usuzumi); margin-left:6px;
+    letter-spacing:.12em;
+  }
+  .score{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--usuzumi);
+  }
+  .score b{ color:var(--shu); font-size:16px; }
+  .score .streak{ color:var(--kin); margin-left:8px; }
+  .srank{
+    color:var(--kin);
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-weight:700;
+    letter-spacing:.04em;
+  }
+
+  /* ---- お題カード ---- */
+  .card{
+    position:relative;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:16px;
+    box-shadow:0 2px 0 rgba(51,49,43,.06);
+    padding:18px 16px 14px;
+    text-align:center;
+  }
+  .card .emoji{ font-size:44px; line-height:1; }
+  .card .kana{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:clamp(24px, 8vw, 36px);
+    font-weight:700;
+    letter-spacing:.1em;
+    margin-top:6px;
+  }
+  .card .kana-sub{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:14px; font-weight:700;
+    color:var(--usuzumi);
+    min-height:20px;
+  }
+  .card .lead{
+    font-size:12px; color:var(--usuzumi); margin-top:4px; letter-spacing:.08em;
+  }
+  .tags{
+    display:flex; gap:6px; justify-content:center; flex-wrap:wrap;
+    min-height:22px; margin-top:8px;
+  }
+  .tag{
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.2px solid var(--ai);
+    background:#fff;
+    border-radius:999px;
+    padding:2px 10px;
+    letter-spacing:.06em;
+  }
+
+  /* 朱◎スタンプ */
+  .stamp{
+    position:absolute;
+    top:50%; left:50%;
+    width:96px; height:96px;
+    margin:-48px 0 0 -48px;
+    border:5px solid var(--shu);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    transform:rotate(-12deg) scale(0);
+    pointer-events:none;
+    opacity:0;
+  }
+  .stamp::before{
+    content:"";
+    width:58px; height:58px;
+    border:4px solid var(--shu);
+    border-radius:50%;
+  }
+  .stamp.show{
+    animation:stampIn .45s cubic-bezier(.2,1.6,.4,1) forwards;
+  }
+  @keyframes stampIn{
+    0%{ transform:rotate(-12deg) scale(2.2); opacity:0; }
+    60%{ transform:rotate(-12deg) scale(.92); opacity:.95; }
+    100%{ transform:rotate(-12deg) scale(1); opacity:.9; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .stamp.show{ animation:none; transform:rotate(-12deg) scale(1); opacity:.9; }
+  }
+
+  /* ---- 入力マス ---- */
+  .cells{
+    display:flex; justify-content:center; gap:4px;
+    flex-wrap:nowrap;
+    min-height:52px;
+  }
+  .cell{
+    flex:0 1 clamp(28px, 9vw, 42px);
+    min-width:0;
+    height:clamp(40px, 12vw, 52px);
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:2.5px solid var(--usuzumi);
+    border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:clamp(15px, 5.5vw, 28px);
+    font-weight:700;
+  }
+  .cell.current{ border-color:var(--ai); border-bottom-color:var(--ai); }
+  .cell.current::after{
+    content:"";
+    width:2px; height:55%;
+    background:var(--ai);
+    animation:blink 1s steps(1) infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+  .cells.shake{ animation:shake .35s; }
+  @keyframes shake{
+    20%{ transform:translateX(-6px); } 40%{ transform:translateX(6px); }
+    60%{ transform:translateX(-4px); } 80%{ transform:translateX(4px); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .cells.shake{ animation:none; }
+  }
+
+  /* ---- フィードバック ---- */
+  .feedback{
+    min-height:64px;
+    text-align:center;
+    font-family:"Zen Maru Gothic", sans-serif;
+  }
+  .feedback .msg{ font-size:14px; font-weight:700; letter-spacing:.06em; }
+  .feedback .msg.good{ color:var(--shu); }
+  .feedback .msg.bad{ color:var(--sumi); }
+  /* ランク達成の演出（大きく・つぎへを押すまで残す） */
+  .feedback .rank-up{
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    animation:rankPop .5s cubic-bezier(.2,1.5,.4,1) both;
+  }
+  .feedback .rank-badge{ font-size:17px; color:var(--shu); font-weight:700; }
+  .feedback .rank-big{
+    display:flex; align-items:baseline; justify-content:center; gap:8px;
+    color:var(--sumi); font-size:18px; font-weight:700;
+  }
+  .feedback .rank-big .srank{
+    font-size:clamp(44px, 14vw, 68px);
+    line-height:1;
+  }
+  @keyframes rankPop{
+    0%{ opacity:0; transform:scale(.4) rotate(-8deg); }
+    60%{ opacity:1; transform:scale(1.12) rotate(-3deg); }
+    100%{ opacity:1; transform:scale(1) rotate(-3deg); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .feedback .rank-up{ animation:none; }
+  }
+  .answer-line{
+    margin-top:6px;
+    font-size:24px; font-weight:700; letter-spacing:.12em;
+  }
+  .answer-line .diff{
+    color:var(--shu);
+    border-bottom:3px solid var(--shu);
+  }
+  .retry-row{
+    display:flex; gap:10px; justify-content:center; margin-top:10px;
+  }
+  .retry-row button{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:14px; font-weight:700;
+    padding:8px 18px;
+    border-radius:999px;
+    border:1.5px solid var(--sumi);
+    background:#fff; color:var(--sumi);
+    cursor:pointer;
+  }
+  .retry-row button.primary{
+    background:var(--shu); border-color:var(--shu); color:#fff;
+  }
+
+  /* ---- キーボード ---- */
+  .kb-hint{
+    margin-top:auto;
+    text-align:center;
+    font-size:11px;
+    color:var(--usuzumi);
+    letter-spacing:.1em;
+  }
+  .keyboard{
+    display:grid;
+    grid-template-columns:repeat(20, 1fr);
+    gap:5px;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+  }
+  .keyboard .sp1{ grid-column:span 1; }
+  .keyboard .sp2{ grid-column:span 2; }
+  .key{
+    grid-column:span 2;
+    height:46px;
+    min-width:0;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:9px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700;
+    color:var(--sumi);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    padding:0;
+  }
+  .key:active{
+    background:var(--shu); border-color:var(--shu); color:#fff;
+    border-bottom-width:1.5px;
+    transform:translateY(2px);
+  }
+  .key.caps{
+    background:var(--ai); border-color:var(--ai); color:#fff;
+    text-transform:uppercase;
+  }
+  .key.erase{
+    grid-column:span 4;
+    font-size:14px;
+    color:var(--usuzumi);
+  }
+  .submit{
+    margin-top:2px;
+    height:52px;
+    width:100%;
+    border:none;
+    border-radius:12px;
+    background:var(--shu);
+    color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    letter-spacing:.28em;
+    text-indent:.28em;
+    box-shadow:0 3px 0 #9E2F22;
+    cursor:pointer;
+  }
+  .submit:active{ transform:translateY(2px); box-shadow:0 1px 0 #9E2F22; }
+  .submit:disabled{
+    background:var(--grid); color:var(--usuzumi);
+    box-shadow:0 3px 0 #D8D4C8;
+    cursor:default;
+  }
+  .key:focus-visible, .submit:focus-visible, .retry-row button:focus-visible{
+    outline:3px solid var(--ai); outline-offset:2px;
+  }
+  .print-btn{
+    border:1.5px solid var(--grid);
+    background:#fff;
+    border-radius:8px;
+    font-size:15px;
+    padding:3px 8px;
+    cursor:pointer;
+    margin-left:10px;
+  }
+  .print-btn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+  .mode-back{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:11px;
+    font-weight:700;
+    color:var(--ai);
+    border-color:var(--ai);
+    white-space:nowrap;
+  }
+
+  /* ---- モード選択画面 ---- */
+  .mode-screen{ display:none; }
+  body.choosing .app{ display:none; }
+  body.choosing .mode-screen{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    max-width:480px;
+    margin:0 auto;
+    padding:48px 20px;
+  }
+  .m-logo{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:26px; font-weight:700;
+    text-align:center;
+    letter-spacing:.1em;
+  }
+  .m-sub{
+    text-align:center;
+    font-size:13px; color:var(--usuzumi);
+    margin-bottom:10px;
+  }
+  .m-card{
+    display:flex; align-items:center; gap:14px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:4px solid #D8D4C8;
+    border-radius:16px;
+    padding:16px 18px;
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;
+  }
+  .m-card:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .m-card.selected{ border-color:var(--shu); border-bottom-color:var(--shu); }
+  .m-emoji{ font-size:32px; }
+  .m-body{ display:flex; flex-direction:column; gap:2px; }
+  .m-name{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:19px; font-weight:700;
+  }
+  .m-desc{ font-size:12px; color:var(--usuzumi); }
+  .m-cats{
+    display:flex; flex-wrap:wrap; gap:6px;
+    padding:2px 2px;
+  }
+  .m-cats[hidden]{ display:none; }
+  .m-chip{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:999px;
+    padding:6px 12px;
+    cursor:pointer;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  .m-chip input{
+    position:absolute;
+    opacity:0;
+    width:0; height:0;
+    pointer-events:none;
+  }
+  .m-chip:has(input:checked){
+    background:var(--shu);
+    border-color:var(--shu);
+    color:#fff;
+  }
+  .m-note{
+    flex-basis:100%;
+    font-size:12px;
+    color:var(--usuzumi);
+    letter-spacing:.06em;
+  }
+  .m-all{
+    border-color:var(--ai);
+    color:var(--ai);
+    background:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+  }
+  .g-group{
+    width:100%;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .g-group.open{ border-color:var(--shu); }
+  .g-head{
+    width:100%;
+    display:flex; align-items:center; gap:8px;
+    background:none;
+    border:none;
+    padding:11px 12px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:14px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+    text-align:left;
+  }
+  .g-arrow{
+    color:var(--usuzumi);
+    transition:transform .15s;
+  }
+  .g-group.open .g-arrow{ transform:rotate(90deg); }
+  .g-count{
+    margin-left:auto;
+    font-size:12px;
+    color:var(--shu);
+  }
+  .g-body{
+    display:flex; flex-wrap:wrap; gap:6px;
+    padding:0 12px 12px;
+  }
+  .g-body[hidden]{ display:none; }
+  .m-start{
+    width:100%;
+    height:52px;
+    margin-top:6px;
+    border:none; border-radius:12px;
+    background:var(--shu); color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700;
+    letter-spacing:.2em; text-indent:.2em;
+    box-shadow:0 3px 0 #9E2F22;
+    cursor:pointer;
+  }
+  .m-start:active{ transform:translateY(2px); box-shadow:0 1px 0 #9E2F22; }
+  @media print{
+    .mode-screen{ display:none !important; }
+  }
+
+  /* ---- 先生用設定(藍基調) ---- */
+  .sensei{ display:none; }
+  body.sensei-mode .app{ display:none; }
+  body.sensei-mode .sensei{
+    display:block;
+    max-width:520px;
+    margin:0 auto;
+    padding:16px 14px 40px;
+  }
+  .s-head{ display:flex; align-items:baseline; gap:8px; border-bottom:2.5px solid var(--ai); padding-bottom:8px; }
+  .s-head h1{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:19px; font-weight:700; color:var(--ai); margin:0;
+  }
+  .s-app{ font-size:12px; color:var(--usuzumi); }
+  .s-back{
+    margin-left:auto;
+    font-size:12px; font-weight:700;
+    padding:5px 10px;
+    border:1.5px solid var(--ai); border-radius:999px;
+    background:#fff; color:var(--ai);
+    cursor:pointer;
+  }
+  .s-desc{ font-size:13px; line-height:1.7; color:var(--sumi); }
+  .s-actions{ display:flex; gap:8px; margin-bottom:10px; }
+  .s-actions button{
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    font-size:13px; font-weight:500;
+    padding:6px 14px;
+    border:1.5px solid var(--ai); border-radius:999px;
+    background:#fff; color:var(--ai);
+    cursor:pointer;
+  }
+  .s-list{
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .s-row{
+    display:flex; align-items:center; gap:10px;
+    padding:9px 12px;
+    border-bottom:1px solid var(--grid);
+    cursor:pointer;
+    font-size:15px;
+  }
+  .s-row:last-child{ border-bottom:none; }
+  .s-row.off{ opacity:.4; }
+  .s-row.off .s-kana{ text-decoration:line-through; }
+  .s-row input[type="checkbox"]{ width:19px; height:19px; accent-color:var(--ai); flex-shrink:0; }
+  .s-kana{ font-family:"Zen Maru Gothic", sans-serif; font-weight:700; }
+  .s-roman{ color:var(--usuzumi); font-size:13px; }
+  .s-emoji{ margin-left:auto; }
+  .s-del{
+    font-size:11px; font-weight:700;
+    padding:4px 9px;
+    border:1.2px solid var(--usuzumi); border-radius:999px;
+    background:#fff; color:var(--usuzumi);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .s-add{
+    display:flex; gap:6px; margin-top:10px;
+  }
+  .s-add input{
+    min-width:0;
+    font-size:14px;
+    padding:8px;
+    border:1.5px solid var(--grid); border-radius:8px;
+    background:#fff;
+  }
+  #sAddKana{ flex:1.2; }
+  #sAddRoman{ flex:1.2; }
+  #sAddEmoji{ flex:.6; }
+  .s-add button{
+    font-size:13px; font-weight:700;
+    padding:8px 14px;
+    border:1.5px solid var(--ai); border-radius:8px;
+    background:var(--ai); color:#fff;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .s-tip{ font-size:11px; color:var(--usuzumi); margin:6px 0 0; }
+  .s-make{
+    margin-top:14px;
+    width:100%;
+    height:48px;
+    border:none; border-radius:12px;
+    background:var(--ai); color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:15px; font-weight:700;
+    box-shadow:0 3px 0 #1E466A;
+    cursor:pointer;
+  }
+  .s-make:active{ transform:translateY(2px); box-shadow:0 1px 0 #1E466A; }
+
+  /* ---- 印刷モード ---- */
+  .print-sheet{ display:none; }
+  @media print{
+    @page{ size:A4 portrait; margin:12mm; }
+    body{ background:#fff; background-image:none; }
+    .divp-header{ display:none !important; }
+    .app{ display:none; }
+    .sensei{ display:none !important; }
+    .print-sheet{
+      display:block;
+      color:#000;
+      font-family:"Zen Kaku Gothic New", sans-serif;
+    }
+    .ps-header{
+      display:flex; justify-content:space-between; align-items:flex-end;
+      border-bottom:2px solid #000;
+      padding-bottom:3mm;
+    }
+    .ps-title{
+      font-family:"Zen Maru Gothic", sans-serif;
+      font-size:16pt; font-weight:700;
+    }
+    .ps-sub{ font-size:10pt; font-weight:500; margin-left:2mm; }
+    .ps-name{ font-size:10.5pt; }
+    .ps-line{
+      display:inline-block; width:45mm;
+      border-bottom:1px solid #000;
+    }
+    .ps-note{ font-size:10pt; margin:3mm 0 2mm; }
+    .ps-grid{
+      height:225mm;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      grid-template-rows:repeat(10, 1fr);
+      grid-auto-flow:column;
+      column-gap:10mm;
+    }
+    .ps-item{
+      display:flex; align-items:flex-end; gap:3mm;
+      padding-bottom:4mm;
+      break-inside:avoid;
+    }
+    .ps-item .num{
+      font-size:10.5pt; font-weight:700; width:7mm;
+      flex-shrink:0;
+    }
+    .ps-item .kana{
+      font-family:"Zen Maru Gothic", sans-serif;
+      font-size:14pt; font-weight:700;
+      letter-spacing:.08em;
+      flex-shrink:0;
+    }
+    .ps-item .write{
+      flex:1;
+      border-bottom:1px solid #000;
+      height:9mm;
+    }
+    .ps-footer{
+      text-align:right;
+      font-size:8.5pt;
+      color:#555;
+      margin-top:2mm;
+    }
+    .ps-answers{
+      break-before:page;
+      page-break-before:always;
+    }
+    .ps-answers .ps-grid{ margin-top:4mm; }
+    .ps-item .roman{
+      font-family:"Zen Maru Gothic", sans-serif;
+      font-size:13pt; font-weight:700;
+      letter-spacing:.06em;
+      margin-left:2mm;
+    }
+  }
+</style>
+</head>
+<body>
+<!-- 共通ヘッダー(ロゴ・ログイン窓)の差し込み先。これが無いと divp-header.js が <head> に挿入され画面に出ない -->
+<div class="divp-header"></div>
+<div class="mode-screen" id="modeScreen">
+  <div class="m-logo">ローマ字マスター</div>
+  <div class="m-sub">モードを えらんでね</div>
+  <button type="button" class="m-card" id="mGojuon">
+    <span class="m-emoji">🌱</span>
+    <span class="m-body"><span class="m-name">五十音</span><span class="m-desc">「あいうえお」から じゅんばんに(はじめての人むけ)</span></span>
+  </button>
+  <div class="m-cats" id="gCats" hidden>
+    <div class="m-note">れんしゅうしたい行を タップしてね</div>
+    <button type="button" class="m-start" id="gStart">スタート</button>
+  </div>
+  <button type="button" class="m-card" id="mRomaji">
+    <span class="m-emoji">🖋️</span>
+    <span class="m-body"><span class="m-name">ローマ字</span><span class="m-desc">ひらがな → ヘボン式ローマ字</span></span>
+  </button>
+  <button type="button" class="m-card" id="mEng">
+    <span class="m-emoji">🔤</span>
+    <span class="m-body"><span class="m-name">英単語<span class="m-desc" style="margin-left:4px">（おまけ）</span></span><span class="m-desc">にほんご → えいご</span></span>
+  </button>
+  <div class="m-cats" id="mCats" hidden>
+    <div class="m-note">れんしゅうしたいものを タップしてね</div>
+    <button type="button" class="m-chip m-all">すべて</button>
+    <label class="m-chip"><input type="checkbox" value="eng_num">数字</label>
+    <label class="m-chip"><input type="checkbox" value="eng_day">曜日</label>
+    <label class="m-chip"><input type="checkbox" value="eng_month">月</label>
+    <label class="m-chip"><input type="checkbox" value="eng_family">家族</label>
+    <label class="m-chip"><input type="checkbox" value="eng_verb">動作</label>
+    <label class="m-chip"><input type="checkbox" value="eng_thing">身近なもの</label>
+    <label class="m-chip"><input type="checkbox" value="eng_color">色</label>
+    <label class="m-chip"><input type="checkbox" value="eng_adj">気持ち</label>
+    <button type="button" class="m-start" id="mStart">スタート</button>
+  </div>
+</div>
+
+<div class="app">
+  <header>
+    <h1>ローマ字マスター<span class="sub" id="modeLabel">ヘボン式</span></h1>
+    <div class="score">せいかい <b id="scoreNum">0</b><span class="streak" id="streak"></span></div>
+    <button class="print-btn mode-back" id="modeBtn" type="button">ホームに戻る</button>
+    <button class="print-btn" id="printBtn" type="button" aria-label="プリントを印刷">🖨️</button>
+  </header>
+
+  <div class="card">
+    <div class="emoji" id="qEmoji"></div>
+    <div class="kana" id="qKana"></div>
+    <div class="kana-sub" id="qSubKana"></div>
+    <div class="lead" id="qLead">ローマ字で かいてみよう</div>
+    <div class="tags" id="qTags"></div>
+    <div class="stamp" id="stamp"></div>
+  </div>
+
+  <div class="cells" id="cells"></div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="kb-hint">キーを ながおしすると 大文字になるよ</div>
+  <div class="keyboard" id="keyboard"></div>
+  <button class="submit" id="submitBtn" disabled>けってい</button>
+</div>
+
+<div class="sensei" id="senseiPanel">
+  <div class="s-head">
+    <h1>印刷設定</h1>
+    <span class="s-app">ローマ字マスター</span>
+    <button type="button" class="s-back" id="sBack">← もどる</button>
+  </div>
+  <p class="s-desc">チェックした言葉はプリントに<b>必ず</b>入ります(残りはランダムで20問まで補充)。「ださない」にした言葉は出ません。今日だけ使いたい言葉の追加もできます。</p>
+  <div class="s-actions">
+    <button type="button" id="sAll">ぜんぶ選ぶ</button>
+    <button type="button" id="sClear">クリア</button>
+  </div>
+  <div class="s-list" id="sList"></div>
+  <div class="s-add">
+    <input id="sAddKana" placeholder="ひらがな">
+    <input id="sAddRoman" placeholder="ローマ字(正解)">
+    <input id="sAddEmoji" placeholder="絵文字" maxlength="4">
+    <button type="button" id="sAddBtn">追加</button>
+  </div>
+  <p class="s-tip">固有名詞は頭を大文字で入力(例: Aichi)。追加した言葉はチェック済みで必ず入ります。</p>
+  <button type="button" class="s-make" id="sPrint">この内容で印刷する(問題+こたえ)</button>
+</div>
+
+<div class="print-sheet" id="printSheet">
+  <div class="ps-header">
+    <div class="ps-title"><span id="psTitle">ローマ字れんしゅうプリント</span> <span class="ps-sub" id="psSub">ヘボン式</span></div>
+    <div class="ps-name">なまえ：<span class="ps-line"></span></div>
+  </div>
+  <div class="ps-note" id="psNote">ひらがなを ローマ字で かきましょう。</div>
+  <div class="ps-grid" id="psGrid"></div>
+  <div class="ps-footer">中京個別指導学院</div>
+
+  <div class="ps-answers">
+    <div class="ps-header">
+      <div class="ps-title">こたえ <span class="ps-sub">先生用</span></div>
+    </div>
+    <div class="ps-grid" id="psAnswerGrid"></div>
+    <div class="ps-footer">中京個別指導学院</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // 学習記録システムの論理コンテンツID（ローマ字/五十音/英単語を1ツールとして束ね、
+  // モードは question_key で分ける）。api/units.php・question_catalog と一致させること。
+  var UNIT_KEY = "allgrade_romaji";
+
+  // ヘボン式の要注意ポイント(shi/chi/tsu/fu/ji/sha行/tcha)を中心に選定
+  var WORDS = [
+    { kana:"しゃしん",   roman:"shashin",  emoji:"📷" },
+    { kana:"ちず",       roman:"chizu",    emoji:"🗺️" },
+    { kana:"つき",       roman:"tsuki",    emoji:"🌙" },
+    { kana:"ふね",       roman:"fune",     emoji:"⛵" },
+    { kana:"おちゃ",     roman:"ocha",     emoji:"🍵" },
+    { kana:"でんしゃ",   roman:"densha",   emoji:"🚃" },
+    { kana:"じてんしゃ", roman:"jitensha", emoji:"🚲" },
+    { kana:"しか",       roman:"shika",    emoji:"🦌" },
+    { kana:"ちち",       roman:"chichi",   emoji:"👨" },
+    { kana:"ふじさん",   roman:"fujisan",  emoji:"🗻", proper:true },
+    { kana:"きって",     roman:"kitte",    emoji:"📮" },
+    { kana:"ざっし",     roman:"zasshi",   emoji:"📖" },
+    { kana:"まっちゃ",   roman:"matcha",   emoji:"🍦" },
+    { kana:"じかん",     roman:"jikan",    emoji:"⏰" },
+    { kana:"きんぎょ",   roman:"kingyo",   emoji:"🐠" },
+    { kana:"しゅくだい", roman:"shukudai", emoji:"📓" },
+    { kana:"しろ",       roman:"shiro",    emoji:"🏯" },
+    { kana:"じゃんけん", roman:"janken",   emoji:"✊" },
+    { kana:"ふゆ",       roman:"fuyu",     emoji:"⛄" },
+    { kana:"つみき",     roman:"tsumiki",  emoji:"🧱" },
+    { kana:"しんぶん",   roman:"shimbun",  emoji:"📰" },
+    { kana:"えんぴつ",   roman:"empitsu",  emoji:"✏️" },
+    { kana:"さんぽ",     roman:"sampo",    emoji:"🚶" },
+    { kana:"てんぷら",   roman:"tempura",  emoji:"🍤" },
+    { kana:"ぎょうざ",   roman:"gyoza",    emoji:"🥟", long:true },
+    { kana:"ちゅうしゃ", roman:"chusha",   emoji:"💉", long:true },
+    { kana:"きゅうり",   roman:"kyuri",    emoji:"🥒", long:true },
+    { kana:"ようふく",   roman:"yofuku",   emoji:"👕", long:true },
+    { kana:"とうきょう", roman:"tokyo",    emoji:"🗼", long:true, proper:true },
+    { kana:"なごや",     roman:"nagoya",   emoji:"🏙️", proper:true },
+    { kana:"にっぽん",   roman:"nippon",   emoji:"🇯🇵", proper:true },
+
+    // どうぶつ
+    { kana:"ねこ",       roman:"neko",      emoji:"🐱" },
+    { kana:"いぬ",       roman:"inu",       emoji:"🐶" },
+    { kana:"うさぎ",     roman:"usagi",     emoji:"🐰" },
+    { kana:"きつね",     roman:"kitsune",   emoji:"🦊" },
+    { kana:"たぬき",     roman:"tanuki",    emoji:"🦝" },
+    { kana:"くま",       roman:"kuma",      emoji:"🐻" },
+    { kana:"りす",       roman:"risu",      emoji:"🐿️" },
+    { kana:"ぞう",       roman:"zo",        emoji:"🐘", long:true },
+    { kana:"きりん",     roman:"kirin",     emoji:"🦒" },
+    { kana:"うま",       roman:"uma",       emoji:"🐴" },
+    { kana:"うし",       roman:"ushi",      emoji:"🐮" },
+    { kana:"ぶた",       roman:"buta",      emoji:"🐷" },
+    { kana:"ひつじ",     roman:"hitsuji",   emoji:"🐑" },
+    { kana:"やぎ",       roman:"yagi",      emoji:"🐐" },
+    { kana:"さる",       roman:"saru",      emoji:"🐵" },
+    { kana:"とら",       roman:"tora",      emoji:"🐯" },
+    { kana:"へび",       roman:"hebi",      emoji:"🐍" },
+    { kana:"かえる",     roman:"kaeru",     emoji:"🐸" },
+    { kana:"かめ",       roman:"kame",      emoji:"🐢" },
+    { kana:"わに",       roman:"wani",      emoji:"🐊" },
+    { kana:"とり",       roman:"tori",      emoji:"🐦" },
+    { kana:"にわとり",   roman:"niwatori",  emoji:"🐔" },
+    { kana:"ひよこ",     roman:"hiyoko",    emoji:"🐤" },
+    { kana:"あひる",     roman:"ahiru",     emoji:"🦆" },
+    { kana:"ふくろう",   roman:"fukuro",    emoji:"🦉", long:true },
+    { kana:"いるか",     roman:"iruka",     emoji:"🐬" },
+    { kana:"くじら",     roman:"kujira",    emoji:"🐳" },
+    { kana:"さかな",     roman:"sakana",    emoji:"🐟" },
+    { kana:"たこ",       roman:"tako",      emoji:"🐙" },
+    { kana:"いか",       roman:"ika",       emoji:"🦑" },
+    { kana:"かに",       roman:"kani",      emoji:"🦀" },
+    { kana:"えび",       roman:"ebi",       emoji:"🦐" },
+    { kana:"はち",       roman:"hachi",     emoji:"🐝" },
+    { kana:"ちょう",     roman:"cho",       emoji:"🦋", long:true },
+    { kana:"あり",       roman:"ari",       emoji:"🐜" },
+    { kana:"かたつむり", roman:"katatsumuri", emoji:"🐌" },
+    { kana:"おおかみ",   roman:"okami",     emoji:"🐺", long:true },
+    { kana:"こうもり",   roman:"komori",    emoji:"🦇", long:true },
+    { kana:"あざらし",   roman:"azarashi",  emoji:"🦭" },
+    { kana:"はりねずみ", roman:"harinezumi", emoji:"🦔" },
+    { kana:"しまうま",   roman:"shimauma",  emoji:"🦓" },
+    { kana:"かば",       roman:"kaba",      emoji:"🦛" },
+    { kana:"さい",       roman:"sai",       emoji:"🦏" },
+    { kana:"くじゃく",   roman:"kujaku",    emoji:"🦚" },
+
+    // たべもの
+    { kana:"ごはん",     roman:"gohan",     emoji:"🍚" },
+    { kana:"おにぎり",   roman:"onigiri",   emoji:"🍙" },
+    { kana:"たまご",     roman:"tamago",    emoji:"🥚" },
+    { kana:"にく",       roman:"niku",      emoji:"🍖" },
+    { kana:"やさい",     roman:"yasai",     emoji:"🥬" },
+    { kana:"りんご",     roman:"ringo",     emoji:"🍎" },
+    { kana:"みかん",     roman:"mikan",     emoji:"🍊" },
+    { kana:"いちご",     roman:"ichigo",    emoji:"🍓" },
+    { kana:"ぶどう",     roman:"budo",      emoji:"🍇", long:true },
+    { kana:"もも",       roman:"momo",      emoji:"🍑" },
+    { kana:"すいか",     roman:"suika",     emoji:"🍉" },
+    { kana:"なし",       roman:"nashi",     emoji:"🍐" },
+    { kana:"くり",       roman:"kuri",      emoji:"🌰" },
+    { kana:"とうもろこし", roman:"tomorokoshi", emoji:"🌽", long:true },
+    { kana:"にんじん",   roman:"ninjin",    emoji:"🥕" },
+    { kana:"じゃがいも", roman:"jagaimo",   emoji:"🥔" },
+    { kana:"たまねぎ",   roman:"tamanegi",  emoji:"🧅" },
+    { kana:"なす",       roman:"nasu",      emoji:"🍆" },
+    { kana:"きのこ",     roman:"kinoko",    emoji:"🍄" },
+    { kana:"こめ",       roman:"kome",      emoji:"🌾" },
+    { kana:"みそ",       roman:"miso",      emoji:"🍲" },
+    { kana:"しお",       roman:"shio",      emoji:"🧂" },
+    { kana:"さとう",     roman:"sato",      emoji:"🍬", long:true },
+    { kana:"せんべい",   roman:"sembei",    emoji:"🍘" },
+    { kana:"おでん",     roman:"oden",      emoji:"🍢" },
+    { kana:"すし",       roman:"sushi",     emoji:"🍣" },
+    { kana:"うどん",     roman:"udon",      emoji:"🍜" },
+    { kana:"そば",       roman:"soba",      emoji:"🍜" },
+    { kana:"てんどん",   roman:"tendon",    emoji:"🍤" },
+    { kana:"だんご",     roman:"dango",     emoji:"🍡" },
+    { kana:"もち",       roman:"mochi",     emoji:"🍡" },
+    { kana:"ようかん",   roman:"yokan",     emoji:"🍮", long:true },
+    { kana:"おかし",     roman:"okashi",    emoji:"🍭" },
+
+    // みぢかなもの
+    { kana:"ほん",       roman:"hon",       emoji:"📖" },
+    { kana:"はさみ",     roman:"hasami",    emoji:"✂️" },
+    { kana:"かさ",       roman:"kasa",      emoji:"☂️" },
+    { kana:"とけい",     roman:"tokei",     emoji:"⏰" },
+    { kana:"でんわ",     roman:"denwa",     emoji:"☎️" },
+    { kana:"かぎ",       roman:"kagi",      emoji:"🔑" },
+    { kana:"いす",       roman:"isu",       emoji:"🪑" },
+    { kana:"ふとん",     roman:"futon",     emoji:"🛏️" },
+    { kana:"でんき",     roman:"denki",     emoji:"💡" },
+    { kana:"かがみ",     roman:"kagami",    emoji:"🪞" },
+    { kana:"くつ",       roman:"kutsu",     emoji:"👟" },
+    { kana:"くつした",   roman:"kutsushita", emoji:"🧦" },
+    { kana:"ぼうし",     roman:"boshi",     emoji:"🧢", long:true },
+    { kana:"めがね",     roman:"megane",    emoji:"👓" },
+    { kana:"おもちゃ",   roman:"omocha",    emoji:"🧸" },
+    { kana:"にんぎょう", roman:"ningyo",    emoji:"🪆", long:true },
+    { kana:"ふうせん",   roman:"fusen",     emoji:"🎈", long:true },
+    { kana:"はた",       roman:"hata",      emoji:"🚩" },
+    { kana:"てがみ",     roman:"tegami",    emoji:"✉️" },
+    { kana:"ほうき",     roman:"hoki",      emoji:"🧹", long:true },
+    { kana:"ばけつ",     roman:"baketsu",   emoji:"🪣" },
+    { kana:"はぶらし",   roman:"haburashi", emoji:"🪥" },
+    { kana:"せっけん",   roman:"sekken",    emoji:"🧼" },
+    { kana:"たいこ",     roman:"taiko",     emoji:"🥁" },
+    { kana:"らっぱ",     roman:"rappa",     emoji:"🎺" },
+    { kana:"ふえ",       roman:"fue",       emoji:"🪈" },
+
+    // しぜん・てんき
+    { kana:"そら",       roman:"sora",      emoji:"🌤️" },
+    { kana:"くも",       roman:"kumo",      emoji:"☁️" },
+    { kana:"あめ",       roman:"ame",       emoji:"☔" },
+    { kana:"ゆき",       roman:"yuki",      emoji:"❄️" },
+    { kana:"かぜ",       roman:"kaze",      emoji:"💨" },
+    { kana:"ほし",       roman:"hoshi",     emoji:"⭐" },
+    { kana:"たいよう",   roman:"taiyo",     emoji:"☀️", long:true },
+    { kana:"やま",       roman:"yama",      emoji:"⛰️" },
+    { kana:"かわ",       roman:"kawa",      emoji:"🏞️" },
+    { kana:"うみ",       roman:"umi",       emoji:"🌊" },
+    { kana:"もり",       roman:"mori",      emoji:"🌲" },
+    { kana:"き",         roman:"ki",        emoji:"🌳" },
+    { kana:"はな",       roman:"hana",      emoji:"🌸" },
+    { kana:"はっぱ",     roman:"happa",     emoji:"🍃" },
+    { kana:"にじ",       roman:"niji",      emoji:"🌈" },
+    { kana:"かみなり",   roman:"kaminari",  emoji:"⚡" },
+    { kana:"こおり",     roman:"kori",      emoji:"🧊", long:true },
+    { kana:"いし",       roman:"ishi",      emoji:"🪨" },
+    { kana:"ひ",         roman:"hi",        emoji:"🔥" },
+    { kana:"みず",       roman:"mizu",      emoji:"💧" },
+    { kana:"たき",       roman:"taki",      emoji:"⛲" },
+    { kana:"さくら",     roman:"sakura",    emoji:"🌸" },
+
+    // からだ
+    { kana:"め",         roman:"me",        emoji:"👁️" },
+    { kana:"みみ",       roman:"mimi",      emoji:"👂" },
+    { kana:"くち",       roman:"kuchi",     emoji:"👄" },
+    { kana:"て",         roman:"te",        emoji:"✋" },
+    { kana:"ゆび",       roman:"yubi",      emoji:"👆" },
+    { kana:"は",         roman:"ha",        emoji:"🦷" },
+    { kana:"ほね",       roman:"hone",      emoji:"🦴" },
+
+    // のりもの
+    { kana:"くるま",     roman:"kuruma",    emoji:"🚗" },
+    { kana:"ひこうき",   roman:"hikoki",    emoji:"✈️", long:true },
+    { kana:"しんかんせん", roman:"shinkansen", emoji:"🚄" },
+    { kana:"きしゃ",     roman:"kisha",     emoji:"🚂" },
+    { kana:"じどうしゃ", roman:"jidosha",   emoji:"🚙", long:true },
+    { kana:"きゅうきゅうしゃ", roman:"kyukyusha", emoji:"🚑", long:true },
+    { kana:"しょうぼうしゃ", roman:"shobosha", emoji:"🚒", long:true },
+
+    // まち・たてもの
+    { kana:"がっこう",   roman:"gakko",     emoji:"🏫", long:true },
+    { kana:"びょういん", roman:"byoin",     emoji:"🏥", long:true },
+    { kana:"こうえん",   roman:"koen",      emoji:"🏞️", long:true },
+    { kana:"えき",       roman:"eki",       emoji:"🚉" },
+    { kana:"みせ",       roman:"mise",      emoji:"🏪" },
+    { kana:"いえ",       roman:"ie",        emoji:"🏠" },
+    { kana:"はし",       roman:"hashi",     emoji:"🌉" },
+    { kana:"こうばん",   roman:"koban",     emoji:"🚔", long:true },
+    { kana:"ゆうびんきょく", roman:"yubinkyoku", emoji:"📮", long:true },
+    { kana:"としょかん", roman:"toshokan",  emoji:"📚" },
+    { kana:"こうじょう", roman:"kojo",      emoji:"🏭", long:true },
+    { kana:"ぎんこう",   roman:"ginko",     emoji:"🏦", long:true },
+
+    // ひと・しごと
+    { kana:"せんせい",   roman:"sensei",    emoji:"🧑‍🏫" },
+    { kana:"ともだち",   roman:"tomodachi", emoji:"🧑‍🤝‍🧑" },
+    { kana:"いしゃ",     roman:"isha",      emoji:"🧑‍⚕️" },
+    { kana:"けいさつ",   roman:"keisatsu",  emoji:"👮" },
+    { kana:"おうさま",   roman:"osama",     emoji:"🤴", long:true },
+    { kana:"ひめ",       roman:"hime",      emoji:"👸" },
+    { kana:"にんじゃ",   roman:"ninja",     emoji:"🥷" },
+    { kana:"さむらい",   roman:"samurai",   emoji:"🗡️" },
+
+    // スポーツ・あそび
+    { kana:"すもう",     roman:"sumo",      emoji:"🤼", long:true },
+    { kana:"やきゅう",   roman:"yakyu",     emoji:"⚾", long:true },
+    { kana:"けんどう",   roman:"kendo",     emoji:"🥋", long:true },
+
+    // ちめい・こゆうめいし
+    { kana:"にほん",     roman:"nihon",     emoji:"🗾", proper:true },
+    { kana:"おおさか",   roman:"osaka",     emoji:"🏯", proper:true, long:true },
+    { kana:"きょうと",   roman:"kyoto",     emoji:"⛩️", proper:true, long:true },
+    { kana:"ほっかいどう", roman:"hokkaido", emoji:"🐻", proper:true, long:true },
+    { kana:"きゅうしゅう", roman:"kyushu",  emoji:"🌋", proper:true, long:true },
+    { kana:"おきなわ",   roman:"okinawa",   emoji:"🏝️", proper:true },
+    { kana:"あいち",     roman:"aichi",     emoji:"🏙️", proper:true }
+  ];
+
+  // ---- 英単語モード(カテゴリ別) ----
+  var ENG_SETS = {
+    eng_num: [
+      { kana:"0",  roman:"zero",  emoji:"0️⃣", cat:"eng_num" },
+      { kana:"1",  roman:"one",   emoji:"1️⃣", cat:"eng_num" },
+      { kana:"2",  roman:"two",   emoji:"2️⃣", cat:"eng_num" },
+      { kana:"3",  roman:"three", emoji:"3️⃣", cat:"eng_num" },
+      { kana:"4",  roman:"four",  emoji:"4️⃣", cat:"eng_num" },
+      { kana:"5",  roman:"five",  emoji:"5️⃣", cat:"eng_num" },
+      { kana:"6",  roman:"six",   emoji:"6️⃣", cat:"eng_num" },
+      { kana:"7",  roman:"seven", emoji:"7️⃣", cat:"eng_num" },
+      { kana:"8",  roman:"eight", emoji:"8️⃣", cat:"eng_num" },
+      { kana:"9",  roman:"nine",  emoji:"9️⃣", cat:"eng_num" },
+      { kana:"10", roman:"ten",   emoji:"🔟", cat:"eng_num" },
+      { kana:"11", roman:"eleven",    emoji:"🔢", cat:"eng_num" },
+      { kana:"12", roman:"twelve",    emoji:"🔢", cat:"eng_num" },
+      { kana:"13", roman:"thirteen",  emoji:"🔢", cat:"eng_num" },
+      { kana:"14", roman:"fourteen",  emoji:"🔢", cat:"eng_num" },
+      { kana:"15", roman:"fifteen",   emoji:"🔢", cat:"eng_num" },
+      { kana:"16", roman:"sixteen",   emoji:"🔢", cat:"eng_num" },
+      { kana:"17", roman:"seventeen", emoji:"🔢", cat:"eng_num" },
+      { kana:"18", roman:"eighteen",  emoji:"🔢", cat:"eng_num" },
+      { kana:"19", roman:"nineteen",  emoji:"🔢", cat:"eng_num" },
+      { kana:"20", roman:"twenty",    emoji:"🔢", cat:"eng_num" },
+      { kana:"30", roman:"thirty",  emoji:"🧮", cat:"eng_num" },
+      { kana:"40", roman:"forty",   emoji:"🧮", cat:"eng_num" },
+      { kana:"50", roman:"fifty",   emoji:"🧮", cat:"eng_num" },
+      { kana:"60", roman:"sixty",   emoji:"🧮", cat:"eng_num" },
+      { kana:"70", roman:"seventy", emoji:"🧮", cat:"eng_num" },
+      { kana:"80", roman:"eighty",  emoji:"🧮", cat:"eng_num" },
+      { kana:"90", roman:"ninety",  emoji:"🧮", cat:"eng_num" },
+      { kana:"100", roman:"hundred", emoji:"💯", cat:"eng_num" }
+    ],
+    eng_day: [
+      { kana:"にちようび", roman:"sunday",    emoji:"☀️", proper:true, cat:"eng_day" },
+      { kana:"げつようび", roman:"monday",    emoji:"🌙", proper:true, cat:"eng_day" },
+      { kana:"かようび",   roman:"tuesday",   emoji:"🔥", proper:true, cat:"eng_day" },
+      { kana:"すいようび", roman:"wednesday", emoji:"💧", proper:true, cat:"eng_day" },
+      { kana:"もくようび", roman:"thursday",  emoji:"🌳", proper:true, cat:"eng_day" },
+      { kana:"きんようび", roman:"friday",    emoji:"💰", proper:true, cat:"eng_day" },
+      { kana:"どようび",   roman:"saturday",  emoji:"⛰️", proper:true, cat:"eng_day" }
+    ],
+    eng_month: [
+      { kana:"1月",  roman:"january",   emoji:"🎍", proper:true, cat:"eng_month" },
+      { kana:"2月",  roman:"february",  emoji:"👹", proper:true, cat:"eng_month" },
+      { kana:"3月",  roman:"march",     emoji:"🎎", proper:true, cat:"eng_month" },
+      { kana:"4月",  roman:"april",     emoji:"🌸", proper:true, cat:"eng_month" },
+      { kana:"5月",  roman:"may",       emoji:"🎏", proper:true, cat:"eng_month" },
+      { kana:"6月",  roman:"june",      emoji:"☔", proper:true, cat:"eng_month" },
+      { kana:"7月",  roman:"july",      emoji:"🎋", proper:true, cat:"eng_month" },
+      { kana:"8月",  roman:"august",    emoji:"🌻", proper:true, cat:"eng_month" },
+      { kana:"9月",  roman:"september", emoji:"🌕", proper:true, cat:"eng_month" },
+      { kana:"10月", roman:"october",   emoji:"🎃", proper:true, cat:"eng_month" },
+      { kana:"11月", roman:"november",  emoji:"🍁", proper:true, cat:"eng_month" },
+      { kana:"12月", roman:"december",  emoji:"🎄", proper:true, cat:"eng_month" }
+    ],
+    eng_family: [
+      { kana:"おとうさん",     roman:"father",      emoji:"👨", cat:"eng_family" },
+      { kana:"おかあさん",     roman:"mother",      emoji:"👩", cat:"eng_family" },
+      { kana:"おじいさん",     roman:"grandfather", emoji:"👴", cat:"eng_family" },
+      { kana:"おばあさん",     roman:"grandmother", emoji:"👵", cat:"eng_family" },
+      { kana:"きょうだい(男)", roman:"brother",     emoji:"👦", cat:"eng_family" },
+      { kana:"きょうだい(女)", roman:"sister",      emoji:"👧", cat:"eng_family" },
+      { kana:"かぞく",         roman:"family",      emoji:"👪", cat:"eng_family" },
+      { kana:"あかちゃん",     roman:"baby",        emoji:"👶", cat:"eng_family" }
+    ],
+    eng_verb: [
+      { kana:"はしる", roman:"run",   emoji:"🏃", cat:"eng_verb" },
+      { kana:"あるく", roman:"walk",  emoji:"🚶", cat:"eng_verb" },
+      { kana:"たべる", roman:"eat",   emoji:"🍽️", cat:"eng_verb" },
+      { kana:"のむ",   roman:"drink", emoji:"🥤", cat:"eng_verb" },
+      { kana:"ねる",   roman:"sleep", emoji:"😴", cat:"eng_verb" },
+      { kana:"とぶ",   roman:"jump",  emoji:"🦘", cat:"eng_verb" },
+      { kana:"およぐ", roman:"swim",  emoji:"🏊", cat:"eng_verb" },
+      { kana:"うたう", roman:"sing",  emoji:"🎤", cat:"eng_verb" },
+      { kana:"よむ",   roman:"read",  emoji:"📖", cat:"eng_verb" },
+      { kana:"かく",   roman:"write", emoji:"✍️", cat:"eng_verb" }
+    ],
+    eng_thing: [
+      { kana:"ペン",       roman:"pen",    emoji:"🖊️", cat:"eng_thing" },
+      { kana:"つくえ",     roman:"desk",   emoji:"🪑", cat:"eng_thing" },
+      { kana:"ねこ",       roman:"cat",    emoji:"🐱", cat:"eng_thing" },
+      { kana:"いぬ",       roman:"dog",    emoji:"🐶", cat:"eng_thing" },
+      { kana:"はな",       roman:"flower", emoji:"🌸", cat:"eng_thing" },
+      { kana:"ぎゅうにゅう", roman:"milk", emoji:"🥛", cat:"eng_thing" },
+      { kana:"かばん",     roman:"bag",    emoji:"👜", cat:"eng_thing" },
+      { kana:"さかな",     roman:"fish",   emoji:"🐟", cat:"eng_thing" },
+      { kana:"じんじゃ",   roman:"shrine", emoji:"⛩️", cat:"eng_thing" },
+      { kana:"みずうみ",   roman:"lake",   emoji:"🏞️", cat:"eng_thing" },
+      { kana:"じてんしゃ", roman:"bike",   emoji:"🚲", cat:"eng_thing" }
+    ],
+    eng_color: [
+      { kana:"あか",     roman:"red",    emoji:"🔴", cat:"eng_color" },
+      { kana:"あお",     roman:"blue",   emoji:"🔵", cat:"eng_color" },
+      { kana:"きいろ",   roman:"yellow", emoji:"🟡", cat:"eng_color" },
+      { kana:"みどり",   roman:"green",  emoji:"🟢", cat:"eng_color" },
+      { kana:"くろ",     roman:"black",  emoji:"⚫", cat:"eng_color" },
+      { kana:"しろ",     roman:"white",  emoji:"⚪", cat:"eng_color" },
+      { kana:"ピンク",   roman:"pink",   emoji:"🎀", cat:"eng_color" },
+      { kana:"オレンジ", roman:"orange", emoji:"🟠", cat:"eng_color" },
+      { kana:"むらさき", roman:"purple", emoji:"🟣", cat:"eng_color" },
+      { kana:"ちゃいろ", roman:"brown",  emoji:"🟤", cat:"eng_color" }
+    ],
+    eng_adj: [
+      { kana:"うれしい",       roman:"happy",  emoji:"😊", cat:"eng_adj" },
+      { kana:"かなしい",       roman:"sad",    emoji:"😢", cat:"eng_adj" },
+      { kana:"おこっている",   roman:"angry",  emoji:"😠", cat:"eng_adj" },
+      { kana:"ねむい",         roman:"sleepy", emoji:"😪", cat:"eng_adj" },
+      { kana:"おなかがすいた", roman:"hungry", emoji:"😋", cat:"eng_adj" },
+      { kana:"つかれた",       roman:"tired",  emoji:"🥱", cat:"eng_adj" },
+      { kana:"おもしろい",     roman:"funny",  emoji:"🤣", cat:"eng_adj" },
+      { kana:"こわい",         roman:"scared", emoji:"😱", cat:"eng_adj" },
+      { kana:"さむい",         roman:"cold",   emoji:"🥶", cat:"eng_adj" },
+      { kana:"あつい",         roman:"hot",    emoji:"🥵", cat:"eng_adj" }
+    ]
+  };
+
+  var MODE = "romaji";  // "romaji" | "gojuon" | "eng"
+  var ACTIVE = [];      // 現在のモードの出題リスト
+
+  // ---- 五十音モード(行単位・順番固定・ヘボン式) ----
+  var GOJUON = [
+    { kana:"あいうえお", roman:"aiueo",        emoji:"🐜", sub:"あ行", cat:"gojuon" },
+    { kana:"かきくけこ", roman:"kakikukeko",   emoji:"🦀", sub:"か行", cat:"gojuon" },
+    { kana:"さしすせそ", roman:"sashisuseso",  emoji:"🐟", sub:"さ行", cat:"gojuon" },
+    { kana:"たちつてと", roman:"tachitsuteto", emoji:"🐙", sub:"た行", cat:"gojuon" },
+    { kana:"なにぬねの", roman:"naninuneno",   emoji:"🍆", sub:"な行", cat:"gojuon" },
+    { kana:"はひふへほ", roman:"hahifuheho",   emoji:"🌸", sub:"は行", cat:"gojuon" },
+    { kana:"まみむめも", roman:"mamimumemo",   emoji:"🌲", sub:"ま行", cat:"gojuon" },
+    { kana:"やゆよ",     roman:"yayuyo",       emoji:"🏔️", sub:"や行", cat:"gojuon" },
+    { kana:"らりるれろ", roman:"rarirurero",   emoji:"🎺", sub:"ら行", cat:"gojuon" },
+    { kana:"わをん",     roman:"waon",         emoji:"🐊", sub:"わ行", cat:"gojuon" },
+    { kana:"がぎぐげご", roman:"gagigugego",   emoji:"🏫", sub:"が行(濁音)", cat:"gojuon" },
+    { kana:"ざじずぜぞ", roman:"zajizuzezo",   emoji:"🦞", sub:"ざ行(濁音)", cat:"gojuon" },
+    { kana:"だぢづでど", roman:"dajizudedo",   emoji:"🍡", sub:"だ行(濁音)", cat:"gojuon" },
+    { kana:"ばびぶべぼ", roman:"babibubebo",   emoji:"🍌", sub:"ば行(濁音)", cat:"gojuon" },
+    { kana:"ぱぴぷぺぽ", roman:"papipupepo",   emoji:"🍞", sub:"ぱ行(半濁音)", cat:"gojuon" },
+    { kana:"きゃきゅきょ", roman:"kyakyukyo", emoji:"🥬", sub:"きゃ行(拗音)", cat:"gojuon" },
+    { kana:"しゃしゅしょ", roman:"shashusho", emoji:"📷", sub:"しゃ行(拗音)", cat:"gojuon" },
+    { kana:"ちゃちゅちょ", roman:"chachucho", emoji:"🍵", sub:"ちゃ行(拗音)", cat:"gojuon" },
+    { kana:"にゃにゅにょ", roman:"nyanyunyo", emoji:"🐱", sub:"にゃ行(拗音)", cat:"gojuon" },
+    { kana:"ひゃひゅひょ", roman:"hyahyuhyo", emoji:"💯", sub:"ひゃ行(拗音)", cat:"gojuon" },
+    { kana:"ふぁふぃふぇふぉ", roman:"fafifefo", emoji:"📯", sub:"ふぁ行(外来音)", cat:"gojuon" },
+    { kana:"みゃみゅみょ", roman:"myamyumyo", emoji:"🐈", sub:"みゃ行(拗音)", cat:"gojuon" },
+    { kana:"りゃりゅりょ", roman:"ryaryuryo", emoji:"🐉", sub:"りゃ行(拗音)", cat:"gojuon" },
+    { kana:"ぎゃぎゅぎょ", roman:"gyagyugyo", emoji:"🎸", sub:"ぎゃ行(拗音)", cat:"gojuon" },
+    { kana:"じゃじゅじょ", roman:"jajujo",    emoji:"🥔", sub:"じゃ行(拗音)", cat:"gojuon" },
+    { kana:"びゃびゅびょ", roman:"byabyubyo", emoji:"💨", sub:"びゃ行(拗音)", cat:"gojuon" },
+    { kana:"ぴゃぴゅぴょ", roman:"pyapyupyo", emoji:"🐥", sub:"ぴゃ行(拗音)", cat:"gojuon" },
+    { kana:"ぢゃぢゅぢょ", roman:"jajujo",    emoji:"🌀", sub:"ぢゃ行(拗音)", cat:"gojuon" }
+  ];
+
+  var order = [];
+  var idx = 0;
+  var input = [];
+  var score = 0;
+  var streak = 0;
+  var locked = false;
+  var MAX_LEN = 12;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var cellsEl = $("cells");
+  var feedbackEl = $("feedback");
+  var submitBtn = $("submitBtn");
+  var stampEl = $("stamp");
+
+  function shuffle(a){
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function buildDeck(){
+    var idxs = ACTIVE.map(function(_, i){ return i; });
+    return MODE === "gojuon" ? idxs : shuffle(idxs); // 五十音は順番固定
+  }
+
+  function current(){
+    if (SET) return SET.list[SET.i];
+    return ACTIVE[order[idx % order.length]];
+  }
+
+  // ---- 10問セット(ローマ字モード) ----
+  var SET = null; // { list, i, correct, wrong[] }
+
+  function startSet(list){
+    SET = { list:list, i:0, correct:0, wrong:[] };
+    renderQuestion();
+  }
+
+  function newSet(){
+    startSet(shuffle(ACTIVE.slice()).slice(0, 10));
+  }
+
+  function rankOf(c, n){
+    var r = c / n;
+    if (c === n)   return { mark:"💮", label:"かんぺき！ 花丸！",   orange:false };
+    if (r >= 0.8)  return { mark:"◎",  label:"すばらしい！",        orange:false };
+    if (r >= 0.6)  return { mark:"○",  label:"よくできました",      orange:false };
+    return           { mark:"△",  label:"とき直して マスターしよう", orange:true };
+  }
+
+  function showResult(){
+    var rank = rankOf(SET.correct, SET.list.length);
+    locked = true;
+    cellsEl.innerHTML = "";
+    submitBtn.disabled = true;
+    $("qEmoji").textContent = rank.mark;
+    $("qEmoji").style.color = rank.orange ? "#D89A45" : "var(--shu)";
+    $("qKana").textContent = SET.correct + " / " + SET.list.length + " せいかい";
+    $("qSubKana").textContent = "";
+    $("qLead").textContent = rank.label;
+    $("qTags").innerHTML = "";
+    if (SET.correct === SET.list.length) stampEl.classList.add("show");
+    var isRetry = SET.retry;
+    var wrong = SET.wrong.slice();
+    var btns = "";
+    if (wrong.length) {
+      btns += '<button type="button" id="fixBtn" class="primary">まちがい' + wrong.length + '問を とき直す</button>';
+    }
+    btns += '<button type="button" id="newSetBtn"' + (wrong.length ? '' : ' class="primary"') + '>' +
+      (isRetry ? 'ホームにもどる' : 'つぎの10問へ') + '</button>';
+    feedbackEl.innerHTML = '<div class="retry-row">' + btns + '</div>';
+    if (wrong.length) {
+      $("fixBtn").addEventListener("click", function(){
+        var w = shuffle(wrong.slice());
+        isRetry ? startRetry(w) : startSet(w);
+      });
+    }
+    $("newSetBtn").addEventListener("click", isRetry
+      ? function(){ document.body.classList.add("choosing"); }
+      : newSet);
+  }
+
+  // 固有名詞は頭文字を大文字にした形が正解
+  function answerOf(word){
+    return word.proper
+      ? word.roman.charAt(0).toUpperCase() + word.roman.slice(1)
+      : word.roman;
+  }
+
+  // 印刷・一覧用の出題表示(サブ読みがあれば併記)
+  function promptOf(word){
+    return word.kana + (word.sub ? "(" + word.sub + ")" : "");
+  }
+
+  function buildKeyboard(){
+    var kb = $("keyboard");
+    // PCと同じQWERTY配列(段ずらし付き)
+    var rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+    rows.forEach(function(row, ri){
+      if (ri === 1) kb.appendChild(spacer(1));
+      if (ri === 2) kb.appendChild(spacer(2));
+      for (var i = 0; i < row.length; i++) {
+        var b = document.createElement("button");
+        b.className = "key";
+        b.type = "button";
+        b.textContent = row[i];
+        b.dataset.ch = row[i];
+        kb.appendChild(b);
+      }
+      if (ri === 1) kb.appendChild(spacer(1));
+    });
+    var erase = document.createElement("button");
+    erase.className = "key erase";
+    erase.type = "button";
+    erase.textContent = "けす";
+    erase.dataset.action = "erase";
+    kb.appendChild(erase);
+
+    function spacer(n){
+      var s = document.createElement("div");
+      s.className = "sp" + n;
+      return s;
+    }
+
+    var LONG_PRESS_MS = 450;
+    var pressTimer = null;
+    var pressBtn = null;
+    var longFired = false;
+
+    kb.addEventListener("contextmenu", function(e){ e.preventDefault(); });
+
+    kb.addEventListener("pointerdown", function(e){
+      var btn = e.target.closest("button");
+      if (!btn || locked) return;
+      e.preventDefault();
+      if (btn.dataset.action === "erase") {
+        input.pop();
+        renderCells();
+        return;
+      }
+      if (!btn.dataset.ch) return;
+      pressBtn = btn;
+      longFired = false;
+      pressTimer = setTimeout(function(){
+        longFired = true;
+        btn.classList.add("caps");
+        if (input.length < MAX_LEN) {
+          input.push(btn.dataset.ch.toUpperCase());
+          renderCells();
+        }
+      }, LONG_PRESS_MS);
+    });
+
+    function release(e){
+      if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+      if (pressBtn && !longFired && !locked &&
+          e.target.closest && e.target.closest("button") === pressBtn) {
+        if (input.length < MAX_LEN) {
+          input.push(pressBtn.dataset.ch);
+          renderCells();
+        }
+      }
+      if (pressBtn) pressBtn.classList.remove("caps");
+      pressBtn = null;
+      longFired = false;
+    }
+    kb.addEventListener("pointerup", release);
+    kb.addEventListener("pointercancel", release);
+  }
+
+  function renderCells(){
+    cellsEl.innerHTML = "";
+    var count = locked ? input.length : input.length + 1; // 入力ぶん+カーソル用の空マス
+    for (var i = 0; i < count; i++) {
+      var c = document.createElement("div");
+      c.className = "cell";
+      if (i === input.length && !locked) c.classList.add("current");
+      c.textContent = input[i] || "";
+      cellsEl.appendChild(c);
+    }
+    submitBtn.disabled = locked || input.length === 0;
+  }
+
+  function renderQuestion(){
+    var word = current();
+    $("qEmoji").textContent = word.emoji;
+    $("qKana").textContent = word.kana;
+    $("qEmoji").style.color = "";
+    $("qSubKana").textContent = word.sub || (SET ? "問 " + (SET.i + 1) + " / " + SET.list.length : "");
+    var qm = curMode(word);
+    $("qLead").textContent =
+      qm === "eng" ? "えいごで かいてみよう" :
+      qm === "gojuon" ? "つづけて ローマ字で かこう" :
+      "ローマ字で かいてみよう";
+    var tags = [];
+    if (word.long) tags.push("のばす音は かかないよ");
+    $("qTags").innerHTML = tags.map(function(t){
+      return '<span class="tag">' + t + '</span>';
+    }).join("");
+    feedbackEl.innerHTML = "";
+    stampEl.classList.remove("show");
+    input = [];
+    locked = false;
+    renderCells();
+    // メモ機能連携用(divp-memo.js がリセットを拾う)
+    try { document.dispatchEvent(new CustomEvent("divp:nextQuestion")); } catch (e) {}
+  }
+
+  function streakRank(n){
+    if (n >= 100) return "SSSSS";
+    if (n >= 50)  return "SSSS";
+    if (n >= 30)  return "SSS";
+    if (n >= 20)  return "SS";
+    if (n >= 10)  return "S";
+    return "";
+  }
+
+  function renderScore(){
+    $("scoreNum").textContent = score;
+    var r = streakRank(streak);
+    $("streak").innerHTML =
+      (streak >= 2 ? "🌸×" + streak : "") +
+      (r ? ' <b class="srank">' + r + '</b>' : "");
+  }
+
+  // 前から・後ろから一致する部分は黒、間の食い違い箇所だけ朱にする
+  function diffAnswer(user, correct){
+    var p = 0;
+    while (p < correct.length && p < user.length && user[p] === correct[p]) p++;
+    var s = 0;
+    while (s < correct.length - p && s < user.length - p &&
+           user[user.length - 1 - s] === correct[correct.length - 1 - s]) s++;
+    var html = "";
+    for (var i = 0; i < correct.length; i++) {
+      var bad = i >= p && i < correct.length - s;
+      html += bad
+        ? '<span class="diff">' + correct[i] + '</span>'
+        : correct[i];
+    }
+    return html;
+  }
+
+  function next(){
+    if (SET) {
+      SET.i++;
+      if (SET.i >= SET.list.length) { showResult(); return; }
+      renderQuestion();
+      return;
+    }
+    var prev = order[idx % order.length];
+    idx++;
+    if (idx % order.length === 0 && MODE !== "gojuon") shuffle(order);
+    // 同じ語の連続を回避
+    if (order.length > 1 && order[idx % order.length] === prev) {
+      idx++;
+      if (idx % order.length === 0 && MODE !== "gojuon") shuffle(order);
+    }
+    renderQuestion();
+  }
+
+  function check(){
+    if (locked || input.length === 0) return;
+    var word = current();
+    var user = input.join("");
+    var correct = answerOf(word);
+    var ok = user === correct;
+    var m = curMode(word);
+    locked = true;
+    renderCells();
+
+    // 学習記録(ログイン時のみ動作 / divp-core 読み込みページで有効)
+    if (window.Divp && typeof window.Divp.answer === "function") {
+      window.Divp.answer(ok, {
+        question_key: word.cat || "hebon",
+        question_params: { kana: word.kana },
+        question_text: word.kana + (m === "eng" ? " を英語で書く" : " をローマ字で書く"),
+        correct_answer: correct,
+        wrong_answer: ok ? null : user
+      });
+    }
+
+    if (ok) {
+      score++; streak++;
+      if (SET) SET.correct++;
+      renderScore();
+      stampEl.classList.add("show");
+      // 小学生向け 星＋「正解！」演出（未読込・ローカル起動でも安全にスキップ）
+      if (window.Divp && Divp.correct) { try { Divp.correct(); } catch (e) {} }
+      var milestone = [10, 20, 30, 50, 100].indexOf(streak) !== -1;
+      if (milestone) {
+        // ランク達成は大きく祝い、自動では進めず「つぎへ」を押すまで残す
+        feedbackEl.innerHTML =
+          '<div class="msg good rank-up">' +
+            '<div class="rank-badge">🏅 ' + streak + '問連続！</div>' +
+            '<div class="rank-big"><b class="srank">' + streakRank(streak) + '</b>' +
+            '<span>ランク たっせい！</span></div>' +
+          '</div>' +
+          '<div class="retry-row"><button type="button" id="nextBtn" class="primary">つぎへ</button></div>';
+        $("nextBtn").addEventListener("click", next);
+      } else {
+        feedbackEl.innerHTML = '<div class="msg good">よくできました！</div>';
+        setTimeout(next, MODE === "gojuon" ? 600 : 1100);
+      }
+    } else {
+      streak = 0;
+      if (SET) SET.wrong.push(word);
+      renderScore();
+      cellsEl.classList.add("shake");
+      setTimeout(function(){ cellsEl.classList.remove("shake"); }, 400);
+      var retryBtns = SET
+        ? '<button type="button" id="nextBtn" class="primary">つぎへ</button>'
+        : '<button type="button" id="retryBtn">もういちど</button>' +
+          '<button type="button" id="nextBtn" class="primary">つぎへ</button>';
+      feedbackEl.innerHTML =
+        '<div class="msg bad">' + (m === "eng" ? "おしい！ こたえは…" : "おしい！ ヘボン式では…") + '</div>' +
+        '<div class="answer-line">' + diffAnswer(user, correct) + '</div>' +
+        '<div class="retry-row">' + retryBtns + '</div>';
+      if (!SET) {
+        $("retryBtn").addEventListener("click", function(){
+          input = []; locked = false;
+          feedbackEl.innerHTML = "";
+          renderCells();
+        });
+      }
+      $("nextBtn").addEventListener("click", next);
+    }
+  }
+
+  submitBtn.addEventListener("click", check);
+
+  // 🖨️ → 印刷設定パネルを開く
+  $("printBtn").addEventListener("click", function(){
+    enterPanel();
+  });
+
+  // 印刷実行：チェック語は必ず含め、残りをランダムで20問まで補充(2枚目に同じ並びで解答)
+  function runPrint(must, rest){
+    $("psTitle").textContent =
+      MODE === "eng" ? "英単語れんしゅうプリント" :
+      MODE === "gojuon" ? "五十音れんしゅうプリント" :
+      "ローマ字れんしゅうプリント";
+    $("psSub").textContent = MODE === "eng" ? "" : "ヘボン式";
+    $("psNote").textContent =
+      MODE === "eng" ? "にほんごを えいごで かきましょう。" :
+      MODE === "gojuon" ? "つづけて ローマ字で かきましょう。" :
+      "ひらがなを ローマ字で かきましょう。";
+    var pool = shuffle(shuffle(must).concat(shuffle(rest)).slice(0, 20));
+    if (MODE === "gojuon") {
+      pool.sort(function(a, b){ return ACTIVE.indexOf(a) - ACTIVE.indexOf(b); }); // 行順を維持
+    }
+    var grid = $("psGrid");
+    var ansGrid = $("psAnswerGrid");
+    grid.innerHTML = "";
+    ansGrid.innerHTML = "";
+    for (var i = 0; i < pool.length; i++) {
+      var item = document.createElement("div");
+      item.className = "ps-item";
+      item.innerHTML =
+        '<span class="num">' + (i + 1) + '.</span>' +
+        '<span class="kana">' + promptOf(pool[i]) + '</span>' +
+        '<span class="write"></span>';
+      grid.appendChild(item);
+
+      var ans = document.createElement("div");
+      ans.className = "ps-item";
+      ans.innerHTML =
+        '<span class="num">' + (i + 1) + '.</span>' +
+        '<span class="kana">' + promptOf(pool[i]) + '</span>' +
+        '<span class="roman">' + answerOf(pool[i]) + '</span>';
+      ansGrid.appendChild(ans);
+    }
+    window.print();
+  }
+
+  // 物理キーボードにも対応(Shiftで大文字)
+  document.addEventListener("keydown", function(e){
+    if (document.body.classList.contains("sensei-mode") ||
+        document.body.classList.contains("choosing") || locked) return;
+    if (/^[a-zA-Z]$/.test(e.key) && input.length < MAX_LEN) {
+      input.push(e.key); renderCells();
+    } else if (e.key === "Backspace") {
+      input.pop(); renderCells();
+    } else if (e.key === "Enter") {
+      check();
+    }
+  });
+
+  // ---- 印刷設定パネル ----
+  var renderPanelList = null;
+
+  function initPanel(){
+    var list = $("sList");
+
+    function addRow(w, checked){
+      var row = document.createElement("div");
+      row.className = "s-row";
+      row.__word = w;
+      row.dataset.roman = w.roman;
+      if (w.custom) row.dataset.custom = "1";
+      row.innerHTML =
+        '<input type="checkbox" class="s-prio"' + (checked ? ' checked' : '') + '>' +
+        '<span class="s-kana">' + promptOf(w) + '</span>' +
+        '<span class="s-roman">' + answerOf(w) + '</span>' +
+        '<span class="s-emoji">' + w.emoji + '</span>' +
+        '<button type="button" class="s-del">' + (w.custom ? 'さくじょ' : 'ださない') + '</button>';
+      list.appendChild(row);
+    }
+
+    renderPanelList = function(){
+      list.innerHTML = "";
+      ACTIVE.forEach(function(w){ addRow(w, false); });
+    };
+
+    // ださない/もどす・さくじょ
+    list.addEventListener("click", function(e){
+      var btn = e.target.closest(".s-del");
+      if (!btn) return;
+      var row = btn.closest(".s-row");
+      if (row.dataset.custom) { row.remove(); return; }
+      var off = row.classList.toggle("off");
+      btn.textContent = off ? "もどす" : "ださない";
+      var cb = row.querySelector(".s-prio");
+      cb.disabled = off;
+      if (off) cb.checked = false;
+    });
+
+    // 語の追加(このプリント限り・チェック済みで入る)
+    $("sAddBtn").addEventListener("click", function(){
+      var kana = $("sAddKana").value.trim();
+      var roman = $("sAddRoman").value.trim();
+      var emoji = $("sAddEmoji").value.trim();
+      if (!kana || !/^[a-zA-Z]+$/.test(roman)) {
+        alert("ひらがなと、A〜Zだけのローマ字を入れてください");
+        return;
+      }
+      var key = roman.toLowerCase();
+      if (list.querySelector('.s-row[data-roman="' + key + '"]')) {
+        alert("同じローマ字の言葉がすでにあります");
+        return;
+      }
+      addRow({
+        kana: kana,
+        roman: key,
+        emoji: emoji || "✏️",
+        proper: /^[A-Z]/.test(roman),
+        custom: true
+      }, true);
+      $("sAddKana").value = ""; $("sAddRoman").value = ""; $("sAddEmoji").value = "";
+    });
+
+    function setAll(v){
+      list.querySelectorAll(".s-row:not(.off) .s-prio").forEach(function(c){ c.checked = v; });
+    }
+    $("sAll").addEventListener("click", function(){ setAll(true); });
+    $("sClear").addEventListener("click", function(){ setAll(false); });
+
+    // 印刷実行
+    $("sPrint").addEventListener("click", function(){
+      var must = [], rest = [];
+      list.querySelectorAll(".s-row").forEach(function(row){
+        if (row.classList.contains("off")) return;
+        (row.querySelector(".s-prio").checked ? must : rest).push(row.__word);
+      });
+      if (must.length + rest.length === 0) {
+        alert("印刷できる言葉がありません");
+        return;
+      }
+      if (must.length > 20) {
+        alert("チェックが20個をこえています(" + must.length + "個)。20問にはランダムで20個入ります");
+      }
+      runPrint(must, rest);
+    });
+  }
+
+  // init
+  var panelInited = false;
+
+  function enterPanel(){
+    if (!panelInited) { panelInited = true; initPanel(); }
+    renderPanelList();
+    document.body.classList.add("sensei-mode");
+  }
+
+  $("sBack").addEventListener("click", function(){
+    document.body.classList.remove("sensei-mode");
+  });
+
+  // ---- モード選択 ----
+  function startMode(mode, list, label){
+    MODE = mode;
+    ACTIVE = list;
+    score = 0; streak = 0; idx = 0;
+    SET = null;
+    order = buildDeck();
+    $("modeLabel").textContent = label;
+    document.body.classList.remove("choosing");
+    renderScore();
+    if (mode === "romaji") {
+      newSet(); // 10問セット制
+    } else {
+      renderQuestion();
+    }
+  }
+
+  // ---- 解き直し（?retry=1 でマイページから遷移） ----
+  // 語の属性からモードを判定（フィードバック文言・リード文の出し分け用）
+  function modeOf(w){
+    if (w.cat && w.cat.indexOf("eng_") === 0) return "eng";
+    if (w.cat === "gojuon" || w.sub) return "gojuon";
+    return "romaji";
+  }
+  // 解き直しは複数モードが混在しうるので、その問題のモードを都度使う
+  function curMode(w){ return (SET && SET.retry) ? modeOf(w) : MODE; }
+
+  // question_key(=cat) と kana から出題データを引く（params_hash は {kana} 由来で一致）
+  function findWord(qkey, kana){
+    var pool = qkey === "gojuon" ? GOJUON
+             : qkey === "hebon"  ? WORDS
+             : ENG_SETS[qkey];
+    if (!pool) return null;
+    for (var i = 0; i < pool.length; i++) {
+      if (pool[i].kana === kana) return pool[i];
+    }
+    return null;
+  }
+
+  // 解き直しリストを1セットとして流す（同じ question_params で出すので2連続正解でmastered）
+  function startRetry(list){
+    ACTIVE = list;
+    MODE = modeOf(list[0]);
+    SET = { list:list, i:0, correct:0, wrong:[], retry:true };
+    $("modeLabel").textContent = "とき直し";
+    document.body.classList.remove("choosing");
+    renderScore();
+    renderQuestion();
+  }
+
+  // 五十音：グループ折り畳み式の行チップを生成(初期は未選択・全グループ閉)
+  (function(){
+    function groupOf(sub){
+      if (/拗音|外来音/.test(sub)) return 2;
+      if (/濁音/.test(sub)) return 1;
+      return 0;
+    }
+    var defs = ["清音(あ〜わ)", "濁音・半濁音", "拗音など"];
+    var bodies = [];
+    var gStart = $("gStart");
+    defs.forEach(function(name){
+      var wrap = document.createElement("div");
+      wrap.className = "g-group";
+      wrap.innerHTML =
+        '<button type="button" class="g-head"><span class="g-arrow">▸</span>' + name +
+        '<span class="g-count"></span></button>' +
+        '<div class="g-body" hidden></div>';
+      $("gCats").insertBefore(wrap, gStart);
+      var body = wrap.querySelector(".g-body");
+      var all = document.createElement("button");
+      all.type = "button";
+      all.className = "m-chip m-all";
+      all.textContent = "すべて";
+      body.appendChild(all);
+      bodies.push(body);
+      wrap.querySelector(".g-head").addEventListener("click", function(){
+        body.hidden = !body.hidden;
+        wrap.classList.toggle("open", !body.hidden);
+      });
+    });
+    GOJUON.forEach(function(w, i){
+      var label = document.createElement("label");
+      label.className = "m-chip";
+      var name = w.sub.replace(/\(.+\)$/, ""); // "が行(濁音)" → "が行"
+      label.innerHTML = '<input type="checkbox" value="' + i + '">' + name;
+      bodies[groupOf(w.sub)].appendChild(label);
+    });
+    // 見出しに選択数バッジ(閉じていても選択状況が見える)
+    $("gCats").addEventListener("change", function(){
+      document.querySelectorAll("#gCats .g-group").forEach(function(g){
+        var n = g.querySelectorAll("input:checked").length;
+        g.querySelector(".g-count").textContent = n ? n + "行" : "";
+      });
+    });
+  })();
+
+  // 「すべて」：同じグループ内の全選択⇔全解除のトグル
+  document.querySelectorAll(".m-all").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var boxes = btn.parentElement.querySelectorAll('input[type="checkbox"]');
+      var allOn = Array.prototype.every.call(boxes, function(c){ return c.checked; });
+      boxes.forEach(function(c){ c.checked = !allOn; });
+      btn.parentElement.dispatchEvent(new Event("change", { bubbles:true }));
+    });
+  });
+
+  $("mGojuon").addEventListener("click", function(){
+    var cats = $("gCats");
+    cats.hidden = !cats.hidden;
+    this.classList.toggle("selected", !cats.hidden);
+    $("mCats").hidden = true;
+    $("mEng").classList.remove("selected");
+  });
+
+  $("gStart").addEventListener("click", function(){
+    var list = [];
+    $("gCats").querySelectorAll("input:checked").forEach(function(c){
+      list.push(GOJUON[+c.value]); // GOJUON順が保たれる
+    });
+    if (!list.length) {
+      alert("行を1つはえらんでね");
+      return;
+    }
+    startMode("gojuon", list, "五十音");
+  });
+
+  $("mRomaji").addEventListener("click", function(){
+    startMode("romaji", WORDS.slice(), "ヘボン式");
+  });
+
+  $("mEng").addEventListener("click", function(){
+    var cats = $("mCats");
+    cats.hidden = !cats.hidden;
+    this.classList.toggle("selected", !cats.hidden);
+    $("gCats").hidden = true;
+    $("mGojuon").classList.remove("selected");
+  });
+
+  $("mStart").addEventListener("click", function(){
+    var list = [];
+    $("mCats").querySelectorAll("input:checked").forEach(function(c){
+      list = list.concat(ENG_SETS[c.value]);
+    });
+    if (!list.length) {
+      alert("カテゴリを1つはえらんでね");
+      return;
+    }
+    startMode("eng", list, "英単語（おまけ）");
+  });
+
+  $("modeBtn").addEventListener("click", function(){
+    document.body.classList.add("choosing");
+  });
+
+  buildKeyboard();
+  document.body.classList.add("choosing");
+
+  // divp-core は defer 読み込みなので、DOMContentLoaded で初期化する。
+  // ?retry=1 の時は pending を取得し、対象があれば解き直しセットへ直行する
+  // （対象が無ければモード選択のまま＝いつも通りのホーム）。
+  function boot(){
+    if (window.Divp && typeof Divp.init === "function") {
+      try { Divp.init(UNIT_KEY); } catch (e) {}
+    }
+    if (/[?&]retry=1/.test(location.search) &&
+        window.Divp && typeof Divp.getRetries === "function") {
+      Divp.getRetries().then(function(items){
+        var list = [];
+        (items || []).forEach(function(it){
+          var kana = it.question_params && it.question_params.kana;
+          if (!kana) return;
+          var w = findWord(it.question_key, kana);
+          if (w) list.push(w);
+        });
+        if (list.length) startRetry(shuffle(list));
+      }).catch(function(){});
+    }
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
+</script>
+</body>
+</html>
