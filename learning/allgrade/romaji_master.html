@@ -66,6 +66,13 @@
     font-family:"Zen Maru Gothic", sans-serif;
     font-size:13px; font-weight:700; color:var(--usuzumi);
   }
+  /* お題カードの右上に置くスコア */
+  .card .score{
+    position:absolute;
+    top:10px; right:14px;
+    font-size:12px;
+    display:flex; align-items:baseline; gap:4px;
+  }
   .score b{ color:var(--shu); font-size:16px; }
   .score .streak{ color:var(--kin); margin-left:8px; }
   .srank{
@@ -116,36 +123,6 @@
     letter-spacing:.06em;
   }
 
-  /* 朱◎スタンプ */
-  .stamp{
-    position:absolute;
-    top:50%; left:50%;
-    width:96px; height:96px;
-    margin:-48px 0 0 -48px;
-    border:5px solid var(--shu);
-    border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    transform:rotate(-12deg) scale(0);
-    pointer-events:none;
-    opacity:0;
-  }
-  .stamp::before{
-    content:"";
-    width:58px; height:58px;
-    border:4px solid var(--shu);
-    border-radius:50%;
-  }
-  .stamp.show{
-    animation:stampIn .45s cubic-bezier(.2,1.6,.4,1) forwards;
-  }
-  @keyframes stampIn{
-    0%{ transform:rotate(-12deg) scale(2.2); opacity:0; }
-    60%{ transform:rotate(-12deg) scale(.92); opacity:.95; }
-    100%{ transform:rotate(-12deg) scale(1); opacity:.9; }
-  }
-  @media (prefers-reduced-motion: reduce){
-    .stamp.show{ animation:none; transform:rotate(-12deg) scale(1); opacity:.9; }
-  }
 
   /* ---- 入力マス ---- */
   .cells{
@@ -287,6 +264,7 @@
   }
   .submit{
     margin-top:2px;
+    margin-bottom:32px;
     height:52px;
     width:100%;
     border:none;
@@ -350,6 +328,54 @@
     font-size:13px; color:var(--usuzumi);
     margin-bottom:10px;
   }
+
+  /* ---- 隠しコマンド: のばす音ルール ---- */
+  .rule-overlay{
+    position:fixed; inset:0; z-index:9999;
+    background:rgba(51,49,43,.55);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+    animation:ruleFade .18s ease;
+  }
+  .rule-overlay[hidden]{ display:none; }
+  @keyframes ruleFade{ from{ opacity:0; } to{ opacity:1; } }
+  .rule-card{
+    position:relative;
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:24px 24px;
+    border:2px solid var(--shu);
+    border-radius:14px;
+    box-shadow:0 12px 40px rgba(51,49,43,.3);
+    max-width:440px; width:100%;
+    max-height:88vh; overflow:auto;
+    padding:22px 20px 20px;
+  }
+  .rule-close{
+    position:absolute; top:8px; right:10px;
+    border:none; background:transparent;
+    font-size:26px; line-height:1; color:var(--usuzumi);
+    cursor:pointer; padding:4px 8px;
+  }
+  .rule-title{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:20px; font-weight:700; color:var(--shu);
+    text-align:center; margin-bottom:10px;
+  }
+  .rule-lead{ font-size:14px; margin:0 0 12px; }
+  .rule-list{ margin:0 0 12px; padding-left:1.1em; }
+  .rule-list li{ font-size:14px; margin-bottom:9px; line-height:1.5; }
+  .rule-ex{ display:block; color:var(--ai); font-size:13px; margin-top:2px; }
+  .rule-ex b{ font-family:"Zen Maru Gothic", sans-serif; }
+  .rule-note{
+    font-size:13px; line-height:1.6;
+    background:#fff; border-radius:10px;
+    border:1px dashed var(--kin);
+    padding:10px 12px; margin:0 0 10px;
+  }
+  .rule-note-sub{ border-color:var(--usuzumi); color:var(--usuzumi); margin-bottom:0; }
   .m-card{
     display:flex; align-items:center; gap:14px;
     background:#fff;
@@ -674,18 +700,17 @@
 <div class="app">
   <header>
     <h1>ローマ字マスター<span class="sub" id="modeLabel">ヘボン式</span></h1>
-    <div class="score">せいかい <b id="scoreNum">0</b><span class="streak" id="streak"></span></div>
     <button class="print-btn mode-back" id="modeBtn" type="button">ホームに戻る</button>
     <button class="print-btn" id="printBtn" type="button" aria-label="プリントを印刷">🖨️</button>
   </header>
 
   <div class="card">
+    <div class="score">せいかい <b id="scoreNum">0</b><span class="streak" id="streak"></span></div>
     <div class="emoji" id="qEmoji"></div>
     <div class="kana" id="qKana"></div>
     <div class="kana-sub" id="qSubKana"></div>
     <div class="lead" id="qLead">ローマ字で かいてみよう</div>
     <div class="tags" id="qTags"></div>
-    <div class="stamp" id="stamp"></div>
   </div>
 
   <div class="cells" id="cells"></div>
@@ -734,6 +759,23 @@
     </div>
     <div class="ps-grid" id="psAnswerGrid"></div>
     <div class="ps-footer">中京個別指導学院</div>
+  </div>
+</div>
+
+<!-- 隠しコマンド: ロゴ/タイトルを10回タップで「のばす音」ルールを表示 -->
+<div class="rule-overlay" id="ruleOverlay" hidden>
+  <div class="rule-card" role="dialog" aria-label="のばす音のルール">
+    <button type="button" class="rule-close" id="ruleClose" aria-label="とじる">×</button>
+    <div class="rule-title">のばす音（長音）のルール</div>
+    <p class="rule-lead">このツールは <b>ヘボン式（省略式）</b>。<u>のばす音は書かない</u>のがきほんです。</p>
+    <ul class="rule-list">
+      <li><b>お列＋う / お列＋お</b>（おう・おお）… <span class="rule-ex">とうきょう→<b>tokyo</b> / おおさか→<b>osaka</b></span></li>
+      <li><b>う列＋う</b>（うう・ゅう・ゆう）… <span class="rule-ex">きゅうり→<b>kyuri</b> / やきゅう→<b>yakyu</b></span></li>
+      <li><b>え列＋い</b>（えい）… ふつうそのまま <span class="rule-ex">せんせい→<b>sensei</b></span></li>
+      <li><b>い列＋い</b>（いい）… そのまま <span class="rule-ex">おにいさん→<b>oniisan</b></span></li>
+    </ul>
+    <p class="rule-note">ポイント：<b>お列・う列ののばす音は、うしろの「う・お」を書きません</b>。「おう/おお だけ」ではなく、<b>う列（〜ゅう・〜ゆう）も同じく省略</b>します。だから きゅうり は kyuuri ではなく <b>kyuri</b> です。</p>
+    <p class="rule-note rule-note-sub">問題に「のばす音は かかないよ」のタグが出たら、このルールの対象です。</p>
   </div>
 </div>
 
@@ -1133,7 +1175,6 @@
   var cellsEl = $("cells");
   var feedbackEl = $("feedback");
   var submitBtn = $("submitBtn");
-  var stampEl = $("stamp");
 
   function shuffle(a){
     for (var i = a.length - 1; i > 0; i--) {
@@ -1184,7 +1225,6 @@
     $("qSubKana").textContent = "";
     $("qLead").textContent = rank.label;
     $("qTags").innerHTML = "";
-    if (SET.correct === SET.list.length) stampEl.classList.add("show");
     var isRetry = SET.retry;
     var wrong = SET.wrong.slice();
     var btns = "";
@@ -1323,7 +1363,6 @@
       return '<span class="tag">' + t + '</span>';
     }).join("");
     feedbackEl.innerHTML = "";
-    stampEl.classList.remove("show");
     input = [];
     locked = false;
     renderCells();
@@ -1789,6 +1828,31 @@
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
+
+  // ---- 隠しコマンド: タイトル/ロゴを10回連続タップで「のばす音」ルールを表示 ----
+  (function(){
+    var overlay = $("ruleOverlay");
+    if (!overlay) return;
+    var taps = 0, timer = null;
+    function openRule(){ overlay.hidden = false; }
+    function closeRule(){ overlay.hidden = true; }
+    function onTap(){
+      taps++;
+      if (timer) clearTimeout(timer);
+      // 1.2秒とだえたらカウントリセット(押しつづける必要はないが連続で)
+      timer = setTimeout(function(){ taps = 0; }, 1200);
+      if (taps >= 10){ taps = 0; if (timer) clearTimeout(timer); openRule(); }
+    }
+    // ホーム画面のロゴ と アプリ内ヘッダーの見出し、両方に反応
+    var logo = document.querySelector(".m-logo");
+    if (logo) logo.addEventListener("click", onTap);
+    var h1 = document.querySelector(".app header h1");
+    if (h1) h1.addEventListener("click", onTap);
+
+    $("ruleClose").addEventListener("click", closeRule);
+    overlay.addEventListener("click", function(e){ if (e.target === overlay) closeRule(); });
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape" && !overlay.hidden) closeRule(); });
+  })();
 })();
 </script>
 </body>
