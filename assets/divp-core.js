@@ -331,14 +331,17 @@
       'text-decoration:underline', 'cursor:pointer', 'font-family:inherit'
     ].join(';');
     loginLink.addEventListener('click', function () {
-      overlay.style.display = 'none';
-      try {
-        document.documentElement.style.overflow = '';
-        document.body.style.overflow = '';
-      } catch (e) {}
+      // 壁は消さない（抜け道封じ）。ヘッダーだけを壁より前面に持ち上げ、
+      // 共通ログイン窓を操作可能にする。ログイン成功時はヘッダー側の
+      // location.reload() で壁ごと自然に解除される。ログインせず窓を閉じても
+      // 壁は残り続けるため、ツールは操作できないまま。
+      var hdr = document.getElementById('divp-header') || document.querySelector('.divp-header');
+      if (hdr) hdr.style.zIndex = '2147483601';   // 壁(2147483600)より前へ
       try { global.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { global.scrollTo(0, 0); }
       var hdrBtn = document.getElementById('divp-login-btn');
-      if (hdrBtn) hdrBtn.click();
+      var pop = document.getElementById('divp-login-pop');
+      // 未表示のときだけ開く（トグルで閉じてしまわないように）
+      if (hdrBtn && (!pop || pop.style.display === 'none')) hdrBtn.click();
     });
 
     if (!document.getElementById('divp-wall-anim')) {
