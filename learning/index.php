@@ -56,6 +56,10 @@ foreach ($dirs as $dir) {
     $folder = basename($dir);
     foreach (glob($dir . '/*.html') ?: [] as $file) {
         $head = (string)file_get_contents($file, false, null, 0, 16384);
+        // 16KB境界が多バイト文字の途中に当たると preg の u フラグが「文字列全体が
+        // 不正UTF-8」と見なして失敗し、<title>が取れずファイル名表示に落ちる。
+        // 末尾の壊れたバイト列を除去して妥当なUTF-8に整えてから処理する。
+        $head = mb_scrub($head, 'UTF-8');
         $rawTitle = '';
         if (preg_match('/<title>(.*?)<\/title>/isu', $head, $m)) {
             $rawTitle = html_entity_decode(trim($m[1]), ENT_QUOTES, 'UTF-8');

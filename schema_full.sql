@@ -378,8 +378,8 @@ INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('math_es4_warizan_hissan', 'round',  'がい数のわり算', 1)
 ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
 
--- 正負の数マスター（中1）のシード
--- question_key は math_js1_seihumaster.html 内の MODE_KEYS と一致させる
+-- 正負の計算マスター（中1）のシード
+-- question_key は math_js1_seihukeisanmaster.html 内の MODE_KEYS と一致させる
 -- （数の種類 整数/分数/小数 はモードではなく question_params 側に入る）
 INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('math_js1_seihu', 'dofugo',      '同符号のたし算',   1),

@@ -7,9 +7,6 @@
 <meta name="description" content="中1数学「一次方程式」の計算ドリル。係数なし・係数あり・同類項・かっこ・分数・小数・応用の7モード。焼山・植田・長久手・神丘・一社・高針・吉根・志段味・有松の中京個別指導学院。">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script src="../../assets/divp-core.js" defer></script>
-<script src="../../assets/divp-header.js" defer></script>
-<script src="../../assets/divp-correct-jh.js" defer></script>
 <style>
 :root{
   --washi:#F7F2E7;
@@ -88,7 +85,7 @@ body{
   padding:18px 12px;min-height:96px;
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 1px 0 rgba(58,50,38,.06);
-  overflow:hidden;position:relative;
+  overflow:visible;position:relative;
 }
 .divp-qtext{white-space:nowrap;font-size:30px;transform-origin:center center;}
 
@@ -200,15 +197,57 @@ body{
   .divp-qtext{font-size:26px;}
   .divp-key{font-size:20px;padding:10px 0;}
 }
+
+/* ---- 印刷ボタン（タイトル右） ---- */
+.divp-print-btn{
+  margin-left:auto;display:inline-flex;flex-direction:column;align-items:center;gap:1px;
+  border:1.5px solid var(--sakura-deep);background:#fff;color:var(--sakura-deep);
+  border-radius:8px;padding:5px 10px;cursor:pointer;font:inherit;line-height:1;
+}
+.divp-print-btn .pi{font-size:16px;}
+.divp-print-btn .pl{font-size:9px;font-weight:bold;letter-spacing:.02em;}
+.divp-print-btn:hover{background:var(--sakura-pale);}
+.divp-print-btn:active{transform:scale(.94);}
+
+/* ===== 印刷（A4縦・10問＋2枚目に解答） ===== */
+#print-area{display:none;}
+@media print{
+  body *{visibility:hidden;}
+  #print-area,#print-area *{visibility:visible;}
+  #print-area{display:block !important;position:absolute;left:0;top:0;width:100%;}
+  @page{size:A4 portrait;margin:14mm 12mm;}
+}
+.p-sheet{font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif;color:#111;}
+.p-sheet .ph-head{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:6px;margin-bottom:12px;}
+.p-sheet .ph-title{font-weight:800;font-size:18px;}
+.p-sheet .ph-school{font-size:12px;color:#444;}
+.p-sheet .ph-meta{display:flex;justify-content:space-between;font-size:14px;align-items:center;}
+.p-sheet .ph-meta .ph-name{min-width:260px;height:42px;border:1px solid #999;border-radius:5px;display:inline-flex;align-items:center;padding:0 14px;}
+.p-sheet .ph-meta .ph-score{border-bottom:1px solid #999;min-width:130px;display:inline-block;padding-bottom:2px;text-align:center;}
+.p-grid{display:flex;flex-direction:column;justify-content:space-between;margin-top:8mm;min-height:216mm;}
+.p-item{display:flex;align-items:baseline;gap:12px;font-size:18px;padding-bottom:4mm;}
+.p-item .no{font-weight:800;width:34px;flex:0 0 auto;}
+.p-qbody{display:flex;flex-direction:column;gap:3px;}
+.p-caption{font-size:12px;color:#444;}
+.p-choices{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px;}
+.p-choice b{margin-right:3px;}
+.p-keypage{page-break-before:always;}
+.p-kgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px 26px;font-size:15px;margin-top:8mm;}
+.p-kgrid div{padding:6px 0;border-bottom:1px dotted #ccc;}
+.p-kgrid .no{font-weight:800;}
 </style>
 </head>
 <body data-unit-key="math_js1_houteishiki_master" data-theme="jh" data-effect="stamp">
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-core.js"></script>
 <div class="divp-wrap">
 
   <div class="divp-title">
     <span class="divp-petal">❀</span>
     <h1>方程式マスター</h1>
     <span class="divp-sub">中1数学・一次方程式</span>
+    <button class="divp-print-btn" id="divpPrintBtn" type="button" title="プリント" aria-label="印刷"><span class="pi">🖨</span><span class="pl">印刷</span></button>
   </div>
 
   <div class="divp-setting open" id="divpSetting">
@@ -267,6 +306,7 @@ body{
 
 </div>
 <div class="divp-toast" id="divpToast"></div>
+<div id="print-area"></div>
 
 <script>
 (function(){
@@ -1114,7 +1154,7 @@ function fitText(el,container,origin){
 }
 
 /* --- Divp guard --- */
-function safeDivpCorrect(){try{if(window.Divp&&Divp.correct)Divp.correct();}catch(e){}}
+function safeDivpCorrect(){try{if(window.Divp&&Divp.correct)Divp.correct('.divp-qcard');}catch(e){}}
 function safeDivpAnswer(ok,meta){try{if(window.Divp&&Divp.answer)Divp.answer(ok,meta);}catch(e){}}
 
 /* ===== 学習記録システム連携（question_params の二重表現）=====
@@ -1419,6 +1459,45 @@ window.addEventListener("resize",function(){
 buildChips();
 buildTenkey();
 
+/* ===== 印刷（A4縦・現在モード10問＋2枚目に解答） ===== */
+function kxStr(latex){
+  try{return katex.renderToString(latex,{throwOnError:false,displayMode:false,strict:false});}
+  catch(e){return latex;}
+}
+function escHtml(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function ansText(p){
+  if(p.type==="choice") return p.corrects.map(function(idx){return CLABELS[idx];}).join("・");
+  return kxStr("x = "+fmtR(p.ans));
+}
+function openPrint(){
+  var mode=state.mode;
+  var modeLabel=(MODES.filter(function(m){return m.key===mode;})[0]||{}).label||"";
+  var items="",keys="";
+  for(var i=0;i<SET_SIZE;i++){
+    var p=GENS[mode]();
+    var n=i+1;
+    var body='<span class="p-ex">'+kxStr(p.latex)+'</span>';
+    if(p.type==="choice"){
+      var chs=p.choices.map(function(c,ci){
+        var inner=c.text?escHtml(c.text):kxStr(c.latex);
+        return '<span class="p-choice"><b>'+CLABELS[ci]+'</b>'+inner+'</span>';
+      }).join("");
+      body+='<div class="p-caption">'+(p.caption||"")+'</div><div class="p-choices">'+chs+'</div>';
+    }
+    items+='<div class="p-item"><span class="no">('+n+')</span><span class="p-qbody">'+body+'</span></div>';
+    keys+='<div><span class="no">('+n+')</span> &nbsp;'+ansText(p)+'</div>';
+  }
+  $("print-area").innerHTML=
+    '<div class="p-sheet"><div class="ph-head"><div class="ph-title">方程式マスター　'+escHtml(modeLabel)+'</div>'
+    +'<div class="ph-school">中京個別指導学院　www.chukyokobetsu.com</div></div>'
+    +'<div class="ph-meta"><span class="ph-name">名前：</span><span class="ph-score">得点：　　／10</span></div>'
+    +'<div class="p-grid">'+items+'</div>'
+    +'<div class="p-keypage p-sheet"><div class="ph-head"><div class="ph-title">解答　方程式マスター　'+escHtml(modeLabel)+'</div><div class="ph-school">中京個別指導学院</div></div>'
+    +'<div class="p-kgrid">'+keys+'</div></div></div>';
+  window.print();
+}
+$("divpPrintBtn").addEventListener("click",openPrint);
+
 /* ===== 解き直し（DB連携）=====
  * ?retry=1 で開くと Divp.getRetries()（api/list_retries.php）から pending を取得し、
  * question_params から全く同じ問題を復元して1セットとして出題する。
@@ -1444,7 +1523,7 @@ function initRetry(){
     startDbRetry(use);
   }).catch(function(){ startSet(false); });
 }
-/* divp-core は defer で head から読み込むため DOMContentLoaded 時には Divp が使える。
+/* divp-core は <body> 冒頭で同期読み込みするため DOMContentLoaded 時には Divp が使える。
  * 初回出題はここで一度だけ行う（?retry=1 は initRetry 経由、それ以外は通常出題）。*/
 function bootDivp(){
   if(window.Divp&&typeof Divp.init==="function"){try{Divp.init(UNIT_KEY);}catch(e){}}

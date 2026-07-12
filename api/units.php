@@ -28,14 +28,19 @@ return [
         'url'   => '/learning/japanese/japanese_js1_kaeriten.html',
     ],
     'math_js1_seihu' => [
-        'title' => '正負の数マスター',
+        'title' => '正負の計算マスター',
         'sub'   => '数学・中1',
-        'url'   => '/learning/math/math_js1_seihumaster.html',
+        'url'   => '/learning/math/math_js1_seihukeisanmaster.html',
     ],
     'math_js1_seihunomahojin' => [
         'title' => '魔法陣道場（正負の数）',
         'sub'   => '数学・中1',
         'url'   => '/learning/math/math_js1_seihunomahojin.html',
+    ],
+    'math_js1_seihunohugohantei' => [
+        'title' => '符号判定クイズ',
+        'sub'   => '数学・中1',
+        'url'   => '/learning/math/math_js1_seihunohugohantei.html',
     ],
     'math_js1_zettaichi' => [
         'title' => '絶対値 練習道場',
