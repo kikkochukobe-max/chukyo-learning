@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中2 計算完璧マスター｜式の計算・連立方程式</title>
+<!--
+  unit_key: math_js2_keisan
+  校種: jh（中2）
+  共通モジュール（divp-header.js / divp-core / divp-correct-jh.js / divp-memo.js）は
+  kotoba_master と同様、配置時に Claude Code 側で統合する想定。
+  Divp.answer() 呼び出しは window.Divp ガード済みなので単体でも動作する。
+
+  question_catalog 追加用SQL（base_xp は仮値・要調整）:
+  INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
+  ('math_js2_keisan','doruikou','同類項をまとめる',5),
+  ('math_js2_keisan','tashizan','多項式のたし算',5),
+  ('math_js2_keisan','hikizan','多項式のひき算',10),
+  ('math_js2_keisan','suu_bai','数×多項式',5),
+  ('math_js2_keisan','suu_waru','多項式÷数',10),
+  ('math_js2_keisan','bunpai_kagen','かっこをふくむ加減',10),
+  ('math_js2_keisan','bunsuu','分数の形の計算',15),
+  ('math_js2_keisan','tan_kake','単項式の乗法',5),
+  ('math_js2_keisan','jijou_kake','累乗をふくむ乗法',10),
+  ('math_js2_keisan','tan_waru','単項式の除法',10),
+  ('math_js2_keisan','kakewari','乗除の混合',15),
+  ('math_js2_keisan','three_mono','3つの単項式の乗除',15),
+  ('math_js2_keisan','shiki_no_atai','式の値',15),
+  ('math_js2_keisan','henkei','等式の変形',15),
+  ('math_js2_keisan','renritsu_sonomama','加減法①そのまま消去',10),
+  ('math_js2_keisan','renritsu_katahou','加減法②一方を何倍か',10),
+  ('math_js2_keisan','renritsu_ryouhou','加減法③両方を何倍か',15),
+  ('math_js2_keisan','renritsu_dainyu','代入法',10),
+  ('math_js2_keisan','renritsu_kakko','かっこをふくむ連立',15),
+  ('math_js2_keisan','renritsu_shousuu','小数をふくむ連立',15),
+  ('math_js2_keisan','renritsu_bunsuu','分数をふくむ連立',20),
+  ('math_js2_keisan','renritsu_abc','A=B=Cの形',20);
+-->
+<style>
+/* KaTeXフォント拝借（SIL OFL）。配置先は公開ルート直下 /assets/fonts/。
+   英字（斜体のx,y）＝Math-Italic、数字・記号（直立）＝Main-Regular、太字＝Main-Bold。 */
+@font-face{
+  font-family:"KTX-Math";
+  src:url(../../assets/fonts/KaTeX_Math-Italic.ttf) format("truetype");
+  unicode-range:U+0041-005A,U+0061-007A; /* A-Z a-z のみ（斜体の変数） */
+  font-display:swap;
+}
+@font-face{
+  font-family:"KTX-Main";
+  src:url(../../assets/fonts/KaTeX_Main-Regular.ttf) format("truetype");
+  font-weight:400;font-display:swap;
+}
+@font-face{
+  font-family:"KTX-Main";
+  src:url(../../assets/fonts/KaTeX_Main-Bold.ttf) format("truetype");
+  font-weight:700;font-display:swap;
+}
+:root{
+  --paper:#F9F4E8;      /* 生成りに寄せて暖かく */
+  --grid:#E9E1CE;
+  --ink:#3A362E;
+  --ink2:#948C7C;
+  --shu:#C73E2E;        /* 採点ペンの朱（○×スタンプ用に維持） */
+  --shu-soft:#CB6B52;   /* やわらかい柿朱（UIアクセント用） */
+  --gold:#C9A227;
+  --mathfont:"KTX-Math","KTX-Main","Times New Roman","Hiragino Mincho ProN",serif;
+  --ai:#2C5F8A;
+  --dai:#D89A45;
+}
+*{box-sizing:border-box}
+html{color-scheme:only light;scrollbar-gutter:stable}
+[hidden]{display:none!important}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic","YuGothic",sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.6;
+}
+.app{max-width:720px;margin:0 auto;padding:14px 14px 48px}
+
+/* ---------- top bar ---------- */
+.topbar{display:flex;align-items:center;gap:10px;padding:4px 0 12px}
+.divp-title{
+  font-family:"Zen Maru Gothic","Zen Kaku Gothic New",sans-serif;
+  font-size:1.55rem;font-weight:900;margin:0;letter-spacing:.05em;line-height:1.35;
+}
+.divp-title .tmark{
+  background:linear-gradient(transparent 62%, rgba(203,107,82,.30) 62%, rgba(203,107,82,.30) 92%, transparent 92%);
+  padding:0 2px;
+}
+.divp-title small{
+  display:inline-block;font-size:.68rem;font-weight:700;color:var(--shu-soft);
+  letter-spacing:.16em;margin-top:6px;padding:3px 12px;
+  border:1.5px solid var(--shu-soft);border-radius:999px;vertical-align:middle;
+}
+.spacer{flex:1}
+.ghost-btn{
+  background:#fff;border:1.5px solid var(--grid);border-radius:999px;
+  color:var(--ink);font:inherit;font-size:.85rem;padding:7px 14px;cursor:pointer;
+  transition:border-color .15s;
+}
+.ghost-btn:hover{border-color:var(--ink2)}
+.ghost-btn:focus-visible,.key:focus-visible,.divp-check-btn:focus-visible,.start-btn:focus-visible{
+  outline:2.5px solid var(--ai);outline-offset:2px;
+}
+
+/* ---------- home ---------- */
+.lead{color:var(--ink2);font-size:.82rem;margin:2px 0 20px}
+.lead b{color:var(--shu-soft)}
+#unitList{display:grid;grid-template-columns:minmax(0,1fr);grid-auto-rows:1fr;gap:18px;margin-bottom:4px}
+.unit{
+  --uc:var(--shu);
+  display:flex;flex-direction:column;min-width:0;box-sizing:border-box;
+  background:#FFFDF7;border:1.5px solid var(--grid);border-left:6px solid var(--uc);
+  border-radius:16px;padding:16px 16px 14px;
+  box-shadow:0 2px 8px rgba(120,100,70,.08);
+}
+.unit-title{
+  font-family:"Zen Maru Gothic",sans-serif;font-size:1.08rem;font-weight:800;
+  display:flex;align-items:flex-start;gap:10px;margin:0 0 12px;color:var(--ink);
+  min-width:0;
+}
+.unit-title::before{margin-top:.42em}
+.unit-title .ut{flex:1 1 auto;min-width:0;line-height:1.4}
+.unit-title .u-count{flex:none;margin-top:1px}
+.unit-title::before{content:'';width:11px;height:11px;border-radius:3px;background:var(--uc);flex:none}
+.unit-title .u-count{
+  margin-left:auto;font-size:.72rem;font-weight:700;color:var(--uc);
+  border:1.5px solid var(--uc);border-radius:999px;padding:3px 10px;white-space:nowrap;
+}
+.unit-title .u-count.alldone{background:var(--gold,#C9A227);border-color:var(--gold,#C9A227);color:#fff}
+.mode-row{display:flex;gap:10px;align-items:stretch}
+.mode-row{height:52px}
+.mode-select{
+  flex:1;min-width:0;appearance:none;-webkit-appearance:none;height:100%;
+  background:#FFFDF7 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2333312B' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center;
+  border:1.5px solid var(--ink);border-radius:12px;
+  font-family:"Zen Kaku Gothic New",sans-serif;font-size:.88rem;font-weight:600;color:var(--ink);
+  padding:0 34px 0 12px;cursor:pointer;text-overflow:ellipsis;
+}
+.mode-select:focus-visible{outline:3px solid var(--uc);outline-offset:2px}
+.start-btn{
+  background:var(--uc,var(--shu));color:#fff;border:none;border-radius:12px;
+  box-shadow:0 3px 0 rgba(51,49,43,.18);
+  font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:.92rem;
+  letter-spacing:.08em;padding:0 18px;cursor:pointer;flex:none;height:100%;transition:opacity .15s;
+}
+.start-btn:hover{opacity:.88}
+.start-btn:active{transform:translateY(2px);box-shadow:none}
+.mode-ex{margin-top:auto;padding-top:8px;font-size:.82rem;color:var(--ink2);padding-left:4px;min-height:1.3em}
+
+/* ---------- practice ---------- */
+.phead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.lv-pick{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.lv-pick button{
+  font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:.74rem;
+  padding:5px 12px;border-radius:999px;border:1.5px solid var(--ink2);
+  background:transparent;color:var(--ink2);cursor:pointer;letter-spacing:.05em;
+}
+.lv-pick button.on{background:var(--ink);border-color:var(--ink);color:#FFFDF7}
+.lv-pick button.lv4.on{background:var(--shu);border-color:var(--shu)}
+.phead .pname{font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:1rem}
+.lv-chip{
+  font-size:.7rem;letter-spacing:.08em;color:var(--ai);
+  border:1.5px solid var(--ai);border-radius:999px;padding:2px 10px;
+}
+.dots{display:flex;gap:6px;align-items:center;margin-left:auto}
+.dots span{width:12px;height:12px;border-radius:50%;border:1.8px solid var(--ink2);background:transparent}
+.dots span.on{background:var(--shu);border-color:var(--shu)}
+.dots .dlabel{width:auto;height:auto;border:none;border-radius:0;background:none;font-size:.68rem;color:var(--ink2);margin-left:2px;white-space:nowrap}
+
+.paper{
+  /* 和紙: あたたかい生成り + 繊維ノイズ */
+  background-color:#FCF9F0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+  border:1.5px solid #E5DFCF;border-radius:14px;
+  box-shadow:inset 0 0 26px rgba(139,135,124,.10);
+  padding:30px 18px;min-height:130px;position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+}
+.back-fab{
+  position:absolute;top:10px;left:10px;z-index:2;
+  width:36px;height:36px;border-radius:50%;
+  background:#fff;border:1.5px solid var(--ink2);color:var(--ink);
+  font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:1.05rem;
+  cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;
+  transition:border-color .15s;
+}
+.back-fab:hover{border-color:var(--ink)}
+.back-fab:focus-visible{outline:3px solid var(--shu);outline-offset:2px}
+.q-cond{font-size:.95rem;color:var(--ink)}
+.q-main{font-family:var(--mathfont);font-size:1.7rem;letter-spacing:.03em;text-align:center;line-height:1.9}
+.q-cond{font-family:var(--mathfont)}
+.fb .ng b{font-family:var(--mathfont);font-size:1.15em}
+@media (max-width:420px){.q-main{font-size:1.3rem}}
+sup{font-size:.62em}
+
+/* fractions */
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .12em;line-height:1.25}
+.fr .fn{border-bottom:2px solid currentColor;padding:0 .3em}
+.fr .fd{padding:0 .3em}
+
+/* systems of equations */
+.sys{display:inline-flex;align-items:center}
+.sys::before{content:'{';font-weight:100;font-size:2.9em;line-height:0;transform:translateY(-.04em) scaleX(.55);transform-origin:left center;margin-right:.02em}
+.sys .rows{display:flex;flex-direction:column;gap:10px;text-align:left}
+
+/* marking pen feedback */
+.maru{
+  position:absolute;inset:0;margin:auto;width:96px;height:96px;border-radius:50%;
+  border:6px solid var(--shu);opacity:0;pointer-events:none;
+}
+.maru.show{animation:pop .4s ease-out forwards}
+.batsu{
+  position:absolute;top:10px;right:14px;color:var(--shu);
+  font-size:1.9rem;font-weight:700;opacity:0;pointer-events:none;font-family:"Zen Maru Gothic",sans-serif;
+}
+.batsu.show{animation:fadein .3s ease-out forwards}
+.stamp-clear{
+  position:absolute;inset:0;margin:auto;width:130px;height:130px;display:flex;align-items:center;justify-content:center;
+  color:var(--gold);font-size:6.2rem;font-family:"Zen Maru Gothic",sans-serif;font-weight:700;
+  transform:rotate(-12deg);opacity:0;pointer-events:none;
+}
+.stamp-clear.show{animation:pop .5s ease-out forwards}
+@keyframes pop{0%{opacity:0;transform:scale(1.6) rotate(-12deg)}100%{opacity:.92;transform:scale(1) rotate(-12deg)}}
+@keyframes fadein{to{opacity:.95}}
+@media (prefers-reduced-motion:reduce){
+  .maru.show,.batsu.show,.stamp-clear.show{animation:none;opacity:.92}
+}
+
+/* answer area */
+.ansrow{display:flex;align-items:center;justify-content:center;gap:10px;margin:16px 0 10px;flex-wrap:wrap}
+.ansrow label{font-size:1.1rem}
+.ans-in{
+  font:inherit;font-size:1.25rem;padding:10px 12px;border:1.8px solid var(--ink2);
+  border-radius:10px;background:#fff;color:var(--ink);width:min(320px,72vw);text-align:center;
+font-family:var(--mathfont);}
+.ans-in.short{width:110px}
+.ans-in:focus{border-color:var(--ai);outline:none}
+.ans-in[readonly]{background:var(--paper)}
+
+.btnrow{display:flex;justify-content:center;gap:12px;margin:6px 0 14px;flex-wrap:wrap}
+.divp-check-btn{
+  background:var(--shu);color:#fff;border:none;border-radius:999px;
+  font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:1.02rem;
+  letter-spacing:.14em;padding:12px 38px;cursor:pointer;transition:opacity .15s;
+}
+.divp-check-btn:disabled{opacity:.35;cursor:default}
+.next-btn{
+  background:#fff;color:var(--ink);border:1.8px solid var(--ink);border-radius:999px;
+  font:inherit;font-weight:700;font-size:.95rem;letter-spacing:.1em;padding:11px 30px;cursor:pointer;
+}
+.nextstep-btn{
+  background:var(--gold);color:#fff;border:none;border-radius:999px;
+  font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:.95rem;
+  letter-spacing:.1em;padding:11px 26px;cursor:pointer;
+}
+
+/* feedback */
+.fb{min-height:2.2em;text-align:center;font-size:.95rem;margin-bottom:8px}
+.fb .ok{color:var(--shu);font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:1.15rem;letter-spacing:.12em}
+.fb .ng{color:var(--ink)}
+.fb .ng b{color:var(--shu)}
+.fb .warn{color:var(--dai);font-weight:700}
+.fb .hint{display:block;color:var(--ink2);font-size:.82rem;margin-top:4px}
+.fb .clearmsg{color:var(--gold);font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:1.1rem;letter-spacing:.1em}
+
+/* keypad */
+.pad{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:440px;margin:0 auto}
+.pad.numpad{grid-template-columns:repeat(4,1fr);max-width:340px}
+.key{
+  font:inherit;font-size:1.18rem;padding:12px 0;background:#fff;color:var(--ink);
+  border:1.5px solid var(--grid);border-radius:10px;cursor:pointer;
+  transition:background .1s;user-select:none;-webkit-user-select:none;touch-action:manipulation;
+}
+.key:active{background:var(--grid)}
+.key.op{color:var(--ai);font-weight:700}
+.key.util{background:var(--paper);font-size:1rem;color:var(--ink2)}
+
+.note{color:var(--ink2);font-size:.75rem;text-align:center;margin-top:16px}
+
+/* ---------- print sheet ---------- */
+#printArea{display:none}
+@media print{
+  .app{display:none}
+  body{background:#fff}
+  #printArea{display:block;font-size:11pt;color:#000}
+  .psheet-head{
+    display:flex;align-items:baseline;gap:14pt;border-bottom:1.5pt solid #000;
+    padding-bottom:6pt;margin-bottom:12pt;font-size:10.5pt;
+  }
+  .psheet-head .t{font-weight:700;font-size:13pt}
+  .psheet-head .nm{margin-left:auto}
+  .pgrid{column-count:2;column-gap:26pt;margin:0;padding:0;list-style:none}
+  .pgrid li{break-inside:avoid;margin-bottom:16pt;line-height:1.7;font-family:var(--mathfont)}
+  .pgrid li .pno{font-weight:700;margin-right:6pt}
+  .pgrid.sysgrid li{margin-bottom:22pt}
+  .pans{break-before:page}
+  .pans h2{font-size:12pt;border-bottom:1pt solid #000;padding-bottom:4pt}
+  .pans ol{column-count:2;column-gap:26pt;margin:0;padding:0;list-style:none;font-size:10.5pt}
+  .pans li{break-inside:avoid;margin-bottom:6pt;font-family:var(--mathfont)}
+  #printArea .fr{margin:0 2pt}
+  #printArea .fr .fn{border-bottom:1pt solid #000;padding:0 3pt}
+  #printArea .sys::before{font-size:2.6em}
+  #printArea .sys .rows{gap:4pt}
+}
+@page{size:A4 portrait;margin:16mm 14mm}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <h1 class="divp-title"><span class="tmark">中2 計算完璧マスター</span><br><small>式の計算・連立方程式</small></h1>
+    <span class="spacer"></span>
+    <button id="printBtn" class="ghost-btn" hidden aria-label="プリントを印刷" title="プリントを印刷">🖨️</button>
+  </header>
+
+  <main>
+    <!-- ===== home ===== -->
+    <section id="home">
+      <p class="lead">STEP順に少しずつレベルアップ。<b>5問連続正解</b>でSTEPクリア！　正解を重ねると問題も自動でむずかしくなるよ。</p>
+      <div id="unitList"></div>
+      <p class="note">レベル（Lv.1→3）は正解数に応じて自動で上がります。プリントは各STEPの練習画面から印刷できます。</p>
+    </section>
+
+    <!-- ===== practice ===== -->
+    <section id="practice" hidden>
+      <div class="phead">
+        <span class="no" id="pStepNo" style="font-family:'Zen Maru Gothic',sans-serif;color:var(--shu);font-weight:700;font-size:.75rem;letter-spacing:.15em"></span>
+        <span class="pname" id="pName"></span>
+        <span class="lv-chip" id="pLv">Lv.1</span>
+        <span class="dots" id="pDots"></span>
+      </div>
+
+      <div class="lv-pick" id="lvPick" role="group" aria-label="レベルをえらぶ"></div>
+
+      <div class="paper">
+        <button id="backBtn" class="back-fab" hidden aria-label="STEP一覧にもどる" title="もどる">←</button>
+        <div class="q-cond" id="qCond" hidden></div>
+        <div class="q-main" id="qMain"></div>
+        <div class="maru" id="fxMaru"></div>
+        <div class="batsu" id="fxBatsu">✗</div>
+        <div class="stamp-clear" id="fxClear">◎</div>
+      </div>
+
+      <div class="ansrow" id="ansExpr" hidden>
+        <input class="ans-in" id="inExpr" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="答えを入力" aria-label="答え">
+      </div>
+      <div class="ansrow" id="ansSys" hidden>
+        <label for="inX">x =</label><input class="ans-in short" id="inX" autocomplete="off" spellcheck="false" aria-label="xの値">
+        <label for="inY">y =</label><input class="ans-in short" id="inY" autocomplete="off" spellcheck="false" aria-label="yの値">
+      </div>
+      <div class="ansrow" id="ansNum" hidden>
+        <input class="ans-in short" id="inNum" autocomplete="off" spellcheck="false" placeholder="答え" aria-label="答え">
+      </div>
+
+      <div class="btnrow">
+        <button class="divp-check-btn" id="checkBtn">答え合わせ</button>
+        <button class="next-btn" id="nextBtn" hidden>次の問題 →</button>
+        <button class="nextstep-btn" id="nextStepBtn" hidden>次のSTEPへ ➜</button>
+      </div>
+
+      <div class="fb" id="fb" aria-live="polite"></div>
+
+      <div class="pad" id="pad"></div>
+      <p class="note">キーボード入力もOK（全角でも自動変換）。Enterで答え合わせ／次の問題。</p>
+    </section>
+  </main>
+</div>
+
+<div id="printArea"></div>
+
+<!-- 共通モジュール（divp-header.js data-unit-key="math_js2_keisan" / divp-core / divp-correct-jh.js / divp-memo.js）は配置時に統合 -->
+<script>
+'use strict';
+/* =====================================================
+   utilities
+===================================================== */
+function G(a,b){a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t;}return a;}
+function lcm(a,b){return a/G(a,b)*b;}
+function ri(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function rnz(a,b){let v=0,g=0;while(v===0&&g<99){v=ri(a,b);g++;}return v||1;}
+function pick(arr){return arr[ri(0,arr.length-1)];}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=ri(0,i);const t=a[i];a[i]=a[j];a[j]=t;}return a;}
+
+/* fraction */
+function F(n,d){
+  d=(d===undefined)?1:d;
+  if(d===0)d=1;
+  if(d<0){n=-n;d=-d;}
+  const g=G(n,d)||1;
+  this.n=n/g; this.d=d/g;
+}
+F.int=function(k){return new F(k,1);};
+F.prototype.add=function(o){return new F(this.n*o.d+o.n*this.d,this.d*o.d);};
+F.prototype.mul=function(o){return new F(this.n*o.n,this.d*o.d);};
+F.prototype.div=function(o){return new F(this.n*o.d,this.d*o.n);};
+F.prototype.neg=function(){return new F(-this.n,this.d);};
+F.prototype.eq=function(o){return this.n===o.n&&this.d===o.d;};
+F.prototype.isZero=function(){return this.n===0;};
+F.prototype.isInt=function(){return this.d===1;};
+F.prototype.val=function(){return this.n/this.d;};
+
+/* =====================================================
+   term model  {c:F, ex, ey}
+===================================================== */
+function T(c,ex,ey){return {c:(c instanceof F)?c:F.int(c),ex:ex||0,ey:ey||0};}
+function combineTerms(list){
+  const map={};
+  for(const t of list){
+    const k=t.ex+','+t.ey;
+    map[k]=map[k]?{c:map[k].c.add(t.c),ex:t.ex,ey:t.ey}:{c:t.c,ex:t.ex,ey:t.ey};
+  }
+  const out=Object.values(map).filter(t=>!t.c.isZero());
+  out.sort((a,b)=>(b.ex-a.ex)||(b.ey-a.ey));
+  return out;
+}
+function mulPoly(a,b){
+  const out=[];
+  for(const p of a)for(const q of b)out.push({c:p.c.mul(q.c),ex:p.ex+q.ex,ey:p.ey+q.ey});
+  return combineTerms(out);
+}
+function termsEq(a,b){
+  if(a.length!==b.length)return false;
+  for(let i=0;i<a.length;i++){
+    if(a[i].ex!==b[i].ex||a[i].ey!==b[i].ey||!a[i].c.eq(b[i].c))return false;
+  }
+  return true;
+}
+
+/* ---------- rendering ---------- */
+function supHTML(v,e){return e?(v+(e>1?'<sup>'+e+'</sup>':'')):'';}
+function varHTML(ex,ey){return supHTML('x',ex)+supHTML('y',ey);}
+function varText(ex,ey){
+  function s(v,e){return e?(v+(e===2?'²':e===3?'³':e>3?'^'+e:'')):'';}
+  return s('x',ex)+s('y',ey);
+}
+function fracHTML(n,d){return '<span class="fr"><span class="fn">'+n+'</span><span class="fd">'+d+'</span></span>';}
+function termsHTML(terms){
+  if(!terms.length)return '0';
+  let h='';
+  terms.forEach(function(t,i){
+    const neg=t.c.n<0, a=neg?t.c.neg():t.c, hasVar=!!(t.ex||t.ey);
+    h+= i===0 ? (neg?'−':'') : (neg?' − ':' + ');
+    if(a.isInt()){ if(!(a.n===1&&hasVar)) h+=a.n; }
+    else h+=fracHTML(a.n,a.d);
+    h+=varHTML(t.ex,t.ey);
+  });
+  return h;
+}
+function termsText(terms){
+  if(!terms.length)return '0';
+  let s='';
+  terms.forEach(function(t,i){
+    const neg=t.c.n<0, a=neg?t.c.neg():t.c, hasVar=!!(t.ex||t.ey);
+    s+= i===0 ? (neg?'-':'') : (neg?'-':'+');
+    if(a.isInt()){ if(!(a.n===1&&hasVar)) s+=a.n; }
+    else s+=a.n+'/'+a.d;
+    s+=varText(t.ex,t.ey);
+  });
+  return s;
+}
+/* one fraction over common denominator (for 分数モードの正答表示) */
+function fracFormHTML(terms){
+  let L=1;
+  for(const t of terms)L=lcm(L,t.c.d);
+  if(L===1)return termsHTML(terms);
+  const num=terms.map(t=>T(t.c.n*(L/t.c.d),t.ex,t.ey));
+  return fracHTML(termsHTML(num),L);
+}
+function fracFormText(terms){
+  let L=1;
+  for(const t of terms)L=lcm(L,t.c.d);
+  if(L===1)return termsText(terms);
+  const num=terms.map(t=>T(t.c.n*(L/t.c.d),t.ex,t.ey));
+  return '('+termsText(num)+')/'+L;
+}
+function numDisp(n){return String(n).replace('-','−');}
+function signCoef(k,v,first){
+  const neg=k<0,m=Math.abs(k);
+  return (first?(neg?'−':''):(neg?' − ':' + '))+(m===1&&v?'':m)+v;
+}
+function linEq(a,b,c){
+  let h='',first=true;
+  if(a){h+=signCoef(a,'x',first);first=false;}
+  if(b){h+=signCoef(b,'y',first);first=false;}
+  if(first)h+='0';
+  return h+' = '+numDisp(c);
+}
+function linEqText(a,b,c){
+  return linEq(a,b,c).replace(/ /g,'').replace(/−/g,'-');
+}
+/* 単項式表示：先頭以外で負なら（　）で包む */
+function monoHTML(t,wrapNeg){
+  const h=termsHTML([t]);
+  return (wrapNeg&&t.c.n<0)?'('+h+')':h;
+}
+function monoText(t,wrapNeg){
+  const s=termsText([t]);
+  return (wrapNeg&&t.c.n<0)?'('+s+')':s;
+}
+/* Fの累乗 */
+function Fpow(f,e){let r=F.int(1);for(let i=0;i<e;i++)r=r.mul(f);return r;}
+/* 数の係数（整数or分数）を「かっこの前の数」として表示する。負は先頭に−。
+   分数のときは括弧で包む（例 ÷(−5/6) や ×(−1/3) のような見た目に使う側で調整） */
+function coefMul(f){
+  const neg=f.n<0, a=neg?f.neg():f;
+  if(a.isInt())return {html:(neg?'−':'')+a.n,text:(neg?'-':'')+a.n};
+  return {html:(neg?'−':'')+fracHTML(a.n,a.d),text:(neg?'-':'')+a.n+'/'+a.d};
+}
+/* 分数の数（式の値の代入値・答え）を素朴に表示 */
+function fnumHTML(f){return f.isInt()?numDisp(f.n):(f.n<0?'−':'')+fracHTML(Math.abs(f.n),f.d);}
+function fnumText(f){return f.isInt()?String(f.n):f.n+'/'+f.d;}
+
+/* =====================================================
+   answer parser
+===================================================== */
+function normalizeInput(s){
+  return (s||'')
+    .replace(/[０-９ａ-ｚＡ-Ｚ]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);})
+    .replace(/（/g,'(').replace(/）/g,')')
+    .replace(/＋/g,'+')
+    .replace(/[－−ー―‐]/g,'-')
+    .replace(/[×＊]/g,'*')
+    .replace(/[÷／]/g,'/')
+    .replace(/＾/g,'^')
+    .replace(/²/g,'^2').replace(/³/g,'^3')
+    .replace(/[＝=]/g,'=')
+    .replace(/[\s　]+/g,'')
+    .toLowerCase();
+}
+function perr(m){const e=new Error(m);e.parse=true;throw e;}
+
+function parseAnswerExpr(raw){
+  const s=normalizeInput(raw);
+  if(!s)perr('答えを入力してね');
+  if(s.indexOf('=')>=0)perr('「=」は入力せず、式だけを答えてね');
+  const st={s:s,i:0,uns:false,unr:false};
+  const rawTerms=[];
+  parseSum(st,rawTerms);
+  if(st.i<st.s.length)perr('「'+st.s[st.i]+'」のあたりの書き方を確認してね');
+  const comb=combineTerms(rawTerms);
+  if(comb.length<rawTerms.length)st.uns=true;
+  return {terms:comb,uns:st.uns,unr:st.unr};
+}
+function readSign(st){
+  let sg=1;
+  while(st.s[st.i]==='+'||st.s[st.i]==='-'){
+    if(st.s[st.i]==='-')sg=-sg;
+    st.i++;
+  }
+  return sg;
+}
+function parseSum(st,rawOut){
+  let sign=readSign(st);
+  for(;;){
+    const prod=parseProduct(st);
+    for(const t of prod)rawOut.push({c:t.c.mul(F.int(sign)),ex:t.ex,ey:t.ey});
+    const ch=st.s[st.i];
+    if(ch==='+'||ch==='-'){sign=readSign(st);continue;}
+    return;
+  }
+}
+function parseFactor(st){
+  const ch=st.s[st.i];
+  if(ch>='0'&&ch<='9'||ch==='.'){
+    let j=st.i;
+    while(j<st.s.length&&/[0-9.]/.test(st.s[j]))j++;
+    const tok=st.s.slice(st.i,j);st.i=j;
+    if((tok.match(/\./g)||[]).length>1||tok==='.')perr('数の書き方を確認してね');
+    let f;
+    if(tok.indexOf('.')>=0){
+      const p=tok.split('.');
+      const whole=p[0]||'0', dec=p[1]||'';
+      if(dec==='')perr('数の書き方を確認してね');
+      f=new F(parseInt(whole+dec,10),Math.pow(10,dec.length));
+    }else{
+      f=F.int(parseInt(tok,10));
+    }
+    return {kind:'num',terms:[T(f,0,0)]};
+  }
+  if(ch==='x'||ch==='y'){
+    st.i++;
+    let e=1;
+    if(st.s[st.i]==='^'){
+      st.i++;
+      const d=st.s[st.i];
+      if(!/[1-9]/.test(d||''))perr('指数の書き方を確認してね（例：x^2）');
+      e=parseInt(d,10);st.i++;
+      if(e>4)perr('指数が大きすぎるよ');
+    }
+    return {kind:'var',terms:[T(1,ch==='x'?e:0,ch==='y'?e:0)]};
+  }
+  if(ch==='('){
+    st.i++;
+    const raw=[];
+    parseSum(st,raw);
+    if(st.s[st.i]!==')')perr('かっこが閉じていないよ');
+    st.i++;
+    const comb=combineTerms(raw);
+    if(comb.length<raw.length)st.uns=true;
+    return {kind:'paren',terms:comb};
+  }
+  if(ch===undefined)perr('式が途中で終わっているよ');
+  perr('「'+ch+'」は使えない文字だよ');
+}
+function parseProduct(st){
+  let val=null, idx=0, parenPolyAt=-1;
+  for(;;){
+    const f=parseFactor(st);
+    if(f.kind==='paren'&&f.terms.length>1){
+      if(idx>0||parenPolyAt>=0)st.uns=true;   /* 2(x+y) や (..)(..) は未整理 */
+      parenPolyAt=idx;
+    }else if(parenPolyAt>=0){
+      st.uns=true;                             /* (x+y)x など、多項式かっこの後ろにかけ算 */
+    }
+    val=val?mulPoly(val,f.terms):combineTerms(f.terms);
+    idx++;
+    while(st.s[st.i]==='/'){
+      st.i++;
+      const g=parseFactor(st);
+      if(g.kind!=='num'||g.terms.length!==1||g.terms[0].ex||g.terms[0].ey||g.terms[0].c.isZero()){
+        perr('分母（÷のうしろ）は 0 以外の数にしてね');
+      }
+      const d=g.terms[0].c;
+      if(d.isInt()){
+        let gg=Math.abs(d.n),allInt=true;
+        for(const t of val){
+          if(!t.c.isInt()){allInt=false;break;}
+          gg=G(gg,Math.abs(t.c.n));
+        }
+        if(allInt&&gg>1)st.unr=true;           /* 約分できる */
+      }
+      val=val.map(t=>({c:t.c.div(d),ex:t.ex,ey:t.ey}));
+    }
+    const ch=st.s[st.i];
+    if(ch==='*'){st.i++;continue;}
+    if(ch!==undefined&&/[0-9xy(.]/.test(ch))continue;
+    break;
+  }
+  return val;
+}
+/* 数値（連立の解・式の値）用 */
+function parseNumberAns(raw){
+  const s=normalizeInput(raw);
+  if(!s)perr('答えを入力してね');
+  const m=s.match(/^(-?)(\d+)(?:\.(\d+))?(?:\/(-?\d+))?$/);
+  if(!m)perr('数で答えてね（例：3、-2、1/2）');
+  let f;
+  if(m[3]!==undefined)f=new F(parseInt(m[2]+m[3],10),Math.pow(10,m[3].length));
+  else f=F.int(parseInt(m[2],10));
+  if(m[4]){
+    const d=parseInt(m[4],10);
+    if(d===0)perr('分母が0になっているよ');
+    f=f.div(F.int(d));
+  }
+  if(m[1])f=f.neg();
+  return f;
+}
+
+/* =====================================================
+   generators
+   各 gen(lv) → {html, text, cond?, params, answer, ansHTML, ansText}
+===================================================== */
+function exprPack(html,text,terms,params){
+  return {html:html,text:text,params:params,
+    answer:{type:'expr',terms:terms},
+    ansHTML:termsHTML(terms),ansText:termsText(terms)};
+}
+function sysHTML(h1,h2){return '<span class="sys"><span class="rows"><span>'+h1+'</span><span>'+h2+'</span></span></span>';}
+function sysPack(h1,h2,t1,t2,s,t,eqs,params){
+  const p=params||{};p.eqs=eqs;p.sol=[s,t];
+  return {html:sysHTML(h1,h2),text:t1+' ， '+t2,params:p,
+    answer:{type:'sys',x:F.int(s),y:F.int(t)},
+    ansHTML:'x = '+numDisp(s)+'，y = '+numDisp(t),
+    ansText:'x='+s+', y='+t};
+}
+function det2(e1,e2){return e1[0]*e2[1]-e2[0]*e1[1];}
+function linExprHTML(a,b){
+  let h='',first=true;
+  if(a){h+=signCoef(a,'x',first);first=false;}
+  if(b){h+=signCoef(b,'y',first);first=false;}
+  return first?'0':h;
+}
+function linExprText(a,b){return linExprHTML(a,b).replace(/ /g,'').replace(/−/g,'-');}
+/* 小数係数（10分の1単位の整数で受け取る） */
+function decCoef(k10,v,first){
+  const neg=k10<0,m=Math.abs(k10);
+  const cs=(m%10===0)?(m===10?'':String(m/10)):(m/10).toFixed(1);
+  return (first?(neg?'−':''):(neg?' − ':' + '))+cs+v;
+}
+function decStr(n10){
+  const v=n10/10;
+  return numDisp(Number.isInteger(v)?String(v):v.toFixed(1));
+}
+function decEqHTML(a10,b10,c10){
+  let h='',first=true;
+  if(a10){h+=decCoef(a10,'x',first);first=false;}
+  if(b10){h+=decCoef(b10,'y',first);first=false;}
+  return h+' = '+decStr(c10);
+}
+function decEqText(a10,b10,c10){return decEqHTML(a10,b10,c10).replace(/ /g,'').replace(/−/g,'-');}
+
+/* ---- STEP1 同類項 ---- */
+function genDoruikou(lv){
+  for(let g=0;g<60;g++){
+    let raw;
+    /* Lv3以上は分数係数を混ぜる（PDFテーマ2 3(3)(4)相当。½x−3/2y+x+⅓y など） */
+    const frac=(lv>=3)&&Math.random()<(lv>=4?.55:.4);
+    if(frac){
+      const dens=lv>=4?[2,3,4,6]:[2,3,4];
+      const fc=function(){return new F(rnz(-3,3),pick(dens));};
+      raw=[T(fc(),1,0),T(fc(),1,0),T(fc(),0,1),T(fc(),0,1)];
+      if(lv>=4&&Math.random()<.5){raw.push(T(fc(),0,0));raw.push(T(fc(),0,0));}
+    }
+    else if(lv===1)raw=[T(ri(1,5),1,0),T(rnz(-5,5),1,0),T(ri(1,5),0,1),T(rnz(-5,5),0,1)];
+    else if(lv===2)raw=[T(rnz(-9,9),1,0),T(rnz(-9,9),1,0),T(rnz(-9,9),0,1),T(rnz(-9,9),0,1)];
+    else if(lv===3){
+      raw=[T(rnz(-6,6),2,0),T(rnz(-6,6),1,0),T(rnz(-6,6),2,0),T(rnz(-6,6),1,0)];
+      if(Math.random()<.5)raw.push(T(rnz(-6,6),0,0));
+    }else{ /* Lv4: 6項フル */
+      raw=[T(rnz(-9,9),2,0),T(rnz(-9,9),1,0),T(rnz(-9,9),0,0),T(rnz(-9,9),2,0),T(rnz(-9,9),1,0),T(rnz(-9,9),0,0)];
+    }
+    shuffle(raw);
+    const ans=combineTerms(raw);
+    if(!ans.length||ans.length>=raw.length)continue;
+    return exprPack(termsHTML(raw),termsText(raw),ans,{lv:lv});
+  }
+  return genDoruikou(1);
+}
+/* ---- STEP2/3 たし算・ひき算 ---- */
+function poly2(lv){
+  if(lv===1)return [[T(ri(1,6),1,0),T(ri(1,6),0,1)],[T(ri(1,6),1,0),T(rnz(-6,6),0,1)]];
+  if(lv===2)return [[T(rnz(-7,7),1,0),T(rnz(-7,7),0,1)],[T(rnz(-7,7),1,0),T(rnz(-7,7),0,1)]];
+  if(lv===3)return [[T(rnz(-8,8),2,0),T(rnz(-8,8),1,0),T(rnz(-8,8),0,0)],[T(rnz(-8,8),2,0),T(rnz(-8,8),1,0),T(rnz(-8,8),0,0)]];
+  return [[T(rnz(-12,12),2,0),T(rnz(-12,12),1,0),T(rnz(-12,12),0,0)],[T(rnz(-12,12),2,0),T(rnz(-12,12),1,0),T(rnz(-12,12),0,0)]];
+}
+function genTashizan(lv){
+  for(let g=0;g<60;g++){
+    const pr=poly2(lv),P=pr[0],Q=pr[1];
+    const ans=combineTerms(P.concat(Q));
+    if(!ans.length)continue;
+    return exprPack('('+termsHTML(P)+') + ('+termsHTML(Q)+')',
+      '('+termsText(P)+')+('+termsText(Q)+')',ans,{lv:lv});
+  }
+  return genTashizan(1);
+}
+function genHikizan(lv){
+  for(let g=0;g<60;g++){
+    const pr=poly2(lv),P=pr[0],Q=pr[1];
+    const ans=combineTerms(P.concat(Q.map(u=>T(u.c.neg(),u.ex,u.ey))));
+    if(!ans.length)continue;
+    return exprPack('('+termsHTML(P)+') − ('+termsHTML(Q)+')',
+      '('+termsText(P)+')-('+termsText(Q)+')',ans,{lv:lv});
+  }
+  return genHikizan(1);
+}
+/* ---- STEP4 数×多項式 ---- */
+function genSuuBai(lv){
+  let kF,P;
+  if(lv===1){kF=F.int(ri(2,4));P=[T(ri(1,5),1,0),T(rnz(-5,5),0,1)];}
+  else if(lv===2){kF=F.int(pick([-4,-3,-2,2,3,4]));P=[T(rnz(-6,6),1,0),T(rnz(-6,6),0,1)];}
+  else if(lv===3){kF=F.int(pick([-5,-4,-3,-2,2,3,4,5]));P=[T(rnz(-5,5),1,0),T(rnz(-5,5),0,1),T(rnz(-5,5),0,0)];}
+  else if(Math.random()<.5){ /* Lv4: 分数の乗数（PDFテーマ4 (7)(8)相当。½(4x−6y) など） */
+    const den=pick([2,3,4]),num=pick([1,2,3].filter(function(x){return x<den&&G(x,den)===1;})),sg=pick([1,-1]);
+    kF=new F(sg*num,den);
+    P=[T(den*rnz(-3,3),1,0),T(den*rnz(-3,3),0,1),T(den*rnz(-2,2),0,0)];
+  }
+  else{kF=F.int(pick([-9,-8,-7,-6,6,7,8,9]));P=[T(rnz(-6,6),1,0),T(rnz(-6,6),0,1),T(rnz(-6,6),0,0)];}
+  const ans=combineTerms(P.map(function(u){return T(u.c.mul(kF),u.ex,u.ey);}));
+  const km=coefMul(kF);
+  return exprPack(km.html+'('+termsHTML(P)+')',km.text+'('+termsText(P)+')',ans,{lv:lv});
+}
+/* ---- STEP5 多項式÷数 ---- */
+function genSuuWaru(lv){
+  let dF,q;
+  if(lv===1){dF=F.int(ri(2,4));q=[T(ri(1,5),1,0),T(rnz(-5,5),0,1)];}
+  else if(lv===2){dF=F.int(ri(2,6));q=[T(rnz(-6,6),1,0),T(rnz(-6,6),0,1)];}
+  else if(lv===3){dF=F.int(pick([-4,-3,-2,2,3,4,6]));q=[T(rnz(-5,5),1,0),T(rnz(-5,5),0,1),T(rnz(-5,5),0,0)];}
+  else if(Math.random()<.5){ /* Lv4: 分数でわる（PDFテーマ4 (10x−15xy+5)÷(−5/6) 相当） */
+    const den=pick([2,3,4,5,6]),num=pick([1,2,3,4,5].filter(function(x){return x<den&&G(x,den)===1;})),sg=pick([1,-1]);
+    dF=new F(sg*num,den);
+    q=[T(den*rnz(-3,3),1,0),T(den*rnz(-3,3),0,1),T(den*rnz(-2,2),0,0)];
+  }
+  else{dF=F.int(pick([-9,-8,-7,-6,6,7,8,9]));q=[T(rnz(-6,6),1,0),T(rnz(-6,6),0,1),T(rnz(-6,6),0,0)];}
+  const P=q.map(function(u){return T(u.c.mul(dF),u.ex,u.ey);});
+  const dm=coefMul(dF);
+  const pos=dF.isInt()&&dF.n>0;
+  const dispDiv=pos?dm.html:'('+dm.html+')';
+  const txtDiv=pos?dm.text:'('+dm.text+')';
+  return exprPack('('+termsHTML(P)+') ÷ '+dispDiv,
+    '('+termsText(P)+') / '+txtDiv,combineTerms(q),{lv:lv});
+}
+/* ---- STEP6 分配してたし算・ひき算 ---- */
+function genBunpai(lv){
+  for(let g=0;g<60;g++){
+    let p,qa,P,Q;
+    const op=pick(['+','-']);
+    if(lv===1){p=ri(2,3);qa=ri(2,3);
+      P=[T(ri(1,4),1,0),T(rnz(-4,4),0,1)];Q=[T(ri(1,4),1,0),T(rnz(-4,4),0,1)];}
+    else if(lv===2){p=pick([-3,-2,2,3]);qa=ri(2,3);
+      P=[T(rnz(-5,5),1,0),T(rnz(-5,5),0,1)];Q=[T(rnz(-5,5),1,0),T(rnz(-5,5),0,1)];}
+    else if(lv===3){p=pick([-3,-2,2,3]);qa=ri(2,4);
+      P=[T(rnz(-4,4),2,0),T(rnz(-4,4),1,0)];Q=[T(rnz(-4,4),2,0),T(rnz(-4,4),1,0)];}
+    else{p=pick([-5,-4,-3,3,4,5]);qa=ri(2,5);
+      P=[T(rnz(-5,5),2,0),T(rnz(-5,5),1,0),T(rnz(-5,5),0,0)];Q=[T(rnz(-5,5),2,0),T(rnz(-5,5),1,0),T(rnz(-5,5),0,0)];}
+    const qk=op==='-'?-qa:qa;
+    const ans=combineTerms(
+      P.map(u=>T(u.c.mul(F.int(p)),u.ex,u.ey))
+      .concat(Q.map(u=>T(u.c.mul(F.int(qk)),u.ex,u.ey))));
+    if(ans.length<2)continue;
+    const pd=p<0?'−'+(-p):String(p);
+    return exprPack(pd+'('+termsHTML(P)+') '+(op==='-'?'−':'+')+' '+qa+'('+termsHTML(Q)+')',
+      p+'('+termsText(P)+')'+op+qa+'('+termsText(Q)+')',ans,{lv:lv});
+  }
+  return genBunpai(1);
+}
+/* ---- STEP7 分数の形 ---- */
+function genBunsuu(lv){
+  for(let g=0;g<60;g++){
+    const dens=lv===1?[2,3,4]:(lv>=4?[3,4,6,8]:[2,3,4,6]);
+    const p=pick(dens);let q;do{q=pick(dens);}while(q===p);
+    const op=lv===1?'+':pick(['+','-']);
+    const rng=lv===1?2:(lv===2?3:(lv===3?4:6));
+    const rc=()=>lv===1?ri(1,rng):rnz(-rng,rng);
+    const P=[T(rc(),1,0),T(rc(),0,1)],Q=[T(rc(),1,0),T(rc(),0,1)];
+    const sg=op==='-'?-1:1;
+    const ans=combineTerms(
+      P.map(u=>T(u.c.div(F.int(p)),u.ex,u.ey))
+      .concat(Q.map(u=>T(u.c.mul(F.int(sg)).div(F.int(q)),u.ex,u.ey))));
+    if(ans.length<2)continue;
+    const pk=exprPack(
+      fracHTML(termsHTML(P),p)+' '+(op==='-'?'−':'+')+' '+fracHTML(termsHTML(Q),q),
+      '('+termsText(P)+')/'+p+op+'('+termsText(Q)+')/'+q,ans,{lv:lv,p:p,q:q});
+    pk.ansHTML=fracFormHTML(ans);pk.ansText=fracFormText(ans);
+    return pk;
+  }
+  return genBunsuu(1);
+}
+/* ---- STEP8 単項式のかけ算 ---- */
+function genTanKake(lv){
+  for(let g=0;g<60;g++){
+    let t1,t2;
+    if(lv===1){
+      t1=T(ri(2,5),1,0);
+      t2=Math.random()<.5?T(ri(2,5),0,1):T(ri(2,5),1,0);
+    }else if(lv===2){
+      const e1=pick([[1,0],[0,1]]),e2=pick([[1,0],[0,1]]);
+      t1=T(rnz(-6,6),e1[0],e1[1]);t2=T(rnz(-6,6),e2[0],e2[1]);
+    }else if(lv===3){
+      t1=pick([T(rnz(-4,4),1,1),T(rnz(-4,4),2,0),T(rnz(-4,4),1,0)]);
+      t2=pick([T(rnz(-4,4),1,0),T(rnz(-4,4),0,1),T(rnz(-4,4),1,1)]);
+    }else if(Math.random()<.5){ /* Lv4: 分数係数（PDFテーマ7 3相当。⅓x×(−9x²) など） */
+      const d=pick([2,3,4]);
+      const va=pick([[1,0],[0,1],[2,0]]),vb=pick([[1,0],[0,1],[1,1]]);
+      t1=T(new F(pick([1,-1]),d),va[0],va[1]);
+      t2=T(d*rnz(-3,3),vb[0],vb[1]);
+    }else{
+      t1=pick([T(rnz(-6,6),1,1),T(rnz(-6,6),2,0),T(rnz(-6,6),0,2)]);
+      t2=pick([T(rnz(-6,6),1,1),T(rnz(-6,6),1,0),T(rnz(-6,6),0,1)]);
+    }
+    if(t1.ex+t2.ex>3||t1.ey+t2.ey>3)continue;
+    if(Math.abs(t1.c.n*t2.c.n)>(lv>=4?64:36))continue;
+    const ans=mulPoly([t1],[t2]);
+    return exprPack(monoHTML(t1,false)+' × '+monoHTML(t2,true),
+      monoText(t1,false)+'*'+monoText(t2,true),ans,{lv:lv});
+  }
+  return genTanKake(1);
+}
+/* ---- STEP9 累乗のあるかけ算 ---- */
+function genJijouKake(lv){
+  for(let g=0;g<60;g++){
+    let bc,sv,pw,t2;
+    if(lv===1){bc=F.int(ri(2,3));sv=[1,0];pw=2;t2=T(ri(2,4),0,1);}
+    else if(lv===2){bc=F.int(pick([-3,-2,2,3]));sv=pick([[1,0],[0,1]]);pw=2;
+      t2=T(rnz(-4,4),sv[0]?0:1,sv[0]?1:0);}
+    else if(lv===3){bc=F.int(pick([-3,-2,2,3]));sv=pick([[1,0],[0,1]]);pw=pick([2,2,3]);
+      t2=pw===3?T(rnz(-4,4),0,0):pick([T(rnz(-3,3),1,0),T(rnz(-3,3),0,1),T(rnz(-3,3),1,1)]);}
+    else{ /* Lv4: 3乗・分数係数の底（PDFテーマ7 3(3) (−2x)³, (½a)²×4a 相当） */
+      pw=pick([2,3]);sv=pick([[1,0],[0,1]]);
+      if(Math.random()<.4){
+        const d=pick([2,3]),need=Math.pow(d,pw);
+        bc=new F(pick([1,-1]),d);
+        t2=T(need*pick([1,-1])*ri(1,2),pw===3?0:pick([0,1]),pw===3?0:pick([0,1]));
+      }else{
+        bc=F.int(pw===3?pick([-3,-2,2,3]):pick([-4,-3,-2,2,3,4]));
+        t2=pw===3?T(rnz(-4,4),0,0):pick([T(rnz(-4,4),1,0),T(rnz(-4,4),0,1),T(rnz(-4,4),1,1)]);
+      }
+    }
+    const sq=T(Fpow(bc,pw),sv[0]*pw,sv[1]*pw);
+    if(sq.ex+t2.ex>3||sq.ey+t2.ey>3)continue;
+    if(Math.abs(sq.c.n*t2.c.n)>(lv>=4?200:40))continue;
+    const ans=mulPoly([sq],[t2]);
+    if(ans.some(function(u){return !u.c.isInt();}))continue;
+    const base=T(bc,sv[0],sv[1]);
+    return exprPack('('+termsHTML([base])+')<sup>'+pw+'</sup> × '+monoHTML(t2,true),
+      '('+termsText([base])+')^'+pw+'*'+monoText(t2,true),ans,{lv:lv});
+  }
+  return genJijouKake(1);
+}
+/* ---- STEP10 単項式のわり算 ---- */
+function genTanWaru(lv){
+  for(let g=0;g<60;g++){
+    if(lv>=4&&Math.random()<.5){ /* Lv4: 分数係数の単項式でわる（PDFテーマ8 3相当。5xy÷⅓x, 4xy÷(−½x)） */
+      const d=pick([2,3,4]),bv=pick([[1,0],[0,1]]);
+      const B=T(new F(pick([1,-1]),d),bv[0],bv[1]);
+      const A0=T(rnz(-5,5),bv[0]+ri(0,1),bv[1]+ri(0,1));
+      const q2={c:A0.c.div(B.c),ex:A0.ex-B.ex,ey:A0.ey-B.ey};
+      if(q2.ex<0||q2.ey<0)continue;
+      if(A0.ex>3||A0.ey>3||(!A0.ex&&!A0.ey))continue;
+      return exprPack(monoHTML(A0,false)+' ÷ '+monoHTML(B,true),
+        monoText(A0,false)+'/'+monoText(B,true),[q2],{lv:lv});
+    }
+    let B,q;
+    if(lv===1){B=T(ri(2,4),1,0);q=T(ri(2,5),ri(0,1),0);}
+    else if(lv===2){
+      const v=pick([[1,0],[0,1]]);
+      B=T(pick([-5,-4,-3,-2,2,3,4,5]),v[0],v[1]);
+      q=T(rnz(-5,5),ri(0,1),ri(0,1));
+    }else if(lv===3){
+      B=T(pick([-4,-3,-2,2,3,4]),ri(0,1),ri(0,1));
+      if(!B.ex&&!B.ey)continue;
+      q=T(rnz(-5,5),ri(0,1),ri(0,1));
+    }else{
+      B=T(pick([-6,-5,-4,-3,-2,2,3,4,5,6]),ri(0,1),ri(0,1));
+      if(!B.ex&&!B.ey)continue;
+      q=T(rnz(-6,6),ri(0,2),ri(0,1));
+    }
+    const A=mulPoly([q],[B])[0];
+    if(!A||A.ex>3||A.ey>3)continue;
+    if(Math.abs(A.c.n)>(lv>=4?96:48))continue;
+    if(!A.ex&&!A.ey)continue;
+    return exprPack(monoHTML(A,false)+' ÷ '+monoHTML(B,true),
+      monoText(A,false)+'/'+monoText(B,true),[q],{lv:lv});
+  }
+  return genTanWaru(1);
+}
+/* ---- STEP11 かけ算・わり算の混合 ---- */
+function genKakewari(lv){
+  for(let g=0;g<80;g++){
+    const pat=lv===1?0:ri(0,1);
+    const cvar=pick([[0,0],[1,0],[0,1]]);
+    const C=T(lv===1?ri(2,3):(lv>=4?pick([-4,-3,-2,2,3,4]):pick([-3,-2,2,3])),cvar[0],cvar[1]);
+    if(pat===0){
+      const q=T(lv===1?ri(2,4):(lv>=4?rnz(-6,6):rnz(-5,5)),ri(0,1),ri(0,1));
+      if(!q.ex&&!q.ey)continue;
+      const P=mulPoly([q],[C])[0];
+      if(!P||P.ex>3||P.ey>3||Math.abs(P.c.n)>(lv>=4?96:48))continue;
+      const divs=[];
+      for(let d=2;d<=12;d++)if(Math.abs(P.c.n)%d===0&&Math.abs(P.c.n)/d<=12)divs.push(d);
+      if(!divs.length)continue;
+      let ac=pick(divs);if(P.c.n<0&&Math.random()<.5)ac=-ac;
+      const ax=ri(0,P.ex),ay=ri(0,P.ey);
+      const A=T(ac,ax,ay),B=T(P.c.n/ac,P.ex-ax,P.ey-ay);
+      if(Math.abs(B.c.n)>12)continue;
+      if(!A.ex&&!A.ey&&Math.abs(A.c.n)===1)continue;
+      if(!B.ex&&!B.ey&&Math.abs(B.c.n)===1)continue;
+      return exprPack(monoHTML(A,false)+' × '+monoHTML(B,true)+' ÷ '+monoHTML(C,true),
+        monoText(A,false)+'*'+monoText(B,true)+'/'+monoText(C,true),[q],{lv:lv});
+    }else{
+      const q1=T(lv>=4?rnz(-5,5):rnz(-4,4),ri(0,1),lv>=4?ri(0,1):0);
+      const B=T(lv>=4?rnz(-5,5):rnz(-4,4),lv>=4?ri(0,1):0,ri(0,1));
+      const A=mulPoly([q1],[C])[0];
+      const ans=mulPoly([q1],[B])[0];
+      if(!A||!ans)continue;
+      if(A.ex>3||A.ey>3||Math.abs(A.c.n)>(lv>=4?96:48))continue;
+      if(ans.ex>3||ans.ey>3||Math.abs(ans.c.n)>(lv>=4?96:48))continue;
+      if(!A.ex&&!A.ey)continue;
+      if(!ans.ex&&!ans.ey)continue;
+      return exprPack(monoHTML(A,false)+' ÷ '+monoHTML(C,true)+' × '+monoHTML(B,true),
+        monoText(A,false)+'/'+monoText(C,true)+'*'+monoText(B,true),[ans],{lv:lv});
+    }
+  }
+  return genTanWaru(lv);
+}
+/* ---- STEP12 式の値 ---- */
+function genShikiNoAtai(lv){
+  for(let g=0;g<60;g++){
+    let p,q,P,Q,sF,tF;
+    if(lv===1){p=1;q=1;sF=F.int(ri(1,4));tF=F.int(rnz(-4,4));
+      P=[T(ri(1,4),1,0),T(rnz(-4,4),0,1)];Q=[T(rnz(-4,4),1,0),T(rnz(-4,4),0,1)];}
+    else if(lv===2){p=ri(2,3);q=pick([-3,-2,2,3]);sF=F.int(rnz(-4,4));tF=F.int(rnz(-4,4));
+      P=[T(rnz(-4,4),1,0),T(rnz(-4,4),0,1)];Q=[T(rnz(-4,4),1,0),T(rnz(-4,4),0,1)];}
+    else if(lv===3){p=pick([-3,-2,2,3]);q=pick([-3,-2,2,3]);sF=F.int(rnz(-5,5));tF=F.int(rnz(-5,5));
+      P=[T(rnz(-5,5),2,0),T(rnz(-5,5),0,1)];Q=[T(rnz(-5,5),2,0),T(rnz(-5,5),0,1)];}
+    else if(Math.random()<.5){ /* Lv4: 分数の代入値（PDFテーマ10相当。x=⅓, y=−½） */
+      p=pick([-3,-2,2,3]);q=pick([-3,-2,2,3]);
+      sF=new F(pick([1,-1]),pick([2,3]));tF=new F(pick([1,-1]),pick([2,3]));
+      P=[T(rnz(-4,4),1,0),T(rnz(-4,4),0,1)];Q=[T(rnz(-4,4),1,0),T(rnz(-4,4),0,1)];}
+    else{p=pick([-4,-3,-2,2,3,4]);q=pick([-4,-3,-2,2,3,4]);sF=F.int(rnz(-6,6));tF=F.int(rnz(-6,6));
+      P=[T(rnz(-6,6),2,0),T(rnz(-6,6),1,0)];Q=[T(rnz(-6,6),2,0),T(rnz(-6,6),0,1)];}
+    const simp=combineTerms(
+      P.map(function(u){return T(u.c.mul(F.int(p)),u.ex,u.ey);})
+      .concat(Q.map(function(u){return T(u.c.mul(F.int(q)),u.ex,u.ey);})));
+    if(simp.length<2)continue;
+    let v=F.int(0);
+    for(const u of simp)v=v.add(u.c.mul(Fpow(sF,u.ex)).mul(Fpow(tF,u.ey)));
+    if(Math.abs(v.n)>(lv>=4?300:120)||v.d>12)continue;
+    const pd=p===1?'':(p<0?'−'+(-p):String(p));
+    const cs=function(f){return f.isInt()?numDisp(f.n):(f.n<0?'−':'')+Math.abs(f.n)+'/'+f.d;};
+    let html,text;
+    if(lv===1){
+      html='('+termsHTML(P)+') + ('+termsHTML(Q)+')';
+      text='('+termsText(P)+')+('+termsText(Q)+')';
+    }else{
+      html=pd+'('+termsHTML(P)+')'+(q<0?' − ':' + ')+Math.abs(q)+'('+termsHTML(Q)+')';
+      text=p+'('+termsText(P)+')'+(q<0?'-':'+')+Math.abs(q)+'('+termsText(Q)+')';
+    }
+    return {html:html,text:text,
+      cond:'x = '+cs(sF)+'，y = '+cs(tF)+' のとき、次の式の値は？',
+      params:{lv:lv,x:fnumText(sF),y:fnumText(tF)},
+      answer:{type:'num',v:v},
+      ansHTML:v.isInt()?numDisp(v.n):fracHTML(numDisp(v.n),v.d),
+      ansText:v.isInt()?String(v.n):v.n+'/'+v.d};
+  }
+  return genShikiNoAtai(1);
+}
+
+/* ---- STEP 3つの単項式の乗除（PDFテーマ9）---- */
+function genThreeMono(lv){
+  for(let g=0;g<80;g++){
+    const maxc=lv===1?6:(lv===2?9:(lv>=4?12:10));
+    const rx=lv===1?ri(1,2):ri(0,3), ry=lv===1?0:ri(0,2);
+    if(rx+ry===0)continue;
+    const res={c:F.int(rnz(-maxc,maxc)),ex:rx,ey:ry};
+    const ops=pick(lv===1?[['×','×'],['×','÷']]:[['×','×'],['×','÷'],['÷','×'],['÷','÷']]);
+    const rmono=function(){
+      let c;
+      if(lv>=4&&Math.random()<.3)c=new F(pick([1,-1]),pick([2,3]));
+      else c=F.int(rnz(-(lv>=3?5:4),(lv>=3?5:4)));
+      return {c:c,ex:ri(0,lv===1?1:2),ey:ri(0,lv===1?1:2)};
+    };
+    const m2=rmono(), m3=rmono();
+    if(m2.c.isZero()||m3.c.isZero())continue;
+    /* result = (m1 op2 m2) op3 m3 を逆算して m1 を求める */
+    const I=ops[1]==='×'
+      ?{c:res.c.div(m3.c),ex:res.ex-m3.ex,ey:res.ey-m3.ey}
+      :{c:res.c.mul(m3.c),ex:res.ex+m3.ex,ey:res.ey+m3.ey};
+    const m1=ops[0]==='×'
+      ?{c:I.c.div(m2.c),ex:I.ex-m2.ex,ey:I.ey-m2.ey}
+      :{c:I.c.mul(m2.c),ex:I.ex+m2.ex,ey:I.ey+m2.ey};
+    const all=[m1,m2,m3];
+    if(all.some(function(m){return m.ex<0||m.ey<0||m.ex>3||m.ey>3;}))continue;
+    if(m1.c.isZero()||(!m1.c.isInt()&&lv<4))continue;
+    if(Math.abs(m1.c.n)>(lv>=4?24:16)||Math.abs(m2.c.n)>12||Math.abs(m3.c.n)>12)continue;
+    const trivial=function(m){return !m.ex&&!m.ey&&m.c.isInt()&&Math.abs(m.c.n)===1;};
+    if(trivial(m1)||trivial(m2)||trivial(m3))continue;
+    const h=monoHTML(m1,false)+' '+ops[0]+' '+monoHTML(m2,true)+' '+ops[1]+' '+monoHTML(m3,true);
+    const tx=monoText(m1,false)+(ops[0]==='×'?'*':'/')+monoText(m2,true)+(ops[1]==='×'?'*':'/')+monoText(m3,true);
+    return exprPack(h,tx,[{c:res.c,ex:res.ex,ey:res.ey}],{lv:lv});
+  }
+  return genThreeMono(1);
+}
+/* ---- STEP 等式の変形（PDFテーマ11）---- */
+function genHenkei(lv){
+  const solveY=(lv>=3)?(Math.random()<.5):true;
+  const tv=solveY?'y':'x', ov=solveY?'x':'y';
+  let bT,bO,c;
+  if(lv===1){bT=pick([1,-1]);bO=pick([1,2,3,4]);c=rnz(-8,8);}
+  else if(lv===2){bT=pick([1,-1]);bO=pick([-5,-4,-3,-2,2,3,4,5]);c=rnz(-9,9);}
+  else if(lv===3){bT=pick([-4,-3,-2,2,3,4]);bO=pick([-6,-5,-4,-3,-2,2,3,4,5,6]);c=rnz(-12,12);}
+  else{bT=pick([-6,-5,-4,-3,-2,2,3,4,5,6]);bO=pick([-7,-6,-5,-4,-3,-2,2,3,4,5,6,7]);c=rnz(-14,14);}
+  const ax=solveY?bO:bT, ay=solveY?bT:bO;
+  const constT=new F(c,bT), coefT=new F(-bO,bT);
+  const ans=combineTerms([T(constT,0,0),T(coefT,ov==='x'?1:0,ov==='y'?1:0)]);
+  return {html:linEq(ax,ay,c),text:linEqText(ax,ay,c),
+    cond:'次の等式を '+tv+' について解こう（'+tv+' = □ の □ を答えてね）',
+    params:{lv:lv,solve:tv},
+    answer:{type:'expr',terms:ans},
+    ansHTML:tv+' = '+termsHTML(ans),ansText:tv+'='+termsText(ans)};
+}
+
+/* ---- STEP13 そのまま加減法 ---- */
+function genSonomama(lv){
+  for(let g=0;g<60;g++){
+    const R=lv===1?5:(lv===2?6:(lv===3?9:10));
+    const s=lv===1?ri(1,R):rnz(-R,R), t=lv===1?ri(1,R):rnz(-R,R);
+    let e1,e2;
+    if(lv===1&&Math.random()<.5){
+      e1=[1,1,0];e2=[1,-1,0];
+      if(Math.random()<.5){const w=e1;e1=e2;e2=w;}
+    }else{
+      const tgt=ri(0,1), k=ri(1,lv===1?2:(lv>=4?6:4)), sg=pick([1,-1]);
+      const rc=()=>lv===1?ri(1,3):(lv>=4?rnz(-8,8):rnz(-5,5));
+      if(tgt===0){e1=[k,rc(),0];e2=[k*sg,rc(),0];}
+      else{e1=[rc(),k,0];e2=[rc(),k*sg,0];}
+    }
+    if(det2(e1,e2)===0)continue;
+    e1[2]=e1[0]*s+e1[1]*t;e2[2]=e2[0]*s+e2[1]*t;
+    if(Math.abs(e1[2])>(lv>=4?160:60)||Math.abs(e2[2])>(lv>=4?160:60))continue;
+    return sysPack(linEq(e1[0],e1[1],e1[2]),linEq(e2[0],e2[1],e2[2]),
+      linEqText(e1[0],e1[1],e1[2]),linEqText(e2[0],e2[1],e2[2]),s,t,[e1,e2],{lv:lv});
+  }
+  return genSonomama(1);
+}
+/* ---- STEP14 片方を何倍か ---- */
+function genKatahou(lv){
+  for(let g=0;g<60;g++){
+    const R=lv===1?4:(lv===2?5:(lv===3?8:9));
+    const s=lv===1?ri(1,R):rnz(-R,R), t=lv===1?ri(1,R):rnz(-R,R);
+    const k=lv>=4?pick([2,3,4,5]):pick([2,3]), tgt=ri(0,1);
+    const rc=()=>lv===1?ri(1,4):(lv>=4?rnz(-8,8):rnz(-5,5));
+    let e1,e2;
+    if(tgt===0){
+      const a2=lv===1?ri(1,3):(lv>=4?rnz(-5,5):rnz(-3,3));
+      e2=[a2,rc(),0];e1=[k*a2,rc(),0];
+      if(e1[1]===k*e2[1])continue;
+      if(Math.abs(e1[1])===Math.abs(e2[1]))continue;
+    }else{
+      const b2=lv===1?ri(1,3):(lv>=4?rnz(-5,5):rnz(-3,3));
+      e2=[rc(),b2,0];e1=[rc(),k*b2,0];
+      if(e1[0]===k*e2[0])continue;
+      if(Math.abs(e1[0])===Math.abs(e2[0]))continue;
+    }
+    if(det2(e1,e2)===0)continue;
+    e1[2]=e1[0]*s+e1[1]*t;e2[2]=e2[0]*s+e2[1]*t;
+    if(Math.abs(e1[2])>(lv>=4?160:60)||Math.abs(e2[2])>(lv>=4?160:60))continue;
+    const ord=Math.random()<.5;
+    const A=ord?e1:e2,B=ord?e2:e1;
+    return sysPack(linEq(A[0],A[1],A[2]),linEq(B[0],B[1],B[2]),
+      linEqText(A[0],A[1],A[2]),linEqText(B[0],B[1],B[2]),s,t,[A,B],{lv:lv,k:k});
+  }
+  return genSonomama(lv);
+}
+/* ---- STEP15 両方を何倍か ---- */
+function genRyouhou(lv){
+  for(let g=0;g<60;g++){
+    const R=lv===1?4:(lv===2?5:(lv===3?7:9));
+    const s=lv===1?ri(1,R):rnz(-R,R), t=lv===1?ri(1,R):rnz(-R,R);
+    const pr=shuffle(pick(lv>=4?[[3,4],[2,5],[3,5],[4,5],[4,7],[5,6],[3,7]]:[[2,3],[3,4],[2,5],[3,5],[4,5]]).slice());
+    const tgt=ri(0,1);
+    const sg1=lv===1?1:pick([1,-1]), sg2=pick([1,-1]);
+    const rc=()=>lv===1?ri(1,4):(lv>=4?rnz(-8,8):rnz(-5,5));
+    let e1,e2;
+    if(tgt===0){e1=[pr[0]*sg1,rc(),0];e2=[pr[1]*sg2,rc(),0];
+      if(Math.abs(e1[1])===Math.abs(e2[1]))continue;}
+    else{e1=[rc(),pr[0]*sg1,0];e2=[rc(),pr[1]*sg2,0];
+      if(Math.abs(e1[0])===Math.abs(e2[0]))continue;}
+    if(det2(e1,e2)===0)continue;
+    e1[2]=e1[0]*s+e1[1]*t;e2[2]=e2[0]*s+e2[1]*t;
+    if(Math.abs(e1[2])>(lv>=4?180:70)||Math.abs(e2[2])>(lv>=4?180:70))continue;
+    return sysPack(linEq(e1[0],e1[1],e1[2]),linEq(e2[0],e2[1],e2[2]),
+      linEqText(e1[0],e1[1],e1[2]),linEqText(e2[0],e2[1],e2[2]),s,t,[e1,e2],{lv:lv});
+  }
+  return genSonomama(lv);
+}
+/* ---- STEP16 代入法 ---- */
+function genDainyu(lv){
+  for(let g=0;g<60;g++){
+    const R=lv===1?4:(lv===2?5:(lv===3?6:8));
+    const s=lv===1?ri(1,R):rnz(-R,R), t=lv===1?ri(1,R):rnz(-R,R);
+    const form=(lv>=3&&Math.random()<.5)?'x':'y';
+    const a=lv===1?ri(1,3):(lv>=4?rnz(-4,4):rnz(-3,3));
+    const ad=a===1?'':(a===-1?'−':numDisp(a));
+    const at=a===1?'':(a===-1?'-':String(a));
+    let e1,h1,t1;
+    if(form==='y'){
+      const b=t-a*s;
+      e1=[-a,1,b];
+      h1='y = '+ad+'x'+(b?(b>0?' + '+b:' − '+(-b)):'');
+      t1='y='+at+'x'+(b?(b>0?'+'+b:String(b)):'');
+    }else{
+      const b=s-a*t;
+      e1=[1,-a,b];
+      h1='x = '+ad+'y'+(b?(b>0?' + '+b:' − '+(-b)):'');
+      t1='x='+at+'y'+(b?(b>0?'+'+b:String(b)):'');
+    }
+    const c=lv===1?ri(1,4):(lv>=4?rnz(-6,6):rnz(-5,5)), d=lv===1?ri(1,4):(lv>=4?rnz(-6,6):rnz(-5,5));
+    const e2=[c,d,c*s+d*t];
+    if(det2(e1,e2)===0)continue;
+    if(Math.abs(e2[2])>(lv>=4?120:60))continue;
+    return sysPack(h1,linEq(e2[0],e2[1],e2[2]),t1,linEqText(e2[0],e2[1],e2[2]),
+      s,t,[e1,e2],{lv:lv,form:form});
+  }
+  return genSonomama(lv);
+}
+/* ---- STEP17 かっこのある連立 ---- */
+function genKakko(lv){
+  for(let g=0;g<60;g++){
+    const R=lv===1?4:(lv===2?5:(lv===3?6:8));
+    const s=lv===1?ri(1,R):rnz(-R,R), t=lv===1?ri(1,R):rnz(-R,R);
+    const P=lv===1?ri(2,3):(lv>=4?pick([-4,-3,-2,2,3,4]):pick([-3,-2,2,3]));
+    const m=pick([1,-1]), Q=lv>=4?rnz(-5,5):rnz(-4,4);
+    const a1=P,b1=P*m+Q;
+    if(!b1)continue;
+    const c1=a1*s+b1*t;
+    const Pd=P<0?'−'+(-P):String(P);
+    const Qa=Math.abs(Q);
+    const h1=Pd+'(x '+(m>0?'+':'−')+' y)'+(Q>0?' + ':' − ')+(Qa===1?'':Qa)+'y = '+numDisp(c1);
+    const t1=P+'(x'+(m>0?'+':'-')+'y)'+(Q>0?'+':'-')+(Qa===1?'':Qa)+'y='+c1;
+    const c=lv===1?ri(1,4):(lv>=4?rnz(-6,6):rnz(-5,5)), d=lv===1?ri(1,4):(lv>=4?rnz(-6,6):rnz(-5,5));
+    const e1=[a1,b1,c1], e2=[c,d,c*s+d*t];
+    if(det2(e1,e2)===0)continue;
+    if(Math.abs(c1)>(lv>=4?120:60)||Math.abs(e2[2])>(lv>=4?120:60))continue;
+    const ord=Math.random()<.5;
+    const H=ord?[h1,linEq(c,d,e2[2])]:[linEq(c,d,e2[2]),h1];
+    const TX=ord?[t1,linEqText(c,d,e2[2])]:[linEqText(c,d,e2[2]),t1];
+    const EQ=ord?[e1,e2]:[e2,e1];
+    return sysPack(H[0],H[1],TX[0],TX[1],s,t,EQ,{lv:lv});
+  }
+  return genSonomama(lv);
+}
+/* ---- STEP18 小数のある連立 ---- */
+function genShousuu(lv){
+  for(let g=0;g<60;g++){
+    const R=lv===1?5:(lv===2?6:(lv===3?8:9));
+    const s=lv===1?ri(1,R):rnz(-R,R), t=lv===1?ri(1,R):rnz(-R,R);
+    const a=ri(1,9), b=ri(1,9)*(lv===1?1:pick([1,-1]));
+    const e1=[a,b,a*s+b*t];   /* ×10した整数形で保持 */
+    let e2,h2,t2;
+    if(lv>=2&&Math.random()<(lv>=4?1:(lv===3?.8:.5))){
+      const a2=ri(1,9), b2=rnz(-9,9);
+      e2=[a2,b2,a2*s+b2*t];
+      h2=decEqHTML(a2,b2,e2[2]);t2=decEqText(a2,b2,e2[2]);
+    }else{
+      const c=rnz(-4,4), d=rnz(-4,4);
+      e2=[c,d,c*s+d*t];
+      h2=linEq(c,d,e2[2]);t2=linEqText(c,d,e2[2]);
+    }
+    if(det2(e1,e2)===0)continue;
+    if(Math.abs(e1[2])>(lv>=4?150:90)||Math.abs(e2[2])>(lv>=4?150:90))continue;
+    return sysPack(decEqHTML(a,b,e1[2]),h2,decEqText(a,b,e1[2]),t2,s,t,[e1,e2],{lv:lv});
+  }
+  return genSonomama(lv);
+}
+/* ---- STEP19 分数のある連立 ---- */
+function genBunsuuR(lv){
+  for(let g=0;g<60;g++){
+    const dens=lv===1?[2,3]:(lv>=4?[2,3,4,5,6]:[2,3,4]);
+    const p=pick(dens);let q;do{q=pick(dens);}while(q===p);
+    const rng=lv===1?3:(lv===2?3:(lv===3?4:5));
+    const u=lv===1?ri(1,rng):rnz(-rng,rng), v=lv===1?ri(1,rng):rnz(-rng,rng);
+    const s=p*u, t=q*v;
+    const op=lv===1?1:pick([1,-1]);
+    const e=u+op*v;
+    const L=lcm(p,q);
+    const e1=[L/p,op*L/q,L*e];
+    const c=lv===1?ri(1,4):(lv>=4?rnz(-5,5):rnz(-4,4)), d=lv===1?ri(1,4):(lv>=4?rnz(-5,5):rnz(-4,4));
+    const e2=[c,d,c*s+d*t];
+    if(det2(e1,e2)===0)continue;
+    if(Math.abs(e2[2])>(lv>=4?120:60))continue;
+    const h1=fracHTML('x',p)+(op>0?' + ':' − ')+fracHTML('y',q)+' = '+numDisp(e);
+    const t1='x/'+p+(op>0?'+':'-')+'y/'+q+'='+e;
+    return sysPack(h1,linEq(c,d,e2[2]),t1,linEqText(c,d,e2[2]),s,t,[e1,e2],{lv:lv});
+  }
+  return genSonomama(lv);
+}
+/* ---- STEP20 A=B=C ---- */
+function genAbc(lv){
+  for(let g=0;g<80;g++){
+    const R=lv===1?4:(lv===2?5:(lv===3?6:7));
+    const s=lv===1?ri(1,R):rnz(-R,R), t=lv===1?ri(1,R):rnz(-R,R);
+    const a1=lv===1?ri(1,3):(lv>=4?rnz(-4,4):rnz(-3,3)), b1=lv===1?ri(1,3):(lv>=4?rnz(-4,4):rnz(-3,3));
+    const V=a1*s+b1*t;
+    if(Math.abs(V)>(lv>=4?48:30))continue;
+    const cand=[];
+    for(let a2=-4;a2<=4;a2++)for(let b2=-4;b2<=4;b2++){
+      if(a2===0&&b2===0)continue;
+      if(a2===a1&&b2===b1)continue;
+      if(a2*s+b2*t!==V)continue;
+      if(a1*b2-a2*b1===0)continue;
+      cand.push([a2,b2]);
+    }
+    if(!cand.length)continue;
+    const c2=pick(cand);
+    const eqs=[[a1,b1,V],[c2[0],c2[1],V]];
+    return {html:linExprHTML(a1,b1)+' = '+linExprHTML(c2[0],c2[1])+' = '+numDisp(V),
+      text:linExprText(a1,b1)+'='+linExprText(c2[0],c2[1])+'='+V,
+      params:{lv:lv,eqs:eqs,sol:[s,t]},
+      answer:{type:'sys',x:F.int(s),y:F.int(t)},
+      ansHTML:'x = '+numDisp(s)+'，y = '+numDisp(t),
+      ansText:'x='+s+', y='+t};
+  }
+  return genSonomama(lv);
+}
+
+/* =====================================================
+   MODES（question_key ＝ 冒頭SQLコメントと対応）
+===================================================== */
+const MODES=[
+ {unit:'tashiki',key:'doruikou',name:'同類項をまとめる',ex:'5x−2y−3x+4y',gen:genDoruikou,at:'expr',
+  hint:'文字と次数が同じ項どうしをまとめよう。x²とxは同類項ではないよ。'},
+ {unit:'tashiki',key:'tashizan',name:'多項式のたし算',ex:'(3x+2y)+(x−4y)',gen:genTashizan,at:'expr',
+  hint:'かっこをそのまま外して、同類項をまとめよう。'},
+ {unit:'tashiki',key:'hikizan',name:'多項式のひき算',ex:'(5x+y)−(2x−3y)',gen:genHikizan,at:'expr',
+  hint:'うしろのかっこを外すとき、中の符号がぜんぶ反対になるよ。'},
+ {unit:'tashiki',key:'suu_bai',name:'数×多項式',ex:'3(2x−5y)',gen:genSuuBai,at:'expr',
+  hint:'分配法則！かっこの中のすべての項に数をかけよう。'},
+ {unit:'tashiki',key:'suu_waru',name:'多項式÷数',ex:'(6x−9y)÷3',gen:genSuuWaru,at:'expr',
+  hint:'かっこの中のすべての項を数でわろう。'},
+ {unit:'tashiki',key:'bunpai_kagen',name:'分配してたし算・ひき算',ex:'2(x+3y)−3(2x−y)',gen:genBunpai,at:'expr',
+  hint:'まず分配法則でかっこを外してから、同類項をまとめよう。−のかけ算に注意！'},
+ {unit:'tashiki',key:'bunsuu',name:'分数の形の計算',ex:'(x+2y)/3 + (2x−y)/4',gen:genBunsuu,at:'expr',
+  hint:'通分してから分子を計算しよう。答えは分数が前でも後ろでもOK。'},
+ {unit:'tashiki',key:'tan_kake',name:'単項式のかけ算',ex:'3x × (−4y)',gen:genTanKake,at:'expr',
+  hint:'係数どうし、文字どうしをかけよう。x×x=x²。'},
+ {unit:'tashiki',key:'jijou_kake',name:'累乗のあるかけ算',ex:'(−2x)² × 3y',gen:genJijouKake,at:'expr',
+  hint:'先に累乗を計算しよう。(−2x)²=(−2x)×(−2x)=4x²。'},
+ {unit:'tashiki',key:'tan_waru',name:'単項式のわり算',ex:'12x²y ÷ 3x',gen:genTanWaru,at:'expr',
+  hint:'分数の形にして、係数どうし・文字どうしで約分しよう。'},
+ {unit:'tashiki',key:'kakewari',name:'かけ算・わり算の混合',ex:'8x² × 3y ÷ 6x',gen:genKakewari,at:'expr',
+  hint:'÷を分数にして、先に約分してから計算すると楽だよ。'},
+ {unit:'tashiki',key:'three_mono',name:'3つの単項式の乗除',ex:'3xy × x ÷ (−2y)',gen:genThreeMono,at:'expr',
+  hint:'×と÷が混ざるときは、÷を分数（逆数のかけ算）になおして、係数どうし・文字どうしで約分しよう。'},
+ {unit:'tashiki',key:'shiki_no_atai',name:'式の値',ex:'式を簡単にしてから代入',gen:genShikiNoAtai,at:'num',
+  hint:'先に式を簡単にしてから代入すると計算がぐっと楽に。負の数は（　）をつけて代入しよう。'},
+ {unit:'tashiki',key:'henkei',name:'等式の変形',ex:'2x + y = 5 を y について解く',gen:genHenkei,at:'expr',
+  hint:'解きたい文字だけを左辺に残すように移項し、最後に係数でわろう。答えは「= の右がわ」の式だけを入力してね。'},
+ {unit:'renritsu',key:'renritsu_sonomama',name:'そのまま加減法',ex:'x+y=7 ／ x−y=3',gen:genSonomama,at:'sys',
+  hint:'そろっている係数の符号が同じならひき算、反対ならたし算で1つの文字を消そう。'},
+ {unit:'renritsu',key:'renritsu_katahou',name:'片方の式を何倍か',ex:'2x+3y=12 ／ 4x−y=10',gen:genKatahou,at:'sys',
+  hint:'一方の式を何倍かして、どちらかの文字の係数をそろえよう。'},
+ {unit:'renritsu',key:'renritsu_ryouhou',name:'両方の式を何倍か',ex:'2x+3y=8 ／ 3x−4y=−5',gen:genRyouhou,at:'sys',
+  hint:'両方の式を何倍かして、係数の絶対値を最小公倍数にそろえよう。'},
+ {unit:'renritsu',key:'renritsu_dainyu',name:'代入法',ex:'y=2x−1 ／ 3x+2y=11',gen:genDainyu,at:'sys',
+  hint:'y=…（x=…）をもう一方の式に、かっこをつけて代入しよう。'},
+ {unit:'renritsu',key:'renritsu_kakko',name:'かっこのある連立',ex:'2(x−y)+3y=7 ／ …',gen:genKakko,at:'sys',
+  hint:'まずかっこを外して ax+by=c の形に整理しよう。'},
+ {unit:'renritsu',key:'renritsu_shousuu',name:'小数のある連立',ex:'0.3x+0.2y=1.2 ／ …',gen:genShousuu,at:'sys',
+  hint:'両辺を10倍して小数をなくそう。右辺にかけるのも忘れずに！'},
+ {unit:'renritsu',key:'renritsu_bunsuu',name:'分数のある連立',ex:'x/2 + y/3 = 4 ／ …',gen:genBunsuuR,at:'sys',
+  hint:'分母の最小公倍数を両辺にかけて、分数をなくそう。'},
+ {unit:'renritsu',key:'renritsu_abc',name:'A=B=C の形',ex:'2x+y = x+3y = 10',gen:genAbc,at:'sys',
+  hint:'A=B=C は「A=C」「B=C」の2つの式に分けて連立方程式にしよう。'}
+];
+/* ランダム出題（各単元の総仕上げ）。ログの question_key には実際に出た
+   STEP のキーを使うので question_catalog への追加は不要。 */
+function makeRandomGen(unit){
+  return function(lv,forPrint){
+    const pool=MODES.filter(function(x){return x.unit===unit&&!x.rand&&(!forPrint||x.at!=='num');});
+    const sub=pool[Math.floor(Math.random()*pool.length)];
+    const q=sub.gen(lv);
+    q.at=sub.at;q.srcKey=sub.key;q.srcName=sub.name;q.hint=sub.hint;
+    return q;
+  };
+}
+MODES.splice(MODES.findIndex(function(m){return m.key==='renritsu_sonomama';}),0,
+ {unit:'tashiki',key:'tashiki_random',name:'ランダム出題（総仕上げ）',ex:'式の計算の全STEPからランダムに出るよ',
+  gen:makeRandomGen('tashiki'),at:'expr',rand:true,hint:'どのSTEPの解き方を使うか、まず見分けよう。'});
+MODES.push(
+ {unit:'renritsu',key:'renritsu_random',name:'ランダム出題（総仕上げ）',ex:'連立方程式の全STEPからランダムに出るよ',
+  gen:makeRandomGen('renritsu'),at:'sys',rand:true,hint:'どのSTEPの解き方を使うか、まず見分けよう。'});
+(function(){let n=0;MODES.forEach(function(m){if(!m.rand){n++;m.step=n;}});})();
+
+/* =====================================================
+   state & UI
+===================================================== */
+const CLEAR_N=5;
+const UNITS=[
+  {id:'tashiki',label:'式の計算（多項式・単項式）',color:'#CB6B52'},
+  {id:'renritsu',label:'連立方程式',color:'#48708F'}
+];
+const state={key:null,q:null,answered:false,lvSel:0,modes:{}};/* lvSel: 0=自動, 1-4=固定 */
+MODES.forEach(function(m){state.modes[m.key]={correct:0,streak:0,cleared:false};});
+let activeInput=null;
+
+function $(id){return document.getElementById(id);}
+/* テスト運用用: URLに ?lv=1〜3 を付けるとレベル固定（例: math_js2_keisan.html?lv=3） */
+const FORCE_LV=(function(){if(typeof location==='undefined')return 0;const v=parseInt(new URLSearchParams(location.search).get('lv'),10);return (v>=1&&v<=4)?v:0;})();
+function lvOf(key){if(state.lvSel)return state.lvSel;if(FORCE_LV)return FORCE_LV;const c=state.modes[key].correct;return c<4?1:(c<8?2:3);}
+function curMode(){return MODES.find(function(m){return m.key===state.key;});}
+
+function renderHome(){
+  let h='';
+  for(const u of UNITS){
+    const list=MODES.filter(function(m){return m.unit===u.id;});
+    const done=list.filter(function(m){return state.modes[m.key].cleared;}).length;
+    let sel=(state.key&&list.some(function(m){return m.key===state.key;}))?state.key
+      :(list.find(function(m){return !state.modes[m.key].cleared;})||list[0]).key;
+    h+='<div class="unit" style="--uc:'+u.color+'"><h2 class="unit-title"><span class="ut">'+u.label+'</span>'
+      +'<span class="u-count'+(done===list.length?' alldone':'')+'">'+(done===list.length?'ぜんぶクリア ◎':'クリア '+done+'/'+list.length)+'</span></h2>'
+      +'<div class="mode-row"><select class="mode-select" data-unit="'+u.id+'" aria-label="'+u.label+' のSTEPをえらぶ">';
+    MODES.forEach(function(m){
+      if(m.unit!==u.id)return;
+      const st=state.modes[m.key];
+      const mark=st.cleared?'　◎':(st.correct?'　正解'+st.correct:'');
+      const lbl=m.rand?'★　'+m.name:'STEP '+m.step+'　'+m.name;
+      h+='<option value="'+m.key+'"'+(m.key===sel?' selected':'')+'>'+lbl+mark+'</option>';
+    });
+    h+='</select><button type="button" class="start-btn" data-unit="'+u.id+'">はじめる</button></div>'
+      +'<div class="mode-ex" id="ex_'+u.id+'"></div></div>';
+  }
+  $('unitList').innerHTML=h;
+  document.querySelectorAll('.mode-select').forEach(updateEx);
+}
+function updateEx(sel){
+  const m=MODES.find(function(x){return x.key===sel.value;});
+  const el=document.getElementById('ex_'+sel.dataset.unit);
+  if(el&&m)el.textContent='れい：'+m.ex;
+}
+function showHome(){
+  $('practice').hidden=true;$('home').hidden=false;
+  $('backBtn').hidden=true;$('printBtn').hidden=true;
+  renderHome();
+}
+function renderLvPick(){
+  const el=$('lvPick');
+  if(!el)return;
+  const items=[[0,'自動'],[1,'Lv1'],[2,'Lv2'],[3,'Lv3'],[4,'Lv4 ちょうせん']];
+  el.innerHTML=items.map(function(it){
+    return '<button type="button" data-lv="'+it[0]+'" class="'+(it[0]===4?'lv4':'')+(state.lvSel===it[0]?' on':'')+'">'+it[1]+'</button>';
+  }).join('');
+}
+function showPractice(key){
+  state.key=key;
+  $('home').hidden=true;$('practice').hidden=false;
+  $('backBtn').hidden=false;$('printBtn').hidden=false;
+  const m=curMode();
+  $('pStepNo').textContent=m.rand?'★':'STEP '+m.step;
+  $('pName').textContent=m.name;
+  renderLvPick();
+  newQuestion();
+}
+function curAt(){return (state.q&&state.q.at)||curMode().at;}
+function inputsOf(){
+  const at=curAt();
+  if(at==='expr')return [$('inExpr')];
+  if(at==='sys')return [$('inX'),$('inY')];
+  return [$('inNum')];
+}
+function renderDots(){
+  const st=state.modes[state.key];
+  let h='';
+  for(let i=0;i<CLEAR_N;i++)h+='<span'+(i<st.streak?' class="on"':'')+'></span>';
+  h+='<span class="dlabel">連続'+Math.min(st.streak,99)+'</span>';
+  $('pDots').innerHTML=h;
+}
+function newQuestion(){
+  const m=curMode(), lv=lvOf(m.key);
+  state.q=m.gen(lv);
+  state.answered=false;
+  buildPad(curAt());
+  $('pLv').textContent='Lv.'+lv;
+  renderDots();
+  $('qMain').innerHTML=state.q.html;
+  const c=$('qCond');
+  const src=m.rand?'【'+state.q.srcName+'】':'';
+  if(src||state.q.cond){c.hidden=false;c.textContent=src+(state.q.cond?(src?'　':'')+state.q.cond:'');}
+  else{c.hidden=true;c.textContent='';}
+  ['fxMaru','fxBatsu','fxClear'].forEach(function(id){$(id).classList.remove('show');});
+  $('fb').innerHTML='';
+  const at=curAt();
+  $('ansExpr').hidden=at!=='expr';
+  $('ansSys').hidden=at!=='sys';
+  $('ansNum').hidden=at!=='num';
+  inputsOf().forEach(function(el){el.value='';el.readOnly=false;});
+  $('checkBtn').hidden=false;
+  $('nextBtn').hidden=true;$('nextStepBtn').hidden=true;
+  document.dispatchEvent(new CustomEvent('divp:nextQuestion'));
+  if(window.matchMedia('(pointer:fine)').matches)inputsOf()[0].focus({preventScroll:true});
+}
+
+/* ---- keypad ---- */
+function buildPad(at){
+  const pad=$('pad');
+  pad.classList.toggle('numpad',at!=='expr');
+  const keys=at==='expr'
+    ?['7','8','9','0','⌫','4','5','6','x','y','1','2','3','+','−','(',')','²','/','C']
+    :['7','8','9','⌫','4','5','6','−','1','2','3','/','0','.','C'];
+  let h='';
+  for(const k of keys){
+    const cls='key'+((k==='⌫'||k==='C')?' util':('+-−()²/xy.'.indexOf(k)>=0?' op':''));
+    h+='<button type="button" class="'+cls+'" data-k="'+k+'">'+k+'</button>';
+  }
+  pad.innerHTML=h;
+}
+function setCaret(el,pos){try{el.setSelectionRange(pos,pos);}catch(e){}}
+function padPress(k){
+  let el=activeInput;
+  if(!el||el.offsetParent===null||el.readOnly)el=inputsOf()[0];
+  if(!el||el.readOnly)return;
+  const st=el.selectionStart==null?el.value.length:el.selectionStart;
+  const en=el.selectionEnd==null?el.value.length:el.selectionEnd;
+  if(k==='C')el.value='';
+  else if(k==='⌫'){
+    if(st===en&&st>0){el.value=el.value.slice(0,st-1)+el.value.slice(en);setCaret(el,st-1);}
+    else{el.value=el.value.slice(0,st)+el.value.slice(en);setCaret(el,st);}
+  }else{
+    const ins=(k==='−')?'-':k;
+    el.value=el.value.slice(0,st)+ins+el.value.slice(en);
+    setCaret(el,st+ins.length);
+  }
+  if(window.matchMedia('(pointer:fine)').matches)el.focus({preventScroll:true});
+}
+
+/* ---- judge ---- */
+function warnMsg(msg){$('fb').innerHTML='<span class="warn">'+msg+'</span>';}
+function judge(){
+  if(state.answered)return;
+  const m=curMode(), q=state.q;
+  try{
+    let ok=false, userText='';
+    const at=curAt();
+    if(at==='expr'){
+      const r=parseAnswerExpr($('inExpr').value);
+      userText=normalizeInput($('inExpr').value);
+      if(termsEq(r.terms,q.answer.terms)){
+        if(r.uns){warnMsg('計算は合っているけど、まだ整理できるよ。かっこを外して、同類項をまとめた形で答えよう。');return;}
+        if(r.unr){warnMsg('計算は合っているけど、まだ約分できるよ。');return;}
+        ok=true;
+      }
+    }else if(at==='sys'){
+      const x=parseNumberAns($('inX').value), y=parseNumberAns($('inY').value);
+      userText='x='+normalizeInput($('inX').value)+', y='+normalizeInput($('inY').value);
+      ok=x.eq(q.answer.x)&&y.eq(q.answer.y);
+    }else{
+      const v=parseNumberAns($('inNum').value);
+      userText=normalizeInput($('inNum').value);
+      ok=v.eq(q.answer.v);
+    }
+    finish(ok,userText);
+  }catch(err){
+    if(err&&err.parse){warnMsg(err.message);return;}
+    throw err;
+  }
+}
+function finish(ok,userText){
+  const m=curMode(), q=state.q, st=state.modes[m.key];
+  state.answered=true;
+  inputsOf().forEach(function(el){el.readOnly=true;});
+  $('checkBtn').hidden=true;
+  sendDivp(ok,userText);
+  if(ok){
+    st.correct++;st.streak++;
+    if(st.streak===CLEAR_N&&!st.cleared){
+      st.cleared=true;
+      $('fxClear').classList.add('show');
+      $('fb').innerHTML='<span class="clearmsg">STEPクリア！　5問連続正解 ◎</span>';
+      if(MODES.indexOf(m)<MODES.length-1)$('nextStepBtn').hidden=false;
+    }else{
+      $('fxMaru').classList.add('show');
+      $('fb').innerHTML='<span class="ok">せいかい！</span>';
+    }
+  }else{
+    st.streak=0;
+    $('fxBatsu').classList.add('show');
+    $('fb').innerHTML='<span class="ng">正解は <b>'+q.ansHTML+'</b></span><span class="hint">💡 '+(q.hint||m.hint)+'</span>';
+  }
+  renderDots();
+  $('nextBtn').hidden=false;
+}
+function sendDivp(ok,userText){
+  try{
+    if(window.Divp&&typeof window.Divp.answer==='function'){
+      window.Divp.answer(!!ok,{
+        question_key:(state.q&&state.q.srcKey)||state.key,
+        question_params:state.q.params,
+        question_text:(state.q.cond?state.q.cond+'　':'')+state.q.text,
+        correct_answer:state.q.ansText,
+        wrong_answer:ok?null:userText
+      });
+    }
+  }catch(e){}
+}
+
+/* =====================================================
+   print sheet
+===================================================== */
+function buildPrint(){
+  const m=curMode();
+  if(!m)return;
+  const n=m.at==='sys'?10:20;
+  const items=[];
+  for(let i=0;i<n;i++){
+    const lv=state.lvSel||(i<n*.4?1:(i<n*.75?2:3));
+    items.push(m.gen(lv,true));
+  }
+  const lbl=m.rand?'★':'STEP'+m.step;
+  let h='<div class="psheet-head"><span class="t">中2計算プリント　'+lbl+'　'+m.name+'</span>'
+    +'<span class="nm">名前（　　　　　　　　　）</span></div>';
+  h+='<ol class="pgrid'+(m.at==='sys'?' sysgrid':'')+'">';
+  items.forEach(function(q,i){
+    h+='<li><span class="pno">('+(i+1)+')</span>'
+      +(q.cond?'<span style="font-size:9.5pt">'+q.cond+'</span><br>':'')
+      +q.html+'</li>';
+  });
+  h+='</ol><div class="pans"><h2>解答　'+lbl+'　'+m.name+'</h2><ol>';
+  items.forEach(function(q,i){
+    h+='<li>('+(i+1)+')　'+q.ansHTML+'</li>';
+  });
+  h+='</ol></div>';
+  $('printArea').innerHTML=h;
+  window.print();
+}
+
+/* =====================================================
+   init
+===================================================== */
+const PROGRESS_API='/api/get_progress.php';
+/* ログイン中ならDBから進捗を復元（answer_logs集計）。未ログイン・失敗時は黙ってスキップ。
+   ランダム出題(★)はログを出典STEP名義で残すため、★自体のクリア状況は復元対象外。 */
+function restoreProgress(){
+  try{
+    var uk=(window.DIVP_UNIT_KEY||'math_js2_keisan');
+    fetch(PROGRESS_API+'?unit_key='+encodeURIComponent(uk),{credentials:'same-origin'})
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(d){
+        if(!d||!d.ok||!d.progress)return;
+        var touched=false;
+        MODES.forEach(function(m){
+          var p=d.progress[m.key];
+          if(!p)return;
+          var st=state.modes[m.key];
+          st.correct=Math.max(st.correct,p.correct|0);
+          st.streak=Math.max(st.streak,Math.min(p.streak|0,CLEAR_N));
+          if(p.cleared)st.cleared=true;
+          touched=true;
+        });
+        if(!touched)return;
+        if(!$('home').hidden)renderHome();
+        if(!$('practice').hidden){$('pLv').textContent='Lv.'+lvOf(state.key);renderDots();}
+      })
+      .catch(function(){});
+  }catch(e){}
+}
+
+function init(){
+  if(FORCE_LV)state.lvSel=FORCE_LV;
+  renderHome();
+  restoreProgress();
+  $('unitList').addEventListener('change',function(e){
+    const s=e.target.closest('.mode-select');
+    if(s)updateEx(s);
+  });
+  $('unitList').addEventListener('click',function(e){
+    const b=e.target.closest('.start-btn');
+    if(!b)return;
+    const s=document.querySelector('.mode-select[data-unit="'+b.dataset.unit+'"]');
+    if(s)showPractice(s.value);
+  });
+  $('lvPick').addEventListener('click',function(e){
+    const b=e.target.closest('button[data-lv]');
+    if(!b)return;
+    state.lvSel=parseInt(b.dataset.lv,10)||0;
+    renderLvPick();
+    newQuestion();
+  });
+  $('backBtn').addEventListener('click',showHome);
+  $('printBtn').addEventListener('click',buildPrint);
+  $('checkBtn').addEventListener('click',judge);
+  $('nextBtn').addEventListener('click',newQuestion);
+  $('nextStepBtn').addEventListener('click',function(){
+    const i=MODES.indexOf(curMode());
+    if(i<MODES.length-1)showPractice(MODES[i+1].key);
+  });
+  $('pad').addEventListener('click',function(e){
+    const b=e.target.closest('.key');
+    if(b)padPress(b.dataset.k);
+  });
+  document.addEventListener('focusin',function(e){
+    if(e.target&&e.target.classList&&e.target.classList.contains('ans-in'))activeInput=e.target;
+  });
+  document.addEventListener('keydown',function(e){
+    if($('practice').hidden)return;
+    if(e.key==='Enter'){
+      e.preventDefault();
+      if(state.answered)$('nextBtn').click();
+      else if(!$('checkBtn').hidden)judge();
+    }
+  });
+}
+
+/* node テスト用エクスポート */
+if(typeof module!=='undefined'&&module.exports){
+  module.exports={MODES:MODES,F:F,T:T,combineTerms:combineTerms,mulPoly:mulPoly,
+    termsEq:termsEq,termsText:termsText,termsHTML:termsHTML,
+    fracFormText:fracFormText,parseAnswerExpr:parseAnswerExpr,
+    parseNumberAns:parseNumberAns,normalizeInput:normalizeInput};
+}
+if(typeof document!=='undefined')init();
+</script>
+</body>
+</html>
