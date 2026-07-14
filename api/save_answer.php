@@ -5,21 +5,7 @@ require_once __DIR__ . '/bootstrap.php';
 
 const DAILY_XP_CAP = 300;
 const DEFAULT_BASE_XP = 1;   // question_catalog 未登録の (unit_key, question_key) に与える既定XP
-
-// 同一question_keyの当日の解答回数に応じてXPを減衰させる（連打対策）
-function xp_decay_factor(int $answeredTodayCount): float
-{
-    if ($answeredTodayCount <= 10) {
-        return 1.0;
-    }
-    if ($answeredTodayCount <= 20) {
-        return 0.5;
-    }
-    if ($answeredTodayCount <= 30) {
-        return 0.25;
-    }
-    return 0.0;
-}
+const XP_DECAY_RATE = 0.7;   // 同一問題を当日くり返し正解した時の1回ごとの減衰率(spec §3)
 
 require_post();
 $actor = require_login(['student']);
@@ -150,21 +136,26 @@ try {
         }
     }
 
-    // XPは正解のみ。カタログ未登録でも既定1XPを付与する（全モードで必ずXPが入るように）。
-    // 未登録は警告ログを残し、講師/保護者画面のラベル整備のためにカタログ追加を促す。
+    // XPは正解のみ。単価は日次バッチ(update_xp.php)が全生徒の正答率から動的に決める
+    // current_xp を使い、NULL(バッチ未実行)なら base_xp にフォールバックする(spec §3)。
+    // カタログ未登録でも既定1XPを付与する（全モードで必ずXPが入るように）。
+    // 単価・変動の仕組みは生徒に一切見せない(シークレット運用。spec §4)。
     $xpAwarded = 0;
     if ($isCorrect) {
-        $stmt = $pdo->prepare('SELECT base_xp FROM question_catalog WHERE unit_key = :unit_key AND question_key = :question_key');
+        $stmt = $pdo->prepare('SELECT base_xp, current_xp FROM question_catalog WHERE unit_key = :unit_key AND question_key = :question_key');
         $stmt->execute(['unit_key' => $unitKey, 'question_key' => $questionKey]);
-        $baseXp = $stmt->fetchColumn();
+        $catalog = $stmt->fetch();
 
-        if ($baseXp === false) {
+        if ($catalog === false) {
             error_log("[save_answer] question_catalog未登録(既定XPで付与): unit_key={$unitKey} question_key={$questionKey}");
-            $baseXp = DEFAULT_BASE_XP;
+            $unitXp = DEFAULT_BASE_XP;
+        } else {
+            // current_xp が NULL なら base_xp を単価にする
+            $unitXp = $catalog['current_xp'] !== null ? (int)$catalog['current_xp'] : (int)$catalog['base_xp'];
         }
-        $baseXp = (int)$baseXp;
 
-        if ($baseXp > 0) {
+        if ($unitXp > 0) {
+            // イベント期間中は倍率を単価に上乗せする（既存のXPイベント機能を維持）
             $stmt = $pdo->prepare(
                 'SELECT event_id, multiplier FROM xp_events
                  WHERE NOW() BETWEEN starts_at AND ends_at
@@ -176,14 +167,24 @@ try {
             $multiplier = $event ? (float)$event['multiplier'] : 1.0;
             $eventId = $event ? (int)$event['event_id'] : null;
 
+            // 日次減衰: 今日この生徒がこの問題で正解してXPを得た回数 n を xp_logs から数える。
+            // DATE()関数ではなく範囲比較(created_at >= CURDATE())でインデックスを効かせる(spec §3)。
             $stmt = $pdo->prepare(
-                'SELECT COUNT(*) FROM answer_logs
-                 WHERE student_id = :student_id AND question_key = :question_key AND answered_at >= CURDATE()'
+                'SELECT COUNT(*) FROM xp_logs
+                 WHERE student_id = :student_id AND unit_key = :unit_key AND question_key = :question_key
+                   AND created_at >= CURDATE()'
             );
-            $stmt->execute(['student_id' => $studentId, 'question_key' => $questionKey]);
-            $answeredToday = (int)$stmt->fetchColumn();
-            $decay = xp_decay_factor($answeredToday);
+            $stmt->execute([
+                'student_id'   => $studentId,
+                'unit_key'     => $unitKey,
+                'question_key' => $questionKey,
+            ]);
+            $n = (int)$stmt->fetchColumn();
 
+            // xp = max(1, round(単価 × 倍率 × 0.7^n))。下限1(解けば必ず何かもらえる)
+            $computed = max(1, (int)round($unitXp * $multiplier * pow(XP_DECAY_RATE, $n)));
+
+            // 1日の合計上限。cap に達していたら 0 になり付与しない
             $stmt = $pdo->prepare(
                 'SELECT COALESCE(SUM(amount), 0) FROM xp_logs WHERE student_id = :student_id AND created_at >= CURDATE()'
             );
@@ -191,19 +192,20 @@ try {
             $todayTotal = (int)$stmt->fetchColumn();
             $remaining = max(0, DAILY_XP_CAP - $todayTotal);
 
-            $computed = (int)floor($baseXp * $multiplier * $decay);
             $xpAwarded = min($computed, $remaining);
 
             if ($xpAwarded > 0) {
                 $stmt = $pdo->prepare(
-                    'INSERT INTO xp_logs (student_id, amount, reason, event_id, answer_id)
-                     VALUES (:student_id, :amount, "correct", :event_id, :answer_id)'
+                    'INSERT INTO xp_logs (student_id, amount, reason, unit_key, question_key, event_id, answer_id)
+                     VALUES (:student_id, :amount, "correct", :unit_key, :question_key, :event_id, :answer_id)'
                 );
                 $stmt->execute([
-                    'student_id' => $studentId,
-                    'amount'     => $xpAwarded,
-                    'event_id'   => $eventId,
-                    'answer_id'  => $answerId,
+                    'student_id'   => $studentId,
+                    'amount'       => $xpAwarded,
+                    'unit_key'     => $unitKey,
+                    'question_key' => $questionKey,
+                    'event_id'     => $eventId,
+                    'answer_id'    => $answerId,
                 ]);
             }
         }

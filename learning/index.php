@@ -148,6 +148,7 @@ function subject_color(array $subjects, string $folder): string
     background-size:24px 24px;
     line-height:1.6;
     -webkit-font-smoothing:antialiased;
+    -webkit-text-size-adjust:100%;text-size-adjust:100%;
   }
 
   /* ---------- 固定ヘッダー ---------- */

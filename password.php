@@ -36,7 +36,7 @@ $must = (bool)$me['must_change_password'];
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'Zen Kaku Gothic New',sans-serif;color:var(--ink);background-color:var(--paper);
     background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-    background-size:24px 24px;line-height:1.6}
+    background-size:24px 24px;line-height:1.6;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   .box{max-width:440px;margin:80px auto;background:var(--white);border-radius:var(--radius);
     box-shadow:var(--shadow);border-top:4px solid var(--ai);padding:28px}
   h1{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:18px;color:var(--ai)}

@@ -120,17 +120,29 @@ if ($isGuardian) {
             $units[$row['unit_key']][] = $row;
         }
 
-        // 学習の足あと（週表示時のみ・日別学習秒数）
+        // 学習の足あと（週表示時のみ・日別の学習秒数と解いた問題数）
         $daily = [];
+        $dailySolved = [];
         if ($showWeekDots) {
+            $range = ['id' => $sid, 'from' => $from->format('Y-m-d 00:00:00'), 'to' => $to->format('Y-m-d 00:00:00')];
             $st = $pdo->prepare(
                 'SELECT DATE(started_at) AS d, COALESCE(SUM(duration_sec),0) AS sec FROM study_sessions
                  WHERE student_id = :id AND started_at >= :from AND started_at < :to
                  GROUP BY DATE(started_at)'
             );
-            $st->execute(['id' => $sid, 'from' => $from->format('Y-m-d 00:00:00'), 'to' => $to->format('Y-m-d 00:00:00')]);
+            $st->execute($range);
             foreach ($st->fetchAll() as $row) {
                 $daily[$row['d']] = (int)$row['sec'];
+            }
+            // 解いた問題数を日別に
+            $st = $pdo->prepare(
+                'SELECT DATE(answered_at) AS d, COUNT(*) AS cnt FROM answer_logs
+                 WHERE student_id = :id AND answered_at >= :from AND answered_at < :to
+                 GROUP BY DATE(answered_at)'
+            );
+            $st->execute($range);
+            foreach ($st->fetchAll() as $row) {
+                $dailySolved[$row['d']] = (int)$row['cnt'];
             }
         }
 
@@ -145,6 +157,7 @@ if ($isGuardian) {
             'level' => $level,
             'pending' => $pending,
             'daily' => $daily,
+            'dailySolved' => $dailySolved,
             'units' => $units,
         ];
     }
@@ -164,54 +177,61 @@ if ($isGuardian) {
     --shadow:0 1px 3px rgba(51,49,43,.08), 0 6px 16px rgba(51,49,43,.06);
   }
   *{margin:0;padding:0;box-sizing:border-box}
+  /* Androidブラウザが端末のフォント設定で本文を勝手に縮小するのを防ぎ、指定サイズで表示する */
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   body{
     font-family:'Zen Kaku Gothic New',sans-serif;color:var(--ink);
     background-color:var(--paper);
     background-image:linear-gradient(var(--grid) 1px, transparent 1px),linear-gradient(90deg, var(--grid) 1px, transparent 1px);
     background-size:24px 24px;line-height:1.6;-webkit-font-smoothing:antialiased;
+    -webkit-text-size-adjust:100%;text-size-adjust:100%;
   }
   .wrap{max-width:680px;margin:0 auto;padding:0 16px 64px}
   header{display:flex;align-items:center;justify-content:space-between;padding:14px 2px 10px;gap:10px}
   header img.logo{height:34px;width:auto;display:block}
-  .who{text-align:right;font-size:12px;color:var(--ink-soft)}
-  .who b{display:block;font-size:15px;color:var(--ink);font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
-  .who a{color:var(--ai);text-decoration:none;font-size:12px}
-  .tolist{display:inline-block;margin:0 2px 6px;font-size:13px;color:var(--ai);text-decoration:none;font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
+  .who{text-align:right;font-size:13px;color:var(--ink-soft)}
+  .who b{display:block;font-size:16px;color:var(--ink);font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
+  .who a{color:var(--ai);text-decoration:none;font-size:13px}
+  .tolist{display:inline-block;margin:0 2px 6px;font-size:14px;color:var(--ai);text-decoration:none;font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
 
   .ptabs{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 12px}
-  .ptab{font-size:13px;padding:5px 14px;border-radius:999px;border:1.5px solid var(--grid);
+  .ptab{font-size:14px;padding:6px 15px;border-radius:999px;border:1.5px solid var(--grid);
     background:var(--white);color:var(--ink-soft);text-decoration:none;font-weight:700}
   .ptab.active{background:var(--ai);border-color:var(--ai);color:#fff}
 
   .child{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
     border-top:4px solid var(--ai);padding:18px;margin-bottom:16px}
-  .child h2{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:18px;color:var(--ai)}
-  .child h2 small{font-size:12px;font-weight:500;color:var(--ink-soft);margin-left:6px}
+  .child h2{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:20px;color:var(--ai)}
+  .child h2 small{font-size:13px;font-weight:500;color:var(--ink-soft);margin-left:6px}
   .stats{display:flex;flex-wrap:wrap;gap:12px 22px;margin-top:12px}
-  .stat .num{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:30px;line-height:1;font-feature-settings:'tnum'}
-  .stat .num small{font-size:13px;font-weight:700;margin-left:2px;color:var(--ink-soft)}
-  .stat .lbl{font-size:11px;color:var(--ink-soft);margin-top:4px}
+  .stat .num{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:32px;line-height:1;font-feature-settings:'tnum'}
+  .stat .num small{font-size:14px;font-weight:700;margin-left:2px;color:var(--ink-soft)}
+  .stat .lbl{font-size:12px;color:var(--ink-soft);margin-top:4px}
   .lv{color:var(--kin)}
-  .pending{margin-top:10px;font-size:13px;color:var(--shu);font-weight:700}
+  .pending{margin-top:10px;font-size:14px;color:var(--shu);font-weight:700}
 
   /* 学習の足あと（週ドット） */
-  .week-title{font-size:12px;color:var(--ink-soft);font-weight:700;margin:14px 0 6px}
+  .week-title{font-size:13px;color:var(--ink-soft);font-weight:700;margin:14px 0 6px}
   .week{display:flex;justify-content:space-between;background:var(--paper);border-radius:10px;padding:12px 10px}
-  .day{text-align:center;font-size:11px;color:var(--ink-soft)}
+  .day{text-align:center;font-size:12px;color:var(--ink-soft)}
   .dot{width:30px;height:30px;border-radius:50%;margin:0 auto 4px;border:2px dashed var(--grid);display:flex;align-items:center;justify-content:center}
   .dot.on{border:none;background:var(--shu);color:#fff;font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:13px}
   .dot.today{outline:2px solid var(--ai);outline-offset:2px}
+  .day .dname{font-weight:700;color:var(--ink);margin-top:2px}
+  .day .dq{font-size:13px;font-feature-settings:'tnum';color:var(--ink-soft);margin-top:1px}
+  .day .dq b{color:var(--ink);font-weight:700}
+  .day .dq.zero{opacity:.45}
 
   .unit{margin-top:14px}
-  .unit .ut{font-size:13px;font-weight:700;font-family:'Zen Maru Gothic',sans-serif}
-  .unit .ut small{font-size:11px;font-weight:500;color:var(--ink-soft);margin-left:4px}
-  table{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}
-  th{font-size:11px;color:var(--ink-soft);font-weight:700;text-align:left;border-bottom:2px solid var(--grid);padding:5px 6px}
-  td{border-bottom:1px solid #F3F0E8;padding:6px}
+  .unit .ut{font-size:15px;font-weight:700;font-family:'Zen Maru Gothic',sans-serif}
+  .unit .ut small{font-size:12px;font-weight:500;color:var(--ink-soft);margin-left:4px}
+  table{border-collapse:collapse;width:100%;font-size:15px;margin-top:6px}
+  th{font-size:12px;color:var(--ink-soft);font-weight:700;text-align:left;border-bottom:2px solid var(--grid);padding:5px 6px}
+  td{border-bottom:1px solid #F3F0E8;padding:7px 6px}
   .num{text-align:right;font-feature-settings:'tnum';white-space:nowrap}
   .rate-ok{color:var(--kin);font-weight:700}
   .rate-low{color:#D89A45}
-  .empty{color:var(--ink-soft);font-size:13px;padding:6px 0}
+  .empty{color:var(--ink-soft);font-size:14px;padding:6px 0}
 
   /* ログインフォーム */
   .box{max-width:360px;margin:64px auto;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:26px 22px;border-top:4px solid var(--ai)}
@@ -221,7 +241,7 @@ if ($isGuardian) {
   .box input{width:100%;padding:9px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:15px;margin-top:4px}
   .box button{margin-top:18px;width:100%;background:var(--ai);color:#fff;border:none;border-radius:8px;padding:11px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Zen Maru Gothic',sans-serif}
   .box .err{color:var(--shu);font-size:13px;margin-top:10px;text-align:center;min-height:18px}
-  footer{margin-top:28px;text-align:center;font-size:11px;color:var(--ink-soft)}
+  footer{margin-top:28px;text-align:center;font-size:12px;color:var(--ink-soft)}
 </style>
 </head>
 <body>
@@ -286,16 +306,22 @@ document.getElementById('lpin').addEventListener('keydown', (e) => { if (e.key =
 <?php endif; ?>
 
 <?php if ($showWeekDots): ?>
-    <div class="week-title">学習の足あと（ドットの数字は学習時間・分）</div>
+    <div class="week-title">学習の足あと（ドットの数字は学習時間・分／下は解いた問題数）</div>
     <div class="week">
 <?php for ($i = 0; $i < 7; $i++):
       $day = $from->modify("+{$i} days");
       $dayStr = $day->format('Y-m-d');
       $mins = isset($c['daily'][$dayStr]) ? (int)floor($c['daily'][$dayStr] / 60) : 0;
+      $qcount = $c['dailySolved'][$dayStr] ?? 0;
       $isToday = $dayStr === $todayStr;
-      $classes = 'dot' . ($mins > 0 ? ' on' : '') . ($isToday ? ' today' : '');
+      $active = $mins > 0 || $qcount > 0;
+      $classes = 'dot' . ($active ? ' on' : '') . ($isToday ? ' today' : '');
 ?>
-      <div class="day"><div class="<?= $classes ?>"><?= $mins > 0 ? $mins : '' ?></div><?= $dayLabels[$i] ?></div>
+      <div class="day">
+        <div class="<?= $classes ?>"><?= $mins > 0 ? $mins : '' ?></div>
+        <div class="dname"><?= $dayLabels[$i] ?></div>
+        <div class="dq<?= $qcount > 0 ? '' : ' zero' ?>"><b><?= $qcount ?></b>問</div>
+      </div>
 <?php endfor; ?>
     </div>
 <?php endif; ?>

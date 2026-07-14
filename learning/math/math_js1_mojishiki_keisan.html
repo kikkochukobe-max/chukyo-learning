@@ -688,35 +688,138 @@ function genBunpai(diff){
     return calcQuestion("計算しよう", tex, xc2, cc2, expl);
   }
 }
+/* ===== 四則ミックス 標準（教科書の分数まじり式・IMG_9817/IMG_9818）=====
+ * 4つの型をランダムに出す:
+ *  A 分数係数×かっこ ±  … (p/q)(ax+b) ± (r/s)(cx+d)   例 ½(4x-6)+⅓(6x+12)
+ *  B 整数×(分数まじりかっこ) … j(x-b/c) ± k(...)         例 4(x-¾)+6(x-⅔)、5(⅗a-2)-8(¾a-2)
+ *  C 単項式 ± 分数式 … px ± (ax+b)/d                     例 2a+(3a-8)/5、-3x-(x-9)/4
+ *  D 分数式 ± 分数式 … (ax+b)/d1 ± (cx+d)/d2             例 (8a+5)/9-(2a+5)/3
+ * A/Bは答えが1次式(calcQuestion)、C/Dは答えが単一分数(fracChoiceQuestion)。*/
+
+// A: (p/q)(ax+b) ± (r/s)(cx+d)。中の係数は分母の倍数にして分配後は整数になるようにする
+function mixFracCoeff(V){
+  const dens=[2,3,4,5,6,7];
+  const mk=(allowNeg)=>{
+    const q=pick(dens);
+    let p=nz(1,q-1); while(gcd(p,q)!==1) p=nz(1,q-1);
+    const sign=allowNeg ? (Math.random()<0.4?-1:1) : 1;
+    const A=nz(-3,3), B=nz(-3,3);
+    return {coef:rmk(sign*p,q), p:sign*p, A, B, a:q*A, b:q*B};
+  };
+  let T1,T2,xc,cc,guard=0;
+  do{
+    T1=mk(true); T2=mk(false);
+    var op=Math.random()<0.5?"+":"-"; var s=(op==="-")?-1:1;
+    xc=rint(T1.p*T1.A + s*T2.p*T2.A);
+    cc=rint(T1.p*T1.B + s*T2.p*T2.B);
+  }while(xc.n===0 && guard++<20);
+  const inner1=exprTex([{r:rint(T1.a),v:V,style:"int"},{r:rint(T1.b),v:"",style:"int"}],false);
+  const inner2=exprTex([{r:rint(T2.a),v:V,style:"int"},{r:rint(T2.b),v:"",style:"int"}],false);
+  const tex=fracTex(T1.coef)+"\\left("+inner1+"\\right) "+op+" "+fracTex(T2.coef)+"\\left("+inner2+"\\right)";
+  const dist=[{r:rint(T1.p*T1.A),v:V,style:"int"},{r:rint(T1.p*T1.B),v:"",style:"int"},
+              {r:rint(s*T2.p*T2.A),v:V,style:"int"},{r:rint(s*T2.p*T2.B),v:"",style:"int"}];
+  const expl=[
+    {t:"かっこの外の分数を、中のすべての項にかけよう（分配法則）。分数×整数は約分できるよ。"},
+    {tex:"= "+exprTex(dist,false)},
+    {t:"同じ文字どうし・数どうしをまとめよう。"},
+    {tex:"= "+ansTex(xc,cc,V)}
+  ];
+  return calcQuestion("計算しよう", tex, xc, cc, expl, V);
+}
+
+// B: j(x - b/c) ± k(...) / j((p/q)x - n) ± … 外の整数は分母の倍数、分配後は整数
+function mixIntFracInner(V){
+  const mkTerm=()=>{
+    if(Math.random()<0.5){
+      const c=pick([2,3,4,5,6]); const t=nz(1,3); const j=c*t;
+      const b=nz(1,c-1); const bs=Math.random()<0.5?-1:1;
+      const innerTex=exprTex([{r:rint(1),v:V,style:"int"},{r:rmk(bs*b,c),v:"",style:"frac"}],false);
+      return {j, innerTex, resX:rint(j), resC:rmul(rint(j),rmk(bs*b,c))};
+    }
+    const q=pick([2,3,4,5,6]); let p=nz(1,q-1); while(gcd(p,q)!==1) p=nz(1,q-1);
+    const u=nz(1,3); const j=q*u; const n=nz(1,9); const ns=Math.random()<0.5?-1:1;
+    const innerTex=exprTex([{r:rmk(p,q),v:V,style:"frac"},{r:rint(ns*n),v:"",style:"int"}],false);
+    return {j, innerTex, resX:rmul(rint(j),rmk(p,q)), resC:rint(j*ns*n)};
+  };
+  let T1,T2,xc,cc,guard=0;
+  do{
+    T1=mkTerm(); T2=mkTerm();
+    var op=Math.random()<0.5?"+":"-"; var s=(op==="-")?-1:1;
+    xc=radd(T1.resX, rmul(rint(s),T2.resX));
+    cc=radd(T1.resC, rmul(rint(s),T2.resC));
+  }while(xc.n===0 && guard++<20);
+  const tex=T1.j+"\\left("+T1.innerTex+"\\right) "+op+" "+T2.j+"\\left("+T2.innerTex+"\\right)";
+  const dist=[{r:T1.resX,v:V,style:"int"},{r:T1.resC,v:"",style:"int"},
+              {r:rmul(rint(s),T2.resX),v:V,style:"int"},{r:rmul(rint(s),T2.resC),v:"",style:"int"}];
+  const expl=[
+    {t:"かっこの外の数を、中のすべての項にかけよう（分配法則）。整数×分数は約分できるよ。"},
+    {tex:"= "+exprTex(dist,false)},
+    {t:"同じ文字どうし・数どうしをまとめよう。"},
+    {tex:"= "+ansTex(xc,cc,V)}
+  ];
+  return calcQuestion("計算しよう", tex, xc, cc, expl, V);
+}
+
+// C: px ± (ax+b)/d 。整数項を分母dにそろえて1つの分数にまとめる
+function mixMonoPlusFrac(V){
+  const d=pick([2,3,4,5,6]);
+  const p=nz(-6,6);
+  const a=nz(-6,6), b=nz(-9,9);
+  const op=Math.random()<0.5?"+":"-"; const s=(op==="-")?-1:1;
+  const nA=p*d + s*a, nB=s*b;
+  const g=gcd(gcd(Math.abs(nA),Math.abs(nB)),d) || 1;
+  const numA=nA/g, numB=nB/g, D=d/g;
+  const monoTex=coefTexCalc(rint(p),V,"int");
+  const num=exprTex([{r:rint(a),v:V,style:"int"},{r:rint(b),v:"",style:"int"}],false);
+  const tex=monoTex+" "+op+" \\dfrac{"+num+"}{"+d+"}";
+  const preNum=exprTex([{r:rint(p*d),v:V,style:"int"}],false);
+  const expl=[
+    {t:"整数の項に分母 "+d+" をかけて、1つの分数にまとめよう。"},
+    {tex:"= \\dfrac{"+preNum+" "+op+" \\left("+num+"\\right)}{"+d+"}"},
+    {tex:"= "+singleFracTex(nA,nB,d,V)}
+  ];
+  if(D!==d) expl.push({tex:"= "+singleFracTex(numA,numB,D,V)});
+  return fracChoiceQuestion("計算しよう", tex, numA, numB, D, expl, V);
+}
+
+// D: (ax+b)/d1 ± (cx+d)/d2 （通分して計算）
+function mixFracFrac(V){
+  const lcm=(x,y)=>x*y/gcd(x,y);
+  const pairs=[[2,3],[3,4],[2,5],[3,5],[2,4],[3,6],[4,6],[2,6],[4,3],[5,2],[9,3],[8,4]];
+  const [d1,d2]=pick(pairs);
+  const a1=nz(-5,5), b1=nz(-9,9), a2=nz(-5,5), b2=nz(-9,9);
+  const op=Math.random()<0.5?"+":"-";
+  const num1=exprTex([{r:rint(a1),v:V,style:"int"},{r:rint(b1),v:"",style:"int"}],false);
+  const num2=exprTex([{r:rint(a2),v:V,style:"int"},{r:rint(b2),v:"",style:"int"}],false);
+  const tex="\\dfrac{"+num1+"}{"+d1+"} "+op+" \\dfrac{"+num2+"}{"+d2+"}";
+  const L=lcm(d1,d2), m1=L/d1, m2=L/d2;
+  const s=(op==="-")?-1:1;
+  const nX=m1*a1 + s*m2*a2, nC=m1*b1 + s*m2*b2;
+  const g=gcd(gcd(Math.abs(nX),Math.abs(nC)),L) || 1;
+  const numA=nX/g, numB=nC/g, D=L/g;
+  const mult1=exprTex([{r:rint(m1*a1),v:V,style:"int"},{r:rint(m1*b1),v:"",style:"int"}],false);
+  const mult2=exprTex([{r:rint(m2*a2),v:V,style:"int"},{r:rint(m2*b2),v:"",style:"int"}],false);
+  const combined=exprTex([{r:rint(nX),v:V,style:"int"},{r:rint(nC),v:"",style:"int"}],false);
+  const expl=[
+    {t:"分母をそろえよう（通分）。分母の最小公倍数は "+L+"。分子に "+(m1===1?"":m1+" や ")+m2+" をかけるよ。"},
+    {tex:"= \\dfrac{"+mult1+"}{"+L+"} "+op+" \\dfrac{"+mult2+"}{"+L+"}"},
+    {t:"分子を計算してまとめよう。"},
+    {tex:"= \\dfrac{"+combined+"}{"+L+"}"}
+  ];
+  if(D!==L) expl.push({tex:"= "+singleFracTex(numA,numB,D,V)});
+  return fracChoiceQuestion("計算しよう", tex, numA, numB, D, expl, V);
+}
+
 /* 四則ミックス p(ax+b) ± q(cx+d) */
 function genMix(diff){
-  // 標準: 分数式の加減法（通分して計算）
+  // 標準: 教科書の分数まじり式（4つの型をランダムに）
   if(diff==="normal"){
-    const lcm=(x,y)=>x*y/gcd(x,y);
-    const pairs=[[2,3],[3,4],[2,5],[3,5],[2,4],[3,6],[4,6],[2,6],[4,3],[5,2]];
-    const [d1,d2]=pick(pairs);
-    const a1=nz(-5,5), b1=nz(-9,9), a2=nz(-5,5), b2=nz(-9,9);
-    const op=Math.random()<0.5?"+":"-";
-    const num1=exprTex([{r:rint(a1),v:"x",style:"int"},{r:rint(b1),v:"",style:"int"}],false);
-    const num2=exprTex([{r:rint(a2),v:"x",style:"int"},{r:rint(b2),v:"",style:"int"}],false);
-    const tex="\\dfrac{"+num1+"}{"+d1+"} "+op+" \\dfrac{"+num2+"}{"+d2+"}";
-    const L=lcm(d1,d2), m1=L/d1, m2=L/d2;
-    const s=(op==="-")?-1:1;
-    const nX=m1*a1 + s*m2*a2, nC=m1*b1 + s*m2*b2;
-    const g=gcd(gcd(Math.abs(nX),Math.abs(nC)),L);
-    const numA=g?nX/g:nX, numB=g?nC/g:nC, D=L/g;
-    // 解説
-    const mult1=exprTex([{r:rint(m1*a1),v:"x",style:"int"},{r:rint(m1*b1),v:"",style:"int"}],false);
-    const mult2=exprTex([{r:rint(m2*a2),v:"x",style:"int"},{r:rint(m2*b2),v:"",style:"int"}],false);
-    const combined=exprTex([{r:rint(nX),v:"x",style:"int"},{r:rint(nC),v:"",style:"int"}],false);
-    const expl=[
-      {t:"分母をそろえよう（通分）。分母の最小公倍数は "+L+"。分子に "+(m1===1?"":m1+" や ")+m2+" をかけるよ。"},
-      {tex:"= \\dfrac{"+mult1+"}{"+L+"} "+op+" \\dfrac{"+mult2+"}{"+L+"}"},
-      {t:"分子を計算してまとめよう。"},
-      {tex:"= \\dfrac{"+combined+"}{"+L+"}"}
-    ];
-    if(D!==L) expl.push({tex:"= "+singleFracTex(numA,numB,D)});
-    return fracChoiceQuestion("計算しよう", tex, numA, numB, D, expl);
+    const V=pick(VARS);
+    const kind=pick(["fracCoeff","fracCoeff","intFrac","monoFrac","fracFrac"]);
+    if(kind==="fracCoeff") return mixFracCoeff(V);
+    if(kind==="intFrac")   return mixIntFracInner(V);
+    if(kind==="monoFrac")  return mixMonoPlusFrac(V);
+    return mixFracFrac(V);
   }
   // 基本: 単項式 ± k(式) の形も出す（例 3x+2(x-9), 4(x-5)+6x, 7x-3(4x+1)）
   if(diff==="easy"){
@@ -847,15 +950,17 @@ function calcQuestion(prompt, tex, xc, cc, expl, v){
   return {kind:"single", prompt, tex, options, ansTexStr:ansTex(xc,cc,v), expl:expl||null};
 }
 
-/* 分母ひとつ・分子が式の単一分数で選択肢を作る（÷分数の答え用） */
-function singleFracTex(A,B,D){
+/* 分母ひとつ・分子が式の単一分数で選択肢を作る（÷分数の答え用）。文字vは省略時"x" */
+function singleFracTex(A,B,D,v){
+  v=v||"x";
   const numTerms=[];
-  if(A!==0) numTerms.push({r:rint(A),v:"x",style:"int"});
+  if(A!==0) numTerms.push({r:rint(A),v:v,style:"int"});
   if(B!==0||A===0) numTerms.push({r:rint(B),v:"",style:"int"});
   const numStr = numTerms.length ? exprTex(numTerms,false) : "0";
   return D===1 ? numStr : "\\dfrac{"+numStr+"}{"+D+"}";
 }
-function fracChoiceQuestion(prompt, tex, numA, numB, D, expl){
+function fracChoiceQuestion(prompt, tex, numA, numB, D, expl, v){
+  v=v||"x";
   const key=(A,B)=>A+"|"+B;
   const seen=new Set([key(numA,numB)]);
   const cands=[];
@@ -864,9 +969,9 @@ function fracChoiceQuestion(prompt, tex, numA, numB, D, expl){
   push(numB,numA); push(numA+D,numB); push(numA,numB+D); push(numA-D,numB); push(numA,numB-D);
   const distract=shuffle(cands).slice(0,5);
   const options=shuffle([[numA,numB]].concat(distract)).map(([A,B])=>({
-    tex:singleFracTex(A,B,D), ok:A===numA&&B===numB
+    tex:singleFracTex(A,B,D,v), ok:A===numA&&B===numB
   }));
-  return {kind:"single", prompt, tex, options, ansTexStr:singleFracTex(numA,numB,D), expl:expl||null};
+  return {kind:"single", prompt, tex, options, ansTexStr:singleFracTex(numA,numB,D,v), expl:expl||null};
 }
 
 /* ================= 項えらび ================= */

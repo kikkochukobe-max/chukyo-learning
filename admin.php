@@ -128,6 +128,7 @@ if ($role === 'super_admin') {
     font-family:'Zen Kaku Gothic New',sans-serif;color:var(--ink);background-color:var(--paper);
     background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
     background-size:24px 24px;line-height:1.6;-webkit-font-smoothing:antialiased;
+    -webkit-text-size-adjust:100%;text-size-adjust:100%;
   }
   .wrap{max-width:1100px;margin:0 auto;padding:0 16px 64px}
   header{display:flex;align-items:center;justify-content:space-between;padding:14px 2px 10px;flex-wrap:wrap;gap:8px}

@@ -74,6 +74,8 @@ function h(?string $s): string
       linear-gradient(90deg, var(--grid) 1px, transparent 1px);
     background-size:24px 24px;
     line-height:1.6;-webkit-font-smoothing:antialiased;
+    /* Androidが端末フォント設定で本文を縮小するのを防ぎ、指定サイズで表示する */
+    -webkit-text-size-adjust:100%;text-size-adjust:100%;
   }
   .wrap{max-width:560px;margin:0 auto;padding:0 16px 64px}
   header{display:flex;align-items:center;justify-content:space-between;padding:14px 2px 10px}
