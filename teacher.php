@@ -22,6 +22,18 @@ function grade_label(?string $grade): string
     return $grade;
 }
 
+// 学年ソート用の数値キー: 小1〜6 → 中1〜3 → 高1〜3 の順（未設定は0で最小）。
+// 保存形式のブレ（es4/js1・小1/中3・数字のみ）どれでも並ぶようにする
+function grade_sort_key(?string $grade): int
+{
+    if ($grade === null || $grade === '') return 0;
+    if (preg_match('/(es|小)\s*(\d)/u', $grade, $m)) return 100 + (int)$m[2];
+    if (preg_match('/(js|中)\s*(\d)/u', $grade, $m)) return 200 + (int)$m[2];
+    if (preg_match('/(hs|高)\s*(\d)/u', $grade, $m)) return 300 + (int)$m[2];
+    if (preg_match('/(\d+)/', $grade, $m)) return (int)$m[1];
+    return 0;
+}
+
 // unit_key の先頭要素（フォルダ名と同じ）を教科として扱う
 const SUBJECT_LABELS = [
     'math' => '数学', 'english' => '英語', 'science' => '理科',
@@ -494,6 +506,7 @@ function qtab(array $extra): string
     font-family:'Zen Kaku Gothic New',sans-serif;color:var(--ink);background-color:var(--paper);
     background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
     background-size:24px 24px;line-height:1.6;-webkit-font-smoothing:antialiased;zoom:1.2;
+    -webkit-text-size-adjust:100%;text-size-adjust:100%;
   }
   .wrap{max-width:1240px;margin:0 auto;padding:0 16px 64px}
   header{display:flex;align-items:center;justify-content:space-between;padding:14px 2px 10px;flex-wrap:wrap;gap:8px}
@@ -529,6 +542,12 @@ function qtab(array $extra): string
     font-family:system-ui,'Segoe UI','Helvetica Neue',Arial,'Zen Kaku Gothic New',sans-serif;
     font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
   a.sname{color:var(--ai);font-weight:700;text-decoration:none}
+  .sort-hint{font-size:12px;color:var(--ink-soft);margin-top:8px;line-height:1.5}
+  table.sortable th[data-sort]{cursor:pointer;user-select:none}
+  table.sortable th[data-sort]:hover{color:var(--ai)}
+  table.sortable th[data-sort]::after{content:'\2195';font-size:10px;margin-left:3px;opacity:.35}
+  table.sortable th.sort-asc::after{content:'\25B2';opacity:1;color:var(--ai)}
+  table.sortable th.sort-desc::after{content:'\25BC';opacity:1;color:var(--ai)}
   .lowrate{color:#B07B2E;font-weight:700}
   .okrate{color:#166534;font-weight:700}
   .chip{display:inline-block;font-size:11px;font-weight:700;color:var(--ai);
@@ -898,28 +917,34 @@ function qtab(array $extra): string
 <?php if (count($students) === 0): ?>
     <p style="font-size:13px;color:var(--ink-soft);margin-top:8px;">表示できる生徒がいません</p>
 <?php else: ?>
+    <p class="sort-hint">列の見出し（生徒コード・教室・氏名など）をクリックすると、その項目で並び替えできます（もう一度クリックで昇順⇄降順、▲▼が今の並び順）。</p>
+    <!-- BUILD-MARKER: sort-grade-v4 2026-07-15 -->
     <div class="scroll">
-    <table>
-      <tr><th>生徒</th><th>コード</th><th>教室</th><th>学年</th>
-        <th class="num">学習時間</th><th class="num">解答数</th><th class="num">正答率</th>
-        <th class="num">解き直し</th><th>最終学習</th></tr>
+    <table id="students-table" class="sortable" data-build="sort-grade-v4">
+      <thead>
+      <tr><th data-sort="text">生徒</th><th data-sort="num">コード</th><th data-sort="text">教室</th><th data-sort="grade">学年</th>
+        <th class="num" data-sort="num">学習時間</th><th class="num" data-sort="num">解答数</th><th class="num" data-sort="num">正答率</th>
+        <th class="num" data-sort="num">解き直し</th><th data-sort="text">最終学習</th></tr>
+      </thead>
+      <tbody>
 <?php foreach ($students as $s):
     $solved = (int)$s['solved'];
     $rate = $solved > 0 ? (int)round(100 * (int)$s['correct'] / $solved) : null;
 ?>
       <tr>
-        <td><a class="sname" href="<?= h(qtab(['student_id' => $s['student_id']])) ?>"><?= h($s['student_name']) ?></a></td>
-        <td><?= h($s['login_id']) ?></td>
-        <td><?= h($s['classroom_name']) ?></td>
-        <td><?= h(grade_label($s['grade'])) ?></td>
-        <td class="num"><?= floor((int)$s['sec'] / 60) ?>分</td>
-        <td class="num"><?= $solved ?></td>
-        <td class="num <?= $rate !== null && $rate < 60 ? 'lowrate' : ($rate !== null && $rate >= 90 ? 'okrate' : '') ?>">
+        <td data-val="<?= h($s['student_name']) ?>"><a class="sname" href="<?= h(qtab(['student_id' => $s['student_id']])) ?>"><?= h($s['student_name']) ?></a></td>
+        <td data-val="<?= h($s['login_id']) ?>"><?= h($s['login_id']) ?></td>
+        <td data-val="<?= h($s['classroom_name']) ?>"><?= h($s['classroom_name']) ?></td>
+        <td data-val="<?= grade_sort_key($s['grade']) ?>"><?= h(grade_label($s['grade'])) ?></td>
+        <td class="num" data-val="<?= (int)$s['sec'] ?>"><?= floor((int)$s['sec'] / 60) ?>分</td>
+        <td class="num" data-val="<?= $solved ?>"><?= $solved ?></td>
+        <td class="num <?= $rate !== null && $rate < 60 ? 'lowrate' : ($rate !== null && $rate >= 90 ? 'okrate' : '') ?>" data-val="<?= $rate !== null ? $rate : -1 ?>">
           <?= $rate !== null ? $rate . '%' : '-' ?></td>
-        <td class="num"><?= (int)$s['retries'] ?></td>
-        <td style="white-space:nowrap;"><?= $s['last_at'] ? h(substr($s['last_at'], 0, 16)) : '-' ?></td>
+        <td class="num" data-val="<?= (int)$s['retries'] ?>"><?= (int)$s['retries'] ?></td>
+        <td style="white-space:nowrap;" data-val="<?= $s['last_at'] ? h($s['last_at']) : '' ?>"><?= $s['last_at'] ? h(substr($s['last_at'], 0, 16)) : '-' ?></td>
       </tr>
 <?php endforeach; ?>
+      </tbody>
     </table>
     </div>
 <?php endif; ?>
@@ -933,6 +958,51 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   await fetch('/api/logout.php', { method: 'POST', credentials: 'same-origin' });
   location.reload();
 });
+// ===== 生徒一覧の列ソート（見出しクリックで昇順⇄降順） =====
+(function () {
+  var table = document.getElementById('students-table');
+  if (!table) return;
+  var tbody = table.tBodies[0];
+  var headers = table.querySelectorAll('thead th[data-sort]');
+  headers.forEach(function (th, col) {
+    th.addEventListener('click', function () {
+      var type = th.getAttribute('data-sort');
+      // 今の並び順を反転。他列の矢印は消す
+      var asc = !th.classList.contains('sort-asc');
+      headers.forEach(function (h) { h.classList.remove('sort-asc', 'sort-desc'); });
+      th.classList.add(asc ? 'sort-asc' : 'sort-desc');
+      var rows = Array.prototype.slice.call(tbody.rows);
+      rows.sort(function (a, b) {
+        if (type === 'grade') {
+          // PHP側のdata-valに頼らず、表示ラベル（小1/中2/高3）から順位を作る。
+          // 小=100, 中=200, 高=300 + 学年数字 → 小1〜高3が正しい順に並ぶ
+          var ag = gradeKey(a.cells[col].textContent), bg = gradeKey(b.cells[col].textContent);
+          return asc ? ag - bg : bg - ag;
+        }
+        var av = cellVal(a.cells[col]), bv = cellVal(b.cells[col]);
+        if (type === 'num') {
+          var an = parseFloat(av), bn = parseFloat(bv);
+          if (isNaN(an)) an = -Infinity;
+          if (isNaN(bn)) bn = -Infinity;
+          return asc ? an - bn : bn - an;
+        }
+        return asc ? av.localeCompare(bv, 'ja') : bv.localeCompare(av, 'ja');
+      });
+      rows.forEach(function (r) { tbody.appendChild(r); });
+    });
+  });
+  function cellVal(cell) {
+    var v = cell.getAttribute('data-val');
+    return v !== null ? v : cell.textContent.trim();
+  }
+  function gradeKey(text) {
+    var t = (text || '').replace(/\s/g, '');
+    var m = t.match(/(小|中|高)\s*(\d+)/);
+    if (m) return { '小': 100, '中': 200, '高': 300 }[m[1]] + parseInt(m[2], 10);
+    var n = t.match(/(\d+)/);
+    return n ? parseInt(n[1], 10) : 0;
+  }
+})();
 // ===== 数式整形の共通処理 =====
 // (1) 全体がLaTeXのセル、(2) 日本語に Unicode の √ / ² ・分数F(a/b) が混じった文
 //     （正誤問題など）の両方をKaTeXで整形する。混在文はクイズ本体
