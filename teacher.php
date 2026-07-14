@@ -27,6 +27,8 @@ function grade_label(?string $grade): string
 function grade_sort_key(?string $grade): int
 {
     if ($grade === null || $grade === '') return 0;
+    // 全角数字（中２など）でも拾えるよう半角へ正規化してから判定する
+    $grade = strtr($grade, ['０'=>'0','１'=>'1','２'=>'2','３'=>'3','４'=>'4','５'=>'5','６'=>'6','７'=>'7','８'=>'8','９'=>'9']);
     if (preg_match('/(es|小)\s*(\d)/u', $grade, $m)) return 100 + (int)$m[2];
     if (preg_match('/(js|中)\s*(\d)/u', $grade, $m)) return 200 + (int)$m[2];
     if (preg_match('/(hs|高)\s*(\d)/u', $grade, $m)) return 300 + (int)$m[2];
@@ -251,6 +253,27 @@ if ($rankView) {
         $rankGrade = '';
     }
 
+    // 志望校フィルタ: 有効な志望校のみ選べる。選ぶと「その学校を私立/公立に志望している生徒」を
+    // 全教室横断で集計する（教室チェックは無視。権限に関係なく全講師が見られる方針）。
+    $rankSchoolOptions = $pdo->query(
+        "SELECT target_school_id, name, kind FROM target_schools
+          WHERE is_active = 1 ORDER BY kind, sort_order, name"
+    )->fetchAll();
+    $rankSchoolIds = array_map(fn($s) => (int)$s['target_school_id'], $rankSchoolOptions);
+    $rankSchool = (int)($_GET['school'] ?? 0);
+    if ($rankSchool > 0 && !in_array($rankSchool, $rankSchoolIds, true)) {
+        $rankSchool = 0;
+    }
+    $rankSchoolName = '';
+    if ($rankSchool > 0) {
+        foreach ($rankSchoolOptions as $s) {
+            if ((int)$s['target_school_id'] === $rankSchool) {
+                $rankSchoolName = ($s['kind'] === 'private' ? '私立・' : '公立・') . $s['name'];
+                break;
+            }
+        }
+    }
+
     $rankEvent = ranking_active_event(require __DIR__ . '/api/ranking_events.php');
     $evMode = $rankEvent !== null && (string)($_GET['ev'] ?? '') === '1';
     if ($evMode) {
@@ -261,6 +284,11 @@ if ($rankView) {
         $evToStr = (new DateTimeImmutable($rankEvent['to']))->modify('+1 day')->format('Y-m-d 00:00:00');
         $rows = ranking_rows($pdo, $rankEvent['classroom_ids'] ?? null, $evFromStr, $evToStr, $showTest);
         $cids = [];
+    } elseif ($rankSchool > 0) {
+        // 志望校ランキング: 全教室横断（教室チェックは無視）。全講師が同じ集計を見る。
+        // 担当外教室の生徒は下の描画で名前のみ表示（詳細リンクなし）になる。
+        $cids = [];
+        $rows = ranking_rows($pdo, null, $fromStr, $toStr, $showTest, $rankUnit ?: null, $rankGrade ?: null, $rankSchool);
     } else {
         $cids = $_GET['cids'] ?? [];
         if (!is_array($cids)) {
@@ -436,6 +464,9 @@ if (!$detail && !$rankView) {
         $filterGrade = '';
     }
 
+    // テスト生（名前に「テスト」を含む）は既定で非表示。?showtest=1 で表示（ランキングと同方針）
+    $showTest = isset($_GET['showtest']);
+
     // 同名プレースホルダは再利用できない(エミュレーション無効)ため、サブクエリごとに別名にする
     $params = [];
     $wSess = pf('ss.started_at', $fromStr, 's', $params) . sf('ss.unit_key', 's', $params);
@@ -473,6 +504,9 @@ if (!$detail && !$rankView) {
     if ($filterGrade !== '') {
         $sql .= ' AND s.grade = :grade';
         $params['grade'] = $filterGrade;
+    }
+    if (!$showTest) {
+        $sql .= " AND s.student_name NOT LIKE '%テスト%'";
     }
     $sql .= ' ORDER BY c.classroom_id, s.login_id';
 
@@ -542,6 +576,11 @@ function qtab(array $extra): string
     font-family:system-ui,'Segoe UI','Helvetica Neue',Arial,'Zen Kaku Gothic New',sans-serif;
     font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
   a.sname{color:var(--ai);font-weight:700;text-decoration:none}
+  /* 生徒一覧は列幅を固定比率にし、教室を切り替えても幅がブレないようにする。
+     table-layout:fixed + width:100% で、余った幅は colgroup の比率どおりに全列へ配分
+     （1列だけが膨らまない）。長い氏名は…で省略 */
+  #students-table{table-layout:fixed;width:100%}
+  #students-table td:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sort-hint{font-size:12px;color:var(--ink-soft);margin-top:8px;line-height:1.5}
   table.sortable th[data-sort]{cursor:pointer;user-select:none}
   table.sortable th[data-sort]:hover{color:var(--ai)}
@@ -748,7 +787,7 @@ function qtab(array $extra): string
 <?php elseif ($rankView): ?>
   <!-- ============ ランキング ============ -->
   <div class="bar-row">
-    <a class="back" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'grade' => null, 'from' => null, 'to' => null])) ?>">← 生徒一覧へ</a>
+    <a class="back" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'grade' => null, 'school' => null, 'from' => null, 'to' => null])) ?>">← 生徒一覧へ</a>
 <?php foreach ($periodLabels as $key => $label): ?>
     <a class="ptab<?= !$evMode && !$isCustom && $period === $key ? ' active' : '' ?>" href="<?= h(qtab(['period' => $key, 'ev' => null, 'from' => null, 'to' => null])) ?>"><?= h($label) ?></a>
 <?php endforeach; ?>
@@ -771,6 +810,7 @@ function qtab(array $extra): string
         : $periodLabels[$period];
     if ($rankUnit !== '') $rankTitleSuffix .= '・' . (($unitMeta[$rankUnit] ?? null)['title'] ?? $rankUnit);
     if ($rankGrade !== '') $rankTitleSuffix .= '・' . grade_label($rankGrade);
+    if ($rankSchool > 0) $rankTitleSuffix .= '・' . $rankSchoolName . '志望';
 ?>
   <div class="card">
     <h1>ランキング <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">（<?= h($rankTitleSuffix) ?>）</span></h1>
@@ -804,8 +844,37 @@ function qtab(array $extra): string
           </select>
         </label>
 <?php endif; ?>
+<?php
+    $privSchools = array_values(array_filter($rankSchoolOptions, fn($s) => $s['kind'] === 'private'));
+    $pubSchools  = array_values(array_filter($rankSchoolOptions, fn($s) => $s['kind'] === 'public'));
+?>
+<?php if (count($rankSchoolOptions) > 0): ?>
+        <label class="fsel">志望校
+          <select name="school">
+            <option value="">志望校で絞らない</option>
+<?php if (count($privSchools) > 0): ?>
+            <optgroup label="私立">
+<?php foreach ($privSchools as $s): ?>
+              <option value="<?= (int)$s['target_school_id'] ?>"<?= $rankSchool === (int)$s['target_school_id'] ? ' selected' : '' ?>><?= h($s['name']) ?></option>
+<?php endforeach; ?>
+            </optgroup>
+<?php endif; ?>
+<?php if (count($pubSchools) > 0): ?>
+            <optgroup label="公立">
+<?php foreach ($pubSchools as $s): ?>
+              <option value="<?= (int)$s['target_school_id'] ?>"<?= $rankSchool === (int)$s['target_school_id'] ? ' selected' : '' ?>><?= h($s['name']) ?></option>
+<?php endforeach; ?>
+            </optgroup>
+<?php endif; ?>
+          </select>
+        </label>
+<?php endif; ?>
       </div>
-<?php if (count($classrooms) > 1): ?>
+<?php if ($rankSchool > 0): ?>
+      <div class="bar-row" style="margin:0;">
+        <span style="font-size:12px;color:var(--kin);font-weight:700;">「<?= h($rankSchoolName) ?>」志望の生徒を全教室から集計中（教室の絞り込みは無効）</span>
+      </div>
+<?php elseif (count($classrooms) > 1): ?>
       <div class="bar-row" style="margin:0;">
 <?php foreach ($classrooms as $c): ?>
         <label style="font-size:13px;display:inline-flex;align-items:center;gap:4px;background:var(--white);border:1.5px solid var(--grid);border-radius:999px;padding:3px 12px;cursor:pointer;">
@@ -853,7 +922,7 @@ function qtab(array $extra): string
         <td class="num" style="font-weight:700;<?= $r['rank'] <= 3 ? 'color:var(--kin);' : '' ?>"><?= $r['rank'] ?>位</td>
         <?php // 担当外教室の生徒は詳細を開けないのでリンクにしない（イベントランキングで載りうる） ?>
 <?php if (in_array((int)$r['classroom_id'], $allowedClassroomIds, true)): ?>
-        <td><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'grade' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
+        <td><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'grade' => null, 'school' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
 <?php else: ?>
         <td><?= h($r['student_name']) ?></td>
 <?php endif; ?>
@@ -890,6 +959,7 @@ function qtab(array $extra): string
 <?php endforeach; ?>
 <?php endif; ?>
     <a class="ptab" style="border-color:var(--kin);color:var(--kin);" href="<?= h(qtab(['view' => 'ranking'])) ?>">ランキング</a>
+    <a class="ptab<?= $showTest ? ' active' : '' ?>" href="<?= h(qtab(['showtest' => $showTest ? null : '1'])) ?>"><?= $showTest ? 'テスト生を隠す' : 'テスト生を表示' ?></a>
   </div>
 
 <?php if (count($classrooms) > 1): ?>
@@ -918,9 +988,13 @@ function qtab(array $extra): string
     <p style="font-size:13px;color:var(--ink-soft);margin-top:8px;">表示できる生徒がいません</p>
 <?php else: ?>
     <p class="sort-hint">列の見出し（生徒コード・教室・氏名など）をクリックすると、その項目で並び替えできます（もう一度クリックで昇順⇄降順、▲▼が今の並び順）。</p>
-    <!-- BUILD-MARKER: sort-grade-v4 2026-07-15 -->
+    <!-- BUILD-MARKER: sort-grade-v5 2026-07-15 (全角数字対応) -->
     <div class="scroll">
-    <table id="students-table" class="sortable" data-build="sort-grade-v4">
+    <table id="students-table" class="sortable" data-build="sort-grade-v5">
+      <colgroup>
+        <col style="width:132px"><col style="width:78px"><col style="width:84px"><col style="width:60px">
+        <col style="width:78px"><col style="width:66px"><col style="width:74px"><col style="width:74px"><col style="width:118px">
+      </colgroup>
       <thead>
       <tr><th data-sort="text">生徒</th><th data-sort="num">コード</th><th data-sort="text">教室</th><th data-sort="grade">学年</th>
         <th class="num" data-sort="num">学習時間</th><th class="num" data-sort="num">解答数</th><th class="num" data-sort="num">正答率</th>
@@ -996,7 +1070,9 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
     return v !== null ? v : cell.textContent.trim();
   }
   function gradeKey(text) {
-    var t = (text || '').replace(/\s/g, '');
+    // 全角数字（中２など）を半角へ正規化してから判定する
+    var t = (text || '').replace(/\s/g, '')
+      .replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
     var m = t.match(/(小|中|高)\s*(\d+)/);
     if (m) return { '小': 100, '中': 200, '高': 300 }[m[1]] + parseInt(m[2], 10);
     var n = t.match(/(\d+)/);

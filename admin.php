@@ -217,11 +217,14 @@ if ($role === 'super_admin') {
   <div class="tabs">
     <button class="tab active" data-tab="student" type="button">生徒登録</button>
     <button class="tab" data-tab="bulk" type="button">生徒一括登録</button>
+<?php if ($role === 'super_admin'): ?>
+    <button class="tab" data-tab="school" type="button">志望校</button>
+<?php endif; ?>
     <button class="tab" data-tab="guardian" type="button">保護者登録</button>
 <?php if ($role === 'super_admin'): ?>
     <button class="tab" data-tab="teacher" type="button">講師登録</button>
 <?php endif; ?>
-    <button class="tab" data-tab="list" type="button">生徒一覧・氏名修正</button>
+    <button class="tab" data-tab="list" type="button">生徒一覧・情報修正</button>
   </div>
 
   <!-- ============ 生徒登録 ============ -->
@@ -241,6 +244,12 @@ if ($role === 'super_admin') {
         <label>生徒氏名<input type="text" name="student_name" required maxlength="50"></label>
         <label>学年（例: es4, js1。空欄可）<input type="text" name="grade" maxlength="10" placeholder="js1"></label>
         <label>PIN（4桁数字）<input type="text" name="pin" pattern="\d{4}" maxlength="4" inputmode="numeric" required autocomplete="off"></label>
+        <label>私立志望校（任意）
+          <select name="target_private_id" data-school="private"><option value="">（未設定）</option></select>
+        </label>
+        <label>公立志望校（任意）
+          <select name="target_public_id" data-school="public"><option value="">（未設定）</option></select>
+        </label>
       </div>
       <button class="go" type="submit">生徒を登録</button>
       <div class="msg" id="student-msg"></div>
@@ -317,6 +326,33 @@ if ($role === 'super_admin') {
   </div>
 <?php endif; ?>
 
+  <!-- ============ 志望校マスター（統括のみ） ============ -->
+<?php if ($role === 'super_admin'): ?>
+  <div class="pane" id="pane-school" style="display:none;">
+  <div class="card">
+    <h2>志望校マスター <span style="font-size:11px;color:var(--ink-soft);font-weight:500;">（統括のみ）</span></h2>
+    <p class="note">私立・公立それぞれ学校名を登録します。ここで登録した学校が、生徒登録・生徒情報の修正の志望校プルダウンと、講師ページの志望校ランキングに出ます。<br>
+      使わなくなった学校は「無効にする」で隠せます（生徒にひもづけた記録は残り、いつでも「有効に戻す」で復活できます）。同じ名前でも私立・公立は別々に登録できます。</p>
+    <form id="school-form" class="row2" style="align-items:end;">
+      <label>学校名<input type="text" name="name" maxlength="80" required></label>
+      <label>種別
+        <div style="display:flex;gap:8px;">
+          <select name="kind"><option value="private">私立</option><option value="public">公立</option></select>
+          <button class="go" type="submit" style="margin-top:4px;white-space:nowrap;">追加</button>
+        </div>
+      </label>
+    </form>
+    <div class="msg" id="school-msg"></div>
+    <div class="scroll">
+    <table id="school-table">
+      <thead><tr><th>学校名</th><th>種別</th><th>状態</th><th>操作</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    </div>
+  </div>
+  </div>
+<?php endif; ?>
+
   <!-- ============ 登録一覧 ============ -->
   <div class="pane" id="pane-list" style="display:none;">
   <div class="card">
@@ -342,15 +378,21 @@ if ($role === 'super_admin') {
 <?php endforeach; ?>
       </div>
 <?php endif; ?>
-      <h3 style="margin:14px 0 6px;font-family:'Zen Maru Gothic',sans-serif;color:var(--ai,#2C5F8A);font-size:15px;">氏名の修正</h3>
-      <form id="rename-form" class="row2" style="align-items:end;">
-        <label>生徒コード<input type="text" name="login_id" maxlength="6" inputmode="numeric"></label>
-        <label>新しい氏名
-          <div style="display:flex;gap:8px;">
-            <input type="text" name="student_name" maxlength="50" style="flex:1;">
-            <button class="go" type="submit" style="margin-top:4px;white-space:nowrap;">氏名を修正</button>
-          </div>
-        </label>
+      <h3 style="margin:14px 0 6px;font-family:'Zen Maru Gothic',sans-serif;color:var(--ai,#2C5F8A);font-size:15px;">生徒情報の修正（氏名・学年・志望校）</h3>
+      <p class="note">生徒コードを入力すると、現在の氏名・学年・志望校が自動で読み込まれます（下の一覧の「編集」ボタンでも読み込めます）。直して「保存」を押してください。志望校を外すときは「（未設定）」を選びます。</p>
+      <form id="rename-form">
+        <div class="row2">
+          <label>生徒コード<input type="text" name="login_id" maxlength="6" inputmode="numeric"></label>
+          <label>氏名<input type="text" name="student_name" maxlength="50"></label>
+          <label>学年（例: es4, js1。空欄可）<input type="text" name="grade" maxlength="10" placeholder="js1"></label>
+          <label>私立志望校
+            <select name="target_private_id" data-school="private"><option value="">（未設定）</option></select>
+          </label>
+          <label>公立志望校
+            <select name="target_public_id" data-school="public"><option value="">（未設定）</option></select>
+          </label>
+        </div>
+        <button class="go" type="submit">保存</button>
       </form>
       <div class="msg" id="rename-msg"></div>
       <label style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:13px;font-weight:700;color:var(--ink,#33312B);cursor:pointer;white-space:nowrap;">
@@ -359,7 +401,7 @@ if ($role === 'super_admin') {
       <p style="margin:8px 0 4px;color:var(--ai,#2C5F8A);font-weight:700;font-size:13px;">列の見出し（生徒コード・教室・氏名など）をクリックすると、その項目で並び替えできます（もう一度クリックで昇順⇄降順、▲▼が今の並び順）。</p>
       <div class="scroll">
       <table id="students-table">
-        <thead><tr><th class="sortable" data-key="login_id">生徒コード</th><th class="sortable" data-key="classroom_name">教室</th><th class="sortable" data-key="grade">学年</th><th class="sortable" data-key="student_name">氏名</th><th class="sortable" data-key="is_active">状態</th><th class="sortable" data-key="created_at">登録日</th><th>操作</th></tr></thead>
+        <thead><tr><th class="sortable" data-key="login_id">生徒コード</th><th class="sortable" data-key="classroom_name">教室</th><th class="sortable" data-key="grade">学年</th><th class="sortable" data-key="student_name">氏名</th><th class="sortable" data-key="target_private_name">私立志望</th><th class="sortable" data-key="target_public_name">公立志望</th><th class="sortable" data-key="is_active">状態</th><th class="sortable" data-key="created_at">登録日</th><th>操作</th></tr></thead>
         <tbody></tbody>
       </table>
       </div>
@@ -428,6 +470,10 @@ const ERROR_TEXT = {
   invalid_kind: '種別の指定が不正です',
   cannot_self: '自分自身を無効にすることはできません',
   forbidden: 'この操作の権限がありません',
+  invalid_target_school: '志望校の指定が不正です',
+  invalid_name: '学校名が不正です（80文字以内）',
+  duplicate_name: 'その種別に同じ名前の学校が既にあります',
+  not_found: '対象が見つかりません',
 };
 
 const MY_LOGIN_ID = <?= json_encode($me['login_id']) ?>;
@@ -470,8 +516,142 @@ tabButtons.forEach((btn) => {
     document.querySelectorAll('.pane').forEach((p) => { p.style.display = 'none'; });
     document.getElementById('pane-' + btn.dataset.tab).style.display = '';
     if (btn.dataset.tab === 'list') loadList(currentKind);
+    if (btn.dataset.tab === 'school') loadSchools();
   });
 });
+
+// ============ 志望校マスター ============
+// 種別ごとの選択肢を覚えておき、全ての志望校 <select> に反映する
+const SCHOOL_KIND_JA = { private: '私立', public: '公立' };
+let schoolOptions = { private: [], public: [] };
+
+// 有効な志望校を取得して、data-school 付きの全 <select> に反映（登録フォーム・修正フォーム）
+async function loadTargetSchools() {
+  try {
+    const res = await fetch('/api/target_schools.php', { credentials: 'same-origin' });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data || !data.ok) return;
+    schoolOptions = { private: [], public: [] };
+    for (const s of data.schools) {
+      if (schoolOptions[s.kind]) schoolOptions[s.kind].push(s);
+    }
+    document.querySelectorAll('select[data-school]').forEach((sel) => {
+      const kind = sel.dataset.school;
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">（未設定）</option>';
+      for (const s of schoolOptions[kind] || []) {
+        const opt = document.createElement('option');
+        opt.value = s.target_school_id;
+        opt.textContent = s.name;
+        sel.appendChild(opt);
+      }
+      sel.value = cur;   // 反映前の選択を保つ（存在しなければ未設定に戻る）
+    });
+  } catch (err) { /* 取得失敗時はプルダウンは未設定のまま。黙って無視 */ }
+}
+
+// 管理タブ用: 無効も含めた一覧を取得して表を描く
+async function loadSchools() {
+  const tbody = document.querySelector('#school-table tbody');
+  tbody.innerHTML = '<tr><td colspan="4" style="color:var(--ink-soft);">読み込み中...</td></tr>';
+  try {
+    const res = await fetch('/api/target_schools.php?all=1', { credentials: 'same-origin' });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data || !data.ok) {
+      tbody.innerHTML = '<tr><td colspan="4" class="ng-cell">一覧の取得に失敗しました</td></tr>';
+      return;
+    }
+    tbody.innerHTML = '';
+    if (data.schools.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="color:var(--ink-soft);">まだ登録がありません</td></tr>';
+      return;
+    }
+    for (const s of data.schools) {
+      const tr = document.createElement('tr');
+      if (!s.is_active) tr.classList.add('inactive');
+      const nameTd = document.createElement('td'); nameTd.textContent = s.name;
+      const kindTd = document.createElement('td'); kindTd.textContent = SCHOOL_KIND_JA[s.kind] || s.kind;
+      const stateTd = document.createElement('td');
+      stateTd.innerHTML = s.is_active ? '<span class="state-on">✓ 有効</span>' : '<span class="state-off">停止中</span>';
+      const opTd = document.createElement('td');
+      const ren = document.createElement('button');
+      ren.type = 'button';
+      ren.className = 'mini on';
+      ren.style.marginRight = '6px';
+      ren.textContent = '名前変更';
+      ren.addEventListener('click', () => renameSchool(s.target_school_id, s.name));
+      opTd.appendChild(ren);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'mini ' + (s.is_active ? 'off' : 'on');
+      btn.textContent = s.is_active ? '無効にする' : '有効に戻す';
+      btn.addEventListener('click', () => toggleSchool(s.target_school_id, s.name, !s.is_active));
+      opTd.appendChild(btn);
+      tr.append(nameTd, kindTd, stateTd, opTd);
+      tbody.appendChild(tr);
+    }
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="4" class="ng-cell">通信エラーが発生しました</td></tr>';
+  }
+}
+
+async function renameSchool(id, currentName) {
+  const next = prompt('新しい学校名を入力してください（志望している生徒のひもづけはそのまま引き継がれます）', currentName);
+  if (next === null) return;                       // キャンセル
+  const name = next.trim();
+  if (name === '' || name === currentName) return; // 変更なしは何もしない
+  try {
+    const { res, data } = await post('/api/save_target_school.php', {
+      action: 'rename', target_school_id: id, name: name,
+    });
+    if (res.ok && data && data.ok) {
+      showMsg('school-msg', true, '「' + currentName + '」→「' + name + '」に変更しました');
+      loadSchools();
+      loadTargetSchools();   // 登録・修正フォームのプルダウンにも即反映
+    } else {
+      showMsg('school-msg', false, errText(data, res.status));
+    }
+  } catch (err) { showMsg('school-msg', false, '通信エラー: ' + err); }
+}
+
+async function toggleSchool(id, name, toActive) {
+  const msg = toActive
+    ? '志望校「' + name + '」を有効に戻しますか？'
+    : '志望校「' + name + '」を無効にしますか？\n（プルダウンとランキングから隠れます。生徒の記録は残ります）';
+  if (!confirm(msg)) return;
+  try {
+    const { res, data } = await post('/api/save_target_school.php', {
+      action: 'set_active', target_school_id: id, active: toActive,
+    });
+    if (res.ok && data && data.ok) {
+      loadSchools();
+      loadTargetSchools();   // プルダウンにも即反映
+    } else {
+      alert(errText(data, res.status));
+    }
+  } catch (err) { alert('通信エラー: ' + err); }
+}
+
+const schoolForm = document.getElementById('school-form');
+if (schoolForm) {
+  schoolForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = e.target;
+    try {
+      const { res, data } = await post('/api/save_target_school.php', {
+        action: 'add', name: f.name.value.trim(), kind: f.kind.value,
+      });
+      if (res.ok && data && data.ok) {
+        showMsg('school-msg', true, data.restored ? '既に登録済みの学校を有効に戻しました' : '追加しました');
+        f.name.value = '';
+        loadSchools();
+        loadTargetSchools();
+      } else {
+        showMsg('school-msg', false, errText(data, res.status));
+      }
+    } catch (err) { showMsg('school-msg', false, '通信エラー: ' + err); }
+  });
+}
 
 // ---- 一覧の種類切替 ----
 let currentKind = 'students';
@@ -517,8 +697,18 @@ function fillRow(tr, values, isNew, isActive) {
 }
 
 // 操作セル: 有効なら「無効にする」、停止中なら「有効に戻す」ボタン
-function actionCell(tr, kind, loginId, name, isActive) {
+function actionCell(tr, kind, loginId, name, isActive, row) {
   const td = document.createElement('td');
+  // 生徒は「編集」で修正フォームに現在値を読み込む（氏名・学年・志望校）
+  if (kind === 'students') {
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'mini on';
+    edit.textContent = '編集';
+    edit.style.marginRight = '6px';
+    edit.addEventListener('click', () => fillEditForm(row));
+    td.appendChild(edit);
+  }
   // 自分自身の講師アカウントにはボタンを出さない(APIも拒否する)
   if (!(kind === 'teachers' && loginId === MY_LOGIN_ID)) {
     const btn = document.createElement('button');
@@ -668,18 +858,19 @@ async function loadList(kind) {
     teachers: '/api/list_teachers.php',
   };
   const tbody = document.querySelector('#' + kind + '-table tbody');
-  tbody.innerHTML = '<tr><td colspan="7" style="color:var(--ink-soft);">読み込み中...</td></tr>';
+  const cols = document.querySelectorAll('#' + kind + '-table thead th').length;
+  tbody.innerHTML = '<tr><td colspan="' + cols + '" style="color:var(--ink-soft);">読み込み中...</td></tr>';
   try {
     const res = await fetch(urls[kind], { credentials: 'same-origin' });
     const data = await res.json().catch(() => null);
     if (!res.ok || !data || !data.ok) {
-      tbody.innerHTML = '<tr><td colspan="7" class="ng-cell">一覧の取得に失敗しました</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="' + cols + '" class="ng-cell">一覧の取得に失敗しました</td></tr>';
       return;
     }
     listCache[kind] = data[kind];
     renderRows(kind);
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="7" class="ng-cell">通信エラーが発生しました</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="' + cols + '" class="ng-cell">通信エラーが発生しました</td></tr>';
   }
 }
 
@@ -701,9 +892,10 @@ function renderRows(kind) {
   }
   tbody.innerHTML = '';
   if (rows.length === 0) {
+    const cols = document.querySelectorAll('#' + kind + '-table thead th').length;
     const text = (kind === 'students' && classroomFilter !== '')
       ? 'この教室には生徒がいません' : 'まだ登録がありません';
-    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--ink-soft);">' + text + '</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="' + cols + '" style="color:var(--ink-soft);">' + text + '</td></tr>';
     return;
   }
   for (const r of rows) {
@@ -711,7 +903,8 @@ function renderRows(kind) {
     let name;
     if (kind === 'students') {
       name = r.student_name;
-      fillRow(tr, [r.login_id, r.classroom_name, r.grade ?? '', r.student_name, '', r.created_at],
+      fillRow(tr, [r.login_id, r.classroom_name, r.grade ?? '', r.student_name,
+        r.target_private_name ?? '', r.target_public_name ?? '', '', r.created_at],
         recent.students.has(r.login_id), r.is_active);
     } else if (kind === 'guardians') {
       name = r.guardian_name;
@@ -722,7 +915,7 @@ function renderRows(kind) {
       fillRow(tr, [r.login_id, r.teacher_name, r.role, r.classroom_names, '', r.created_at],
         recent.teachers.has(r.login_id), r.is_active);
     }
-    actionCell(tr, kind, r.login_id, name, r.is_active);
+    actionCell(tr, kind, r.login_id, name, r.is_active, r);
     tbody.appendChild(tr);
   }
   // 色違いの行(今回の登録・変更)を上に見せる（並び替え中は順序を尊重してそのまま）
@@ -741,11 +934,14 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
       student_name: f.student_name.value.trim(),
       grade: f.grade.value.trim() || null,
       pin: f.pin.value,
+      target_private_id: f.target_private_id.value ? Number(f.target_private_id.value) : null,
+      target_public_id: f.target_public_id.value ? Number(f.target_public_id.value) : null,
     });
     if (res.ok && data && data.ok) {
       recent.students.add(data.login_id);
       showMsg('student-msg', true, '登録しました。生徒コード: ' + data.login_id + '（登録一覧タブで確認できます）');
       f.student_name.value = ''; f.pin.value = '';
+      f.target_private_id.value = ''; f.target_public_id.value = '';
     } else {
       showMsg('student-msg', false, errText(data, res.status));
     }
@@ -859,8 +1055,43 @@ if (teacherForm) {
   });
 }
 
-// ---- 生徒名の変更 ----
-document.getElementById('rename-form').addEventListener('submit', async (e) => {
+// ---- 生徒情報の修正（氏名・学年・志望校） ----
+const renameForm = document.getElementById('rename-form');
+
+// 志望校 <select> に現在値をセットする。選択肢に無いID（＝無効化された学校）でも、
+// 名前つきの一時オプションを足して選択を保つ（保存時に意図せずNULLへ消し込むのを防ぐ）。
+function setSchoolSelect(sel, id, name) {
+  if (id == null) { sel.value = ''; return; }
+  const idStr = String(id);
+  if (![...sel.options].some((o) => o.value === idStr)) {
+    const opt = document.createElement('option');
+    opt.value = idStr;
+    opt.textContent = (name || '不明な学校') + '（無効）';
+    sel.appendChild(opt);
+  }
+  sel.value = idStr;
+}
+
+// 修正フォームに1件分の現在値を流し込む（一覧の「編集」ボタン、または生徒コード入力から呼ぶ）
+function fillEditForm(r) {
+  if (!r) return;
+  renameForm.login_id.value = r.login_id;
+  renameForm.student_name.value = r.student_name || '';
+  renameForm.grade.value = r.grade || '';
+  setSchoolSelect(renameForm.target_private_id, r.target_private_id, r.target_private_name);
+  setSchoolSelect(renameForm.target_public_id, r.target_public_id, r.target_public_name);
+  showMsg('rename-msg', true, r.student_name + '（' + r.login_id + '）の情報を読み込みました');
+  renameForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// 生徒コードを入力/変更したら、取得済み一覧から現在値を自動で読み込む（手入力での取り違え・値の消し込み防止）
+renameForm.login_id.addEventListener('change', () => {
+  const code = renameForm.login_id.value.trim();
+  const r = (listCache.students || []).find((s) => s.login_id === code);
+  if (r) fillEditForm(r);
+});
+
+renameForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = e.target;
   const loginId = f.login_id.value.trim();
@@ -868,10 +1099,13 @@ document.getElementById('rename-form').addEventListener('submit', async (e) => {
     const { res, data } = await post('/api/update_student.php', {
       login_id: loginId,
       student_name: f.student_name.value.trim(),
+      grade: f.grade.value.trim() || null,
+      target_private_id: f.target_private_id.value ? Number(f.target_private_id.value) : null,
+      target_public_id: f.target_public_id.value ? Number(f.target_public_id.value) : null,
     });
     if (res.ok && data && data.ok) {
       recent.students.add(loginId);
-      showMsg('rename-msg', true, '変更しました');
+      showMsg('rename-msg', true, '保存しました');
       f.reset();
       loadList('students');
     } else {
@@ -879,6 +1113,9 @@ document.getElementById('rename-form').addEventListener('submit', async (e) => {
     }
   } catch (err) { showMsg('rename-msg', false, '通信エラー: ' + err); }
 });
+
+// ---- 初期化: 志望校プルダウンを読み込む ----
+loadTargetSchools();
 </script>
 </body>
 </html>

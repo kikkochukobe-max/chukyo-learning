@@ -30,11 +30,24 @@ if (!in_array($requesterRole, ['super_admin', 'classroom_admin'], true)) {
     json_response(['ok' => false, 'error' => 'forbidden'], 403);
 }
 
+// 志望校IDが有効か検証する。null/0/空は「未設定」として null を返す。
+// 指定があるのに存在しない or 種別違いなら false（=不正）を返す。
+function validate_target(PDO $pdo, $raw, string $kind)
+{
+    $id = (int)($raw ?? 0);
+    if ($id <= 0) return null;
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM target_schools WHERE target_school_id = :id AND kind = :kind');
+    $stmt->execute(['id' => $id, 'kind' => $kind]);
+    return (int)$stmt->fetchColumn() > 0 ? $id : false;
+}
+
 $input = json_input();
 $classroomId = isset($input['classroom_id']) ? (int)$input['classroom_id'] : 0;
 $studentName = trim((string)($input['student_name'] ?? ''));
 $grade = isset($input['grade']) ? trim((string)$input['grade']) : null;
 $pin = (string)($input['pin'] ?? '');
+$targetPrivate = validate_target($pdo, $input['target_private_id'] ?? null, 'private');
+$targetPublic  = validate_target($pdo, $input['target_public_id'] ?? null, 'public');
 
 if ($classroomId <= 0) {
     json_response(['ok' => false, 'error' => 'invalid_classroom_id'], 400);
@@ -47,6 +60,9 @@ if ($grade !== null && mb_strlen($grade) > 10) {
 }
 if (!preg_match('/^\d{4}$/', $pin)) {
     json_response(['ok' => false, 'error' => 'invalid_pin'], 400);
+}
+if ($targetPrivate === false || $targetPublic === false) {
+    json_response(['ok' => false, 'error' => 'invalid_target_school'], 400);
 }
 
 if ($requesterRole === 'classroom_admin') {
@@ -71,8 +87,8 @@ for ($attempt = 0; $attempt < 5; $attempt++) {
     $loginId = next_student_login_id($pdo, $yearPrefix);
     try {
         $stmt = $pdo->prepare(
-            'INSERT INTO students (classroom_id, login_id, password_hash, student_name, grade, created_by)
-             VALUES (:classroom_id, :login_id, :password_hash, :student_name, :grade, :created_by)'
+            'INSERT INTO students (classroom_id, login_id, password_hash, student_name, grade, target_private_id, target_public_id, created_by)
+             VALUES (:classroom_id, :login_id, :password_hash, :student_name, :grade, :tp, :tpub, :created_by)'
         );
         $stmt->execute([
             'classroom_id'  => $classroomId,
@@ -80,6 +96,8 @@ for ($attempt = 0; $attempt < 5; $attempt++) {
             'password_hash' => $passwordHash,
             'student_name'  => $studentName,
             'grade'         => $grade,
+            'tp'            => $targetPrivate,
+            'tpub'          => $targetPublic,
             'created_by'    => $actor['id'],
         ]);
         json_response([

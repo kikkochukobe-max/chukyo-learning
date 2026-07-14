@@ -69,6 +69,19 @@ CREATE TABLE IF NOT EXISTS teacher_classrooms (
 --    login_id = 生徒コード / password_hash = 4桁PINのハッシュ
 --    created_by = 登録した管理者（監査用）
 -- ------------------------------------------------------------
+-- 志望校マスター（私立/公立。全教室共通の台帳。表記ブレ防止に (name,kind) を一意化）
+CREATE TABLE IF NOT EXISTS target_schools (
+  target_school_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name             VARCHAR(80)  NOT NULL,
+  kind             ENUM('private','public') NOT NULL,   -- private=私立 / public=公立
+  sort_order       INT          NOT NULL DEFAULT 0,
+  is_active        TINYINT(1)   NOT NULL DEFAULT 1,
+  created_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (target_school_id),
+  UNIQUE KEY uq_ts_name_kind (name, kind),
+  KEY idx_ts_kind (kind, is_active, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS students (
   student_id    INT UNSIGNED NOT NULL AUTO_INCREMENT,
   classroom_id  INT UNSIGNED NOT NULL,
@@ -76,6 +89,8 @@ CREATE TABLE IF NOT EXISTS students (
   password_hash VARCHAR(255) NOT NULL,
   student_name  VARCHAR(50)  NOT NULL,
   grade         VARCHAR(10)  DEFAULT NULL,          -- 'es4', 'js1' など
+  target_private_id INT UNSIGNED DEFAULT NULL,      -- 私立志望校（target_schools）1校
+  target_public_id  INT UNSIGNED DEFAULT NULL,      -- 公立志望校 1校
   created_by    INT UNSIGNED DEFAULT NULL,
   is_active     TINYINT(1)   NOT NULL DEFAULT 1,
   created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -85,6 +100,10 @@ CREATE TABLE IF NOT EXISTS students (
   CONSTRAINT fk_st_classroom FOREIGN KEY (classroom_id) REFERENCES classrooms (classroom_id)
     ON UPDATE CASCADE,
   CONSTRAINT fk_st_created_by FOREIGN KEY (created_by) REFERENCES teachers (teacher_id)
+    ON UPDATE CASCADE ON DELETE SET NULL,
+  CONSTRAINT fk_st_target_private FOREIGN KEY (target_private_id) REFERENCES target_schools (target_school_id)
+    ON UPDATE CASCADE ON DELETE SET NULL,
+  CONSTRAINT fk_st_target_public FOREIGN KEY (target_public_id) REFERENCES target_schools (target_school_id)
     ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
