@@ -3,6 +3,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
+// 講師情報の変更（氏名・役割・担当教室）。super_admin のみ。
+// 自分自身は変更不可（役割の自己降格でアクセスを失う事故を防ぐ）。
+// パスワードはここでは扱わない（PW初期化 / 本人変更が別にある）。
+
 require_post();
 $actor = require_login(['teacher']);
 
@@ -10,9 +14,7 @@ $pdo = db();
 
 $stmt = $pdo->prepare('SELECT role FROM teachers WHERE teacher_id = :id');
 $stmt->execute(['id' => $actor['id']]);
-$requesterRole = $stmt->fetchColumn();
-
-if ($requesterRole !== 'super_admin') {
+if ($stmt->fetchColumn() !== 'super_admin') {
     json_response(['ok' => false, 'error' => 'forbidden'], 403);
 }
 
@@ -22,12 +24,8 @@ $teacherName = trim((string)($input['teacher_name'] ?? ''));
 $role = (string)($input['role'] ?? '');
 $classroomIds = is_array($input['classroom_ids'] ?? null) ? array_map('intval', $input['classroom_ids']) : [];
 
-// 暫定パスワードはサーバー側で自動生成する（統括が弱いPWを手入力する事故を防ぐ）。
-// 本人が初回ログインで8〜15桁の英数に設定し直すため must_change_password=1 で作る。
-$password = generate_temp_password();
-
 $validRoles = ['super_admin', 'classroom_admin', 'teacher'];
-if ($loginId === '' || mb_strlen($loginId) > 50) {
+if ($loginId === '') {
     json_response(['ok' => false, 'error' => 'invalid_login_id'], 400);
 }
 if ($teacherName === '' || mb_strlen($teacherName) > 50) {
@@ -40,29 +38,38 @@ if ($role !== 'super_admin' && count($classroomIds) === 0) {
     json_response(['ok' => false, 'error' => 'classroom_ids_required'], 400);
 }
 
+$stmt = $pdo->prepare('SELECT teacher_id FROM teachers WHERE login_id = :login_id');
+$stmt->execute(['login_id' => $loginId]);
+$targetId = $stmt->fetchColumn();
+if ($targetId === false) {
+    json_response(['ok' => false, 'error' => 'teacher_not_found'], 404);
+}
+$targetId = (int)$targetId;
+if ($targetId === (int)$actor['id']) {
+    json_response(['ok' => false, 'error' => 'cannot_self'], 400);
+}
+
 $pdo->beginTransaction();
 try {
     $stmt = $pdo->prepare(
-        'INSERT INTO teachers (login_id, password_hash, teacher_name, role, must_change_password)
-         VALUES (:login_id, :password_hash, :teacher_name, :role, 1)'
+        'UPDATE teachers SET teacher_name = :name, role = :role WHERE teacher_id = :id'
     );
-    $stmt->execute([
-        'login_id'      => $loginId,
-        'password_hash' => password_hash($password, PASSWORD_DEFAULT),
-        'teacher_name'  => $teacherName,
-        'role'          => $role,
-    ]);
-    $teacherId = (int)$pdo->lastInsertId();
+    $stmt->execute(['name' => $teacherName, 'role' => $role, 'id' => $targetId]);
+
+    // 担当教室を作り直す（既存を全削除 → 選択分を再登録）。
+    // super_admin は全教室扱いなので担当教室リンクは持たせない。
+    $del = $pdo->prepare('DELETE FROM teacher_classrooms WHERE teacher_id = :id');
+    $del->execute(['id' => $targetId]);
 
     if ($role !== 'super_admin') {
-        $stmt = $pdo->prepare('SELECT COUNT(*) FROM classrooms WHERE classroom_id = :id');
+        $check = $pdo->prepare('SELECT COUNT(*) FROM classrooms WHERE classroom_id = :id');
         $link = $pdo->prepare('INSERT INTO teacher_classrooms (teacher_id, classroom_id) VALUES (:teacher_id, :classroom_id)');
         foreach (array_unique($classroomIds) as $classroomId) {
-            $stmt->execute(['id' => $classroomId]);
-            if ((int)$stmt->fetchColumn() === 0) {
+            $check->execute(['id' => $classroomId]);
+            if ((int)$check->fetchColumn() === 0) {
                 throw new InvalidArgumentException('invalid_classroom_id');
             }
-            $link->execute(['teacher_id' => $teacherId, 'classroom_id' => $classroomId]);
+            $link->execute(['teacher_id' => $targetId, 'classroom_id' => $classroomId]);
         }
     }
 
@@ -72,16 +79,7 @@ try {
     json_response(['ok' => false, 'error' => $e->getMessage()], 400);
 } catch (PDOException $e) {
     $pdo->rollBack();
-    if ($e->getCode() === '23000') {
-        json_response(['ok' => false, 'error' => 'login_id_taken'], 409);
-    }
     throw $e;
 }
 
-json_response([
-    'ok'            => true,
-    'teacher_id'    => $teacherId,
-    'login_id'      => $loginId,
-    'teacher_name'  => $teacherName,
-    'temp_password' => $password,
-]);
+json_response(['ok' => true, 'login_id' => $loginId, 'teacher_name' => $teacherName]);

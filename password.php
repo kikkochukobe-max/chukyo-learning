@@ -61,7 +61,7 @@ $must = (bool)$me['must_change_password'];
   <div class="must">初期パスワードのままです。新しいパスワードに変更してから利用を開始してください。</div>
 <?php endif; ?>
   <label>現在のパスワード<input type="password" id="cur" autocomplete="current-password"></label>
-  <label>新しいパスワード（8文字以上）<input type="password" id="new1" autocomplete="new-password"></label>
+  <label>新しいパスワード（8〜15文字の半角英数）<input type="password" id="new1" autocomplete="new-password"></label>
   <label>新しいパスワード（もう一度）<input type="password" id="new2" autocomplete="new-password"></label>
   <button id="btn" type="button">変更する</button>
   <div class="err" id="err"></div>
@@ -70,8 +70,9 @@ $must = (bool)$me['must_change_password'];
 <?php endif; ?>
 </div>
 <script>
+const PW_RULE = /^[A-Za-z0-9]{8,15}$/;
 const ERROR_TEXT = {
-  invalid_password: '新しいパスワードは8文字以上にしてください',
+  invalid_password: '新しいパスワードは8〜15文字の半角英数にしてください',
   same_password: '現在と同じパスワードには変更できません',
   wrong_password: '現在のパスワードが違います',
 };
@@ -81,7 +82,7 @@ document.getElementById('btn').addEventListener('click', async () => {
   const cur = document.getElementById('cur').value;
   const new1 = document.getElementById('new1').value;
   const new2 = document.getElementById('new2').value;
-  if (new1.length < 8) { err.textContent = '新しいパスワードは8文字以上にしてください'; return; }
+  if (!PW_RULE.test(new1)) { err.textContent = '新しいパスワードは8〜15文字の半角英数にしてください'; return; }
   if (new1 !== new2) { err.textContent = '新しいパスワードが2回とも一致しません'; return; }
   try {
     const res = await fetch('/api/change_password.php', {

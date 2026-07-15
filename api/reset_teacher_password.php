@@ -34,12 +34,7 @@ if ((int)$target['teacher_id'] === (int)$actor['id']) {
     json_response(['ok' => false, 'error' => 'cannot_self'], 400);
 }
 
-// 読み間違えにくい文字だけで8文字（0/O、1/l/I などを除外）
-$chars = 'abcdefghjkmnpqrstuvwxyz23456789';
-$temp = '';
-for ($i = 0; $i < 8; $i++) {
-    $temp .= $chars[random_int(0, strlen($chars) - 1)];
-}
+$temp = generate_temp_password();
 
 $stmt = $pdo->prepare(
     'UPDATE teachers SET password_hash = :hash, must_change_password = 1 WHERE teacher_id = :id'

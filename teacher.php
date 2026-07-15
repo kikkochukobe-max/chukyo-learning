@@ -627,6 +627,7 @@ function qtab(array $extra): string
     <div class="who">
       <b><?= h($me['teacher_name']) ?> 先生</b>
       <span><?= h($role) ?></span>
+      <a class="logout" href="/learning/" style="text-decoration:none;">学習ツール一覧</a>
       <a class="logout" href="/admin.php" style="text-decoration:none;">アカウント管理</a>
       <a class="logout" href="/password.php" style="text-decoration:none;">パスワード変更</a>
       <button class="logout" id="logout-btn" type="button">ログアウト</button>
@@ -911,9 +912,9 @@ function qtab(array $extra): string
     <p style="font-size:13px;color:var(--ink-soft);">この期間の対象者はいません</p>
 <?php else: ?>
     <div class="scroll">
-    <table style="table-layout:fixed;width:auto;min-width:476px;">
+    <table style="table-layout:fixed;width:auto;min-width:412px;">
       <colgroup>
-        <col style="width:72px"><col style="width:140px"><col style="width:90px"><col style="width:64px"><col style="width:110px"><?php if ($sec['key'] === 'rate'): ?><col style="width:110px"><?php endif; ?>
+        <col style="width:72px"><col style="width:124px"><col style="width:76px"><col style="width:52px"><col style="width:88px"><?php if ($sec['key'] === 'rate'): ?><col style="width:88px"><?php endif; ?>
       </colgroup>
       <tr><th class="num">順位</th><th>生徒</th><th>教室</th><th>学年</th>
         <th class="num"><?= h($sec['unit']) ?></th><?php if ($sec['key'] === 'rate'): ?><th class="num">解答数</th><?php endif; ?></tr>

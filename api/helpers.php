@@ -181,6 +181,25 @@ function client_user_agent(): ?string
     return $ua !== null ? substr($ua, 0, 255) : null;
 }
 
+// 講師の暫定パスワードを生成する（登録時・PW初期化時に共用）。
+// 読み間違えにくい文字だけで8文字（0/O、1/l/I などを除外）。
+// 本パスワードは初回ログイン時に本人が8〜15桁の英数で設定し直す。
+function generate_temp_password(): string
+{
+    $chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+    $temp = '';
+    for ($i = 0; $i < 8; $i++) {
+        $temp .= $chars[random_int(0, strlen($chars) - 1)];
+    }
+    return $temp;
+}
+
+// 本人が設定する本パスワードの検証: 8〜15桁の半角英数のみ
+function is_valid_teacher_password(string $pw): bool
+{
+    return (bool)preg_match('/\A[A-Za-z0-9]{8,15}\z/', $pw);
+}
+
 function uuid_v4(): string
 {
     $data = random_bytes(16);

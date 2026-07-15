@@ -1,7 +1,12 @@
 -- ============================================================
 -- 動的XPシステム スキーマ変更（xp_dynamic_spec.md §1）
--- MariaDB 10.11。phpMyAdmin で1回実行する。
--- 列/INDEX は IF NOT EXISTS 付きなので再実行しても安全。
+-- phpMyAdmin で1回だけ実行する。
+--
+-- 注意: 本番Hetemlの MySQL は「ADD COLUMN IF NOT EXISTS」構文に対応しない
+--   （#1064 構文エラーになる。IF NOT EXISTS 付き ADD は MariaDB 限定機能）。
+--   そのため素の ADD COLUMN / ADD INDEX で記述している。
+--   → このSQLは冪等ではない。再実行すると「Duplicate column name」等になるので、
+--     その場合は既に入っている列/INDEXの行を除いて実行すること（1回きりの想定）。
 -- ============================================================
 
 -- ------------------------------------------------------------
@@ -12,10 +17,10 @@
 --   stat_updated_at … 最後に統計を更新した時刻
 -- ------------------------------------------------------------
 ALTER TABLE question_catalog
-  ADD COLUMN IF NOT EXISTS current_xp      INT      NULL     AFTER base_xp,
-  ADD COLUMN IF NOT EXISTS stat_total      INT      NOT NULL DEFAULT 0 AFTER current_xp,
-  ADD COLUMN IF NOT EXISTS stat_correct    INT      NOT NULL DEFAULT 0 AFTER stat_total,
-  ADD COLUMN IF NOT EXISTS stat_updated_at DATETIME NULL     AFTER stat_correct;
+  ADD COLUMN current_xp      INT      NULL     AFTER base_xp,
+  ADD COLUMN stat_total      INT      NOT NULL DEFAULT 0 AFTER current_xp,
+  ADD COLUMN stat_correct    INT      NOT NULL DEFAULT 0 AFTER stat_total,
+  ADD COLUMN stat_updated_at DATETIME NULL     AFTER stat_correct;
 
 -- ------------------------------------------------------------
 -- xp_logs: 日次減衰カウント（同一生徒×同一問題×当日）に必要な
@@ -24,6 +29,6 @@ ALTER TABLE question_catalog
 --   この2列と当日範囲のインデックスが必須。
 -- ------------------------------------------------------------
 ALTER TABLE xp_logs
-  ADD COLUMN IF NOT EXISTS unit_key     VARCHAR(64)  NULL AFTER reason,
-  ADD COLUMN IF NOT EXISTS question_key VARCHAR(128) NULL AFTER unit_key,
-  ADD INDEX IF NOT EXISTS idx_xl_decay (student_id, unit_key, question_key, created_at);
+  ADD COLUMN unit_key     VARCHAR(64)  NULL AFTER reason,
+  ADD COLUMN question_key VARCHAR(128) NULL AFTER unit_key,
+  ADD INDEX idx_xl_decay (student_id, unit_key, question_key, created_at);

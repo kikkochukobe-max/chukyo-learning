@@ -15,7 +15,8 @@ if ($stmt->fetchColumn() !== 'super_admin') {
 
 $teachers = $pdo->query(
     "SELECT t.login_id, t.teacher_name, t.role, t.is_active, t.created_at,
-            COALESCE(GROUP_CONCAT(c.classroom_name ORDER BY c.classroom_id SEPARATOR '・'), '') AS classroom_names
+            COALESCE(GROUP_CONCAT(c.classroom_name ORDER BY c.classroom_id SEPARATOR '・'), '') AS classroom_names,
+            COALESCE(GROUP_CONCAT(c.classroom_id ORDER BY c.classroom_id SEPARATOR ','), '') AS classroom_ids
      FROM teachers t
      LEFT JOIN teacher_classrooms tc ON tc.teacher_id = t.teacher_id
      LEFT JOIN classrooms c ON c.classroom_id = tc.classroom_id

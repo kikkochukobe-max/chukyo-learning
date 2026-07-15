@@ -13,7 +13,7 @@ $input = json_input();
 $current = (string)($input['current_password'] ?? '');
 $new = (string)($input['new_password'] ?? '');
 
-if (mb_strlen($new) < 8) {
+if (!is_valid_teacher_password($new)) {
     json_response(['ok' => false, 'error' => 'invalid_password'], 400);
 }
 if ($new === $current) {

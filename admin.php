@@ -299,11 +299,10 @@ if ($role === 'super_admin') {
   <div class="pane" id="pane-teacher" style="display:none;">
   <div class="card">
     <h2>講師登録 <span style="font-size:11px;color:var(--ink-soft);font-weight:500;">（統括のみ）</span></h2>
-    <p class="note">初期パスワードは初回ログイン時に本人が変更します。</p>
+    <p class="note">仮パスワードは登録時に自動生成されます。本人が初回ログインで8〜15文字の半角英数に設定し直します。</p>
     <form id="teacher-form">
       <div class="row2">
         <label>ログインID<input type="text" name="login_id" required maxlength="50"></label>
-        <label>初期パスワード（8文字以上）<input type="text" name="password" required minlength="8" autocomplete="off"></label>
         <label>氏名<input type="text" name="teacher_name" required maxlength="50"></label>
         <label>役割
           <select name="role">
@@ -322,6 +321,23 @@ if ($role === 'super_admin') {
       <button class="go" type="submit">講師を登録</button>
       <div class="msg" id="teacher-msg"></div>
     </form>
+  </div>
+
+  <div class="card">
+    <h2>既存講師の一括初期化 <span style="font-size:11px;color:var(--ink-soft);font-weight:500;">（統括のみ）</span></h2>
+    <p class="note">まだ本パスワードを設定していない講師（＝初回変更が済んでいない講師）全員に、新しい仮パスワードをまとめて発行します。<strong>すでにログインして本人がパスワードを設定した講師は対象外</strong>なので巻き込みません。発行された一覧はこの画面でのみ確認・コピーできます（再表示不可）。</p>
+    <button class="go" type="button" id="bulk-reset-btn">未設定の講師をまとめて初期化</button>
+    <div class="msg" id="bulk-reset-msg"></div>
+    <div id="bulk-reset-result" style="display:none;margin-top:14px;">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <button class="go" type="button" id="bulk-copy-btn" style="width:auto;padding:6px 14px;">一覧をコピー（Excel貼付用）</button>
+        <span id="bulk-copy-note" style="font-size:12px;color:var(--ink-soft);"></span>
+      </div>
+      <table>
+        <thead><tr><th>氏名</th><th>ログインID</th><th>仮パスワード</th></tr></thead>
+        <tbody id="bulk-reset-tbody"></tbody>
+      </table>
+    </div>
   </div>
   </div>
 <?php endif; ?>
@@ -422,8 +438,31 @@ if ($role === 'super_admin') {
     </div>
 
 <?php if ($role === 'super_admin'): ?>
-    <!-- 講師一覧 -->
+    <!-- 講師一覧 + 講師情報の修正 -->
     <div id="list-teachers" style="display:none;">
+      <h3 style="margin:14px 0 6px;font-family:'Zen Maru Gothic',sans-serif;color:var(--ai,#2C5F8A);font-size:15px;">講師情報の修正（氏名・役割・担当教室）</h3>
+      <p class="note">下の一覧の「編集」ボタンで現在値を読み込みます。直して「保存」を押してください。役割を super_admin にすると担当教室は不要です（全教室扱い）。パスワードはここでは変更しません（「PW初期化」または本人のパスワード変更を使ってください）。</p>
+      <form id="teacher-edit-form">
+        <div class="row2">
+          <label>ログインID<input type="text" name="login_id" readonly style="background:#F3F0E8;"></label>
+          <label>氏名<input type="text" name="teacher_name" maxlength="50"></label>
+          <label>役割
+            <select name="role">
+              <option value="teacher">teacher（閲覧のみ）</option>
+              <option value="classroom_admin">classroom_admin（教室管理者・生徒登録可）</option>
+              <option value="super_admin">super_admin（統括・全教室）</option>
+            </select>
+          </label>
+        </div>
+        <label>担当教室（super_admin 以外は1つ以上チェック。兼任は複数可）</label>
+        <div class="chks">
+<?php foreach ($classrooms as $c): ?>
+          <label><input type="checkbox" name="classroom_ids" value="<?= (int)$c['classroom_id'] ?>"><?= h($c['classroom_name']) ?></label>
+<?php endforeach; ?>
+        </div>
+        <button class="go" type="submit">保存</button>
+      </form>
+      <div class="msg" id="teacher-edit-msg"></div>
       <label style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:13px;font-weight:700;color:var(--ink,#33312B);cursor:pointer;white-space:nowrap;">
         <input type="checkbox" class="hide-test" checked style="width:auto;flex:none;margin:0;">テスト生（名前に「テスト」を含む）を非表示
       </label>
@@ -707,6 +746,16 @@ function actionCell(tr, kind, loginId, name, isActive, row) {
     edit.textContent = '編集';
     edit.style.marginRight = '6px';
     edit.addEventListener('click', () => fillEditForm(row));
+    td.appendChild(edit);
+  }
+  // 講師は「編集」で修正フォームに現在値を読み込む（氏名・役割・担当教室）。統括のみ・自分以外
+  if (kind === 'teachers' && IS_SUPER && loginId !== MY_LOGIN_ID) {
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'mini on';
+    edit.textContent = '編集';
+    edit.style.marginRight = '6px';
+    edit.addEventListener('click', () => fillTeacherEditForm(row));
     td.appendChild(edit);
   }
   // 自分自身の講師アカウントにはボタンを出さない(APIも拒否する)
@@ -1039,19 +1088,124 @@ if (teacherForm) {
     try {
       const { res, data } = await post('/api/register_teacher.php', {
         login_id: loginId,
-        password: f.password.value,
         teacher_name: f.teacher_name.value.trim(),
         role: f.role.value,
         classroom_ids: classroomIds,
       });
       if (res.ok && data && data.ok) {
         recent.teachers.add(loginId);
+        prompt('登録しました。この仮パスワードを ' + data.teacher_name + ' 先生に伝えてください\n本人が初回ログインで8〜15文字の半角英数に変更します\n（この画面を閉じると二度と表示されません）', data.temp_password);
         showMsg('teacher-msg', true, '登録しました（登録一覧タブで確認できます）');
         f.reset();
       } else {
         showMsg('teacher-msg', false, errText(data, res.status));
       }
     } catch (err) { showMsg('teacher-msg', false, '通信エラー: ' + err); }
+  });
+}
+
+// ---- 既存講師の一括初期化(統括のみ) ----
+const bulkResetBtn = document.getElementById('bulk-reset-btn');
+if (bulkResetBtn) {
+  let bulkRows = [];  // 直近の発行結果（コピー用に保持）
+  bulkResetBtn.addEventListener('click', async () => {
+    const msg = 'まだ本パスワードを設定していない講師 全員の仮パスワードを再発行しますか？\n\n'
+      + '・すでに本人がパスワードを設定した講師は対象外です\n'
+      + '・発行後の一覧はこの画面でしか確認できません（閉じると再表示不可）';
+    if (!confirm(msg)) return;
+    bulkResetBtn.disabled = true;
+    showMsg('bulk-reset-msg', true, '発行中...');
+    try {
+      const { res, data } = await post('/api/reset_pending_teachers.php', {});
+      if (res.ok && data && data.ok) {
+        bulkRows = data.teachers || [];
+        const tbody = document.getElementById('bulk-reset-tbody');
+        const result = document.getElementById('bulk-reset-result');
+        tbody.innerHTML = '';
+        if (bulkRows.length === 0) {
+          result.style.display = 'none';
+          showMsg('bulk-reset-msg', true, '対象の講師はいませんでした（全員すでに本パスワード設定済みです）');
+        } else {
+          bulkRows.forEach((t) => {
+            const tr = document.createElement('tr');
+            const td = (v) => { const c = document.createElement('td'); c.textContent = v; return c; };
+            const pw = td(t.temp_password);
+            pw.style.fontFamily = 'monospace';
+            pw.style.fontWeight = '700';
+            tr.appendChild(td(t.teacher_name));
+            tr.appendChild(td(t.login_id));
+            tr.appendChild(pw);
+            tbody.appendChild(tr);
+            recent.teachers.add(t.login_id);
+          });
+          result.style.display = 'block';
+          document.getElementById('bulk-copy-note').textContent = '';
+          showMsg('bulk-reset-msg', true, data.count + '人の仮パスワードを発行しました。下の一覧を配布してください。');
+        }
+      } else {
+        showMsg('bulk-reset-msg', false, errText(data, res.status));
+      }
+    } catch (err) {
+      showMsg('bulk-reset-msg', false, '通信エラー: ' + err);
+    } finally {
+      bulkResetBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('bulk-copy-btn').addEventListener('click', async () => {
+    // Excel/スプレッドシートにそのまま貼れるタブ区切り（ヘッダー付き）
+    const tsv = ['氏名\tログインID\t仮パスワード']
+      .concat(bulkRows.map((t) => t.teacher_name + '\t' + t.login_id + '\t' + t.temp_password))
+      .join('\n');
+    const note = document.getElementById('bulk-copy-note');
+    try {
+      await navigator.clipboard.writeText(tsv);
+      note.textContent = 'コピーしました（Excel等に貼り付けできます）';
+    } catch (e) {
+      note.textContent = 'コピーに失敗しました。手動で選択してコピーしてください';
+    }
+  });
+}
+
+// ---- 講師情報の修正(統括のみ) ----
+const teacherEditForm = document.getElementById('teacher-edit-form');
+
+// 一覧の「編集」ボタンから、講師1件分の現在値をフォームに流し込む
+function fillTeacherEditForm(r) {
+  if (!teacherEditForm || !r) return;
+  teacherEditForm.login_id.value = r.login_id;
+  teacherEditForm.teacher_name.value = r.teacher_name || '';
+  teacherEditForm.role.value = r.role || 'teacher';
+  const ids = String(r.classroom_ids || '').split(',').filter(Boolean);
+  teacherEditForm.querySelectorAll('input[name="classroom_ids"]').forEach((chk) => {
+    chk.checked = ids.includes(chk.value);
+  });
+  showMsg('teacher-edit-msg', true, r.teacher_name + '（' + r.login_id + '）の情報を読み込みました');
+  teacherEditForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+if (teacherEditForm) {
+  teacherEditForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = e.target;
+    const loginId = f.login_id.value.trim();
+    if (loginId === '') { showMsg('teacher-edit-msg', false, '一覧の「編集」から読み込んでください'); return; }
+    const classroomIds = [...f.querySelectorAll('input[name="classroom_ids"]:checked')].map(el => Number(el.value));
+    try {
+      const { res, data } = await post('/api/update_teacher.php', {
+        login_id: loginId,
+        teacher_name: f.teacher_name.value.trim(),
+        role: f.role.value,
+        classroom_ids: classroomIds,
+      });
+      if (res.ok && data && data.ok) {
+        recent.teachers.add(loginId);
+        showMsg('teacher-edit-msg', true, '保存しました');
+        loadList('teachers');
+      } else {
+        showMsg('teacher-edit-msg', false, errText(data, res.status));
+      }
+    } catch (err) { showMsg('teacher-edit-msg', false, '通信エラー: ' + err); }
   });
 }
 
