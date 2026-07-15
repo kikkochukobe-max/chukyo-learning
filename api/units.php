@@ -77,4 +77,9 @@ return [
         'sub'   => 'ローマ字・五十音・英単語(おまけ)',
         'url'   => '/learning/allgrade/romaji_master.html',
     ],
+    'social_es4_todofuken' => [
+        'title' => '都道府県・県庁所在地マスター',
+        'sub'   => '社会・小4',
+        'url'   => '/learning/social/social_es4_todofuken.html',
+    ],
 ];

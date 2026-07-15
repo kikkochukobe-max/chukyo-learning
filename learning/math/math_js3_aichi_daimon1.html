@@ -390,7 +390,7 @@ function coefTex(n,mono){if(n===1)return mono;if(n===-1)return'-'+mono;return St
 function linTex(P,Q){ // Px+Q (P≠0)
  if(Q===0)return coefTex(P,'x');
  return coefTex(P,'x')+sn(Q)}
-function jt(s){return'\\text{'+s+'}'} // 日本語をtexに
+function jt(s){return'\\text{'+String(s).replace(/%/g,'\\%')+'}'} // 日本語をtexに(%はKaTeXのコメント文字なのでエスケープ)
 
 /* 選択肢組み立て: 正解tex+誤答texを重複なくシャッフル */
 function mkChoices(correct,wrongs){
@@ -1623,6 +1623,10 @@ function quartiles(sorted){
 function clsOf(v){return Math.floor((v-5)/5)}
 function mv(f,i,d){const c=f.slice();c[i]+=d;return c}
 function mv2(f,i,d,j,e){const c=f.slice();c[i]+=d;c[j]+=e;return c}
+/* 箱(四分位範囲)を中央値で分けた左半分(Q1〜中央値)・右半分(中央値〜Q3)が
+   どちらか細すぎると読み取りにくいので除外(正解・誤答の4択すべてに適用)。
+   閾値4.5は階級幅5弱＝箱図上でおよそ30px。ここを下げると細い箱が復活する */
+function boxTooThin(f){return (f[2]-f[1])<4.5||(f[3]-f[2])<4.5}
 function genHako(){
  for(let t=0;t<2000;t++){
   const peak=ri(3,5);
@@ -1646,6 +1650,7 @@ function genHako(){
   if(!sameCls(10,11)||!sameCls(20,21)||!sameCls(30,31))continue;
   const five=quartiles(data);
   if(five.some(v=>Math.abs((v-5)%5)<1e-9))continue;
+  if(boxTooThin(five))continue;
   const cls=five.map(clsOf);
   const cands=shuffle([mv(five,2,5),mv(five,2,-5),mv(five,1,-5),mv(five,3,5),
    mv(five,0,-5),mv(five,4,5),mv2(five,1,-5,3,5),mv(five,1,5),mv(five,3,-5)]);
@@ -1657,6 +1662,7 @@ function genHako(){
    for(let i2=0;i2<4;i2++)if(cand[i2]>cand[i2+1])ok=false;
    if(cand[0]<5||cand[4]>50)ok=false;
    if(!ok)continue;
+   if(boxTooThin(cand))continue;
    let diff=false;
    for(let i2=0;i2<5;i2++)if(clsOf(cand[i2])!==cls[i2])diff=true;
    if(!diff)continue;
@@ -2091,7 +2097,7 @@ function texFallback(el,tex){
   .replace(/\\sqrt\{([^{}]*)\}/g,'√$1')
   .replace(/\^\{2\}/g,'²').replace(/\^\{3\}/g,'³').replace(/\^\{\\circ\}/g,'°')
   .replace(/\\times/g,'×').replace(/\\div/g,'÷').replace(/\\pm/g,'±')
-  .replace(/\\leqq/g,'≦').replace(/\\geqq/g,'≧')
+  .replace(/\\leqq/g,'≦').replace(/\\geqq/g,'≧').replace(/\\%/g,'%')
   .replace(/\\(dfrac|frac)\{([^{}]*)\}\{([^{}]*)\}/g,'($2)/($3)')
   .replace(/\\\\|\\,|\\ /g,' ').replace(/[{}]/g,'');
  setVarText(el,s)}
