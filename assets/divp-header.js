@@ -52,6 +52,8 @@
     + '.divp-auth-btn{background:#e8a020;color:#0a1628;border:none;border-radius:20px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}'
     + '.divp-auth-logged{display:flex;align-items:center;}'
     + '.divp-auth-name{color:#fff;font-size:12px;font-weight:700;margin-right:8px;white-space:nowrap;}'
+    + 'a.divp-auth-name{cursor:pointer;border-bottom:1px dotted rgba(232,160,32,0.7);padding-bottom:1px;}'
+    + 'a.divp-auth-name:hover{color:#e8a020;}'
     + '.divp-auth-logout{background:transparent;color:#e8a020;border:1px solid #e8a020;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}'
     + '.divp-auth-pop{position:absolute;top:52px;right:0;background:#fff;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.3);padding:16px;width:220px;z-index:200;}'
     + '.divp-auth-pop label{display:block;font-size:11px;color:#334155;margin-top:8px;font-weight:700;}'
@@ -105,7 +107,7 @@
 
   function loggedInHTML(name) {
     return '<div class="divp-auth-logged">'
-      + '<span class="divp-auth-name">' + name + 'さん</span>'
+      + '<a class="divp-auth-name" href="/mypage.php" title="マイページを見る">' + name + 'さん</a>'
       + '<button class="divp-auth-logout" id="divp-logout-btn" type="button">ログアウト</button>'
       + '</div>';
   }

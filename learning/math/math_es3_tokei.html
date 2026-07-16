@@ -29,15 +29,11 @@ body{
   color:var(--ink);
   min-height:100vh;
   display:flex;flex-direction:column;align-items:center;
-  padding:62px 10px 40px;
+  padding:10px 10px 40px;
   user-select:none;-webkit-user-select:none;
 }
-header{
-  position:fixed;top:0;left:0;right:0;z-index:40;
-  background:rgba(221,241,251,.95);backdrop-filter:blur(6px);
-  box-shadow:0 2px 10px rgba(43,67,86,.10);
-  padding:6px 10px;
-}
+/* 共通ヘッダー(divp-header)を body の中央寄せに縮められず、全幅で表示する */
+.divp-header{align-self:stretch;margin:-10px -10px 8px;}
 .header-inner{
   max-width:520px;margin:0 auto;
   display:flex;align-items:center;justify-content:space-between;gap:8px;
@@ -61,7 +57,7 @@ h1 .dot{color:var(--coral);}
 
 /* ===== モードタブ ===== */
 .mode-tabs{
-  display:grid;grid-template-columns:repeat(6,1fr);gap:4px;
+  display:grid;grid-template-columns:repeat(7,1fr);gap:4px;
   width:100%;max-width:520px;margin:8px 0 10px;
 }
 .mode-tab{
@@ -108,6 +104,9 @@ h1 .dot{color:var(--coral);}
 .chip-p1{background:#5BC8AF;} .chip-p5{background:#56AEE8;} .chip-p10{background:#FF8A5C;}
 .chip-m1{background:#A8B8C4;} .chip-m5{background:#C58BC9;} .chip-m10{background:#9B6FD4;}
 .clock-wrap svg{width:100%;height:auto;display:block;}
+/* おもちゃモード：針を直接ドラッグできる */
+.clock-wrap.toy svg{touch-action:none;cursor:grab;}
+.clock-wrap.toy.dragging svg{cursor:grabbing;}
 .hand-min{transition:transform .12s cubic-bezier(.34,1.56,.64,1);}
 .hand-hour{transition:transform .12s ease;}
 .clock-bounce .hand-min{animation:bounce .25s;}
@@ -304,18 +303,12 @@ footer{font-size:.66rem;color:#7a9cb0;font-weight:700;margin-top:6px;text-align:
 </head>
 <body>
 
-<header>
-  <div class="header-inner">
-    <div class="header-text">
-      <h1>とけいマスター<span class="dot">⏰</span></h1>
-      <div class="subtitle">時こくと時間（小3算数）</div>
-    </div>
-    <a class="home-link" href="https://chukyokobetsu.com/" target="_blank" rel="noopener">🏠<span class="home-label">中京個別指導学院</span></a>
-  </div>
-</header>
+<!-- ===== サイトヘッダー（共通モジュール。ログイン窓もここに出る） ===== -->
+<script src="/assets/divp-header.js"></script>
 
 <div class="mode-tabs">
-  <button class="mode-tab active" data-mode="free">ミッション<small>ゴールまで</small></button>
+  <button class="mode-tab active" data-mode="toy">おもちゃ<small>すきにうごかす</small></button>
+  <button class="mode-tab" data-mode="free">ミッション<small>ゴールまで</small></button>
   <button class="mode-tab" data-mode="qa">もんだいA<small>なんぷん?</small></button>
   <button class="mode-tab" data-mode="qb">もんだいB<small>なんじ?</small></button>
   <button class="mode-tab" data-mode="bunkai">ぶんかい<small>ちょうどで分ける</small></button>
@@ -373,6 +366,18 @@ footer{font-size:.66rem;color:#7a9cb0;font-weight:700;margin-top:6px;text-align:
     <button class="next-btn" id="missionNext">つぎのミッション ▶</button>
   </div>
 
+  <!-- おもちゃモード専用：時こくを入力してセット -->
+  <div class="controls hidden" id="toyInput">
+    <div class="input-row" style="flex-wrap:wrap">
+      <input class="min-input" id="toyH" type="tel" inputmode="numeric" maxlength="2" placeholder="時" style="width:64px">
+      <span class="ans-unit">時</span>
+      <input class="min-input" id="toyM" type="tel" inputmode="numeric" maxlength="2" placeholder="分" style="width:64px">
+      <span class="ans-unit">分</span>
+      <button class="go-btn" id="toySet">この時こくに ▶</button>
+    </div>
+    <div class="input-hint">すきな時こくを 入力してね（0〜23時）</div>
+  </div>
+
   <!-- 解答エリア（問題A/B/分解で共用） -->
   <div class="answer-area hidden" id="answerArea">
     <div class="step-banner hidden" id="stepBanner"></div>
@@ -391,6 +396,10 @@ footer{font-size:.66rem;color:#7a9cb0;font-weight:700;margin-top:6px;text-align:
 <div class="confetti-layer" id="confettiLayer"></div>
 
 <footer>© 中京個別指導学院｜とけいマスター</footer>
+
+<!-- ===== 学習記録システム共通クライアント ===== -->
+<script src="/assets/divp-core.js"></script>
+<script>Divp.init('math_es3_tokei');</script>
 
 <script>
 "use strict";
@@ -414,6 +423,8 @@ let bunkaiStep = 0, bunkaiData = null;
 let missionDone = false;
 let moveFloor = 0, moveCeil = 1439;
 let gyakuData = null;
+let masterSub = null;          // マスターモードが内部で出している問題種別
+let dbRetryQueue = null;       // ?retry=1: DBのpendingから復元した解き直しの列
 
 /* ===== DOM ===== */
 const $ = id => document.getElementById(id);
@@ -563,7 +574,10 @@ function renderClock(){
   handHour.style.transform = `rotate(${hourDeg}deg)`;
   const isBack = mode==="gyaku" || (mode==="bunkai" && bunkaiData && bunkaiData.reverse);
   const elapsed = isBack ? (startMin - curMin) : (curMin - startMin);
-  if(mode==="bunkai" && bunkaiData && bunkaiData.reverse){
+  if(mode==="toy"){
+    sectorPath.setAttribute("d", "");
+    sectorPath2.setAttribute("d", "");
+  }else if(mode==="bunkai" && bunkaiData && bunkaiData.reverse){
     const j = bunkaiData.justMin;
     // 到着→ちょうど(黄) / ちょうど→現在(ピンク) を後ろ向きに塗る
     if(curMin >= j){
@@ -613,6 +627,7 @@ function nextBtnVisible(){ return nextBtn.style.display === "block"; }
 /* ===== 数直線の描画 ===== */
 function renderNumline(){
   numlineSvg.innerHTML = "";
+  if(mode==="toy") return;   // おもちゃモードは数直線なし
   const isBack = mode==="gyaku" || (mode==="bunkai" && bunkaiData && bunkaiData.reverse);
   const elapsed = curMin - startMin;
   let lo, hi;
@@ -844,6 +859,197 @@ function saveProgress(correct){
   }catch(e){}
 }
 
+/* ===================== 学習記録（divp-core連携） =====================
+   question_params には問題を再生成できる情報一式を保存し、?retry=1 のとき
+   これで全く同じ問題を再出題する（params_hash の一致で retry_queue の
+   2連続正解mastered判定が成立）。※JSON形式を変えると既存pending行の
+   ハッシュと合わなくなる点に注意。question_key はモード変数をそのまま使う。 */
+function buildParams(){
+  if(mode==="qa")   return { m:"qa", start:startMin, target:targetMin };
+  if(mode==="qb")   return { m:"qb", start:startMin, target:targetMin };
+  if(mode==="free") return { m:"free", start:startMin, target:targetMin };
+  if(mode==="gyaku")
+    return { m:"gyaku", arrival:gyakuData.arrival, depart:gyakuData.depart,
+             dur:gyakuData.dur, dest:gyakuData.dest, how:gyakuData.how };
+  if(mode==="bunkai"){
+    const d = bunkaiData;
+    if(d.reverse)
+      return { m:"bunkai", reverse:true, arrival:d.arrival, depart:d.depart,
+               dur:d.dur, seg1:d.seg1, seg2:d.seg2, dest:d.dest, how:d.how };
+    return { m:"bunkai", reverse:false, start:startMin, target:targetMin,
+             seg1:d.seg1, seg2:d.seg2 };
+  }
+  if(mode==="master"){
+    if(masterSub==="gyaku")
+      return { m:"master", sub:"gyaku", arrival:gyakuData.arrival, depart:gyakuData.depart,
+               dur:gyakuData.dur, dest:gyakuData.dest, how:gyakuData.how };
+    return { m:"master", sub:masterSub, start:startMin, target:targetMin };
+  }
+  return { m:mode };
+}
+function logAnswer(isCorrect){
+  try{
+    const D = window.Divp;
+    if(!D || typeof D.answer !== "function") return;
+    const got = fields.map(f => f.val==="" ? "?" : String(parseInt(f.val,10)));
+    const hmC = a => `${a[0]}時${a[1]}分`;
+    const hmG = () => `${got[0]||"?"}時${got[1]||"?"}分`;
+    let qtext="", correct="", wrong="";
+    if(mode==="qa"){
+      qtext = `${fmtJ(startMin)}から${fmtJ(targetMin)}。何分たった？`;
+      correct = (targetMin-startMin)+"分"; wrong = (got[0]||"?")+"分";
+    }else if(mode==="qb"){
+      qtext = `${fmtJ(startMin)}から${targetMin-startMin}分後は何時何分？`;
+      correct = hmC(answer); wrong = hmG();
+    }else if(mode==="gyaku"){
+      const g = gyakuData, helper = g.how==="車" ? "車で" : g.how;
+      qtext = `家から${g.dest}まで${helper}${g.dur}分。${fmtJ(g.arrival)}に着くには何時に出る？`;
+      correct = hmC(answer); wrong = hmG();
+    }else if(mode==="master"){
+      if(masterSub==="gyaku"){
+        const g = gyakuData, helper = g.how==="車" ? "車で" : g.how;
+        qtext = `とけいなし：家から${g.dest}まで${helper}${g.dur}分。${fmtJ(g.arrival)}に着くには何時発？`;
+      }else if(masterSub==="qb"){
+        qtext = `とけいなし：${fmtJ(startMin)}から${targetMin-startMin}分後は何時何分？`;
+      }else{
+        qtext = `とけいなし：${fmtJ(startMin)}から${fmtJ(targetMin)}。何分たった？`;
+      }
+      if(answer.length===2){ correct = hmC(answer); wrong = hmG(); }
+      else { correct = answer[0]+"分"; wrong = (got[0]||"?")+"分"; }
+    }else if(mode==="bunkai"){
+      const d = bunkaiData;
+      if(d.reverse){
+        qtext = `（分解）家から${d.dest}まで${d.how}${d.dur}分。${fmtJ(d.arrival)}に着くには何時に出る？`;
+        correct = `${fmtJ(d.depart)}に出発`;
+      }else{
+        qtext = `（分解）${fmtJ(startMin)}から${fmtJ(targetMin)}。何分たった？`;
+        correct = (d.seg1+d.seg2)+"分";
+      }
+      wrong = isCorrect ? correct : (got.join("・")||"?");
+    }else if(mode==="free"){
+      qtext = `${fmtJ(startMin)}から${fmtJ(targetMin)}まで時計を動かす`;
+      correct = (targetMin-startMin)+"分"; wrong = correct;
+    }else{ return; }
+    D.answer(isCorrect, {
+      question_key: mode,
+      question_params: buildParams(),
+      question_text: qtext,
+      correct_answer: correct,
+      wrong_answer: wrong,
+    });
+  }catch(e){ /* オフラインでも演習は継続 */ }
+}
+
+/* ---------- 解き直しキュー（?retry=1 で mypage から遷移） ----------
+   list_retries.php の pending から question_params を取り出し、保存時と
+   全く同じ問題を順番に再出題する。モードをまたぐので item ごとに切替える。 */
+function startDbRetry(){
+  if(!/[?&]retry=1/.test(location.search)) return;
+  const D = window.Divp;
+  if(!D || typeof D.getRetries !== "function") return;
+  D.getRetries().then(items => {
+    const queue = [];
+    (items||[]).forEach(it => {
+      const p = it.question_params;
+      if(!p || !p.m) return;
+      if(p.m==="master") return;   // マスターは再出題対象外（記録のみ）
+      if((p.m==="qa"||p.m==="qb"||p.m==="free") && (p.start==null||p.target==null)) return;
+      if(p.m==="gyaku" && (p.arrival==null||p.depart==null)) return;
+      if(p.m==="bunkai" && (p.reverse ? p.arrival==null : p.start==null)) return;
+      queue.push(p);
+    });
+    if(!queue.length) return;
+    dbRetryQueue = queue;
+    serveNextRetry();
+  }).catch(()=>{});
+}
+function serveNextRetry(){
+  if(!dbRetryQueue) return false;
+  if(!dbRetryQueue.length){ dbRetryQueue = null; return false; }
+  serveRetry(dbRetryQueue.shift());
+  return true;
+}
+function serveRetry(p){
+  setMode(p.m);   // UIを対象モードに（ランダム問題が出るが直後に上書き）
+  if(p.m==="qa")        reQA(p);
+  else if(p.m==="qb")   reQB(p);
+  else if(p.m==="gyaku")reGyaku(p);
+  else if(p.m==="free") reMission(p);
+  else if(p.m==="bunkai") reBunkai(p);
+}
+function reQA(p){
+  startMin=p.start; targetMin=p.target; curMin=p.start;
+  answer=[String(p.target-p.start)];
+  questionBox.innerHTML =
+    `<span class="q-nowrap"><span class="q-time">${fmtJ(startMin)}</span>から<span class="q-time">${fmtJ(targetMin)}</span></span>になりました。何分たちましたか？`;
+  buildFields([{unit:"分"}]);
+  moveFloor=startMin; moveCeil=startMin+180;
+  renderClock();
+}
+function reQB(p){
+  startMin=p.start; targetMin=p.target; curMin=p.start;
+  const ansH=Math.floor(targetMin/60)%24, ansM=targetMin%60;
+  answer=[String(ansH),String(ansM)];
+  questionBox.innerHTML =
+    `<span class="q-nowrap"><span class="q-time">${fmtJ(startMin)}</span>から<span class="q-min">${p.target-p.start}分後</span></span>は 何時何分？`;
+  buildFields([{unit:"時"},{unit:"分"}]);
+  moveFloor=startMin; moveCeil=startMin+180;
+  renderClock();
+}
+function reGyaku(p){
+  gyakuData={ arrival:p.arrival, depart:p.depart, dur:p.dur, dest:p.dest, how:p.how };
+  startMin=p.arrival; curMin=p.arrival; targetMin=p.depart;
+  moveFloor=p.depart-20; moveCeil=p.arrival;
+  const ansH=Math.floor(p.depart/60)%24, ansM=p.depart%60;
+  answer=[String(ansH),String(ansM)];
+  const helper=(p.how==="車")?"車で":p.how;
+  questionBox.innerHTML =
+    `<span class="q-nowrap">家から${p.dest}まで<span class="q-min">${helper}${p.dur}分</span>かかります。</span><span class="q-nowrap"><span class="q-time">${fmtJ(p.arrival)}</span>に${p.dest}に着く</span>には 何時に家を出る？`;
+  buildFields([{unit:"時"},{unit:"分"}]);
+  renderClock();
+}
+function reMission(p){
+  missionDone=false;
+  startMin=p.start; targetMin=p.target; curMin=p.start;
+  questionBox.innerHTML =
+    `ミッション🚩 <span class="q-nowrap"><span class="q-time">${fmtJ(startMin)}</span>から<span class="q-time">${fmtJ(targetMin)}</span></span>まで うごかそう！`;
+  freeMsg.textContent=""; freeMsg.className="feedback";
+  missionNext.style.display="none";
+  moveFloor=startMin; moveCeil=startMin+180;
+  renderClock();
+}
+function reBunkai(p){
+  if(p.reverse){
+    setBackButtons(true);
+    const h=Math.floor(p.arrival/60);
+    startMin=p.arrival; curMin=p.arrival; targetMin=p.depart;
+    bunkaiData={ justMin:h*60, seg1:p.seg1, seg2:p.seg2, reverse:true,
+                 arrival:p.arrival, depart:p.depart, dur:p.dur, dest:p.dest, how:p.how };
+    gyakuData={ arrival:p.arrival, depart:p.depart, dur:p.dur };
+    moveFloor=p.depart-20; moveCeil=p.arrival;
+    bunkaiStep=1;
+    questionBox.innerHTML =
+      `<span class="q-nowrap">家から${p.dest}まで<span class="q-min">${p.how}${p.dur}分</span>かかります。</span><span class="q-nowrap"><span class="q-time">${fmtJ(p.arrival)}</span>に${p.dest}に着く</span>には 何時に家を出る？`;
+    stepBanner.classList.remove("hidden");
+    stepBanner.innerHTML = `ステップ1️⃣ まず ちょうど <b>${h}時</b> まで 何分 もどる？`;
+  }else{
+    setBackButtons(false);
+    const h=Math.floor(p.start/60);
+    startMin=p.start; targetMin=p.target; curMin=p.start;
+    bunkaiData={ justMin:(h+1)*60, seg1:p.seg1, seg2:p.seg2, reverse:false };
+    bunkaiStep=1;
+    questionBox.innerHTML =
+      `<span class="q-nowrap"><span class="q-time">${fmtJ(startMin)}</span>から<span class="q-time">${fmtJ(targetMin)}</span></span>になりました。何分たちましたか？`;
+    stepBanner.classList.remove("hidden");
+    stepBanner.innerHTML = `ステップ1️⃣ まず ちょうど <b>${h+1}時</b> まで、あと何分？`;
+    moveFloor=startMin; moveCeil=startMin+180;
+  }
+  bunkaiSum.innerHTML="";
+  answer=[String(p.seg1)];
+  buildFields([{unit:"分"}]);
+  renderClock();
+}
+
 /* ===== ミッション（じゆうモード） ===== */
 function genMission(){
   missionDone = false;
@@ -864,6 +1070,7 @@ function checkMission(){
     missionDone = true;
     const d = targetMin - startMin;
     addCorrect();
+    logAnswer(true);
     fanfare(); confetti(); cheer(`${d}分たった！`);
     freeMsg.innerHTML = `ゴール！\u2605 ぜんぶで <b>${d}分</b> たったね！`;
     freeMsg.className = "feedback good";
@@ -954,7 +1161,7 @@ function genBunkaiRev(){
   const justMin = h*60;              // ちょうどの時刻
   const depart = arrival - dur;      // = (h-1)時 (60-seg2)分
   startMin = arrival; curMin = arrival; targetMin = depart;
-  bunkaiData = { justMin, seg1, seg2, reverse:true, arrival, depart, dur };
+  bunkaiData = { justMin, seg1, seg2, reverse:true, arrival, depart, dur, dest, how };
   gyakuData = { arrival, depart, dur };   // 数直線の範囲計算に流用
   moveFloor = depart - 20; moveCeil = arrival;
   bunkaiStep = 1;
@@ -993,7 +1200,7 @@ function genGyaku(){
   startMin = arrival;          // 時計は到着時刻からスタート
   curMin = arrival;
   targetMin = depart;          // ゴール=出発時刻
-  gyakuData = { arrival, depart, dur };
+  gyakuData = { arrival, depart, dur, dest, how };
   moveFloor = depart - 20;     // 行きすぎ用に少し余裕
   moveCeil = arrival;          // 到着より後には進めない
   const ansH = Math.floor(depart/60)%24, ansM = depart%60;
@@ -1008,12 +1215,15 @@ function genGyaku(){
 function genMaster(){
   const pick = rand(0,2);
   if(pick===0){
+    masterSub = "qa";
     genQA();
   }else if(pick===1){
+    masterSub = "qb";
     const keep = qbLevel; qbLevel = "mix";
     genQB();
     qbLevel = keep;
   }else{
+    masterSub = "gyaku";
     genGyaku();
   }
   questionBox.innerHTML = "\uD83D\uDC51 " + questionBox.innerHTML;
@@ -1031,6 +1241,8 @@ function submitAnswer(){
   const isCorrect = got.length===answer.length && got.every((v,i)=>v===answer[i]);
 
   if(mode==="bunkai"){ handleBunkai(isCorrect); return; }
+
+  logAnswer(isCorrect);   // qa / qb / gyaku / master
 
   if(isCorrect){
     locked = true;
@@ -1079,6 +1291,7 @@ function handleBunkai(isCorrect){
       buzz();
       feedback.textContent = "おしい！もういちど かんがえてみよう";
       feedback.className = "feedback bad";
+      logAnswer(false);
     }
     fields.forEach(f=>f.val=""); refreshFields();
     return;
@@ -1116,6 +1329,7 @@ function handleBunkai(isCorrect){
   }else{
     locked = true;
     addCorrect();
+    logAnswer(true);
     bunkaiSum.innerHTML = `<span class="seg1">${d.seg1}分</span> ＋ <span class="seg2">${d.seg2}分</span> ＝ <b>${d.seg1+d.seg2}分</b>`;
     feedback.textContent = "せいかい！ぶんかいマスター！";
     feedback.className = "feedback good";
@@ -1158,6 +1372,7 @@ function handleBunkaiRev(d){
   }else{
     locked = true;
     addCorrect();
+    logAnswer(true);
     bunkaiSum.innerHTML = `出発は <b>${fmtJ(d.depart)}</b>！（${d.seg1}分＋${d.seg2}分 もどった）`;
     feedback.textContent = "せいかい！ぶんかいマスター！";
     feedback.className = "feedback good";
@@ -1213,7 +1428,24 @@ function setMode(m){
   digitalRow.classList.toggle("hidden", !showClock);
   numlineWrap.classList.toggle("hidden", !showClock);
   moveControls.classList.toggle("hidden", !showClock);
-  if(m==="free"){
+  clockWrap.classList.toggle("toy", m==="toy");
+  elapsedBadge.classList.toggle("hidden", m==="toy");
+  $("toyInput").classList.toggle("hidden", m!=="toy");
+  if(m==="toy"){
+    freeControls.classList.add("hidden");
+    answerArea.classList.add("hidden");
+    $("moveHint").classList.add("hidden");
+    numlineWrap.classList.add("hidden");
+    // すすむ・もどる 両方のボタンを出す
+    $("btnM10").classList.remove("hidden");
+    $("btnM5").classList.remove("hidden");
+    $("btnP5").classList.remove("hidden");
+    $("btnP10").classList.remove("hidden");
+    startMin = 10*60 + 10;          // はじめは 10:10（もどすボタンの基準）
+    curMin = startMin; targetMin = null;
+    questionBox.innerHTML = "はりを ドラッグしたり ボタンで じゆうに うごかせるよ！🕐";
+    renderClock();
+  }else if(m==="free"){
     freeControls.classList.remove("hidden");
     answerArea.classList.add("hidden");
     $("moveHint").classList.remove("hidden");
@@ -1261,10 +1493,28 @@ function hideLevelPills(){
 
 /* ===== イベント ===== */
 document.querySelectorAll(".mode-tab").forEach(t=>{
-  t.addEventListener("click", ()=> setMode(t.dataset.mode));
+  t.addEventListener("click", ()=>{ dbRetryQueue = null; setMode(t.dataset.mode); });
 });
+function toyTick(dir){                     // おもちゃ：1分ずつ、24時間ループ
+  curMin = ((curMin + dir) % 1440 + 1440) % 1440;
+  tickSound(); clockBounce();
+  if(curMin%60===0 && dir>0) justEffect();
+  renderClock();
+}
 function freeMove(n){
   if(animTimer) return;
+  if(mode==="toy"){                       // おもちゃ：24時間ぐるっと自由に
+    if(Math.abs(n)===1){ toyTick(n); return; }
+    // ＋5/＋10 なども カチカチと1目もりずつ動かす
+    let remaining = Math.abs(n);
+    const dir = n>0? 1 : -1;
+    const interval = Math.abs(n)>=10? 55 : 95;
+    animTimer = setInterval(()=>{
+      toyTick(dir);
+      if(--remaining<=0){ clearInterval(animTimer); animTimer = null; }
+    }, interval);
+    return;
+  }
   if(mode==="free" && missionDone) return;
   if((mode==="qa"||mode==="qb"||mode==="bunkai"||mode==="gyaku") && locked) return;
   const target = Math.min(moveCeil, Math.max(moveFloor, curMin + n));
@@ -1290,6 +1540,21 @@ $("goBtn").addEventListener("click", ()=>{
   if(!isNaN(v) && v>0 && v<=180) freeMove(v);
   $("minInput").value = "";
 });
+function toySetTime(){
+  if(mode!=="toy" || animTimer) return;
+  let h = parseInt($("toyH").value, 10);
+  let m = parseInt($("toyM").value, 10);
+  if(isNaN(h)) h = Math.floor(curMin/60);   // 片方だけ入力でもOK
+  if(isNaN(m)) m = curMin%60;
+  h = Math.max(0, Math.min(23, h));
+  m = Math.max(0, Math.min(59, m));
+  curMin = h*60 + m;
+  chime(); clockBounce();
+  renderClock();
+  $("toyH").value = ""; $("toyM").value = "";
+}
+$("toySet").addEventListener("click", toySetTime);
+$("toyM").addEventListener("keydown", e=>{ if(e.key==="Enter") toySetTime(); });
 $("resetBtn").addEventListener("click", ()=>{
   if(animTimer) return;
   if(mode==="free" && missionDone) return;
@@ -1299,13 +1564,18 @@ $("resetBtn").addEventListener("click", ()=>{
   freeMsg.textContent = ""; freeMsg.className = "feedback";
   renderClock();
 });
-missionNext.addEventListener("click", ()=>{ clearPressLog(); genMission(); });
+missionNext.addEventListener("click", ()=>{
+  clearPressLog();
+  if(serveNextRetry()) return;   // 解き直し中は次のpendingへ
+  genMission();
+});
 nextBtn.addEventListener("click", ()=>{
   locked = false;
   clearPressLog();
   nextBtn.style.display = "none";
   feedback.textContent = ""; feedback.className = "feedback";
   bunkaiSum.innerHTML = "";
+  if(serveNextRetry()) return;   // 解き直し中は次のpendingへ
   if(mode==="qa"){ genQA(); moveFloor=startMin; moveCeil=startMin+180; }
   else if(mode==="qb"){ genQB(); if(pillRow) questionBox.appendChild(pillRow); moveFloor=startMin; moveCeil=startMin+180; }
   else if(mode==="bunkai"){ genBunkai(); }
@@ -1313,13 +1583,72 @@ nextBtn.addEventListener("click", ()=>{
   else genMaster();
 });
 
+/* ===== 針のドラッグ（おもちゃモード専用） ===== */
+let dragHand = null;   // "min" | "hour"
+let dragTickMin = -1;
+function svgPoint(e){
+  const r = clockSvg.getBoundingClientRect();
+  return { x:(e.clientX-r.left)/r.width*300, y:(e.clientY-r.top)/r.height*300 };
+}
+function pointAngle(p){
+  let a = Math.atan2(p.x-150, -(p.y-150))*180/Math.PI;  // 0=真上, 時計回り
+  return a<0? a+360 : a;
+}
+function pointRadius(p){ return Math.hypot(p.x-150, p.y-150); }
+function shortestDelta(from, to, mod){        // -mod/2 〜 +mod/2 の最短差
+  let d = ((to-from)%mod + mod) % mod;
+  if(d > mod/2) d -= mod;
+  return d;
+}
+function dragTo(p){
+  const a = pointAngle(p);
+  let next = curMin;
+  if(dragHand==="min"){
+    next = curMin + shortestDelta(curMin%60, Math.round(a/6)%60, 60);
+  }else{
+    next = curMin + shortestDelta(Math.floor(curMin/60)%12, Math.round(a/30)%12, 12)*60;
+  }
+  next = (next%1440 + 1440) % 1440;
+  if(next===curMin) return;
+  const wasJust = curMin%60===0;
+  curMin = next;
+  if(curMin!==dragTickMin){ tickSound(); dragTickMin = curMin; }
+  if(curMin%60===0 && !wasJust) justEffect();
+  renderClock();
+}
+clockSvg.addEventListener("pointerdown", e=>{
+  if(mode!=="toy" || animTimer) return;
+  const p = svgPoint(e), rad = pointRadius(p);
+  if(rad>135 || rad<12) return;               // 枠の外・中心は無視
+  dragHand = rad>78 ? "min" : "hour";         // 外側=長針 / 内側=短針
+  dragTickMin = -1;
+  clockWrap.classList.add("dragging");
+  try{ clockSvg.setPointerCapture(e.pointerId); }catch(_){}
+  dragTo(p);
+  e.preventDefault();
+});
+clockSvg.addEventListener("pointermove", e=>{
+  if(!dragHand) return;
+  dragTo(svgPoint(e));
+  e.preventDefault();
+});
+function endDrag(e){
+  if(!dragHand) return;
+  dragHand = null;
+  clockWrap.classList.remove("dragging");
+  try{ clockSvg.releasePointerCapture(e.pointerId); }catch(_){}
+}
+clockSvg.addEventListener("pointerup", endDrag);
+clockSvg.addEventListener("pointercancel", endDrag);
+
 /* ===== 初期化 ===== */
 buildClock();
 buildNumpad();
 scoreOk = loadOk();
 curRank = rankIdx(scoreOk);
 updateScore();
-setMode("free");
+setMode("toy");
+startDbRetry();   // ?retry=1 のときは取得でき次第、解き直しに切替
 
 </script>
 </body>

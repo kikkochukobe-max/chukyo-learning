@@ -72,6 +72,11 @@ return [
         'sub'   => '算数・小3',
         'url'   => '/learning/math/math_es3_warizanwakete.html',
     ],
+    'math_es3_tokei' => [
+        'title' => 'とけいマスター',
+        'sub'   => '算数・小3',
+        'url'   => '/learning/math/math_es3_tokei.html',
+    ],
     'allgrade_romaji' => [
         'title' => 'ローマ字マスター',
         'sub'   => 'ローマ字・五十音・英単語(おまけ)',
