@@ -39,7 +39,7 @@ body{
   padding:10px 4px 8px;border-bottom:3px double var(--sakura);margin-bottom:10px;
 }
 .divp-title h1{font-size:22px;letter-spacing:.06em;color:var(--ink);}
-.divp-title .divp-sub{font-size:12px;color:var(--ink-soft);}
+.divp-title .divp-sub{font-size:12px;color:var(--ink-soft);flex-basis:100%;margin-top:-6px;}
 .divp-title .divp-petal{color:var(--sakura-deep);font-size:18px;}
 
 /* ---- 設定（開閉式） ---- */
@@ -96,7 +96,7 @@ body{
 .divp-choices.show{display:flex;}
 .divp-choice{
   font:inherit;display:flex;align-items:center;gap:10px;
-  padding:12px 12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);
+  padding:8px 12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);
   cursor:pointer;text-align:left;overflow:hidden;
 }
 .divp-choice .divp-clabel{font-size:14px;font-weight:bold;color:var(--sakura-deep);flex:0 0 auto;}
@@ -105,6 +105,10 @@ body{
 .divp-choice.sel{border-color:var(--sakura-deep);background:var(--sakura-pale);}
 .divp-choice.hit{border-color:var(--ok);background:#E9F3EC;}
 .divp-choice.miss{border-color:#C0392B;background:#FAE7E4;}
+.divp-choice .divp-chose-tag{
+  margin-left:auto;flex:0 0 auto;font-size:11px;font-weight:bold;
+  padding:2px 9px;border-radius:999px;background:var(--ink);color:#fff;white-space:nowrap;
+}
 .divp-choices.disabled{pointer-events:none;}
 
 /* ---- 解答欄 ---- */
@@ -152,10 +156,6 @@ body{
 /* ---- フィードバック ---- */
 .divp-fb{display:none;margin-top:12px;}
 .divp-fb.show{display:block;}
-.divp-fb-head{font-size:22px;font-weight:bold;text-align:center;margin-bottom:6px;}
-.divp-fb-head.ok{color:var(--shu);}
-.divp-fb-head.ng{color:var(--ink-soft);}
-.divp-fb-ans{text-align:center;font-size:20px;margin-bottom:8px;}
 .divp-steps{
   margin-top:12px;
   background:#FFFDF7;border:1px dashed var(--sakura);
@@ -164,10 +164,13 @@ body{
 .divp-steps .divp-steps-title{font-size:21px;color:var(--sakura-deep);font-weight:bold;margin-bottom:4px;}
 .divp-step{font-size:36px;margin:10px 0;white-space:nowrap;transform-origin:left center;}
 .divp-next{
-  display:block;width:100%;max-width:400px;margin:12px auto 0;
-  font:inherit;font-size:17px;font-weight:bold;padding:13px 0;
-  border:1.5px solid var(--sakura-deep);background:#fff;color:var(--sakura-deep);cursor:pointer;
+  display:block;width:100%;max-width:400px;margin:16px auto 0;
+  font:inherit;font-size:18px;font-weight:bold;padding:15px 0;border-radius:10px;
+  border:none;background:var(--sakura-deep);color:#fff;cursor:pointer;
+  box-shadow:0 3px 0 rgba(0,0,0,.12);
 }
+.divp-next:hover{filter:brightness(1.06);}
+.divp-next:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.12);}
 .divp-toast{
   position:fixed;left:50%;bottom:90px;transform:translateX(-50%);
   background:var(--ink);color:#fff;font-size:14px;padding:9px 18px;
@@ -246,8 +249,8 @@ body{
   <div class="divp-title">
     <span class="divp-petal">❀</span>
     <h1>方程式マスター</h1>
-    <span class="divp-sub">中1数学・一次方程式</span>
     <button class="divp-print-btn" id="divpPrintBtn" type="button" title="プリント" aria-label="印刷"><span class="pi">🖨</span><span class="pl">印刷</span></button>
+    <span class="divp-sub">中1数学</span>
   </div>
 
   <div class="divp-setting open" id="divpSetting">
@@ -283,8 +286,6 @@ body{
     <button class="divp-grade" id="divpGrade" type="button">答え合わせ</button>
 
     <div class="divp-fb" id="divpFb">
-      <div class="divp-fb-head" id="divpFbHead"></div>
-      <div class="divp-fb-ans" id="divpFbAns"></div>
       <button class="divp-next" id="divpNext" type="button">次の問題へ</button>
       <div class="divp-steps">
         <div class="divp-steps-title">解き方</div>
@@ -1250,6 +1251,8 @@ function renderChoices(prob){
 function showProblem(){
   var prob=state.probs[state.qIndex];
   var isChoice=(prob.type==="choice");
+  // 前問の正解スタンプが残っていれば消す（カードは再描画されず要素だけ更新するため）
+  document.querySelectorAll(".divp-qcard .divp-hanko").forEach(function(el){el.remove();});
   var q=$("divpQtext");
   kx(q,prob.latex);
   fitText(q,q.parentNode,"center center");
@@ -1300,8 +1303,16 @@ function grade(){
     var btns=$("divpChoices").querySelectorAll(".divp-choice");
     btns.forEach(function(b,i){
       b.classList.remove("sel");
+      var chosen=sel.indexOf(i)>=0;
       if(prob.corrects.indexOf(i)>=0)b.classList.add("hit");
-      else if(sel.indexOf(i)>=0)b.classList.add("miss");
+      else if(chosen)b.classList.add("miss");
+      // 自分が選んだ選択肢に「選んだ」タグを付けて、正解表示と区別できるようにする
+      if(chosen){
+        var tag=document.createElement("span");
+        tag.className="divp-chose-tag";
+        tag.textContent="選んだ";
+        b.appendChild(tag);
+      }
     });
     $("divpChoices").classList.add("disabled");
   }else{
@@ -1315,19 +1326,6 @@ function grade(){
   if(!ok&&!state.retrying)state.wrongs.push(prob);
   if(!ok&&state.retrying)state.wrongs.push(prob);
 
-  var head=$("divpFbHead");
-  head.textContent=ok?"◎ 正解！":"✕ ざんねん…";
-  head.className="divp-fb-head "+(ok?"ok":"ng");
-  if(isChoice){
-    var labs=prob.corrects.map(function(i){return CLABELS[i];}).join("・");
-    if(prob.choices[prob.corrects[0]].text){
-      $("divpFbAns").textContent="答え："+labs+"　"+prob.choices[prob.corrects[0]].text;
-    }else{
-      kx($("divpFbAns"),"\\text{答え：}\\text{"+labs+"}");
-    }
-  }else{
-    kx($("divpFbAns"),"x = "+fmtR(prob.ans));
-  }
   var body=$("divpStepsBody");body.innerHTML="";
   prob.steps.forEach(function(s){
     var line=document.createElement("div");line.className="divp-step";
