@@ -51,6 +51,18 @@ function parse_title(string $raw): array
     return [$kept[0], $kept[1] ?? ''];
 }
 
+// 学年バッジ（小3 / 中1 / 高2 / 小学 / 全学年 / 空）を並べ替え用の数値に変換する。
+// 小(100)→中(200)→高(300)→全学年(900)→不明(800) を基準に学年番号を加算。
+// 番号なし（小学・中学）は同校種の番号付きより前に来る。
+function grade_rank(string $grade): int
+{
+    $school = mb_substr($grade, 0, 1);
+    $base = ['小' => 100, '中' => 200, '高' => 300][$school]
+        ?? ($grade === '全学年' ? 900 : 800);
+    if (preg_match('/(\d)/u', $grade, $m)) return $base + (int)$m[1];
+    return $base;
+}
+
 // ファイル名の2番目の要素（es3/js/hs2 等）から学年バッジ文字列を作る
 function grade_badge(string $filename): string
 {
@@ -120,13 +132,17 @@ foreach ($manual as $i => $m) {
     ];
 }
 
-// 教科の定義順 → 手動リンク優先（表の順）→ ファイル名順に並べる
+// 教科の定義順 → 学年順（小1→…→高3）→ 同学年内は手動リンク優先 → ファイル名順に並べる
 $order = array_flip(array_keys($subjects));
 usort($tools, function (array $a, array $b) use ($order): int {
     $oa = $order[$a['folder']] ?? 999;
     $ob = $order[$b['folder']] ?? 999;
     if ($oa !== $ob) return $oa <=> $ob;
-    // 手動リンク（seq付き）を各教科の先頭に、$manual の並び順で固定
+    // 学年順（数学は 中1→中2→中3→高… の順。href文字列順だと高が中より先に来てしまうため）
+    $ga = grade_rank($a['grade']);
+    $gb = grade_rank($b['grade']);
+    if ($ga !== $gb) return $ga <=> $gb;
+    // 同学年内では手動リンク（seq付き）を先に、$manual の並び順で固定
     $sa = $a['seq'] ?? PHP_INT_MAX;
     $sb = $b['seq'] ?? PHP_INT_MAX;
     if ($sa !== $sb) return $sa <=> $sb;
