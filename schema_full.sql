@@ -247,12 +247,13 @@ CREATE TABLE IF NOT EXISTS retry_queue (
 -- 10. guardians（保護者）※専用ログインのリリースは後日。器だけ先行作成
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS guardians (
-  guardian_id   INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  login_id      VARCHAR(50)  NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  guardian_name VARCHAR(50)  NOT NULL,
-  is_active     TINYINT(1)   NOT NULL DEFAULT 1,
-  created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  guardian_id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  login_id             VARCHAR(50)  NOT NULL,
+  password_hash        VARCHAR(255) NOT NULL,
+  guardian_name        VARCHAR(50)  NOT NULL,
+  must_change_password TINYINT(1)   NOT NULL DEFAULT 1,
+  is_active            TINYINT(1)   NOT NULL DEFAULT 1,
+  created_at           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (guardian_id),
   UNIQUE KEY uq_guardian_login (login_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

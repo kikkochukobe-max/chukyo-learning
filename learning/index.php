@@ -18,6 +18,21 @@ $subjects = [
     'game'     => ['label' => 'ゲーム',     'color' => '#E07A3F'],
 ];
 
+// ---- 手動で足すリンク（自動スキャン対象外・別サイトの対策アプリ等）----
+// 自動生成カードと区別できるよう external=true で藍の破線スタイル＋別タブ表示。
+// 配列の並び順がそのまま各教科セクションの先頭での表示順になる（表の順を維持）。
+// 新しく足す時はこの配列に1行追加するだけ。
+$manual = [
+    ['folder' => 'math', 'grade' => '中1', 'title' => '文字の式対策',     'href' => 'https://mojinoshiki.chukyo.workers.dev/Mojinoshiki'],
+    ['folder' => 'math', 'grade' => '中1', 'title' => '方程式対策',       'href' => 'https://houteishiki.chukyo.workers.dev/Houteishiki'],
+    ['folder' => 'math', 'grade' => '中2', 'title' => '式の計算対策',     'href' => 'https://shikinokeisan.chukyo.workers.dev/ShikinoKeisan'],
+    ['folder' => 'math', 'grade' => '中2', 'title' => '連立方程式対策',   'href' => 'https://renritsuhoteishiki.chukyo.workers.dev/Renritsuhoteishiki'],
+    ['folder' => 'math', 'grade' => '中2', 'title' => '一次関数対策',     'href' => 'https://ichijikansu.chukyo.workers.dev/Ichijikansu'],
+    ['folder' => 'math', 'grade' => '中3', 'title' => '展開因数分解対策', 'href' => 'https://tenkaiinsu.chukyo.workers.dev/TenkaiInsu'],
+    ['folder' => 'math', 'grade' => '中3', 'title' => '平方根対策',       'href' => 'https://heihoukon.chukyo.workers.dev/Heihoukon'],
+    ['folder' => 'math', 'grade' => '中3', 'title' => '二次方程式対策',   'href' => 'https://nijihoteishiki.chukyo.workers.dev/Nijihoteishiki'],
+];
+
 // <title> を「メインタイトル」「サブタイトル」に分解する。
 // ｜ | や前後スペース付きダッシュで区切り、塾名・地名の羅列（・が3個以上）は捨てる
 function parse_title(string $raw): array
@@ -90,12 +105,32 @@ foreach ($dirs as $dir) {
     }
 }
 
-// 教科の定義順 → ファイル名順に並べる
+// 手動リンクを $tools に合流（seq=配列内の順番。教科内での表示順に使う）
+foreach ($manual as $i => $m) {
+    $tools[] = [
+        'folder'   => $m['folder'],
+        'href'     => $m['href'],
+        'title'    => $m['title'],
+        'sub'      => $m['sub'] ?? '',
+        'grade'    => $m['grade'] ?? '',
+        'device'   => '',
+        'isNew'    => false,
+        'external' => true,
+        'seq'      => $i,
+    ];
+}
+
+// 教科の定義順 → 手動リンク優先（表の順）→ ファイル名順に並べる
 $order = array_flip(array_keys($subjects));
 usort($tools, function (array $a, array $b) use ($order): int {
     $oa = $order[$a['folder']] ?? 999;
     $ob = $order[$b['folder']] ?? 999;
-    return $oa <=> $ob ?: strcmp($a['href'], $b['href']);
+    if ($oa !== $ob) return $oa <=> $ob;
+    // 手動リンク（seq付き）を各教科の先頭に、$manual の並び順で固定
+    $sa = $a['seq'] ?? PHP_INT_MAX;
+    $sb = $b['seq'] ?? PHP_INT_MAX;
+    if ($sa !== $sb) return $sa <=> $sb;
+    return strcmp($a['href'], $b['href']);
 });
 
 // タブは「ツールが存在する教科」だけ出す（未定義フォルダはフォルダ名のまま）
@@ -266,6 +301,21 @@ function subject_color(array $subjects, string $folder): string
     font-weight:700;font-size:12px;
   }
 
+  /* ---------- 手動追加リンク（別サイトの対策アプリ）---------- */
+  /* 自動生成カード（白地＋教科色の上バー）と区別: 藍の破線枠＋淡い藍地＋別タブ */
+  .card.external{
+    border:2px dashed var(--ai);
+    background:linear-gradient(180deg,#F3F8FC,var(--white));
+  }
+  .card.external:hover{
+    border-color:#22496B;
+    box-shadow:0 3px 8px rgba(44,95,138,.12), 0 12px 26px rgba(44,95,138,.14);
+  }
+  .badge.ext{
+    background:var(--ai);color:var(--white);letter-spacing:.04em;
+  }
+  .card.external .go{color:var(--ai)}
+
   .empty{
     text-align:center;padding:70px 16px;color:var(--ink-soft);
     display:none;
@@ -324,18 +374,24 @@ function subject_color(array $subjects, string $folder): string
       <?php foreach ($tools as $t): if ($t['folder'] !== $folder) continue;
         $color = subject_color($subjects, $folder);
         $search = mb_strtolower($t['title'] . ' ' . $t['sub'] . ' ' . $t['grade'] . ' ' . $label . ' ' . $t['href']);
+        $isExt = !empty($t['external']); // 手動追加リンク（別サイトの対策アプリ）は別スタイル＋別タブ
       ?>
-      <a class="card" href="<?= h($t['href']) ?>"
-         style="border-top-color:<?= h($color) ?>"
+      <a class="card<?= $isExt ? ' external' : '' ?>" href="<?= h($t['href']) ?>"
+         <?php if ($isExt): ?>target="_blank" rel="noopener"<?php else: ?>style="border-top-color:<?= h($color) ?>"<?php endif; ?>
          data-search="<?= h($search) ?>">
         <div class="badges">
           <?php if ($t['grade'] !== ''): ?><span class="badge grade"><?= h($t['grade']) ?></span><?php endif; ?>
+          <?php if ($isExt): ?><span class="badge ext">別サイト ↗</span><?php endif; ?>
           <?php if ($t['device'] !== ''): ?><span class="badge device">💻 <?= h($t['device']) ?></span><?php endif; ?>
           <?php if ($t['isNew']): ?><span class="badge new">NEW</span><?php endif; ?>
         </div>
         <h3><?= h($t['title']) ?></h3>
         <?php if ($t['sub'] !== ''): ?><p class="sub"><?= h($t['sub']) ?></p><?php endif; ?>
+        <?php if ($isExt): ?>
+        <div class="go">ひらく ↗</div>
+        <?php else: ?>
         <div class="go" style="color:<?= h($color) ?>">はじめる →</div>
+        <?php endif; ?>
       </a>
       <?php endforeach; ?>
     </div>

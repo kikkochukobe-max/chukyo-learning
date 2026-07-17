@@ -3,11 +3,19 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-// ログイン中の講師が自分のパスワードを変更する。
+// ログイン中の講師・保護者が自分のパスワードを変更する。
 // 現在のパスワードの照合を必須にし、成功時に must_change_password を落とす。
+// パスワードルールは両者共通（8〜15文字の半角英数）。
 
 require_post();
-$actor = require_login(['teacher']);
+$actor = require_login(['teacher', 'guardian']);
+
+// actor_type ごとの更新先（require_login を通っているので type はこの2つに限られる）
+$tables = [
+    'teacher'  => ['table' => 'teachers',  'id' => 'teacher_id'],
+    'guardian' => ['table' => 'guardians', 'id' => 'guardian_id'],
+];
+$t = $tables[$actor['type']];
 
 $input = json_input();
 $current = (string)($input['current_password'] ?? '');
@@ -21,7 +29,7 @@ if ($new === $current) {
 }
 
 $pdo = db();
-$stmt = $pdo->prepare('SELECT password_hash FROM teachers WHERE teacher_id = :id AND is_active = 1');
+$stmt = $pdo->prepare("SELECT password_hash FROM {$t['table']} WHERE {$t['id']} = :id AND is_active = 1");
 $stmt->execute(['id' => $actor['id']]);
 $hash = $stmt->fetchColumn();
 
@@ -30,7 +38,7 @@ if (!$hash || !password_verify($current, $hash)) {
 }
 
 $stmt = $pdo->prepare(
-    'UPDATE teachers SET password_hash = :hash, must_change_password = 0 WHERE teacher_id = :id'
+    "UPDATE {$t['table']} SET password_hash = :hash, must_change_password = 0 WHERE {$t['id']} = :id"
 );
 $stmt->execute([
     'hash' => password_hash($new, PASSWORD_DEFAULT),

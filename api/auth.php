@@ -93,6 +93,10 @@ if ($actorType === 'teacher') {
     $actor['role'] = $row['role'];
     $actor['must_change_password'] = (bool)$row['must_change_password'];
 }
+if ($actorType === 'guardian') {
+    // 保護者も講師と同じ「仮パスワード→初回ログインで変更」方式
+    $actor['must_change_password'] = (bool)$row['must_change_password'];
+}
 if ($actorType === 'student') {
     $actor['classroom_id'] = (int)$row['classroom_id'];
 }

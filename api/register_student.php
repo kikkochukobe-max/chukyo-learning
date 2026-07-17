@@ -82,9 +82,15 @@ if ((int)$stmt->fetchColumn() === 0) {
 $yearPrefix = date('y');
 $passwordHash = password_hash($pin, PASSWORD_DEFAULT);
 
-// 同時登録で連番が衝突した場合はUNIQUE制約違反(23000)を捕まえて採番し直す
+// 同時登録で連番が衝突した場合はUNIQUE制約違反(23000)を捕まえて採番し直す。
+// 保護者アカウント（ID=g+生徒コード / PIN自動生成 / 表示名=生徒名+保護者様）も
+// 同じトランザクションで自動発行する。兄弟が後から入塾した場合は自動発行されたものを
+// admin.php の「兄弟・姉妹の追加」で上の子の保護者へ付け替えて統合する。
 for ($attempt = 0; $attempt < 5; $attempt++) {
     $loginId = next_student_login_id($pdo, $yearPrefix);
+    // 保護者は講師と同じ仮パスワード方式（8字英数を自動発行、初回ログインで本人が8〜15字英数に変更）
+    $guardianPassword = generate_temp_password();
+    $pdo->beginTransaction();
     try {
         $stmt = $pdo->prepare(
             'INSERT INTO students (classroom_id, login_id, password_hash, student_name, grade, target_private_id, target_public_id, created_by)
@@ -100,12 +106,32 @@ for ($attempt = 0; $attempt < 5; $attempt++) {
             'tpub'          => $targetPublic,
             'created_by'    => $actor['id'],
         ]);
+        $studentId = (int)$pdo->lastInsertId();
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO guardians (login_id, password_hash, guardian_name)
+             VALUES (:login_id, :password_hash, :guardian_name)'
+        );
+        $stmt->execute([
+            'login_id'      => 'g' . $loginId,
+            'password_hash' => password_hash($guardianPassword, PASSWORD_DEFAULT),
+            'guardian_name' => mb_substr($studentName . ' 保護者様', 0, 50),
+        ]);
+        $guardianId = (int)$pdo->lastInsertId();
+
+        $stmt = $pdo->prepare('INSERT INTO guardian_students (guardian_id, student_id) VALUES (:gid, :sid)');
+        $stmt->execute(['gid' => $guardianId, 'sid' => $studentId]);
+
+        $pdo->commit();
         json_response([
-            'ok'         => true,
-            'student_id' => (int)$pdo->lastInsertId(),
-            'login_id'   => $loginId,
+            'ok'                => true,
+            'student_id'        => $studentId,
+            'login_id'          => $loginId,
+            'guardian_login_id' => 'g' . $loginId,
+            'guardian_password' => $guardianPassword,
         ]);
     } catch (PDOException $e) {
+        $pdo->rollBack();
         if ($e->getCode() !== '23000' || $attempt === 4) {
             throw $e;
         }

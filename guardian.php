@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 // 保護者閲覧ページ。ひもづく子ども全員の学習サマリー（学習時間・種類別の解答数/正解数/正答率）を表示。
 // 設計ルール: 誤解答の詳細・端末情報は出さない（それらは講師画面専用）。
-// 保護者ログインは login_id = g+代表の子の生徒コード / PIN 4桁（auth.php の actor_type=guardian）。
+// 保護者ログインは login_id = g+代表の子の生徒コード / パスワード（auth.php の actor_type=guardian）。
+// パスワードは講師と同じ方式: 登録時に仮パスワード(8字英数)が自動発行され、
+// must_change_password=1 の間はこのページで本人が8〜15字の英数に変更するまで内容を表示しない。
 require_once __DIR__ . '/api/db.php';
 require_once __DIR__ . '/api/helpers.php';
 
@@ -52,12 +54,17 @@ function period_where(string $column, ?DateTimeImmutable $from, ?DateTimeImmutab
 
 $children = [];
 $guardianName = '';
+$mustChange = false;
 if ($isGuardian) {
     $pdo = db();
-    $stmt = $pdo->prepare('SELECT guardian_name FROM guardians WHERE guardian_id = :id');
+    $stmt = $pdo->prepare('SELECT guardian_name, must_change_password FROM guardians WHERE guardian_id = :id');
     $stmt->execute(['id' => $actor['id']]);
-    $guardianName = (string)$stmt->fetchColumn();
-
+    $g = $stmt->fetch();
+    $guardianName = (string)($g['guardian_name'] ?? '');
+    $mustChange = (bool)($g['must_change_password'] ?? false);
+}
+if ($isGuardian && !$mustChange) {
+    $pdo = db();
     $stmt = $pdo->prepare(
         'SELECT s.student_id, s.student_name, s.grade, c.classroom_name
          FROM guardian_students gs
@@ -248,9 +255,9 @@ if ($isGuardian) {
 <?php if (!$isGuardian): ?>
 <div class="box">
   <h1>保護者ページ</h1>
-  <p class="sub">保護者IDとPINでログインしてください</p>
+  <p class="sub">保護者IDとパスワードでログインしてください</p>
   <label>保護者ID（例: g260038）<input type="text" id="lid" autocomplete="username"></label>
-  <label>PIN（4桁）<input type="password" id="lpin" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="current-password"></label>
+  <label>パスワード<input type="password" id="lpin" maxlength="15" autocomplete="current-password"></label>
   <button id="login-btn" type="button">ログイン</button>
   <div class="err" id="login-err"></div>
 </div>
@@ -260,7 +267,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
   errEl.textContent = '';
   const login_id = document.getElementById('lid').value.trim();
   const pin = document.getElementById('lpin').value.trim();
-  if (!login_id || !pin) { errEl.textContent = '保護者IDとPINを入力してください'; return; }
+  if (!login_id || !pin) { errEl.textContent = '保護者IDとパスワードを入力してください'; return; }
   try {
     const res = await fetch('/api/auth.php', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
@@ -269,10 +276,51 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     const data = await res.json().catch(() => null);
     if (res.ok && data && data.ok) { location.reload(); }
     else if (data && data.error === 'locked') { errEl.textContent = '失敗が続いたためロック中です。10分後にやり直してください'; }
-    else { errEl.textContent = '保護者IDかPINが違います'; }
+    else { errEl.textContent = '保護者IDかパスワードが違います'; }
   } catch (e) { errEl.textContent = '通信エラーが発生しました'; }
 });
 document.getElementById('lpin').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('login-btn').click(); });
+</script>
+<?php elseif ($mustChange): ?>
+<div class="box">
+  <h1>パスワードの設定</h1>
+  <p class="sub"><?= h($guardianName) ?><br>仮パスワードでログインしています。<br>ご自身の新しいパスワードを設定してください（8〜15文字の半角英数）</p>
+  <label>仮パスワード（今ログインに使ったもの）<input type="password" id="cur" maxlength="15" autocomplete="current-password"></label>
+  <label>新しいパスワード<input type="password" id="npw" maxlength="15" autocomplete="new-password"></label>
+  <label>新しいパスワード（確認）<input type="password" id="npw2" maxlength="15" autocomplete="new-password"></label>
+  <button id="pw-btn" type="button">設定する</button>
+  <div class="err" id="pw-err"></div>
+  <footer><a href="#" id="logout" style="color:var(--ai);">ログアウト</a></footer>
+</div>
+<script>
+document.getElementById('pw-btn').addEventListener('click', async () => {
+  const err = document.getElementById('pw-err');
+  err.textContent = '';
+  const cur = document.getElementById('cur').value;
+  const npw = document.getElementById('npw').value;
+  const npw2 = document.getElementById('npw2').value;
+  if (!/^[A-Za-z0-9]{8,15}$/.test(npw)) { err.textContent = 'パスワードは8〜15文字の半角英数にしてください'; return; }
+  if (npw !== npw2) { err.textContent = '確認用のパスワードが一致しません'; return; }
+  try {
+    const res = await fetch('/api/change_password.php', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+      body: JSON.stringify({ current_password: cur, new_password: npw }),
+    });
+    const data = await res.json().catch(() => null);
+    if (res.ok && data && data.ok) {
+      alert('新しいパスワードを設定しました。次回からこのパスワードでログインしてください。');
+      location.reload();
+    }
+    else if (data && data.error === 'wrong_password') { err.textContent = '仮パスワードが違います'; }
+    else if (data && data.error === 'same_password') { err.textContent = '仮パスワードと同じパスワードにはできません'; }
+    else { err.textContent = '設定に失敗しました。もう一度お試しください'; }
+  } catch (e) { err.textContent = '通信エラーが発生しました'; }
+});
+document.getElementById('logout').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await fetch('/api/logout.php', { method: 'POST', credentials: 'same-origin' });
+  location.reload();
+});
 </script>
 <?php else: ?>
 <div class="wrap">

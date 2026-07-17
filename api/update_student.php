@@ -87,4 +87,12 @@ $params['id'] = $student['student_id'];
 $stmt = $pdo->prepare('UPDATE students SET ' . implode(', ', $sets) . ' WHERE student_id = :id');
 $stmt->execute($params);
 
+// 保護者の表示名は「代表の子の生徒名＋保護者様」（氏名の登録欄は無い）。
+// 代表の子（保護者ID = g+生徒コード）の改名にはここでリアルタイムに追従させる。
+$stmt = $pdo->prepare('UPDATE guardians SET guardian_name = :name WHERE login_id = :gid');
+$stmt->execute([
+    'name' => mb_substr($studentName . ' 保護者様', 0, 50),
+    'gid'  => 'g' . $loginId,
+]);
+
 json_response(['ok' => true, 'login_id' => $loginId, 'student_name' => $studentName]);

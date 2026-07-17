@@ -21,22 +21,17 @@ if (!in_array($requesterRole, ['super_admin', 'classroom_admin'], true)) {
 }
 
 $input = json_input();
-$pin = (string)($input['pin'] ?? '');
-$guardianName = trim((string)($input['guardian_name'] ?? ''));
 $studentCodes = is_array($input['student_codes'] ?? null)
     ? array_values(array_filter(array_map(fn($v) => trim((string)$v), $input['student_codes']), fn($v) => $v !== ''))
     : [];
 
-// 保護者PINは生徒と同じ4桁数字（テンキー完結）
-if (!preg_match('/^\d{4}$/', $pin)) {
-    json_response(['ok' => false, 'error' => 'invalid_pin'], 400);
-}
-if ($guardianName === '' || mb_strlen($guardianName) > 50) {
-    json_response(['ok' => false, 'error' => 'invalid_guardian_name'], 400);
-}
 if (count($studentCodes) === 0) {
     json_response(['ok' => false, 'error' => 'student_codes_required'], 400);
 }
+
+// 保護者は講師と同じ仮パスワード方式（8字英数を自動発行して応答でのみ返す。
+// 本人が初回ログイン時に8〜15字の英数へ変更する。must_change_password はDBのDEFAULT 1）
+$password = generate_temp_password();
 
 // 保護者ログインIDは「代表のお子さま（最初に指定した生徒）の生徒コード」に g を付けて自動採番。
 // 例: 260038 → g260038。兄弟は下の guardian_students で複数ひもづける。
@@ -45,7 +40,9 @@ $loginId = 'g' . $studentCodes[0];
 
 // 生徒コード→student_id を解決。存在しないコードがあれば登録しない
 $studentIds = [];
-$stmt = $pdo->prepare('SELECT student_id, classroom_id FROM students WHERE login_id = :login_id AND is_active = 1');
+$children = [];  // 「コード 氏名」の一覧（案内文用に返す）
+$repName = '';   // 代表の子の氏名（保護者の表示名の元）
+$stmt = $pdo->prepare('SELECT student_id, student_name, classroom_id FROM students WHERE login_id = :login_id AND is_active = 1');
 $check = $pdo->prepare('SELECT COUNT(*) FROM teacher_classrooms WHERE teacher_id = :tid AND classroom_id = :cid');
 foreach (array_unique($studentCodes) as $code) {
     $stmt->execute(['login_id' => $code]);
@@ -59,8 +56,15 @@ foreach (array_unique($studentCodes) as $code) {
             json_response(['ok' => false, 'error' => 'forbidden_classroom', 'student_code' => $code], 403);
         }
     }
+    if ($repName === '') {
+        $repName = $row['student_name'];
+    }
     $studentIds[] = (int)$row['student_id'];
+    $children[] = $code . ' ' . $row['student_name'];
 }
+
+// 保護者氏名は登録せず「代表の子の生徒名＋保護者様」を自動設定する（登録時点のスナップショット）
+$guardianName = mb_substr($repName . ' 保護者様', 0, 50);
 
 $pdo->beginTransaction();
 try {
@@ -70,7 +74,7 @@ try {
     );
     $stmt->execute([
         'login_id'      => $loginId,
-        'password_hash' => password_hash($pin, PASSWORD_DEFAULT),
+        'password_hash' => password_hash($password, PASSWORD_DEFAULT),
         'guardian_name' => $guardianName,
     ]);
     $guardianId = (int)$pdo->lastInsertId();
@@ -89,8 +93,11 @@ try {
 }
 
 json_response([
-    'ok'          => true,
-    'guardian_id' => $guardianId,
-    'login_id'    => $loginId,
-    'linked'      => count($studentIds),
+    'ok'            => true,
+    'guardian_id'   => $guardianId,
+    'login_id'      => $loginId,
+    'temp_password' => $password,
+    'guardian_name' => $guardianName,
+    'children'      => implode('、', $children),
+    'linked'        => count($studentIds),
 ]);
