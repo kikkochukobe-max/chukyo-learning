@@ -665,6 +665,11 @@ function safeDivpCorrect(selector) {
     try { Divp.correct(selector); } catch (e) {}
   }
 }
+function safeDivpIncorrect(selector) {
+  if (window.Divp && typeof Divp.incorrect === 'function') {
+    try { Divp.incorrect(selector); } catch (e) {}
+  }
+}
 
 // ===== DB記録用の問題表現（機械用paramsと人間用テキストの二重表現） =====
 function sortedBlanks() {
@@ -1116,6 +1121,7 @@ function checkAnswer() {
     score.wrong++;
     score.streak = 0;
     updateScore();
+    safeDivpIncorrect('.magic-grid');
     showResult('✗ 違います。赤いマスを確認してください', 'error');
   }
 }

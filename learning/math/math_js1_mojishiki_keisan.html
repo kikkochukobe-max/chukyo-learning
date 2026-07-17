@@ -1140,6 +1140,9 @@ function safeDivpCorrect(){
   if(window.Divp && typeof Divp.correct==="function"){ try{Divp.correct();return;}catch(e){} }
   const h=$("hanko"); h.classList.remove("show"); void h.offsetWidth; h.classList.add("show");
 }
+function safeDivpIncorrect(){
+  if(window.Divp && typeof Divp.incorrect==="function"){ try{Divp.incorrect('.qcard');}catch(e){} }
+}
 /* ===== 学習記録システム連携（divp-core.js の Divp.answer）=====
  * 正誤判定の直後に1問=1行を送る。未ログイン・ローカル・API未疎通では
  * divp-core 側で黙ってスキップされる（safeDivpCorrect と同じ思想）。*/
@@ -1279,7 +1282,7 @@ function finish(isOk){
   if(isOk){ state.ok++; state.streak++; safeDivpCorrect();
     $("verdict").innerHTML='<span class="ok">正解！</span>';
   }else{
-    state.streak=0;
+    state.streak=0; safeDivpIncorrect();
     const v=$("verdict");
     v.innerHTML='<span class="cheer">間違えても大丈夫！正しく覚え直そう！</span>'
       +'<div class="ans">正しい答え → <span id="vAns"></span></div>'

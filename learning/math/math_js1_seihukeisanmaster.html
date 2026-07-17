@@ -1066,6 +1066,11 @@ function safeDivpCorrect(selector) {
     try { Divp.correct(selector); } catch (e) {}
   }
 }
+function safeDivpIncorrect(selector) {
+  if (window.Divp && typeof Divp.incorrect === 'function') {
+    try { Divp.incorrect(selector); } catch (e) {}
+  }
+}
 
 function renderCard() {
   $('quiz-area').innerHTML =
@@ -1248,7 +1253,7 @@ function checkAnswer() {
   var a = cur.ans, ok = (ua.n === a.n && ua.d === a.d);
 
   if (ok) { correctCount++; safeDivpCorrect('#q-card'); }
-  else { wrongCount++; wrongProbs.push(cur); }
+  else { wrongCount++; wrongProbs.push(cur); safeDivpIncorrect('#q-card'); }
 
   Divp.answer(ok, {
     question_key: currentMode,

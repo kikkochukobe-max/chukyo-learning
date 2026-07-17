@@ -180,6 +180,7 @@
 
 // 共通モジュール未読込・ローカル起動でも壊れないよう guard で包む
 function safeDivpCorrect(){try{if(window.Divp&&Divp.correct)Divp.correct('#qcard');}catch(e){}}
+function safeDivpIncorrect(){try{if(window.Divp&&Divp.incorrect)Divp.incorrect('#qcard');}catch(e){}}
 function safeDivpAnswer(ok,meta){try{if(window.Divp&&Divp.answer)Divp.answer(ok,meta);}catch(e){}}
 
 /* ── 通常問題の項定義 ─────────────────────────── */
@@ -416,7 +417,7 @@ function ans(choice) {
     $btns[choice].classList.add('hit', 'do-pop');
     safeDivpCorrect();
   } else {
-    st.s = 0;
+    st.s = 0; safeDivpIncorrect();
     $btns[choice].classList.add('miss', 'do-shake');
     $btns[cur.answer].classList.add('hit');
   }

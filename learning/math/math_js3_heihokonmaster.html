@@ -1553,7 +1553,7 @@ function checkAnswer() {
   }
 
   if (isCorrect) { correctCount++; safeDivpCorrect('.question-card'); }
-  else { wrongCount++; tfWrongQs.push(questions[currentQ]); }
+  else { wrongCount++; tfWrongQs.push(questions[currentQ]); safeDivpIncorrect('.question-card'); }
   Divp.answer(isCorrect, {
     question_key: 'truefalse',
     question_params: { mode: questions[currentQ].mode, statements: questions[currentQ].statements },
@@ -1774,6 +1774,11 @@ function safeDivpCorrect(selector) {
     try { Divp.correct(selector); } catch (e) {}
   }
 }
+function safeDivpIncorrect(selector) {
+  if (window.Divp && typeof Divp.incorrect === 'function') {
+    try { Divp.incorrect(selector); } catch (e) {}
+  }
+}
 let currentMode = 'truefalse';
 let consecutivePerfect = 0;
 // 解き直し用
@@ -1938,7 +1943,7 @@ function renderSimplifyQuestion() {
 
 function selectSimplifyAnswer(chosen, s, options) {
   const isCorrect = chosen.a === s.a && chosen.b === s.b;
-  if (isCorrect) { sCorrect++; safeDivpCorrect('.simplify-problem'); } else { sWrong++; sWrongProbs.push(sQuestions[sCurrentQ]); }
+  if (isCorrect) { sCorrect++; safeDivpCorrect('.simplify-problem'); } else { sWrong++; sWrongProbs.push(sQuestions[sCurrentQ]); safeDivpIncorrect('.simplify-problem'); }
   Divp.answer(isCorrect, {
     question_key: 'simplify',
     question_params: { n: s.n, a: s.a, b: s.b },
@@ -3004,7 +3009,7 @@ function renderMDQuestion() {
 
 function selectMDAnswer(chosen, prob, opts) {
   const isCorrect = chosen.correct;
-  if (isCorrect) { mdCorrect++; safeDivpCorrect('.muldiv-problem'); } else { mdWrong++; mdWrongProbs.push(prob); }
+  if (isCorrect) { mdCorrect++; safeDivpCorrect('.muldiv-problem'); } else { mdWrong++; mdWrongProbs.push(prob); safeDivpIncorrect('.muldiv-problem'); }
   Divp.answer(isCorrect, {
     question_key: 'muldiv',
     question_params: prob,
@@ -3383,7 +3388,7 @@ function renderASQuestion() {
 
 function selectASAnswer(chosen, prob, opts) {
   const isCorrect = chosen.correct;
-  if (isCorrect) { asCorrect++; safeDivpCorrect('.muldiv-problem'); } else { asWrong++; asWrongProbs.push(prob); }
+  if (isCorrect) { asCorrect++; safeDivpCorrect('.muldiv-problem'); } else { asWrong++; asWrongProbs.push(prob); safeDivpIncorrect('.muldiv-problem'); }
   Divp.answer(isCorrect, {
     question_key: 'addsub',
     question_params: prob,
@@ -3668,7 +3673,7 @@ function renderMixQuestion(){
 
 function selectMixAnswer(chosen, prob, opts){
   const isCorrect = chosen.correct;
-  if (isCorrect){ mixCorrect++; safeDivpCorrect('.muldiv-problem'); } else { mixWrong++; mixWrongProbs.push(prob); }
+  if (isCorrect){ mixCorrect++; safeDivpCorrect('.muldiv-problem'); } else { mixWrong++; mixWrongProbs.push(prob); safeDivpIncorrect('.muldiv-problem'); }
   Divp.answer(isCorrect, {
     question_key: 'mixed',
     question_params: prob,
@@ -3930,7 +3935,7 @@ function renderApxQuestion(){
 function selectApxAnswer(chosen, prob, opts){
   const isCorrect = chosen.correct;
   if (isCorrect) { apxCorrect++; safeDivpCorrect('.muldiv-problem'); }
-  else { apxWrong++; apxWrongProbs.push(prob); }
+  else { apxWrong++; apxWrongProbs.push(prob); safeDivpIncorrect('.muldiv-problem'); }
   Divp.answer(isCorrect, {
     question_key: 'approx',
     question_params: prob,
@@ -4216,7 +4221,7 @@ function gradeIntMulti(prob){
     else if(!isAns&&isSel)b.classList.add('result-wrong');
   });
   const checkBtn=document.getElementById('int-check'); if(checkBtn)checkBtn.remove();
-  if(isCorrect){ intCorrect++; safeDivpCorrect('.muldiv-problem'); } else { intWrong++; intWrongProbs.push(prob); }
+  if(isCorrect){ intCorrect++; safeDivpCorrect('.muldiv-problem'); } else { intWrong++; intWrongProbs.push(prob); safeDivpIncorrect('.muldiv-problem'); }
   Divp.answer(isCorrect, {
     question_key: 'intval',
     question_params: prob,
@@ -4242,7 +4247,7 @@ function gradeIntMulti(prob){
 }
 function selectIntAnswer(chosen, prob, opts){
   const isCorrect=chosen.correct;
-  if(isCorrect){ intCorrect++; safeDivpCorrect('.muldiv-problem'); } else { intWrong++; intWrongProbs.push(prob); }
+  if(isCorrect){ intCorrect++; safeDivpCorrect('.muldiv-problem'); } else { intWrong++; intWrongProbs.push(prob); safeDivpIncorrect('.muldiv-problem'); }
   Divp.answer(isCorrect, {
     question_key: 'intval',
     question_params: prob,
@@ -4541,7 +4546,7 @@ function renderSubstQuestion(){
 
 function selectSubstAnswer(chosen,prob,opts){
   const isCorrect=chosen.correct;
-  if(isCorrect){ subCorrect++; safeDivpCorrect('.muldiv-problem'); } else { subWrong++; subWrongProbs.push(prob); }
+  if(isCorrect){ subCorrect++; safeDivpCorrect('.muldiv-problem'); } else { subWrong++; subWrongProbs.push(prob); safeDivpIncorrect('.muldiv-problem'); }
   Divp.answer(isCorrect, {
     question_key: 'subst',
     question_params: prob,
@@ -4767,7 +4772,7 @@ function renderExamQuestion(){
 
 function selectExamAnswer(chosen, prob, opts){
   const isCorrect=chosen.correct;
-  if(isCorrect){ exCorrect++; safeDivpCorrect('.muldiv-problem'); } else { exWrong++; exWrongProbs.push(prob); }
+  if(isCorrect){ exCorrect++; safeDivpCorrect('.muldiv-problem'); } else { exWrong++; exWrongProbs.push(prob); safeDivpIncorrect('.muldiv-problem'); }
   Divp.answer(isCorrect, {
     question_key:'exam',
     question_params:{subtype:prob.subtype, ...(prob.params||{})},

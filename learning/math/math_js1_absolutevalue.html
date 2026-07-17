@@ -830,6 +830,9 @@ const ZA_TYPES=['abs2num','num2abs','range','count','sort'];
 function safeDivpCorrect(sel){
   if(window.Divp&&typeof Divp.correct==='function'){try{Divp.correct(sel);}catch(e){}}
 }
+function safeDivpIncorrect(sel){
+  if(window.Divp&&typeof Divp.incorrect==='function'){try{Divp.incorrect(sel);}catch(e){}}
+}
 function dbParams(q){
   if(!q._dbParams){
     const c={};for(const k in q){if(k.charAt(0)!=='_')c[k]=q[k];}
@@ -989,7 +992,7 @@ function onChoice(btn){
     if(b.dataset.k===q.ans[0])b.classList.add('reveal');
   });
   btn.classList.add(ok?'ans-ok':'ans-ng');
-  if(ok){S.correct++;safeDivpCorrect('.q-card');}else S.wrong++;
+  if(ok){S.correct++;safeDivpCorrect('.q-card');}else{S.wrong++;safeDivpIncorrect('.q-card');}
   divpLog(ok,q.ans[0],key);
   showFB(ok,ok?`正解！ 絶対値は ${fbAns(q.ans[0])} ですね。`
               :`不正解。正しくは ${fbAns(q.ans[0])} です。`);
@@ -1009,7 +1012,7 @@ function checkMulti(){
     else if(b.dataset.sel==='1')b.classList.add('ans-ng');
   });
   _$('confirm-btn').disabled=true;
-  if(ok){S.correct++;safeDivpCorrect('.q-card');}else S.wrong++;
+  if(ok){S.correct++;safeDivpCorrect('.q-card');}else{S.wrong++;safeDivpIncorrect('.q-card');}
   divpLog(ok,ans.join(', '),sel.join(', '));
   const ansHTML=ans.map(k=>fbAns(k)).join(' と ');
   const ansHTMLng=ans.map(k=>fbAns(k)).join('、');
@@ -1061,7 +1064,7 @@ function checkRange(){
     }
   }
   inp.classList.add(ok?'ok':'ng');
-  if(ok){S.correct++;safeDivpCorrect('.q-card');}else S.wrong++;
+  if(ok){S.correct++;safeDivpCorrect('.q-card');}else{S.wrong++;safeDivpIncorrect('.q-card');}
   const rangeCorrect=q.INF?'無限':(q.ints.length===0?'なし':(q.order==='desc'?[...q.ints].sort((a,b)=>b-a):[...q.ints].sort((a,b)=>a-b)).join(', '));
   divpLog(ok,rangeCorrect,raw);
   showFB(ok,msg);upScore();_$('next-btn').style.display='block';
@@ -1082,7 +1085,7 @@ function checkCount(){
     ok= m!==null && m[1]===String(q.correctAns.replace('個',''));
   }
   inp.classList.add(ok?'ok':'ng');
-  if(ok){S.correct++;safeDivpCorrect('.q-card');}else S.wrong++;
+  if(ok){S.correct++;safeDivpCorrect('.q-card');}else{S.wrong++;safeDivpIncorrect('.q-card');}
   divpLog(ok,q.correctAns,raw);
   let msg='';
   if(!ok){
@@ -1291,7 +1294,7 @@ function checkSort(){
   });
   document.querySelectorAll('.pool-btn').forEach(b=>{b.disabled=true;b.style.pointerEvents='none';});
   const cb=_$('confirm-btn'); if(cb) cb.disabled=true;
-  if(ok){S.correct++;safeDivpCorrect('.q-card');}else S.wrong++;
+  if(ok){S.correct++;safeDivpCorrect('.q-card');}else{S.wrong++;safeDivpIncorrect('.q-card');}
   divpLog(ok,q.correctKeys.join(' → '),enteredKeys.join(' → '));
   const correctHTML=q.correctKeys.map((k,i)=>{
     const disp=fbAns(k);
