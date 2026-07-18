@@ -188,6 +188,7 @@ if ($role === 'super_admin') {
   button.mini.on{color:var(--ai);border:1.5px solid var(--ai)}
   button.mini.del{color:#fff;background:var(--shu);border:1.5px solid var(--shu);margin-left:6px}
   .scroll{overflow-x:auto}
+  .list-count{margin:6px 0;font-size:13px;font-weight:700;color:var(--ink-soft)}
   footer{margin-top:28px;text-align:center;font-size:11px;color:var(--ink-soft)}
 </style>
 </head>
@@ -386,6 +387,14 @@ if ($role === 'super_admin') {
       <button class="go" type="submit">講師を登録</button>
       <div class="msg" id="teacher-msg"></div>
     </form>
+    <div id="teacher-guide" style="display:none;margin-top:14px;">
+      <p class="note" style="margin-bottom:8px;">この案内メールをコピーして先生にお送りください（仮パスワードはこの画面でしか確認できません）。</p>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <button class="go" type="button" id="teacher-guide-copy" style="width:auto;padding:6px 14px;">メール文をコピー</button>
+        <span id="teacher-guide-note" style="font-size:12px;color:var(--ink-soft);"></span>
+      </div>
+      <textarea id="teacher-guide-text" readonly style="height:300px;"></textarea>
+    </div>
   </div>
 
   <div class="card">
@@ -402,6 +411,12 @@ if ($role === 'super_admin') {
         <thead><tr><th>氏名</th><th>ログインID</th><th>仮パスワード</th></tr></thead>
         <tbody id="bulk-reset-tbody"></tbody>
       </table>
+      <div style="display:flex;gap:8px;align-items:center;margin:14px 0 8px;">
+        <button class="go" type="button" id="bulk-mail-btn" style="width:auto;padding:6px 14px;">案内メールをまとめて生成</button>
+        <button class="go" type="button" id="bulk-mail-copy" style="width:auto;padding:6px 14px;display:none;">メール文をコピー</button>
+        <span id="bulk-mail-note" style="font-size:12px;color:var(--ink-soft);"></span>
+      </div>
+      <textarea id="bulk-mail-text" readonly style="height:320px;display:none;"></textarea>
     </div>
   </div>
   </div>
@@ -441,6 +456,15 @@ if ($role === 'super_admin') {
     <p class="note">このページを開いている間に登録・変更した行は<span style="background:var(--kin-soft);padding:0 8px;border-radius:4px;">この色</span>で表示されます（再読み込みすると消えます）。<br>
       退塾などは「無効にする」を使ってください（ログイン不可になるだけで学習記録は残り、いつでも「有効に戻す」で復活できます）。<br>
       「完全削除」は登録間違い・テストデータ専用です（統括のみ・学習記録ごと消え、元に戻せません）。</p>
+    <!-- 講師のPW初期化で発行した仮パスワードの案内メールをここに表示（既存講師への送付用） -->
+    <div id="list-mail" style="display:none;margin:12px 0;padding:12px;border:1.5px solid var(--ai);border-radius:8px;background:#fff;">
+      <p id="list-mail-head" class="note" style="margin:0 0 8px;"></p>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <button class="go" type="button" id="list-mail-copy" style="width:auto;padding:6px 14px;">メール文をコピー</button>
+        <span id="list-mail-note" style="font-size:12px;color:var(--ink-soft);"></span>
+      </div>
+      <textarea id="list-mail-text" readonly style="height:300px;"></textarea>
+    </div>
     <div class="tabs" style="margin-top:8px;">
       <button class="tab active" data-kind="students" type="button">生徒</button>
       <button class="tab" data-kind="guardians" type="button">保護者</button>
@@ -480,6 +504,7 @@ if ($role === 'super_admin') {
         <input type="checkbox" class="hide-test" checked style="width:auto;flex:none;margin:0;">テスト生（名前に「テスト」を含む）を非表示
       </label>
       <p style="margin:8px 0 4px;color:var(--ai,#2C5F8A);font-weight:700;font-size:13px;">列の見出し（生徒コード・教室・氏名など）をクリックすると、その項目で並び替えできます（もう一度クリックで昇順⇄降順、▲▼が今の並び順）。</p>
+      <div class="list-count" id="students-count"></div>
       <div class="scroll">
       <table id="students-table">
         <thead><tr><th class="sortable" data-key="login_id">生徒コード</th><th class="sortable" data-key="classroom_name">教室</th><th class="sortable" data-key="grade">学年</th><th class="sortable" data-key="student_name">氏名</th><th class="sortable" data-key="target_private_name">私立志望</th><th class="sortable" data-key="target_public_name">公立志望</th><th class="sortable" data-key="is_active">状態</th><th class="sortable" data-key="created_at">登録日</th><th>操作</th></tr></thead>
@@ -494,6 +519,7 @@ if ($role === 'super_admin') {
         <input type="checkbox" class="hide-test" checked style="width:auto;flex:none;margin:0;">テスト生（名前に「テスト」を含む）を非表示
       </label>
       <p style="margin:8px 0 4px;color:var(--ai,#2C5F8A);font-weight:700;font-size:13px;">列の見出し（ログインID・氏名など）をクリックすると、その項目で並び替えできます（もう一度クリックで昇順⇄降順、▲▼が今の並び順）。</p>
+      <div class="list-count" id="guardians-count"></div>
       <div class="scroll">
       <table id="guardians-table">
         <thead><tr><th class="sortable" data-key="login_id">ログインID</th><th class="sortable" data-key="guardian_name">氏名</th><th class="sortable" data-key="children">お子さま</th><th class="sortable" data-key="is_active">状態</th><th class="sortable" data-key="created_at">登録日</th><th>操作</th></tr></thead>
@@ -532,6 +558,7 @@ if ($role === 'super_admin') {
         <input type="checkbox" class="hide-test" checked style="width:auto;flex:none;margin:0;">テスト生（名前に「テスト」を含む）を非表示
       </label>
       <p style="margin:8px 0 4px;color:var(--ai,#2C5F8A);font-weight:700;font-size:13px;">列の見出し（ログインID・氏名・役割など）をクリックすると、その項目で並び替えできます（もう一度クリックで昇順⇄降順、▲▼が今の並び順）。</p>
+      <div class="list-count" id="teachers-count"></div>
       <div class="scroll">
       <table id="teachers-table">
         <thead><tr><th class="sortable" data-key="login_id">ログインID</th><th class="sortable" data-key="teacher_name">氏名</th><th class="sortable" data-key="role">役割</th><th class="sortable" data-key="classroom_names">担当教室</th><th class="sortable" data-key="is_active">状態</th><th class="sortable" data-key="created_at">登録日</th><th>操作</th></tr></thead>
@@ -894,6 +921,15 @@ function actionCell(tr, kind, loginId, name, isActive, row) {
     rst.addEventListener('click', () => resetTeacherPassword(loginId, name));
     td.appendChild(rst);
   }
+  // 講師の完全削除（統括のみ・自分以外。生徒・学習記録は残り、登録者欄が空欄になるだけ）
+  if (kind === 'teachers' && IS_SUPER && loginId !== MY_LOGIN_ID) {
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'mini del';
+    del.textContent = '完全削除';
+    del.addEventListener('click', () => deleteTeacher(loginId, name));
+    td.appendChild(del);
+  }
   tr.appendChild(td);
 }
 
@@ -925,7 +961,48 @@ async function resetTeacherPassword(loginId, name) {
     const { res, data } = await post('/api/reset_teacher_password.php', { login_id: loginId });
     if (res.ok && data && data.ok) {
       recent.teachers.add(loginId);
-      prompt('初期化しました。この仮パスワードを ' + data.teacher_name + ' 先生に伝えてください\n（この画面を閉じると二度と表示されません）', data.temp_password);
+      // 仮パスワードでログイン→本人がパスワード設定、を伝える案内メールを表示（仮パスワードはこの画面でしか確認できない）
+      showListMail(
+        buildTeacherGuideText(data.teacher_name, loginId, data.temp_password, { reset: true }),
+        '仮パスワードを再発行しました。下のメール文をコピーして ' + data.teacher_name + ' 先生に送ってください（この画面でしか確認できません）');
+      loadList('teachers');
+    } else {
+      alert(errText(data, res.status));
+    }
+  } catch (err) {
+    alert('通信エラー: ' + err);
+  }
+}
+
+// 登録一覧の上部にある案内メール欄に文面を出す（講師PW初期化で使用）
+function showListMail(text, headText) {
+  document.getElementById('list-mail-head').textContent = headText || '';
+  document.getElementById('list-mail-text').value = text;
+  document.getElementById('list-mail-note').textContent = '';
+  const box = document.getElementById('list-mail');
+  box.style.display = '';
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+document.getElementById('list-mail-copy').addEventListener('click', () =>
+  copyWithNote(document.getElementById('list-mail-text').value, 'list-mail-note'));
+
+async function deleteTeacher(loginId, name) {
+  const message = '講師「' + name + '（' + loginId + '）」を完全に削除しますか？\n\n'
+    + '・この講師IDではログインできなくなり、元に戻せません\n'
+    + '・担当教室の割り当ても一緒に消えます\n'
+    + '・生徒・学習記録・確認テストの結果は消えません（登録者・記録者の欄が空欄になるだけ）\n\n'
+    + '※登録間違い・テストデータの掃除用です。退任など通常の停止は「無効にする」を使ってください';
+  if (!confirm(message)) return;
+  const typed = prompt('確認のため、削除する講師のログインIDを入力してください（' + loginId + '）');
+  if (typed === null) return;
+  if (typed.trim() !== loginId) {
+    alert('ログインIDが一致しないため、削除を中止しました');
+    return;
+  }
+  try {
+    const { res, data } = await post('/api/delete_teacher.php', { login_id: loginId });
+    if (res.ok && data && data.ok) {
+      alert('削除しました: ' + data.teacher_name + ' 先生（' + data.login_id + '）');
       loadList('teachers');
     } else {
       alert(errText(data, res.status));
@@ -1085,6 +1162,14 @@ function renderRows(kind) {
   const sort = sortState[kind];
   if (sort.key) {
     rows = rows.slice().sort((a, b) => cmpVal(a[sort.key], b[sort.key]) * sort.dir);
+  }
+  // 表示件数（絞り込み後）。絞り込みで減っているときは全件数も添える
+  const countEl = document.getElementById(kind + '-count');
+  if (countEl) {
+    const total = (listCache[kind] || []).length;
+    countEl.textContent = rows.length === total
+      ? '表示件数：' + rows.length + '件'
+      : '表示件数：' + rows.length + '件（全' + total + '件）';
   }
   tbody.innerHTML = '';
   if (rows.length === 0) {
@@ -1458,14 +1543,43 @@ if (teacherForm) {
       });
       if (res.ok && data && data.ok) {
         recent.teachers.add(loginId);
-        prompt('登録しました。この仮パスワードを ' + data.teacher_name + ' 先生に伝えてください\n本人が初回ログインで8〜15文字の半角英数に変更します\n（この画面を閉じると二度と表示されません）', data.temp_password);
-        showMsg('teacher-msg', true, '登録しました（登録一覧タブで確認できます）');
+        // 初回ログイン→本人がパスワード設定、を伝える案内メールを組み立てて表示
+        // （仮パスワードはこの画面でしか確認できないので、reset より前に組み立てる）
+        document.getElementById('teacher-guide-text').value = buildTeacherGuideText(
+          data.teacher_name, loginId, data.temp_password);
+        document.getElementById('teacher-guide-note').textContent = '';
+        document.getElementById('teacher-guide').style.display = '';
+        showMsg('teacher-msg', true, '登録しました。下のメール文をコピーして ' + data.teacher_name + ' 先生に送ってください（仮パスワードはこの画面でしか確認できません）');
         f.reset();
       } else {
         showMsg('teacher-msg', false, errText(data, res.status));
       }
     } catch (err) { showMsg('teacher-msg', false, '通信エラー: ' + err); }
   });
+
+  document.getElementById('teacher-guide-copy').addEventListener('click', () =>
+    copyWithNote(document.getElementById('teacher-guide-text').value, 'teacher-guide-note'));
+}
+
+// ---- 講師向け案内メールの生成（仮パスワードでログイン→本人が8〜15文字の半角英数を設定） ----
+// opts.reset=true は「仮パスワード再発行」時の文面（新規登録は既定＝「発行しました」）
+function buildTeacherGuideText(name, loginId, tempPassword, opts) {
+  const lead = (opts && opts.reset)
+    ? '学習記録システムの講師アカウントの仮パスワードを再発行しました。'
+    : '学習記録システムの講師アカウントを発行しました。';
+  return '【中京個別指導学院 学習記録システム 講師アカウントのご案内】\n'
+    + name + ' 先生\n'
+    + '\n' + lead + '\n'
+    + '下記の仮パスワードでログインのうえ、ご自身の新しいパスワードを設定してください。\n'
+    + '\n　ログインID：' + loginId + '\n'
+    + '　仮パスワード：' + tempPassword + '\n'
+    + '\n▼ 講師ページ（ここからログインします）\n'
+    + 'https://chukyokobetsu.com/teacher.php\n'
+    + '\n■ ログインの手順\n'
+    + '　1. 上のURLを開き、ログインID・仮パスワードでログインします\n'
+    + '　2. パスワード設定画面が出るので、ご自身の新しいパスワード（8〜15文字の半角英数）を決めて設定します\n'
+    + '　3. 次回からは、ご自身で決めたパスワードでログインしてください\n'
+    + '\n※仮パスワードはこのご案内でのみお知らせします。設定後のパスワードは大切に保管してください。';
 }
 
 // ---- 既存講師の一括初期化(統括のみ) ----
@@ -1486,6 +1600,10 @@ if (bulkResetBtn) {
         const tbody = document.getElementById('bulk-reset-tbody');
         const result = document.getElementById('bulk-reset-result');
         tbody.innerHTML = '';
+        // 前回生成した案内メールは隠す（今回の発行分で作り直す）
+        document.getElementById('bulk-mail-text').style.display = 'none';
+        document.getElementById('bulk-mail-copy').style.display = 'none';
+        document.getElementById('bulk-mail-note').textContent = '';
         if (bulkRows.length === 0) {
           result.style.display = 'none';
           showMsg('bulk-reset-msg', true, '対象の講師はいませんでした（全員すでに本パスワード設定済みです）');
@@ -1529,6 +1647,18 @@ if (bulkResetBtn) {
       note.textContent = 'コピーに失敗しました。手動で選択してコピーしてください';
     }
   });
+
+  // 発行した全員分の案内メールを ✂ 区切りでまとめて生成（各先生に1通ずつ送る用）
+  document.getElementById('bulk-mail-btn').addEventListener('click', () => {
+    if (!bulkRows.length) return;
+    document.getElementById('bulk-mail-text').value = bulkRows.map((t) =>
+      buildTeacherGuideText(t.teacher_name, t.login_id, t.temp_password, { reset: true })).join(GUIDE_SEP);
+    document.getElementById('bulk-mail-text').style.display = '';
+    document.getElementById('bulk-mail-copy').style.display = '';
+    document.getElementById('bulk-mail-note').textContent = bulkRows.length + '人分の案内メールを生成しました';
+  });
+  document.getElementById('bulk-mail-copy').addEventListener('click', () =>
+    copyWithNote(document.getElementById('bulk-mail-text').value, 'bulk-mail-note'));
 }
 
 // ---- 講師情報の修正(統括のみ) ----
