@@ -31,6 +31,10 @@ $manual = [
     ['folder' => 'math', 'grade' => '中3', 'title' => '展開因数分解対策', 'href' => 'https://tenkaiinsu.chukyo.workers.dev/TenkaiInsu'],
     ['folder' => 'math', 'grade' => '中3', 'title' => '平方根対策',       'href' => 'https://heihoukon.chukyo.workers.dev/Heihoukon'],
     ['folder' => 'math', 'grade' => '中3', 'title' => '二次方程式対策',   'href' => 'https://nijihoteishiki.chukyo.workers.dev/Nijihoteishiki'],
+    ['folder' => 'social', 'grade' => '中学', 'title' => '歴史2章対策',   'href' => 'https://rekishi2.chukyo.workers.dev/Rekishi2'],
+    ['folder' => 'social', 'grade' => '中学', 'title' => '歴史3章対策',   'href' => 'https://rekishi3.chukyo.workers.dev/Rekishi3'],
+    ['folder' => 'social', 'grade' => '中学', 'title' => '歴史6章対策',   'href' => 'https://rekishi6.chukyo.workers.dev/Rekishi6'],
+    ['folder' => 'social', 'grade' => '中学', 'title' => '年号ミニゲーム', 'href' => 'https://nenngouminige-mu.chukyo.workers.dev/Nenngouminige-mu'],
 ];
 
 // <title> を「メインタイトル」「サブタイトル」に分解する。
