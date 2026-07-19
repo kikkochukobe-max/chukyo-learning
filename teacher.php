@@ -150,7 +150,7 @@ $allowedClassroomIds = array_map(fn($c) => (int)$c['classroom_id'], $classrooms)
 
 // ---- 期間 ----
 $period = (string)($_GET['period'] ?? 'week');
-if (!in_array($period, ['today', 'week', 'last_week', 'month', 'all'], true)) {
+if (!in_array($period, ['today', 'yesterday', 'week', 'last_week', 'month', 'all'], true)) {
     $period = 'week';
 }
 
@@ -173,13 +173,14 @@ if ($isCustom) {
 } else {
     switch ($period) {
         case 'today':     $from = new DateTimeImmutable('today 00:00:00'); $to = $from->modify('+1 day'); break;
+        case 'yesterday': $from = new DateTimeImmutable('yesterday 00:00:00'); $to = $from->modify('+1 day'); break;
         case 'last_week': $from = $thisMonday->modify('-7 days'); $to = $thisMonday; break;
         case 'month':     $from = new DateTimeImmutable('first day of this month 00:00:00'); $to = $from->modify('+1 month'); break;
         case 'all':       $from = null; $to = null; break;
         default:          $from = $thisMonday; $to = $thisMonday->modify('+7 days'); break;
     }
 }
-$periodLabels = ['today' => '今日', 'week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => '全期間'];
+$periodLabels = ['today' => '今日', 'yesterday' => '昨日', 'week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => '全期間'];
 $fromStr = $from ? $from->format('Y-m-d 00:00:00') : null;
 $toStr = $to ? $to->format('Y-m-d 00:00:00') : null;
 
@@ -616,6 +617,38 @@ function qtab(array $extra): string
   .fsel select,.fsel input[type=date]{font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;font-weight:500;color:var(--ink);
     border:1.5px solid var(--grid);border-radius:8px;padding:4px 8px;background:var(--white);cursor:pointer;width:auto}
   footer{margin-top:28px;text-align:center;font-size:11px;color:var(--ink-soft)}
+
+  /* ---------- スマホ: 文字を大きく・レイアウトはコンパクトに ---------- */
+  @media (max-width:640px){
+    /* zoom(1.2)を解除し、代わりに個別に文字を大きくする（zoom拡大だと横がはみ出すため） */
+    body{zoom:1;background-size:20px 20px}
+    .wrap{padding:0 10px 48px}
+
+    /* 余白を詰める */
+    header{padding:10px 0 6px;gap:6px}
+    .card{padding:12px;margin-top:10px;border-radius:10px}
+    .bar-row{gap:6px;margin-top:6px}
+    .stats{gap:16px}
+
+    /* 文字を大きく */
+    .ptab,.stab{font-size:14px;padding:6px 14px}
+    .card h1{font-size:20px}
+    .card h2{font-size:17px}
+    .subject-head{font-size:15px}
+    table{font-size:15px;margin-top:6px}
+    th{font-size:13px;padding:6px 6px}
+    td{padding:8px 6px}
+    .chip{font-size:13px;padding:1px 10px}
+    .fsel,.fsel select,.fsel input[type=date]{font-size:14px}
+    .who{font-size:13px}
+    .who b{font-size:15px}
+    .logout{font-size:13px;padding:4px 12px}
+    .stat .n{font-size:32px;height:40px}
+    .stat .n small{font-size:15px}
+    .stat .l{font-size:13px}
+    .back,.sort-hint{font-size:14px}
+    footer{font-size:12px}
+  }
 </style>
 </head>
 <body>

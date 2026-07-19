@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文字式マスター｜数字から文字へ 中学数学｜中京個別指導学院（焼山・植田・長久手・神丘・一社・高針・吉根・志段味・有松の塾）</title>
+<meta name="description" content="中学数学の文字式を、まず数字で→次に同じ問題を文字で練習できる無料サイト。円・三角形の面積、速さ、平均、割合に対応。中京個別指導学院（焼山・植田・長久手・神丘・一社・高針・吉根・志段味・有松エリアの塾）。">
+<meta name="robots" content="index,follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400&family=Shippori+Mincho+B1:wght@400;600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org","@type":"LearningResource",
+  "name":"文字式マスター 〜数字から文字へ〜",
+  "description":"中学数学の文字式を、数字での計算→同じ問題の文字での計算という流れで練習できる学習ツール。図形の面積、速さ、平均、割合に対応。",
+  "educationalLevel":"中学校","learningResourceType":"練習問題","inLanguage":"ja",
+  "teaches":"文字式・面積・速さ・平均・割合",
+  "provider":{"@type":"EducationalOrganization","name":"中京個別指導学院","url":"https://chukyokobetsu.com",
+  "areaServed":["焼山","植田","長久手","神丘","一社","高針","吉根","志段味","有松"]}
+}
+</script>
+<style>
+#divp-mojishiki-app{
+  --paper:#F7EFE4; --paper-deep:#F0E3D2; --card:#FCF7EF;
+  --cherry:#C98F66; --cherry-deep:#A9684A; --bark:#4A3325;
+  --sub:#8a7460; --line:rgba(74,51,37,.14);
+  --moss:#6E7A4E; --seal:#B23B2E;
+  --num:#2f6d8c; --num-s:#e2eef3;   /* 壱=数字フェーズ 藍 */
+  --ltr:#9a5a2c; --ltr-s:#f3e6d6;   /* 弐=文字フェーズ 木 */
+  font-family:"Zen Kaku Gothic New",sans-serif; color:var(--bark);
+  background:var(--paper); line-height:1.85;
+  max-width:780px; margin:0 auto; padding:0 16px 60px;
+  -webkit-font-smoothing:antialiased; position:relative;
+}
+#divp-mojishiki-app *{box-sizing:border-box}
+#divp-mojishiki-app::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background:repeating-linear-gradient(92deg,rgba(169,104,74,.03) 0 2px,transparent 2px 9px);
+}
+#divp-mojishiki-app > *{position:relative;z-index:1}
+
+/* ヘッダー */
+.dm-brand{display:flex;align-items:baseline;gap:11px;padding:10px 4px 4px;text-decoration:none;color:var(--bark)}
+.dm-brand .k{font-family:"Shippori Mincho B1",serif;font-weight:800;font-size:19px;letter-spacing:.05em}
+.dm-brand .r{font-family:"Fraunces",serif;font-style:italic;font-size:11px;color:var(--cherry-deep);letter-spacing:.1em}
+
+/* ヒーロー */
+.dm-hero{padding:6px 4px 10px;border-bottom:1px solid var(--line)}
+.dm-hero .eyebrow{font-family:"Fraunces",serif;font-style:italic;color:var(--moss);font-size:12px;margin-bottom:3px}
+.dm-hero h1{font-family:"Shippori Mincho B1",serif;font-weight:700;font-size:14px;letter-spacing:.04em;color:var(--cherry-deep)}
+.dm-hero h1 small{display:inline;font-weight:400;font-size:.9em;color:var(--sub);letter-spacing:.08em;margin-left:8px}
+
+/* カテゴリチップ（折りたたみ） */
+.dm-cats-head{display:flex;align-items:center;justify-content:space-between;margin:10px 0 0;cursor:pointer;user-select:none;padding:6px 2px}
+.dm-cats-head .cur{font-size:13px;color:var(--bark)}
+.dm-cats-head .cur b{font-family:"Shippori Mincho B1",serif;color:var(--cherry-deep);font-weight:700}
+.dm-cats-head .toggle{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--sub);letter-spacing:.04em}
+.dm-cats-head .chev{display:inline-block;transition:transform .3s ease;font-size:10px}
+.dm-cats-head[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.dm-cats-head:focus-visible{outline:2px solid var(--moss);outline-offset:2px}
+.dm-cats{display:flex;flex-wrap:wrap;margin:0 0 2px;
+  max-height:0;opacity:0;transition:max-height .35s ease,opacity .3s ease,margin .35s ease}
+.dm-cats.open{max-height:260px;opacity:1;margin:8px 0 2px}
+.dm-chip{
+  font-family:inherit;font-size:13px;letter-spacing:.02em;cursor:pointer;flex:0 0 auto;
+  border:none;border-right:1px solid var(--line);background:var(--card);color:var(--bark);
+  padding:9px 14px;border-radius:0;transition:background .2s ease,color .2s ease;
+}
+.dm-chip:last-child{border-right:none}
+.dm-chip:hover{background:var(--paper-deep)}
+.dm-chip[aria-pressed="true"]{background:var(--cherry-deep);color:var(--paper)}
+.dm-chip:focus-visible{outline:2px solid var(--moss);outline-offset:-2px}
+
+/* 進行バー */
+.dm-status{display:flex;align-items:center;justify-content:space-between;margin:8px 0 6px;font-size:12px;color:var(--sub)}
+.dm-rank{font-family:"Shippori Mincho B1",serif;font-size:18px;color:var(--cherry-deep)}
+.dm-streak{letter-spacing:.05em}
+
+/* 問題カード */
+.dm-card{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:16px 18px;box-shadow:0 10px 26px rgba(74,51,37,.08);position:relative;overflow:hidden;
+}
+.dm-phase{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;padding:4px 12px;border-radius:20px;margin-bottom:10px}
+.dm-phase .jp{font-family:"Shippori Mincho B1",serif;font-size:15px}
+.dm-phase.num{background:var(--num-s);color:var(--num)}
+.dm-phase.ltr{background:var(--ltr-s);color:var(--ltr)}
+
+.dm-q{font-size:clamp(16px,4.4vw,20px);line-height:1.55;margin-bottom:4px}
+.dm-q v{font-style:italic;font-family:"Fraunces",serif;color:var(--ltr);font-weight:400;padding:0 1px}
+.dm-fig{display:flex;justify-content:center;margin:10px 0 2px}
+.dm-fig svg{max-width:100%}
+
+/* 選択肢 */
+.dm-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+@media(max-width:460px){.dm-choices{grid-template-columns:1fr}}
+.dm-opt{
+  font-family:inherit;font-size:16px;cursor:pointer;text-align:left;
+  border:1px solid var(--line);background:var(--paper);color:var(--bark);
+  padding:10px 14px;border-radius:10px;transition:all .2s ease;position:relative;
+}
+.dm-opt exp{font-style:italic;font-family:"Fraunces",serif;color:var(--ltr);font-weight:400}
+.dm-frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.05;margin:0 .12em;font-size:.9em}
+.dm-frac .dm-d{border-top:1.6px solid currentColor;padding-top:1px}
+.dm-frac exp{color:inherit}
+.dm-opt:hover:not(:disabled){border-color:var(--cherry);transform:translateY(-2px)}
+.dm-opt:focus-visible{outline:2px solid var(--moss);outline-offset:2px}
+.dm-opt.correct{background:#eaf3ea;border-color:var(--moss)}
+.dm-opt.wrong{background:#f6e4e0;border-color:var(--seal)}
+.dm-opt:disabled{cursor:default}
+
+/* 比較パネル */
+.dm-compare{margin-top:18px;border:1px dashed var(--cherry);border-radius:12px;padding:18px;background:var(--paper-deep);display:none}
+.dm-compare.show{display:block;animation:dm-fade .5s ease}
+.dm-compare h4{font-family:"Shippori Mincho B1",serif;font-size:16px;margin-bottom:12px;color:var(--cherry-deep)}
+.dm-compare .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:460px){.dm-compare .cols{grid-template-columns:1fr}}
+.dm-compare .col{background:var(--card);border-radius:9px;padding:14px}
+.dm-compare .col .lab{font-size:12px;letter-spacing:.08em;margin-bottom:8px;font-weight:700}
+.dm-compare .col.n .lab{color:var(--num)} .dm-compare .col.l .lab{color:var(--ltr)}
+.dm-compare .col .step{font-size:15px;line-height:1.7}
+.dm-compare .col .step v{font-style:italic;font-family:"Fraunces",serif;color:var(--ltr)}
+.dm-compare .msg{margin-top:12px;font-size:14px;color:var(--bark);text-align:center}
+.dm-compare .msg b{color:var(--cherry-deep)}
+
+/* 次へ */
+.dm-next{display:none;margin:18px auto 0;font-family:inherit;font-size:15px;letter-spacing:.06em;cursor:pointer;
+  border:none;background:var(--cherry-deep);color:var(--paper);padding:13px 34px;border-radius:30px;
+  box-shadow:0 8px 20px rgba(169,104,74,.3);transition:transform .25s ease}
+.dm-next.show{display:block;animation:dm-fade .5s ease}
+.dm-next:hover{transform:translateY(-2px)}
+.dm-next:focus-visible{outline:2px solid var(--moss);outline-offset:3px}
+
+/* 落款ハンコ（ローカルfallback） */
+.dm-hanko{position:absolute;top:38%;left:50%;width:110px;height:110px;transform:translate(-50%,-50%) rotate(-12deg) scale(.4);
+  opacity:0;pointer-events:none;z-index:5}
+.dm-hanko.pop{animation:dm-stamp .6s cubic-bezier(.2,.8,.3,1.2) forwards, dm-hanko-fade .5s ease .9s forwards}
+@keyframes dm-hanko-fade{to{opacity:0}}
+@keyframes dm-stamp{0%{opacity:0;transform:translate(-50%,-50%) rotate(-12deg) scale(.4)}
+  40%{opacity:.95;transform:translate(-50%,-50%) rotate(-12deg) scale(1.08)}
+  100%{opacity:.9;transform:translate(-50%,-50%) rotate(-12deg) scale(1)}}
+
+.dm-foot{margin-top:28px;text-align:center;font-size:12px;color:var(--sub);letter-spacing:.06em}
+.dm-foot .k{font-family:"Shippori Mincho B1",serif;font-size:15px;color:var(--cherry-deep);display:block;margin-bottom:6px}
+
+@keyframes dm-fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body data-unit-key="math_jh_mojishiki_master" data-theme="jh" data-effect="hanko">
+
+<div id="divp-mojishiki-app">
+  <a href="https://chukyokobetsu.com" class="dm-brand">
+    <span class="k">文字式マスター</span><span class="r">number → letter</span>
+  </a>
+
+  <div class="dm-hero">
+    <p class="eyebrow">数字でできたことは、文字でも同じ手順で。</p>
+    <h1>数字から、文字へ。<small>面積・速さ・平均・割合</small></h1>
+  </div>
+
+  <div class="dm-cats-head" id="dm-cats-head" role="button" tabindex="0" aria-expanded="true" aria-controls="dm-cats">
+    <span class="cur">出題範囲：<b id="dm-cats-cur">ぜんぶ</b></span>
+    <span class="toggle">選ぶ <span class="chev">▾</span></span>
+  </div>
+  <div class="dm-cats open" id="dm-cats"></div>
+
+  <div class="dm-status">
+    <span class="dm-rank" id="dm-rank">ランク —</span>
+    <span class="dm-streak" id="dm-streak">連続正解 0</span>
+  </div>
+
+  <div class="dm-card" id="dm-card">
+    <span class="dm-phase num" id="dm-phase"><span class="jp">壱</span><span>まず数字で</span></span>
+    <div class="dm-q" id="dm-q"></div>
+    <div class="dm-fig" id="dm-fig"></div>
+    <div class="dm-choices" id="dm-choices"></div>
+
+    <div class="dm-compare" id="dm-compare">
+      <h4>ほら、やり方は同じ。</h4>
+      <div class="cols">
+        <div class="col n"><div class="lab">壱 ｜ 数字で</div><div class="step" id="dm-cmp-n"></div></div>
+        <div class="col l"><div class="lab">弐 ｜ 文字で</div><div class="step" id="dm-cmp-l"></div></div>
+      </div>
+      <p class="msg" id="dm-cmp-msg"></p>
+    </div>
+
+    <button class="dm-next" id="dm-next">次の問題へ →</button>
+
+    <svg class="dm-hanko" id="dm-hanko" viewBox="0 0 100 100" aria-hidden="true">
+      <rect x="6" y="6" width="88" height="88" rx="8" fill="none" stroke="#B23B2E" stroke-width="5"/>
+      <text x="50" y="66" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-weight="800" font-size="52" fill="#B23B2E">正</text>
+    </svg>
+  </div>
+
+</div>
+
+<!-- divp共有モジュール（存在すれば使用・無ければローカルfallback。動的ロードで描画を止めない） -->
+<script>
+(function(){
+  function load(src,flag){
+    try{
+      var s=document.createElement('script');
+      s.src=src; s.async=true;
+      s.onerror=function(){ window[flag]=1; };
+      document.head.appendChild(s);
+    }catch(e){ window[flag]=1; }
+  }
+  load('/assets/divp-header.js','__divpNoHeader');
+  load('/assets/divp-correct-jh.js','__divpNoCorrect');
+})();
+</script>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id);};
+  var randi=function(a,b){return a+Math.floor(Math.random()*(b-a+1));};
+  var pick=function(a){return a[randi(0,a.length-1)];};
+  var shuffle=function(a){for(var i=a.length-1;i>0;i--){var j=randi(0,i);var t=a[i];a[i]=a[j];a[j]=t;}return a;};
+
+  /* ガード：共有の正解演出が無ければローカルのハンコを使う */
+  function safeDivpCorrect(){
+    if(!window.__divpNoCorrect && window.Divp && Divp.correctJH){ try{Divp.correctJH($('dm-card'));return;}catch(e){} }
+    var h=$('dm-hanko'); h.classList.remove('pop'); void h.offsetWidth; h.classList.add('pop');
+  }
+  function safeDivpLog(payload){
+    if(!window.__divpNoHeader && window.Divp && Divp.log){ try{Divp.log(payload);}catch(e){} }
+  }
+
+  /* ---- 問題生成器（各カテゴリ：numeric と letter が同じ手順になるよう対で生成） ---- */
+  // v() は文字を斜体でマーク
+  function v(s){return '<v>'+s+'</v>';}
+  // 正解を必ず含め、重複を排除して4択を作る（候補は十分な数を渡すこと）
+  function buildOpts(ans,cands){
+    var out=[ans], seen={}; seen[ans]=1;
+    for(var i=0;i<cands.length&&out.length<4;i++){
+      var c=cands[i]; if(!seen[c]){seen[c]=1;out.push(c);}
+    }
+    return out;
+  }
+  // 単位を（）付きで正解＋各候補に付与（renderValの括弧保護で単位は斜体化されない）
+  function optsU(ans,cands,u){ u='（'+u+'）'; return buildOpts(ans+u,cands.map(function(c){return c+u;})); }
+  function ansU(ans,u){ return ans+'（'+u+'）'; }
+
+  /* 単位変換：数字→文字の対応を保ちつつ生成（文字式は単位を（）内に） */
+  function makeConv(title,spec){
+    var s=pick(spec.list), k=s.k, op=s.op;
+    var isSpeed=(spec.kind==='speed');
+    var pre=isSpeed?s.t:'';      // 速さは答えに「秒速」等を前置
+    var U=isSpeed?'m':s.t;       // 単位
+    var n=function(x){return pre+x+'（'+U+'）';};        // 数字の表記（単位は（）内）
+    var l=function(c){return pre+c+'（'+U+'）';};        // 文字の表記
+    var val,res;
+    if(op==='mul'){ val=randi(1,19); res=val*k; }
+    else{ var q=randi(2,12); val=q*k; res=q; }
+    var coefL=(op==='mul')?(k+'x'):('x÷'+k);
+    var ansN=n(res), ansL=l(coefL);
+    var qN,qL;
+    if(isSpeed){ qN=s.f+val+'m は '+s.t+'何m？'; qL=s.f+v('x')+'（m）は '+s.t+'何m？'; }
+    else{ qN=val+s.f+' は何'+s.t+'？'; qL=v('x')+'（'+s.f+'）は何'+s.t+'？'; }
+    var candsN,candsL;
+    if(op==='mul'){
+      candsN=[n(val),n(res*10),n(res/10),n(res+val),n(res-val>0?res-val:res+1),n(res+1)];
+      candsL=[l('x'),l((k*10)+'x'),l((k/10)+'x'),l('x÷'+k),l((k+1)+'x')];
+    }else{
+      candsN=[n(val),n(res*10),n(res+1),n(res-1>0?res-1:res+2),n(res+2),n(res+3)];
+      candsL=[l('x'),l(k+'x'),l('x÷'+(k*10)),l('x÷'+(k/10)),l('x÷'+(k+1))];
+    }
+    var stepN=(op==='mul')?(val+' × '+k+' ＝ <b>'+res+'</b>'):(val+' ÷ '+k+' ＝ <b>'+res+'</b>');
+    var stepL=(op==='mul')?(v('x')+' × '+k+' ＝ <b>'+k+v('x')+'</b>'):(v('x')+' ÷ '+k+' ＝ <b>'+v('x')+'÷'+k+'</b>');
+    var msg=(op==='mul')
+      ? v('x')+' に '+val+' を入れると '+k+'x は <b>'+res+'</b>。どちらも「×'+k+'」。'
+      : v('x')+' に '+val+' を入れると x÷'+k+' は <b>'+res+'</b>。どちらも「÷'+k+'」。';
+    return {title:title,
+      num:{q:qN,ans:ansN,opts:buildOpts(ansN,candsN),step:stepN},
+      ltr:{q:qL,ans:ansL,opts:buildOpts(ansL,candsL),step:stepL},
+      msg:msg};
+  }
+
+  var GEN={
+    // 円の面積：半径 r → πr²
+    en_area:function(){
+      var r=randi(2,9), ansN=(r*r)+'π';
+      return {
+        title:'円の面積',
+        num:{q:'半径が '+r+' cm の円の面積は？',ans:ansU(ansN,'cm²'),
+             opts:optsU(ansN,[(2*r)+'π',(4*r)+'π',(r*r+r)+'π',(r*r*2)+'π',(3*r)+'π',(r*r-1)+'π'],'cm²'),
+             step:'半径×半径×π ＝ '+r+'×'+r+'×π ＝ <b>'+ansN+'</b>'},
+        ltr:{q:'半径が '+v('r')+' cm の円の面積は？',ans:ansU('πr²','cm²'),
+             opts:optsU('πr²',['2πr','2πr²','πr','4πr','πr³'],'cm²'),
+             step:'半径×半径×π ＝ '+v('r')+'×'+v('r')+'×π ＝ <b>π'+v('r')+'²</b>'},
+        msg:'半径を <b>'+r+'</b> にすると πr² は <b>'+(r*r)+'π</b>。式は同じ。'
+      };
+    },
+    // 円周：2πr
+    en_round:function(){
+      var r=randi(2,9), ansN=(2*r)+'π';
+      return {
+        title:'円周',
+        num:{q:'半径が '+r+' cm の円の円周は？',ans:ansU(ansN,'cm'),
+             opts:optsU(ansN,[(r*r)+'π',r+'π',(4*r)+'π',(r+2)+'π',(3*r)+'π',(2*r+1)+'π'],'cm'),
+             step:'2×π×半径 ＝ 2×π×'+r+' ＝ <b>'+ansN+'</b>'},
+        ltr:{q:'半径が '+v('r')+' cm の円の円周は？',ans:ansU('2πr','cm'),
+             opts:optsU('2πr',['πr²','πr','4πr','πr÷2','2πr²'],'cm'),
+             step:'2×π×半径 ＝ 2×π×'+v('r')+' ＝ <b>2π'+v('r')+'</b>'},
+        msg:'半径を <b>'+r+'</b> にすると 2πr は <b>'+(2*r)+'π</b>。'
+      };
+    },
+    // 長方形の面積：縦 k × 横（数 m → 文字 x）
+    rect_area:function(){
+      var k=randi(3,9), m=randi(3,12), ansN=(k*m)+'', ansL=k+'x';
+      return {
+        title:'長方形の面積',
+        num:{q:'縦 '+k+' cm、横 '+m+' cm の長方形の面積は？',ans:ansU(ansN,'cm²'),
+             opts:optsU(ansN,[(k+m)+'',(2*(k+m))+'',(k*m+k)+'',(k*m-k)+'',(k*m+m)+'',(k*m+1)+'',(k*m+2)+'',(k*m+3)+''],'cm²'),
+             step:'縦×横 ＝ '+k+'×'+m+' ＝ <b>'+ansN+'</b> cm²'},
+        ltr:{q:'縦 '+k+' cm、横 '+v('x')+' cm の長方形の面積は？',ans:ansU(ansL,'cm²'),
+             opts:optsU(ansL,['x'+k,k+'+x',(2*k)+'x',(k+1)+'x','x÷'+k],'cm²'),
+             step:'縦×横 ＝ '+k+'×'+v('x')+' ＝ <b>'+k+v('x')+'</b> cm²'},
+        msg:'横 '+v('x')+' に '+m+' を入れると '+k+'x は <b>'+(k*m)+'</b>。式は「縦×横」で同じ。'
+      };
+    },
+    // 三角形の面積：底辺×高さ÷2
+    tri_area:function(){
+      var base=randi(2,9)*2, h=randi(3,10), ansN=(base*h/2)+'';
+      return {
+        title:'三角形の面積',
+        num:{q:'底辺 '+base+' cm、高さ '+h+' cm の三角形の面積は？',ans:ansU(ansN,'cm²'),
+             opts:optsU(ansN,[(base*h)+'',(base+h)+'',(base*h/2+base)+'',(base*h/2-h)+'',(base*h/2+2)+'',(base*h/2+1)+''],'cm²'),
+             step:'底辺×高さ÷2 ＝ '+base+'×'+h+'÷2 ＝ <b>'+ansN+'</b> cm²'},
+        ltr:{q:'底辺 '+base+' cm、高さ '+v('h')+' cm の三角形の面積は？',ans:ansU((base/2)+'h','cm²'),
+             opts:optsU((base/2)+'h',[base+'h',(base/2)+'+h',base+'h÷2',(base/2+1)+'h','h÷'+(base/2)],'cm²'),
+             step:'底辺×高さ÷2 ＝ '+base+'×'+v('h')+'÷2 ＝ <b>'+(base/2)+v('h')+'</b> cm²'},
+        msg:'高さを <b>'+h+'</b> にすると '+(base/2)+'h は <b>'+(base*h/2)+'</b>。同じ手順。'
+      };
+    },
+    // ひし形：対角線×対角線÷2（片方を文字 x）
+    rhombus:function(){
+      var p=randi(2,6)*2, q=randi(2,9), ansN=(p*q/2)+'', ansL=(p/2)+'x';
+      return {
+        title:'ひし形の面積',
+        num:{q:'対角線が '+p+' cm と '+q+' cm のひし形の面積は？',ans:ansU(ansN,'cm²'),
+             opts:optsU(ansN,[(p*q)+'',(p+q)+'',(p*q/2+p)+'',(p*q/2-q>0?p*q/2-q:p*q/2+q)+'',(p*q/2+2)+'',(p*q/2+1)+''],'cm²'),
+             step:'対角線×対角線÷2 ＝ '+p+'×'+q+'÷2 ＝ <b>'+ansN+'</b> cm²'},
+        ltr:{q:'対角線が '+p+' cm と '+v('x')+' cm のひし形の面積は？',ans:ansU(ansL,'cm²'),
+             opts:optsU(ansL,[p+'x',(p/2)+'+x',p+'x÷2',(p/2+1)+'x','x÷'+(p/2)],'cm²'),
+             step:'対角線×対角線÷2 ＝ '+p+'×'+v('x')+'÷2 ＝ <b>'+(p/2)+v('x')+'</b> cm²'},
+        msg:'x に '+q+' を入れると '+(p/2)+'x は <b>'+(p*q/2)+'</b>。同じ「÷2」。'
+      };
+    },
+    // 平行四辺形：底辺×高さ（高さを文字 x）
+    parallelogram:function(){
+      var b=randi(3,12), hn=randi(3,10), ansN=(b*hn)+'', ansL=b+'x';
+      return {
+        title:'平行四辺形の面積',
+        num:{q:'底辺 '+b+' cm、高さ '+hn+' cm の平行四辺形の面積は？',ans:ansU(ansN,'cm²'),
+             opts:optsU(ansN,[(b+hn)+'',(2*(b+hn))+'',(b*hn+b)+'',(b*hn-b)+'',(b*hn+1)+'',(b*hn+2)+''],'cm²'),
+             step:'底辺×高さ ＝ '+b+'×'+hn+' ＝ <b>'+ansN+'</b> cm²'},
+        ltr:{q:'底辺 '+b+' cm、高さ '+v('x')+' cm の平行四辺形の面積は？',ans:ansU(ansL,'cm²'),
+             opts:optsU(ansL,['x'+b,b+'+x',(2*b)+'x',(b+1)+'x','x÷'+b],'cm²'),
+             step:'底辺×高さ ＝ '+b+'×'+v('x')+' ＝ <b>'+b+v('x')+'</b> cm²'},
+        msg:'x に '+hn+' を入れると '+b+'x は <b>'+(b*hn)+'</b>。式は「底辺×高さ」で同じ。'
+      };
+    },
+    // 台形：(上底＋下底)×高さ÷2（高さを文字 x）
+    trapezoid:function(){
+      var a=randi(2,8), c=randi(2,8); if((a+c)%2)c++;
+      var sum=a+c, half=sum/2, hn=randi(2,8), ansN=(sum*hn/2)+'', ansL=half+'x';
+      return {
+        title:'台形の面積',
+        num:{q:'上底 '+a+' cm、下底 '+c+' cm、高さ '+hn+' cm の台形の面積は？',ans:ansU(ansN,'cm²'),
+             opts:optsU(ansN,[(sum*hn)+'',(sum+hn)+'',(sum*hn/2+sum)+'',(sum*hn/2-hn>0?sum*hn/2-hn:sum*hn/2+hn)+'',(sum*hn/2+2)+'',(sum*hn/2+1)+''],'cm²'),
+             step:'(上底＋下底)×高さ÷2 ＝ ('+a+'＋'+c+')×'+hn+'÷2 ＝ <b>'+ansN+'</b> cm²'},
+        ltr:{q:'上底 '+a+' cm、下底 '+c+' cm、高さ '+v('x')+' cm の台形の面積は？',ans:ansU(ansL,'cm²'),
+             opts:optsU(ansL,[sum+'x',half+'+x',sum+'x÷2',(half+1)+'x','x÷'+half],'cm²'),
+             step:'(上底＋下底)×高さ÷2 ＝ '+sum+'×'+v('x')+'÷2 ＝ <b>'+half+v('x')+'</b> cm²'},
+        msg:'x に '+hn+' を入れると '+half+'x は <b>'+(sum*hn/2)+'</b>。同じ「÷2」。'
+      };
+    },
+    // 図形カテゴリ：上の7種からランダム出題
+    shape:function(){
+      return GEN[pick(['en_area','en_round','rect_area','tri_area','rhombus','parallelogram','trapezoid'])]();
+    },
+    // 速さ：速さ×時間＝道のり（単純な道のり）
+    speed_dist:function(){
+      var v0=randi(3,9)*10, t=randi(2,6), ansN=(v0*t)+'';
+      return {
+        title:'速さ・道のり',
+        num:{q:'時速 '+v0+' km で '+t+' 時間走ると、進む道のりは？',ans:ansU(ansN,'km'),
+             opts:optsU(ansN,[(v0+t)+'',(v0/t)+'',(v0*t+v0)+'',(v0-t)+'',(v0*t-v0)+''],'km'),
+             step:'速さ×時間 ＝ '+v0+'×'+t+' ＝ <b>'+ansN+'</b> km'},
+        ltr:{q:'時速 '+v0+' km で '+v('t')+' 時間走ると、進む道のりは？',ans:ansU(v0+'t','km'),
+             opts:optsU(v0+'t',[v0+'+t',v0+'÷t',(v0+1)+'t','t÷'+v0,(v0-10)+'t'],'km'),
+             step:'速さ×時間 ＝ '+v0+'×'+v('t')+' ＝ <b>'+v0+v('t')+'</b> km'},
+        msg:'時間を <b>'+t+'</b> にすると '+v0+'t は <b>'+(v0*t)+'</b> km。'
+      };
+    },
+    // 道のりカテゴリ：単純な道のり と 残りの距離 の両方
+    speed:function(){
+      return GEN[pick(['speed_dist','speed_remain'])]();
+    },
+    // 平均：合計÷個数
+    average:function(){
+      var n=randi(2,5), each=randi(4,12), sum=each*n, ansN=(sum/n)+'';
+      return {
+        title:'平均',
+        num:{q:''+n+'人のテストの合計点が '+sum+' 点。平均点は？',ans:ansU(ansN,'点'),
+             opts:optsU(ansN,[(sum-n)+'',(sum*n)+'',(sum/n+1)+'',(sum+n)+'',(sum/n-1)+'',(sum/n+2)+''],'点'),
+             step:'合計÷人数 ＝ '+sum+'÷'+n+' ＝ <b>'+ansN+'</b> 点'},
+        ltr:{q:''+n+'人のテストの合計点が '+v('x')+' 点。平均点は？',ans:ansU('x÷'+n,'点'),
+             opts:optsU('x÷'+n,[n+'x','x-'+n,'x+'+n,n+'÷x','x÷'+(n+1)],'点'),
+             step:'合計÷人数 ＝ '+v('x')+'÷'+n+' ＝ <b>'+v('x')+'÷'+n+'</b> 点'},
+        msg:'合計を <b>'+sum+'</b> にすると x÷'+n+' は <b>'+(sum/n)+'</b> 点。同じ割り算。'
+      };
+    },
+    // 割合：定価の off% 引き
+    percent:function(){
+      var price=randi(3,15)*100, off=pick([10,20,25]), pay=price*(100-off)/100, rate=(100-off)/100;
+      return {
+        title:'割合（〜%引き）',
+        num:{q:'定価 '+price+' 円の '+off+'% 引きのねだんは？',ans:ansU(pay+'','円'),
+             opts:optsU(pay+'',[(price*off/100)+'',(price-off)+'',(price*(100+off)/100)+'',price+'',(price+off)+''],'円'),
+             step:'定価×(1-'+off+'/100) ＝ '+price+'×'+rate+' ＝ <b>'+pay+'</b> 円'},
+        ltr:{q:'定価 '+v('a')+' 円の '+off+'% 引きのねだんは？',ans:ansU(rate+'a','円'),
+             opts:optsU(rate+'a',[(off/100)+'a','a-'+off,((100+off)/100)+'a','a÷'+off,(1+off/100)+'a'],'円'),
+             step:'定価×(1-'+off+'/100) ＝ '+v('a')+'×'+rate+' ＝ <b>'+rate+v('a')+'</b> 円'},
+        msg:'定価を <b>'+price+'</b> 円にすると '+rate+'a は <b>'+pay+'</b> 円。'
+      };
+    },
+    // ---- 単位変換 ----
+    cv_weight:function(){return makeConv('重さ',{kind:'post',list:[
+      {f:'kg',t:'g',k:1000,op:'mul'},{f:'g',t:'kg',k:1000,op:'div'}]});},
+    cv_time:function(){return makeConv('時間',{kind:'post',list:[
+      {f:'時間',t:'分',k:60,op:'mul'},{f:'分',t:'秒',k:60,op:'mul'},{f:'時間',t:'秒',k:3600,op:'mul'},
+      {f:'分',t:'時間',k:60,op:'div'},{f:'秒',t:'分',k:60,op:'div'}]});},
+    cv_speed:function(){return makeConv('速さの単位',{kind:'speed',list:[
+      {f:'秒速',t:'分速',k:60,op:'mul'},{f:'分速',t:'時速',k:60,op:'mul'},{f:'秒速',t:'時速',k:3600,op:'mul'},
+      {f:'時速',t:'分速',k:60,op:'div'},{f:'分速',t:'秒速',k:60,op:'div'}]});},
+    cv_length:function(){return makeConv('長さ',{kind:'post',list:[
+      {f:'km',t:'m',k:1000,op:'mul'},{f:'m',t:'km',k:1000,op:'div'}]});},
+    // 単位変換カテゴリ：重さ・時間・速さ・長さをまとめて出題
+    cv_all:function(){
+      return GEN[pick(['cv_weight','cv_time','cv_speed','cv_length'])]();
+    },
+    // ---- 個数・金額（おつり）：払った額 － 単価×本数 ----
+    qty_price:function(){
+      var item=pick(['ペン','ノート','消しゴム','クリップ']);
+      var cnt=randi(2,5), unit=randi(3,12)*10, subtotal=unit*cnt;
+      var pay=pick([500,1000,2000].filter(function(p){return p>subtotal;}));
+      var change=pay-subtotal, variant=pick(['unit','cnt']);
+      var coef,altcoef,numQ,ltrQ,stepLcore,msgVar;
+      if(variant==='unit'){                      // 単価を文字 a
+        coef=(cnt===1?'a':cnt+'a'); altcoef=(cnt+1)+'a';
+        numQ='1本'+unit+'円の'+item+'を'+cnt+'本買って、'+pay+'円払いました。おつりはいくら？';
+        ltrQ='1本'+v('a')+'円の'+item+'を'+cnt+'本買って、'+pay+'円払いました。おつりはいくら？';
+        stepLcore=pay+' － a×'+cnt; msgVar='a に '+unit+' を入れる';
+      }else{                                     // 本数を文字 x
+        coef=unit+'x'; altcoef=(unit+10)+'x';
+        numQ='1本'+unit+'円の'+item+'を'+cnt+'本買って、'+pay+'円払いました。おつりはいくら？';
+        ltrQ='1本'+unit+'円の'+item+'を'+v('x')+'本買って、'+pay+'円払いました。おつりはいくら？';
+        stepLcore=pay+' － '+unit+'×x'; msgVar='x に '+cnt+' を入れる';
+      }
+      var ltrAns=pay+'-'+coef;
+      var candsN=[(subtotal-pay)+'円',(pay+subtotal)+'円',subtotal+'円',pay+'円',(change+unit)+'円',(change+10)+'円'];
+      var candsL=[pay+'+'+coef+'（円）',coef+'-'+pay+'（円）',coef+'（円）',pay+'（円）',pay+'-'+altcoef+'（円）'];
+      return {title:'個数・金額',
+        num:{q:numQ,ans:change+'円',opts:buildOpts(change+'円',candsN),
+             step:pay+' － '+unit+'×'+cnt+' ＝ '+pay+' － '+subtotal+' ＝ <b>'+change+'</b> 円'},
+        ltr:{q:ltrQ,ans:ltrAns+'（円）',opts:buildOpts(ltrAns+'（円）',candsL),
+             step:stepLcore+' ＝ <b>'+ltrAns+'</b>'},
+        msg:msgVar+'と '+ltrAns+' は <b>'+change+'</b>。式は「払った額 － 単価×本数」で同じ。'};
+    },
+    // ---- 道のりの残り：全体 － 速さ×時間 ----
+    speed_remain:function(){
+      var v0=randi(3,12)*10, t=randi(2,8), prog=v0*t;
+      var D=pick([1000,1500,2000,2500,3000].filter(function(d){return d>prog+50;}));
+      var rest=D-prog, variant=pick(['time','speed']);
+      var coef,altcoef,numQ,ltrQ,stepLcore,msgVar;
+      if(variant==='time'){                      // 時間を文字 x
+        coef=v0+'x'; altcoef=(v0+10)+'x';
+        numQ='家から公園まで'+D+'m。分速'+v0+'mで歩くと、'+t+'分後の残りは何m？';
+        ltrQ='家から公園まで'+D+'m。分速'+v0+'mで歩くと、'+v('x')+'分後の残りは何m？';
+        stepLcore=D+' － '+v0+'×x'; msgVar='x に '+t+' を入れる';
+      }else{                                     // 速さを文字 x
+        coef=t+'x'; altcoef=(t+1)+'x';
+        numQ='家から公園まで'+D+'m。分速'+v0+'mで'+t+'分歩くと、残りは何m？';
+        ltrQ='家から公園まで'+D+'m。分速'+v('x')+'mで'+t+'分歩くと、残りは何m？';
+        stepLcore=D+' － x×'+t; msgVar='x に '+v0+' を入れる';
+      }
+      var ltrAns=D+'-'+coef;
+      var candsN=[(D+prog)+'m',prog+'m',D+'m',(rest+v0)+'m',(rest>10?rest-10:rest+20)+'m',(rest+10)+'m'];
+      var candsL=[D+'+'+coef+'（m）',coef+'-'+D+'（m）',coef+'（m）',D+'（m）',D+'-'+altcoef+'（m）'];
+      return {title:'道のりの残り',
+        num:{q:numQ,ans:rest+'m',opts:buildOpts(rest+'m',candsN),
+             step:D+' － '+v0+'×'+t+' ＝ '+D+' － '+prog+' ＝ <b>'+rest+'</b> m'},
+        ltr:{q:ltrQ,ans:ltrAns+'（m）',opts:buildOpts(ltrAns+'（m）',candsL),
+             step:stepLcore+' ＝ <b>'+ltrAns+'</b>'},
+        msg:msgVar+'と '+ltrAns+' は <b>'+rest+'</b>。式は「全体 － 速さ×時間」で同じ。'};
+    }
+  };
+
+  var CATS=[
+    {key:'shape',label:'図形'},
+    {key:'speed',label:'道のり'},
+    {key:'average',label:'平均'},
+    {key:'percent',label:'割合'},
+    {key:'cv_all',label:'単位変換'},
+    {key:'qty_price',label:'個数・金額'},
+    {key:'__all',label:'ぜんぶ'}
+  ];
+  var activeCat='__all';
+
+  /* ---- ランク（consecutivePerfect） ---- */
+  var streak=0;
+  function rankOf(s){ if(s>=8)return'SSS'; if(s>=6)return'SS'; if(s>=4)return'S'; if(s>=3)return'A'; if(s>=2)return'B'; if(s>=1)return'C'; return'—'; }
+  function paintStatus(){ $('dm-rank').textContent='ランク '+rankOf(streak); $('dm-streak').textContent='連続正解 '+streak; }
+
+  /* ---- 状態 ---- */
+  var cur=null, phase='num', locked=false;
+
+  var POOL=CATS.filter(function(c){return c.key!=='__all';});
+  function newProblem(){
+    var key=activeCat==='__all'?pick(POOL).key:activeCat;
+    cur=GEN[key](); phase='num'; locked=false;
+    $('dm-compare').classList.remove('show');
+    $('dm-next').classList.remove('show');
+    $('dm-fig').innerHTML='';
+    $('dm-hanko').classList.remove('pop');
+    renderPhase();
+  }
+
+  function renderPhase(){
+    $('dm-hanko').classList.remove('pop');
+    var d=cur[phase]; var ph=$('dm-phase');
+    if(phase==='num'){ ph.className='dm-phase num'; ph.innerHTML='<span class="jp">壱</span><span>まず数字で</span>'; }
+    else{ ph.className='dm-phase ltr'; ph.innerHTML='<span class="jp">弐</span><span>同じ問題を文字で</span>'; }
+    $('dm-q').innerHTML=d.q;
+    var box=$('dm-choices'); box.innerHTML=''; locked=false;
+    var opts=shuffle(d.opts.slice());
+    opts.forEach(function(o){
+      var b=document.createElement('button');
+      b.className='dm-opt'; b.type='button';
+      b.dataset.val=o;
+      b.innerHTML=renderVal(o);
+      b.onclick=function(){ answer(b,o,d.ans); };
+      box.appendChild(b);
+    });
+  }
+  // 変数を斜体化
+  function ital(s){return String(s).replace(/([a-z])/g,'<exp>$1</exp>');}
+  // 選択肢表示：かけ算は省略済み（5x）、わり算（A÷B）は分数、（）内の単位は斜体化しない
+  function renderVal(o){
+    o=String(o);
+    var store=[];
+    function stash(html){store.push(html);return '\u0001'+(store.length-1)+'\u0001';}
+    o=o.replace(/[（(][^）)]*[）)]/g,function(m){return stash(m);});          // 単位を退避
+    o=o.replace(/([0-9a-zπ]+)÷([0-9a-zπ]+)/g,function(m,a,b){                 // 分数化
+      return stash('<span class="dm-frac"><span class="dm-n">'+ital(a)+'</span><span class="dm-d">'+ital(b)+'</span></span>');
+    });
+    o=ital(o);                                                               // 残りを斜体化
+    return o.replace(/\u0001(\d+)\u0001/g,function(m,i){return store[i];});   // 復元
+  }
+
+  function answer(btn,chosen,correct){
+    if(locked)return; locked=true;
+    var right=(chosen===correct);
+    var box=$('dm-choices');
+    Array.prototype.forEach.call(box.children,function(b){
+      b.disabled=true;
+      if(b===btn) b.classList.add(right?'correct':'wrong');
+    });
+    if(right){
+      // 正解のボタンが選ばれなかった場合も正解を光らせる
+      safeDivpCorrect();
+      safeDivpLog({unit_key:'math_jh_mojishiki_master',question_key:cur.title+'_'+phase,
+        question_text:cur[phase].q,correct_answer:correct,result:'correct'});
+      setTimeout(nextStep,650);
+    }else{
+      Array.prototype.forEach.call(box.children,function(b){
+        if(b.dataset.val===String(correct)) b.classList.add('correct');
+      });
+      streak=0; paintStatus();
+      safeDivpLog({unit_key:'math_jh_mojishiki_master',question_key:cur.title+'_'+phase,
+        question_text:cur[phase].q,correct_answer:correct,result:'wrong'});
+      $('dm-next').classList.add('show');
+    }
+  }
+
+  function nextStep(){
+    if(phase==='num'){ phase='ltr'; renderPhase(); }
+    else{
+      // 文字フェーズ正解 → 連続++、比較表示
+      streak++; paintStatus();
+      $('dm-cmp-n').innerHTML=cur.num.step;
+      $('dm-cmp-l').innerHTML=cur.ltr.step;
+      $('dm-cmp-msg').innerHTML=cur.msg;
+      $('dm-compare').classList.add('show');
+      $('dm-next').classList.add('show');
+    }
+  }
+
+  /* ---- 初期化 ---- */
+  var catBox=$('dm-cats'), catsHead=$('dm-cats-head'), catsCur=$('dm-cats-cur');
+  function setCatsOpen(open){
+    catBox.classList.toggle('open',open);
+    catsHead.setAttribute('aria-expanded',open?'true':'false');
+  }
+  catsHead.onclick=function(){ setCatsOpen(!catBox.classList.contains('open')); };
+  catsHead.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); catsHead.click(); } };
+
+  CATS.forEach(function(c){
+    var b=document.createElement('button');
+    b.className='dm-chip'; b.type='button'; b.textContent=c.label;
+    b.setAttribute('aria-pressed',c.key===activeCat);
+    b.onclick=function(){
+      activeCat=c.key; catsCur.textContent=c.label;
+      Array.prototype.forEach.call(catBox.children,function(x){x.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true');
+      newProblem();
+      setCatsOpen(false);
+    };
+    catBox.appendChild(b);
+  });
+  $('dm-next').onclick=function(){
+    if($('dm-compare').classList.contains('show')) newProblem();
+    else nextStep(); // 不正解時のやり直し送り
+  };
+
+  paintStatus();
+  newProblem();
+
+  // 検証用にエクスポート
+  if(typeof module!=='undefined'&&module.exports){ module.exports={GEN:GEN,CATS:CATS}; }
+})();
+</script>
+</body>
+</html>

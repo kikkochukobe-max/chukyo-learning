@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>一次関数マスター | 中京個別指導学院(神丘)</title>
+<meta name="description" content="中学2年生向け 一次関数の練習ツール。増加量・式の特徴・式を求める・グラフをかく・交点・三角形の面積の6モード。名古屋市名東区神丘の中京個別指導学院。">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="../../assets/js/divp-header.js" onerror="this.remove()"></script>
+<script src="../../assets/js/divp-correct-jh.js" onerror="this.remove()"></script>
+<style>
+:root{
+  --washi:#F6F1E7;
+  --washi-deep:#EFE7D8;
+  --ink:#2E2A26;
+  --ink-soft:#6B6258;
+  --sakura:#C9556F;
+  --sakura-deep:#A83A55;
+  --sakura-mist:#F3DEE3;
+  --indigo:#2E5077;
+  --moss:#5E7B4E;
+  --line:#D8CDBA;
+  --gold:#B08D3E;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{min-height:calc(100svh + 1px);}
+body{
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(201,85,111,.05), transparent),
+    repeating-linear-gradient(-45deg, rgba(0,0,0,.012) 0 2px, transparent 2px 6px),
+    var(--washi);
+  color:var(--ink);
+  font-family:'Hiragino Kaku Gothic ProN','Yu Gothic','Noto Sans JP',sans-serif;
+  padding:12px 12px 90px;
+  touch-action:manipulation;
+}
+header.dv-head{
+  max-width:860px;margin:0 auto 10px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  border-bottom:3px double var(--line);padding-bottom:8px;
+}
+h1{
+  font-family:'Hiragino Mincho ProN','Yu Mincho',serif;
+  font-size:1.5rem;letter-spacing:.08em;font-weight:700;
+}
+h1 .sub{font-size:.72rem;color:var(--ink-soft);letter-spacing:.2em;display:block;font-weight:500;}
+.stats{display:flex;gap:8px;align-items:center;font-size:.8rem;}
+.stat{
+  background:#fff;border:1px solid var(--line);border-radius:8px;padding:4px 10px;text-align:center;min-width:62px;
+  box-shadow:0 1px 0 rgba(0,0,0,.04);
+}
+.stat b{display:block;font-size:1.05rem;color:var(--sakura-deep);font-family:'Hiragino Mincho ProN',serif;}
+.stat span{font-size:.62rem;color:var(--ink-soft);letter-spacing:.1em;}
+#rankBadge b{color:var(--gold);}
+/* mode chips */
+.modes{max-width:860px;margin:0 auto 12px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+@media(min-width:640px){.modes{grid-template-columns:repeat(6,1fr);}}
+.chip{
+  border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:8px 4px;cursor:pointer;
+  font-size:.8rem;line-height:1.25;text-align:center;color:var(--ink);
+  font-family:inherit;transition:transform .1s;
+}
+.chip small{display:block;font-size:.6rem;color:var(--ink-soft);}
+.chip.on{
+  background:var(--sakura);border-color:var(--sakura-deep);color:#fff;
+  box-shadow:0 2px 6px rgba(168,58,85,.3);
+}
+.chip.on small{color:#fbe9ee;}
+.chip:active{transform:scale(.96);}
+/* card */
+.card{
+  max-width:860px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 3px 14px rgba(60,45,30,.07);padding:16px;position:relative;overflow:hidden;
+}
+.card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--sakura),var(--sakura-mist));
+}
+#qWrap{min-height:56px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:6px 0;}
+#qText{font-size:1.12rem;line-height:1.9;white-space:normal;text-align:left;}
+#qText .katex{font-size:1.08em;}
+.qtable{
+  border-collapse:collapse;margin:10px auto 2px;font-size:1.05rem;
+  font-family:'Hiragino Mincho ProN',serif;
+}
+.qtable th,.qtable td{
+  border:1.5px solid var(--ink-soft);padding:6px 16px;text-align:center;min-width:52px;
+}
+.qtable th{background:var(--washi-deep);font-style:italic;font-weight:600;}
+.qtable td{background:#fff;}
+#figWrap{display:flex;justify-content:center;margin:6px 0 4px;}
+#figWrap svg{max-width:100%;height:auto;touch-action:none;}
+.fig-hint{font-size:.72rem;color:var(--ink-soft);text-align:center;margin-top:2px;}
+/* answers */
+#ansArea{margin-top:10px;}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+@media(max-width:480px){.choices{grid-template-columns:1fr;}}
+.choiceBtn{
+  border:1.5px solid var(--line);background:var(--washi);border-radius:10px;padding:12px 8px;
+  font-size:1rem;cursor:pointer;font-family:inherit;color:var(--ink);overflow:hidden;
+}
+.choiceBtn .inner{display:inline-block;white-space:nowrap;transform-origin:center;}
+.choiceBtn.sel{background:var(--sakura-mist);border-color:var(--sakura);box-shadow:inset 0 0 0 1.5px var(--sakura);}
+.choiceBtn.hit{background:#E8F1E4;border-color:var(--moss);}
+.choiceBtn.miss{background:#FBE7EA;border-color:var(--sakura-deep);}
+/* input fields */
+.fields{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:center;}
+.field{display:flex;align-items:center;gap:6px;font-size:1.1rem;}
+.field .flab .katex{font-size:1.1em;}
+.fbox{
+  min-width:96px;height:48px;border:2px solid var(--line);border-radius:9px;background:var(--washi);
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;padding:0 8px;
+  font-family:'Hiragino Mincho ProN',serif;letter-spacing:.03em;
+}
+.fbox.act{border-color:var(--sakura);background:#fff;box-shadow:0 0 0 3px var(--sakura-mist);}
+.fbox:empty::before{content:"?";color:#C9BFAE;}
+/* tenkey */
+.tenkey{margin:12px auto 0;max-width:420px;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.tenkey button{
+  height:50px;border-radius:9px;border:1px solid var(--line);background:#fff;font-size:1.25rem;cursor:pointer;
+  font-family:'Hiragino Mincho ProN',serif;color:var(--ink);box-shadow:0 2px 0 rgba(0,0,0,.06);
+}
+.tenkey button:active{transform:translateY(2px);box-shadow:none;}
+.tenkey button.op{background:var(--washi-deep);color:var(--sakura-deep);font-weight:700;}
+/* actions */
+.actions{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap;}
+.btn{
+  min-width:150px;padding:12px 20px;border-radius:999px;border:none;font-size:1.02rem;cursor:pointer;
+  font-family:inherit;font-weight:700;letter-spacing:.12em;
+}
+.btn:active{transform:scale(.97);}
+#checkBtn{background:var(--sakura);color:#fff;box-shadow:0 3px 10px rgba(168,58,85,.35);}
+#nextBtn{background:var(--indigo);color:#fff;box-shadow:0 3px 10px rgba(46,80,119,.3);display:none;}
+#clearPtsBtn{background:#fff;border:1.5px solid var(--line);color:var(--ink-soft);display:none;font-weight:500;}
+.btn:disabled{opacity:.4;box-shadow:none;}
+/* feedback */
+#toast{
+  text-align:center;font-size:.85rem;color:var(--sakura-deep);min-height:1.3em;margin-top:8px;font-weight:600;
+}
+#explain{
+  display:none;margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;
+  font-size:.95rem;line-height:2.05;
+}
+#explain .exTitle{
+  font-family:'Hiragino Mincho ProN',serif;color:var(--sakura-deep);font-weight:700;letter-spacing:.15em;
+  font-size:.85rem;margin-bottom:4px;
+}
+#explain .exLine{overflow-x:auto;}
+/* hanko effect */
+#hanko{
+  position:fixed;left:50%;top:42%;transform:translate(-50%,-50%) scale(3) rotate(-18deg);
+  width:130px;height:130px;border:5px solid var(--sakura-deep);border-radius:50%;
+  color:var(--sakura-deep);display:none;align-items:center;justify-content:center;
+  font-family:'Hiragino Mincho ProN',serif;font-size:2.1rem;font-weight:800;letter-spacing:.1em;
+  background:rgba(255,252,248,.75);z-index:99;pointer-events:none;
+  text-shadow:0 0 1px var(--sakura-deep);
+}
+#hanko.pop{display:flex;animation:hankoIn .5s cubic-bezier(.2,1.6,.4,1) forwards;}
+@keyframes hankoIn{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(3) rotate(-30deg);}
+  60%{opacity:1;transform:translate(-50%,-50%) scale(.95) rotate(-12deg);}
+  100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-12deg);}
+}
+.shake{animation:shk .35s;}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+footer{max-width:860px;margin:16px auto 0;text-align:center;font-size:.68rem;color:var(--ink-soft);letter-spacing:.1em;}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+}
+</style>
+</head>
+<body data-unit-key="math_jh2_ichijikansu" data-theme="washi" data-effect="jh">
+
+<header class="dv-head">
+  <h1><span class="sub">中2数学 ── 一次関数</span>一次関数マスター</h1>
+  <div class="stats">
+    <div class="stat"><b id="lvVal">1</b><span>LEVEL</span></div>
+    <div class="stat"><b id="xpVal">0</b><span>XP</span></div>
+    <div class="stat" id="rankBadge"><b id="rankVal">D</b><span>RANK</span></div>
+    <div class="stat"><b id="streakVal">0</b><span>連続正解</span></div>
+  </div>
+</header>
+
+<nav class="modes" id="modeNav">
+  <button class="chip on" data-mode="zoukaryo">増加量<small>変化の割合</small></button>
+  <button class="chip" data-mode="tokucho">式の特徴<small>グラフと式</small></button>
+  <button class="chip" data-mode="shiki">式を求める<small>傾きと切片</small></button>
+  <button class="chip" data-mode="graph">グラフをかく<small>点をうって作図</small></button>
+  <button class="chip" data-mode="koten">交点を求める<small>連立方程式</small></button>
+  <button class="chip" data-mode="menseki">三角形の面積<small>軸と交点</small></button>
+</nav>
+
+<main class="card" id="card">
+  <div id="qWrap"><div id="qText"></div></div>
+  <div id="figWrap"></div>
+  <div id="ansArea"></div>
+  <div class="actions">
+    <button class="btn" id="clearPtsBtn">選び直す</button>
+    <button class="btn" id="checkBtn">答え合わせ</button>
+    <button class="btn" id="nextBtn">次の問題 ➜</button>
+  </div>
+  <div id="toast"></div>
+  <div id="explain"><div class="exTitle">─ 解説 ─</div><div id="exBody"></div></div>
+</main>
+
+<div id="hanko">正解</div>
+
+<footer>© 中京個別指導学院(名古屋市名東区・神丘) — divp-suite</footer>
+
+<script>
+"use strict";
+/* ================================================================
+   math_jh2_ichijikansu.html  一次関数マスター
+   modes: zoukaryo / tokucho / shiki / graph / koten / menseki
+   ================================================================ */
+
+/*GEN-START*/
+/* ---------- rational utils ---------- */
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;}
+function rmk(n,d){
+  d=(d===undefined)?1:d;
+  if(d===0)throw new Error("div0");
+  if(d<0){n=-n;d=-d;}
+  const g=gcd(n,d);return {n:n/g,d:d/g};
+}
+function radd(x,y){return rmk(x.n*y.d+y.n*x.d, x.d*y.d);}
+function rsub(x,y){return rmk(x.n*y.d-y.n*x.d, x.d*y.d);}
+function rmul(x,y){return rmk(x.n*y.n, x.d*y.d);}
+function rdiv(x,y){return rmk(x.n*y.d, x.d*y.n);}
+function rneg(x){return rmk(-x.n,x.d);}
+function rEq(x,y){return x.n===y.n && x.d===y.d;}
+function rIsInt(x){return x.d===1;}
+function rVal(x){return x.n/x.d;}
+function rAbs(x){return rmk(Math.abs(x.n),x.d);}
+/* TeX 表記 */
+function rTex(x){
+  if(x.d===1)return String(x.n);
+  const s=x.n<0?"-":"";
+  return s+"\\dfrac{"+Math.abs(x.n)+"}{"+x.d+"}";
+}
+function rTexInline(x){
+  if(x.d===1)return String(x.n);
+  const s=x.n<0?"-":"";
+  return s+"\\frac{"+Math.abs(x.n)+"}{"+x.d+"}";
+}
+/* y=ax+b のTeX */
+function lineTex(a,b){
+  let s="y=";
+  if(a.n!==0){
+    if(rEq(a,rmk(1)))s+="x";
+    else if(rEq(a,rmk(-1)))s+="-x";
+    else s+=rTexInline(a)+"x";
+    if(b.n>0)s+="+"+rTexInline(b);
+    else if(b.n<0)s+=rTexInline(b);
+  }else{
+    s+=rTexInline(b);
+  }
+  return s;
+}
+/* ---------- RNG ---------- */
+function ri(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function pick(arr){return arr[ri(0,arr.length-1)];}
+function shuffle(arr){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;}
+function nzi(min,max){let v=0;while(v===0)v=ri(min,max);return v;}
+/* 傾き候補(見やすいもの) */
+const SLOPES=[
+  rmk(1),rmk(-1),rmk(2),rmk(-2),rmk(3),rmk(-3),
+  rmk(1,2),rmk(-1,2),rmk(3,2),rmk(-3,2),
+  rmk(1,3),rmk(-1,3),rmk(2,3),rmk(-2,3)
+];
+function pickSlope(intOnly){
+  if(intOnly)return pick(SLOPES.filter(rIsInt));
+  return pick(SLOPES);
+}
+
+/* ================================================================
+   問題ジェネレータ
+   返り値: {qkey, qHtml, fig, ans, exLines}
+   fig: null | {kind:'line'|'points'|'twolines'|'tri', ...}
+   ans: {kind:'input', fields:[{label(tex), val(rational)}]}
+      | {kind:'choice', choices:[tex...], correct:idx}
+      | {kind:'draw', a, b}
+   ================================================================ */
+
+function tableHtml(xs,ys,hide){
+  const yc=ys.map((y,i)=>i===hide?"ア":y);
+  return `<table class="qtable"><tr><th>x</th>${xs.map(x=>`<td>${x}</td>`).join("")}</tr><tr><th>y</th>${yc.map(y=>`<td>${y}</td>`).join("")}</tr></table>`;
+}
+function genZoukaryo(){
+  const v=ri(1,8);
+  if(v===7||v===8){
+    /* 対応表の問題 */
+    const a=pickSlope(false);
+    const b=rmk(ri(-5,5));
+    const s=a.d;                          /* xの間隔=分母 → yは整数 */
+    const x0=ri(-4,1)*s;
+    const xs=[0,1,2,3].map(k=>x0+k*s);
+    const ys=xs.map(x=>a.n*(x/a.d)+b.n);   /* 厳密に整数 */
+    if(v===7){
+      return {
+        qkey:"zoukaryo_v7",
+        qHtml:`下の表は，ある一次関数の ${T("x")} と ${T("y")} の値の対応を表しています。この一次関数の変化の割合を求めなさい。${tableHtml(xs,ys)}`,
+        fig:null,
+        ans:{kind:"input",fields:[{label:"\\text{変化の割合}=",val:a}]},
+        exLines:[
+          `表から，${T("x")} が ${T(String(xs[0]))} から ${T(String(xs[1]))} に増加すると ${T("y")} は ${T(String(ys[0]))} から ${T(String(ys[1]))} に変わる。`,
+          T("\\text{変化の割合}=\\dfrac{"+(ys[1]-ys[0])+"}{"+(xs[1]-xs[0])+"}="+rTexInline(a))
+        ]
+      };
+    }
+    const hide=ri(1,3);                    /* 先頭以外を隠す */
+    return {
+      qkey:"zoukaryo_v8",
+      qHtml:`下の表は，ある一次関数の ${T("x")} と ${T("y")} の値の対応を表しています。表の <b>ア</b> にあてはまる数を求めなさい。${tableHtml(xs,ys,hide)}`,
+      fig:null,
+      ans:{kind:"input",fields:[{label:"\\text{ア}=",val:rmk(ys[hide])}]},
+      exLines:[
+        `${T("x")} が ${T(String(s))} 増えるごとに ${T("y")} は ${T(String(ys[1]-ys[0]))} ずつ変わる(変化の割合 ${T(rTexInline(a))})。`,
+        T("\\text{ア}="+ys[hide-1]+(ys[1]-ys[0]>=0?"+":"")+(ys[1]-ys[0])+"="+ys[hide])
+      ]
+    };
+  }
+  if(v===5||v===6){
+    /* yの増加量 → xの増加量 */
+    const a=pickSlope(false);
+    const dx=a.d*ri(1,3);
+    const dy=rmul(a,rmk(dx));           /* 整数(0でない) */
+    if(v===5){
+      const b=rmk(nzi(-6,6));
+      return {
+        qkey:"zoukaryo_v5",
+        qHtml:`一次関数 ${T(lineTex(a,b))} で，${T("y")} の増加量が ${T(rTexInline(dy))} のときの ${T("x")} の増加量を求めなさい。`,
+        fig:null,
+        ans:{kind:"input",fields:[{label:"x\\text{の増加量}=",val:rmk(dx)}]},
+        exLines:[
+          `${T("x")} の増加量 ${T("=\\dfrac{y\\text{の増加量}}{\\text{変化の割合}}")}`,
+          T("\\dfrac{"+rTexInline(dy)+"}{"+rTexInline(a)+"}="+dx)
+        ]
+      };
+    }
+    return {
+      qkey:"zoukaryo_v6",
+      qHtml:`変化の割合が ${T(rTexInline(a))} の一次関数で，${T("y")} の増加量が ${T(rTexInline(dy))} のときの ${T("x")} の増加量を求めなさい。`,
+      fig:null,
+      ans:{kind:"input",fields:[{label:"x\\text{の増加量}=",val:rmk(dx)}]},
+      exLines:[
+        `変化の割合 ${T("=\\dfrac{y\\text{の増加量}}{x\\text{の増加量}}")} なので，${T("x")} の増加量 ${T("=\\dfrac{y\\text{の増加量}}{\\text{変化の割合}}")}`,
+        T("\\dfrac{"+rTexInline(dy)+"}{"+rTexInline(a)+"}="+dx)
+      ]
+    };
+  }
+  if(v===1||v===2){
+    /* y=ax+b で xの増加量→yの増加量 */
+    const a=pickSlope(false);
+    const b=rmk(nzi(-6,6));
+    let dx = a.d * ri(1,3);           /* 分母の倍数にして答えを整数に */
+    const dy = rmul(a, rmk(dx));      /* 整数 */
+    if(v===1){
+      const p=ri(-6,4), q=p+dx;
+      return {
+        qkey:"zoukaryo_v1",
+        qHtml:`一次関数 ${T(lineTex(a,b))} で，${T("x")} の値が ${T(String(p))} から ${T(String(q))} まで増加するときの ${T("y")} の増加量を求めなさい。`,
+        fig:null,
+        ans:{kind:"input",fields:[{label:"y\\text{の増加量}=",val:dy}]},
+        exLines:[
+          `${T("y")} の増加量 ${T("=")} 変化の割合 ${T("\\times")} ${T("x")} の増加量`,
+          T(`${rTexInline(a)}\\times(${q}-(${p}))=${rTexInline(a)}\\times ${dx}=${rTexInline(dy)}`)
+        ]
+      };
+    }
+    return {
+      qkey:"zoukaryo_v2",
+      qHtml:`一次関数 ${T(lineTex(a,b))} で，${T("x")} の増加量が ${T(String(dx))} のときの ${T("y")} の増加量を求めなさい。`,
+      fig:null,
+      ans:{kind:"input",fields:[{label:"y\\text{の増加量}=",val:dy}]},
+      exLines:[
+        `${T("y")} の増加量 ${T("=")} 傾き ${T(rTexInline(a))} ${T("\\times")} ${T(String(dx))} ${T("="+rTexInline(dy))}`
+      ]
+    };
+  }
+  if(v===3){
+    /* 増加量→変化の割合 */
+    const a=pickSlope(false);
+    const dx=a.d*ri(1,3);
+    const dy=rmul(a,rmk(dx));
+    return {
+      qkey:"zoukaryo_v3",
+      qHtml:`ある一次関数で，${T("x")} の増加量が ${T(String(dx))} のとき ${T("y")} の増加量は ${T(rTexInline(dy))} でした。変化の割合を求めなさい。`,
+      fig:null,
+      ans:{kind:"input",fields:[{label:"\\text{変化の割合}=",val:a}]},
+      exLines:[
+        `変化の割合 ${T("=\\dfrac{y\\text{の増加量}}{x\\text{の増加量}}=\\dfrac{"+rTexInline(dy)+"}{"+dx+"}="+rTexInline(a))}`
+      ]
+    };
+  }
+  /* v4: 式から変化の割合 */
+  const a=pickSlope(false);
+  const b=rmk(nzi(-7,7));
+  return {
+    qkey:"zoukaryo_v4",
+    qHtml:`一次関数 ${T(lineTex(a,b))} の変化の割合を答えなさい。`,
+    fig:null,
+    ans:{kind:"input",fields:[{label:"\\text{変化の割合}=",val:a}]},
+    exLines:[
+      `一次関数 ${T("y=ax+b")} の変化の割合は ${T("x")} の係数 ${T("a")} と等しく，一定である。`,
+      `よって変化の割合 ${T("="+rTexInline(a))}`
+    ]
+  };
+}
+
+function genTokucho(){
+  const v=ri(1,5);
+  if(v===5){
+    /* 図→式を選ぶ */
+    const a=pick([rmk(1),rmk(-1),rmk(2),rmk(-2),rmk(1,2),rmk(-1,2)]);
+    const b=rmk(nzi(-4,4));
+    const correct=lineTex(a,b);
+    const set=new Set([correct]);
+    const cands=[lineTex(rneg(a),b),lineTex(a,rneg(b)),lineTex(rneg(a),rneg(b)),
+                 lineTex(a,radd(b,rmk(pick([-2,2,1,-1])))),lineTex(rdiv(rmk(1),rEq(a,rmk(1))||rEq(a,rmk(-1))?rmk(2*a.n):a),b)];
+    for(const c of cands){if(set.size<4)set.add(c);}
+    const choices=shuffle([...set]);
+    return {
+      qkey:"tokucho_v5",
+      qHtml:`次のグラフの直線の式として正しいものを選びなさい。`,
+      fig:{kind:"line",lines:[{a,b,color:"var(--indigo)"}],range:6},
+      ans:{kind:"choice",choices:choices.map(T),correct:choices.indexOf(correct)},
+      exLines:[
+        `${T("y")} 軸との交点(切片)は ${T("(0,\\,"+rTexInline(b)+")")}`,
+        `右へ ${T(String(a.d))} 進むと上下に ${T(rTexInline(rmk(a.n)))} 変化する ${T("\\Rightarrow")} 傾き ${T(rTexInline(a))}`,
+        `よって ${T(correct)}`
+      ]
+    };
+  }
+  /* 4式から選ぶ */
+  const mk=()=>({a:pickSlope(false),b:rmk(nzi(-6,6))});
+  if(v===1){
+    const up=ri(0,1)===0;   /* 右上がり? */
+    const good={a:pickSlope(false),b:rmk(nzi(-6,6))};
+    while((good.a.n>0)!==up)good.a=pickSlope(false);
+    const bads=[];
+    while(bads.length<3){
+      const l=mk();
+      if((l.a.n>0)!==up && !bads.some(x=>rEq(x.a,l.a)&&rEq(x.b,l.b)))bads.push(l);
+    }
+    const all=shuffle([good,...bads]);
+    return {
+      qkey:"tokucho_v1",
+      qHtml:`グラフが<b>${up?"右上がり":"右下がり"}</b>になる一次関数を選びなさい。`,
+      fig:null,
+      ans:{kind:"choice",choices:all.map(l=>T(lineTex(l.a,l.b))),correct:all.indexOf(good)},
+      exLines:[
+        `傾き ${T("a")} が ${up?"正":"負"} ${T("("+(up?"a>0":"a<0")+")")} のときグラフは${up?"右上がり":"右下がり"}になる。`,
+        `${T(lineTex(good.a,good.b))} の傾きは ${T(rTexInline(good.a))} で${up?"正":"負"}。`
+      ]
+    };
+  }
+  if(v===2){
+    /* 点を通るのは */
+    const good={a:pickSlope(true),b:rmk(nzi(-5,5))};
+    const px=nzi(-4,4);
+    const py=radd(rmul(good.a,rmk(px)),good.b);
+    const bads=[];
+    while(bads.length<3){
+      const l=mk();
+      const y2=radd(rmul(l.a,rmk(px)),l.b);
+      if(!rEq(y2,py) && !bads.some(x=>rEq(x.a,l.a)&&rEq(x.b,l.b)))bads.push(l);
+    }
+    const all=shuffle([good,...bads]);
+    return {
+      qkey:"tokucho_v2",
+      qHtml:`グラフが点 ${T("("+px+",\\,"+rTexInline(py)+")")} を通る一次関数を選びなさい。`,
+      fig:null,
+      ans:{kind:"choice",choices:all.map(l=>T(lineTex(l.a,l.b))),correct:all.indexOf(good)},
+      exLines:[
+        `${T("x="+px)} を代入して ${T("y="+rTexInline(py))} になる式を探す。`,
+        T(rTexInline(good.a)+"\\times("+px+")"+(good.b.n>=0?"+":"")+rTexInline(good.b)+"="+rTexInline(py))
+      ]
+    };
+  }
+  if(v===3){
+    /* 平行なのは */
+    const base={a:pickSlope(false),b:rmk(nzi(-5,5))};
+    let gb=rmk(nzi(-5,5));while(rEq(gb,base.b))gb=rmk(nzi(-5,5));
+    const good={a:base.a,b:gb};
+    const bads=[];
+    while(bads.length<3){
+      const l=mk();
+      if(!rEq(l.a,base.a) && !bads.some(x=>rEq(x.a,l.a)&&rEq(x.b,l.b)))bads.push(l);
+    }
+    const all=shuffle([good,...bads]);
+    return {
+      qkey:"tokucho_v3",
+      qHtml:`グラフが ${T(lineTex(base.a,base.b))} のグラフと<b>平行</b>になるものを選びなさい。`,
+      fig:null,
+      ans:{kind:"choice",choices:all.map(l=>T(lineTex(l.a,l.b))),correct:all.indexOf(good)},
+      exLines:[
+        `平行 ${T("\\Leftrightarrow")} 傾きが等しい(切片は異なる)。`,
+        `傾き ${T(rTexInline(base.a))} の式は ${T(lineTex(good.a,good.b))}`
+      ]
+    };
+  }
+  /* v4: y軸との交点 */
+  const b=rmk(nzi(-6,6));
+  const good={a:pickSlope(false),b};
+  const bads=[];
+  while(bads.length<3){
+    const l=mk();
+    if(!rEq(l.b,b) && !bads.some(x=>rEq(x.a,l.a)&&rEq(x.b,l.b)))bads.push(l);
+  }
+  const all=shuffle([good,...bads]);
+  return {
+    qkey:"tokucho_v4",
+    qHtml:`グラフが ${T("y")} 軸と点 ${T("(0,\\,"+rTexInline(b)+")")} で交わる一次関数を選びなさい。`,
+    fig:null,
+    ans:{kind:"choice",choices:all.map(l=>T(lineTex(l.a,l.b))),correct:all.indexOf(good)},
+    exLines:[
+      `${T("y")} 軸との交点の ${T("y")} 座標は切片 ${T("b")}。`,
+      `切片が ${T(rTexInline(b))} の式は ${T(lineTex(good.a,good.b))}`
+    ]
+  };
+}
+
+function genShiki(){
+  const v=ri(1,4);
+  const a=pickSlope(false);
+  const b=rmk(nzi(-7,7));
+  const px=a.d*nzi(-3,3);                    /* q が整数になる x */
+  const py=radd(rmul(a,rmk(px)),b);
+  if(v===1||v===2){
+    const word=v===1?`傾きが ${T(rTexInline(a))} で，点 ${T("("+px+",\\,"+rTexInline(py)+")")} を通る直線の式を求めなさい。`
+                    :`変化の割合が ${T(rTexInline(a))} で，${T("x="+px)} のとき ${T("y="+rTexInline(py))} である一次関数の式を求めなさい。`;
+    return {
+      qkey:"shiki_v"+v,
+      qHtml:word, fig:null,
+      ans:{kind:"input",fields:[{label:"a=",val:a},{label:"b=",val:b}],pre:"y=ax+b"},
+      exLines:[
+        `${T("y=ax+b")} に ${T("a="+rTexInline(a))} と ${T("x="+px+",\\ y="+rTexInline(py))} を代入。`,
+        T(rTexInline(py)+"="+rTexInline(a)+"\\times("+px+")+b"),
+        T("b="+rTexInline(py)+"-("+rTexInline(rmul(a,rmk(px)))+")="+rTexInline(b)),
+        `よって ${T(lineTex(a,b))}`
+      ]
+    };
+  }
+  if(v===3){
+    /* 2点を通る */
+    let px2=a.d*nzi(-3,3);
+    while(px2===px)px2=a.d*nzi(-3,3);
+    const py2=radd(rmul(a,rmk(px2)),b);
+    const [P,Q]=px<px2?[[px,py],[px2,py2]]:[[px2,py2],[px,py]];
+    return {
+      qkey:"shiki_v3",
+      qHtml:`2点 ${T("("+P[0]+",\\,"+rTexInline(P[1])+")")}，${T("("+Q[0]+",\\,"+rTexInline(Q[1])+")")} を通る直線の式を求めなさい。`,
+      fig:{kind:"points",points:[{x:P[0],y:rVal(P[1])},{x:Q[0],y:rVal(Q[1])}],range:9},
+      ans:{kind:"input",fields:[{label:"a=",val:a},{label:"b=",val:b}],pre:"y=ax+b"},
+      exLines:[
+        `傾き ${T("a=\\dfrac{"+rTexInline(rsub(Q[1],P[1]))+"}{"+(Q[0]-P[0])+"}="+rTexInline(a))}`,
+        `${T("x="+P[0]+",\\ y="+rTexInline(P[1]))} を代入して ${T("b="+rTexInline(b))}`,
+        `よって ${T(lineTex(a,b))}`
+      ]
+    };
+  }
+  /* v4: 切片と1点 → 傾き */
+  let px4=a.d*nzi(-3,3);
+  const py4=radd(rmul(a,rmk(px4)),b);
+  return {
+    qkey:"shiki_v4",
+    qHtml:`切片が ${T(rTexInline(b))} で，点 ${T("("+px4+",\\,"+rTexInline(py4)+")")} を通る直線の式を求めなさい。`,
+    fig:null,
+    ans:{kind:"input",fields:[{label:"a=",val:a},{label:"b=",val:b}],pre:"y=ax+b"},
+    exLines:[
+      `${T("y=ax"+(b.n>=0?"+":"")+rTexInline(b))} に ${T("x="+px4+",\\ y="+rTexInline(py4))} を代入。`,
+      T(rTexInline(py4)+"=a\\times("+px4+")"+(b.n>=0?"+":"")+rTexInline(b)),
+      T("a="+rTexInline(a)),
+      `よって ${T(lineTex(a,b))}`
+    ]
+  };
+}
+
+function genGraph(){
+  const R=8;
+  let a,b,ok=false;
+  while(!ok){
+    a=pick([rmk(1),rmk(-1),rmk(2),rmk(-2),rmk(3),rmk(-3),rmk(1,2),rmk(-1,2),rmk(3,2),rmk(-3,2),rmk(1,3),rmk(-1,3),rmk(2,3),rmk(-2,3)]);
+    b=rmk(ri(-6,6));
+    /* 格子点が2つ以上グラフ内にあるか */
+    let cnt=0;
+    for(let x=-R;x<=R;x++){
+      if(x%a.d!==0)continue;
+      const y=rVal(a)*x+rVal(b);
+      if(Number.isInteger(y)&&Math.abs(y)<=R)cnt++;
+    }
+    ok=cnt>=3;
+  }
+  return {
+    qkey:"graph_v1",
+    qHtml:`次の一次関数のグラフをかきなさい。 ${T(lineTex(a,b))}<br><span style="font-size:.8em;color:var(--ink-soft)">(グラフが通る格子点を <b>2つ</b> タップすると直線が引かれます)</span>`,
+    fig:{kind:"draw",range:R},
+    ans:{kind:"draw",a,b,range:R},
+    exLines:[
+      `切片 ${T("b="+rTexInline(b))} ${T("\\Rightarrow")} 点 ${T("(0,\\,"+rTexInline(b)+")")} を通る。`,
+      `傾き ${T(rTexInline(a))} ${T("\\Rightarrow")} 右へ ${T(String(a.d))} 進むと ${T("y")} は ${T(rTexInline(rmk(a.n)))} 変化する。`,
+      `2点が決まれば直線が引ける。`
+    ]
+  };
+}
+
+function genKoten(){
+  let a1,a2,x0,y0,b1,b2,ok=false;
+  while(!ok){
+    a1=nzi(-3,3);a2=nzi(-3,3);
+    if(a1===a2)continue;
+    x0=nzi(-5,5);y0=ri(-5,5);
+    b1=y0-a1*x0;b2=y0-a2*x0;
+    ok=Math.abs(b1)<=9&&Math.abs(b2)<=9&&b1!==b2;
+  }
+  const A1=rmk(a1),B1=rmk(b1),A2=rmk(a2),B2=rmk(b2);
+  return {
+    qkey:"koten_v1",
+    qHtml:`2直線 ${T("\\ell_1:"+lineTex(A1,B1))} と ${T("\\ell_2:"+lineTex(A2,B2))} の交点の座標を求めなさい。`,
+    fig:{kind:"twolines",lines:[{a:A1,b:B1,color:"var(--indigo)",label:"ℓ₁"},{a:A2,b:B2,color:"var(--sakura-deep)",label:"ℓ₂"}],pt:{x:x0,y:y0},range:Math.max(8,Math.abs(b1),Math.abs(b2))>9?11:9},
+    ans:{kind:"input",fields:[{label:"x=",val:rmk(x0)},{label:"y=",val:rmk(y0)}],pre:"(x,y)"},
+    exLines:[
+      `交点では ${T("y")} が等しいので ${T(shortRHS(A1,B1)+"="+shortRHS(A2,B2))}`,
+      T((a1-a2)+"x="+(b2-b1)+"\\ \\Rightarrow\\ x="+x0),
+      T("y="+a1+"\\times("+x0+")"+(b1>=0?"+":"")+b1+"="+y0),
+      `よって交点は ${T("("+x0+",\\,"+y0+")")}`
+    ]
+  };
+}
+function shortRHS(a,b){
+  let s="";
+  if(rEq(a,rmk(1)))s="x";else if(rEq(a,rmk(-1)))s="-x";else s=rTexInline(a)+"x";
+  if(b.n>0)s+="+"+rTexInline(b);else if(b.n<0)s+=rTexInline(b);
+  return s;
+}
+
+function genMenseki(){
+  const v=ri(1,2);
+  if(v===1){
+    /* 1直線と両軸 */
+    const p=nzi(-6,6)>0?ri(2,6):-ri(2,6);      /* x切片 */
+    const bb=nzi(-6,6)>0?ri(2,6):-ri(2,6);     /* y切片 */
+    const a=rmk(-bb,p);
+    const B=rmk(bb);
+    const area=rdiv(rmk(Math.abs(p*bb)),rmk(2));
+    return {
+      qkey:"menseki_v1",
+      qHtml:`直線 ${T(lineTex(a,B))} と ${T("x")} 軸，${T("y")} 軸で囲まれた三角形の面積を求めなさい。`,
+      fig:{kind:"tri",lines:[{a,b:B,color:"var(--indigo)"}],tri:[[0,0],[p,0],[0,bb]],range:Math.max(8,Math.abs(p)+1,Math.abs(bb)+1)},
+      ans:{kind:"input",fields:[{label:"\\text{面積}=",val:area}]},
+      exLines:[
+        `${T("y=0")} のとき ${T("x="+p)} ${T("\\Rightarrow")} ${T("x")} 軸との交点 ${T("("+p+",\\,0)")}`,
+        `${T("x=0")} のとき ${T("y="+bb)} ${T("\\Rightarrow")} ${T("y")} 軸との交点 ${T("(0,\\,"+bb+")")}`,
+        `底辺 ${T(String(Math.abs(p)))}，高さ ${T(String(Math.abs(bb)))} の直角三角形なので`,
+        T("\\text{面積}=\\dfrac{1}{2}\\times "+Math.abs(p)+"\\times "+Math.abs(bb)+"="+rTexInline(area))
+      ]
+    };
+  }
+  /* v2: 2直線とy軸 */
+  let a1,a2,x0,y0,b1,b2,ok=false;
+  while(!ok){
+    a1=nzi(-3,3);a2=nzi(-3,3);
+    if(a1===a2)continue;
+    x0=nzi(-5,5);y0=ri(-4,4);
+    b1=y0-a1*x0;b2=y0-a2*x0;
+    ok=Math.abs(b1)<=8&&Math.abs(b2)<=8&&b1!==b2;
+  }
+  const A1=rmk(a1),B1=rmk(b1),A2=rmk(a2),B2=rmk(b2);
+  const area=rdiv(rmk(Math.abs(b1-b2)*Math.abs(x0)),rmk(2));
+  return {
+    qkey:"menseki_v2",
+    qHtml:`2直線 ${T("\\ell_1:"+lineTex(A1,B1))}，${T("\\ell_2:"+lineTex(A2,B2))} と ${T("y")} 軸で囲まれた三角形の面積を求めなさい。`,
+    fig:{kind:"tri",lines:[{a:A1,b:B1,color:"var(--indigo)",label:"ℓ₁"},{a:A2,b:B2,color:"var(--sakura-deep)",label:"ℓ₂"}],tri:[[0,b1],[0,b2],[x0,y0]],range:Math.max(8,Math.abs(b1)+1,Math.abs(b2)+1)},
+    ans:{kind:"input",fields:[{label:"\\text{面積}=",val:area}]},
+    exLines:[
+      `2直線の交点は ${T("("+x0+",\\,"+y0+")")}(連立方程式を解く)。`,
+      `${T("y")} 軸上の2頂点は ${T("(0,\\,"+b1+")")} と ${T("(0,\\,"+b2+")")} ${T("\\Rightarrow")} 底辺 ${T("|"+b1+"-("+b2+")|="+Math.abs(b1-b2))}`,
+      `高さは交点の ${T("x")} 座標の絶対値 ${T(String(Math.abs(x0)))}`,
+      T("\\text{面積}=\\dfrac{1}{2}\\times "+Math.abs(b1-b2)+"\\times "+Math.abs(x0)+"="+rTexInline(area))
+    ]
+  };
+}
+
+const GENS={zoukaryo:genZoukaryo,tokucho:genTokucho,shiki:genShiki,graph:genGraph,koten:genKoten,menseki:genMenseki};
+
+/* 入力文字列 → rational  (例 "-3", "1/2", "-4.5", "2.25") */
+function parseRat(s){
+  s=(s||"").trim();
+  if(!/^-?\d+(\.\d+)?(\/\d+(\.\d+)?)?$/.test(s))return null;
+  const parts=s.split("/");
+  function dec(t){
+    if(t.includes(".")){
+      const[i,f]=t.split(".");
+      const d=Math.pow(10,f.length);
+      const n=parseInt(i,10)*d + (t.startsWith("-")?-1:1)*parseInt(f,10);
+      return rmk(n,d);
+    }
+    return rmk(parseInt(t,10),1);
+  }
+  try{
+    const num=dec(parts[0]);
+    if(parts.length===1)return num;
+    const den=dec(parts[1]);
+    if(den.n===0)return null;
+    return rdiv(num,den);
+  }catch(e){return null;}
+}
+/*GEN-END*/
+
+/* ---------- KaTeX span helper ---------- */
+function T(tex){return `<span class="tex" data-tex="${tex.replace(/&/g,"&amp;").replace(/"/g,"&quot;")}">${tex}</span>`;}
+function renderTexIn(root){
+  root.querySelectorAll(".tex").forEach(el=>{
+    const s=el.dataset.tex;
+    if(window.katex){try{katex.render(s,el,{throwOnError:false});}catch(e){el.textContent=s;}}
+    else el.textContent=s.replace(/\\[a-zA-Z]+|[{}]/g,"");
+  });
+}
+
+/* ---------- Divp guard ---------- */
+const UNIT_KEY="math_jh2_ichijikansu";
+function safeDivp(fn){
+  try{
+    if(window.Divp && typeof Divp[fn]==="function"){
+      return Divp[fn].apply(Divp,[].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return undefined;
+}
+
+/* ---------- state / progress ---------- */
+const LS_KEY="divp_"+UNIT_KEY+"_v1";
+let totalXp=0;
+try{const s=JSON.parse(localStorage.getItem(LS_KEY)||"{}");totalXp=s.xp|0;}catch(e){}
+let streak=0, perfectRun=0;
+let mode="zoukaryo", cur=null, graded=false;
+let selChoice=-1, drawPts=[], activeField=0;
+
+function level(){return Math.floor(Math.sqrt(totalXp/100))+1;}
+function rank(){
+  if(perfectRun>=25)return"SSS";if(perfectRun>=18)return"SS";if(perfectRun>=12)return"S";
+  if(perfectRun>=8)return"A";if(perfectRun>=5)return"B";if(perfectRun>=3)return"C";return"D";
+}
+function saveLS(){try{localStorage.setItem(LS_KEY,JSON.stringify({xp:totalXp}));}catch(e){}}
+function updHUD(){
+  document.getElementById("lvVal").textContent=level();
+  document.getElementById("xpVal").textContent=totalXp;
+  document.getElementById("rankVal").textContent=rank();
+  document.getElementById("streakVal").textContent=streak;
+}
+
+/* ---------- SVG grid ---------- */
+const SVGNS="http://www.w3.org/2000/svg";
+function makeGrid(R,size,interactive){
+  size=size||360;
+  const pad=16, W=size, u=(W-pad*2)/(2*R);
+  const svg=document.createElementNS(SVGNS,"svg");
+  svg.setAttribute("viewBox",`0 0 ${W} ${W}`);
+  svg.setAttribute("width",Math.min(W,420));
+  const gx=x=>pad+(x+R)*u, gy=y=>pad+(R-y)*u;
+  svg._gx=gx; svg._gy=gy; svg._R=R; svg._u=u;
+  /* 方眼 */
+  for(let i=-R;i<=R;i++){
+    const l1=document.createElementNS(SVGNS,"line");
+    l1.setAttribute("x1",gx(i));l1.setAttribute("y1",gy(-R));l1.setAttribute("x2",gx(i));l1.setAttribute("y2",gy(R));
+    l1.setAttribute("stroke",i===0?"#4a443c":"#E3DACA");l1.setAttribute("stroke-width",i===0?1.6:1);
+    svg.appendChild(l1);
+    const l2=document.createElementNS(SVGNS,"line");
+    l2.setAttribute("x1",gx(-R));l2.setAttribute("y1",gy(i));l2.setAttribute("x2",gx(R));l2.setAttribute("y2",gy(i));
+    l2.setAttribute("stroke",i===0?"#4a443c":"#E3DACA");l2.setAttribute("stroke-width",i===0?1.6:1);
+    svg.appendChild(l2);
+  }
+  /* 矢印・ラベル */
+  const arr=(x1,y1,x2,y2)=>{const p=document.createElementNS(SVGNS,"path");p.setAttribute("d",`M${x1} ${y1} L${x2} ${y2}`);p.setAttribute("stroke","#4a443c");p.setAttribute("stroke-width",1.6);svg.appendChild(p);};
+  arr(gx(R),gy(0),gx(R)-7,gy(0)-4);arr(gx(R),gy(0),gx(R)-7,gy(0)+4);
+  arr(gx(0),gy(R),gx(0)-4,gy(R)+7);arr(gx(0),gy(R),gx(0)+4,gy(R)+7);
+  const lab=(t,x,y,anchor)=>{const e=document.createElementNS(SVGNS,"text");e.textContent=t;e.setAttribute("x",x);e.setAttribute("y",y);e.setAttribute("font-size",13);e.setAttribute("font-style","italic");e.setAttribute("fill","#4a443c");if(anchor)e.setAttribute("text-anchor",anchor);svg.appendChild(e);};
+  lab("x",gx(R)-2,gy(0)+16);lab("y",gx(0)+8,gy(R)+10);lab("O",gx(0)-6,gy(0)+14,"end");
+  /* 目盛(5ごと) */
+  const step=R>8?5:2;
+  for(let i=-R;i<=R;i++){
+    if(i===0||i%step!==0)continue;
+    const t1=document.createElementNS(SVGNS,"text");t1.textContent=i;t1.setAttribute("x",gx(i));t1.setAttribute("y",gy(0)+14);t1.setAttribute("font-size",10);t1.setAttribute("text-anchor","middle");t1.setAttribute("fill","#8a8074");svg.appendChild(t1);
+    const t2=document.createElementNS(SVGNS,"text");t2.textContent=i;t2.setAttribute("x",gx(0)-5);t2.setAttribute("y",gy(i)+3);t2.setAttribute("font-size",10);t2.setAttribute("text-anchor","end");t2.setAttribute("fill","#8a8074");svg.appendChild(t2);
+  }
+  return svg;
+}
+function drawLineOn(svg,a,b,color,dash){
+  const R=svg._R, av=rVal(a), bv=rVal(b);
+  /* クリップ境界との交点2つを求める */
+  const pts=[];
+  const yAt=x=>av*x+bv;
+  [[-R,yAt(-R)],[R,yAt(R)]].forEach(p=>{if(Math.abs(p[1])<=R)pts.push(p);});
+  if(av!==0){
+    [[( R-bv)/av, R],[(-R-bv)/av,-R]].forEach(p=>{if(Math.abs(p[0])<=R)pts.push(p);});
+  }
+  pts.sort((p,q)=>p[0]-q[0]);
+  if(pts.length<2)return;
+  const p1=pts[0],p2=pts[pts.length-1];
+  const l=document.createElementNS(SVGNS,"line");
+  l.setAttribute("x1",svg._gx(p1[0]));l.setAttribute("y1",svg._gy(p1[1]));
+  l.setAttribute("x2",svg._gx(p2[0]));l.setAttribute("y2",svg._gy(p2[1]));
+  l.setAttribute("stroke",color);l.setAttribute("stroke-width",2.6);l.setAttribute("stroke-linecap","round");
+  if(dash)l.setAttribute("stroke-dasharray","6 5");
+  svg.appendChild(l);
+  return {p1,p2};
+}
+function drawPointOn(svg,x,y,color,r){
+  const c=document.createElementNS(SVGNS,"circle");
+  c.setAttribute("cx",svg._gx(x));c.setAttribute("cy",svg._gy(y));
+  c.setAttribute("r",r||5);c.setAttribute("fill",color);
+  c.setAttribute("stroke","#fff");c.setAttribute("stroke-width",1.5);
+  svg.appendChild(c);return c;
+}
+function shadeTri(svg,tri){
+  const p=document.createElementNS(SVGNS,"polygon");
+  p.setAttribute("points",tri.map(v=>svg._gx(v[0])+","+svg._gy(v[1])).join(" "));
+  p.setAttribute("fill","rgba(201,85,111,.18)");
+  p.setAttribute("stroke","var(--sakura-deep)");
+  p.setAttribute("stroke-width",1.2);
+  svg.appendChild(p);
+}
+function lineLabel(svg,ln,text,color){
+  const seg=ln&&ln.p2;if(!seg)return;
+  const e=document.createElementNS(SVGNS,"text");
+  e.textContent=text;
+  e.setAttribute("x",svg._gx(ln.p2[0])-14);
+  e.setAttribute("y",svg._gy(ln.p2[1])-6);
+  e.setAttribute("font-size",13);e.setAttribute("fill",color);e.setAttribute("font-weight","bold");
+  svg.appendChild(e);
+}
+
+/* ---------- render figure ---------- */
+function renderFig(fig){
+  const wrap=document.getElementById("figWrap");
+  wrap.innerHTML="";
+  document.getElementById("clearPtsBtn").style.display="none";
+  if(!fig)return;
+  const R=fig.range||8;
+  const svg=makeGrid(R,360);
+  wrap.appendChild(svg);
+  if(fig.kind==="line"||fig.kind==="twolines"){
+    (fig.lines||[]).forEach(l=>{
+      const seg=drawLineOn(svg,l.a,l.b,l.color);
+      if(l.label)lineLabel(svg,seg,l.label,l.color);
+    });
+    if(fig.kind==="twolines"&&fig.pt&&!graded){/* 交点は答えなので採点前は描かない */}
+  }
+  if(fig.kind==="points"){
+    fig.points.forEach(p=>drawPointOn(svg,p.x,p.y,"var(--sakura-deep)"));
+  }
+  if(fig.kind==="tri"){
+    (fig.lines||[]).forEach(l=>{
+      const seg=drawLineOn(svg,l.a,l.b,l.color);
+      if(l.label)lineLabel(svg,seg,l.label,l.color);
+    });
+    shadeTri(svg,fig.tri);
+  }
+  if(fig.kind==="draw"){
+    svg.style.cursor="crosshair";
+    svg.id="drawSvg";
+    document.getElementById("clearPtsBtn").style.display="inline-block";
+    const hint=document.createElement("div");
+    hint.className="fig-hint";hint.textContent="格子点をタップ(2点で直線が決まる)";
+    wrap.appendChild(hint);
+    const handler=ev=>{
+      if(graded)return;
+      const rect=svg.getBoundingClientRect();
+      const scale=360/rect.width;
+      const px=(ev.clientX-rect.left)*scale, py=(ev.clientY-rect.top)*scale;
+      const x=Math.round((px-16)/svg._u - R);
+      const y=Math.round(R-(py-16)/svg._u);
+      if(Math.abs(x)>R||Math.abs(y)>R)return;
+      const i=drawPts.findIndex(p=>p.x===x&&p.y===y);
+      if(i>=0){drawPts.splice(i,1);}
+      else{
+        if(drawPts.length>=2)drawPts.shift();
+        drawPts.push({x,y});
+      }
+      redrawUserLine();
+    };
+    svg.addEventListener("pointerdown",handler);
+  }
+}
+function redrawUserLine(){
+  const svg=document.getElementById("drawSvg");
+  if(!svg)return;
+  svg.querySelectorAll(".upt,.uln").forEach(e=>e.remove());
+  if(drawPts.length===2){
+    const [P,Q]=drawPts;
+    if(P.x!==Q.x){
+      const a=rmk(Q.y-P.y,Q.x-P.x);
+      const b=rsub(rmk(P.y),rmul(a,rmk(P.x)));
+      const seg=drawLineOn(svg,a,b,"var(--sakura-deep)");
+      const lastLine=svg.lastChild;lastLine.classList.add("uln");
+    }else{
+      /* 垂直線プレビュー */
+      const l=document.createElementNS(SVGNS,"line");
+      l.setAttribute("x1",svg._gx(P.x));l.setAttribute("y1",svg._gy(-svg._R));
+      l.setAttribute("x2",svg._gx(P.x));l.setAttribute("y2",svg._gy(svg._R));
+      l.setAttribute("stroke","var(--sakura-deep)");l.setAttribute("stroke-width",2.6);
+      l.classList.add("uln");svg.appendChild(l);
+    }
+  }
+  drawPts.forEach(p=>{
+    const c=drawPointOn(svg,p.x,p.y,"var(--sakura-deep)",6);
+    c.classList.add("upt");
+  });
+}
+
+/* ---------- render answer UI ---------- */
+function renderAns(ans){
+  const area=document.getElementById("ansArea");
+  area.innerHTML="";
+  selChoice=-1;drawPts=[];activeField=0;
+  if(ans.kind==="choice"){
+    const g=document.createElement("div");g.className="choices";
+    ans.choices.forEach((c,i)=>{
+      const b=document.createElement("button");
+      b.className="choiceBtn";
+      b.innerHTML=`<span class="inner">${c}</span>`;
+      b.addEventListener("click",()=>{
+        if(graded)return;
+        selChoice=i;
+        g.querySelectorAll(".choiceBtn").forEach((x,j)=>x.classList.toggle("sel",j===i));
+      });
+      g.appendChild(b);
+    });
+    area.appendChild(g);
+    renderTexIn(g);
+    g.querySelectorAll(".choiceBtn .inner").forEach(el=>fitEl(el,el.parentElement.clientWidth-16));
+  }
+  if(ans.kind==="input"){
+    const f=document.createElement("div");f.className="fields";
+    if(ans.pre){
+      const pre=document.createElement("div");pre.className="field";
+      pre.innerHTML=`<span class="flab">${T(ans.pre)}</span><span style="color:var(--ink-soft);margin:0 4px;">→</span>`;
+      f.appendChild(pre);
+    }
+    ans.fields.forEach((fd,i)=>{
+      const w=document.createElement("div");w.className="field";
+      w.innerHTML=`<span class="flab">${T(fd.label)}</span>`;
+      const box=document.createElement("div");
+      box.className="fbox"+(i===0?" act":"");
+      box.dataset.idx=i;
+      box.addEventListener("click",()=>{
+        if(graded)return;
+        activeField=i;
+        area.querySelectorAll(".fbox").forEach(x=>x.classList.toggle("act",+x.dataset.idx===i));
+      });
+      w.appendChild(box);
+      f.appendChild(w);
+    });
+    area.appendChild(f);
+    /* tenkey */
+    const tk=document.createElement("div");tk.className="tenkey";
+    [["1","2","3","4","5"],["6","7","8","9","0"],["−","/",".","⌫","C"]].forEach(row=>{
+      row.forEach(k=>{
+        const b=document.createElement("button");
+        b.textContent=k;
+        if("−/.⌫C".includes(k))b.classList.add("op");
+        b.addEventListener("click",()=>keyIn(k));
+        tk.appendChild(b);
+      });
+    });
+    area.appendChild(tk);
+    renderTexIn(f);
+  }
+}
+function keyIn(k){
+  if(graded)return;
+  const boxes=[...document.querySelectorAll(".fbox")];
+  const box=boxes.find(b=>+b.dataset.idx===activeField);
+  if(!box)return;
+  let s=box.textContent;
+  if(k==="C")s="";
+  else if(k==="⌫")s=s.slice(0,-1);
+  else if(k==="−"){s+= "-";}
+  else s+=k;
+  if(s.length>10)return;
+  box.textContent=s;
+  /* 自動で次のフィールドへは移動しない(明示タップ) */
+}
+
+/* ---------- fit helpers ---------- */
+function fitEl(el,maxW){
+  el.style.transform="";
+  const w=el.scrollWidth;
+  if(w>maxW){
+    const sc=Math.max(0.4,maxW/w);
+    el.style.transform=`scale(${sc})`;
+  }
+}
+function fitQuestion(){
+  /* 問題文は文章なので縮小せず折り返す */
+  const q=document.getElementById("qText");
+  q.style.transform="";
+  q.style.whiteSpace="normal";
+}
+
+/* ---------- flow ---------- */
+function newQuestion(){
+  graded=false;
+  cur=GENS[mode]();
+  document.getElementById("toast").textContent="";
+  document.getElementById("explain").style.display="none";
+  document.getElementById("nextBtn").style.display="none";
+  document.getElementById("checkBtn").style.display="inline-block";
+  const q=document.getElementById("qText");
+  q.style.transform="";
+  q.innerHTML=cur.qHtml;
+  renderTexIn(q);
+  renderFig(cur.fig);
+  renderAns(cur.ans);
+  requestAnimationFrame(fitQuestion);
+  safeDivp("log",UNIT_KEY,cur.qkey,"show");
+}
+
+function check(){
+  if(graded)return;
+  const ans=cur.ans;
+  let userStr="", ok=false;
+  if(ans.kind==="choice"){
+    if(selChoice<0){toast("答えを選んでね");return;}
+    ok=(selChoice===ans.correct);
+    userStr="choice:"+selChoice;
+    document.querySelectorAll(".choiceBtn").forEach((b,i)=>{
+      if(i===ans.correct)b.classList.add("hit");
+      else if(i===selChoice)b.classList.add("miss");
+    });
+  }
+  else if(ans.kind==="input"){
+    const boxes=[...document.querySelectorAll(".fbox")];
+    const vals=boxes.map(b=>b.textContent.trim());
+    if(vals.some(v=>v==="")){toast("答えを入れてね");return;}
+    const rats=vals.map(parseRat);
+    if(rats.some(r=>r===null)){toast("数の形を確かめてね(例: -3, 1/2, 4.5)");return;}
+    ok=rats.every((r,i)=>rEq(r,ans.fields[i].val));
+    userStr=vals.join(",");
+    boxes.forEach((b,i)=>{
+      b.style.borderColor=rEq(rats[i],ans.fields[i].val)?"var(--moss)":"var(--sakura-deep)";
+      b.style.background=rEq(rats[i],ans.fields[i].val)?"#E8F1E4":"#FBE7EA";
+    });
+  }
+  else if(ans.kind==="draw"){
+    if(drawPts.length<2){toast("グラフが通る点を2つ選んでね");return;}
+    const [P,Q]=drawPts;
+    if(P.x===Q.x){ok=false;}
+    else{
+      const ua=rmk(Q.y-P.y,Q.x-P.x);
+      const ub=rsub(rmk(P.y),rmul(ua,rmk(P.x)));
+      ok=rEq(ua,ans.a)&&rEq(ub,ans.b);
+    }
+    userStr=drawPts.map(p=>`(${p.x},${p.y})`).join(" ");
+    /* 正解の線を重ねる */
+    const svg=document.getElementById("drawSvg");
+    if(svg&&!ok)drawLineOn(svg,ans.a,ans.b,"var(--moss)",true);
+  }
+  graded=true;
+  document.getElementById("checkBtn").style.display="none";
+  document.getElementById("nextBtn").style.display="inline-block";
+
+  /* 交点モード: 採点後に交点マーカーを表示 */
+  if(cur.fig&&cur.fig.kind==="twolines"&&cur.fig.pt){
+    const svg=document.querySelector("#figWrap svg");
+    if(svg)drawPointOn(svg,cur.fig.pt.x,cur.fig.pt.y,"var(--gold)",6);
+  }
+
+  const correctStr=describeAnswer(ans);
+  if(ok){
+    streak++;perfectRun++;
+    totalXp+=10;saveLS();
+    toast("+10 XP");
+    correctEffect();
+  }else{
+    streak=0;perfectRun=0;
+    toast("おしい！ 解説を読んでもう一度挑戦しよう");
+    document.getElementById("card").classList.remove("shake");
+    void document.getElementById("card").offsetWidth;
+    document.getElementById("card").classList.add("shake");
+  }
+  updHUD();
+  showExplain();
+  safeDivp("answer",UNIT_KEY,cur.qkey,ok,userStr,correctStr);
+}
+function describeAnswer(ans){
+  if(ans.kind==="choice")return "choice:"+ans.correct;
+  if(ans.kind==="input")return ans.fields.map(f=>f.val.n+(f.val.d>1?"/"+f.val.d:"")).join(",");
+  if(ans.kind==="draw")return lineTexPlain(ans.a,ans.b);
+  return "";
+}
+function lineTexPlain(a,b){
+  return "y="+(a.d>1?a.n+"/"+a.d:a.n)+"x"+(b.n>=0?"+":"")+(b.d>1?b.n+"/"+b.d:b.n);
+}
+function showExplain(){
+  const ex=document.getElementById("explain");
+  const body=document.getElementById("exBody");
+  body.innerHTML=cur.exLines.map(l=>`<div class="exLine">${l}</div>`).join("");
+  renderTexIn(body);
+  ex.style.display="block";
+}
+function toast(s){document.getElementById("toast").textContent=s;}
+function correctEffect(){
+  const r=safeDivp("correct");
+  if(r!==undefined)return;
+  const h=document.getElementById("hanko");
+  h.classList.remove("pop");void h.offsetWidth;h.classList.add("pop");
+  setTimeout(()=>h.classList.remove("pop"),1100);
+}
+
+/* ---------- events ---------- */
+document.getElementById("modeNav").addEventListener("click",e=>{
+  const c=e.target.closest(".chip");if(!c)return;
+  mode=c.dataset.mode;
+  document.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x===c));
+  newQuestion();
+});
+document.getElementById("checkBtn").addEventListener("click",check);
+document.getElementById("nextBtn").addEventListener("click",newQuestion);
+document.getElementById("clearPtsBtn").addEventListener("click",()=>{
+  if(graded)return;drawPts=[];redrawUserLine();
+});
+window.addEventListener("resize",fitQuestion);
+
+/* KaTeX 読み込み後に再レンダリング */
+window.addEventListener("load",()=>{renderTexIn(document.body);fitQuestion();});
+
+updHUD();
+newQuestion();
+</script>
+</body>
+</html>

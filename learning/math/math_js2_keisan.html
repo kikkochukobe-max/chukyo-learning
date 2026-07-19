@@ -7,9 +7,9 @@
 <!--
   unit_key: math_js2_keisan
   校種: jh（中2）
-  共通モジュール（divp-header.js / divp-core / divp-correct-jh.js / divp-memo.js）は
-  kotoba_master と同様、配置時に Claude Code 側で統合する想定。
-  Divp.answer() 呼び出しは window.Divp ガード済みなので単体でも動作する。
+  共通モジュール（divp-header.js / divp-correct-jh.js / divp-core.js）は <body> 直後で読み込み、
+  Divp.init('math_js2_keisan') で初期化済み。
+  Divp.answer() 呼び出しは window.Divp ガード済みなので単体（未アップロード）でも動作する。
 
   question_catalog 追加用SQL（base_xp は仮値・要調整）:
   INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
@@ -23,8 +23,8 @@
   ('math_js2_keisan','tan_kake','単項式の乗法',5),
   ('math_js2_keisan','jijou_kake','累乗をふくむ乗法',10),
   ('math_js2_keisan','tan_waru','単項式の除法',10),
-  ('math_js2_keisan','kakewari','乗除の混合',15),
-  ('math_js2_keisan','three_mono','3つの単項式の乗除',15),
+  ('math_js2_keisan','kakewari','乗除の混合',15),        -- STEP統合で現在は未出題（過去ログ用に残す）
+  ('math_js2_keisan','three_mono','累乗と乗除',15),       -- STEP8「累乗と乗除」のログはこのキー
   ('math_js2_keisan','shiki_no_atai','式の値',15),
   ('math_js2_keisan','henkei','等式の変形',15),
   ('math_js2_keisan','renritsu_sonomama','加減法①そのまま消去',10),
@@ -177,18 +177,8 @@ body{
   padding:30px 18px;min-height:130px;position:relative;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
 }
-.back-fab{
-  position:absolute;top:10px;left:10px;z-index:2;
-  width:36px;height:36px;border-radius:50%;
-  background:#fff;border:1.5px solid var(--ink2);color:var(--ink);
-  font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:1.05rem;
-  cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;
-  transition:border-color .15s;
-}
-.back-fab:hover{border-color:var(--ink)}
-.back-fab:focus-visible{outline:3px solid var(--shu);outline-offset:2px}
 .q-cond{font-size:.95rem;color:var(--ink)}
-.q-main{font-family:var(--mathfont);font-size:1.7rem;letter-spacing:.03em;text-align:center;line-height:1.9}
+.q-main{font-family:var(--mathfont);font-size:1.7rem;letter-spacing:.03em;text-align:center;line-height:1.9;width:100%;white-space:nowrap}
 .q-cond{font-family:var(--mathfont)}
 .fb .ng b{font-family:var(--mathfont);font-size:1.15em}
 @media (max-width:420px){.q-main{font-size:1.3rem}}
@@ -307,19 +297,25 @@ font-family:var(--mathfont);}
 </style>
 </head>
 <body>
+<!-- 共通モジュール（ヘッダー＋ログイン / 中高用 正解ハンコ / 学習記録コア）。ローカル・未ログイン時は各モジュールが黙ってスキップする -->
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script>if(window.Divp&&Divp.init)Divp.init('math_js2_keisan');</script>
 <div class="app">
   <header class="topbar">
     <h1 class="divp-title"><span class="tmark">中2 計算完璧マスター</span><br><small>式の計算・連立方程式</small></h1>
     <span class="spacer"></span>
+    <button id="backBtn" class="ghost-btn" hidden aria-label="STEP一覧にもどる" title="ホームにもどる">↩️</button>
     <button id="printBtn" class="ghost-btn" hidden aria-label="プリントを印刷" title="プリントを印刷">🖨️</button>
   </header>
 
   <main>
     <!-- ===== home ===== -->
     <section id="home">
-      <p class="lead">STEP順に少しずつレベルアップ。<b>5問連続正解</b>でSTEPクリア！　正解を重ねると問題も自動でむずかしくなるよ。</p>
+      <p class="lead"><b>5問連続正解</b>でSTEPクリア！　むずかしさは<b>基本・標準・応用</b>から選べるよ。</p>
       <div id="unitList"></div>
-      <p class="note">レベル（Lv.1→3）は正解数に応じて自動で上がります。プリントは各STEPの練習画面から印刷できます。</p>
+      <p class="note">むずかしさ（基本・標準・応用）は練習画面でいつでも切り替えられます。プリントは各STEPの練習画面から印刷できます。</p>
     </section>
 
     <!-- ===== practice ===== -->
@@ -327,14 +323,13 @@ font-family:var(--mathfont);}
       <div class="phead">
         <span class="no" id="pStepNo" style="font-family:'Zen Maru Gothic',sans-serif;color:var(--shu);font-weight:700;font-size:.75rem;letter-spacing:.15em"></span>
         <span class="pname" id="pName"></span>
-        <span class="lv-chip" id="pLv">Lv.1</span>
+        <span class="lv-chip" id="pLv">基本</span>
         <span class="dots" id="pDots"></span>
       </div>
 
       <div class="lv-pick" id="lvPick" role="group" aria-label="レベルをえらぶ"></div>
 
       <div class="paper">
-        <button id="backBtn" class="back-fab" hidden aria-label="STEP一覧にもどる" title="もどる">←</button>
         <div class="q-cond" id="qCond" hidden></div>
         <div class="q-main" id="qMain"></div>
         <div class="maru" id="fxMaru"></div>
@@ -343,14 +338,14 @@ font-family:var(--mathfont);}
       </div>
 
       <div class="ansrow" id="ansExpr" hidden>
-        <input class="ans-in" id="inExpr" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="答えを入力" aria-label="答え">
+        <input class="ans-in" id="inExpr" inputmode="none" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="答えを入力" aria-label="答え">
       </div>
       <div class="ansrow" id="ansSys" hidden>
-        <label for="inX">x =</label><input class="ans-in short" id="inX" autocomplete="off" spellcheck="false" aria-label="xの値">
-        <label for="inY">y =</label><input class="ans-in short" id="inY" autocomplete="off" spellcheck="false" aria-label="yの値">
+        <label for="inX">x =</label><input class="ans-in short" id="inX" inputmode="none" autocomplete="off" spellcheck="false" aria-label="xの値">
+        <label for="inY">y =</label><input class="ans-in short" id="inY" inputmode="none" autocomplete="off" spellcheck="false" aria-label="yの値">
       </div>
       <div class="ansrow" id="ansNum" hidden>
-        <input class="ans-in short" id="inNum" autocomplete="off" spellcheck="false" placeholder="答え" aria-label="答え">
+        <input class="ans-in short" id="inNum" inputmode="none" autocomplete="off" spellcheck="false" placeholder="答え" aria-label="答え">
       </div>
 
       <div class="btnrow">
@@ -369,7 +364,7 @@ font-family:var(--mathfont);}
 
 <div id="printArea"></div>
 
-<!-- 共通モジュール（divp-header.js data-unit-key="math_js2_keisan" / divp-core / divp-correct-jh.js / divp-memo.js）は配置時に統合 -->
+<!-- 共通モジュール（divp-header / divp-correct-jh / divp-core）は <body> 直後で読み込み済み。unit_key = math_js2_keisan -->
 <script>
 'use strict';
 /* =====================================================
@@ -510,6 +505,27 @@ function coefMul(f){
 /* 分数の数（式の値の代入値・答え）を素朴に表示 */
 function fnumHTML(f){return f.isInt()?numDisp(f.n):(f.n<0?'−':'')+fracHTML(Math.abs(f.n),f.d);}
 function fnumText(f){return f.isInt()?String(f.n):f.n+'/'+f.d;}
+/* 答え用: 符号付き指数の単項式を、負の指数は分母に回して1つの分数で表示。
+   指数がすべて0以上なら従来どおり（分子に係数＋変数）。 */
+function monoAnsHTML(t){
+  if(t.ex>=0&&t.ey>=0)return termsHTML([t]);
+  const neg=t.c.n<0, a=neg?t.c.neg():t.c;
+  const numV=supHTML('x',Math.max(t.ex,0))+supHTML('y',Math.max(t.ey,0));
+  const denV=supHTML('x',Math.max(-t.ex,0))+supHTML('y',Math.max(-t.ey,0));
+  const num=(a.n===1&&numV)?numV:(a.n+numV);
+  const den=(a.d>1?String(a.d):'')+denV;
+  return (neg?'−':'')+fracHTML(num,den);
+}
+function monoAnsText(t){
+  if(t.ex>=0&&t.ey>=0)return termsText([t]);
+  const neg=t.c.n<0, a=neg?t.c.neg():t.c;
+  const sv=function(v,e){return e>0?(v+(e>1?'^'+e:'')):'';};
+  const numV=sv('x',Math.max(t.ex,0))+sv('y',Math.max(t.ey,0));
+  const denV=sv('x',Math.max(-t.ex,0))+sv('y',Math.max(-t.ey,0));
+  const num=(a.n===1&&numV)?numV:(a.n+numV);
+  const den=(a.d>1?String(a.d):'')+denV;
+  return (neg?'-':'')+'('+num+')/('+den+')';
+}
 
 /* =====================================================
    answer parser
@@ -586,7 +602,7 @@ function parseFactor(st){
       const d=st.s[st.i];
       if(!/[1-9]/.test(d||''))perr('指数の書き方を確認してね（例：x^2）');
       e=parseInt(d,10);st.i++;
-      if(e>4)perr('指数が大きすぎるよ');
+      if(e>8)perr('指数が大きすぎるよ');
     }
     return {kind:'var',terms:[T(1,ch==='x'?e:0,ch==='y'?e:0)]};
   }
@@ -618,19 +634,21 @@ function parseProduct(st){
     while(st.s[st.i]==='/'){
       st.i++;
       const g=parseFactor(st);
-      if(g.kind!=='num'||g.terms.length!==1||g.terms[0].ex||g.terms[0].ey||g.terms[0].c.isZero()){
-        perr('分母（÷のうしろ）は 0 以外の数にしてね');
+      /* ÷のうしろは「単項式1つ」（数、または変数をふくむ単項式）ならOK。
+         かっこ内が2項以上の多項式でわるのは不可。変数でわると指数が減る（分母に回る）。 */
+      if(g.terms.length!==1||g.terms[0].c.isZero()){
+        perr('÷のうしろは 0 以外の数か単項式にしてね');
       }
-      const d=g.terms[0].c;
-      if(d.isInt()){
+      const dt=g.terms[0], d=dt.c;
+      if(d.isInt()&&!dt.ex&&!dt.ey){           /* 数でわるときだけ「約分できる」判定 */
         let gg=Math.abs(d.n),allInt=true;
         for(const t of val){
           if(!t.c.isInt()){allInt=false;break;}
           gg=G(gg,Math.abs(t.c.n));
         }
-        if(allInt&&gg>1)st.unr=true;           /* 約分できる */
+        if(allInt&&gg>1)st.unr=true;
       }
-      val=val.map(t=>({c:t.c.div(d),ex:t.ex,ey:t.ey}));
+      val=val.map(t=>({c:t.c.div(d),ex:t.ex-dt.ex,ey:t.ey-dt.ey}));
     }
     const ch=st.s[st.i];
     if(ch==='*'){st.i++;continue;}
@@ -699,6 +717,24 @@ function decEqHTML(a10,b10,c10){
   return h+' = '+decStr(c10);
 }
 function decEqText(a10,b10,c10){return decEqHTML(a10,b10,c10).replace(/ /g,'').replace(/−/g,'-');}
+/* 小数第2位まで（100分の1単位の整数で受け取る）— 応用の小数連立用。末尾0は落とす（1.50→1.5, 0.25→0.25） */
+function decStr2(n100){
+  const v=n100/100;
+  if(Number.isInteger(v))return numDisp(String(v));
+  return numDisp(v.toFixed(2).replace(/0$/,''));
+}
+function decCoef2(k100,v,first){
+  const neg=k100<0,m=Math.abs(k100);
+  const cs=(m===100)?'':decStr2(m);
+  return (first?(neg?'−':''):(neg?' − ':' + '))+cs+v;
+}
+function decEqHTML2(a100,b100,c100){
+  let h='',first=true;
+  if(a100){h+=decCoef2(a100,'x',first);first=false;}
+  if(b100){h+=decCoef2(b100,'y',first);first=false;}
+  return h+' = '+decStr2(c100);
+}
+function decEqText2(a100,b100,c100){return decEqHTML2(a100,b100,c100).replace(/ /g,'').replace(/−/g,'-');}
 
 /* ---- STEP1 同類項 ---- */
 function genDoruikou(lv){
@@ -732,6 +768,14 @@ function poly2(lv){
   if(lv===1)return [[T(ri(1,6),1,0),T(ri(1,6),0,1)],[T(ri(1,6),1,0),T(rnz(-6,6),0,1)]];
   if(lv===2)return [[T(rnz(-7,7),1,0),T(rnz(-7,7),0,1)],[T(rnz(-7,7),1,0),T(rnz(-7,7),0,1)]];
   if(lv===3)return [[T(rnz(-8,8),2,0),T(rnz(-8,8),1,0),T(rnz(-8,8),0,0)],[T(rnz(-8,8),2,0),T(rnz(-8,8),1,0),T(rnz(-8,8),0,0)]];
+  if(lv>=4&&Math.random()<.5){ /* 応用: 分数係数の加減（例 (½x+⅓y)+(¼x−⅚y)）*/
+    const fc=function(){
+      const den=pick([2,3,4,6]);
+      const num=pick([1,2,3,4,5].filter(function(x){return x<den&&G(x,den)===1;}));
+      return new F(pick([1,-1])*num,den);
+    };
+    return [[T(fc(),1,0),T(fc(),0,1)],[T(fc(),1,0),T(fc(),0,1)]];
+  }
   return [[T(rnz(-12,12),2,0),T(rnz(-12,12),1,0),T(rnz(-12,12),0,0)],[T(rnz(-12,12),2,0),T(rnz(-12,12),1,0),T(rnz(-12,12),0,0)]];
 }
 function genTashizan(lv){
@@ -793,6 +837,27 @@ function genSuuWaru(lv){
 /* ---- STEP6 分配してたし算・ひき算 ---- */
 function genBunpai(lv){
   for(let g=0;g<60;g++){
+    if(lv>=4&&Math.random()<.5){
+      /* 応用: 分数×多項式 の分配加減（例 ⅔(3x−6y) − ¾(2x+4y)）*/
+      const mkF=function(signed){
+        const den=pick([2,3,4]);
+        const num=pick([1,2,3].filter(function(x){return x<den&&G(x,den)===1;}));
+        return new F((signed?pick([1,-1]):1)*num,den);
+      };
+      const pF=mkF(true), qF=mkF(false), opf=pick(['+','-']);
+      const Pp=[T(rnz(-6,6),1,0),T(rnz(-6,6),0,1)];
+      const Qq=[T(rnz(-6,6),1,0),T(rnz(-6,6),0,1)];
+      const qkF=opf==='-'?qF.neg():qF;
+      const ansF=combineTerms(
+        Pp.map(u=>T(u.c.mul(pF),u.ex,u.ey))
+        .concat(Qq.map(u=>T(u.c.mul(qkF),u.ex,u.ey))));
+      if(ansF.length<2)continue;
+      const pm=coefMul(pF), qm=coefMul(qF);
+      return exprPack(
+        pm.html+'('+termsHTML(Pp)+') '+(opf==='-'?'−':'+')+' '+qm.html+'('+termsHTML(Qq)+')',
+        pm.text+'('+termsText(Pp)+')'+opf+qm.text+'('+termsText(Qq)+')',
+        ansF,{lv:lv});
+    }
     let p,qa,P,Q;
     const op=pick(['+','-']);
     if(lv===1){p=ri(2,3);qa=ri(2,3);
@@ -1050,6 +1115,110 @@ function genThreeMono(lv){
   }
   return genThreeMono(1);
 }
+/* ---- STEP8 累乗と乗除 ---- */
+/* 基本・標準(lv1〜3): 単変数の累乗を1つふくむ3因数の乗除（整数・答えも整数の単項式）*/
+function genJijouJoujo(lv){
+  if(lv>=4)return genJijouJoujoAdv();   /* 応用は別ロジック（多変数の累乗・分数係数・分母に変数もあり）*/
+  for(let g=0;g<200;g++){
+    const pw=(Math.random()<(lv===1?.35:.45))?3:2;
+    const pv=pick([[1,0],[0,1]]);
+    const bco=(pw===3)?(lv===1?2:pick([-2,2])):(lv===1?pick([2,3]):pick([-3,-2,2,3]));
+    const powBase=T(bco,pv[0],pv[1]);
+    const powTerm={c:Fpow(F.int(bco),pw),ex:pv[0]*pw,ey:pv[1]*pw};
+    const mono=function(){
+      const c=lv===1?ri(2,4):rnz(-5,5);
+      const v=pick([[0,0],[1,0],[0,1]]);
+      return {c:F.int(c),ex:v[0],ey:v[1]};
+    };
+    const m2=mono(), m3=mono();
+    const trivial=function(f){return !f.ex&&!f.ey&&f.c.isInt()&&Math.abs(f.c.n)===1;};
+    if(m2.c.isZero()||m3.c.isZero()||trivial(m2)||trivial(m3))continue;
+    if(m2.ex===m3.ex&&m2.ey===m3.ey&&m2.c.eq(m3.c))continue;   /* ×3x÷3x など冗長式を避ける */
+    const slot=ri(0,2);
+    const items=[]; let mi=0; const ms=[m2,m3];
+    for(let s=0;s<3;s++)items.push(s===slot?{kind:'pow',term:powTerm}:{kind:'mono',term:ms[mi++]});
+    if(items[0].kind==='mono'&&!items[0].term.ex&&!items[0].term.ey)continue;
+    const ops=[pick(['×','÷']),pick(['×','÷'])];
+    let val={c:items[0].term.c,ex:items[0].term.ex,ey:items[0].term.ey};
+    for(let k=0;k<2;k++){
+      const f=items[k+1].term;
+      if(ops[k]==='×')val={c:val.c.mul(f.c),ex:val.ex+f.ex,ey:val.ey+f.ey};
+      else val={c:val.c.div(f.c),ex:val.ex-f.ex,ey:val.ey-f.ey};
+    }
+    if(val.ex<0||val.ey<0||val.ex>3||val.ey>3)continue;
+    if(!val.c.isInt())continue;
+    if(val.c.isZero()||Math.abs(val.c.n)>24)continue;
+    let h='',tx='';
+    for(let s=0;s<3;s++){
+      const it=items[s];
+      if(s>0){h+=' '+ops[s-1]+' ';tx+=(ops[s-1]==='×'?'*':'/');}
+      if(it.kind==='pow'){h+='('+termsHTML([powBase])+')<sup>'+pw+'</sup>';tx+='('+termsText([powBase])+')^'+pw;}
+      else{h+=monoHTML(it.term,s>0);tx+=monoText(it.term,s>0);}
+    }
+    return exprPack(h,tx,[{c:val.c,ex:val.ex,ey:val.ey}],{lv:lv});
+  }
+  return genJijouJoujo(1);
+}
+/* 応用: 画像のような複雑な乗除（多変数の単項式の累乗・分数係数・答えの分母に変数もあり）*/
+function genJijouJoujoAdv(){
+  for(let g=0;g<400;g++){
+    /* 累乗因数 (c・x^a・y^b)^pw : 底は多変数、係数は整数or分数（例 (2x³y)², (−3/2 x²y)³）*/
+    const pw=pick([2,2,3]);
+    let bc;
+    if(Math.random()<.4){
+      const den=pick([2,3,4]);
+      let num; do{num=ri(1,5);}while(G(num,den)!==1);
+      bc=new F(pick([1,-1])*num,den);
+    }else bc=F.int(pick([-3,-2,2,3]));
+    let ba=ri(0,3), bb=ri(0,3);
+    if(ba+bb===0){ if(Math.random()<.5)ba=ri(1,3); else bb=ri(1,3); }
+    if(ba*pw>6||bb*pw>6)continue;
+    const powBase=T(bc,ba,bb);
+    const powTerm={c:Fpow(bc,pw),ex:ba*pw,ey:bb*pw};
+    /* 単項式因数（係数は整数or分数、指数0〜3。例 5/4 x⁴y³, −2/9 y², 4x²y）*/
+    const mono=function(){
+      let c;
+      if(Math.random()<.5){
+        const den=pick([2,3,4,6]);
+        let num; do{num=ri(1,6);}while(G(num,den)!==1);
+        c=new F(pick([1,-1])*num,den);
+      }else c=F.int(pick([-9,-8,-6,-5,-4,-3,-2,2,3,4,5,6,8,9]));
+      return {c:c,ex:ri(0,3),ey:ri(0,3)};
+    };
+    const monos=[mono(),mono(),mono()];
+    if(monos.some(function(m){return m.c.isZero();}))continue;
+    /* 70%は累乗因数を1つ入れる。30%は分数係数の単項式だけの乗除（画像②タイプ）*/
+    const powSlot=(Math.random()<.7)?ri(0,2):-1;
+    const items=[];
+    for(let s=0;s<3;s++)items.push(s===powSlot?{kind:'pow',term:powTerm,base:powBase,pw:pw}:{kind:'mono',term:monos[s]});
+    if(!items[0].term.ex&&!items[0].term.ey)continue;   /* 先頭が定数だけは避ける */
+    let ops=[pick(['×','÷']),pick(['×','÷'])];
+    if(ops[0]==='×'&&ops[1]==='×')ops[ri(0,1)]='÷';     /* 乗除の混合にする（最低1つは÷）*/
+    let val={c:items[0].term.c,ex:items[0].term.ex,ey:items[0].term.ey};
+    for(let k=0;k<2;k++){
+      const f=items[k+1].term;
+      if(ops[k]==='×')val={c:val.c.mul(f.c),ex:val.ex+f.ex,ey:val.ey+f.ey};
+      else val={c:val.c.div(f.c),ex:val.ex-f.ex,ey:val.ey-f.ey};
+    }
+    if(val.c.isZero())continue;
+    if(val.ex===0&&val.ey===0)continue;                 /* 定数だけの答えは避ける */
+    if(Math.abs(val.ex)>6||Math.abs(val.ey)>6)continue;
+    if(val.c.d>12)continue;
+    const cv=Math.abs(val.c.n/val.c.d);
+    if(cv<1/12||cv>40||Math.abs(val.c.n)>120)continue;
+    let h='',tx='';
+    for(let s=0;s<3;s++){
+      const it=items[s];
+      if(s>0){h+=' '+ops[s-1]+' ';tx+=(ops[s-1]==='×'?'*':'/');}
+      if(it.kind==='pow'){h+='('+termsHTML([it.base])+')<sup>'+it.pw+'</sup>';tx+='('+termsText([it.base])+')^'+it.pw;}
+      else{h+=monoHTML(it.term,s>0);tx+=monoText(it.term,s>0);}
+    }
+    return {html:h,text:tx,params:{lv:4},
+      answer:{type:'expr',terms:[val]},
+      ansHTML:monoAnsHTML(val),ansText:monoAnsText(val)};
+  }
+  return genJijouJoujoAdv();
+}
 /* ---- STEP 等式の変形（PDFテーマ11）---- */
 function genHenkei(lv){
   const solveY=(lv>=3)?(Math.random()<.5):true;
@@ -1200,7 +1369,26 @@ function genKakko(lv){
   return genSonomama(lv);
 }
 /* ---- STEP18 小数のある連立 ---- */
+/* 応用: 小数第2位（100分の1・末尾5）をふくむ係数を多めに出す。
+   係数は×100で「5の倍数」に限定するので、両辺×100→÷5 で扱いやすい整数連立になる。 */
+function genShousuuAdv(){
+  for(let g=0;g<80;g++){
+    const R=8;
+    const s=rnz(-R,R), t=rnz(-R,R);
+    /* 75%で小数第2位あり(末尾5: 0.05,0.15,…)、25%で小数第1位まで(0.1,0.2,…)。×100整数で保持 */
+    const coef=function(){return Math.random()<.75?pick([5,15,25,35,45,55]):pick([10,20,30,40,50]);};
+    const a=coef(), b=coef()*pick([1,-1]);
+    const a2=coef(), b2=coef()*pick([1,-1]);
+    const e1=[a,b,a*s+b*t], e2=[a2,b2,a2*s+b2*t];   /* ×100スケール */
+    if(det2(e1,e2)===0)continue;
+    if(Math.abs(e1[2])>1000||Math.abs(e2[2])>1000)continue;   /* 定数 ≤ 10.00 */
+    return sysPack(decEqHTML2(a,b,e1[2]),decEqHTML2(a2,b2,e2[2]),
+      decEqText2(a,b,e1[2]),decEqText2(a2,b2,e2[2]),s,t,[e1,e2],{lv:4});
+  }
+  return genSonomama(4);
+}
 function genShousuu(lv){
+  if(lv>=4)return genShousuuAdv();   /* 応用は小数第2位を多めに */
   for(let g=0;g<60;g++){
     const R=lv===1?5:(lv===2?6:(lv===3?8:9));
     const s=lv===1?ri(1,R):rnz(-R,R), t=lv===1?ri(1,R):rnz(-R,R);
@@ -1223,30 +1411,176 @@ function genShousuu(lv){
   return genSonomama(lv);
 }
 /* ---- STEP19 分数のある連立 ---- */
+/* 分数の1式を作る。かっこ付き (ax+by)/L=R か、単純な x/p±y/q=e。
+   {html,text,eq:[A,B,C]}（eq=分母を払った整数形）を返す。(s,t)で成り立つ。 */
+function fracEqAdv(s,t){
+  if(Math.random()<.55){
+    /* かっこ: (ax+by)/L = R （Rは分数でもよい） */
+    for(let g=0;g<40;g++){
+      const L=pick([2,3,4,5,6]);
+      const a=rnz(-4,4), b=rnz(-4,4);
+      if(!a||!b)continue;
+      if(a%L===0&&b%L===0)continue;   /* 約分で分母が消える(分数に見えない)のを避ける */
+      const V=a*s+b*t;
+      const Rf=new F(V,L);            /* 右辺（整数or分数） */
+      if(Math.abs(Rf.n)>20)continue;
+      return {html:fracHTML(linExprHTML(a,b),L)+' = '+fnumHTML(Rf),
+              text:'('+linExprText(a,b)+')/'+L+'='+fnumText(Rf), eq:[a,b,V]};
+    }
+    return null;
+  }
+  /* 単純分数の項: x/p ± y/q = e （eは分数でもよい） */
+  const p=pick([2,3,4,5,6]), q=pick([2,3,4,5,6]), sg=pick([1,-1]);
+  const ef=new F(s,p).add(new F(sg*t,q));
+  if(Math.abs(ef.n)>30)return null;
+  const L=lcm(p,q);
+  return {html:fracHTML('x',p)+(sg>0?' + ':' − ')+fracHTML('y',q)+' = '+fnumHTML(ef),
+          text:'x/'+p+(sg>0?'+':'-')+'y/'+q+'='+fnumText(ef), eq:[L/p, sg*L/q, (L/p)*s+sg*(L/q)*t]};
+}
+/* 応用: 両方とも分数の式にする（かっこがあってもよい） */
+function genBunsuuRAdv(){
+  for(let g=0;g<150;g++){
+    const s=rnz(-6,6), t=rnz(-6,6);
+    if(Math.abs(s)<2||Math.abs(t)<2)continue;   /* 分数にしやすい ±2〜6 */
+    const eq1=fracEqAdv(s,t), eq2=fracEqAdv(s,t);
+    if(!eq1||!eq2)continue;
+    if(det2(eq1.eq,eq2.eq)===0)continue;
+    return sysPack(eq1.html,eq2.html,eq1.text,eq2.text,s,t,[eq1.eq,eq2.eq],{lv:4});
+  }
+  return genBunsuuR(3);
+}
 function genBunsuuR(lv){
+  if(lv>=4)return genBunsuuRAdv();   /* 応用は両方とも分数 */
   for(let g=0;g<60;g++){
-    const dens=lv===1?[2,3]:(lv>=4?[2,3,4,5,6]:[2,3,4]);
+    const dens=lv===1?[2,3]:[2,3,4];
     const p=pick(dens);let q;do{q=pick(dens);}while(q===p);
-    const rng=lv===1?3:(lv===2?3:(lv===3?4:5));
-    const u=lv===1?ri(1,rng):rnz(-rng,rng), v=lv===1?ri(1,rng):rnz(-rng,rng);
-    const s=p*u, t=q*v;
+    let s,t;
+    if(lv===1){                       /* 基本: 定数（右辺）は整数（x/p, y/q が割り切れる） */
+      const u=ri(1,3), v=ri(1,3);
+      s=p*u; t=q*v;
+    }else{                            /* 標準: 定数（右辺）は分数もあり */
+      const rng=lv===2?4:5;
+      s=rnz(-rng,rng); t=rnz(-rng,rng);
+    }
     const op=lv===1?1:pick([1,-1]);
-    const e=u+op*v;
     const L=lcm(p,q);
-    const e1=[L/p,op*L/q,L*e];
-    const c=lv===1?ri(1,4):(lv>=4?rnz(-5,5):rnz(-4,4)), d=lv===1?ri(1,4):(lv>=4?rnz(-5,5):rnz(-4,4));
+    const ef=new F(s,p).add(new F(op*t,q));        /* 右辺 = s/p + op·t/q （分数の場合あり） */
+    const e1=[L/p,op*L/q,(L/p)*s+op*(L/q)*t];      /* 分母を払った整数形 */
+    const c=lv===1?ri(1,4):rnz(-4,4), d=lv===1?ri(1,4):rnz(-4,4);
     const e2=[c,d,c*s+d*t];
     if(det2(e1,e2)===0)continue;
-    if(Math.abs(e2[2])>(lv>=4?120:60))continue;
-    const h1=fracHTML('x',p)+(op>0?' + ':' − ')+fracHTML('y',q)+' = '+numDisp(e);
-    const t1='x/'+p+(op>0?'+':'-')+'y/'+q+'='+e;
+    if(Math.abs(e2[2])>60||Math.abs(ef.n)>40)continue;
+    const h1=fracHTML('x',p)+(op>0?' + ':' − ')+fracHTML('y',q)+' = '+fnumHTML(ef);
+    const t1='x/'+p+(op>0?'+':'-')+'y/'+q+'='+fnumText(ef);
     return sysPack(h1,linEq(c,d,e2[2]),t1,linEqText(c,d,e2[2]),s,t,[e1,e2],{lv:lv});
   }
   return genSonomama(lv);
 }
+/* ---- A=B=C 表示ヘルパー（小数） ---- */
+function fdec(f){const v=f.n/f.d;return v.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');}
+function isDecFriendly(terms){for(const t of terms){let d=t.c.d;while(d%2===0)d/=2;while(d%5===0)d/=5;if(d!==1)return false;}return true;}
+function termsDecHTML(terms){
+  if(!terms.length)return '0';
+  let h='';
+  terms.forEach(function(t,i){
+    const neg=t.c.n<0, a=neg?t.c.neg():t.c, hasVar=!!(t.ex||t.ey);
+    h+= i===0 ? (neg?'−':'') : (neg?' − ':' + ');
+    const dv=fdec(a);
+    if(!(dv==='1'&&hasVar))h+=dv;
+    h+=varHTML(t.ex,t.ey);
+  });
+  return h;
+}
+function termsDecText(terms){return termsDecHTML(terms).replace(/ /g,'').replace(/−/g,'-');}
+/* 1辺(多項式)を分数/小数/括弧のいずれかで表示。terms=combineTerms済み */
+function abcStyle(terms){
+  const styles=['frac','paren'];
+  if(isDecFriendly(terms))styles.push('dec');
+  const style=pick(styles);
+  if(style==='frac')return {style:'frac',html:termsHTML(terms),text:termsText(terms)};
+  if(style==='dec')return {style:'dec',html:termsDecHTML(terms),text:termsDecText(terms)};
+  let L=1; for(const t of terms)L=lcm(L,t.c.d);
+  if(L===1||L>12)return {style:'frac',html:termsHTML(terms),text:termsText(terms)};
+  const num=terms.map(function(t){return T(t.c.n*(L/t.c.d),t.ex,t.ey);});
+  return {style:'paren',html:fracHTML(termsHTML(num),L),text:'('+termsText(num)+')/'+L};
+}
+/* ---- A=B=C 標準: 3辺すべて多項式（定数だけの辺を作らない）---- */
+function genAbcStd(){
+  for(let g=0;g<150;g++){
+    const s=rnz(-5,5), t=rnz(-5,5);
+    const parts=[];
+    for(let i=0;i<3;i++){
+      const a=rnz(-3,3), b=rnz(-3,3);
+      if(a===0&&b===0){i--;continue;}   /* 各辺は必ず文字を含む（定数のみ禁止）*/
+      parts.push({a:a,b:b});
+    }
+    const c0=rnz(-4,4);
+    const W=parts[0].a*s+parts[0].b*t+c0;
+    parts[0].c=c0;
+    parts[1].c=W-parts[1].a*s-parts[1].b*t;
+    parts[2].c=W-parts[2].a*s-parts[2].b*t;
+    if(parts.some(function(p){return Math.abs(p.c)>20;}))continue;
+    const same=function(p,q){return p.a===q.a&&p.b===q.b&&p.c===q.c;};
+    if(same(parts[0],parts[1])||same(parts[1],parts[2])||same(parts[0],parts[2]))continue;
+    const e1=[parts[0].a-parts[1].a,parts[0].b-parts[1].b,parts[1].c-parts[0].c];
+    const e2=[parts[1].a-parts[2].a,parts[1].b-parts[2].b,parts[2].c-parts[1].c];
+    if(det2(e1,e2)===0)continue;
+    const htmls=[],texts=[];
+    for(const p of parts){
+      const tm=combineTerms([T(p.a,1,0),T(p.b,0,1),T(p.c,0,0)]);
+      htmls.push(termsHTML(tm)); texts.push(termsText(tm));
+    }
+    return {html:htmls.join(' = '),text:texts.join('='),
+      params:{lv:3,eqs:[e1,e2],sol:[s,t]},
+      answer:{type:'sys',x:F.int(s),y:F.int(t)},
+      ansHTML:'x = '+numDisp(s)+'，y = '+numDisp(t),ansText:'x='+s+', y='+t};
+  }
+  return genAbc(1);
+}
+/* ---- A=B=C 応用: 小数・分数・括弧の多項式を混ぜる ---- */
+function genAbcAdv(){
+  for(let g=0;g<250;g++){
+    const s=rnz(-4,4), t=rnz(-4,4);
+    const rc=function(){return new F(rnz(-4,4),pick([2,3,4,5]));};
+    const parts=[];
+    for(let i=0;i<3;i++){
+      const ax=Math.random()<.85?rc():F.int(0), ay=Math.random()<.85?rc():F.int(0);
+      if(ax.isZero()&&ay.isZero()){i--;continue;}
+      parts.push({ax:ax,ay:ay});
+    }
+    const sF=F.int(s), tF=F.int(t), c0=rc();
+    const W=parts[0].ax.mul(sF).add(parts[0].ay.mul(tF)).add(c0);
+    parts[0].c=c0;
+    parts[1].c=W.add(parts[1].ax.mul(sF).neg()).add(parts[1].ay.mul(tF).neg());
+    parts[2].c=W.add(parts[2].ax.mul(sF).neg()).add(parts[2].ay.mul(tF).neg());
+    if(parts.some(function(p){return p.c.d>20||Math.abs(p.c.n)>60;}))continue;
+    if(!parts.some(function(p){return !p.ax.isInt()||!p.ay.isInt()||!p.c.isInt();}))continue; /* 分数を必ず含む */
+    const eqInt=function(pi,pj){
+      const A=pi.ax.add(pj.ax.neg()), B=pi.ay.add(pj.ay.neg()), C=pj.c.add(pi.c.neg());
+      const L=lcm(lcm(A.d,B.d),C.d);
+      return [A.n*(L/A.d),B.n*(L/B.d),C.n*(L/C.d)];
+    };
+    const e1=eqInt(parts[0],parts[1]), e2=eqInt(parts[1],parts[2]);
+    if(det2(e1,e2)===0)continue;
+    if(e1[0]*s+e1[1]*t!==e1[2]||e2[0]*s+e2[1]*t!==e2[2])continue;
+    const htmls=[],texts=[];
+    for(const p of parts){
+      const tm=combineTerms([T(p.ax,1,0),T(p.ay,0,1),T(p.c,0,0)]);
+      const st=abcStyle(tm);
+      htmls.push(st.html); texts.push(st.text);
+    }
+    return {html:htmls.join(' = '),text:texts.join('='),
+      params:{lv:4,eqs:[e1,e2],sol:[s,t]},
+      answer:{type:'sys',x:F.int(s),y:F.int(t)},
+      ansHTML:'x = '+numDisp(s)+'，y = '+numDisp(t),ansText:'x='+s+', y='+t};
+  }
+  return genAbcStd();
+}
 /* ---- STEP20 A=B=C ---- */
 function genAbc(lv){
-  for(let g=0;g<80;g++){
+  if(lv>=4)return genAbcAdv();     /* 応用: 小数・分数・括弧の多項式 */
+  if(lv>=2)return genAbcStd();     /* 標準: 3辺すべて多項式（定数だけの辺なし）*/
+  for(let g=0;g<80;g++){           /* 基本: A = B = 定数 */
     const R=lv===1?4:(lv===2?5:(lv===3?6:7));
     const s=lv===1?ri(1,R):rnz(-R,R), t=lv===1?ri(1,R):rnz(-R,R);
     const a1=lv===1?ri(1,3):(lv>=4?rnz(-4,4):rnz(-3,3)), b1=lv===1?ri(1,3):(lv>=4?rnz(-4,4):rnz(-3,3));
@@ -1274,33 +1608,54 @@ function genAbc(lv){
 }
 
 /* =====================================================
+   統合STEP用ジェネレータ
+   関連の近い複数の出題タイプ(サブSTEP)を1つのSTEPに混在させる。
+   ログの question_key は「実際に出たサブSTEPのキー」で残すので
+   （srcKey を各サブの本来のキーにする）question_catalog はそのままでよい。
+   makeRandomGen と違い、指定した数タイプだけを混ぜる。
+   subs: [{key,name,at,gen,hint}, ...]
+===================================================== */
+function makeMixGen(subs){
+  return function(lv,forPrint){
+    const sub=subs[Math.floor(Math.random()*subs.length)];
+    const q=sub.gen(lv,forPrint);
+    q.at=sub.at;q.srcKey=sub.key;q.srcName=sub.name;q.hint=sub.hint;
+    return q;
+  };
+}
+
+/* =====================================================
    MODES（question_key ＝ 冒頭SQLコメントと対応）
 ===================================================== */
 const MODES=[
  {unit:'tashiki',key:'doruikou',name:'同類項をまとめる',ex:'5x−2y−3x+4y',gen:genDoruikou,at:'expr',
   hint:'文字と次数が同じ項どうしをまとめよう。x²とxは同類項ではないよ。'},
- {unit:'tashiki',key:'tashizan',name:'多項式のたし算',ex:'(3x+2y)+(x−4y)',gen:genTashizan,at:'expr',
-  hint:'かっこをそのまま外して、同類項をまとめよう。'},
- {unit:'tashiki',key:'hikizan',name:'多項式のひき算',ex:'(5x+y)−(2x−3y)',gen:genHikizan,at:'expr',
-  hint:'うしろのかっこを外すとき、中の符号がぜんぶ反対になるよ。'},
- {unit:'tashiki',key:'suu_bai',name:'数×多項式',ex:'3(2x−5y)',gen:genSuuBai,at:'expr',
-  hint:'分配法則！かっこの中のすべての項に数をかけよう。'},
- {unit:'tashiki',key:'suu_waru',name:'多項式÷数',ex:'(6x−9y)÷3',gen:genSuuWaru,at:'expr',
-  hint:'かっこの中のすべての項を数でわろう。'},
- {unit:'tashiki',key:'bunpai_kagen',name:'分配してたし算・ひき算',ex:'2(x+3y)−3(2x−y)',gen:genBunpai,at:'expr',
+ {unit:'tashiki',key:'tashihiki',name:'多項式の加減法',ex:'(3x+2y)+(x−4y)、(5x+y)−(2x−3y)',at:'expr',
+  subs:['tashizan','hikizan'],
+  gen:makeMixGen([
+    {key:'tashizan',name:'多項式のたし算',at:'expr',gen:genTashizan,hint:'かっこをそのまま外して、同類項をまとめよう。'},
+    {key:'hikizan',name:'多項式のひき算',at:'expr',gen:genHikizan,hint:'うしろのかっこを外すとき、中の符号がぜんぶ反対になるよ。'}]),
+  hint:'たし算はそのまま、ひき算はうしろのかっこの符号をぜんぶ反対にして外し、同類項をまとめよう。'},
+ {unit:'tashiki',key:'suu_baiwari',name:'分配乗除',ex:'3(2x−5y)、(6x−9y)÷3',at:'expr',
+  subs:['suu_bai','suu_waru'],
+  gen:makeMixGen([
+    {key:'suu_bai',name:'数×多項式',at:'expr',gen:genSuuBai,hint:'分配法則！かっこの中のすべての項に数をかけよう。'},
+    {key:'suu_waru',name:'多項式÷数',at:'expr',gen:genSuuWaru,hint:'かっこの中のすべての項を数でわろう。'}]),
+  hint:'かっこの中のすべての項に、数をかける／数でわろう。符号のミスに注意！'},
+ {unit:'tashiki',key:'bunpai_kagen',name:'四則計算',ex:'2(x+3y)−3(2x−y)',gen:genBunpai,at:'expr',
   hint:'まず分配法則でかっこを外してから、同類項をまとめよう。−のかけ算に注意！'},
- {unit:'tashiki',key:'bunsuu',name:'分数の形の計算',ex:'(x+2y)/3 + (2x−y)/4',gen:genBunsuu,at:'expr',
+ {unit:'tashiki',key:'bunsuu',name:'通分四則',ex:'(x+2y)/3 + (2x−y)/4',gen:genBunsuu,at:'expr',
   hint:'通分してから分子を計算しよう。答えは分数が前でも後ろでもOK。'},
- {unit:'tashiki',key:'tan_kake',name:'単項式のかけ算',ex:'3x × (−4y)',gen:genTanKake,at:'expr',
-  hint:'係数どうし、文字どうしをかけよう。x×x=x²。'},
- {unit:'tashiki',key:'jijou_kake',name:'累乗のあるかけ算',ex:'(−2x)² × 3y',gen:genJijouKake,at:'expr',
-  hint:'先に累乗を計算しよう。(−2x)²=(−2x)×(−2x)=4x²。'},
- {unit:'tashiki',key:'tan_waru',name:'単項式のわり算',ex:'12x²y ÷ 3x',gen:genTanWaru,at:'expr',
+ {unit:'tashiki',key:'tanko_kake',name:'累乗と乗法',ex:'3x × (−4y)、(−2x)² × 3y',at:'expr',
+  subs:['tan_kake','jijou_kake'],
+  gen:makeMixGen([
+    {key:'tan_kake',name:'単項式のかけ算',at:'expr',gen:genTanKake,hint:'係数どうし、文字どうしをかけよう。x×x=x²。'},
+    {key:'jijou_kake',name:'累乗のあるかけ算',at:'expr',gen:genJijouKake,hint:'先に累乗を計算しよう。(−2x)²=(−2x)×(−2x)=4x²。'}]),
+  hint:'累乗があれば先に計算し、そのあと係数どうし・文字どうしをかけよう。'},
+ {unit:'tashiki',key:'tan_waru',name:'累乗と除法',ex:'12x²y ÷ 3x',gen:genTanWaru,at:'expr',
   hint:'分数の形にして、係数どうし・文字どうしで約分しよう。'},
- {unit:'tashiki',key:'kakewari',name:'かけ算・わり算の混合',ex:'8x² × 3y ÷ 6x',gen:genKakewari,at:'expr',
-  hint:'÷を分数にして、先に約分してから計算すると楽だよ。'},
- {unit:'tashiki',key:'three_mono',name:'3つの単項式の乗除',ex:'3xy × x ÷ (−2y)',gen:genThreeMono,at:'expr',
-  hint:'×と÷が混ざるときは、÷を分数（逆数のかけ算）になおして、係数どうし・文字どうしで約分しよう。'},
+ {unit:'tashiki',key:'three_mono',name:'累乗と乗除',ex:'(−2x)²×3y÷6x　（応用）(2x³y)²÷12xy⁴×(−9xy)',gen:genJijouJoujo,at:'expr',
+  hint:'累乗を先に計算し、÷は分数（逆数のかけ算）になおして、係数どうし・文字どうしで約分しよう。答えは分母に文字が残ることもあるよ。'},
  {unit:'tashiki',key:'shiki_no_atai',name:'式の値',ex:'式を簡単にしてから代入',gen:genShikiNoAtai,at:'num',
   hint:'先に式を簡単にしてから代入すると計算がぐっと楽に。負の数は（　）をつけて代入しよう。'},
  {unit:'tashiki',key:'henkei',name:'等式の変形',ex:'2x + y = 5 を y について解く',gen:genHenkei,at:'expr',
@@ -1328,8 +1683,11 @@ function makeRandomGen(unit){
   return function(lv,forPrint){
     const pool=MODES.filter(function(x){return x.unit===unit&&!x.rand&&(!forPrint||x.at!=='num');});
     const sub=pool[Math.floor(Math.random()*pool.length)];
-    const q=sub.gen(lv);
-    q.at=sub.at;q.srcKey=sub.key;q.srcName=sub.name;q.hint=sub.hint;
+    const q=sub.gen(lv,forPrint);
+    /* subが統合STEP(makeMixGen)なら、q側に本来のサブSTEPの
+       srcKey/srcName/hintが既に入っているので上書きしない（ログのキーを守る）。 */
+    q.at=sub.at;
+    q.srcKey=q.srcKey||sub.key;q.srcName=q.srcName||sub.name;q.hint=q.hint||sub.hint;
     return q;
   };
 }
@@ -1349,14 +1707,25 @@ const UNITS=[
   {id:'tashiki',label:'式の計算（多項式・単項式）',color:'#CB6B52'},
   {id:'renritsu',label:'連立方程式',color:'#48708F'}
 ];
-const state={key:null,q:null,answered:false,lvSel:0,modes:{}};/* lvSel: 0=自動, 1-4=固定 */
+/* レベルは3段階(band): 1=基本 / 2=標準 / 3=応用（既定は基本）。
+   応用ボタンだけ朱色で強調（既存の .lv4.on スタイルを流用）。 */
+const BANDS=[{v:1,name:'基本',cls:''},{v:2,name:'標準',cls:''},{v:3,name:'応用',cls:'lv4'}];
+function bandName(b){const x=BANDS.find(function(o){return o.v===b;});return x?x.name:'基本';}
+const state={key:null,q:null,answered:false,band:1,modes:{}};/* band: 1=基本,2=標準,3=応用 */
 MODES.forEach(function(m){state.modes[m.key]={correct:0,streak:0,cleared:false};});
 let activeInput=null;
 
 function $(id){return document.getElementById(id);}
-/* テスト運用用: URLに ?lv=1〜3 を付けるとレベル固定（例: math_js2_keisan.html?lv=3） */
+/* テスト運用用: URLに ?lv=1〜4 を付けると内部レベル固定（例: math_js2_keisan.html?lv=4） */
 const FORCE_LV=(function(){if(typeof location==='undefined')return 0;const v=parseInt(new URLSearchParams(location.search).get('lv'),10);return (v>=1&&v<=4)?v:0;})();
-function lvOf(key){if(state.lvSel)return state.lvSel;if(FORCE_LV)return FORCE_LV;const c=state.modes[key].correct;return c<4?1:(c<8?2:3);}
+/* band → ジェネレータ内部レベル(1〜4)。基本=1 / 標準=2〜3ランダム / 応用=4。
+   式の計算は 基本・標準=整数中心／応用=分数、連立は既存の整数・小数・分数STEPをそのまま活かす。 */
+function curLv(){
+  if(FORCE_LV)return FORCE_LV;
+  if(state.band===1)return 1;
+  if(state.band===3)return 4;
+  return Math.random()<.5?2:3;   /* 標準 */
+}
 function curMode(){return MODES.find(function(m){return m.key===state.key;});}
 
 function renderHome(){
@@ -1395,9 +1764,8 @@ function showHome(){
 function renderLvPick(){
   const el=$('lvPick');
   if(!el)return;
-  const items=[[0,'自動'],[1,'Lv1'],[2,'Lv2'],[3,'Lv3'],[4,'Lv4 ちょうせん']];
-  el.innerHTML=items.map(function(it){
-    return '<button type="button" data-lv="'+it[0]+'" class="'+(it[0]===4?'lv4':'')+(state.lvSel===it[0]?' on':'')+'">'+it[1]+'</button>';
+  el.innerHTML=BANDS.map(function(o){
+    return '<button type="button" data-band="'+o.v+'" class="'+o.cls+(state.band===o.v?' on':'')+'">'+o.name+'</button>';
   }).join('');
 }
 function showPractice(key){
@@ -1424,19 +1792,37 @@ function renderDots(){
   h+='<span class="dlabel">連続'+Math.min(st.streak,99)+'</span>';
   $('pDots').innerHTML=h;
 }
+/* 幅が足りないときは式（qMain）のフォントを縮めて1行に収める。
+   縮めすぎる場合（min未満）だけ折り返しを許可する。 */
+function fitExpr(){
+  const el=$('qMain'); if(!el)return;
+  el.style.fontSize=''; el.style.whiteSpace='nowrap';
+  el.style.textAlign='left';           /* 計測中は左寄せ（中央寄せだと左あふれがscrollWidthに載らない）*/
+  const avail=el.clientWidth, content=el.scrollWidth;
+  el.style.textAlign='';               /* CSSの中央寄せに戻す */
+  if(avail>0&&content>avail+1){
+    const base=parseFloat(getComputedStyle(el).fontSize);
+    const target=base*(avail/content)*0.97, min=14;
+    if(target<min){el.style.fontSize=min+'px';el.style.whiteSpace='normal';}
+    else el.style.fontSize=target+'px';
+  }
+}
 function newQuestion(){
-  const m=curMode(), lv=lvOf(m.key);
-  state.q=m.gen(lv);
+  const m=curMode();
+  state.q=m.gen(curLv());
   state.answered=false;
   buildPad(curAt());
-  $('pLv').textContent='Lv.'+lv;
+  $('pLv').textContent=bandName(state.band);
   renderDots();
   $('qMain').innerHTML=state.q.html;
+  fitExpr();
   const c=$('qCond');
   const src=m.rand?'【'+state.q.srcName+'】':'';
   if(src||state.q.cond){c.hidden=false;c.textContent=src+(state.q.cond?(src?'　':'')+state.q.cond:'');}
   else{c.hidden=true;c.textContent='';}
   ['fxMaru','fxBatsu','fxClear'].forEach(function(id){$(id).classList.remove('show');});
+  /* 共通ハンコ（divp-correct-jh）を出している場合、.paper は再描画しないので手動で消す */
+  try{var pp=document.querySelector('.paper');if(pp)pp.querySelectorAll('.divp-hanko,.divp-nice').forEach(function(el){el.remove();});}catch(e){}
   $('fb').innerHTML='';
   const at=curAt();
   $('ansExpr').hidden=at!=='expr';
@@ -1454,11 +1840,11 @@ function buildPad(at){
   const pad=$('pad');
   pad.classList.toggle('numpad',at!=='expr');
   const keys=at==='expr'
-    ?['7','8','9','0','⌫','4','5','6','x','y','1','2','3','+','−','(',')','²','/','C']
+    ?['7','8','9','0','⌫','4','5','6','x','y','1','2','3','+','−','(',')','²','^','/','C']
     :['7','8','9','⌫','4','5','6','−','1','2','3','/','0','.','C'];
   let h='';
   for(const k of keys){
-    const cls='key'+((k==='⌫'||k==='C')?' util':('+-−()²/xy.'.indexOf(k)>=0?' op':''));
+    const cls='key'+((k==='⌫'||k==='C')?' util':('+-−()²^/xy.'.indexOf(k)>=0?' op':''));
     h+='<button type="button" class="'+cls+'" data-k="'+k+'">'+k+'</button>';
   }
   pad.innerHTML=h;
@@ -1527,16 +1913,27 @@ function finish(ok,userText){
       $('fb').innerHTML='<span class="clearmsg">STEPクリア！　5問連続正解 ◎</span>';
       if(MODES.indexOf(m)<MODES.length-1)$('nextStepBtn').hidden=false;
     }else{
-      $('fxMaru').classList.add('show');
+      if(!safeStamp('correct'))$('fxMaru').classList.add('show');
       $('fb').innerHTML='<span class="ok">せいかい！</span>';
     }
   }else{
     st.streak=0;
-    $('fxBatsu').classList.add('show');
+    if(!safeStamp('incorrect'))$('fxBatsu').classList.add('show');
     $('fb').innerHTML='<span class="ng">正解は <b>'+q.ansHTML+'</b></span><span class="hint">💡 '+(q.hint||m.hint)+'</span>';
   }
   renderDots();
   $('nextBtn').hidden=false;
+}
+/* 共通の正解ハンコ（divp-correct-jh の Divp.correct / Divp.incorrect）。
+   未読込・ローカル起動時は false を返し、独自の○×演出にフォールバックする。 */
+function safeStamp(kind){
+  try{
+    if(window.Divp){
+      if(kind==='correct'&&typeof Divp.correct==='function'){Divp.correct('.paper',{text:'正解'});return true;}
+      if(kind==='incorrect'&&typeof Divp.incorrect==='function'){Divp.incorrect('.paper');return true;}
+    }
+  }catch(e){}
+  return false;
 }
 function sendDivp(ok,userText){
   try{
@@ -1561,7 +1958,8 @@ function buildPrint(){
   const n=m.at==='sys'?10:20;
   const items=[];
   for(let i=0;i<n;i++){
-    const lv=state.lvSel||(i<n*.4?1:(i<n*.75?2:3));
+    /* 基本=全問lv1 / 応用=全問lv4 / 標準=前半lv2・後半lv3で段階的に */
+    const lv=FORCE_LV||(state.band===1?1:state.band===3?4:(i<n*.5?2:3));
     items.push(m.gen(lv,true));
   }
   const lbl=m.rand?'★':'STEP'+m.step;
@@ -1597,9 +1995,24 @@ function restoreProgress(){
         if(!d||!d.ok||!d.progress)return;
         var touched=false;
         MODES.forEach(function(m){
+          var st=state.modes[m.key];
+          if(m.subs){
+            /* 統合STEP: 実ログのキー(サブSTEP)を合算して復元。
+               レベルは合計correctから、クリアはサブが全部クリア済みのとき。
+               連続数(streak)はまたぎ集計できないので復元しない。 */
+            var corr=0,cleared=0,any=false;
+            m.subs.forEach(function(k){
+              var p=d.progress[k];if(!p)return;
+              any=true;corr+=p.correct|0;if(p.cleared)cleared++;
+            });
+            if(!any)return;
+            st.correct=Math.max(st.correct,corr);
+            if(cleared>=m.subs.length)st.cleared=true;
+            touched=true;
+            return;
+          }
           var p=d.progress[m.key];
           if(!p)return;
-          var st=state.modes[m.key];
           st.correct=Math.max(st.correct,p.correct|0);
           st.streak=Math.max(st.streak,Math.min(p.streak|0,CLEAR_N));
           if(p.cleared)st.cleared=true;
@@ -1607,14 +2020,14 @@ function restoreProgress(){
         });
         if(!touched)return;
         if(!$('home').hidden)renderHome();
-        if(!$('practice').hidden){$('pLv').textContent='Lv.'+lvOf(state.key);renderDots();}
+        if(!$('practice').hidden){$('pLv').textContent=bandName(state.band);renderDots();}
       })
       .catch(function(){});
   }catch(e){}
 }
 
 function init(){
-  if(FORCE_LV)state.lvSel=FORCE_LV;
+  if(FORCE_LV)state.band=FORCE_LV<=1?1:(FORCE_LV>=4?3:2);
   renderHome();
   restoreProgress();
   $('unitList').addEventListener('change',function(e){
@@ -1628,9 +2041,9 @@ function init(){
     if(s)showPractice(s.value);
   });
   $('lvPick').addEventListener('click',function(e){
-    const b=e.target.closest('button[data-lv]');
+    const b=e.target.closest('button[data-band]');
     if(!b)return;
-    state.lvSel=parseInt(b.dataset.lv,10)||0;
+    state.band=parseInt(b.dataset.band,10)||1;
     renderLvPick();
     newQuestion();
   });
@@ -1657,6 +2070,10 @@ function init(){
       else if(!$('checkBtn').hidden)judge();
     }
   });
+  /* 画面幅が変わったら式を再フィット（回転・ウィンドウ変更） */
+  window.addEventListener('resize',function(){if(!$('practice').hidden&&state.q)fitExpr();});
+  /* 数式フォント(KaTeX)の読み込み完了後にも測り直す（初回のズレ防止） */
+  if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){if(!$('practice').hidden&&state.q)fitExpr();});}
 }
 
 /* node テスト用エクスポート */

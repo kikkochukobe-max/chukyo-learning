@@ -1137,7 +1137,7 @@ function fitBtn(btn){
 }
 
 function safeDivpCorrect(){
-  if(window.Divp && typeof Divp.correct==="function"){ try{Divp.correct();return;}catch(e){} }
+  if(window.Divp && typeof Divp.correct==="function"){ try{Divp.correct('.qcard');return;}catch(e){} }
   const h=$("hanko"); h.classList.remove("show"); void h.offsetWidth; h.classList.add("show");
 }
 function safeDivpIncorrect(){
@@ -1191,6 +1191,8 @@ function sendAnswer(isOk){
 function showQuestion(q){
   state.q=q;
   state.answered=false;
+  // 前問の正解スタンプ／不正解バッジが残っていたら消す（正解ハンコは自動フェードしないため）
+  document.querySelectorAll('.qcard .divp-hanko, .qcard .divp-nice').forEach(function(el){ el.remove(); });
   $("qTag").textContent=CATNAME[state.cat];
   $("qPrompt").textContent=q.prompt;
   const qt=$("qTex"), qi=$("qTexInner");

@@ -44,6 +44,33 @@ foreach ($rows as $row) {
     $units[$row['unit_key']][] = $row;
 }
 
+// ---- 教科（unit_key の先頭要素）でのフィルタ用ラベル ----
+$subjectLabels = [
+    'math'     => '算数・数学',
+    'english'  => '英語',
+    'japanese' => '国語',
+    'science'  => '理科',
+    'social'   => '社会',
+    'allgrade' => 'その他',
+];
+function subject_of(string $unitKey): string
+{
+    return explode('_', $unitKey)[0];
+}
+$retrySubjects = [];
+foreach (array_keys($units) as $uk) {
+    $retrySubjects[subject_of($uk)] = true;
+}
+$retrySubjectKeys = array_values(array_filter(
+    array_keys($subjectLabels),
+    fn($s) => isset($retrySubjects[$s])
+));
+foreach (array_keys($retrySubjects) as $s) {
+    if (!in_array($s, $retrySubjectKeys, true)) {
+        $retrySubjectKeys[] = $s;
+    }
+}
+
 function h(?string $s): string
 {
     return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
@@ -95,6 +122,15 @@ function h(?string $s): string
   }
   .section-title::after{content:"";flex:1;border-top:2px dotted var(--ink-soft);opacity:.4}
 
+  /* 教科タブ（絞り込み） */
+  .stabs{display:flex;flex-wrap:wrap;gap:8px;margin:16px 2px 4px}
+  .stab{
+    font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:12px;
+    padding:4px 14px;border-radius:999px;cursor:pointer;
+    background:var(--white);color:var(--ink-soft);border:1.5px solid var(--grid);
+  }
+  .stab.active{background:var(--ai);color:#fff;border-color:var(--ai)}
+
   .karte{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
     padding:18px;margin-bottom:14px}
   .karte h2{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:16px;
@@ -143,9 +179,18 @@ function h(?string $s): string
     <p>まちがえた問題がここに たまっていきます</p>
   </div>
 <?php else: ?>
+<?php if (count($retrySubjectKeys) > 1): ?>
+  <nav class="stabs" id="retryTabs">
+    <button class="stab active" data-subject="all">すべて</button>
+<?php foreach ($retrySubjectKeys as $s): ?>
+    <button class="stab" data-subject="<?= h($s) ?>"><?= h($subjectLabels[$s] ?? $s) ?></button>
+<?php endforeach; ?>
+  </nav>
+<?php endif; ?>
 <?php foreach ($units as $unitKey => $items):
     $meta = $unitMeta[$unitKey] ?? ['title' => $unitKey, 'sub' => '', 'url' => null];
 ?>
+  <div class="unit-block" data-subject="<?= h(subject_of($unitKey)) ?>">
   <div class="section-title"><?= h($meta['title']) ?></div>
   <section class="karte">
 <?php foreach ($items as $item): ?>
@@ -161,6 +206,7 @@ function h(?string $s): string
     <a class="golink" href="<?= h($meta['url']) ?>?retry=1">同じ問題に再チャレンジする →</a>
 <?php endif; ?>
   </section>
+  </div>
 <?php endforeach; ?>
 <?php endif; ?>
 
@@ -216,6 +262,22 @@ function renderMathToHTML(src){
 document.querySelectorAll('.qtext').forEach(function (el) {
   el.innerHTML = renderMathToHTML(el.getAttribute('data-math') || '');
 });
+
+// 教科タブ: data-subject で単元ブロックを表示/非表示
+(function () {
+  var tabs = document.getElementById('retryTabs');
+  if (!tabs) return;
+  var blocks = Array.prototype.slice.call(document.querySelectorAll('.unit-block[data-subject]'));
+  tabs.addEventListener('click', function (e) {
+    var btn = e.target.closest('.stab');
+    if (!btn) return;
+    var sel = btn.getAttribute('data-subject');
+    tabs.querySelectorAll('.stab').forEach(function (b) { b.classList.toggle('active', b === btn); });
+    blocks.forEach(function (b) {
+      b.style.display = (sel === 'all' || b.getAttribute('data-subject') === sel) ? '' : 'none';
+    });
+  });
+})();
 </script>
 </body>
 </html>

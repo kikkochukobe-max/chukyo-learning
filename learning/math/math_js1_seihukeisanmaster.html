@@ -1223,6 +1223,9 @@ function newProblem() {
   if (retryQueue && retryQueue.length > 0) cur = retryQueue.shift();
   else cur = GENERATORS[currentMode]();
   locked = false;
+  // 前問の正解スタンプ／不正解バッジが残っていたら消す（正解ハンコは自動フェードしないため）
+  var qc = $('q-card');
+  if (qc) { var st = qc.querySelectorAll('.divp-hanko, .divp-nice'); for (var _i = 0; _i < st.length; _i++) st[_i].remove(); }
   var el = $('expr');
   el.innerHTML = exprHTML(cur.ops, cur.opers);
   fitExpr();

@@ -1,0 +1,1876 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>連立方程式マスター 文章題編 | 中京個別指導学院</title>
+<!-- 本番デプロイ時: KaTeXは自前ホスティング(サブセット済woff2)に差し替えること -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBFAF6;
+  --grid:#ECE9E0;
+  --sumi:#33312B;
+  --usuzumi:#8B877C;
+  --shu:#C73E2E;
+  --ai:#2C5F8A;
+  --kin:#C9A227;
+  --orange:#D89A45;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  font-family:'Zen Kaku Gothic New',sans-serif;
+  color:var(--sumi);
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:24px 24px;
+  min-height:100vh;
+}
+h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
+.wrap{max-width:720px;margin:0 auto;padding:16px 16px 64px;}
+
+/* ---------- header ---------- */
+.site-head{
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  padding:14px 4px 10px;
+  border-bottom:3px double var(--shu);
+  margin-bottom:18px;
+}
+.site-head h1{font-size:clamp(19px,5vw,25px);letter-spacing:.05em;}
+.site-head h1 .accent{color:var(--shu);}
+.site-head .sub{font-size:12px;color:var(--usuzumi);letter-spacing:.1em;}
+
+/* ---------- category / step select ---------- */
+.intro{font-size:13.5px;color:var(--usuzumi);margin:0 4px 16px;line-height:1.7;}
+.lv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.lv-card{
+  position:relative;background:#fff;
+  border:1.5px solid var(--grid);border-radius:12px;
+  padding:12px 11px 10px;cursor:pointer;text-align:left;
+  font-family:inherit;
+  transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  box-shadow:0 1px 2px rgba(51,49,43,.05);
+}
+.lv-card:hover,.lv-card:focus-visible{
+  transform:translateY(-2px);border-color:var(--ai);
+  box-shadow:0 4px 10px rgba(44,95,138,.12);outline:none;
+}
+.lv-card .lv-no{font-family:'Zen Maru Gothic',sans-serif;font-size:10.5px;font-weight:700;color:var(--ai);letter-spacing:.12em;}
+.lv-card .lv-name{font-family:'Zen Maru Gothic',sans-serif;font-size:15px;font-weight:700;margin:2px 0 4px;}
+.lv-card .lv-desc{font-size:11.5px;color:var(--usuzumi);line-height:1.55;}
+.lv-card .lv-prog{
+  margin-top:7px;font-size:11px;color:var(--usuzumi);
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+}
+.step-dots{display:flex;gap:4px;}
+.sdot{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--usuzumi);background:#fff;}
+.sdot.done{background:var(--shu);border-color:var(--shu);}
+.lv-card .cleared{
+  position:absolute;top:6px;right:6px;width:40px;height:40px;
+  border:2.5px solid var(--shu);border-radius:50%;color:var(--shu);
+  font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:11.5px;
+  display:flex;align-items:center;justify-content:center;
+  transform:rotate(-12deg);opacity:.9;background:rgba(255,255,255,.7);
+}
+.lv-card.mix{border-style:dashed;border-color:var(--kin);}
+.lv-card.mix .lv-no{color:var(--kin);}
+
+.cat-head{
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px;
+}
+.cat-head h2{font-size:19px;}
+.cat-head .cat-desc{font-size:12.5px;color:var(--usuzumi);}
+
+/* ---------- practice ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.btn-back{background:none;border:none;color:var(--ai);font-size:13.5px;cursor:pointer;font-family:inherit;padding:6px 4px;}
+.progress-dots{display:flex;gap:7px;}
+.dot{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--usuzumi);background:#fff;}
+.dot.now{border-color:var(--ai);box-shadow:0 0 0 3px rgba(44,95,138,.15);}
+.dot.ok{background:var(--shu);border-color:var(--shu);}
+.dot.ng{background:var(--grid);border-color:var(--usuzumi);}
+
+.q-card{
+  position:relative;background:#fff;
+  border:1.5px solid var(--grid);border-radius:14px;
+  padding:22px 18px 20px;
+  box-shadow:0 2px 6px rgba(51,49,43,.06);
+}
+.q-label{font-family:'Zen Maru Gothic',sans-serif;font-size:13px;font-weight:700;color:var(--ai);margin-bottom:12px;letter-spacing:.08em;}
+.q-text{
+  font-size:15px;line-height:2.0;margin-bottom:16px;
+  background:linear-gradient(transparent calc(2.0em - 1px), var(--grid) calc(2.0em - 1px), var(--grid) 2.0em, transparent 2.0em);
+  background-size:100% 2.0em;
+}
+.q-text b{color:var(--sumi);font-weight:700;border-bottom:2px solid rgba(199,62,46,.35);}
+
+/* hint */
+.hint-area{margin:0 0 18px;}
+.btn-hint{
+  font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;
+  color:var(--orange);background:#fff;
+  border:1.5px dashed var(--orange);border-radius:999px;
+  padding:7px 18px;cursor:pointer;
+}
+.btn-hint:disabled{opacity:.4;cursor:default;}
+.hint-item{
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  margin-top:10px;padding:9px 12px;
+  background:rgba(216,154,69,.08);
+  border-left:3px solid var(--orange);border-radius:0 8px 8px 0;
+  font-size:14px;
+}
+.hint-item .h-tag{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:12px;color:var(--orange);min-width:66px;}
+.hint-item .h-tex{font-size:16px;}
+.hint-item .h-note{font-size:12.5px;color:var(--usuzumi);}
+
+/* choices (6択) */
+.choice-legend{font-size:12.5px;color:var(--usuzumi);text-align:center;margin-bottom:8px;}
+.choice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:18px;}
+.choice{
+  font-family:inherit;font-size:15px;line-height:1.5;
+  padding:12px 8px;background:#fff;color:var(--sumi);
+  border:1.5px solid var(--ai);border-radius:10px;cursor:pointer;
+  transition:transform .08s ease;
+}
+.choice:active{transform:scale(.97);}
+.choice:disabled{cursor:default;}
+.choice.sel-ok{border-color:var(--shu);border-width:2.5px;background:rgba(199,62,46,.07);font-weight:700;}
+.choice.sel-ng{border-color:var(--usuzumi);background:var(--grid);}
+.choice.dim{opacity:.4;}
+
+.btn-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center;}
+.btn{
+  font-family:'Zen Maru Gothic',sans-serif;font-weight:700;
+  font-size:15.5px;letter-spacing:.06em;
+  border:none;border-radius:999px;cursor:pointer;
+  padding:12px 34px;transition:transform .1s ease, opacity .15s;
+}
+.btn:active{transform:scale(.97);}
+.btn-main{background:var(--shu);color:#fff;box-shadow:0 3px 0 #9c2f22;}
+.btn-sub{background:#fff;color:var(--ai);border:1.5px solid var(--ai);}
+.btn-gold{background:var(--kin);color:#fff;box-shadow:0 3px 0 #a3831c;}
+.btn:disabled{opacity:.4;cursor:default;}
+.link-steps{
+  background:none;border:none;color:var(--ai);cursor:pointer;
+  font-size:13px;font-family:inherit;text-decoration:underline;padding:6px;
+}
+
+/* 正誤エフェクトは共通の divp-correct-jh（Divp.correct/incorrect）に一本化 */
+@media (prefers-reduced-motion:reduce){
+  .lv-card,.btn{transition:none;}
+}
+
+/* explanation */
+.kaisetsu{margin-top:18px;border-top:1.5px dashed var(--grid);padding-top:14px;}
+.kaisetsu h3{font-size:14px;color:var(--shu);margin-bottom:10px;letter-spacing:.08em;}
+.step{display:flex;align-items:baseline;gap:12px;margin-bottom:9px;flex-wrap:wrap;}
+.step .slabel{font-size:12.5px;color:var(--ai);min-width:120px;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;}
+.step .stex{font-size:16.5px;}
+.step .stext{font-size:14px;line-height:1.8;}
+.step.final .stex,.step.final .stext{color:var(--shu);font-weight:700;}
+
+/* ---------- print sheet ---------- */
+#printSheet{display:none;}
+@media print{
+  @page{size:A4;margin:14mm 14mm 12mm;}
+  body{background:#fff !important;background-image:none !important;}
+  .wrap{display:none !important;}
+  #printSheet{display:block;color:#222;font-family:'Zen Kaku Gothic New',sans-serif;}
+  .ps-head{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:2.5px double #C73E2E;padding-bottom:2mm;margin-bottom:4mm;
+  }
+  .ps-title{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13pt;}
+  .ps-sub{font-size:9pt;color:#666;margin-top:1mm;}
+  .ps-name{font-size:9.5pt;}
+  .ps-name .line{display:inline-block;width:38mm;border-bottom:1px solid #333;margin-left:2mm;}
+  .p-item{break-inside:avoid;margin-bottom:4mm;}
+  .p-row{display:flex;gap:3mm;}
+  .p-no{
+    flex:none;width:6mm;height:6mm;border:1.2px solid #333;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:9.5pt;font-weight:700;
+  }
+  .p-body{flex:1;}
+  .p-text{font-size:10pt;line-height:1.65;}
+  .p-text b{font-weight:700;}
+  .p-space{
+    height:26mm;border:1px dashed #bbb;border-radius:2mm;margin-top:1.5mm;
+    position:relative;
+  }
+  .p-space::before{
+    content:'(計算)';position:absolute;top:1mm;left:2mm;
+    font-size:7pt;color:#aaa;
+  }
+  .p-ansline{font-size:10pt;margin-top:1.5mm;text-align:right;}
+  .p-ansline .blank{display:inline-block;width:18mm;border-bottom:1.2px solid #333;}
+  .p-key{
+    margin-top:4mm;border-top:1.5px solid #C73E2E;padding-top:2mm;
+    font-size:8.5pt;color:#C73E2E;line-height:1.7;
+  }
+  .p-key .k-title{font-weight:700;margin-right:2mm;}
+}
+
+/* result */
+.result-card{
+  background:#fff;border:1.5px solid var(--grid);border-radius:14px;
+  padding:34px 20px 28px;text-align:center;position:relative;overflow:hidden;
+  box-shadow:0 2px 6px rgba(51,49,43,.06);
+}
+.result-card h2{font-size:20px;margin-bottom:8px;}
+.result-score{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:44px;margin:8px 0 2px;}
+.result-score .of{font-size:20px;color:var(--usuzumi);}
+.result-msg{font-size:14px;color:var(--usuzumi);margin-bottom:22px;line-height:1.7;}
+.clear-stamp{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:110px;height:110px;border-radius:50%;
+  border:4.5px solid var(--kin);color:var(--kin);
+  font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:24px;
+  transform:rotate(-12deg);margin-bottom:14px;letter-spacing:.08em;
+}
+</style>
+</head>
+<body>
+<!-- 共通モジュール（ヘッダー＋ログイン / 中高用 正解ハンコ / 学習記録コア）。ローカル・未ログイン時は各モジュールが黙ってスキップする。unit_key = math_js2_renritsu_riyou -->
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script>if(window.Divp&&Divp.init)Divp.init('math_js2_renritsu_riyou');</script>
+<div class="wrap">
+
+  <header class="site-head">
+    <h1>連立方程式マスター <span class="accent">文章題編</span></h1>
+    <span class="sub">中2数学 ｜ 連立方程式の利用</span>
+  </header>
+
+  <!-- ===== category select ===== -->
+  <section id="view-select">
+    <p class="intro">文章題は「何を x, y にするか」→「式を2本立てる」の順で考えれば必ず解ける。種類ごとに STEP1 から少しずつレベルアップしよう。1セット5問、全問正解でクリア!(ヒントは使ってOK)</p>
+    <div class="lv-grid" id="catGrid"></div>
+  </section>
+
+  <!-- ===== step select ===== -->
+  <section id="view-steps" hidden>
+    <div class="topbar">
+      <button class="btn-back" id="btnBackToCats" type="button">← 種類の一覧にもどる</button>
+    </div>
+    <div class="cat-head">
+      <h2 id="catTitle"></h2>
+      <span class="cat-desc" id="catDesc"></span>
+    </div>
+    <div class="lv-grid" id="stepGrid"></div>
+  </section>
+
+  <!-- ===== practice ===== -->
+  <section id="view-practice" hidden>
+    <div class="topbar">
+      <span>
+        <button class="btn-back" id="btnBack" type="button">← STEP一覧にもどる</button>
+        <button class="btn-back" id="btnPrint" type="button">🖨 プリント</button>
+      </span>
+      <div class="progress-dots" id="dots"></div>
+    </div>
+    <div class="q-card">
+      <div class="q-label" id="qLabel"></div>
+      <p class="q-text" id="qText"></p>
+      <div class="hint-area">
+        <button class="btn-hint" id="btnHint" type="button">ヒントを見る (1/3)</button>
+        <div id="hintList"></div>
+      </div>
+      <div class="choice-legend" id="choiceLegend"></div>
+      <div class="choice-grid" id="choiceGrid"></div>
+      <div class="btn-row">
+        <button class="btn btn-sub" id="btnNext" type="button" hidden>次の問題へ →</button>
+        <button class="link-steps" id="btnShowSteps" type="button" hidden>解き方を見る</button>
+      </div>
+      <div class="kaisetsu" id="kaisetsu" hidden>
+        <h3>▼ 解き方</h3>
+        <div id="stepsArea"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== result ===== -->
+  <section id="view-result" hidden>
+    <div class="result-card">
+      <div id="clearStampWrap"></div>
+      <h2 id="resultTitle"></h2>
+      <div class="result-score"><span id="scoreNum"></span><span class="of"> / 5 問</span></div>
+      <p class="result-msg" id="resultMsg"></p>
+      <div class="btn-row">
+        <button class="btn btn-gold" id="btnNextStep" type="button" hidden>つぎのSTEPへ →</button>
+        <button class="btn btn-main" id="btnRetry" type="button">もう一度このSTEP</button>
+        <button class="btn btn-sub" id="btnToSteps" type="button">一覧へ</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div id="printSheet"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+ * 連立方程式マスター 文章題編 (math_js2_renritsu_riyou)
+ * - 種類(カテゴリ) × STEP の2階層構成
+ * - 答え(自然数)→ 問題の数値 の逆算生成。解はつねに自然数
+ * - question_key = STEPのキー (suu1..3 / kaimono1..3 / kafusoku1..2 /
+ *   hayasa1..2 / tsuka1..3 / wariai1..2 / shokuen1..2 / mix)
+ * - Divp統合: judge() 内のマーカー箇所に Divp.answer() を1行挿入予定
+ * ===================================================================== */
+
+/* ---------- utils ---------- */
+function rnd(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a; }
+function lcm(a,b){ return Math.abs(a*b)/gcd(a,b); }
+
+function sgn(v){ return v<0?-1:1; }
+/* 誤答肢用: 連立を解いて正の整数解のときだけ返す */
+function solveInt(a1,b1,c1,a2,b2,c2){
+  const det=a1*b2-a2*b1;
+  if(det===0) return null;
+  const x=(c1*b2-c2*b1)/det, y=(a1*c2-a2*c1)/det;
+  if(!Number.isInteger(x)||!Number.isInteger(y)||x<=0||y<=0) return null;
+  return [x,y];
+}
+
+function term(c, v, first){
+  if(c===0) return '';
+  const sign = c<0 ? '-' : (first ? '' : '+');
+  const abs = Math.abs(c);
+  return sign + (abs===1 ? '' : String(abs)) + v;
+}
+function eqLatex(a,b,c){
+  let L = term(a,'x',true) + term(b,'y', a===0);
+  if(L==='') L='0';
+  return L + '=' + c;
+}
+function tex(el, latex, display){
+  if(window.katex){
+    try{
+      katex.render(latex, el, {displayMode: !!display, throwOnError:false});
+      return;
+    }catch(e){}
+  }
+  el.textContent = latex
+    .replace(/\\dfrac\{([^}]*)\}\{([^}]*)\}/g, '($1)/($2)')
+    .replace(/\\times/g,'×');
+}
+
+/* ---------- 加減法の途中式 (n1,n2で式の呼び名を差し替え可) ---------- */
+function kagenSteps(a1,b1,c1,a2,b2,c2,sx,sy,pre,n1,n2){
+  n1=n1||'①'; n2=n2||'②';
+  const steps=(pre||[]).slice();
+  const L=lcm(b1,b2), m1=L/Math.abs(b1), m2=L/Math.abs(b2);
+  const A1=a1*m1,B1=b1*m1,C1=c1*m1;
+  const A2=a2*m2,B2=b2*m2,C2=c2*m2;
+  if(m1>1) steps.push({label:n1+'×'+m1, latex:eqLatex(A1,B1,C1)});
+  if(m2>1) steps.push({label:n2+'×'+m2, latex:eqLatex(A2,B2,C2)});
+  let Ax,Cx,op;
+  if(B1===B2){ op='ひき算'; Ax=A1-A2; Cx=C1-C2; }
+  else       { op='たし算'; Ax=A1+A2; Cx=C1+C2; }
+  steps.push({label:op+'で y を消す', latex:eqLatex(Ax,0,Cx)});
+  if(Ax!==1) steps.push({label:'', latex:'x='+sx});
+  const rest=c1-a1*sx;
+  if(b1===1){
+    steps.push({label:n1+'に x='+sx+' を代入', latex:'y='+sy});
+  }else{
+    steps.push({label:n1+'に x='+sx+' を代入', latex:eqLatex(0,b1,rest)});
+    steps.push({label:'', latex:'y='+sy});
+  }
+  return steps;
+}
+
+function buildSteps(setupText, eqs, sol, answers){
+  const steps=[{label:'x, y を決める', text:setupText}];
+  steps.push({label:'式① を立てる', latex:eqs[0].disp || eqLatex(eqs[0].a,eqs[0].b,eqs[0].c)});
+  steps.push({label:'式② を立てる', latex:eqs[1].disp || eqLatex(eqs[1].a,eqs[1].b,eqs[1].c)});
+  const pre=[];
+  eqs.forEach(e=>{ if(e.pre) e.pre.forEach(p=>pre.push(p)); });
+  const ks=kagenSteps(eqs[0].a,eqs[0].b,eqs[0].c, eqs[1].a,eqs[1].b,eqs[1].c, sol[0],sol[1], pre);
+  ks.forEach(s=>steps.push(s));
+  steps.push({label:'答え', text:answers.map(a=>a.label+' '+a.value+(a.unit||'')).join('、'), final:true});
+  return steps;
+}
+function hint3(setup, l1, l2){
+  return [
+    {tag:'ヒント1', text:setup},
+    {tag:'式①', latex:l1},
+    {tag:'式②', latex:l2}
+  ];
+}
+function ansStep(answers){
+  return {label:'答え', text:answers.map(a=>a.label+' '+a.value+(a.unit||'')).join('、'), final:true};
+}
+
+/* =====================================================================
+ * generators
+ * ===================================================================== */
+
+/* ===== 数の問題 ===== */
+
+/* suu1: 和と差 */
+function genSuu1(){
+  const small=rnd(3,25);
+  const big=small+rnd(2,20);
+  const S=big+small, D=big-small;
+  const setup='大きい数を x、小さい数を y とする';
+  const answers=[
+    {label:'大きい数', unit:'', value:big},
+    {label:'小さい数', unit:'', value:small}
+  ];
+  return {
+    text:'大小2つの自然数があります。2つの数の和は <b>'+S+'</b> で、大きい数から小さい数をひいた差は <b>'+D+'</b> です。この2つの自然数を求めなさい。',
+    answers,
+    hints:hint3(setup, 'x+y='+S, 'x-y='+D),
+    steps:buildSteps(setup, [{a:1,b:1,c:S},{a:1,b:-1,c:D}], [big,small], answers)
+  };
+}
+
+/* suu2: ◯倍と和・差 */
+function genSuu2(){
+  for(let i=0;i<200;i++){
+    const small=rnd(3,12);
+    const k=pick([2,3]);
+    const m=rnd(-4,6);
+    const big=k*small+m;
+    if(big<=small||big>50) continue;
+    const useSum=Math.random()<0.6;
+    const mt = m===0 ? '' : (m<0?String(m):'+'+m);
+    const eq1='x='+term(k,'y',true)+mt;
+    const rel = m===0 ? 'ちょうど '+k+'倍です'
+      : k+'倍より '+Math.abs(m)+' '+(m>0?'大きい':'小さい')+'数です';
+    const setup='大きい数を x、小さい数を y とする';
+    const answers=[
+      {label:'大きい数', unit:'', value:big},
+      {label:'小さい数', unit:'', value:small}
+    ];
+    let eq2, subst, coefY, cRight, joshi;
+    if(useSum){
+      const S=big+small;
+      eq2='x+y='+S;
+      subst='('+term(k,'y',true)+mt+')+y='+S;
+      coefY=k+1; cRight=S-m; joshi='和は <b>'+S+'</b> です。';
+    }else{
+      const D=big-small;
+      eq2='x-y='+D;
+      subst='('+term(k,'y',true)+mt+')-y='+D;
+      coefY=k-1; cRight=D-m; joshi='差は <b>'+D+'</b> です。';
+    }
+    const steps=[
+      {label:'x, y を決める', text:setup},
+      {label:'式① を立てる', latex:eq1},
+      {label:'式② を立てる', latex:eq2},
+      {label:'①を②に代入', latex:subst},
+      {label:'整理する', latex:eqLatex(0,coefY,cRight)}
+    ];
+    if(coefY!==1) steps.push({label:'', latex:'y='+small});
+    steps.push({label:'①に y='+small+' を代入', latex:'x='+big});
+    steps.push(ansStep(answers));
+    /* 符号ミス: 「k倍より m 大きい/小さい」を逆に読んだ値 */
+    const signMiss = m!==0
+      ? (useSum ? solveInt(1,-k,-m, 1,1,big+small) : solveInt(1,-k,-m, 1,-1,big-small))
+      : null;
+    return {
+      text:'大小2つの自然数があります。大きい数は、小さい数の'+(m===0?' <b>'+k+'倍</b>です':' <b>'+k+'倍</b>より <b>'+Math.abs(m)+'</b> '+(m>0?'大きい':'小さい')+'数です')+'。2つの数の'+joshi+'この2つの自然数を求めなさい。',
+      answers,
+      distractors: signMiss ? [signMiss] : [],
+      hints:hint3(setup, eq1, eq2),
+      steps
+    };
+  }
+  return genSuu1();
+}
+
+/* suu3: 2けたの整数(4バリエーション) */
+function genSuu3(){
+  for(let i=0;i<300;i++){
+    const type=pick(['wa_ire','bai_ire','wa_bai','irewa_sa']);
+    const setup='もとの数の十の位を x、一の位を y とする(もとの数は 10x+y)';
+
+    if(type==='wa_ire'){
+      /* 各位の和 + 入れ替え差(従来型) */
+      let t=rnd(1,9), o=rnd(1,9);
+      if(o===t) continue;
+      const S=t+o, orig=10*t+o, diff=o-t;
+      const D=Math.abs(9*diff);
+      const dir=diff>0?'大きく':'小さく';
+      const eq2disp='10y+x=10x+y'+(diff>0?'+':'-')+D;
+      const answers=[{label:'もとの自然数', unit:'', value:orig}];
+      return {
+        text:'2けたの自然数があります。各位の数の和は <b>'+S+'</b> です。十の位の数と一の位の数を入れかえてできる数は、もとの数より <b>'+D+'</b> '+dir+'なります。もとの自然数を求めなさい。',
+        answers,
+        distractors: o>=1 ? [[10*o+t]] : [],
+        hints:hint3(setup, 'x+y='+S, eq2disp+'\\ (入れかえ)'),
+        steps:buildSteps(setup,
+          [{a:1,b:1,c:S},
+           {disp:eq2disp, a:-1,b:1,c:diff,
+            pre:[{label:'②を整理して÷9', latex:eqLatex(-1,1,diff)}]}],
+          [t,o], answers)
+      };
+    }
+
+    if(type==='bai_ire'){
+      /* 位の倍数関係 + 入れ替え差 */
+      const k=pick([2,3]);
+      const oneBig=Math.random()<0.5;      /* 一の位が十の位のk倍 or 逆 */
+      let t,o,eq1,relText,substLatex,seiriLatex,firstVar,firstVal,secondText,secondLatex;
+      if(oneBig){
+        t=rnd(1, k===2?4:3); o=k*t;
+        eq1='y='+k+'x';
+        relText='一の位の数は、十の位の数の <b>'+k+'倍</b>です';
+        const e=o-t;                       /* 入れ替えで9e大きい */
+        substLatex='-x+'+k+'x='+e;
+        seiriLatex=eqLatex(k-1,0,e);
+        firstVar='x'; firstVal=t;
+        secondText='①に x='+t+' を代入'; secondLatex='y='+o;
+      }else{
+        o=rnd(1, k===2?4:3); t=k*o;
+        eq1='x='+k+'y';
+        relText='十の位の数は、一の位の数の <b>'+k+'倍</b>です';
+        const e=o-t;                       /* 負: 入れ替えで小さくなる */
+        substLatex='-'+k+'y+y='+e;
+        seiriLatex=eqLatex(0,1-k,e);
+        firstVar='y'; firstVal=o;
+        secondText='①に y='+o+' を代入'; secondLatex='x='+t;
+      }
+      const orig=10*t+o;
+      const diff=o-t;
+      const D=Math.abs(9*diff);
+      const dir=diff>0?'大きく':'小さく';
+      const eq2disp='10y+x=10x+y'+(diff>0?'+':'-')+D;
+      const answers=[{label:'もとの自然数', unit:'', value:orig}];
+      const steps=[
+        {label:'x, y を決める', text:setup},
+        {label:'式① を立てる(位の関係)', latex:eq1},
+        {label:'式② を立てる(入れかえ)', latex:eq2disp},
+        {label:'②を整理して÷9', latex:eqLatex(-1,1,diff)},
+        {label:'①を代入', latex:substLatex},
+        {label:'整理する', latex:seiriLatex}
+      ];
+      if(!(new RegExp('^'+firstVar+'=')).test(seiriLatex)) steps.push({label:'', latex:firstVar+'='+firstVal});
+      steps.push({label:secondText, latex:secondLatex});
+      steps.push(ansStep(answers));
+      return {
+        text:'2けたの自然数があります。'+relText+'。十の位の数と一の位の数を入れかえてできる数は、もとの数より <b>'+D+'</b> '+dir+'なります。もとの自然数を求めなさい。',
+        answers,
+        distractors:[[10*o+t]],
+        hints:hint3(setup, eq1+'\\ (位の関係)', eq2disp+'\\ (入れかえ)'),
+        steps
+      };
+    }
+
+    if(type==='wa_bai'){
+      /* 各位の和 + もとの数は和のk倍+m */
+      const t=rnd(1,9), o=rnd(0,9);
+      const S=t+o, N=10*t+o;
+      if(S<3) continue;
+      const k=Math.floor(N/S);
+      const m=N-k*S;
+      if(k<2||k>9) continue;
+      const mt = m===0 ? '' : '+'+m;
+      const relText = m===0
+        ? 'もとの数は、各位の数の和のちょうど <b>'+k+'倍</b>です'
+        : 'もとの数は、各位の数の和の <b>'+k+'倍</b>より <b>'+m+'</b> 大きい数です';
+      const eq2disp='10x+y='+k+'(x+y)'+mt;
+      const answers=[{label:'もとの自然数', unit:'', value:N}];
+      return {
+        text:'2けたの自然数があります。各位の数の和は <b>'+S+'</b> です。'+relText+'。もとの自然数を求めなさい。',
+        answers,
+        distractors: (o>=1&&o!==t) ? [[10*o+t]] : [],
+        hints:hint3(setup, 'x+y='+S, eq2disp),
+        steps:buildSteps(setup,
+          [{a:1,b:1,c:S},
+           {disp:eq2disp, a:10-k,b:1-k,c:m,
+            pre:[{label:'②のかっこを外して整理', latex:eqLatex(10-k,1-k,m)}]}],
+          [t,o], answers)
+      };
+    }
+
+    /* irewa_sa: もとの数+入れ替えた数の和 + 位の差 */
+    let t=rnd(1,9), o=rnd(1,9);
+    if(o===t) continue;
+    const orig=10*t+o;
+    const T=11*(t+o);
+    const S=t+o;
+    const d=Math.abs(t-o);
+    const tBig=t>o;
+    const eq1= tBig ? 'x-y='+d : 'y-x='+d;
+    const relText= tBig
+      ? '十の位の数は、一の位の数より <b>'+d+'</b> 大きい数です'
+      : '一の位の数は、十の位の数より <b>'+d+'</b> 大きい数です';
+    const eq2disp='(10x+y)+(10y+x)='+T;
+    const answers=[{label:'もとの自然数', unit:'', value:orig}];
+    const eq1coef = tBig ? {disp:eq1,a:1,b:-1,c:d} : {disp:eq1,a:-1,b:1,c:d};
+    return {
+      text:'2けたの自然数があります。'+relText+'。また、もとの数と、位を入れかえてできる数との和は <b>'+T+'</b> です。もとの自然数を求めなさい。',
+      answers,
+      distractors:[[10*o+t]],
+      hints:hint3(setup, eq1+'\\ (位の差)', eq2disp+'\\ (2つの数の和)'),
+      steps:buildSteps(setup,
+        [eq1coef,
+         {disp:eq2disp, a:1,b:1,c:S,
+          pre:[{label:'②を整理する', latex:eqLatex(11,11,T)},
+               {label:'両辺÷11', latex:eqLatex(1,1,S)}]}],
+        [t,o], answers)
+    };
+  }
+  return genSuu1();
+}
+
+/* ===== 個数と代金 ===== */
+const ITEM_SETS=[
+  ['りんご','みかん','個'], ['えんぴつ','ボールペン','本'],
+  ['パン','おにぎり','個'], ['ドーナツ','クッキー','個'],
+  ['プリン','シュークリーム','個']
+];
+
+/* kaimono1: 個数を求める(合計個数と代金) */
+function genKaimono1(){
+  const [A,B,u]=pick(ITEM_SETS);
+  let pa=rnd(6,18)*10, pb=rnd(6,18)*10;
+  while(pb===pa){ pb=rnd(6,18)*10; }
+  const nx=rnd(2,9), ny=rnd(2,9);
+  const N=nx+ny, T=pa*nx+pb*ny;
+  const setup=A+'を x '+u+'、'+B+'を y '+u+' 買ったとする';
+  const answers=[
+    {label:A, unit:u, value:nx},
+    {label:B, unit:u, value:ny}
+  ];
+  return {
+    text:'1'+u+' <b>'+pa+'円</b>の'+A+'と、1'+u+' <b>'+pb+'円</b>の'+B+'を、合わせて <b>'+N+u+'</b> 買ったところ、代金の合計は <b>'+T+'円</b>でした。'+A+'と'+B+'をそれぞれ何'+u+'買いましたか。',
+    answers,
+    hints:hint3(setup, 'x+y='+N, pa+'x+'+pb+'y='+T),
+    steps:buildSteps(setup, [{a:1,b:1,c:N},{a:pa,b:pb,c:T}], [nx,ny], answers)
+  };
+}
+
+/* kaimono2: 値段を求める */
+function genKaimono2(){
+  for(let i=0;i<200;i++){
+    const [A,B,u]=pick(ITEM_SETS);
+    let pa=rnd(5,20)*10, pb=rnd(5,20)*10;
+    while(pb===pa){ pb=rnd(5,20)*10; }
+    const n1=rnd(1,5), m1=rnd(1,5), n2=rnd(1,5), m2=rnd(1,5);
+    if(n1*m2-n2*m1===0) continue;
+    if(n1===n2&&m1===m2) continue;
+    const T1=n1*pa+m1*pb, T2=n2*pa+m2*pb;
+    const setup=A+'1'+u+'を x 円、'+B+'1'+u+'を y 円とする';
+    const answers=[
+      {label:A+' 1'+u, unit:'円', value:pa},
+      {label:B+' 1'+u, unit:'円', value:pb}
+    ];
+    return {
+      text:A+' <b>'+n1+u+'</b> と '+B+' <b>'+m1+u+'</b> を買うと、代金は <b>'+T1+'円</b>です。また、'+A+' <b>'+n2+u+'</b> と '+B+' <b>'+m2+u+'</b> を買うと、代金は <b>'+T2+'円</b>です。'+A+'1'+u+'、'+B+'1'+u+'の値段をそれぞれ求めなさい。',
+      answers,
+      hints:hint3(setup, eqLatex(n1,m1,T1), eqLatex(n2,m2,T2)),
+      steps:buildSteps(setup, [{a:n1,b:m1,c:T1},{a:n2,b:m2,c:T2}], [pa,pb], answers)
+    };
+  }
+  return genKaimono1();
+}
+
+/* kaimono3: ひねり(取り違え・個数の差・おつり) */
+function genKaimono3(){
+  const type=pick(['irekae','kosuusa','otsuri']);
+  const [A,B,u]=pick(ITEM_SETS);
+
+  if(type==='irekae'){
+    let p=rnd(5,15)*10, q=rnd(5,15)*10;
+    while(q===p){ q=rnd(5,15)*10; }
+    let n=rnd(2,8), m=rnd(2,8);
+    while(m===n){ m=rnd(2,8); }
+    const T1=p*n+q*m, T2=p*m+q*n;
+    const S3=n+m;
+    const setup='予定では '+A+'を x '+u+'、'+B+'を y '+u+' 買うつもりだったとする';
+    const answers=[
+      {label:A, unit:u, value:n},
+      {label:B, unit:u, value:m}
+    ];
+    const pre=[
+      {label:'①+②', latex:eqLatex(p+q,p+q,T1+T2)},
+      {label:'両辺÷'+(p+q)+' …③', latex:eqLatex(1,1,S3)}
+    ];
+    const steps=[
+      {label:'x, y を決める', text:setup},
+      {label:'式① を立てる(予定)', latex:eqLatex(p,q,T1)},
+      {label:'式② を立てる(実際)', latex:eqLatex(q,p,T2)}
+    ];
+    kagenSteps(1,1,S3, p,q,T1, n,m, pre, '③','①').forEach(s=>steps.push(s));
+    steps.push(ansStep(answers));
+    return {
+      text:'1'+u+' <b>'+p+'円</b>の'+A+'と、1'+u+' <b>'+q+'円</b>の'+B+'を買う予定で、予定の代金は <b>'+T1+'円</b>でした。ところが、'+A+'と'+B+'の個数を反対にして買ってしまったため、代金は <b>'+T2+'円</b>になりました。予定では'+A+'と'+B+'をそれぞれ何'+u+'買うつもりでしたか。',
+      answers,
+      hints:hint3(setup+'。個数が反対 → 式のx, yが入れかわる', eqLatex(p,q,T1)+'\\ (予定)', eqLatex(q,p,T2)+'\\ (実際)'),
+      steps
+    };
+  }
+
+  if(type==='kosuusa'){
+    let p=rnd(5,15)*10, q=rnd(5,15)*10;
+    while(q===p){ q=rnd(5,15)*10; }
+    const d=rnd(1,5);
+    const m=rnd(2,8);
+    const n=m+d;
+    const T=p*n+q*m;
+    const setup=A+'を x '+u+'、'+B+'を y '+u+' 買ったとする';
+    const answers=[
+      {label:A, unit:u, value:n},
+      {label:B, unit:u, value:m}
+    ];
+    const eq1='x=y+'+d;
+    const eq2=eqLatex(p,q,T);
+    const coefP=(p===1?'':String(p));
+    const subst=coefP+'(y+'+d+')'+term(q,'y',false)+'='+T;
+    const steps=[
+      {label:'x, y を決める', text:setup},
+      {label:'式① を立てる(個数)', latex:eq1},
+      {label:'式② を立てる(代金)', latex:eq2},
+      {label:'①を②に代入', latex:subst},
+      {label:'整理する', latex:eqLatex(0,p+q,T-p*d)},
+      {label:'', latex:'y='+m},
+      {label:'①に y='+m+' を代入', latex:'x='+n},
+      ansStep(answers)
+    ];
+    return {
+      text:'1'+u+' <b>'+p+'円</b>の'+A+'と、1'+u+' <b>'+q+'円</b>の'+B+'を買いました。'+A+'の個数は'+B+'の個数より <b>'+d+u+'</b> 多く、代金の合計は <b>'+T+'円</b>でした。'+A+'と'+B+'をそれぞれ何'+u+'買いましたか。',
+      answers,
+      hints:hint3(setup+'。「'+d+u+'多い」を式にする', eq1+'\\ (個数)', eq2+'\\ (代金)'),
+      steps
+    };
+  }
+
+  /* otsuri */
+  let pa=rnd(6,15)*10, pb=rnd(6,15)*10;
+  while(pb===pa){ pb=rnd(6,15)*10; }
+  const nx=rnd(2,7), ny=rnd(2,7);
+  const N=nx+ny, T=pa*nx+pb*ny;
+  const pay=pick([2000,3000,5000].filter(v=>v>T));
+  const C=pay-T;
+  const setup=A+'を x '+u+'、'+B+'を y '+u+' 買ったとする';
+  const answers=[
+    {label:A, unit:u, value:nx},
+    {label:B, unit:u, value:ny}
+  ];
+  const steps=buildSteps(setup, [{a:1,b:1,c:N},{a:pa,b:pb,c:T}], [nx,ny], answers);
+  steps.splice(1,0,{label:'まず代金を求める', text:pay+'円 − おつり'+C+'円 = '+T+'円'});
+  return {
+    text:'1'+u+' <b>'+pa+'円</b>の'+A+'と、1'+u+' <b>'+pb+'円</b>の'+B+'を、合わせて <b>'+N+u+'</b> 買いました。<b>'+pay+'円</b>を出したところ、おつりは <b>'+C+'円</b>でした。'+A+'と'+B+'をそれぞれ何'+u+'買いましたか。',
+    answers,
+    hints:hint3('まず代金を求める: '+pay+'−'+C+'='+T+'円。'+setup, 'x+y='+N, pa+'x+'+pb+'y='+T),
+    steps
+  };
+}
+
+/* ===== 過不足 ===== */
+
+/* kafusoku1: 余り+不足 */
+function genKafusoku1(){
+  const [item,u]=pick([['あめ','個'],['えんぴつ','本'],['画用紙','枚'],['クッキー','個']]);
+  const who=pick(['子ども','生徒']);
+  const n=rnd(5,15);
+  const a=rnd(2,5);
+  const c=a+rnd(1,3);
+  const maxB=(c-a)*n-1;
+  const b=rnd(1,Math.min(12,maxB));
+  const d=(c-a)*n-b;
+  const total=a*n+b;
+  const setup=who+'の人数を x 人、'+item+'の数を y '+u+' とする';
+  const eq1='y='+a+'x+'+b;
+  const eq2='y='+c+'x-'+d;
+  const subst=a+'x+'+b+'='+c+'x-'+d;
+  const seiri=eqLatex(c-a,0,b+d);
+  const answers=[
+    {label:who+'の人数', unit:'人', value:n},
+    {label:item+'の数', unit:u, value:total}
+  ];
+  const steps=[
+    {label:'x, y を決める', text:setup},
+    {label:'式① を立てる', latex:eq1},
+    {label:'式② を立てる', latex:eq2},
+    {label:'①=② (yが等しい)', latex:subst},
+    {label:'整理する', latex:seiri}
+  ];
+  if(!/^x=/.test(seiri)) steps.push({label:'', latex:'x='+n});
+  steps.push({label:'①に x='+n+' を代入', latex:'y='+total});
+  steps.push(ansStep(answers));
+  return {
+    text:who+'に'+item+'を配ります。1人に <b>'+a+u+'</b>ずつ配ると <b>'+b+u+'</b> 余り、1人に <b>'+c+u+'</b>ずつ配ると <b>'+d+u+'</b> 足りません。'+who+'の人数と'+item+'の数をそれぞれ求めなさい。',
+    answers,
+    hints:hint3(setup, eq1+'\\ (余りの式)', eq2+'\\ (不足の式)'),
+    steps
+  };
+}
+
+/* kafusoku2: 余りどうし・不足どうし */
+function genKafusoku2(){
+  const [item,u]=pick([['あめ','個'],['えんぴつ','本'],['画用紙','枚'],['クッキー','個']]);
+  const who=pick(['子ども','生徒']);
+  const n=rnd(6,15);
+  const a=rnd(2,4);
+  const c=a+1;
+  const amari=Math.random()<0.5;
+  let text, eq1, eq2, subst, total;
+  if(amari){
+    const b2=rnd(1,8);
+    const b1=b2+n;                        /* (c-a)n = n */
+    total=a*n+b1;
+    text=who+'に'+item+'を配ります。1人に <b>'+a+u+'</b>ずつ配ると <b>'+b1+u+'</b> 余り、1人に <b>'+c+u+'</b>ずつ配ると余りは <b>'+b2+u+'</b> になります。'+who+'の人数と'+item+'の数をそれぞれ求めなさい。';
+    eq1='y='+a+'x+'+b1;
+    eq2='y='+c+'x+'+b2;
+    subst=a+'x+'+b1+'='+c+'x+'+b2;
+  }else{
+    const d1=rnd(1,8);
+    const d2=d1+n;                        /* (c-a)n = n */
+    total=a*n-d1;
+    text=who+'に'+item+'を配ります。1人に <b>'+a+u+'</b>ずつ配ると <b>'+d1+u+'</b> 足りず、1人に <b>'+c+u+'</b>ずつ配ると <b>'+d2+u+'</b> 足りません。'+who+'の人数と'+item+'の数をそれぞれ求めなさい。';
+    eq1='y='+a+'x-'+d1;
+    eq2='y='+c+'x-'+d2;
+    subst=a+'x-'+d1+'='+c+'x-'+d2;
+  }
+  const setup=who+'の人数を x 人、'+item+'の数を y '+u+' とする';
+  const answers=[
+    {label:who+'の人数', unit:'人', value:n},
+    {label:item+'の数', unit:u, value:total}
+  ];
+  const steps=[
+    {label:'x, y を決める', text:setup},
+    {label:'式① を立てる', latex:eq1},
+    {label:'式② を立てる', latex:eq2},
+    {label:'①=② (yが等しい)', latex:subst},
+    {label:'整理する', latex:'x='+n},
+    {label:'①に x='+n+' を代入', latex:'y='+total},
+    ansStep(answers)
+  ];
+  return {
+    text, answers,
+    hints:hint3(setup, eq1, eq2),
+    steps
+  };
+}
+
+/* kafusoku3: ひねり(取り違え・長いす・人数の増減) */
+function genKafusoku3(){
+  for(let i=0;i<400;i++){
+    const type=pick(['torichigae','nagaisu','fueta']);
+    const [item,u]=pick([['あめ','個'],['えんぴつ','本'],['画用紙','枚'],['クッキー','個']]);
+    const who=pick(['子ども','生徒']);
+
+    if(type==='torichigae'){
+      /* 配る数の取り違え(予定と実際) */
+      const n=rnd(5,15);
+      const a=rnd(2,5);
+      const c=a+rnd(1,3);
+      const maxB=(c-a)*n-1;
+      const b=rnd(1,Math.min(12,maxB));
+      const d=(c-a)*n-b;
+      const total=a*n+b;
+      const setup=who+'の人数を x 人、'+item+'の数を y '+u+' とする';
+      const eq1='y='+a+'x+'+b;
+      const eq2='y='+c+'x-'+d;
+      const subst=a+'x+'+b+'='+c+'x-'+d;
+      const seiri=eqLatex(c-a,0,b+d);
+      const answers=[
+        {label:who+'の人数', unit:'人', value:n},
+        {label:item+'の数', unit:u, value:total}
+      ];
+      const steps=[
+        {label:'x, y を決める', text:setup},
+        {label:'式① を立てる(予定)', latex:eq1},
+        {label:'式② を立てる(実際)', latex:eq2},
+        {label:'①=② (yが等しい)', latex:subst},
+        {label:'整理する', latex:seiri}
+      ];
+      if(!/^x=/.test(seiri)) steps.push({label:'', latex:'x='+n});
+      steps.push({label:'①に x='+n+' を代入', latex:'y='+total});
+      steps.push(ansStep(answers));
+      return {
+        text:who+'に'+item+'を配ります。1人に <b>'+a+u+'</b>ずつ配る予定でしたが、まちがえて1人に <b>'+c+u+'</b>ずつ配ってしまったため、<b>'+d+u+'</b> 足りなくなりました。予定どおりに配れば <b>'+b+u+'</b> 余るはずでした。'+who+'の人数と'+item+'の数をそれぞれ求めなさい。',
+        answers,
+        hints:hint3('「予定」と「実際」をそれぞれ式にする。'+setup, eq1+'\\ (予定: 余る)', eq2+'\\ (実際: 足りない)'),
+        steps
+      };
+    }
+
+    if(type==='nagaisu'){
+      /* 長いす */
+      const n=rnd(5,15);
+      const a=rnd(3,5);
+      const c=a+rnd(1,2);
+      const e=rnd(1,3);
+      if(n-e<2) continue;
+      const y=c*(n-e);
+      const b=y-a*n;
+      if(b<1||b>15) continue;
+      const setup='長いすの数を x 脚、生徒の人数を y 人とする';
+      const eq1='y='+a+'x+'+b;
+      const eq2='y='+c+'(x-'+e+')';
+      const subst=a+'x+'+b+'='+c+'(x-'+e+')';
+      const answers=[
+        {label:'長いすの数', unit:'脚', value:n},
+        {label:'生徒の人数', unit:'人', value:y}
+      ];
+      const steps=[
+        {label:'x, y を決める', text:setup},
+        {label:'式① を立てる', latex:eq1},
+        {label:'式② を立てる', latex:eq2},
+        {label:'①=② (yが等しい)', latex:subst},
+        {label:'かっこを外す', latex:a+'x+'+b+'='+c+'x-'+(c*e)},
+        {label:'整理する', latex:eqLatex(c-a,0,b+c*e)}
+      ];
+      const seiri=eqLatex(c-a,0,b+c*e);
+      if(!/^x=/.test(seiri)) steps.push({label:'', latex:'x='+n});
+      steps.push({label:'①に x='+n+' を代入', latex:'y='+y});
+      steps.push(ansStep(answers));
+      return {
+        text:'生徒が長いすに座ります。1脚に <b>'+a+'人</b>ずつ座ると、<b>'+b+'人</b>が座れません。1脚に <b>'+c+'人</b>ずつ座ると、長いすはちょうど <b>'+e+'脚</b>余ります。長いすの数と生徒の人数をそれぞれ求めなさい。',
+        answers,
+        hints:hint3('「'+e+'脚余る」→ 使ったいすは (x−'+e+') 脚。'+setup, eq1+'\\ (座れない='+b+'人余る)', eq2+'\\ (使ったいすでちょうど)'),
+        steps
+      };
+    }
+
+    /* fueta: 人数が予定より増える */
+    const a=rnd(3,5);
+    const c=a-1;
+    const n=rnd(4,12);
+    const d=rnd(2,8);
+    const b=c*d-n;
+    if(b<1||b>15) continue;
+    const y=a*n+b;
+    const setup='予定していた'+who+'の人数を x 人、'+item+'の数を y '+u+' とする';
+    const eq1='y='+a+'x+'+b;
+    const eq2='y='+c+'(x+'+d+')';
+    const subst=a+'x+'+b+'='+c+'(x+'+d+')';
+    const answers=[
+      {label:'予定の人数', unit:'人', value:n},
+      {label:item+'の数', unit:u, value:y}
+    ];
+    const steps=[
+      {label:'x, y を決める', text:setup},
+      {label:'式① を立てる(予定)', latex:eq1},
+      {label:'式② を立てる(実際)', latex:eq2},
+      {label:'①=② (yが等しい)', latex:subst},
+      {label:'かっこを外す', latex:a+'x+'+b+'='+c+'x+'+(c*d)},
+      {label:'整理する', latex:'x='+n},
+      {label:'①に x='+n+' を代入', latex:'y='+y},
+      ansStep(answers)
+    ];
+    return {
+      text:who+'に'+item+'を配ります。1人に <b>'+a+u+'</b>ずつ配ると <b>'+b+u+'</b> 余る予定でした。ところが、'+who+'が予定より <b>'+d+'人</b> 多く来たので、1人に <b>'+c+u+'</b>ずつ配ったところ、ちょうど配りきれました。予定していた'+who+'の人数と、'+item+'の数をそれぞれ求めなさい。',
+      answers,
+      hints:hint3('実際の人数は (x+'+d+') 人。'+setup, eq1+'\\ (予定)', eq2+'\\ (実際: ちょうど)'),
+      steps
+    };
+  }
+  return genKafusoku1();
+}
+
+/* ===== 速さ ===== */
+
+/* hayasa1: 歩く+走る */
+function genHayasa1(){
+  const scene=pick([['家','駅'],['家','学校'],['学校','図書館']]);
+  const va=pick([50,60,70,80]);
+  const vb=pick([120,150,200]);
+  const ta=rnd(4,15), tb=rnd(2,8);
+  const dx=va*ta, dy=vb*tb;
+  const L=dx+dy, T=ta+tb;
+  const Lm=lcm(va,vb);
+  const A2=Lm/va, B2=Lm/vb, C2=T*Lm;
+  const disp2='\\dfrac{x}{'+va+'}+\\dfrac{y}{'+vb+'}='+T;
+  const setup='歩いた道のりを x m、走った道のりを y m とする';
+  const answers=[
+    {label:'歩いた道のり', unit:'m', value:dx},
+    {label:'走った道のり', unit:'m', value:dy}
+  ];
+  return {
+    text:scene[0]+'から'+scene[1]+'までの道のりは <b>'+L+'m</b> あります。はじめは分速 <b>'+va+'m</b> で歩き、途中から分速 <b>'+vb+'m</b> で走ったところ、全体で <b>'+T+'分</b>かかりました。歩いた道のりと走った道のりをそれぞれ求めなさい。',
+    answers,
+    hints:hint3(setup, 'x+y='+L, disp2+'\\ (時間の式)'),
+    steps:buildSteps(setup,
+      [{a:1,b:1,c:L},
+       {disp:disp2, a:A2,b:B2,c:C2,
+        pre:[{label:'②の両辺×'+Lm, latex:eqLatex(A2,B2,C2)}]}],
+      [dx,dy], answers)
+  };
+}
+
+/* hayasa2: 出会い・追いつき */
+function genHayasa2(){
+  for(let i=0;i<300;i++){
+    const va=rnd(8,20)*10;
+    const vb=rnd(4,(va/10)-2)*10;
+    const t=rnd(3,8);
+    const L=(va+vb)*t;
+    if(L%(va-vb)!==0) continue;
+    const T=L/(va-vb);
+    if(T<=t||T>45) continue;
+    const setup='Aさんの速さを分速 x m、Bさんの速さを分速 y m とする';
+    const answers=[
+      {label:'Aさん 分速', unit:'m', value:va},
+      {label:'Bさん 分速', unit:'m', value:vb}
+    ];
+    const d1=t+'x+'+t+'y='+L;
+    const d2=T+'x-'+T+'y='+L;
+    return {
+      text:'AさんとBさんが、<b>'+L+'m</b> はなれた2地点から同時に出発します。たがいに向かい合って進むと <b>'+t+'分後</b>に出会い、AさんがBさんと同じ方向に進んで追いかけると <b>'+T+'分後</b>に追いつきます。Aさん、Bさんの速さはそれぞれ分速何mですか。(Aさんのほうが速いものとします)',
+      answers,
+      hints:hint3(setup, d1+'\\ (出会い)', d2+'\\ (追いつき)'),
+      steps:buildSteps(setup,
+        [{disp:d1, a:1,b:1,c:va+vb, pre:[{label:'①の両辺÷'+t, latex:eqLatex(1,1,va+vb)}]},
+         {disp:d2, a:1,b:-1,c:va-vb, pre:[{label:'②の両辺÷'+T, latex:eqLatex(1,-1,va-vb)}]}],
+        [va,vb], answers)
+    };
+  }
+  return genHayasa1();
+}
+
+/* hayasa3: 単位変換(時間・道のり・速さ) */
+function genHayasa3(){
+  for(let i=0;i<400;i++){
+    const type=pick(['jikan','michinori','jisoku']);
+
+    if(type==='jikan'){
+      /* 時速km + 時間が「◯時間◯分」→ 分数の時間に直す */
+      const va=pick([3,4,5,6]);            /* 時速km 歩き */
+      const vb=pick([10,12,15]);           /* 時速km 走り */
+      const dx=rnd(1,6), dy=rnd(1,6);      /* km */
+      const ta=dx*60/va, tb=dy*60/vb;      /* 分(構成上つねに整数) */
+      const T=ta+tb;
+      if(T>150) continue;
+      const L=dx+dy;
+      const g=gcd(T,60);
+      const Tn=T/g, Td=60/g;
+      const Tdisp = T>=60 ? Math.floor(T/60)+'時間'+(T%60?(T%60)+'分':'') : T+'分';
+      const hourStr = Td===1 ? Tn+'時間' : Tn+'/'+Td+'時間';
+      const hourTex = Td===1 ? String(Tn) : '\\dfrac{'+Tn+'}{'+Td+'}';
+      const disp2='\\dfrac{x}{'+va+'}+\\dfrac{y}{'+vb+'}='+hourTex;
+      const Lm=lcm(va,vb);
+      const A2=Lm/va, B2=Lm/vb, C2=Lm*T/60;
+      const setup='歩いた道のりを x km、走った道のりを y km とする';
+      const answers=[
+        {label:'歩いた道のり', unit:'km', value:dx},
+        {label:'走った道のり', unit:'km', value:dy}
+      ];
+      return {
+        text:'A町からB町までの道のりは <b>'+L+'km</b> あります。はじめは時速 <b>'+va+'km</b> で歩き、途中から時速 <b>'+vb+'km</b> で走ったところ、全体で <b>'+Tdisp+'</b>かかりました。歩いた道のりと走った道のりをそれぞれ求めなさい。',
+        answers,
+        hints:hint3('時間の単位をそろえる: '+Tdisp+' = '+hourStr+'。'+setup, 'x+y='+L, disp2+'\\ (時間の式)'),
+        steps:buildSteps(setup,
+          [{a:1,b:1,c:L},
+           {disp:disp2, a:A2,b:B2,c:C2,
+            pre:[{label:'時間の単位をそろえる', text:Tdisp+' = '+hourStr},
+                 {label:'②の両辺×'+Lm, latex:eqLatex(A2,B2,C2)}]}],
+          [dx,dy], answers)
+      };
+    }
+
+    if(type==='michinori'){
+      /* 道のりが km 表示 + 分速m → m にそろえる */
+      const va=pick([50,60]);
+      const vb=pick([150,200]);
+      const dx = va===50 ? 100*rnd(2,10) : 300*rnd(1,4);
+      const dy = vb===150 ? 300*rnd(1,4) : 200*rnd(1,6);
+      const ta=dx/va, tb=dy/vb;
+      const L=dx+dy;
+      const T=ta+tb;
+      const kmStr = (L/1000)%1===0 ? String(L/1000) : (L/1000).toFixed(1);
+      const Lm=lcm(va,vb);
+      const A2=Lm/va, B2=Lm/vb, C2=T*Lm;
+      const disp2='\\dfrac{x}{'+va+'}+\\dfrac{y}{'+vb+'}='+T;
+      const setup='歩いた道のりを x m、走った道のりを y m とする('+kmStr+'km = '+L+'m)';
+      const answers=[
+        {label:'歩いた道のり', unit:'m', value:dx},
+        {label:'走った道のり', unit:'m', value:dy}
+      ];
+      return {
+        text:'A町からB町までの道のりは <b>'+kmStr+'km</b> あります。はじめは分速 <b>'+va+'m</b> で歩き、途中から分速 <b>'+vb+'m</b> で走ったところ、全体で <b>'+T+'分</b>かかりました。歩いた道のりと走った道のりは、それぞれ何mですか。',
+        answers,
+        hints:hint3('道のりの単位をそろえる: '+kmStr+'km = '+L+'m。'+setup, 'x+y='+L, disp2+'\\ (時間の式)'),
+        steps:buildSteps(setup,
+          [{a:1,b:1,c:L},
+           {disp:disp2, a:A2,b:B2,c:C2,
+            pre:[{label:'②の両辺×'+Lm, latex:eqLatex(A2,B2,C2)}]}],
+          [dx,dy], answers)
+      };
+    }
+
+    /* jisoku: 出会い・追いつきを分速で解き、時速に直して答える */
+    const va=pick([100,150,200,250]);
+    const vbs=[50,100,150,200].filter(v=>v<va);
+    const vb=pick(vbs);
+    const t=rnd(3,8);
+    const L=(va+vb)*t;
+    if(L%(va-vb)!==0) continue;
+    const T=L/(va-vb);
+    if(T<=t||T>45) continue;
+    const kmA=va*60/1000, kmB=vb*60/1000;
+    const setup='Aさんの速さを分速 x m、Bさんの速さを分速 y m とする';
+    const d1=t+'x+'+t+'y='+L;
+    const d2=T+'x-'+T+'y='+L;
+    const answers=[
+      {label:'Aさん 時速', unit:'km', value:kmA},
+      {label:'Bさん 時速', unit:'km', value:kmB}
+    ];
+    const steps=buildSteps(setup,
+      [{disp:d1, a:1,b:1,c:va+vb, pre:[{label:'①の両辺÷'+t, latex:eqLatex(1,1,va+vb)}]},
+       {disp:d2, a:1,b:-1,c:va-vb, pre:[{label:'②の両辺÷'+T, latex:eqLatex(1,-1,va-vb)}]}],
+      [va,vb], answers);
+    steps.splice(steps.length-1,0,
+      {label:'時速に直す', text:'分速'+va+'m = 60倍して '+va*60+'m = 時速'+kmA+'km、分速'+vb+'m = 時速'+kmB+'km'});
+    return {
+      text:'AさんとBさんが、<b>'+L+'m</b> はなれた2地点から同時に出発します。たがいに向かい合って進むと <b>'+t+'分後</b>に出会い、AさんがBさんと同じ方向に進んで追いかけると <b>'+T+'分後</b>に追いつきます。Aさん、Bさんの速さはそれぞれ<b>時速何km</b>ですか。(Aさんのほうが速いものとします)',
+      answers,
+      hints:hint3(setup+'。分速で解いてから、最後に時速へ直す', d1+'\\ (出会い)', d2+'\\ (追いつき)'),
+      steps
+    };
+  }
+  return genHayasa1();
+}
+
+/* ===== 通過算 ===== */
+
+/* tsuka1: 鉄橋+トンネル */
+function genTsuka1(){
+  for(let i=0;i<300;i++){
+    const v=pick([15,20,25]);
+    const ta=2*rnd(10,25);
+    const len=10*rnd(8,20);
+    const La=v*ta-len;
+    if(La<150||La>1200) continue;
+    const tb=ta+2*rnd(5,20);
+    const Lb=v*tb-len;
+    if(Lb<=La||Lb>2600) continue;
+    const setup='列車の長さを x m、速さを秒速 y m とする';
+    const eq1='x+'+La+'='+ta+'y';
+    const eq2='x+'+Lb+'='+tb+'y';
+    return {
+      text:'ある列車が、長さ <b>'+La+'m</b> の鉄橋を渡り始めてから渡り終わるまでに <b>'+ta+'秒</b>かかりました。また、長さ <b>'+Lb+'m</b> のトンネルに入り始めてから完全に出るまでに <b>'+tb+'秒</b>かかりました。この列車の長さと速さ(秒速)を求めなさい。',
+      answers:[
+        {label:'列車の長さ', unit:'m', value:len},
+        {label:'速さ 秒速', unit:'m', value:v}
+      ],
+      hints:hint3('進む道のり = 鉄橋(トンネル)の長さ + 列車の長さ。'+setup, eq1+'\\ (鉄橋)', eq2+'\\ (トンネル)'),
+      steps:[
+        {label:'x, y を決める', text:setup},
+        {label:'式① を立てる(鉄橋)', latex:eq1},
+        {label:'式② を立てる(トンネル)', latex:eq2},
+        {label:'②−① で x を消す', latex:eqLatex(0,tb-ta,Lb-La)},
+        {label:'', latex:'y='+v},
+        {label:'①に y='+v+' を代入', latex:'x+'+La+'='+(ta*v)},
+        {label:'', latex:'x='+len},
+        {label:'答え', text:'列車の長さ '+len+'m、速さ 秒速 '+v+'m', final:true}
+      ]
+    };
+  }
+  return genHayasa1();
+}
+
+/* tsuka2: 電柱・かくれる時間 */
+function genTsuka2(){
+  for(let i=0;i<400;i++){
+    const type=pick(['denchu','kakure']);
+    const v=pick([15,20,25]);
+
+    if(type==='denchu'){
+      const tp=rnd(4,10);
+      const len=v*tp;
+      if(len<80||len>250) continue;
+      const tb=tp+2*rnd(5,15);
+      const Lb=v*(tb-tp);
+      if(Lb<250||Lb<=len||Lb>2000) continue;
+      const setup='列車の長さを x m、速さを秒速 y m とする';
+      const eq1='x='+tp+'y';
+      const eq2='x+'+Lb+'='+tb+'y';
+      return {
+        text:'ある列車が、電柱の前を通過するのに <b>'+tp+'秒</b>かかりました。また、長さ <b>'+Lb+'m</b> のトンネルに入り始めてから完全に出るまでに <b>'+tb+'秒</b>かかりました。この列車の長さと速さ(秒速)を求めなさい。',
+        answers:[
+          {label:'列車の長さ', unit:'m', value:len},
+          {label:'速さ 秒速', unit:'m', value:v}
+        ],
+        hints:hint3('電柱の前の通過では、列車は自分の長さの分だけ進む。'+setup, eq1+'\\ (電柱)', eq2+'\\ (トンネル)'),
+        steps:[
+          {label:'x, y を決める', text:setup},
+          {label:'式① を立てる(電柱)', latex:eq1},
+          {label:'式② を立てる(トンネル)', latex:eq2},
+          {label:'②−① で x を消す', latex:eqLatex(0,tb-tp,Lb)},
+          {label:'', latex:'y='+v},
+          {label:'①に y='+v+' を代入', latex:'x='+len},
+          {label:'答え', text:'列車の長さ '+len+'m、速さ 秒速 '+v+'m', final:true}
+        ]
+      };
+    }
+
+    const k=rnd(4,10);
+    const len=v*k;
+    if(len<80||len>250) continue;
+    const tc=rnd(6,24);
+    const tb=2*k+tc;
+    const Lb=v*(k+tc);
+    if(Lb<250||Lb>2600) continue;
+    const setup='列車の長さを x m、速さを秒速 y m とする';
+    const eq1='x+'+Lb+'='+tb+'y';
+    const eq2=Lb+'-x='+tc+'y';
+    return {
+      text:'ある列車が、長さ <b>'+Lb+'m</b> のトンネルに入り始めてから完全に出るまでに <b>'+tb+'秒</b>かかりました。また、この列車がトンネルに完全にかくれていた時間は <b>'+tc+'秒</b>でした。この列車の長さと速さ(秒速)を求めなさい。',
+      answers:[
+        {label:'列車の長さ', unit:'m', value:len},
+        {label:'速さ 秒速', unit:'m', value:v}
+      ],
+      hints:hint3('かくれている間に進む道のりは「トンネル − 列車の長さ」。'+setup, eq1+'\\ (通過)', eq2+'\\ (かくれている間)'),
+      steps:[
+        {label:'x, y を決める', text:setup},
+        {label:'式① を立てる(通過)', latex:eq1},
+        {label:'式② を立てる(かくれ)', latex:eq2},
+        {label:'①+② で x を消す', latex:eqLatex(0,tb+tc,2*Lb)},
+        {label:'', latex:'y='+v},
+        {label:'①に y='+v+' を代入', latex:'x+'+Lb+'='+(tb*v)},
+        {label:'', latex:'x='+len},
+        {label:'答え', text:'列車の長さ '+len+'m、速さ 秒速 '+v+'m', final:true}
+      ]
+    };
+  }
+  return genTsuka1();
+}
+
+/* tsuka3: 2台の列車(すれ違い・追い越し) */
+function genTsuka3(){
+  for(let i=0;i<500;i++){
+    const va=rnd(15,30);
+    const vb=rnd(8,va-4);
+    const t1=rnd(4,12);
+    const S=(va+vb)*t1;
+    if(S%10!==0) continue;
+    if(S%(va-vb)!==0) continue;
+    const t2=S/(va-vb);
+    if(t2<=t1||t2>50) continue;
+    if(S<250||S>600) continue;
+    const LA=10*rnd(8,(S-80)/10);
+    const LB=S-LA;
+    const setup='列車Aの速さを秒速 x m、列車Bの速さを秒速 y m とする';
+    const d1=t1+'x+'+t1+'y='+S;
+    const d2=t2+'x-'+t2+'y='+S;
+    const answers=[
+      {label:'列車A 秒速', unit:'m', value:va},
+      {label:'列車B 秒速', unit:'m', value:vb}
+    ];
+    return {
+      text:'長さ <b>'+LA+'m</b> の列車Aと、長さ <b>'+LB+'m</b> の列車Bがあります。反対方向に走ってすれ違うとき、出会ってから完全にはなれるまでに <b>'+t1+'秒</b>かかります。また、同じ方向に走って列車Aが列車Bを追いこすとき、追いついてから完全に追いこすまでに <b>'+t2+'秒</b>かかります。それぞれの列車の速さは秒速何mですか。(Aのほうが速いものとします)',
+      answers,
+      hints:hint3('すれ違いも追い越しも、進む道のりの差(和)は「2つの列車の長さの和 '+S+'m」。'+setup, d1+'\\ (すれ違い)', d2+'\\ (追い越し)'),
+      steps:buildSteps(setup,
+        [{disp:d1, a:1,b:1,c:va+vb, pre:[{label:'①の両辺÷'+t1, latex:eqLatex(1,1,va+vb)}]},
+         {disp:d2, a:1,b:-1,c:va-vb, pre:[{label:'②の両辺÷'+t2, latex:eqLatex(1,-1,va-vb)}]}],
+        [va,vb], answers)
+    };
+  }
+  return genHayasa2();
+}
+
+/* ===== 割合 ===== */
+
+/* wariai1: 定価と割引 */
+function genWariai1(){
+  const set=pick([
+    ['シャツ','ズボン'], ['Tシャツ','くつ'], ['本','ペンケース'], ['ケーキ','クッキーのつめ合わせ']
+  ]);
+  const [A,B]=set;
+  const x0=rnd(4,15)*100, y0=rnd(3,12)*100;
+  let p=pick([10,20,30]), q=pick([10,20,30]);
+  while(q===p){ q=pick([10,20,30]); }
+  const S=x0+y0;
+  const T=x0*(100-p)/100 + y0*(100-q)/100;
+  const ka=(100-p)/10, kb=(100-q)/10;
+  const disp2='0.'+ka+'x+0.'+kb+'y='+T;
+  const setup=A+'の定価を x 円、'+B+'の定価を y 円とする';
+  const answers=[
+    {label:A+'の定価', unit:'円', value:x0},
+    {label:B+'の定価', unit:'円', value:y0}
+  ];
+  return {
+    text:'ある店で、'+A+'と'+B+'を定価で1つずつ買うと、代金の合計は <b>'+S+'円</b>です。セール中で'+A+'が定価の <b>'+p+'%引き</b>、'+B+'が定価の <b>'+q+'%引き</b>になっていたので、代金の合計は <b>'+T+'円</b>になりました。'+A+'と'+B+'の定価をそれぞれ求めなさい。',
+    answers,
+    hints:hint3(setup, 'x+y='+S, disp2+'\\ (売価の式)'),
+    steps:buildSteps(setup,
+      [{a:1,b:1,c:S},
+       {disp:disp2, a:ka,b:kb,c:10*T,
+        pre:[{label:'②の両辺×10', latex:eqLatex(ka,kb,10*T)}]}],
+      [x0,y0], answers)
+  };
+}
+
+/* wariai2: ◯%増・◯%減(生徒数・生産数) */
+function genWariai2(){
+  for(let i=0;i<300;i++){
+    const x0=rnd(5,20)*20, y0=rnd(5,20)*20;
+    const p=pick([5,10,15,20,25]), q=pick([5,10,15,20,25]);
+    const sa=pick([1,-1]), sb=pick([1,-1]);
+    if(sa===sb&&p===q) continue;
+    const d = sa*x0*p/100 + sb*y0*q/100;
+    if(d===0) continue;
+    const N=x0+y0;
+    const wa=(s)=>s>0?'増え':'減り';
+    const totalWord = d>0?'増えました':'減りました';
+    const disp2=(sa<0?'-':'')+'\\dfrac{'+p+'}{100}x'+(sb<0?'-':'+')+'\\dfrac{'+q+'}{100}y='+d;
+
+    const ctx=pick([
+      {
+        text:'ある中学校の昨年の生徒数は <b>'+N+'人</b>でした。今年は昨年とくらべて、男子が <b>'+p+'%</b>'+wa(sa)+'、女子が <b>'+q+'%</b>'+wa(sb)+'、全体で <b>'+Math.abs(d)+'人</b>'+totalWord+'。昨年の男子と女子の生徒数をそれぞれ求めなさい。',
+        setup:'昨年の男子を x 人、女子を y 人とする',
+        labels:['昨年の男子','昨年の女子'], u:'人'
+      },
+      {
+        text:'ある工場では、昨年、製品Aと製品Bを合わせて <b>'+N+'個</b> 生産しました。今年は昨年とくらべて、Aの生産数が <b>'+p+'%</b>'+wa(sa)+'、Bの生産数が <b>'+q+'%</b>'+wa(sb)+'、全体で <b>'+Math.abs(d)+'個</b>'+totalWord+'。昨年の製品Aと製品Bの生産数をそれぞれ求めなさい。',
+        setup:'昨年の製品Aの生産数を x 個、製品Bの生産数を y 個とする',
+        labels:['昨年の製品A','昨年の製品B'], u:'個'
+      }
+    ]);
+    const answers=[
+      {label:ctx.labels[0], unit:ctx.u, value:x0},
+      {label:ctx.labels[1], unit:ctx.u, value:y0}
+    ];
+    /* 符号ミス: 「増」「減」を逆に読んで解いた値(整数正のときだけ) */
+    const signMiss=solveInt(1,1,N, -sa*p,-sb*q,100*d);
+    return {
+      text:ctx.text,
+      answers,
+      distractors: signMiss ? [signMiss] : [],
+      hints:hint3(ctx.setup, 'x+y='+N, disp2+'\\ (増減の式)'),
+      steps:buildSteps(ctx.setup,
+        [{a:1,b:1,c:N},
+         {disp:disp2, a:sa*p,b:sb*q,c:100*d,
+          pre:[{label:'②の両辺×100', latex:eqLatex(sa*p,sb*q,100*d)}]}],
+        [x0,y0], answers)
+    };
+  }
+  return genSuu1();
+}
+
+/* wariai3: 割引→売れ残り→さらに値引きして売り切る */
+function genWariai3(){
+  const item=pick(['ケーキ','メロンパン','お弁当','マフィン']);
+  const type=pick(['percent','yen','teigaku']);
+  const P=rnd(3,8)*100;
+  let P1, P2, firstText, saleText, priceCalc, xLabel, yLabel;
+  if(type==='teigaku'){
+    /* 定額 → さらに定額 */
+    const e1=pick([50,100,150]);
+    const e2=pick([50,100]);
+    P1=P-e1; P2=P1-e2;
+    firstText='<b>定価から'+e1+'円引き</b>';
+    saleText='残りは <b>そこからさらに'+e2+'円引き</b>にして';
+    priceCalc=e1+'円引き → '+P+'−'+e1+' = '+P1+'円、さらに'+e2+'円引き → '+P1+'−'+e2+' = '+P2+'円';
+    xLabel=P1+'円で売れた数';
+    yLabel=P2+'円で売れた数';
+  }else{
+    const p=pick([10,20]);
+    P1=P*(100-p)/100;
+    firstText='<b>定価の'+p+'%引き</b>';
+    xLabel=p+'%引きで売れた数';
+    if(type==='percent'){
+      const q=pick([30,40,50]);
+      P2=P*(100-q)/100;
+      saleText='残りは <b>定価の'+q+'%引き</b>にして';
+      priceCalc=p+'%引き → '+P+'×0.'+((100-p)/10)+' = '+P1+'円、'+q+'%引き → '+P+'×0.'+((100-q)/10)+' = '+P2+'円';
+      yLabel=q+'%引きで売れた数';
+    }else{
+      const e=pick([50,100]);
+      P2=P1-e;
+      saleText='残りは <b>そこからさらに'+e+'円引き</b>にして';
+      priceCalc=p+'%引き → '+P+'×0.'+((100-p)/10)+' = '+P1+'円、さらに'+e+'円引き → '+P1+'−'+e+' = '+P2+'円';
+      yLabel='値引き後に売れた数';
+    }
+  }
+  const x=rnd(3,12), y=rnd(3,12);
+  const N=x+y, T=P1*x+P2*y;
+  const setup='最初の値引き('+P1+'円)で売れた個数を x 個、さらに値引きした後('+P2+'円)で売れた個数を y 個とする';
+  const answers=[
+    {label:xLabel, unit:'個', value:x},
+    {label:yLabel, unit:'個', value:y}
+  ];
+  const steps=buildSteps(setup,
+    [{a:1,b:1,c:N},{a:P1,b:P2,c:T}],
+    [x,y], answers);
+  steps.splice(1,0,{label:'売価を求める', text:priceCalc});
+  return {
+    text:'ある店で、1個 定価 <b>'+P+'円</b>の'+item+'を <b>'+N+'個</b> 仕入れました。'+firstText+'で売ったところ、いくつか売れ残ったので、'+saleText+'すべて売り切りました。売上の合計は <b>'+T+'円</b>でした。それぞれの値段で売れた個数を求めなさい。',
+    answers,
+    hints:hint3('まず売価を計算: '+priceCalc+'。'+setup, 'x+y='+N, P1+'x+'+P2+'y='+T+'\\ (売上の式)'),
+    steps
+  };
+}
+
+/* ===== 食塩水 ===== */
+
+/* shokuen1: 混ぜて◯%にする */
+function genShokuen1(){
+  for(let i=0;i<300;i++){
+    const x0=rnd(2,8)*50, y0=rnd(2,8)*50;
+    const p=rnd(2,8);
+    const q=p+rnd(2,8);
+    const salt=p*x0+q*y0;
+    const W=x0+y0;
+    if(salt%W!==0) continue;
+    const r=salt/W;
+    const disp2='\\dfrac{'+p+'}{100}x+\\dfrac{'+q+'}{100}y=\\dfrac{'+r+'}{100}\\times '+W;
+    const setup=p+'%の食塩水を x g、'+q+'%の食塩水を y g とする';
+    const answers=[
+      {label:p+'%の食塩水', unit:'g', value:x0},
+      {label:q+'%の食塩水', unit:'g', value:y0}
+    ];
+    return {
+      text:'<b>'+p+'%</b>の食塩水と <b>'+q+'%</b>の食塩水を混ぜて、<b>'+r+'%</b>の食塩水を <b>'+W+'g</b> つくります。それぞれ何gずつ混ぜればよいですか。',
+      answers,
+      hints:hint3(setup, 'x+y='+W, disp2+'\\ (食塩の量)'),
+      steps:buildSteps(setup,
+        [{a:1,b:1,c:W},
+         {disp:disp2, a:p,b:q,c:r*W,
+          pre:[{label:'②の両辺×100', latex:eqLatex(p,q,r*W)}]}],
+        [x0,y0], answers)
+    };
+  }
+  return genKaimono1();
+}
+
+/* shokuen2: 濃度を求める */
+function genShokuen2(){
+  for(let i=0;i<500;i++){
+    const cx=rnd(2,12);
+    let cy=rnd(2,15);
+    if(cy===cx) continue;
+    const m1=rnd(1,4), n1=rnd(1,4);
+    if((m1*cx+n1*cy)%(m1+n1)!==0) continue;
+    const p=(m1*cx+n1*cy)/(m1+n1);
+    const m2=rnd(1,4), n2=rnd(1,4);
+    if(m1*n2-m2*n1===0) continue;
+    if((m2*cx+n2*cy)%(m2+n2)!==0) continue;
+    const q=(m2*cx+n2*cy)/(m2+n2);
+    const g1a=100*m1, g1b=100*n1, g2a=100*m2, g2b=100*n2;
+    const disp1='\\dfrac{x}{100}\\times '+g1a+'+\\dfrac{y}{100}\\times '+g1b+'=\\dfrac{'+p+'}{100}\\times '+(g1a+g1b);
+    const disp2='\\dfrac{x}{100}\\times '+g2a+'+\\dfrac{y}{100}\\times '+g2b+'=\\dfrac{'+q+'}{100}\\times '+(g2a+g2b);
+    const setup='Aの濃度を x %、Bの濃度を y %とする';
+    const answers=[
+      {label:'Aの濃度', unit:'%', value:cx},
+      {label:'Bの濃度', unit:'%', value:cy}
+    ];
+    return {
+      text:'濃度のわからない食塩水Aと食塩水Bがあります。Aを <b>'+g1a+'g</b>、Bを <b>'+g1b+'g</b> 混ぜると <b>'+p+'%</b> の食塩水になり、Aを <b>'+g2a+'g</b>、Bを <b>'+g2b+'g</b> 混ぜると <b>'+q+'%</b> の食塩水になります。A、Bの濃度はそれぞれ何%ですか。',
+      answers,
+      hints:hint3('食塩の量で式を立てる。'+setup, disp1+'\\ (1回目)', disp2+'\\ (2回目)'),
+      steps:buildSteps(setup,
+        [{disp:disp1, a:m1,b:n1,c:p*(m1+n1),
+          pre:[{label:'①を整理する', latex:eqLatex(m1,n1,p*(m1+n1))}]},
+         {disp:disp2, a:m2,b:n2,c:q*(m2+n2),
+          pre:[{label:'②を整理する', latex:eqLatex(m2,n2,q*(m2+n2))}]}],
+        [cx,cy], answers)
+    };
+  }
+  return genShokuen1();
+}
+
+/* =====================================================================
+ * カテゴリ × STEP 定義
+ * ===================================================================== */
+const CATS=[
+  {key:'suu', name:'数の問題', desc:'2つの数を見つける', steps:[
+    {key:'suu1', name:'和と差', desc:'和と差から2つの数を求める', gen:genSuu1},
+    {key:'suu2', name:'◯倍と和・差', desc:'「小さい数の3倍より2大きい」型', gen:genSuu2},
+    {key:'suu3', name:'2けたの整数', desc:'十の位と一の位を入れかえる', gen:genSuu3},
+  ]},
+  {key:'kaimono', name:'個数と代金', desc:'買い物の問題', steps:[
+    {key:'kaimono1', name:'個数を求める', desc:'合わせて何個・代金はいくら', gen:genKaimono1},
+    {key:'kaimono2', name:'値段を求める', desc:'2通りの買い方から1個の値段を求める', gen:genKaimono2},
+    {key:'kaimono3', name:'ひねり問題', desc:'取り違え・個数の差・おつり', gen:genKaimono3},
+  ]},
+  {key:'kafusoku', name:'過不足', desc:'配ると余る・足りない', steps:[
+    {key:'kafusoku1', name:'余りと不足', desc:'◯個ずつだと余り、△個ずつだと足りない', gen:genKafusoku1},
+    {key:'kafusoku2', name:'余りどうし・不足どうし', desc:'どちらも余る/どちらも足りない', gen:genKafusoku2},
+    {key:'kafusoku3', name:'ひねり問題', desc:'配り方の取り違え・長いす・人数が増える', gen:genKafusoku3},
+  ]},
+  {key:'hayasa', name:'速さ', desc:'道のり・速さ・時間', steps:[
+    {key:'hayasa1', name:'歩く+走る', desc:'道のりの式と時間の式', gen:genHayasa1},
+    {key:'hayasa2', name:'出会い・追いつき', desc:'2人が出会う・追いつく', gen:genHayasa2},
+    {key:'hayasa3', name:'単位変換', desc:'km・時間・時速をそろえてから解く', gen:genHayasa3},
+  ]},
+  {key:'tsuka', name:'通過算', desc:'列車が通過する', steps:[
+    {key:'tsuka1', name:'鉄橋とトンネル', desc:'通過の基本(長さ+列車の分進む)', gen:genTsuka1},
+    {key:'tsuka2', name:'電柱・かくれる時間', desc:'ひねりの通過(引き算に注意)', gen:genTsuka2},
+    {key:'tsuka3', name:'2台の列車', desc:'すれ違い・追い越し', gen:genTsuka3},
+  ]},
+  {key:'wariai', name:'割合', desc:'%の問題', steps:[
+    {key:'wariai1', name:'定価と割引', desc:'◯%引きで買うといくら', gen:genWariai1},
+    {key:'wariai2', name:'◯%増・◯%減', desc:'人数・生産数の増減(符号に注意)', gen:genWariai2},
+    {key:'wariai3', name:'値引きして売り切る', desc:'割引→売れ残り→さらに値引き', gen:genWariai3},
+  ]},
+  {key:'shokuen', name:'食塩水', desc:'濃度の問題', steps:[
+    {key:'shokuen1', name:'混ぜて◯%にする', desc:'2つの食塩水を何gずつ混ぜるか', gen:genShokuen1},
+    {key:'shokuen2', name:'濃度を求める', desc:'混ぜた結果から濃度を逆算', gen:genShokuen2},
+  ]},
+  {key:'mixcat', name:'総合ミックス', desc:'ぜんぶのパターンからランダム出題!', mix:true, steps:[
+    {key:'mix', name:'総合ミックス', desc:'', gen:genMix},
+  ]},
+];
+function genMix(){
+  const gens=[];
+  CATS.forEach(c=>{ if(!c.mix) c.steps.forEach(s=>gens.push(s.gen)); });
+  return pick(gens)();
+}
+const QS_PER_SET=5;
+
+/* ---------- 6択の選択肢生成 ---------- */
+function niceDelta(v){
+  if(v%100===0&&v>=300) return pick([50,100,100,200]);
+  if(v%50===0&&v>=100) return pick([50,50,100]);
+  if(v%10===0&&v>=30) return pick([10,10,20,30]);
+  return pick([1,1,2,2,3]);
+}
+function makeChoices(answers, extra){
+  const correct=answers.map(a=>a.value);
+  const n=correct.length;
+  const set=new Set([correct.join(',')]);
+  const wrongs=[];
+  function tryAdd(vals){
+    if(vals.some(v=>!Number.isInteger(v)||v<=0)) return false;
+    const k=vals.join(',');
+    if(set.has(k)) return false;
+    set.add(k); wrongs.push(vals); return true;
+  }
+  /* 問題固有の誤答肢(位の逆転など)を最優先で入れる */
+  (extra||[]).forEach(vals=>{ if(wrongs.length<5) tryAdd(vals); });
+  /* 入れ替え(典型ミス) */
+  if(n===2&&correct[0]!==correct[1]&&wrongs.length<5) tryAdd([correct[1],correct[0]]);
+  let guard=0;
+  while(wrongs.length<5&&guard++<300){
+    const mode=rnd(0,2);
+    let vals=correct.slice();
+    if(mode===0&&n===2){
+      /* 和を保ったままずらす(式①だけ満たす誤答) */
+      const d=niceDelta(Math.min(correct[0],correct[1]));
+      const s=pick([1,-1]);
+      vals=[correct[0]+s*d, correct[1]-s*d];
+    }else if(mode===1){
+      const i=rnd(0,n-1);
+      vals[i]=vals[i]+pick([1,-1])*niceDelta(vals[i]);
+    }else{
+      vals=vals.map(v=>v+pick([1,-1])*niceDelta(v));
+    }
+    tryAdd(vals);
+  }
+  let k=0;
+  while(wrongs.length<5){ k++; tryAdd(correct.map((v,i)=> i===0 ? v+k : v)); }
+  const choices=[{vals:correct, correct:true}]
+    .concat(wrongs.slice(0,5).map(v=>({vals:v, correct:false})));
+  for(let i=choices.length-1;i>0;i--){
+    const j=rnd(0,i);
+    [choices[i],choices[j]]=[choices[j],choices[i]];
+  }
+  return choices;
+}
+
+/* ---------- state / views ---------- */
+let state={ cat:null, stepIdx:0, qIndex:0, results:[], cur:null, choices:[], judged:false, hintOpen:0 };
+const $=(id)=>document.getElementById(id);
+const views={ select:$('view-select'), steps:$('view-steps'), practice:$('view-practice'), result:$('view-result') };
+function show(name){
+  Object.keys(views).forEach(k=>{ views[k].hidden=(k!==name); });
+  window.scrollTo(0,0);
+}
+function stepObj(){ return state.cat.steps[state.stepIdx]; }
+
+/* ---------- category select ---------- */
+function renderCats(){
+  const grid=$('catGrid'); grid.innerHTML='';
+  CATS.forEach(cat=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='lv-card'+(cat.mix?' mix':'');
+    btn.innerHTML=
+      '<div class="lv-no">'+(cat.mix?'SPECIAL':'STEP 1〜'+cat.steps.length)+'</div>'+
+      '<div class="lv-name">'+cat.name+'</div>'+
+      '<div class="lv-desc">'+cat.desc+'</div>';
+    btn.addEventListener('click', ()=>{
+      if(cat.mix){ startStep(cat,0); }
+      else{ openCat(cat); }
+    });
+    grid.appendChild(btn);
+  });
+}
+
+/* ---------- step select ---------- */
+function openCat(cat){
+  state.cat=cat;
+  $('catTitle').textContent=cat.name;
+  $('catDesc').textContent=cat.desc;
+  const grid=$('stepGrid'); grid.innerHTML='';
+  cat.steps.forEach((s,i)=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='lv-card';
+    btn.innerHTML=
+      '<div class="lv-no">STEP '+(i+1)+'</div>'+
+      '<div class="lv-name">'+s.name+'</div>'+
+      '<div class="lv-desc">'+s.desc+'</div>';
+    btn.addEventListener('click', ()=>startStep(cat,i));
+    grid.appendChild(btn);
+  });
+  show('steps');
+}
+
+/* ---------- practice ---------- */
+function startStep(cat,idx){
+  state={ cat, stepIdx:idx, qIndex:0, results:[], cur:null, judged:false, hintOpen:0 };
+  show('practice');
+  nextQuestion();
+}
+function renderDots(){
+  const box=$('dots'); box.innerHTML='';
+  for(let i=0;i<QS_PER_SET;i++){
+    const d=document.createElement('div');
+    d.className='dot'+(i===state.qIndex?' now':'')+
+      (state.results[i]===true?' ok':'')+(state.results[i]===false?' ng':'');
+    box.appendChild(d);
+  }
+}
+function nextQuestion(){
+  const st0=stepObj();
+  state.cur=st0.gen();
+  state.judged=false;
+  state.hintOpen=0;
+  const stepTag = state.cat.mix ? '' : ' STEP'+(state.stepIdx+1)+' '+st0.name;
+  $('qLabel').textContent=state.cat.name+stepTag+'  ─  第'+(state.qIndex+1)+'問';
+  $('qText').innerHTML=state.cur.text;
+  $('hintList').innerHTML='';
+  const bh=$('btnHint');
+  bh.disabled=false;
+  bh.textContent='ヒントを見る (1/'+state.cur.hints.length+')';
+
+  const answers=state.cur.answers;
+  $('choiceLegend').textContent =
+    answers.length===2 ? '('+answers[0].label+'、'+answers[1].label+')' : answers[0].label;
+  state.choices=makeChoices(answers, state.cur.distractors);
+  const grid=$('choiceGrid'); grid.innerHTML='';
+  state.choices.forEach((ch,i)=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='choice';
+    btn.textContent=ch.vals.map((v,j)=>v+(answers[j].unit||'')).join('、');
+    btn.addEventListener('click', ()=>judge(i));
+    grid.appendChild(btn);
+  });
+
+  $('btnNext').hidden=true;
+  $('btnShowSteps').hidden=true;
+  $('kaisetsu').hidden=true;
+  $('stepsArea').innerHTML='';
+  /* 前問の共通ハンコ（正解は自動で消えない）を次の問題の前に片づける */
+  document.querySelectorAll('.q-card .divp-hanko, .q-card .divp-nice').forEach(el=>el.remove());
+  renderDots();
+}
+
+function openHint(){
+  const hs=state.cur.hints;
+  if(state.hintOpen>=hs.length) return;
+  const h=hs[state.hintOpen];
+  const div=document.createElement('div'); div.className='hint-item';
+  const tag=document.createElement('span'); tag.className='h-tag';
+  tag.textContent=h.tag;
+  div.appendChild(tag);
+  if(h.latex){
+    /* 「\ (注釈)」は数式から切り離してテキスト描画(KaTeXに日本語を入れない) */
+    const parts=h.latex.split('\\ ');
+    const t=document.createElement('span'); t.className='h-tex';
+    div.appendChild(t);
+    if(parts[1]){
+      const note=document.createElement('span'); note.className='h-note';
+      note.textContent=parts[1];
+      div.appendChild(note);
+    }
+    $('hintList').appendChild(div);
+    tex(t, parts[0], false);
+  }else{
+    const t=document.createElement('span');
+    t.textContent=h.text;
+    div.appendChild(t);
+    $('hintList').appendChild(div);
+  }
+  state.hintOpen++;
+  const bh=$('btnHint');
+  if(state.hintOpen>=hs.length){
+    bh.disabled=true;
+    bh.textContent='ヒントはここまで';
+  }else{
+    bh.textContent='つぎのヒントを見る ('+(state.hintOpen+1)+'/'+hs.length+')';
+  }
+}
+
+function judge(idx){
+  if(state.judged) return;
+  state.judged=true;
+  const ok=state.choices[idx].correct;
+  state.results[state.qIndex]=ok;
+
+  /* ==== 学習記録（divp-core）。未ログイン・ローカル時は内部で黙ってスキップ ==== */
+  try{
+    if(window.Divp&&typeof window.Divp.answer==='function'){
+      window.Divp.answer(!!ok,{
+        question_key: stepObj().key,
+        question_params: {ans: state.cur.answers.map(a=>a.value)},
+        question_text: $('qText').textContent,
+        correct_answer: state.cur.answers.map(a=>a.label+'='+a.value+(a.unit||'')).join(', '),
+        wrong_answer: ok ? null : state.choices[idx].vals.join(', ')
+      });
+    }
+  }catch(e){}
+
+  const btns=$('choiceGrid').querySelectorAll('.choice');
+  btns.forEach((b,i)=>{
+    b.disabled=true;
+    if(state.choices[i].correct) b.classList.add('sel-ok');
+    else if(i===idx) b.classList.add('sel-ng');
+    else b.classList.add('dim');
+  });
+
+  if(ok){
+    safeDivpCorrect('.q-card');
+    $('btnShowSteps').hidden=false;
+  }else{
+    safeDivpIncorrect('.q-card');
+    showSteps();
+  }
+  $('btnHint').disabled=true;
+  const last=state.qIndex===QS_PER_SET-1;
+  $('btnNext').textContent=last?'結果を見る →':'次の問題へ →';
+  $('btnNext').hidden=false;
+  $('btnNext').focus();
+  renderDots();
+}
+
+function showSteps(){
+  const area=$('stepsArea'); area.innerHTML='';
+  state.cur.steps.forEach(sp=>{
+    const row=document.createElement('div');
+    row.className='step'+(sp.final?' final':'');
+    const lab=document.createElement('span'); lab.className='slabel';
+    lab.textContent=sp.label||'';
+    row.appendChild(lab);
+    if(sp.latex){
+      const t=document.createElement('span'); t.className='stex';
+      row.appendChild(t);
+      area.appendChild(row);
+      tex(t, sp.latex, false);
+    }else{
+      const t=document.createElement('span'); t.className='stext';
+      t.textContent=sp.text;
+      row.appendChild(t);
+      area.appendChild(row);
+    }
+  });
+  $('kaisetsu').hidden=false;
+  $('btnShowSteps').hidden=true;
+}
+
+function next(){
+  if(state.qIndex===QS_PER_SET-1){ finishSet(); return; }
+  state.qIndex++;
+  nextQuestion();
+}
+
+/* ---------- result ---------- */
+function finishSet(){
+  const score=state.results.filter(v=>v).length;
+  const perfect=score===QS_PER_SET;
+  const st0=stepObj();
+  $('clearStampWrap').innerHTML=perfect?'<div class="clear-stamp">クリア!</div>':'';
+  const stepTag = state.cat.mix ? '' : ' STEP'+(state.stepIdx+1)+' '+st0.name;
+  $('resultTitle').textContent=state.cat.name+stepTag;
+  $('scoreNum').textContent=score;
+  const hasNext = !state.cat.mix && state.stepIdx < state.cat.steps.length-1;
+  $('btnNextStep').hidden = !(perfect && hasNext);
+  $('btnToSteps').textContent = state.cat.mix ? '種類の一覧へ' : 'STEP一覧へ';
+  $('resultMsg').textContent=perfect
+    ? (hasNext ? '全問正解! つぎのSTEPにすすもう!' : '全問正解! この種類はぜんぶマスターしたね!')
+    : 'まちがえた問題は「式の立て方」からふり返って、もう一度チャレンジしよう。';
+  show('result');
+}
+
+/* ---------- 共通 正誤ハンコ（divp-correct-jh）。未読込・ローカル時は黙ってスキップ ---------- */
+function safeDivpCorrect(selector){
+  if(window.Divp&&typeof Divp.correct==='function'){
+    try{ Divp.correct(selector); }catch(e){}
+  }
+}
+function safeDivpIncorrect(selector){
+  if(window.Divp&&typeof Divp.incorrect==='function'){
+    try{ Divp.incorrect(selector); }catch(e){}
+  }
+}
+
+/* ---------- events ---------- */
+$('btnNext').addEventListener('click', next);
+$('btnHint').addEventListener('click', openHint);
+$('btnShowSteps').addEventListener('click', showSteps);
+$('btnBackToCats').addEventListener('click', ()=>{ renderCats(); show('select'); });
+$('btnBack').addEventListener('click', ()=>{
+  if(state.cat&&state.cat.mix){ renderCats(); show('select'); }
+  else if(state.cat){ openCat(state.cat); }
+  else{ renderCats(); show('select'); }
+});
+$('btnRetry').addEventListener('click', ()=>startStep(state.cat,state.stepIdx));
+$('btnNextStep').addEventListener('click', ()=>startStep(state.cat,state.stepIdx+1));
+$('btnToSteps').addEventListener('click', ()=>{
+  if(state.cat&&!state.cat.mix){ openCat(state.cat); }
+  else{ renderCats(); show('select'); }
+});
+
+/* ---------- print (選択中のSTEPからランダム5問) ---------- */
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function buildPrint(){
+  const st0=stepObj();
+  const stepTag = state.cat.mix ? '総合ミックス' : state.cat.name+' STEP'+(state.stepIdx+1)+' '+st0.name;
+  const today=new Date();
+  const dateStr=today.getFullYear()+'年'+(today.getMonth()+1)+'月'+today.getDate()+'日';
+  const qs=[];
+  for(let i=0;i<QS_PER_SET;i++) qs.push(st0.gen());
+
+  let html='';
+  html+='<div class="ps-head">'
+    +'<div><div class="ps-title">連立方程式マスター 文章題編</div>'
+    +'<div class="ps-sub">'+esc(stepTag)+' ｜ '+dateStr+'</div></div>'
+    +'<div class="ps-name">名前<span class="line"></span></div>'
+    +'</div>';
+
+  qs.forEach((q,i)=>{
+    const ansline=q.answers.map(a=>esc(a.label)+' <span class="blank"></span> '+esc(a.unit||'')).join('　');
+    html+='<div class="p-item"><div class="p-row">'
+      +'<div class="p-no">'+(i+1)+'</div>'
+      +'<div class="p-body">'
+      +'<div class="p-text">'+q.text+'</div>'   /* q.textは自前生成の安全なHTML(<b>のみ) */
+      +'<div class="p-space"></div>'
+      +'<div class="p-ansline">答え: '+ansline+'</div>'
+      +'</div></div></div>';
+  });
+
+  html+='<div class="p-key"><span class="k-title">【答え】</span>'
+    +qs.map((q,i)=>(i+1)+'. '+esc(q.answers.map(a=>a.label+' '+a.value+(a.unit||'')).join('、'))).join('　 ')
+    +'</div>';
+
+  $('printSheet').innerHTML=html;
+  window.print();
+}
+$('btnPrint').addEventListener('click', buildPrint);
+
+/* ---------- init ---------- */
+renderCats();
+show('select');
+</script>
+</body>
+</html>

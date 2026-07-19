@@ -51,11 +51,15 @@ function grade_label(?string $grade): string
 
 // ---- 表示期間(今週/先週/今月/全期間) ----
 $period = (string)($_GET['period'] ?? 'week');
-if (!in_array($period, ['week', 'last_week', 'month', 'all'], true)) {
+if (!in_array($period, ['today', 'week', 'last_week', 'month', 'all'], true)) {
     $period = 'week';
 }
 $thisMonday = new DateTimeImmutable('monday this week');
 switch ($period) {
+    case 'today':
+        $from = new DateTimeImmutable('today 00:00:00');
+        $to = $from->modify('+1 day');
+        break;
     case 'last_week':
         $from = $thisMonday->modify('-7 days');
         $to = $thisMonday;
@@ -73,7 +77,7 @@ switch ($period) {
         $to = $thisMonday->modify('+7 days');
         break;
 }
-$periodLabels = ['week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => 'これまで'];
+$periodLabels = ['today' => '今日', 'week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => 'これまで'];
 $eyebrow = $periodLabels[$period] . 'の がんばり';
 
 // 期間条件付きのWHERE句を組み立てる（$fromがnullなら全期間）
@@ -218,6 +222,35 @@ foreach ($karteRows as $row) {
     $units[$row['unit_key']][] = $row;
 }
 
+// ---- 教科（unit_key の先頭要素）でのフィルタ用ラベル ----
+$subjectLabels = [
+    'math'     => '算数・数学',
+    'english'  => '英語',
+    'japanese' => '国語',
+    'science'  => '理科',
+    'social'   => '社会',
+    'allgrade' => 'その他',
+];
+function subject_of(string $unitKey): string
+{
+    return explode('_', $unitKey)[0];
+}
+// カルテに出ている教科だけを、$subjectLabels の順で並べる
+$karteSubjects = [];
+foreach (array_keys($units) as $uk) {
+    $karteSubjects[subject_of($uk)] = true;
+}
+$karteSubjectKeys = array_values(array_filter(
+    array_keys($subjectLabels),
+    fn($s) => isset($karteSubjects[$s])
+));
+// 台帳に無い教科があれば末尾に足す
+foreach (array_keys($karteSubjects) as $s) {
+    if (!in_array($s, $karteSubjectKeys, true)) {
+        $karteSubjectKeys[] = $s;
+    }
+}
+
 // ---- 学習の足あと(週表示の時だけ・日別の学習時間と解いた問題数) ----
 $showWeekDots = in_array($period, ['week', 'last_week'], true);
 $dailySec = [];
@@ -254,7 +287,7 @@ $todayStr = (new DateTimeImmutable('today'))->format('Y-m-d');
 
 // ---- がんばりメッセージ ----
 if ($weekSolved === 0) {
-    $heroMsg = ($period === 'week') ? '今週も がんばろう！' : 'この期間の記録はありません';
+    $heroMsg = ($period === 'week') ? '今週も がんばろう！' : (($period === 'today') ? '今日も がんばろう！' : 'この期間の記録はありません');
 } elseif ($weekRate >= 80) {
     $heroMsg = 'よく取り組めています！';
 } else {
@@ -449,6 +482,15 @@ function h(?string $s): string
     background:var(--white);color:var(--ink-soft);border:1.5px solid var(--grid);
   }
   .ptab.active{background:var(--shu);color:#fff;border-color:var(--shu)}
+
+  /* ---------- 教科タブ（単元カルテの絞り込み） ---------- */
+  .stabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 2px 12px}
+  .stab{
+    font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:12px;
+    padding:4px 14px;border-radius:999px;cursor:pointer;
+    background:var(--white);color:var(--ink-soft);border:1.5px solid var(--grid);
+  }
+  .stab.active{background:var(--ai);color:#fff;border-color:var(--ai)}
 </style>
 </head>
 <body>
@@ -560,6 +602,15 @@ function h(?string $s): string
   <!-- 単元カルテ -->
   <div class="section-title">単元カルテ</div>
 
+<?php if (count($karteSubjectKeys) > 1): ?>
+  <nav class="stabs" id="karteTabs">
+    <button class="stab active" data-subject="all">すべて</button>
+<?php foreach ($karteSubjectKeys as $s): ?>
+    <button class="stab" data-subject="<?= h($s) ?>"><?= h($subjectLabels[$s] ?? $s) ?></button>
+<?php endforeach; ?>
+  </nav>
+<?php endif; ?>
+
 <?php if (count($units) === 0): ?>
   <section class="karte">
     <h2><?= $period === 'all' ? 'まだ記録がありません' : 'この期間の記録はありません' ?></h2>
@@ -569,7 +620,7 @@ function h(?string $s): string
 <?php foreach ($units as $unitKey => $rows):
     $meta = $unitMeta[$unitKey] ?? ['title' => $unitKey, 'sub' => ''];
 ?>
-  <section class="karte">
+  <section class="karte" data-subject="<?= h(subject_of($unitKey)) ?>">
     <h2><?= h($meta['title']) ?> <?php if ($meta['sub']): ?><small><?= h($meta['sub']) ?></small><?php endif; ?></h2>
 <?php foreach ($rows as $row):
     $solved = (int)$row['solved'];
@@ -656,6 +707,22 @@ function renderMathToHTML(src){
 document.querySelectorAll('.today-q').forEach(function (el) {
   el.innerHTML = renderMathToHTML(el.getAttribute('data-math') || '');
 });
+
+// 単元カルテの教科タブ: data-subject で .karte を表示/非表示
+(function () {
+  var tabs = document.getElementById('karteTabs');
+  if (!tabs) return;
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.karte[data-subject]'));
+  tabs.addEventListener('click', function (e) {
+    var btn = e.target.closest('.stab');
+    if (!btn) return;
+    var sel = btn.getAttribute('data-subject');
+    tabs.querySelectorAll('.stab').forEach(function (b) { b.classList.toggle('active', b === btn); });
+    cards.forEach(function (c) {
+      c.style.display = (sel === 'all' || c.getAttribute('data-subject') === sel) ? '' : 'none';
+    });
+  });
+})();
 </script>
 </body>
 </html>

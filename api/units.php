@@ -77,6 +77,16 @@ return [
         'sub'   => '算数・小3',
         'url'   => '/learning/math/math_es3_tokei.html',
     ],
+    'math_es6_keisan_dousuru' => [
+        'title' => '計算どぅする？',
+        'sub'   => '算数・小6',
+        'url'   => '/learning/math/math_es6_keisan_dousuru.html',
+    ],
+    'math_js2_renritsu_riyou' => [
+        'title' => '連立方程式マスター 文章題編',
+        'sub'   => '数学・中2',
+        'url'   => '/learning/math/math_js2_renritsu_riyou.html',
+    ],
     'allgrade_romaji' => [
         'title' => 'ローマ字マスター',
         'sub'   => 'ローマ字・五十音・英単語(おまけ)',

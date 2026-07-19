@@ -50,13 +50,19 @@ learning/
 | `math_js3_nijihoteishiki` | math_js3_nijihoteishiki.html（2次方程式マスター） | heihokon / katamari / heihokansei / insu_zumi / insu_jibun / kai_koshiki / random |
 | `math_js1_zettaichi` | math_js1_absolutevalue.html（絶対値 練習道場） | abs2num / num2abs / range / count / sort |
 | `math_js1_kariheikin` | math_js1_kariheikin.html（仮平均マスター） | basic / applied / reference（実戦モードは3種をランダム出題。難易度はquestion_params側） |
+| `math_js2_renritsu_riyou` | math_js2_renritsu_riyou.html（連立方程式マスター 文章題編） | suu1〜3 / kaimono1〜3 / kafusoku1〜3 / hayasa1〜3 / tsuka1〜3 / wariai1〜3 / shokuen1〜2 / mix（STEPキー） |
 
 ### 新しいツールへの組み込み手順
 
 1. `divp-header.js` / `divp-core.js` / 正解エフェクト（jhは `divp-correct-jh.js`）を `/assets/` から読み込む
 2. `Divp.init('unit_key')` をページ読み込み時に1回呼ぶ（deferで読み込む場合は DOMContentLoaded 内で）
-3. 正誤判定の直後に `Divp.answer(isCorrect, {question_key, question_params, question_text, correct_answer, wrong_answer})` を1行挿入。
-   question_params には再出題に必要な情報一式を入れる（形式を後から変えると既存の解き直しpending行とハッシュが合わなくなる）
+3. 正誤判定の直後に **2本立て**で挿入する:
+   - **見た目のハンコ**: 正解 `Divp.correct('.カードのセレクタ')` / 不正解 `Divp.incorrect('.カードのセレクタ')`。
+     ⚠️ `Divp.answer()` は**記録専用でエフェクトは出さない**。ハンコは必ずこちらを別途呼ぶ
+     （`window.Divp` ガード付きの `safeDivpCorrect()/safeDivpIncorrect()` ヘルパー経由が定石。
+     対象カードは `position:relative` かつ `overflow:visible`。171pxの二重丸が切れないこと）
+   - **記録**: `Divp.answer(isCorrect, {question_key, question_params, question_text, correct_answer, wrong_answer})` を1行。
+     question_params には再出題に必要な情報一式を入れる（形式を後から変えると既存の解き直しpending行とハッシュが合わなくなる）
 4. `?retry=1` 対応: `Divp.getRetries()` で pending を取得し、question_params から全く同じ問題を再出題する
 5. `question_catalog` にモードを登録（schema_full.sql に追記 → phpMyAdmin で該当INSERTを実行）
 6. `api/units.php` の台帳に unit_key → 表示名・URL を1行追加

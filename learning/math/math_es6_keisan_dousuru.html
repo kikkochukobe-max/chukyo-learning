@@ -1,0 +1,3035 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>計算どぅする？｜小学生の計算ドリル</title>
+  <meta name="description"
+    content="小学生向けの計算練習サイト「計算どぅする？」。小数・分数・単位変換・文章題など12種類の問題を自動で出題。B4横1枚にまとめて印刷もできます。">
+  <style>
+    :root {
+      --paper: #FBFBF6;
+      --ink: #26323F;
+      --ink-soft: #5B6C7C;
+      --grid: #E7EEF4;
+      --line: #DCE5EC;
+      --card: #FFFFFF;
+      --accent: #2F6DB3;
+      --pop: #ED6A28;
+      --pop2: #F2A60B;
+      --good: #1C9E6E;
+      --bad: #D9512E;
+      --neutral: #8696A4;
+      --radius: 16px;
+      --shadow: 0 1px 0 rgba(255, 255, 255, .8), 0 2px 8px rgba(40, 60, 90, .06), 0 10px 28px rgba(40, 60, 90, .05);
+      --round: "Hiragino Maru Gothic ProN", "ヒラギノ丸ゴ ProN", "Yu Gothic", "YuGothic", "Zen Maru Gothic", "Rounded Mplus 1c", "Noto Sans JP", system-ui, sans-serif;
+      --sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans JP", system-ui, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+    }
+
+    body {
+      font-family: var(--sans);
+      color: var(--ink);
+      background:
+        linear-gradient(var(--grid) 1px, transparent 1px) 0 0/26px 26px,
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/26px 26px,
+        var(--paper);
+      -webkit-text-size-adjust: 100%;
+      line-height: 1.6;
+    }
+
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 12px 16px 64px;
+    }
+
+    /* ---------- ヘッダー ---------- */
+    header {
+      text-align: center;
+      margin: 0 0 18px;
+    }
+
+    .title {
+      font-family: var(--round);
+      font-weight: 800;
+      font-size: clamp(38px, 8.5vw, 66px);
+      letter-spacing: .01em;
+      line-height: 1.02;
+      color: var(--ink);
+      display: inline-block;
+      position: relative;
+      padding: 0 .15em .12em;
+    }
+
+    .title .du {
+      color: var(--pop);
+      display: inline-block;
+      transform: rotate(-7deg) translateY(2px);
+    }
+
+    .title .qm {
+      color: var(--pop2);
+      display: inline-block;
+      transform: rotate(7deg);
+    }
+
+    .title::after {
+      content: "";
+      position: absolute;
+      left: 4%;
+      right: 4%;
+      bottom: -.04em;
+      height: .16em;
+      background: var(--pop2);
+      border-radius: 999px;
+      opacity: .9;
+      transform: rotate(-.6deg);
+    }
+
+    .subtitle {
+      margin-top: 12px;
+      color: var(--ink-soft);
+      font-weight: 600;
+      font-size: clamp(13px, 2.6vw, 15px);
+    }
+
+    /* ---------- コントロール ---------- */
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px 16px 18px;
+      margin-bottom: 22px;
+    }
+
+    .panel-label {
+      font-family: var(--round);
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin: 0 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .panel-label::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 3px;
+      background: var(--accent);
+    }
+
+    #cat-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      --c: #243241;
+      font-family: var(--round);
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--c);
+      background: color-mix(in srgb, var(--c) 9%, #fff);
+      border: 1.5px solid color-mix(in srgb, var(--c) 30%, #fff);
+      border-left: 4px solid var(--c);
+      border-radius: 9px;
+      padding: 7px 12px;
+      cursor: pointer;
+      transition: transform .08s ease, background .12s ease, box-shadow .12s ease;
+    }
+
+    .chip:hover {
+      background: color-mix(in srgb, var(--c) 16%, #fff);
+    }
+
+    .chip.active {
+      color: #fff;
+      background: var(--c);
+      border-color: var(--c);
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--c) 32%, transparent);
+    }
+
+    .chip:focus-visible,
+    .seg:focus-visible,
+    button:focus-visible,
+    .ans-in:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--accent) 45%, #fff);
+      outline-offset: 2px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    .seg-group {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .seg-group .gl {
+      font-size: 12px;
+      color: var(--ink-soft);
+      font-weight: 700;
+    }
+
+    #count-seg {
+      display: inline-flex;
+      background: #EEF3F7;
+      border-radius: 10px;
+      padding: 3px;
+    }
+
+    .seg {
+      font-family: var(--round);
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--ink-soft);
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    .seg.active {
+      background: #fff;
+      color: var(--accent);
+      box-shadow: 0 1px 4px rgba(40, 60, 90, .12);
+    }
+
+    .spacer {
+      flex: 1 1 auto;
+    }
+
+    .btn {
+      font-family: var(--round);
+      font-weight: 800;
+      font-size: 14px;
+      border-radius: 11px;
+      padding: 10px 18px;
+      cursor: pointer;
+      border: 1.5px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      transition: transform .08s ease, box-shadow .12s ease, background .12s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 5px 14px rgba(47, 109, 179, .28);
+    }
+
+    .btn.pop {
+      background: var(--pop);
+      border-color: var(--pop);
+      color: #fff;
+      box-shadow: 0 5px 14px rgba(237, 106, 40, .28);
+    }
+
+    /* ---------- 問題グリッド ---------- */
+    #practice {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      --c: #3066BE;
+      position: relative;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-top: 3px solid var(--c);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 13px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 132px;
+    }
+
+    /* 丸つけ（○ / ✕） */
+    .mbmark {
+      position: absolute;
+      top: -16px;
+      right: -2px;
+      font-family: var(--round);
+      font-weight: 800;
+      pointer-events: none;
+      z-index: 6;
+      animation: markin .3s cubic-bezier(.2, .8, .3, 1.2);
+    }
+
+    .mbmark.maru {
+      color: #E8453C;
+      font-size: 52px;
+    }
+
+    .mbmark.batsu {
+      color: #E8453C;
+      font-size: 44px;
+    }
+
+    @keyframes markin {
+      0% {
+        transform: scale(.2) rotate(-14deg);
+        opacity: 0;
+      }
+
+      60% {
+        transform: scale(1.18) rotate(3deg);
+      }
+
+      100% {
+        transform: scale(1) rotate(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      20% {
+        transform: translateX(-5px);
+      }
+
+      40% {
+        transform: translateX(5px);
+      }
+
+      60% {
+        transform: translateX(-4px);
+      }
+
+      80% {
+        transform: translateX(3px);
+      }
+    }
+
+    .card.shake {
+      animation: shake .34s;
+    }
+
+    /* 共通の正解エフェクト（星バースト＋正解！） */
+    .fx {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .fx-star {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      font-size: 20px;
+      will-change: transform, opacity;
+    }
+
+    .fx-label {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      transform: translate(-50%, -50%);
+      font-family: var(--round);
+      font-weight: 800;
+      font-size: 32px;
+      color: #fff;
+      letter-spacing: .03em;
+      text-shadow: 0 2px 0 var(--pop), 0 0 12px rgba(237, 106, 40, .55);
+    }
+
+    .btn-see {
+      align-self: flex-start;
+      font-family: var(--round);
+      font-weight: 800;
+      font-size: 12.5px;
+      color: var(--ink-soft);
+      background: #F1F5F8;
+      border: 1.5px solid var(--line);
+      border-radius: 9px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    .btn-see[hidden] {
+      display: none;
+    }
+
+    .ans-key {
+      font-weight: 800;
+      font-size: 13px;
+      color: #fff;
+      background: var(--neutral);
+      padding: 2px 9px;
+      border-radius: 999px;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-family: var(--round);
+      font-weight: 800;
+      font-size: 12px;
+      color: #fff;
+      background: var(--c);
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      flex: none;
+    }
+
+    .cat {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--c);
+      background: color-mix(in srgb, var(--c) 10%, #fff);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .instr {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--pop);
+      background: color-mix(in srgb, var(--pop) 12%, #fff);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .q {
+      font-family: var(--round);
+      font-weight: 700;
+      font-size: clamp(20px, 3.2vw, 25px);
+      line-height: 1.45;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      overflow: hidden;
+    }
+
+    .qfit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: nowrap;
+      transform-origin: center center;
+      margin: 0 auto;
+    }
+
+    .q .wp {
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    /* 分数 */
+    .fr {
+      display: inline-flex;
+      flex-direction: column;
+      vertical-align: middle;
+      text-align: center;
+      margin: 0 .14em;
+      line-height: 1;
+    }
+
+    .fr .fn {
+      padding: 0 .3em .06em;
+      border-bottom: .11em solid currentColor;
+    }
+
+    .fr .fd {
+      padding: .08em .3em 0;
+    }
+
+    .mx {
+      display: inline-flex;
+      align-items: center;
+      gap: .14em;
+      vertical-align: middle;
+    }
+
+    .op {
+      margin: 0 .26em;
+      color: var(--ink-soft);
+    }
+
+    .pr {
+      margin: 0 .03em;
+      color: var(--ink-soft);
+    }
+
+    /* 入力 */
+    .entry {
+      display: flex;
+      gap: 8px;
+    }
+
+    .ans-in {
+      flex: 1 1 auto;
+      width: 100%;
+      font-family: var(--round);
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--ink);
+      border: 1.5px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 11px;
+      background: #FCFDFE;
+    }
+
+    .ans-in::placeholder {
+      color: #AEB9C3;
+      font-weight: 600;
+    }
+
+    .btn-check {
+      font-family: var(--round);
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--c);
+      background: color-mix(in srgb, var(--c) 10%, #fff);
+      border: 1.5px solid color-mix(in srgb, var(--c) 28%, #fff);
+      border-radius: 10px;
+      padding: 0 14px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-check:hover {
+      background: color-mix(in srgb, var(--c) 18%, #fff);
+    }
+
+    .result {
+      border-top: 1px dashed var(--line);
+      padding-top: 9px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex-wrap: wrap;
+      font-family: var(--round);
+    }
+
+    .mark {
+      font-weight: 800;
+      font-size: 13px;
+      padding: 2px 9px;
+      border-radius: 999px;
+    }
+
+    .mark.good {
+      color: #fff;
+      background: var(--good);
+    }
+
+    .mark.bad {
+      color: #fff;
+      background: var(--bad);
+    }
+
+    .mark.neutral {
+      color: #fff;
+      background: var(--neutral);
+    }
+
+    .ans {
+      font-weight: 800;
+      font-size: 21px;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .memo {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-soft);
+      background: #F1F5F8;
+      padding: 2px 9px;
+      border-radius: 8px;
+    }
+
+    .dfrac {
+      font-size: .76em;
+      color: var(--ink-soft);
+      font-weight: 700;
+      margin-left: 5px;
+    }
+
+    .dfrac .fr,
+    .dfrac .mx {
+      vertical-align: middle;
+    }
+
+    .card.solved {
+      border-top-color: var(--good);
+      background: linear-gradient(#fff, color-mix(in srgb, var(--good) 5%, #fff));
+    }
+
+    @keyframes pop {
+      0% {
+        transform: scale(1);
+      }
+
+      40% {
+        transform: scale(1.018);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .card.pop {
+      animation: pop .28s ease;
+    }
+
+    /* =====================================================================
+       B4 プレビュー / 印刷
+       ===================================================================== */
+    #sheetOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: rgba(28, 38, 48, .55);
+      backdrop-filter: blur(2px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    #sheetOverlay[hidden] {
+      display: none;
+    }
+
+    .sheet-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: #1F2A36;
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, .2);
+    }
+
+    .sheet-toolbar .st-title {
+      font-family: var(--round);
+      font-weight: 800;
+      font-size: 15px;
+    }
+
+    .sheet-toolbar .hint {
+      font-size: 12px;
+      color: #AEBCC8;
+    }
+
+    .sheet-scroll {
+      flex: 1 1 auto;
+      overflow: auto;
+      padding: 20px 12px 40px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    #worksheet {
+      width: 348mm;
+      background: #fff;
+      color: #1b2530;
+      padding: 8mm 9mm 9mm;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .35);
+      font-family: var(--round);
+      flex: none;
+    }
+
+    .ws-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 2.6px solid #1b2530;
+      padding-bottom: 3.4mm;
+      margin-bottom: 4mm;
+    }
+
+    .ws-title {
+      font-weight: 800;
+      font-size: 26px;
+      letter-spacing: .01em;
+    }
+
+    .ws-title .ws-sub {
+      font-size: 12px;
+      color: #6b7884;
+      margin-left: 8px;
+      font-weight: 700;
+    }
+
+    .ws-fields {
+      display: flex;
+      gap: 8mm;
+      font-size: 12px;
+      font-weight: 700;
+      color: #2c3742;
+    }
+
+    .ws-field {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .ws-field i {
+      display: inline-block;
+      width: 30mm;
+      border-bottom: 1.4px solid #1b2530;
+      height: 1em;
+    }
+
+    .ws-field.ws-score i {
+      width: 16mm;
+    }
+
+    .ws-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7mm 9mm;
+      margin-top: 1mm;
+    }
+
+    .ws-item {
+      break-inside: avoid;
+      border-left: 5px solid var(--c);
+      padding: 0 0 3mm 4mm;
+    }
+
+    .ws-cap {
+      display: flex;
+      align-items: center;
+      gap: 2mm;
+      margin-bottom: 2.6mm;
+    }
+
+    .ws-no {
+      color: var(--c);
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .ws-cap-l {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #1b2530;
+    }
+
+    .ws-prob {
+      font-size: 17px;
+      line-height: 1.9;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ws-pno {
+      color: #8a97a3;
+      font-size: 12px;
+      font-weight: 700;
+      margin-right: 1mm;
+    }
+
+    .ws-instr {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #b4530c;
+      margin-right: 1.5mm;
+    }
+
+    .ws-blank {
+      display: inline-block;
+      min-width: 32mm;
+      border-bottom: 1.4px solid #b6c2cb;
+      height: 1em;
+      vertical-align: bottom;
+      margin-left: 2mm;
+    }
+
+    .ws-wpans {
+      margin-top: 2mm;
+      color: #46535f;
+      font-size: 13px;
+    }
+
+    .ws-answers {
+      break-before: page;
+      page-break-before: always;
+      margin-top: 4mm;
+      border-top: 2px dashed #aab6bf;
+      padding-top: 4mm;
+    }
+
+    .ak-title {
+      font-weight: 800;
+      font-size: 15px;
+      margin-bottom: 3mm;
+    }
+
+    .ak-list {
+      column-count: 4;
+      column-gap: 6mm;
+      font-size: 13px;
+      line-height: 1.85;
+    }
+
+    .ak-item {
+      display: block;
+      break-inside: avoid;
+      margin-bottom: 1.4mm;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ak-item b {
+      color: #6b7884;
+      font-weight: 700;
+      margin-right: 2px;
+    }
+
+    .ak-memo {
+      color: #8a97a3;
+      font-size: 10px;
+      margin-left: 4px;
+    }
+
+    /* ワークシート内の分数は em ベースなので自動で小さくなる */
+    #worksheet .op {
+      margin: 0 .2em;
+      color: #3a4751;
+    }
+
+    #worksheet .fr {
+      margin: 0 .1em;
+    }
+
+    /* ---------- 図形（図＋問題文） ---------- */
+    .geo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex-basis: 100%;
+    }
+
+    .geo-q {
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 15px;
+      line-height: 1.55;
+      text-align: center;
+      color: var(--ink);
+    }
+
+    .figsvg {
+      display: block;
+      height: 132px;
+      width: auto;
+      max-width: 94%;
+      overflow: visible;
+    }
+
+    .figsvg .sh {
+      fill: #EEF3F7;
+      stroke: var(--ink);
+      stroke-width: 2;
+      stroke-linejoin: round;
+    }
+
+    .figsvg line {
+      stroke: var(--ink);
+      stroke-width: 2;
+    }
+
+    .figsvg .d {
+      stroke-dasharray: 4 3;
+      stroke: #8a97a3;
+      stroke-width: 1.5;
+    }
+
+    .figsvg .dim {
+      stroke: #6B7885;
+      stroke-width: 1.3;
+      fill: none;
+    }
+
+    .figsvg .cap {
+      stroke: #6B7885;
+      stroke-width: 1.4;
+      fill: none;
+    }
+
+    .figsvg .hid {
+      stroke-dasharray: 4 3;
+      stroke: #9aa6b0;
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .figsvg text {
+      font-family: var(--round);
+      font-weight: 700;
+      font-size: 13px;
+      fill: var(--ink);
+      stroke: none;
+    }
+
+    .figsvg .q {
+      fill: var(--pop);
+      font-weight: 800;
+      font-size: 15px;
+    }
+
+    #stage .geo-q {
+      font-size: clamp(15px, 3.6vw, 18px);
+    }
+
+    #stage .figsvg {
+      height: 150px;
+    }
+
+    /* 印刷では小さめ */
+    #worksheet .figsvg {
+      height: 82px;
+    }
+
+    #worksheet .geo-q {
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    /* ---------- 折りたたみメニュー ---------- */
+    .menu {
+      max-width: 680px;
+      margin: 0 auto 18px;
+    }
+
+    .menu-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 13px 16px;
+      cursor: pointer;
+      font-family: var(--round);
+    }
+
+    .menu-bar-l {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--ink-soft);
+    }
+
+    .menu-bar-l b {
+      color: var(--ink);
+    }
+
+    .menu-bar-r {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .score {
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 10%, #fff);
+      padding: 3px 11px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .menu-caret {
+      color: var(--ink-soft);
+      font-size: 13px;
+      transition: transform .2s ease;
+    }
+
+    .menu-bar[aria-expanded="true"] .menu-caret {
+      transform: rotate(180deg);
+    }
+
+    .menu-panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 15px 16px 16px;
+      margin-top: 10px;
+    }
+
+    .menu-panel[hidden] {
+      display: none;
+    }
+
+    .menu-actions {
+      margin-top: 14px;
+    }
+
+    /* 印刷ボタンは設定パネルの外に独立配置 */
+    .print-row {
+      max-width: 680px;
+      margin: 0 auto 18px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ---------- 1問ステージ ---------- */
+    #stage {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    #stage .card {
+      min-height: auto;
+      gap: 16px;
+      padding: 22px 22px 20px;
+      border-top-width: 4px;
+    }
+
+    #stage .card-top {
+      justify-content: center;
+    }
+
+    #stage .q {
+      justify-content: center;
+      text-align: center;
+      font-size: clamp(26px, 5.4vw, 38px);
+      min-height: 1.5em;
+    }
+
+    #stage .q .wp {
+      font-size: clamp(16px, 3.8vw, 19px);
+      text-align: left;
+      font-weight: 600;
+    }
+
+    /* ---------- 答え表示 ---------- */
+    .answer {
+      display: flex;
+      justify-content: center;
+    }
+
+    .disp {
+      min-width: 168px;
+      max-width: 100%;
+      min-height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 5px 14px;
+    }
+
+    .disp.nudge {
+      animation: shake .3s ease;
+      border-color: var(--bad);
+    }
+
+    .dnum {
+      font-family: var(--round);
+      font-weight: 800;
+      font-size: 25px;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .02em;
+    }
+
+    .dnum.ph {
+      color: #AEB9C4;
+      font-weight: 600;
+      font-size: 17px;
+    }
+
+    /* 縦型の分数入力 */
+    .fin {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .fin-box {
+      min-width: 50px;
+      min-height: 24px;
+      padding: 1px 8px;
+      border: 1.5px dashed transparent;
+      border-radius: 8px;
+      background: transparent;
+      font-family: var(--round);
+      font-weight: 800;
+      font-size: 20px;
+      line-height: 1.15;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+    }
+
+    .fin-box.active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 8%, #fff);
+    }
+
+    .fin-box.ph {
+      color: #CDD6DF;
+    }
+
+    .fin-bar {
+      width: 56px;
+      height: 3px;
+      background: var(--ink);
+      border-radius: 2px;
+    }
+
+    /* ---------- テンキー ---------- */
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 7px;
+      user-select: none;
+    }
+
+    .key {
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: #fff;
+      font-family: var(--round);
+      font-weight: 800;
+      font-size: 20px;
+      color: var(--ink);
+      cursor: pointer;
+      touch-action: manipulation;
+      box-shadow: 0 1px 0 rgba(40, 60, 90, .05);
+    }
+
+    .key:active {
+      transform: translateY(1px);
+      background: #F4F7FA;
+    }
+
+    .key.k-util {
+      font-size: 16px;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 7%, #fff);
+    }
+
+    #fracToggle.on {
+      color: #fff;
+      background: var(--accent);
+    }
+
+    .key[disabled] {
+      opacity: .4;
+      cursor: default;
+    }
+
+    /* 分数トグルは3列ぶんに広げて数字キーの列を埋める */
+    .k-frac {
+      grid-column: span 3;
+    }
+
+    /* 「次の問題」（左・小さめ）と「こたえあわせ」（右・大きめ）を横並び */
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+      margin-top: 2px;
+    }
+
+    .btn-next {
+      flex: 0 0 auto;
+      font-family: var(--round);
+      font-weight: 800;
+      font-size: 15px;
+      color: #fff;
+      background: var(--accent);
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      cursor: pointer;
+      box-shadow: 0 5px 14px rgba(47, 109, 179, .28);
+      transition: transform .08s ease;
+    }
+
+    .btn-next:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-check {
+      flex: 1 1 auto;
+      font-family: var(--round);
+      font-weight: 800;
+      font-size: 17px;
+      color: #fff;
+      background: var(--pop);
+      border: none;
+      border-radius: 12px;
+      padding: 12px 20px;
+      cursor: pointer;
+      box-shadow: 0 5px 14px rgba(237, 106, 40, .3);
+      transition: transform .08s ease;
+    }
+
+    .btn-check:active {
+      filter: brightness(.96);
+      transform: translateY(1px);
+    }
+
+    /* ---------- 解説 ---------- */
+    .explain {
+      border-top: 1px dashed var(--line);
+      padding-top: 14px;
+    }
+
+    .explain[hidden] {
+      display: none;
+    }
+
+    .exp-answer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+      font-family: var(--round);
+    }
+
+    .exp-answer .ans {
+      font-weight: 800;
+      font-size: 24px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ans-key.ok {
+      background: var(--good);
+    }
+
+    .ans-key.ng {
+      background: var(--neutral);
+    }
+
+    .exp-title {
+      font-weight: 800;
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin: 0 0 6px;
+      letter-spacing: .04em;
+    }
+
+    .exp-line {
+      font-family: var(--round);
+      font-size: 18px;
+      line-height: 1.95;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .exp-line .op {
+      margin: 0 .2em;
+    }
+
+    .exp-line .wp {
+      font-family: var(--sans);
+    }
+
+    .footer-note {
+      text-align: center;
+      color: var(--ink-soft);
+      font-size: 12px;
+      margin-top: 30px;
+    }
+
+    @media (max-width: 520px) {
+      .toolbar {
+        gap: 10px;
+      }
+
+      .btn {
+        flex: 1 1 auto;
+        text-align: center;
+      }
+
+      .spacer {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+
+    /* ---------- 印刷 ---------- */
+    @media print {
+      @page {
+        size: B4 landscape;
+        margin: 8mm;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      .wrap {
+        display: none !important;
+      }
+
+      #sheetOverlay {
+        display: block !important;
+        position: static !important;
+        inset: auto !important;
+        background: none !important;
+        backdrop-filter: none !important;
+      }
+
+      .sheet-toolbar {
+        display: none !important;
+      }
+
+      .sheet-scroll {
+        overflow: visible !important;
+        padding: 0 !important;
+        display: block !important;
+      }
+
+      #worksheet {
+        width: auto !important;
+        zoom: 1 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 共通モジュール（ヘッダー／小学生用 正解エフェクト／学習記録コア） -->
+  <script src="/assets/divp-header.js"></script>
+  <script src="/assets/divp-correct.js"></script>
+  <script src="/assets/divp-core.js"></script>
+  <script>if (window.Divp && Divp.init) Divp.init('math_es6_keisan_dousuru');</script>
+
+  <div class="wrap">
+    <header>
+      <h1 class="title">計算ど<span class="du">ぅ</span>する<span class="qm">？</span></h1>
+      <div class="subtitle">小学生のための計算ドリル — 1問ずつ解いて、答え合わせ＆解説。</div>
+    </header>
+
+    <div class="menu">
+      <button id="menuBar" class="menu-bar" type="button" aria-expanded="true">
+        <span class="menu-bar-l">出題：<b id="selLabel">ぜんぶ（ランダム）</b></span>
+        <span class="menu-bar-r"><span id="score" class="score">正解 0 / 0</span><span class="menu-caret">▾</span></span>
+      </button>
+      <div id="menuPanel" class="menu-panel">
+        <p class="panel-label">れんしゅうする内容</p>
+        <div id="cat-chips"></div>
+      </div>
+    </div>
+
+    <div class="print-row">
+      <button id="btn-print" class="btn pop">B4プリント（12問）</button>
+    </div>
+
+    <div id="stage"></div>
+
+    <p class="footer-note">分数は <b>3/4</b>（仮分数）や <b>1 1/2</b> のように入力できます。</p>
+  </div>
+
+  <!-- B4 プレビュー -->
+  <div id="sheetOverlay" hidden>
+    <div class="sheet-toolbar">
+      <span class="st-title">B4よこ プリント プレビュー</span>
+      <button id="btn-sheet-print" class="btn pop">印刷する</button>
+      <button id="btn-sheet-new" class="btn">問題を作り直す</button>
+      <span class="spacer" style="flex:1"></span>
+      <span class="hint">1枚目＝問題　2枚目＝こたえ</span>
+      <button id="btn-sheet-close" class="btn">とじる</button>
+    </div>
+    <div class="sheet-scroll">
+      <div id="worksheet"></div>
+    </div>
+  </div>
+
+  <script>/* =========================================================================
+   計算どぅする？  — 問題生成コア
+   Pure logic. Node でテストし、そのまま HTML に埋め込む。
+   ========================================================================= */
+(function (root) {
+  'use strict';
+
+  /* ---------- 基本ユーティリティ ---------- */
+  const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1)); // inclusive int
+  const pick = (a) => a[Math.floor(Math.random() * a.length)];
+  const coin = () => Math.random() < 0.5;
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = R(0, i);[a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+  function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; }
+
+  /* ---------- 分数 ---------- */
+  class Frac {
+    constructor(n, d = 1) {
+      if (d === 0) throw new Error('division by zero');
+      if (d < 0) { n = -n; d = -d; }
+      const g = gcd(n, d);
+      this.n = n / g; this.d = d / g;
+    }
+    static from(x) { return (x instanceof Frac) ? x : new Frac(x, 1); }
+    add(o) { o = Frac.from(o); return new Frac(this.n * o.d + o.n * this.d, this.d * o.d); }
+    sub(o) { o = Frac.from(o); return new Frac(this.n * o.d - o.n * this.d, this.d * o.d); }
+    mul(o) { o = Frac.from(o); return new Frac(this.n * o.n, this.d * o.d); }
+    div(o) { o = Frac.from(o); if (o.n === 0) throw new Error('division by zero'); return new Frac(this.n * o.d, this.d * o.n); }
+    cmp(o) { o = Frac.from(o); return this.n * o.d - o.n * this.d; }
+    eq(o) { return this.cmp(o) === 0; }
+    isInt() { return this.d === 1; }
+    toNumber() { return this.n / this.d; }
+  }
+
+  function decToFrac(str) {
+    str = String(str).trim();
+    const neg = str[0] === '-';
+    if (neg) str = str.slice(1);
+    const dot = str.indexOf('.');
+    let f;
+    if (dot < 0) f = new Frac(parseInt(str, 10), 1);
+    else {
+      const dec = str.length - dot - 1;
+      const digits = str.replace('.', '');
+      f = new Frac(parseInt(digits, 10), Math.pow(10, dec));
+    }
+    return neg ? f.mul(-1) : f;
+  }
+
+  function isTerminating(f) { let d = f.d; while (d % 2 === 0) d /= 2; while (d % 5 === 0) d /= 5; return d === 1; }
+
+  // 終わる小数を文字列に（浮動小数の誤差を避けて整数演算で）
+  function fracToDec(f) {
+    let n = f.n, d = f.d;
+    const sign = n < 0 ? '-' : ''; n = Math.abs(n);
+    let p2 = 0, dd = d; while (dd % 2 === 0) { dd /= 2; p2++; }
+    let p5 = 0; while (dd % 5 === 0) { dd /= 5; p5++; }
+    const k = Math.max(p2, p5);
+    const scaled = n * Math.round(Math.pow(10, k) / d); // n/d*10^k, 整数
+    let s = String(scaled);
+    if (k === 0) return sign + s;
+    while (s.length <= k) s = '0' + s;
+    let ip = s.slice(0, s.length - k), fp = s.slice(s.length - k);
+    fp = fp.replace(/0+$/, '');
+    return sign + ip + (fp ? '.' + fp : '');
+  }
+
+  // a/b を places 桁で四捨五入（整数演算・半数切り上げ）
+  function roundDivFixed(a, b, places) {
+    const f = Math.pow(10, places);
+    const num = a * f;
+    const q0 = Math.floor(num / b), rem = num - q0 * b;
+    let q = (2 * rem >= b) ? q0 + 1 : q0;
+    let s = String(q);
+    if (places === 0) return s;
+    while (s.length <= places) s = '0' + s;
+    return s.slice(0, s.length - places) + '.' + s.slice(s.length - places);
+  }
+
+  function sigFig2DivStr(a, b) {
+    const v = a / b;
+    const exp = Math.floor(Math.log10(v));
+    const places = Math.max(0, 1 - exp);
+    return roundDivFixed(a, b, places);
+  }
+
+  // 整数を shift だけ小数点を左へずらした文字列
+  function shiftDec(n, shift) {
+    if (shift === 0) return String(n);
+    let s = String(n);
+    while (s.length <= shift) s = '0' + s;
+    return s.slice(0, s.length - shift) + '.' + s.slice(s.length - shift);
+  }
+
+  /* ---------- トークン（描画用） ---------- */
+  const tx = (v) => ({ t: 'txt', v: String(v) });
+  const op = (v) => ({ t: 'op', v });
+  const eq = () => ({ t: 'op', v: '=' });
+  const lp = () => ({ t: 'paren', v: '(' });
+  const rp = () => ({ t: 'paren', v: ')' });
+
+  function fracToken(f) {
+    if (f.d === 1) return tx(f.n);
+    const sign = f.n < 0 ? '-' : '';
+    return { t: 'frac', n: sign + Math.abs(f.n), d: String(f.d) };
+  }
+  function decTokenOf(f, unit) { return tx(fracToDec(f) + (unit || '')); }
+  function rawFrac(n, d) { return { t: 'frac', n: String(n), d: String(d) }; } // 約分前の分数表示
+  function lcm(a, b) { return a / gcd(a, b) * b; }
+  // 値＋単位をトークン化（整数→そのまま／割り切れる→小数／それ以外→分数）
+  function valUnitTokens(f, unit) {
+    if (f.d === 1) return [tx(String(f.n) + unit)];
+    if (isTerminating(f)) return [tx(fracToDec(f) + unit)];
+    return [fracToken(f), tx(unit)];
+  }
+
+  /* =====================================================================
+     1. 小数のたし算・ひき算（位がずれているもの）
+     ===================================================================== */
+  function genMisalignedDecimal() {
+    const o = coin() ? '+' : '-';
+    let dpA = pick([1, 2]);
+    let dpB = dpA === 1 ? 2 : pick([1, 2]);
+    if (dpA === dpB) dpB = dpA === 1 ? 2 : 1;
+
+    const mk = (dp) => {
+      const ip = R(0, 49);
+      let fv;
+      do { fv = R(1, Math.pow(10, dp) - 1); } while (fv % 10 === 0); // 末尾0を避け桁数を保つ
+      const f = new Frac(ip * Math.pow(10, dp) + fv, Math.pow(10, dp));
+      const str = ip + '.' + String(fv).padStart(dp, '0');
+      return { f, str };
+    };
+    let A = mk(dpA), B = mk(dpB);
+    if (o === '-' && A.f.cmp(B.f) < 0) { const t = A; A = B; B = t; }
+    const ans = o === '+' ? A.f.add(B.f) : A.f.sub(B.f);
+    return {
+      tokens: [tx(A.str), op(o), tx(B.str), eq()],
+      ansTokens: [decTokenOf(ans)],
+      explain: [
+        [tx('小数点の位置をそろえて筆算します。')],
+        [tx(A.str), op(o), tx(B.str), eq(), decTokenOf(ans)]
+      ],
+      check: ans
+    };
+  }
+
+  /* =====================================================================
+     2. 補数（くふうして計算）3桁まで・小数も
+     ===================================================================== */
+  function genComplementChain() {
+    const r = Math.random();
+    if (r < 0.30) {
+      // ひき算でまとめる:  N - a - b  (a+b=きりのよい数)
+      const target = pick([100, 100, 1000]);
+      const N = R(target + 11, target + (target === 100 ? 800 : 8000));
+      const a = R(target === 100 ? 11 : 101, target - (target === 100 ? 11 : 101));
+      const b = target - a;
+      const parts = shuffle([a, b]);
+      const sum = N - parts[0] - parts[1];
+      const tokens = [tx(N)];
+      parts.forEach(p => { tokens.push(op('-'), tx(p)); });
+      tokens.push(eq());
+      return {
+        tokens, ansTokens: [tx(sum)], check: new Frac(sum, 1),
+        explain: [
+          [tx(`先に ${parts[0]} ＋ ${parts[1]} ＝ ${target} とまとめてからひきます。`)],
+          [tx(`${N} − ${target} = ${sum}`)]
+        ]
+      };
+    }
+    if (r < 0.65) {
+      // 整数のたし算: 補数ペア + フィラー
+      const target = pick([100, 100, 100, 1000]);
+      const n = pick([4, 5]);
+      const numPairs = Math.floor(n / 2);
+      const parts = [], pairList = [];
+      for (let i = 0; i < numPairs; i++) {
+        const a = R(target === 100 ? 11 : 101, target - (target === 100 ? 11 : 101));
+        pairList.push([a, target - a]); parts.push(a, target - a);
+      }
+      let filler = null;
+      if (n % 2 === 1) { filler = R(11, target === 100 ? 89 : 300); parts.push(filler); }
+      shuffle(parts);
+      const sum = parts.reduce((s, x) => s + x, 0);
+      const tokens = [];
+      parts.forEach((p, i) => { if (i) tokens.push(op('+')); tokens.push(tx(p)); });
+      tokens.push(eq());
+      const exp = [[tx(`きりのよい数（${target}）のまとまりを作ります。`)]];
+      pairList.forEach(([x, y]) => exp.push([tx(`${x} + ${y} = ${target}`)]));
+      if (filler !== null) exp.push([tx(`のこりは ${filler}`)]);
+      exp.push([tx('合計 = '), tx(sum)]);
+      return { tokens, ansTokens: [tx(sum)], check: new Frac(sum, 1), explain: exp };
+    }
+    // 小数のたし算: 10 や 1 への補数ペア（1桁小数）
+    const target = pick([10, 10, 1]);
+    const tens = target * 10; // 整数化
+    const n = pick([4, 5]);
+    const numPairs = Math.floor(n / 2);
+    const parts = [], pairList = [];
+    for (let i = 0; i < numPairs; i++) {
+      const a = R(1, tens - 1); pairList.push([a, tens - a]); parts.push(a, tens - a);
+    }
+    let filler = null;
+    if (n % 2 === 1) { filler = R(1, tens - 1); parts.push(filler); }
+    shuffle(parts);
+    const sumI = parts.reduce((s, x) => s + x, 0);
+    const ans = new Frac(sumI, 10);
+    const tokens = [];
+    parts.forEach((p, i) => { if (i) tokens.push(op('+')); tokens.push(tx(fracToDec(new Frac(p, 10)))); });
+    tokens.push(eq());
+    const ds = (x) => fracToDec(new Frac(x, 10));
+    const exp = [[tx(`${target} のまとまりを作ってたします。`)]];
+    pairList.forEach(([x, y]) => exp.push([tx(`${ds(x)} + ${ds(y)} = ${target}`)]));
+    if (filler !== null) exp.push([tx(`のこりは ${ds(filler)}`)]);
+    exp.push([tx('合計 = '), decTokenOf(ans)]);
+    return { tokens, ansTokens: [decTokenOf(ans)], check: ans, explain: exp };
+  }
+
+  /* =====================================================================
+     3. 12×34 → 0.12×3.4 など（小数点をずらしたかけ算）
+     ===================================================================== */
+  function genDecimalMultShifted() {
+    const bad = (s) => /\.\d*0$/.test(s);   // 末尾に0が付く小数（2.0, 3.50 など）を除外
+    for (let t = 0; t < 300; t++) {
+      const p = R(2, 99), q = R(2, 99);
+      let sA = pick([0, 1, 2]), sB = pick([0, 1, 2]);
+      if (sA === 0 && sB === 0) { if (coin()) sA = pick([1, 2]); else sB = pick([1, 2]); }
+      const As = shiftDec(p, sA), Bs = shiftDec(q, sB);
+      if (bad(As) || bad(Bs)) continue;
+      const aF = new Frac(p, Math.pow(10, sA)), bF = new Frac(q, Math.pow(10, sB));
+      const ans = aF.mul(bF);
+      return {
+        tokens: [tx(As), op('×'), tx(Bs), eq()],
+        ansTokens: [decTokenOf(ans)],
+        memo: `${p} × ${q} = ${p * q}`,
+        explain: [
+          [tx(`まず ${p} × ${q} = ${p * q} を計算します。`)],
+          [tx(`小数点を合わせて ${sA + sB} けた左へ動かす → `), decTokenOf(ans)]
+        ],
+        check: ans
+      };
+    }
+    // フォールバック：末尾が0でない数どうし
+    let p, q; do { p = R(2, 99); } while (p % 10 === 0); do { q = R(2, 99); } while (q % 10 === 0);
+    const aF = new Frac(p, 10), bF = new Frac(q, 1), ans = aF.mul(bF);
+    return {
+      tokens: [tx(shiftDec(p, 1)), op('×'), tx(String(q)), eq()],
+      ansTokens: [decTokenOf(ans)],
+      memo: `${p} × ${q} = ${p * q}`,
+      explain: [
+        [tx(`まず ${p} × ${q} = ${p * q} を計算します。`)],
+        [tx(`小数点を合わせて 1 けた左へ動かす → `), decTokenOf(ans)]
+      ],
+      check: ans
+    };
+  }
+
+  /* =====================================================================
+     4. 同じくわり算（小数点ずらし・割り切れる）
+     ===================================================================== */
+  function genDecimalDivShifted() {
+    const bad = (s) => /\.\d*0$/.test(s);   // 末尾に0が付く小数（12.0, 2.50 など）を除外
+    for (let t = 0; t < 300; t++) {
+      const Q = R(2, 49), D = R(2, 9), P = Q * D;
+      let sP = pick([0, 1, 2]), sD = pick([0, 1, 2]);
+      if (sP === 0 && sD === 0) { if (coin()) sP = pick([1, 2]); else sD = pick([1, 2]); }
+      const Ps = shiftDec(P, sP), Ds = shiftDec(D, sD);
+      if (bad(Ps) || bad(Ds)) continue;
+      const pF = new Frac(P, Math.pow(10, sP)), dF = new Frac(D, Math.pow(10, sD));
+      const ans = pF.div(dF);
+      return {
+        tokens: [tx(Ps), op('÷'), tx(Ds), eq()],
+        ansTokens: [decTokenOf(ans)],
+        memo: `${P} ÷ ${D} = ${Q}`,
+        explain: [
+          [tx(`まず ${P} ÷ ${D} = ${Q} を計算します。`)],
+          [tx('小数点の位置を考えて → '), decTokenOf(ans)]
+        ],
+        check: ans
+      };
+    }
+    // フォールバック：末尾0が出ない組み合わせ（被除数の末尾が0でない）
+    let Q, D, P;
+    do { Q = R(2, 49); D = R(2, 9); P = Q * D; } while (P % 10 === 0);
+    const pF = new Frac(P, 10), dF = new Frac(D, 1), ans = pF.div(dF);
+    return {
+      tokens: [tx(shiftDec(P, 1)), op('÷'), tx(String(D)), eq()],
+      ansTokens: [decTokenOf(ans)],
+      memo: `${P} ÷ ${D} = ${Q}`,
+      explain: [
+        [tx(`まず ${P} ÷ ${D} = ${Q} を計算します。`)],
+        [tx('小数点の位置を考えて → '), decTokenOf(ans)]
+      ],
+      check: ans
+    };
+  }
+
+  /* =====================================================================
+     5. 割り切れないわり算（がい数）— 小数÷小数
+        丸め：上から2けた／小数第1位四捨五入／小数第2位四捨五入 を混在。
+        間違えやすいケース（0.457…の先頭ゼロ、0.697…の繰り上がり）を多めに。
+     ===================================================================== */
+  function weightedPick(pairs) {
+    let s = 0; for (const [, w] of pairs) s += w;
+    let r = Math.random() * s;
+    for (const [v, w] of pairs) { if ((r -= w) < 0) return v; }
+    return pairs[0][0];
+  }
+
+  // q=Frac を places 桁で四捨五入（半数切り上げ）。繰り上がり情報も返す
+  function roundDetail(q, places) {
+    const f = Math.pow(10, places);
+    const num = q.n * f;
+    const q0 = Math.floor(num / q.d), rem = num - q0 * q.d;
+    const up = 2 * rem >= q.d;
+    const val = up ? q0 + 1 : q0;
+    const carried = up && (q0 % 10 === 9);   // 残す最後の桁が9→繰り上がり
+    let s = String(val), str;
+    if (places === 0) str = s;
+    else { while (s.length <= places) s = '0' + s; str = s.slice(0, s.length - places) + '.' + s.slice(s.length - places); }
+    if (str.indexOf('.') >= 0) str = str.replace(/0+$/, '').replace(/\.$/, ''); // 末尾0は書かない（0.20→0.2, 1.0→1）
+    return { val, str, carried, places };
+  }
+  function sigPlaces(qv) { return Math.max(0, 1 - Math.floor(Math.log10(qv))); }
+
+  function genNonTerminatingDiv() {
+    const divBase = [3, 6, 7, 9, 11, 12, 13];
+    // 間違えやすいものを多めに重み付け
+    const cat = weightedPick([
+      ['sigLead', 3],  // 上から2けた・答えが0.◯◯（先頭ゼロ）
+      ['carry', 3],    // 四捨五入で繰り上がる（どの丸めでも）
+      ['sigNorm', 2],  // 上から2けた・1以上
+      ['dec1', 2],     // 小数第1位を四捨五入（整数に）
+      ['dec2', 2]      // 小数第2位を四捨五入（小数第1位まで）
+    ]);
+
+    function trial() {
+      const d = pick(divBase);
+      const sB = Math.random() < 0.72 ? 1 : 0;            // 除数も小数を多めに（0.7 など）
+      const B = new Frac(d, Math.pow(10, sB));
+      const sA = pick([1, 2]);
+      let aRaw; do { aRaw = R(1, sA === 1 ? 99 : 199); } while (aRaw % 10 === 0);
+      const A = new Frac(aRaw, Math.pow(10, sA));
+      const q = A.div(B);
+      if (isTerminating(q)) return null;                 // 割り切れるものは除外
+      const qv = q.toNumber();
+      if (qv <= 0.1 || qv >= 100) return null;
+      return { A, B, q, qv };
+    }
+
+    function modeOf(cat) {
+      if (cat === 'sigLead' || cat === 'sigNorm') return 'sig';
+      if (cat === 'dec1') return 'dec1';
+      if (cat === 'dec2') return 'dec2';
+      return pick(['sig', 'dec1', 'dec2']); // carry はどの丸めでも
+    }
+    function detailFor(q, qv, mode) {
+      const places = mode === 'dec1' ? 0 : mode === 'dec2' ? 1 : sigPlaces(qv);
+      return roundDetail(q, places);
+    }
+    function accept(cat, c, mode, qv) {
+      if (mode === 'sig' && c.val >= Math.pow(10, c.places + 1)) return false; // 桁あふれ表示を回避
+      if (c.val === 0) return false;
+      if (cat === 'sigLead') return mode === 'sig' && qv < 1;
+      if (cat === 'sigNorm') return mode === 'sig' && qv >= 1;
+      if (cat === 'dec1') return mode === 'dec1' && qv >= 0.5;
+      if (cat === 'dec2') return mode === 'dec2';
+      if (cat === 'carry') return c.carried;
+      return true;
+    }
+
+    let chosen = null, mode = null;
+    for (let t = 0; t < 4000 && !chosen; t++) {
+      const tr = trial(); if (!tr) continue;
+      mode = modeOf(cat);
+      const c = detailFor(tr.q, tr.qv, mode);
+      if (accept(cat, c, mode, tr.qv)) chosen = { tr, c };
+    }
+    if (!chosen) { // フォールバック：とにかく割り切れない小数わり算
+      for (let t = 0; t < 4000 && !chosen; t++) {
+        const tr = trial(); if (!tr) continue;
+        mode = modeOf('dec2');
+        const c = detailFor(tr.q, tr.qv, mode);
+        if (accept('dec2', c, mode, tr.qv)) chosen = { tr, c };
+      }
+    }
+    const { A, B, q, qv } = chosen.tr, c = chosen.c;
+    const instr = mode === 'sig' ? '上から2けたの概数で'
+      : mode === 'dec1' ? '小数第1位を四捨五入'
+        : '小数第2位を四捨五入';
+    const ans = decToFrac(c.str);
+    const longStr = roundDivFixed(q.n, q.d, c.places + 3);
+    const Astr = fracToDec(A), Bstr = fracToDec(B);
+    const exp2 = (mode === 'sig' ? '上から2けたにして' : mode === 'dec1' ? '小数第1位を四捨五入して' : '小数第2位を四捨五入して') + ' → ';
+    const explain = [
+      [tx(`${Astr} ÷ ${Bstr} = ${longStr}…`)],
+      [tx(exp2), tx('約 ' + c.str)]
+    ];
+    if (c.carried) explain.push([tx('四捨五入で位が繰り上がることに注意。')]);
+    return {
+      instr,
+      tokens: [tx(Astr), op('÷'), tx(Bstr), eq()],
+      ansTokens: [tx('約 ' + c.str)],
+      explain,
+      check: ans
+    };
+  }
+
+  /* =====================================================================
+     6. 25×4・125×8 を活用（小数可）
+     ===================================================================== */
+  function gen25_125() {
+    const base = pick([25, 25, 125]);
+    const step = base === 25 ? 4 : 8;
+    const k = R(2, base === 25 ? 16 : 9);
+    const m = step * k;
+    const sBase = pick([0, 0, 1, 2]);
+    const baseF = new Frac(base, Math.pow(10, sBase));
+    const ans = baseF.mul(m);
+    const baseStr = shiftDec(base, sBase);
+    const tokens = coin()
+      ? [tx(baseStr), op('×'), tx(m), eq()]
+      : [tx(m), op('×'), tx(baseStr), eq()];
+    const hintF = new Frac(base * step, Math.pow(10, sBase));
+    return {
+      tokens,
+      ansTokens: [decTokenOf(ans)],
+      memo: `${baseStr} × ${step} = ${fracToDec(hintF)}`,
+      explain: [
+        [tx(`${baseStr} × ${step} = ${fracToDec(hintF)} を使います。`)],
+        [tx(`${baseStr} × ${m} = ${baseStr} × ${step} × ${k} = ${fracToDec(hintF)} × ${k} = `), decTokenOf(ans)]
+      ],
+      check: ans
+    };
+  }
+
+  /* =====================================================================
+     7. 通分が必要な分数のたし算・ひき算（分子分母2桁まで・整数可）
+     ===================================================================== */
+  function genFractionAddSub() {
+    for (let t = 0; t < 300; t++) {
+      const o = coin() ? '+' : '-';
+      const d1 = R(2, 9), d2 = R(2, 9);
+      if (d1 === d2) continue;                       // 通分が必要に
+      let f1 = new Frac(R(1, d1 - 1), d1);
+      let f2 = new Frac(R(1, d2 - 1), d2);
+      if (f1.d === f2.d) continue;                   // 約分後も分母が同じなら除外
+      if (o === '-' && f1.cmp(f2) <= 0) { const tmp = f1; f1 = f2; f2 = tmp; }
+      const ans = o === '+' ? f1.add(f2) : f1.sub(f2);
+      if (ans.n <= 0 || Math.abs(ans.n) > 99 || ans.d > 99) continue;
+      const L = lcm(f1.d, f2.d);
+      const n1 = f1.n * (L / f1.d), n2 = f2.n * (L / f2.d);
+      return {
+        tokens: [fracToken(f1), op(o), fracToken(f2), eq()],
+        ansTokens: [fracToken(ans)],
+        explain: [
+          [tx(`分母を ${L} にそろえます（通分）。`)],
+          [fracToken(f1), op(o), fracToken(f2), eq(), rawFrac(n1, L), op(o), rawFrac(n2, L), eq(), fracToken(ans)]
+        ],
+        check: ans
+      };
+    }
+    return { tokens: [fracToken(new Frac(1, 2)), op('+'), fracToken(new Frac(1, 3)), eq()], ansTokens: [fracToken(new Frac(5, 6))], check: new Frac(5, 6) };
+  }
+
+  /* =====================================================================
+     8. 分数の乗除
+     ===================================================================== */
+  function genFractionMulDiv() {
+    for (let t = 0; t < 300; t++) {
+      const o = coin() ? '×' : '÷';
+      const d1 = R(2, 9), d2 = R(2, 9);
+      const f1 = new Frac(R(1, d1 * 2 - 1), d1);
+      const f2 = new Frac(R(1, d2 * 2 - 1), d2);
+      if (f2.n === 0) continue;
+      if (f1.d === 1 || f2.d === 1) continue;   // ×1・÷1（約分して整数になる項）を除外＝両方とも真の分数
+      const ans = o === '×' ? f1.mul(f2) : f1.div(f2);
+      if (Math.abs(ans.n) > 99 || ans.d > 99) continue;
+      let explain;
+      if (o === '×') {
+        explain = [
+          [tx('分子どうし・分母どうしをかけます。')],
+          [fracToken(f1), op('×'), fracToken(f2), eq(), rawFrac(f1.n * f2.n, f1.d * f2.d), eq(), fracToken(ans)]
+        ];
+      } else {
+        const recip = new Frac(f2.d, f2.n);
+        explain = [
+          [tx('わる数の逆数をかけます。')],
+          [fracToken(f1), op('÷'), fracToken(f2), eq(), fracToken(f1), op('×'), fracToken(recip), eq(), fracToken(ans)]
+        ];
+      }
+      return {
+        tokens: [fracToken(f1), op(o), fracToken(f2), eq()],
+        ansTokens: [fracToken(ans)],
+        explain,
+        check: ans
+      };
+    }
+    return { tokens: [fracToken(new Frac(2, 3)), op('×'), fracToken(new Frac(3, 4)), eq()], ansTokens: [fracToken(new Frac(1, 2))], check: new Frac(1, 2) };
+  }
+
+  /* =====================================================================
+     9. 分数の四則混合
+     ===================================================================== */
+  function smallProper() { const d = R(2, 6); return new Frac(R(1, d - 1), d); }
+
+  function genFractionMixed() {
+    const tmpls = ['a+b*c', 'a*b+c', '(a+b)*c', 'a+b/c', 'a*b-c', '(a-b)*c', 'a/b-c', 'a-b*c'];
+    const seq = (...parts) => { const o = []; for (const p of parts) { if (Array.isArray(p)) o.push(...p); else o.push(p); } return o; };
+    const pickKind = () => { const r = Math.random(); return r < 0.45 ? 'proper' : r < 0.73 ? 'mixed' : 'dec'; };
+    function makeOperand(kind) {
+      if (kind === 'dec') { const [ds, df] = pick(DECS); return { f: df, disp: [tx(ds)], norm: [fracToken(df)], conv: true }; }
+      if (kind === 'mixed') {
+        const w = pick([1, 1, 2]); const p = smallProper();
+        const f = new Frac(w * p.d + p.n, p.d);
+        return { f, disp: [{ t: 'mix', w: String(w), n: String(p.n), d: String(p.d) }], norm: [fracToken(f)], conv: true };
+      }
+      const f = smallProper(); return { f, disp: [fracToken(f)], norm: [fracToken(f)], conv: false };
+    }
+    for (let t = 0; t < 800; t++) {
+      const kinds = [pickKind(), pickKind(), pickKind()];
+      if (!kinds.some(k => k !== 'dec')) kinds[R(0, 2)] = 'proper';                     // 全部小数を回避
+      if (!kinds.some(k => k === 'dec' || k === 'mixed')) kinds[R(0, 2)] = coin() ? 'dec' : 'mixed'; // 小数/帯分数を必ず混ぜる
+      const A = makeOperand(kinds[0]), B = makeOperand(kinds[1]), C = makeOperand(kinds[2]);
+      const a = A.f, b = B.f, c = C.f;
+      const An = A.norm, Bn = B.norm, Cn = C.norm, Ad = A.disp, Bd = B.disp, Cd = C.disp;
+      const tm = pick(tmpls);
+      let ans, sub, disp, norm, rewritten, rule;
+      switch (tm) {
+        case 'a+b*c': sub = b.mul(c); ans = a.add(sub); rule = 'かけ算を先に計算します。';
+          disp = seq(Ad, op('+'), Bd, op('×'), Cd); norm = seq(An, op('+'), Bn, op('×'), Cn); rewritten = seq(An, op('+'), fracToken(sub)); break;
+        case 'a*b+c': sub = a.mul(b); ans = sub.add(c); rule = 'かけ算を先に計算します。';
+          disp = seq(Ad, op('×'), Bd, op('+'), Cd); norm = seq(An, op('×'), Bn, op('+'), Cn); rewritten = seq(fracToken(sub), op('+'), Cn); break;
+        case '(a+b)*c': sub = a.add(b); ans = sub.mul(c); rule = 'かっこの中を先に計算します。';
+          disp = seq(lp(), Ad, op('+'), Bd, rp(), op('×'), Cd); norm = seq(lp(), An, op('+'), Bn, rp(), op('×'), Cn); rewritten = seq(fracToken(sub), op('×'), Cn); break;
+        case 'a+b/c': sub = b.div(c); ans = a.add(sub); rule = 'わり算を先に計算します。';
+          disp = seq(Ad, op('+'), Bd, op('÷'), Cd); norm = seq(An, op('+'), Bn, op('÷'), Cn); rewritten = seq(An, op('+'), fracToken(sub)); break;
+        case 'a*b-c': sub = a.mul(b); ans = sub.sub(c); rule = 'かけ算を先に計算します。';
+          disp = seq(Ad, op('×'), Bd, op('-'), Cd); norm = seq(An, op('×'), Bn, op('-'), Cn); rewritten = seq(fracToken(sub), op('-'), Cn); break;
+        case '(a-b)*c': if (a.cmp(b) <= 0) continue; sub = a.sub(b); ans = sub.mul(c); rule = 'かっこの中を先に計算します。';
+          disp = seq(lp(), Ad, op('-'), Bd, rp(), op('×'), Cd); norm = seq(lp(), An, op('-'), Bn, rp(), op('×'), Cn); rewritten = seq(fracToken(sub), op('×'), Cn); break;
+        case 'a/b-c': sub = a.div(b); ans = sub.sub(c); rule = 'わり算を先に計算します。';
+          disp = seq(Ad, op('÷'), Bd, op('-'), Cd); norm = seq(An, op('÷'), Bn, op('-'), Cn); rewritten = seq(fracToken(sub), op('-'), Cn); break;
+        case 'a-b*c': sub = b.mul(c); ans = a.sub(sub); rule = 'かけ算を先に計算します。';
+          disp = seq(Ad, op('-'), Bd, op('×'), Cd); norm = seq(An, op('-'), Bn, op('×'), Cn); rewritten = seq(An, op('-'), fracToken(sub)); break;
+      }
+      if (ans.n <= 0 || Math.abs(ans.n) > 99 || ans.d > 99 || Math.abs(sub.n) > 99 || sub.d > 99) continue;
+      const explain = [];
+      const convParts = [];
+      [A, B, C].forEach(o => { if (o.conv) { convParts.push(...o.disp, op('='), ...o.norm, tx('　')); } });
+      if (convParts.length) { convParts.pop(); explain.push([tx('小数・帯分数を仮分数になおします。')], convParts); }
+      explain.push([tx(rule)]);
+      explain.push(seq(norm, eq(), rewritten, eq(), fracToken(ans)));
+      return { tokens: seq(disp, eq()), ansTokens: [fracToken(ans)], explain, check: ans };
+    }
+    return { tokens: [fracToken(new Frac(1, 2)), op('+'), fracToken(new Frac(1, 3)), op('×'), fracToken(new Frac(1, 2)), eq()], ansTokens: [fracToken(new Frac(2, 3))], check: new Frac(2, 3) };
+  }
+
+  /* =====================================================================
+     10. 分数・小数の四則混合
+     ===================================================================== */
+  const DECS = [['0.5', new Frac(1, 2)], ['0.25', new Frac(1, 4)], ['0.75', new Frac(3, 4)],
+  ['0.2', new Frac(1, 5)], ['0.4', new Frac(2, 5)], ['0.8', new Frac(4, 5)],
+  ['0.125', new Frac(1, 8)], ['0.6', new Frac(3, 5)], ['1.5', new Frac(3, 2)], ['0.1', new Frac(1, 10)]];
+
+  function genFractionDecimalMixed() {
+    const tmpls = ['d+f', 'f-d', 'd-f', 'd*f', 'd+f*g', '(d-f)*g', 'f+d*g', 'd*f+g'];
+    for (let t = 0; t < 500; t++) {
+      const [ds, df] = pick(DECS);
+      const f = smallProper(), g = smallProper();
+      const tm = pick(tmpls);
+      let ans, tokens;
+      const D = tx(ds), F = fracToken(f), G = fracToken(g);
+      switch (tm) {
+        case 'd+f': ans = df.add(f); tokens = [D, op('+'), F]; break;
+        case 'f-d': if (f.cmp(df) <= 0) continue; ans = f.sub(df); tokens = [F, op('-'), D]; break;
+        case 'd-f': if (df.cmp(f) <= 0) continue; ans = df.sub(f); tokens = [D, op('-'), F]; break;
+        case 'd*f': ans = df.mul(f); tokens = [D, op('×'), F]; break;
+        case 'd+f*g': ans = df.add(f.mul(g)); tokens = [D, op('+'), F, op('×'), G]; break;
+        case '(d-f)*g': if (df.cmp(f) <= 0) continue; ans = df.sub(f).mul(g); tokens = [lp(), D, op('-'), F, rp(), op('×'), G]; break;
+        case 'f+d*g': ans = f.add(df.mul(g)); tokens = [F, op('+'), D, op('×'), G]; break;
+        case 'd*f+g': ans = df.mul(f).add(g); tokens = [D, op('×'), F, op('+'), G]; break;
+      }
+      if (ans.n <= 0 || Math.abs(ans.n) > 99 || ans.d > 99) continue;
+      const dft = fracToken(df);
+      const expr = tokens.slice();
+      const rewrite = expr.map(tk => (tk === D ? dft : tk));
+      const explain = [
+        [tx('小数を分数になおして計算します。'), tx('　'), tx(ds), op('='), dft],
+        [...expr, eq(), ...rewrite, eq(), fracToken(ans)]
+      ];
+      tokens.push(eq());
+      return { tokens, ansTokens: [fracToken(ans)], explain, check: ans };
+    }
+    return { tokens: [tx('0.5'), op('+'), fracToken(new Frac(1, 3)), eq()], ansTokens: [fracToken(new Frac(5, 6))], check: new Frac(5, 6) };
+  }
+
+  /* =====================================================================
+     11. 単位変換（長さ・重さ・面積・時間・速さ）
+     ===================================================================== */
+  const UNIT_CATS = {
+    長さ: { maxDist: 2, units: [{ s: 'mm', f: new Frac(1, 10) }, { s: 'cm', f: new Frac(1) }, { s: 'm', f: new Frac(100) }, { s: 'km', f: new Frac(100000) }] },
+    重さ: { maxDist: 1, units: [{ s: 'mg', f: new Frac(1, 1000) }, { s: 'g', f: new Frac(1) }, { s: 'kg', f: new Frac(1000) }, { s: 't', f: new Frac(1000000) }] },
+    面積: { maxDist: 1, units: [{ s: 'cm²', f: new Frac(1, 10000) }, { s: 'm²', f: new Frac(1) }, { s: 'a', f: new Frac(100) }, { s: 'ha', f: new Frac(10000) }, { s: 'km²', f: new Frac(1000000) }] }
+  };
+  const NICE_VALUES = [1, 2, 3, 4, 5, 6, 8, 12, 15, 18, 24, 30, 45, 60, 90, 100, 120, 150, 200, 250, 300, 500, 600, 750, 1000, 1500, 2000, 1.5, 2.5, 0.5, 0.25, 7.5, 3.5];
+
+  function isNiceFrac(f) { return (f.n * 100) % f.d === 0; } // 小数第2位までで割り切れる
+
+  function genUnitConvOther() {
+    const names = Object.keys(UNIT_CATS);
+    const cn = pick(names);
+    const cat = UNIT_CATS[cn];
+    for (let t = 0; t < 600; t++) {
+      const i = R(0, cat.units.length - 1);
+      let js = [];
+      for (let j = 0; j < cat.units.length; j++) if (j !== i && Math.abs(j - i) <= cat.maxDist) js.push(j);
+      const j = pick(js);
+      const uf = cat.units[i], ut = cat.units[j];
+      const value = Frac.from(decToFrac(String(pick(NICE_VALUES))));
+      const r = uf.f.div(ut.f);
+      const ans = value.mul(r);
+      if (!isNiceFrac(ans)) continue;
+      const av = ans.toNumber();
+      if (av < 0.01 || av > 100000) continue;
+      return {
+        cat: cn,
+        tokens: [tx(fracToDec(value) + uf.s), eq(), tx('□' + ut.s)],
+        ansTokens: [tx(fracToDec(ans) + ut.s)],
+        explain: [
+          [tx(`1${uf.s} = ${fracToDec(r)}${ut.s} で計算します。`)],
+          [tx(fracToDec(value) + uf.s), eq(), tx(fracToDec(ans) + ut.s)]
+        ],
+        check: ans
+      };
+    }
+    // フォールバック
+    return { cat: '長さ', tokens: [tx('3m'), eq(), tx('□cm')], ansTokens: [tx('300cm')], check: new Frac(300) };
+  }
+
+  function genSpeedConv() {
+    const base = pick([5, 10, 15, 20, 25, 30]); // m/秒
+    const reps = [
+      { label: '秒速', val: base, unit: 'm' },
+      { label: '分速', val: base * 60, unit: 'm' },
+      { label: '時速', val: Math.round(base * 18 / 5), unit: 'km' } // base×3.6（整数）
+    ];
+    const i = R(0, 2); let j; do { j = R(0, 2); } while (j === i);
+    const from = reps[i], to = reps[j];
+    return {
+      cat: '速さ',
+      tokens: [tx(`${from.label}${from.val}${from.unit}`), eq(), tx(`${to.label}□${to.unit}`)],
+      ansTokens: [tx(`${to.label}${to.val}${to.unit}`)],
+      explain: [
+        [tx('秒速→分速は ×60、秒速→時速は ×3.6 で考えます。')],
+        [tx(`${from.label}${from.val}${from.unit}`), eq(), tx(`${to.label}${to.val}${to.unit}`)]
+      ],
+      check: new Frac(to.val)
+    };
+  }
+
+  // 時間：秒・分・時間 のみ。答えは分数・小数も出る。
+  const TIME_UNITS = [{ s: '秒', f: new Frac(1) }, { s: '分', f: new Frac(60) }, { s: '時間', f: new Frac(3600) }];
+  const TIME_SRC = [
+    1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 24, 30, 40, 45, 50, 75, 90, 100, 120, 150, 180, 200, 240, 300, 360, 600
+  ].map(n => new Frac(n)).concat(
+    [[1, 2], [3, 2], [5, 2], [1, 4], [3, 4], [1, 3], [2, 3], [1, 6], [5, 6], [1, 12], [5, 12]].map(([n, d]) => new Frac(n, d))
+  );
+
+  function genTimeConv() {
+    for (let t = 0; t < 800; t++) {
+      const i = R(0, 2); let j; do { j = R(0, 2); } while (j === i);
+      const uf = TIME_UNITS[i], ut = TIME_UNITS[j];
+      const value = pick(TIME_SRC);
+      const ans = value.mul(uf.f.div(ut.f));
+      if (ans.n <= 0 || ans.d > 60) continue;          // 分母は小さく
+      const av = ans.toNumber();
+      if (av <= 0 || av > 7200) continue;
+      return {
+        cat: '時間',
+        tokens: [...valUnitTokens(value, uf.s), eq(), tx('□' + ut.s)],
+        ansTokens: valUnitTokens(ans, ut.s),
+        explain: [
+          [tx('1分=60秒、1時間=60分 で考えます。')],
+          [...valUnitTokens(value, uf.s), eq(), ...valUnitTokens(ans, ut.s)]
+        ],
+        check: ans
+      };
+    }
+    return { cat: '時間', tokens: [tx('1時間'), eq(), tx('□分')], ansTokens: [tx('60分')], check: new Frac(60) };
+  }
+
+  function genUnitConversion() {
+    const r = Math.random();
+    if (r < 0.22) return genSpeedConv();
+    if (r < 0.52) return genTimeConv();
+    return genUnitConvOther();
+  }
+
+  /* =====================================================================
+     12. 文章題（割合・速さ・平均・単位量・面積・体積）
+     ===================================================================== */
+  function wp(text, ans, unit, expText) {
+    return {
+      tokens: [{ t: 'wp', v: text }],
+      ansTokens: [tx(fracToDec(Frac.from(ans)) + (unit || ''))],
+      explain: expText ? [[tx('考え方： ' + expText)]] : undefined,
+      check: Frac.from(ans)
+    };
+  }
+  // 文中に分数を含む文章題（parts: [{txt}|{frac:[n,d]}]）
+  function wpParts(parts, ans, unit, expText) {
+    return {
+      tokens: [{ t: 'wpparts', parts }],
+      ansTokens: [tx(fracToDec(Frac.from(ans)) + (unit || ''))],
+      explain: expText ? [[tx('考え方： ' + expText)]] : undefined,
+      check: Frac.from(ans)
+    };
+  }
+
+  function genWordProblem() {
+    const k = R(0, 9);
+    // 0: 買い物・おつり（数のやり取り）
+    if (k === 0) {
+      const p = 10 * R(6, 18), a = R(2, 6), q = 10 * R(5, 15), b = R(2, 6);
+      const total = p * a + q * b, N = Math.ceil((total + 1) / 1000) * 1000;
+      return wp(`1本${p}円のお茶を${a}本と、1個${q}円のおにぎりを${b}個買います。代金を${N}円札ではらうと、おつりは何円ですか。`, N - total, '円',
+        `代金 ${p}×${a}＋${q}×${b}＝${total}円、おつり ${N}−${total} = ${N - total}円`);
+    }
+    // 1: 道のり km→m ÷ 分速（単位変換）
+    if (k === 1) {
+      let dist, v; do { dist = pick([0.9, 1.2, 1.5, 1.8, 2.1, 2.4, 3, 3.6]); v = pick([50, 60, 75, 80, 90, 120]); } while ((dist * 1000) % v !== 0);
+      const min = dist * 1000 / v;
+      return wp(`家から公園までの道のりは${dist}kmです。この道のりを分速${v}mの速さで歩くと、公園まで何分かかりますか。`, min, '分',
+        `${dist}km＝${dist * 1000}m、${dist * 1000}÷${v} = ${min}分`);
+    }
+    // 2: 重さ g→kg（かけ算＋単位変換）
+    if (k === 2) {
+      const g = pick([125, 200, 250, 400, 500, 750]), n = R(4, 12);
+      const total = g * n;
+      return wp(`1個の重さが${g}gのかんづめが${n}個、箱に入っています。かんづめ全部の重さは何kgですか。`, new Frac(total, 1000), 'kg',
+        `${g}×${n}＝${total}g、${total}g = ${fracToDec(new Frac(total, 1000))}kg`);
+    }
+    // 3: 平均のやり取り（多段）
+    if (k === 3) {
+      let n, A, B; do { n = pick([4, 5, 6]); A = R(28, 40); B = R(28, 46); } while ((A * n + B) % (n + 1) !== 0);
+      const na = (A * n + B) / (n + 1);
+      return wp(`あるグループ${n}人の体重の平均は${A}kgです。あとから体重${B}kgの人が1人加わりました。${n + 1}人になったときの体重の平均は何kgですか。`, na, 'kg',
+        `合計 ${A}×${n}＝${A * n}kg、(${A * n}＋${B})÷${n + 1} = ${na}kg`);
+    }
+    // 4: 面積×レート g→kg（多段＋単位変換）
+    if (k === 4) {
+      let W, H, r; do { W = R(3, 9); H = R(4, 12); r = pick([20, 25, 40, 50, 80, 125]); } while ((W * H * r) % 100 !== 0);
+      const total = W * H * r;
+      return wp(`たて${W}m、よこ${H}mの長方形の花だんがあります。この花だんに1m²あたり${r}gの肥料をまくとき、肥料は全部で何kg必要ですか。`, new Frac(total, 1000), 'kg',
+        `面積 ${W}×${H}＝${W * H}m²、${W * H}×${r}＝${total}g = ${fracToDec(new Frac(total, 1000))}kg`);
+    }
+    // 5: 速さ→時間→分（単位変換）
+    if (k === 5) {
+      let v, min, dist; do { v = pick([40, 45, 50, 60, 80]); min = pick([30, 45, 60, 75, 90, 120, 150]); dist = v * min / 60; } while (!Number.isInteger(dist) || dist < 10 || dist > 400);
+      return wp(`時速${v}kmで走る自動車で、${dist}kmはなれた町へ行きます。とちゅうで止まらないとすると、着くまでに何分かかりますか。`, min, '分',
+        `${dist}÷${v}＝${fracToDec(new Frac(dist, v))}時間、${fracToDec(new Frac(dist, v))}×60 = ${min}分`);
+    }
+    // 6: 割引×個数（数のやり取り）
+    if (k === 6) {
+      const p = 100 * R(3, 15), pct = pick([10, 20, 25, 30, 40]), n = R(2, 5);
+      const each = p * (100 - pct) / 100, total = each * n;
+      return wp(`定価${p}円の品物が、${pct}%引きで売られています。この品物を${n}個買うと、代金は全部で何円ですか。`, total, '円',
+        `1個 ${p}×(100−${pct})÷100＝${each}円、${each}×${n} = ${total}円`);
+    }
+    // 7: リボン m+cm→m ×単価（単位変換）
+    if (k === 7) {
+      let X, Y, price; do { X = R(1, 4); Y = pick([20, 25, 40, 50, 60, 75, 80]); price = pick([50, 75, 80, 120, 150, 200, 250]); } while (((X * 100 + Y) * price) % 100 !== 0);
+      const lenCm = X * 100 + Y, ans = lenCm * price / 100;
+      return wp(`1mあたり${price}円のリボンを、${X}m${Y}cm買いました。このリボンの代金は何円ですか。`, ans, '円',
+        `${X}m${Y}cm＝${fracToDec(new Frac(lenCm, 100))}m、${fracToDec(new Frac(lenCm, 100))}×${price} = ${ans}円`);
+    }
+    // 8: 道のり m＋km→km（単位変換＋たし算）
+    if (k === 8) {
+      const A = 100 * R(3, 18), B = pick([0.8, 1.2, 1.5, 1.8, 2.4, 2.7, 3.5]);
+      const ans = new Frac(A + B * 1000, 1000);
+      return wp(`ゆうとさんは、行きに${A}m、帰りに${B}kmの道を歩きました。行きと帰りを合わせると、全部で何km歩いたことになりますか。`, ans, 'km',
+        `${A}m＝${fracToDec(new Frac(A, 1000))}km、${fracToDec(new Frac(A, 1000))}＋${B} = ${fracToDec(ans)}km`);
+    }
+    // 9: 容積 L−mL×回（単位変換＋多段）
+    let A, B, n, remMl; do { A = R(3, 12); B = pick([200, 250, 300, 400, 500]); n = R(2, 6); remMl = A * 1000 - B * n; } while (remMl <= 0);
+    const ans9 = new Frac(remMl, 1000);
+    return wp(`水そうに${A}Lの水が入っています。ここから${B}mL入るバケツで水を${n}ぱいくみ出しました。水そうに残っている水は何Lですか。`, ans9, 'L',
+      `くみ出した水 ${B}×${n}＝${B * n}mL＝${fracToDec(new Frac(B * n, 1000))}L、${A}−${fracToDec(new Frac(B * n, 1000))} = ${fracToDec(ans9)}L`);
+  }
+
+  /* =====================================================================
+     割合・単位量あたり（文章題）
+     ===================================================================== */
+  function genRatioUnit() {
+    const R100 = (arr, pcts) => { let base, pct; do { base = pick(arr); pct = pick(pcts); } while ((base * pct) % 100 !== 0); return { base, pct }; };
+    if (coin()) {
+      // ---- 割合 ----
+      const FR = [[1, 2], [1, 3], [2, 3], [1, 4], [3, 4], [1, 5], [2, 5], [3, 5], [4, 5], [1, 6], [5, 6], [3, 8], [5, 8], [7, 8]];
+      const TIMES = [[1, 2], [1, 4], [3, 4], [1, 5], [2, 5], [3, 5], [4, 5], [1, 10], [3, 10], [1, 8], [3, 8], [5, 8], [3, 2], [5, 4], [5, 2]];
+      const NICE = [120, 240, 360, 480, 600, 720, 840, 960, 180, 300, 420, 540, 900, 150, 450, 750, 200, 400, 800, 320, 640, 280, 560, 160, 640];
+      const k = R(0, 7);
+      if (k === 0) { // くらべる量（％）
+        const { base, pct } = R100([200, 300, 400, 500, 600, 800, 1000, 120, 240, 160, 80, 60, 40], [5, 10, 20, 25, 40, 50, 75]);
+        const val = base * pct / 100;
+        const ctx = pick([['全校児童', '人'], ['定員', '人'], ['水とう', 'mL'], ['ある品物', '円']]);
+        return wp(`${ctx[0]}${base}${ctx[1]}の${pct}%は、何${ctx[1]}ですか。`, val, ctx[1], `${base}×${pct}÷100 = ${val}${ctx[1]}`);
+      }
+      if (k === 1) { // 割合（何%）
+        const { base, pct } = R100([20, 25, 40, 50, 80, 100, 200, 400, 500, 800], [5, 10, 20, 25, 40, 50, 75]);
+        const a = base * pct / 100;
+        return wp(`${base}人のうち${a}人が女子です。女子は全体の何%ですか。`, pct, '%', `${a}÷${base}×100 = ${pct}%`);
+      }
+      if (k === 2) { // ％引き
+        const price = 100 * R(2, 30), pct = pick([10, 20, 25, 30, 40, 50]);
+        const pay = price * (100 - pct) / 100;
+        return wp(`定価${price}円の商品を${pct}%引きで売ります。何円になりますか。`, pay, '円', `${price}×(100−${pct})÷100 = ${pay}円`);
+      }
+      if (k === 3) { // ％増し
+        const price = 100 * R(2, 20), pct = pick([10, 20, 25, 50]);
+        const val = price * (100 + pct) / 100;
+        return wp(`${price}円の${pct}%増しは何円ですか。`, val, '円', `${price}×(100+${pct})÷100 = ${val}円`);
+      }
+      if (k === 4) { // もとにする量（％）
+        const { base, pct } = R100([200, 300, 400, 500, 600, 800, 1000, 240, 160], [10, 20, 25, 40, 50]);
+        const a = base * pct / 100;
+        return wp(`ある数の${pct}%が${a}です。ある数はいくつですか。`, base, '', `${a}÷${pct}×100 = ${base}`);
+      }
+      if (k === 5) { // 分数の割合（くらべる量・かけ算）
+        let base, n, d; do {[n, d] = pick(FR); base = pick(NICE); } while (base % d !== 0);
+        const ans = base * n / d;
+        const ctx = pick([['ノート', '円'], ['リボン', 'cm'], ['ジュース', 'mL'], ['さとう', 'g']]);
+        return wpParts([{ txt: `${ctx[0]}${base}${ctx[1]}の` }, { frac: [n, d] }, { txt: `は何${ctx[1]}ですか。` }],
+          ans, ctx[1], `${base}×${d}分の${n} = ${ans}${ctx[1]}`);
+      }
+      if (k === 6) { // 分数の割合（もとにする量・わり算）
+        let whole, n, d; do {[n, d] = pick(FR); whole = pick(NICE); } while (whole % d !== 0);
+        const a = whole * n / d;
+        return wpParts([{ txt: `全校生徒の` }, { frac: [n, d] }, { txt: `が${a}人です。全校生徒は何人ですか。` }],
+          whole, '人', `${a}÷${d}分の${n} = ${a}×${d}÷${n} = ${whole}人`);
+      }
+      // k===7 何倍（わり算・答えは倍）
+      const [n, d] = pick(TIMES), mult = pick([2, 3, 4, 5, 6, 8, 10, 12, 15, 20]);
+      const A = n * mult, B = d * mult, check = new Frac(n, d);
+      const u = pick(['L', 'm', 'kg', 'cm', 'dL', '円']);
+      return { tokens: [{ t: 'wp', v: `${A}${u}は${B}${u}の何倍ですか。` }], ansTokens: [tx(fracToDec(check) + '倍')], explain: [[tx(`考え方： ${A}÷${B} = ${fracToDec(check)}倍`)]], check };
+    }
+    // ---- 単位量あたり ----
+    const k = R(0, 4);
+    if (k === 0) { // 単価
+      const count = R(2, 12), unitp = pick([30, 40, 50, 60, 80, 100, 120, 150, 200, 250]);
+      const total = count * unitp;
+      return wp(`${count}個で${total}円のあめがあります。1個あたり何円ですか。`, unitp, '円', `${total}÷${count} = ${unitp}円`);
+    }
+    if (k === 1) { // 1あたり量 × いくつ分
+      const perL = R(6, 20), L = R(2, 9);
+      return wp(`1Lで${perL}km走る車があります。${L}Lでは何km走れますか。`, perL * L, 'km', `${perL}×${L} = ${perL * L}km`);
+    }
+    if (k === 2) { // 人口みつど
+      const area = R(2, 9), per = pick([20, 30, 40, 50, 60, 80, 100, 120, 150, 200]);
+      const total = area * per;
+      return wp(`${area}km²に${total}人がすんでいます。1km²あたり何人ですか。`, per, '人', `${total}÷${area} = ${per}人`);
+    }
+    if (k === 3) { // 逆算（何本）
+      const unitp = pick([20, 25, 30, 40, 50, 60, 80, 100]), count = R(2, 12);
+      const total = unitp * count;
+      return wp(`1本${unitp}円のえんぴつを${total}円分買います。何本買えますか。`, count, '本', `${total}÷${unitp} = ${count}本`);
+    }
+    // k===4 1Lあたり（燃費）
+    const perL = R(6, 15), L = R(3, 8), total = perL * L;
+    return wp(`${total}kmを走るのに${L}Lのガソリンを使いました。1Lあたり何km走れますか。`, perL, 'km', `${total}÷${L} = ${perL}km`);
+  }
+
+  /* =====================================================================
+     速さの文章題（時速・分速・秒速／道のり・速さ・時間）
+     ===================================================================== */
+  function genSpeed() {
+    const V = [30, 40, 45, 50, 60, 70, 80, 90], T = [2, 3, 4, 5, 6];
+    const k = R(0, 4);
+    if (k === 0) { const v = pick(V), t = pick(T); return wp(`時速${v}kmで${t}時間走ると、何km進みますか。`, v * t, 'km', `速さ×時間 = ${v}×${t} = ${v * t}km`); }
+    if (k === 1) { const v = pick(V), t = pick(T), dist = v * t; return wp(`${dist}kmの道のりを${t}時間で進むときの速さは、時速何kmですか。`, v, 'km', `道のり÷時間 = ${dist}÷${t} = ${v}km`); }
+    if (k === 2) { const v = pick(V), t = pick(T), dist = v * t; return wp(`${dist}kmの道のりを時速${v}kmで進むと、何時間かかりますか。`, t, '時間', `道のり÷速さ = ${dist}÷${v} = ${t}時間`); }
+    if (k === 3) { const v = pick([60, 70, 80, 90, 120, 150, 200, 250]), t = pick([3, 4, 5, 6, 8, 10]); return wp(`分速${v}mで${t}分間歩くと、何m進みますか。`, v * t, 'm', `${v}×${t} = ${v * t}m`); }
+    const v = pick([4, 5, 6, 7, 8, 10, 12, 15]), t = pick([3, 4, 5, 6, 8, 10]); return wp(`秒速${v}mで${t}秒間走ると、何m進みますか。`, v * t, 'm', `${v}×${t} = ${v * t}m`);
+  }
+
+  /* =====================================================================
+     図形（角度・面積・体積・円周）＋ 正確な図（SVG）
+     ===================================================================== */
+  const _r2 = n => Math.round(n * 100) / 100;
+  const _rad = d => d * Math.PI / 180;
+  function _svg(inner, w, h) { return `<svg class="figsvg" viewBox="0 0 ${_r2(w)} ${_r2(h)}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`; }
+  function _poly(pts, cls) { return `<polygon class="${cls || 'sh'}" points="${pts.map(p => _r2(p[0]) + ',' + _r2(p[1])).join(' ')}"/>`; }
+  function _ln(x1, y1, x2, y2, cls) { return `<line x1="${_r2(x1)}" y1="${_r2(y1)}" x2="${_r2(x2)}" y2="${_r2(y2)}"${cls ? ` class="${cls}"` : ''}/>`; }
+  function _t(x, y, s, cls) { return `<text x="${_r2(x)}" y="${_r2(y)}" text-anchor="middle" dominant-baseline="middle"${cls ? ` class="${cls}"` : ''}>${s}</text>`; }
+  function _fit(pts, target, pad) {
+    const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+    const minx = Math.min(...xs), maxx = Math.max(...xs), miny = Math.min(...ys), maxy = Math.max(...ys);
+    const span = Math.max(maxx - minx, maxy - miny) || 1, k = target / span;
+    return { M: p => [pad + (p[0] - minx) * k, pad + (maxy - p[1]) * k], w: (maxx - minx) * k + pad * 2, h: (maxy - miny) * k + pad * 2 };
+  }
+  const _cm = v => v + 'cm';
+  // 両端の曲線マーク（小さな半円）
+  function _caps(d1, d2) {
+    const dx = d2[0] - d1[0], dy = d2[1] - d1[1], len = Math.hypot(dx, dy) || 1, nx = -dy / len, ny = dx / len, rr = 4.5;
+    const cap = (pt, s) => { const a = [pt[0] + nx * rr, pt[1] + ny * rr], b = [pt[0] - nx * rr, pt[1] - ny * rr]; return `<path class="cap" d="M ${_r2(a[0])} ${_r2(a[1])} A ${rr} ${rr} 0 0 ${s} ${_r2(b[0])} ${_r2(b[1])}"/>`; };
+    return cap(d1, 1) + cap(d2, 0);
+  }
+  // 寸法（辺の外側にふくらむ曲線ブレース＋両端の小フック＋数値）
+  function _dim(e1, e2, dist, label, dirx, diry) {
+    const p1 = [e1[0] + dirx * 3, e1[1] + diry * 3], p2 = [e2[0] + dirx * 3, e2[1] + diry * 3];
+    const mid = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+    const ctrl = [mid[0] + dirx * dist * 2, mid[1] + diry * dist * 2];
+    const apex = [mid[0] + dirx * dist, mid[1] + diry * dist];
+    const hook = (p, e) => { const ex = e[0] - p[0], ey = e[1] - p[1], m = Math.hypot(ex, ey) || 1; return _ln(p[0], p[1], p[0] + ex / m * 5, p[1] + ey / m * 5, 'cap'); };
+    let g = `<path class="cap" d="M ${_r2(p1[0])} ${_r2(p1[1])} Q ${_r2(ctrl[0])} ${_r2(ctrl[1])} ${_r2(p2[0])} ${_r2(p2[1])}"/>`;
+    g += hook(p1, e1) + hook(p2, e2);
+    return g + _t(apex[0] + dirx * 10, apex[1] + diry * 10, label);
+  }
+
+  // 三角形（2角 a,b から正確に作図）
+  function figTri(a, b) {
+    const s = Math.sin(_rad(b)) / Math.sin(_rad(a + b));
+    const A = [0, 0], B = [1, 0], C = [s * Math.cos(_rad(a)), s * Math.sin(_rad(a))];
+    const { M, w, h } = _fit([A, B, C], 118, 34);
+    const pa = M(A), pb = M(B), pc = M(C), cen = [(pa[0] + pb[0] + pc[0]) / 3, (pa[1] + pb[1] + pc[1]) / 3];
+    const near = (p, txt, cls) => { const dx = cen[0] - p[0], dy = cen[1] - p[1], m = Math.hypot(dx, dy) || 1; return _t(p[0] + dx / m * 20, p[1] + dy / m * 20, txt, cls); };
+    return _svg(_poly([pa, pb, pc]) + near(pa, a + '°') + near(pb, b + '°') + near(pc, '?', 'q'), w, h);
+  }
+  // 二等辺三角形（頂角 apex）
+  function figIso(apex) {
+    const H = 1, hb = Math.tan(_rad(apex / 2)) * H, T = [0, H], B1 = [-hb, 0], B2 = [hb, 0];
+    const { M, w, h } = _fit([T, B1, B2], 118, 36);
+    const pt = M(T), p1 = M(B1), p2 = M(B2), cen = [(pt[0] + p1[0] + p2[0]) / 3, (pt[1] + p1[1] + p2[1]) / 3];
+    const near = (p, txt, cls) => { const dx = cen[0] - p[0], dy = cen[1] - p[1], m = Math.hypot(dx, dy) || 1; return _t(p[0] + dx / m * 20, p[1] + dy / m * 20, txt, cls); };
+    return _svg(_poly([pt, p1, p2]) + near(pt, apex + '°') + near(p1, '?', 'q') + near(p2, '?', 'q'), w, h);
+  }
+  // 一直線の角
+  function figStraight(a) {
+    const O = [0, 0], Lp = [-1, 0], Rp = [1, 0], Ry = [Math.cos(_rad(a)), Math.sin(_rad(a))];
+    const { M, w, h } = _fit([Lp, Rp, Ry, O], 120, 30);
+    const o = M(O), bis = d => [o[0] + Math.cos(_rad(d)) * 30, o[1] - Math.sin(_rad(d)) * 30];
+    let g = _ln(...M(Lp), ...M(Rp)) + _ln(...M(O), ...M(Ry));
+    g += _t(...bis(a / 2), a + '°') + _t(...bis((a + 180) / 2), '?', 'q');
+    return _svg(g, w, h);
+  }
+  // 対頂角（となりの角）
+  function figVert(a) {
+    const dir = [Math.cos(_rad(a)), Math.sin(_rad(a))];
+    const { M, w, h } = _fit([[-1, 0], [1, 0], [-dir[0], -dir[1]], dir], 120, 30);
+    const o = M([0, 0]), bis = d => [o[0] + Math.cos(_rad(d)) * 26, o[1] - Math.sin(_rad(d)) * 26];
+    let g = _ln(...M([-1, 0]), ...M([1, 0])) + _ln(...M([-dir[0], -dir[1]]), ...M(dir));
+    g += _t(...bis(a / 2), a + '°') + _t(...bis((a + 180) / 2), '?', 'q');
+    return _svg(g, w, h);
+  }
+  // 長方形
+  function figRect(W, H) {
+    const { M, w, h } = _fit([[0, 0], [W, 0], [W, H], [0, H]], 116, 34);
+    const pa = M([0, 0]), pb = M([W, 0]), pc = M([W, H]), pd = M([0, H]);
+    return _svg(_poly([pa, pb, pc, pd]) + _dim(pa, pb, 14, _cm(W), 0, 1) + _dim(pd, pa, 14, _cm(H), -1, 0), w, h);
+  }
+  // 三角形（面積：底辺・高さ）
+  function figTriArea(b, ht) {
+    const ax = b * 0.34, A = [0, 0], B = [b, 0], C = [ax, ht], F = [ax, 0];
+    const { M, w, h } = _fit([A, B, C], 116, 36);
+    const pa = M(A), pb = M(B), pc = M(C), pf = M(F);
+    let g = _poly([pa, pb, pc]) + _ln(...pc, ...pf, 'd');
+    g += _dim(pa, pb, 14, _cm(b), 0, 1) + _t(pf[0] + 13, (pc[1] + pf[1]) / 2, _cm(ht));
+    return _svg(g, w, h);
+  }
+  // 平行四辺形
+  function figPara(b, ht) {
+    const sk = b * 0.3, A = [0, 0], B = [b, 0], C = [b + sk, ht], D = [sk, ht], F = [sk, 0];
+    const { M, w, h } = _fit([A, B, C, D], 112, 36);
+    const pa = M(A), pb = M(B), pc = M(C), pd = M(D), pf = M(F);
+    let g = _poly([pa, pb, pc, pd]) + _ln(...pd, ...pf, 'd');
+    g += _dim(pa, pb, 14, _cm(b), 0, 1) + _t(pf[0] - 14, (pd[1] + pf[1]) / 2, _cm(ht));
+    return _svg(g, w, h);
+  }
+  // 台形
+  function figTrap(a, b, ht) {
+    const off = (b - a) / 2, A = [0, 0], B = [b, 0], C = [off + a, ht], D = [off, ht], F = [off, 0];
+    const { M, w, h } = _fit([A, B, C, D], 116, 36);
+    const pa = M(A), pb = M(B), pc = M(C), pd = M(D), pf = M(F);
+    let g = _poly([pa, pb, pc, pd]) + _ln(...pd, ...pf, 'd');
+    g += _dim(pd, pc, 12, _cm(a), 0, -1) + _dim(pa, pb, 14, _cm(b), 0, 1) + _t(pf[0] - 14, (pd[1] + pf[1]) / 2, _cm(ht));
+    return _svg(g, w, h);
+  }
+  // ひし形（対角線）
+  function figRhom(p, q) {
+    const A = [0, q / 2], B = [p / 2, 0], C = [0, -q / 2], D = [-p / 2, 0];
+    const { M, w, h } = _fit([A, B, C, D], 116, 34);
+    const pa = M(A), pb = M(B), pc = M(C), pd = M(D);
+    let g = _poly([pa, pb, pc, pd]) + _ln(...pd, ...pb, 'd') + _ln(...pa, ...pc, 'd');
+    g += _t((pd[0] + pb[0]) / 2, M([0, 0])[1] - 10, _cm(p)) + _t(M([0, 0])[0] + 14, (pa[1] + pc[1]) / 2, _cm(q));
+    return _svg(g, w, h);
+  }
+  // L字（長方形からかどを切り取る）: 外 W×H, 右上に w×h の欠け
+  function figL(W, H, w, h) {
+    const P = [[0, 0], [W, 0], [W, H - h], [W - w, H - h], [W - w, H], [0, H]];
+    const { M, w: vw, h: vh } = _fit(P, 120, 34);
+    const m = P.map(M);
+    let g = _poly(m);
+    g += _dim(m[0], m[1], 14, _cm(W), 0, 1);                                // 下 W
+    g += _dim(m[5], m[0], 14, _cm(H), -1, 0);                               // 左 H
+    g += _t((m[2][0] + m[3][0]) / 2, m[3][1] - 11, _cm(w));                 // 内 横 w
+    g += _t(m[3][0] - 12, (m[3][1] + m[4][1]) / 2, _cm(h));                 // 内 縦 h
+    return _svg(g, vw, vh);
+  }
+  // 斜投影の直方体（front-bottom-left 指定）
+  function _obBox(x, y, wp, hp, dp) {
+    const FBL = [x, y], FBR = [x + wp, y], FTR = [x + wp, y - hp], FTL = [x, y - hp];
+    const BTL = [FTL[0] + dp, FTL[1] - dp], BTR = [FTR[0] + dp, FTR[1] - dp], BBR = [FBR[0] + dp, FBR[1] - dp], BBL = [FBL[0] + dp, FBL[1] - dp];
+    let g = _ln(...BBL, ...BTL, 'hid') + _ln(...BBL, ...BBR, 'hid') + _ln(...BBL, ...FBL, 'hid');
+    g += _poly([FTL, BTL, BTR, FTR]) + _poly([FTR, BTR, BBR, FBR]) + _poly([FTL, FTR, FBR, FBL]);
+    return { g, FBL, FBR, FTR, FTL, BTR };
+  }
+  // 直方体（a=たて/奥行き, b=よこ/幅, c=高さ）
+  function figBox(a, b, c) {
+    const sc = 88 / Math.max(b + a * 0.5, c + a * 0.5, 1), wp = b * sc, hp = c * sc, dp = a * sc * 0.5, pad = 30;
+    const bx = _obBox(pad, pad + dp + hp, wp, hp, dp);
+    let g = bx.g;
+    g += _t((bx.FBL[0] + bx.FBR[0]) / 2, bx.FBL[1] + 14, _cm(b));
+    g += _t(bx.FTL[0] - 15, (bx.FTL[1] + bx.FBL[1]) / 2, _cm(c));
+    g += _t((bx.FTR[0] + bx.BTR[0]) / 2 + 11, (bx.FTR[1] + bx.BTR[1]) / 2 - 8, _cm(a));
+    return _svg(g, pad * 2 + wp + dp, pad * 2 + hp + dp);
+  }
+  // 立方体（1辺 s）
+  function figCube(s) {
+    const sc = 78 / (s * 1.5), wp = s * sc, dp = s * sc * 0.5, pad = 30;
+    const bx = _obBox(pad, pad + dp + wp, wp, wp, dp);
+    let g = bx.g;
+    g += _t((bx.FBL[0] + bx.FBR[0]) / 2, bx.FBL[1] + 14, _cm(s));
+    g += _t(bx.FTL[0] - 15, (bx.FTL[1] + bx.FBL[1]) / 2, _cm(s));
+    g += _t((bx.FTR[0] + bx.BTR[0]) / 2 + 11, (bx.FTR[1] + bx.BTR[1]) / 2 - 8, _cm(s));
+    return _svg(g, pad * 2 + wp + dp, pad * 2 + wp + dp);
+  }
+  // 2つの直方体（合わせた立体）を並べて描く
+  function figTwoBox(box1, box2) {
+    const sc = 62 / Math.max(box1[1] + box1[0] * 0.5, box1[2] + box1[0] * 0.5, box2[1] + box2[0] * 0.5, box2[2] + box2[0] * 0.5, 1);
+    const pad = 28, gap = 30;
+    const b1 = { a: box1[0], b: box1[1], c: box1[2] }, b2 = { a: box2[0], b: box2[1], c: box2[2] };
+    const wp1 = b1.b * sc, hp1 = b1.c * sc, dp1 = b1.a * sc * 0.5;
+    const wp2 = b2.b * sc, hp2 = b2.c * sc, dp2 = b2.a * sc * 0.5;
+    const baseH = Math.max(hp1 + dp1, hp2 + dp2);
+    const x1 = pad, x2 = pad + wp1 + dp1 + gap;
+    const y1 = pad + baseH, y2 = pad + baseH;
+    const bx1 = _obBox(x1, y1, wp1, hp1, dp1), bx2 = _obBox(x2, y2, wp2, hp2, dp2);
+    let g = bx1.g + bx2.g;
+    const lab = (bx, d) => _t((bx.FBL[0] + bx.FBR[0]) / 2, bx.FBL[1] + 13, _cm(d.b)) + _t(bx.FTL[0] - 14, (bx.FTL[1] + bx.FBL[1]) / 2, _cm(d.c)) + _t((bx.FTR[0] + bx.BTR[0]) / 2 + 10, (bx.FTR[1] + bx.BTR[1]) / 2 - 7, _cm(d.a));
+    g += lab(bx1, b1) + lab(bx2, b2);
+    g += _t((x1 + wp1 + dp1 + x2) / 2, pad + baseH - hp1 / 2, '＋');
+    return _svg(g, x2 + wp2 + dp2 + pad, pad * 2 + baseH);
+  }
+  // 円（直径 or 半径）
+  function figCircle(kind, val) {
+    const cx = 76, cy = 74, rr = 54;
+    let g = `<circle class="sh" cx="${cx}" cy="${cy}" r="${rr}"/><circle cx="${cx}" cy="${cy}" r="2.5" fill="#26323F" stroke="none"/>`;
+    if (kind === 'd') g += _ln(cx - rr, cy, cx + rr, cy, 'd') + _t(cx, cy - 11, '直径' + _cm(val));
+    else g += _ln(cx, cy, cx + rr, cy, 'd') + _t(cx + rr / 2, cy - 11, '半径' + _cm(val));
+    return _svg(g, 152, 152);
+  }
+  function geo(svg, text, ans, unit, expText, checkFrac) {
+    const check = checkFrac || Frac.from(ans);
+    return { tokens: [{ t: 'geo', svg, text }], ansTokens: [tx(fracToDec(check) + (unit || ''))], explain: [[tx('考え方： ' + expText)]], check };
+  }
+
+  function genGeometry() {
+    const cat = pick(['角度', '角度', '面積', '面積', '面積', '体積', '体積', '円周', '円周']);
+    if (cat === '角度') {
+      const k = R(0, 3);
+      if (k === 0) { let a, b; do { a = R(30, 100); b = R(30, 100); } while (a + b >= 175); return geo(figTri(a, b), '?の角度は何度ですか。', 180 - a - b, '度', `180−${a}−${b} = ${180 - a - b}度`); }
+      if (k === 1) { const a = R(25, 155); return geo(figStraight(a), '?の角度は何度ですか。', 180 - a, '度', `180−${a} = ${180 - a}度`); }
+      if (k === 2) { const a = R(35, 145); return geo(figVert(a), '?（となりの角）は何度ですか。', 180 - a, '度', `180−${a} = ${180 - a}度`); }
+      let apex; do { apex = pick([20, 30, 40, 50, 70, 80, 100, 110, 120, 140]); } while ((180 - apex) % 2 !== 0); return geo(figIso(apex), '二等辺三角形の?（底角）は何度ですか。', (180 - apex) / 2, '度', `(180−${apex})÷2 = ${(180 - apex) / 2}度`);
+    }
+    if (cat === '面積') {
+      const k = R(0, 5);
+      if (k === 0) { const W = R(4, 20), H = R(3, 18); return geo(figRect(W, H), '長方形の面積は何cm²ですか。', W * H, 'cm²', `${H}×${W} = ${W * H}cm²`); }
+      if (k === 1) { let b, h; do { b = R(4, 20); h = R(3, 16); } while ((b * h) % 2); return geo(figTriArea(b, h), '三角形の面積は何cm²ですか。', b * h / 2, 'cm²', `${b}×${h}÷2 = ${b * h / 2}cm²`); }
+      if (k === 2) { const b = R(4, 20), h = R(3, 16); return geo(figPara(b, h), '平行四辺形の面積は何cm²ですか。', b * h, 'cm²', `${b}×${h} = ${b * h}cm²`); }
+      if (k === 3) { let a, b, h; do { a = R(3, 12); b = R(4, 16); h = R(2, 12); } while (((a + b) * h) % 2 || a >= b); return geo(figTrap(a, b, h), '台形の面積は何cm²ですか。', (a + b) * h / 2, 'cm²', `(${a}+${b})×${h}÷2 = ${(a + b) * h / 2}cm²`); }
+      if (k === 4) { let p, q; do { p = R(4, 16); q = R(4, 16); } while ((p * q) % 2); return geo(figRhom(p, q), 'ひし形の面積は何cm²ですか。', p * q / 2, 'cm²', `${p}×${q}÷2 = ${p * q / 2}cm²`); }
+      const W = R(9, 20), H = R(7, 16), w = R(2, W - 4), h = R(2, H - 4);
+      return geo(figL(W, H, w, h), '図形の面積は何cm²ですか。（くふうして求めましょう）', W * H - w * h, 'cm²', `${W}×${H}−${w}×${h} = ${W * H}−${w * h} = ${W * H - w * h}cm²`);
+    }
+    if (cat === '体積') {
+      const k = R(0, 2);
+      if (k === 0) { const a = R(2, 12), b = R(2, 12), c = R(2, 10); return geo(figBox(a, b, c), '直方体の体積は何cm³ですか。', a * b * c, 'cm³', `${a}×${b}×${c} = ${a * b * c}cm³`); }
+      if (k === 1) { const s = R(2, 12); return geo(figCube(s), '立方体の体積は何cm³ですか。', s * s * s, 'cm³', `${s}×${s}×${s} = ${s * s * s}cm³`); }
+      const a1 = R(2, 8), b1 = R(4, 10), c1 = R(2, 8), a2 = R(2, 8), b2 = R(3, 9), c2 = R(2, 8);
+      const v1 = a1 * b1 * c1, v2 = a2 * b2 * c2;
+      return geo(figTwoBox([a1, b1, c1], [a2, b2, c2]), '2つの直方体を合わせた立体の体積は何cm³ですか。（くふうして求めましょう）', v1 + v2, 'cm³', `${a1}×${b1}×${c1}＋${a2}×${b2}×${c2} = ${v1}＋${v2} = ${v1 + v2}cm³`);
+    }
+    // 円周（3.14）
+    if (coin()) { const d = R(2, 20), check = new Frac(d * 314, 100); return geo(figCircle('d', d), '円周は何cmですか。（円周率は3.14）', null, 'cm', `直径×3.14 = ${d}×3.14 = ${fracToDec(check)}cm`, check); }
+    const r = R(1, 12), chk = new Frac(r * 2 * 314, 100); return geo(figCircle('r', r), '円周は何cmですか。（円周率は3.14）', null, 'cm', `半径×2×3.14 = ${r}×2×3.14 = ${fracToDec(chk)}cm`, chk);
+  }
+
+  /* =====================================================================
+     くふう2（小数・分数の工夫）: 同じ数・整数になる組をまとめて計算
+     例) 0.25 + 1/4 + 1.3 + 1/4 + 0.25 = 2.3
+     ===================================================================== */
+  const KUFU_DUAL = [[1, 2, '0.5'], [1, 4, '0.25'], [3, 4, '0.75'], [1, 5, '0.2'], [2, 5, '0.4'], [3, 5, '0.6'], [4, 5, '0.8'], [1, 8, '0.125'], [3, 8, '0.375'], [1, 10, '0.1'], [3, 10, '0.3'], [7, 10, '0.7'], [9, 10, '0.9']];
+  function _kTermF(n, d, sign) { return { val: new Frac(sign * n, d), mag: [fracToken(new Frac(n, d))], sign }; }
+  function _kTermD(ds, sign) { const f = decToFrac(ds); return { val: new Frac(sign * f.n, f.d), mag: [tx(ds)], sign }; }
+  function _kGroupExp(terms, subFrac) {
+    const g = [];
+    terms.forEach((t, i) => { if (i === 0) { if (t.sign < 0) g.push(op('-')); g.push(...t.mag); } else { g.push(op(t.sign < 0 ? '-' : '+')); g.push(...t.mag); } });
+    g.push(eq(), tx(fracToDec(subFrac)));
+    return g;
+  }
+  function _kfComp() { const RR = R(2, 8), xx = R(1, 99); return { terms: [_kTermD(fracToDec(new Frac((RR - 1) * 100 + xx, 100)), 1), _kTermD(fracToDec(new Frac(100 - xx, 100)), 1)], sub: new Frac(RR, 1) }; }
+  function _kfCancel() { const [n, d, ds] = pick(KUFU_DUAL); return coin() ? { terms: [_kTermF(n, d, 1), _kTermD(ds, -1)], sub: new Frac(0, 1) } : { terms: [_kTermD(ds, 1), _kTermF(n, d, -1)], sub: new Frac(0, 1) }; }
+  function _kfRepeat() { const o = pick([[1, 2, '0.5', 2], [1, 4, '0.25', 4], [3, 4, '0.75', 4], [1, 5, '0.2', 5], [1, 8, '0.125', 4]]); const [n, d, ds, cnt] = o; const terms = []; for (let i = 0; i < cnt; i++) terms.push(coin() ? _kTermF(n, d, 1) : _kTermD(ds, 1)); return { terms, sub: new Frac(n * cnt, d) }; }
+  function _kfLeftFrac() { const [n, d, ds] = pick(KUFU_DUAL.filter(x => x[1] <= 5)); return { terms: [coin() ? _kTermF(n, d, 1) : _kTermD(ds, 1)], sub: new Frac(n, d) }; }
+  function _kfLeftDec() { const f = new Frac(R(11, 49), 10); return { terms: [_kTermD(fracToDec(f), 1)], sub: f }; }
+  function genKufu2() {
+    for (let t = 0; t < 500; t++) {
+      const groups = [coin() ? _kfComp() : _kfRepeat()];
+      if (coin()) groups.push(_kfCancel());
+      groups.push(coin() ? _kfLeftFrac() : _kfLeftDec());
+      const allTerms = [];
+      groups.forEach(g => g.terms.forEach(x => allTerms.push(x)));
+      if (allTerms.length < 4 || allTerms.length > 6) continue;
+      let ans = new Frac(0, 1); allTerms.forEach(x => ans = ans.add(x.val));
+      if (ans.n <= 0 || !isTerminating(ans)) continue;
+      shuffle(allTerms);
+      if (allTerms[0].sign < 0) { const j = allTerms.findIndex(x => x.sign > 0); if (j < 0) continue; const tmp = allTerms[0]; allTerms[0] = allTerms[j]; allTerms[j] = tmp; }
+      const tokens = [];
+      allTerms.forEach((x, i) => { if (i === 0) tokens.push(...x.mag); else { tokens.push(op(x.sign < 0 ? '-' : '+')); tokens.push(...x.mag); } });
+      tokens.push(eq());
+      const explain = [[tx('同じ数どうしや、たすと整数になる組をまとめて計算します。')]];
+      const subs = [];
+      groups.forEach(g => { if (g.terms.length > 1) explain.push(_kGroupExp(g.terms, g.sub)); if (g.sub.n !== 0) subs.push(g.sub); });
+      const total = [];
+      subs.forEach((s, i) => { if (i) total.push(op('+')); total.push(tx(fracToDec(s))); });
+      total.push(eq(), tx(fracToDec(ans)));
+      explain.push(total);
+      return { tokens, ansTokens: [tx(fracToDec(ans))], explain, check: ans };
+    }
+    return { tokens: [tx('0.25'), op('+'), fracToken(new Frac(1, 4)), op('+'), tx('0.5'), op('+'), fracToken(new Frac(1, 4)), eq()], ansTokens: [tx('1.25')], check: new Frac(5, 4) };
+  }
+
+  /* ---------- 種別レジストリ ---------- */
+  const TYPES = [
+    { id: 'misalign', label: '小数のたし算・ひき算（位ずれ）', short: '小数 ＋−', cols: 3, gen: genMisalignedDecimal },
+    { id: 'complement', label: '補数でくふう（3けたまで・小数も）', short: 'くふう ＋−', cols: 2, gen: genComplementChain },
+    { id: 'decmult', label: '小数のかけ算（12×34の活用）', short: '小数 ×', cols: 3, gen: genDecimalMultShifted },
+    { id: 'decdiv', label: '小数のわり算（割り切れる）', short: '小数 ÷', cols: 3, gen: genDecimalDivShifted },
+    { id: 'approxdiv', label: '割り切れないわり算（がい数）', short: 'がい数 ÷', cols: 2, gen: genNonTerminatingDiv },
+    { id: 'mul25', label: '25×4・125×8 のくふう', short: '25・125', cols: 3, gen: gen25_125 },
+    { id: 'kufu2', label: '小数・分数のくふう', short: 'くふう2', cols: 2, gen: genKufu2 },
+    { id: 'fracas', label: '分数のたし算・ひき算（通分）', short: '分数 ＋−', cols: 3, gen: genFractionAddSub },
+    { id: 'fracmd', label: '分数のかけ算・わり算', short: '分数 ×÷', cols: 3, gen: genFractionMulDiv },
+    { id: 'fracmix', label: '分数の四則混合', short: '分数 混合', cols: 2, gen: genFractionMixed },
+    { id: 'ratio', label: '割合・単位量', short: '割合・単位', cols: 1, gen: genRatioUnit },
+    { id: 'unit', label: '単位の変換（長さ・重さ・面積・時間・速さ）', short: '単位変換', cols: 2, gen: genUnitConversion },
+    { id: 'speed', label: '速さの文章題', short: '速さ', cols: 1, gen: genSpeed },
+    { id: 'geometry', label: '図形（角度・面積・体積・円周）', short: '図形', cols: 1, gen: genGeometry },
+    { id: 'word', label: '文章題（割合・速さ・平均・単位量・面積・体積）', short: '文章題', cols: 1, gen: genWordProblem }
+  ];
+
+  const api = {
+    Frac, gcd, decToFrac, fracToDec, isTerminating, roundDivFixed, sigFig2DivStr, shiftDec,
+    fracToken, isNiceFrac, TYPES,
+    gen: {
+      genMisalignedDecimal, genComplementChain, genDecimalMultShifted, genDecimalDivShifted,
+      genNonTerminatingDiv, gen25_125, genFractionAddSub, genFractionMulDiv, genFractionMixed,
+      genFractionDecimalMixed, genUnitConversion, genWordProblem
+    },
+    R, pick, coin
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.KEISAN = api;
+
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+  <script>/* =========================================================================
+   計算どぅする？ — UI ロジック（window.KEISAN を利用）
+   ========================================================================= */
+(function () {
+  'use strict';
+  const K = window.KEISAN;
+  const TYPES = K.TYPES;
+
+  /* 種別カラー（id順） */
+  const COLOR = {
+    misalign: '#3066BE', complement: '#1E9EAE', decmult: '#1FA774', decdiv: '#5FA12B',
+    approxdiv: '#E0A40F', mul25: '#E87B1E', kufu2: '#B7791F', fracas: '#DB4F2E', fracmd: '#CE3D68',
+    fracmix: '#9A4FB6', ratio: '#6457CF', unit: '#2C7DA8', speed: '#C56A3D', geometry: '#2E8F6E', word: '#7A6A55'
+  };
+  /* プリント：各種1問ずつ＝計12問 */
+  const NUM_CIRCLE = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '⑪', '⑫', '⑬', '⑭', '⑮', '⑯', '⑰', '⑱', '⑲', '⑳'];
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const esc = (s) => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+  /* ---------- トークン描画 ---------- */
+  function fracHTML(n, d) {
+    return `<span class="fr"><span class="fn">${esc(n)}</span><span class="fd">${esc(d)}</span></span>`;
+  }
+  function renderTokens(tokens) {
+    let out = '';
+    for (const tk of tokens) {
+      if (tk.t === 'txt') out += `<span class="nm">${esc(tk.v)}</span>`;
+      else if (tk.t === 'op') out += `<span class="op">${esc(tk.v === '-' ? '\u2212' : tk.v)}</span>`;
+      else if (tk.t === 'paren') out += `<span class="pr">${esc(tk.v)}</span>`;
+      else if (tk.t === 'frac') out += fracHTML(tk.n, tk.d);
+      else if (tk.t === 'mix') out += `<span class="mx"><span class="mw">${esc(tk.w)}</span>${fracHTML(tk.n, tk.d)}</span>`;
+      else if (tk.t === 'wp') out += `<span class="wp">${esc(tk.v)}</span>`;
+      else if (tk.t === 'geo') out += `<span class="geo">${tk.svg}<span class="geo-q">${esc(tk.text)}</span></span>`;
+      else if (tk.t === 'wpparts') {
+        let inner = '';
+        for (const pt of tk.parts) inner += pt.frac ? fracHTML(pt.frac[0], pt.frac[1]) : esc(pt.txt);
+        out += `<span class="wp">${inner}</span>`;
+      }
+    }
+    return out;
+  }
+
+  /* 小数の答えに併記する縦型分数（1以上は帯分数） */
+  const DEC_FRAC_TYPES = new Set(['misalign', 'complement', 'decmult', 'decdiv', 'mul25', 'unit']);
+  function fracTokenMixed(check) {
+    const sign = check.n < 0 ? '-' : '';
+    const n = Math.abs(check.n), d = check.d;
+    if (d === 1) return { t: 'txt', v: String(check.n) };
+    if (n > d) { const w = Math.floor(n / d), r = n - w * d; return { t: 'mix', w: sign + w, n: String(r), d: String(d) }; }
+    return { t: 'frac', n: sign + n, d: String(d) };
+  }
+  function decFracToken(typeId, check) {
+    if (!DEC_FRAC_TYPES.has(typeId)) return null;   // 分数答え・概数・文章題には付けない
+    if (check.d === 1) return null;                 // 整数
+    if (!K.isTerminating(check)) return null;       // すでに分数表示のもの
+    if (check.d > 100) return null;                 // 分母が大きすぎる小数は省略
+    return fracTokenMixed(check);
+  }
+  function answerHTML(p, typeId) {
+    let html = renderTokens(p.ansTokens);
+    const f = decFracToken(typeId, p.check);
+    if (f) html += `<span class="dfrac">（${renderTokens([f])}）</span>`;
+    return html;
+  }
+
+  /* ---------- 入力の解釈 → Frac ---------- */
+  function parseAnswer(raw) {
+    if (raw == null) return null;
+    let s = String(raw).trim().replace(/／/g, '/').replace(/\s+/g, ' ');
+    if (!s) return null;
+    let m;
+    if ((m = s.match(/^(-?\d+)\s+(\d+)\/(\d+)$/))) {           // 帯分数 "1 2/3"
+      const d = +m[3]; if (!d) return null;
+      const sg = +m[1] < 0 ? -1 : 1;
+      return new K.Frac(sg * (Math.abs(+m[1]) * d + +m[2]), d);
+    }
+    if (s.indexOf('/') >= 0) {                                // 分数 "n/d"
+      const mm = s.match(/(-?\d+)\s*\/\s*(-?\d+)/);
+      if (mm && +mm[2] !== 0) return new K.Frac(+mm[1], +mm[2]);
+      return null;
+    }
+    const dm = s.match(/-?\d+(\.\d+)?/);                       // 小数/整数（単位付き可）
+    if (dm) return K.decToFrac(dm[0]);
+    return null;
+  }
+
+  /* =====================================================================
+     1問ずつエンジン（共通仕様）
+       折りたたみメニューで出題内容を選ぶ → ランダム生成 → 答え合わせ
+       → 共通エフェクト → 「次へ」ボタンの下に解説。
+       problem = { tokens, ansTokens, check(Frac), instr?, memo?, explain }
+     ===================================================================== */
+  const state = { selId: 'all', cur: null, answered: false, correct: 0, total: 0 };
+  window.__keisan = { state };  // テスト/スクショ自動化用の参照（本体動作には影響しない）
+  let keyRouter = null;         // 現在の問題のキー入力ハンドラ（PC物理キーボード用）
+
+  function pickType() {
+    if (state.selId !== 'all') return TYPES.find(t => t.id === state.selId);
+    return TYPES[Math.floor(Math.random() * TYPES.length)];
+  }
+
+  function loadProblem() {
+    const t = pickType();
+    state.cur = { t, p: t.gen() };
+    state.answered = false;
+    renderStage();
+  }
+
+  function fitQ(card) {
+    const q = $('.q', card), fit = $('.qfit', card);
+    if (!q || !fit) return;
+    fit.style.transform = 'none';
+    const avail = q.clientWidth, natural = fit.scrollWidth;
+    if (natural > 0 && avail > 0 && natural > avail) fit.style.transform = 'scale(' + Math.max(0.5, (avail - 2) / natural) + ')';
+  }
+
+  function renderStage() {
+    const { t, p } = state.cur;
+    const stage = $('#stage');
+    const instr = p.instr ? `<span class="instr">${esc(p.instr)}</span>` : '';
+    const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
+      .map(n => `<button type="button" class="key" data-k="${n}">${n}</button>`).join('');
+    const t0 = p.tokens[0] && p.tokens[0].t;
+    const isText = (t0 === 'wp' || t0 === 'wpparts' || t0 === 'geo');
+    const qInner = isText ? renderTokens(p.tokens) : `<span class="qfit">${renderTokens(p.tokens)}</span>`;
+    stage.innerHTML =
+      `<div class="card" style="--c:${COLOR[t.id]}">
+         <div class="card-top"><span class="cat">${esc(t.short)}</span>${instr}</div>
+         <div class="q">${qInner}</div>
+         <div class="answer"><div class="disp" id="disp"></div></div>
+         <div class="keypad" id="keypad">
+           ${digits}
+           <button type="button" class="key" data-k="dot">.</button>
+           <button type="button" class="key k-util" data-k="back" aria-label="1字消す">⌫</button>
+           <button type="button" class="key k-util k-frac" id="fracToggle" data-k="frac">分数</button>
+         </div>
+         <div class="actions">
+           <button class="btn-next" type="button">次の問題 ➜</button>
+           <button class="btn-check" type="button" data-k="check">こたえあわせ</button>
+         </div>
+         <div class="explain" hidden></div>
+       </div>`;
+    const card = $('.card', stage);
+    const disp = $('#disp', card);
+    const explainEl = $('.explain', card);
+    const entry = { mode: 'dec', dec: '', num: '', den: '', part: 'num' };
+    let locked = false;
+    requestAnimationFrame(() => fitQ(card));
+
+    function renderDisp() {
+      if (entry.mode === 'dec') {
+        disp.innerHTML = `<span class="dnum ${entry.dec ? '' : 'ph'}">${entry.dec ? esc(entry.dec) : '答えを入力'}</span>`;
+      } else {
+        disp.innerHTML =
+          `<span class="fin">
+             <button type="button" class="fin-box ${entry.part === 'num' ? 'active' : ''} ${entry.num ? '' : 'ph'}" data-part="num">${entry.num ? esc(entry.num) : '　'}</button>
+             <span class="fin-bar"></span>
+             <button type="button" class="fin-box ${entry.part === 'den' ? 'active' : ''} ${entry.den ? '' : 'ph'}" data-part="den">${entry.den ? esc(entry.den) : '　'}</button>
+           </span>`;
+        disp.querySelectorAll('.fin-box').forEach(b =>
+          b.addEventListener('click', () => { if (locked) return; entry.part = b.dataset.part; renderDisp(); }));
+      }
+      const ft = $('#fracToggle', card);
+      if (ft) { ft.textContent = entry.mode === 'dec' ? '分数' : '整数'; ft.classList.toggle('on', entry.mode === 'frac'); }
+      const dot = card.querySelector('[data-k="dot"]');
+      if (dot) dot.disabled = (entry.mode !== 'dec');
+    }
+
+    function answerString() {
+      if (entry.mode === 'dec') return entry.dec;
+      return (entry.num && entry.den) ? (entry.num + '/' + entry.den) : '';
+    }
+
+    function press(k) {
+      if (locked) return;
+      if (k === 'check') return grade();
+      if (k === 'frac') {
+        if (entry.mode === 'dec') { entry.mode = 'frac'; entry.num = ''; entry.den = ''; entry.part = 'num'; }
+        else { entry.mode = 'dec'; entry.dec = ''; }
+        return renderDisp();
+      }
+      if (k === 'back') {
+        if (entry.mode === 'dec') entry.dec = entry.dec.slice(0, -1);
+        else entry[entry.part] = entry[entry.part].slice(0, -1);
+        return renderDisp();
+      }
+      if (k === 'dot') {
+        if (entry.mode !== 'dec') return;
+        if (entry.dec === '') entry.dec = '0.';
+        else if (entry.dec.indexOf('.') < 0) entry.dec += '.';
+        return renderDisp();
+      }
+      // 数字
+      if (entry.mode === 'dec') { if (entry.dec.replace('.', '').length < 6) entry.dec += k; }
+      else { if (entry[entry.part].length < 3) entry[entry.part] += k; }
+      renderDisp();
+    }
+
+    function grade() {
+      if (locked) return;
+      const val = answerString();
+      if (val === '') { disp.classList.remove('nudge'); void disp.offsetWidth; disp.classList.add('nudge'); return; }
+      const guess = parseAnswer(val);
+      const ok = !!(guess && guess.eq(p.check));
+      state.total++; if (ok) state.correct++;
+      updateScore();
+      safeDivpAnswer(ok, t, p, val);
+      addMark(card, ok ? 'maru' : 'batsu', ok ? '○' : '✕');
+      if (ok) safeDivpCorrect(card);
+      else { card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake'); }
+      locked = true; state.answered = true;
+      explainEl.innerHTML = explainHTML(p, t.id, ok);
+      explainEl.hidden = false;
+    }
+
+    $('#keypad', card).addEventListener('click', (e) => {
+      const b = e.target.closest('[data-k]'); if (b) press(b.dataset.k);
+    });
+    $('.btn-check', card).addEventListener('click', () => press('check'));
+    $('.btn-next', card).addEventListener('click', loadProblem);
+
+    // PC：物理キーボードでも入力できる
+    keyRouter = (e) => {
+      if (locked) { if (e.key === 'Enter') loadProblem(); return; }
+      if (/^[0-9]$/.test(e.key)) { press(e.key); e.preventDefault(); }
+      else if (e.key === '.') { press('dot'); e.preventDefault(); }
+      else if (e.key === 'Backspace') { press('back'); e.preventDefault(); }
+      else if (e.key === '/') { entry.mode === 'dec' ? press('frac') : (entry.part = 'den', renderDisp()); e.preventDefault(); }
+      else if (e.key === 'Enter') { grade(); e.preventDefault(); }
+    };
+
+    renderDisp();
+  }
+
+  function explainHTML(p, typeId, ok) {
+    const memo = p.memo ? `<span class="memo">${esc(p.memo)}</span>` : '';
+    let h = `<div class="exp-answer"><span class="ans-key ${ok ? 'ok' : 'ng'}">${ok ? '○ 正解' : '答え'}</span>` +
+      `<span class="ans">${answerHTML(p, typeId)}</span>${memo}</div>`;
+    if (p.explain && p.explain.length) {
+      h += `<div class="exp-title">かんがえ方</div>`;
+      h += p.explain.map(line => `<div class="exp-line">${renderTokens(line)}</div>`).join('');
+    }
+    return h;
+  }
+
+  function updateScore() {
+    const el = $('#score'); if (el) el.textContent = `正解 ${state.correct} / ${state.total}`;
+  }
+  function isTouch() { return ('ontouchstart' in window) || navigator.maxTouchPoints > 0; }
+
+  /* 折りたたみメニュー */
+  function buildMenu() {
+    const wrap = $('#cat-chips');
+    const mk = (id, label, color, active) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip' + (active ? ' active' : ''); b.dataset.id = id;
+      if (color) b.style.setProperty('--c', color);
+      b.textContent = label;
+      b.addEventListener('click', () => {
+        state.selId = id;
+        wrap.querySelectorAll('.chip').forEach(x => x.classList.toggle('active', x.dataset.id === id));
+        $('#selLabel').textContent = (id === 'all') ? 'ぜんぶ（ランダム）' : TYPES.find(t => t.id === id).label;
+        closeMenu();
+        loadProblem();
+      });
+      return b;
+    };
+    wrap.appendChild(mk('all', 'ぜんぶ（ランダム）', '#243241', true));
+    TYPES.forEach(t => wrap.appendChild(mk(t.id, t.short, COLOR[t.id], false)));
+    $('#menuBar').addEventListener('click', () => { $('#menuPanel').hidden ? openMenu() : closeMenu(); });
+  }
+  function openMenu() { $('#menuPanel').hidden = false; $('#menuBar').setAttribute('aria-expanded', 'true'); }
+  function closeMenu() { $('#menuPanel').hidden = true; $('#menuBar').setAttribute('aria-expanded', 'false'); }
+
+  /* 丸つけ（○ / ✕） */
+  function clearMark(card) { const m = card.querySelector('.mbmark'); if (m) m.remove(); }
+  function addMark(card, cls, ch) {
+    clearMark(card);
+    const s = document.createElement('span');
+    s.className = 'mbmark ' + cls; s.textContent = ch;
+    card.appendChild(s);
+  }
+
+  /* 学習記録：判定直後に1問=1行を送信（未ログイン・ローカル起動時は divp-core が黙ってスキップ）。
+     divp-core.js 未読込の環境でも壊れないよう guard する（未組み込みツールと同じ思想）。
+     問題は「機械用(params)」と「人間用(text/answer)」の二重表現で保存する。 */
+  function plainText(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return (tmp.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+  function safeDivpAnswer(ok, t, p, userVal) {
+    if (!(window.Divp && typeof window.Divp.answer === 'function')) return;
+    try {
+      const qText = plainText(renderTokens(p.tokens));
+      const aText = plainText(answerHTML(p, t.id));
+      window.Divp.answer(ok, {
+        question_key: t.id,                       // カテゴリID＝モード名をそのまま使う
+        question_params: { q: qText, a: aText },  // 同一問題の判定キー（params_hash）
+        question_text: qText,
+        correct_answer: aText,
+        wrong_answer: userVal,                    // 生徒が実際に入力した答え
+      });
+    } catch (e) { /* 記録失敗は本体動作に影響させない */ }
+  }
+
+  /* 共通の正解エフェクト：星バースト＋「正解！」。divp-core があれば Divp.correct() を使う */
+  function safeDivpCorrect(card) {
+    if (window.Divp && typeof window.Divp.correct === 'function') {
+      try { window.Divp.correct(); return; } catch (e) { }
+    }
+    correctEffect(card);
+  }
+  const REDUCED = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  function correctEffect(card) {
+    const fx = document.createElement('div'); fx.className = 'fx'; card.appendChild(fx);
+    const label = document.createElement('div'); label.className = 'fx-label'; label.textContent = '正解！';
+    fx.appendChild(label);
+    if (!REDUCED) {
+      const colors = ['#F4B400', '#ED6A28', '#E8453C', '#F26DAE', '#7E5BD0', '#2BA6A4', '#3FA45A'];
+      const N = 14;
+      for (let i = 0; i < N; i++) {
+        const s = document.createElement('span'); s.className = 'fx-star'; s.textContent = '★';
+        s.style.color = colors[i % colors.length]; fx.appendChild(s);
+        const ang = Math.PI * 2 * i / N + (Math.random() * 0.5 - 0.25);
+        const dist = 70 + Math.random() * 75;
+        const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist;
+        const rot = Math.random() * 720 - 360, size = 0.7 + Math.random() * 0.9;
+        s.animate([
+          { transform: 'translate(-50%,-50%) scale(.2)', opacity: 1 },
+          { transform: `translate(calc(-50% + ${dx}px),calc(-50% + ${dy * .5}px)) scale(${size}) rotate(${rot * .5}deg)`, opacity: 1, offset: .55 },
+          { transform: `translate(calc(-50% + ${dx}px),calc(-50% + ${dy + 46}px)) scale(${size * .9}) rotate(${rot}deg)`, opacity: 0 }
+        ], { duration: 820 + Math.random() * 260, easing: 'cubic-bezier(.2,.7,.3,1)' });
+      }
+      label.animate([
+        { transform: 'translate(-50%,-50%) scale(.3) rotate(-8deg)', opacity: 0 },
+        { transform: 'translate(-50%,-50%) scale(1.12) rotate(3deg)', opacity: 1, offset: .4 },
+        { transform: 'translate(-50%,-50%) scale(1) rotate(0)', opacity: 1, offset: .72 },
+        { transform: 'translate(-50%,-62%) scale(1) rotate(0)', opacity: 0 }
+      ], { duration: 1100, easing: 'ease-out' });
+    }
+    setTimeout(() => fx.remove(), REDUCED ? 700 : 1300);
+  }
+
+  /* =====================================================================
+     B4 プリント
+     ===================================================================== */
+  function buildWorksheet() {
+    const ws = $('#worksheet');
+    const answers = [];
+    let body = '';
+
+    TYPES.forEach((t, ti) => {
+      const c = COLOR[t.id];
+      const no = ti + 1;
+      const p = t.gen();
+      answers.push({ no, p, tid: t.id });
+      body +=
+        `<div class="ws-item" style="--c:${c}">
+           <div class="ws-cap"><span class="ws-no">${NUM_CIRCLE[ti]}</span><span class="ws-cap-l">${esc(t.label)}</span></div>
+           <div class="ws-prob"><span class="ws-pno">(${no})</span> ${renderSheetProblem(p)}</div>
+         </div>`;
+    });
+
+    const ans = answers.map(a => {
+      const memo = a.p.memo ? `<span class="ak-memo">${esc(a.p.memo)}</span>` : '';
+      return `<span class="ak-item"><b>${a.no}.</b> ${answerHTML(a.p, a.tid)}${memo}</span>`;
+    }).join('');
+
+    ws.innerHTML =
+      `<div class="ws-top">
+         <div class="ws-title">計算どぅする？<span class="ws-sub">けいさんプリント</span></div>
+         <div class="ws-fields">
+           <span class="ws-field">名前<i></i></span>
+           <span class="ws-field">日づけ<i></i></span>
+           <span class="ws-field ws-score">点数<i></i></span>
+         </div>
+       </div>
+       <div class="ws-grid">${body}</div>
+       <div class="ws-answers">
+         <div class="ak-title">こたえ（計算どぅする？）</div>
+         <div class="ak-list">${ans}</div>
+       </div>`;
+    fitWorksheet();
+  }
+
+  function renderSheetProblem(p) {
+    const instr = p.instr ? `<span class="ws-instr">（${esc(p.instr)}）</span>` : '';
+    let html = instr + renderTokens(p.tokens);
+    const toks = p.tokens;
+    if (toks[0].t === 'wp' || toks[0].t === 'wpparts' || toks[0].t === 'geo') {
+      html += `<div class="ws-wpans">答え（　　　　　　　　）</div>`;
+    } else {
+      const last = toks[toks.length - 1];
+      if (last.t === 'op' && last.v === '=') html += `<span class="ws-blank"></span>`;
+    }
+    return html;
+  }
+
+  // プレビューを画面幅に合わせて縮小（印刷時はCSSで zoom:1 に戻す）
+  function fitWorksheet() {
+    const ws = $('#worksheet');
+    const scroll = $('.sheet-scroll');
+    if (!ws || !scroll) return;
+    ws.style.zoom = '1';
+    const natural = ws.offsetWidth;             // 348mm をpxで
+    const avail = scroll.clientWidth - 24;
+    const z = Math.max(0.16, Math.min(1, avail / natural));
+    ws.style.zoom = String(z);
+  }
+
+  /* =====================================================================
+     画面の組み立て
+     ===================================================================== */
+  function wireButtons() {
+    $('#btn-print').addEventListener('click', () => {
+      buildWorksheet();
+      $('#sheetOverlay').hidden = false;
+      requestAnimationFrame(fitWorksheet);
+    });
+    $('#btn-sheet-print').addEventListener('click', () => window.print());
+    $('#btn-sheet-new').addEventListener('click', buildWorksheet);
+    $('#btn-sheet-close').addEventListener('click', () => { $('#sheetOverlay').hidden = true; });
+    window.addEventListener('resize', () => { if (!$('#sheetOverlay').hidden) fitWorksheet(); const c = $('#stage .card'); if (c) fitQ(c); });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const pb = $('#btn-print');
+    if (pb) pb.textContent = `B4プリント（${TYPES.length}問）`;  // 実際の出題数に追従
+    buildMenu();
+    wireButtons();
+    loadProblem();
+    buildWorksheet();   // Ctrl+P 用に初期生成
+    document.addEventListener('keydown', (e) => {
+      if ($('#sheetOverlay') && !$('#sheetOverlay').hidden) return; // 印刷プレビュー中は無効
+      if (keyRouter) keyRouter(e);
+    });
+  });
+})();
+</script>
+</body>
+
+</html>
