@@ -39,7 +39,7 @@ function grade_sort_key(?string $grade): int
 // unit_key の先頭要素（フォルダ名と同じ）を教科として扱う
 const SUBJECT_LABELS = [
     'math' => '数学', 'english' => '英語', 'science' => '理科',
-    'japanese' => '国語', 'allgrade' => 'その他',
+    'japanese' => '国語', 'social' => '社会', 'allgrade' => 'その他',
 ];
 
 function subject_of(string $unitKey): string
@@ -483,11 +483,14 @@ if (!$detail && !$rankView) {
               WHERE is_active = 1 AND grade IS NOT NULL AND grade <> ''
                 AND classroom_id IN (" . implode(',', array_map('intval', $gradeScopeIds)) . ")"
         )->fetchAll(PDO::FETCH_COLUMN);
-        $gradeOrder = ['es1','es2','es3','es4','es5','es6','js1','js2','js3','hs1','hs2','hs3'];
-        $known  = array_values(array_filter($gradeOrder, fn($g) => in_array($g, $existingGrades, true)));
-        $others = array_values(array_filter($existingGrades, fn($g) => !in_array($g, $gradeOrder, true)));
-        sort($others);
-        $gradeOptions = array_merge($known, $others);
+        // 学年は保存形式にブレがある（es4/js1 も 小4/中1 も混在）ので grade_sort_key で統一的に並べる。
+        // 小1→…→高3。学年として解釈できない値（例: 「講師」）は sort_key=0 になるので末尾へ回す。
+        $gradeOptions = $existingGrades;
+        usort($gradeOptions, function (string $a, string $b): int {
+            $ka = grade_sort_key($a) ?: 9999;
+            $kb = grade_sort_key($b) ?: 9999;
+            return $ka !== $kb ? $ka <=> $kb : strcmp($a, $b);
+        });
     }
     // 選択中の学年が対象範囲に無ければ解除（教室切替で空リストにならないように）
     if ($filterGrade !== '' && !in_array($filterGrade, $gradeOptions, true)) {
