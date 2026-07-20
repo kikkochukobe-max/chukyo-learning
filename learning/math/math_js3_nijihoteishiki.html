@@ -229,6 +229,8 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
   width: 16px; height: 16px;
   display: flex; align-items: center; justify-content: center;
 }
+.choice.is-selected { border-color: var(--ink); background: #f3f1e8; box-shadow: inset 0 0 0 1.5px var(--ink); }
+.choice.is-selected .choice-num { border-color: var(--ink); color: var(--ink); }
 .choice.is-correct { border-color: var(--ok); background: var(--ok-soft); }
 .choice.is-wrong { border-color: var(--accent); background: var(--accent-soft); }
 .choice:disabled { cursor: default; opacity: .92; }
@@ -238,7 +240,7 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
 .feedback.ok { color: var(--ok); font-weight: 700; }
 .feedback.ng { color: var(--accent); }
 .feedback .katex { font-size: 1.05em; }
-#next-btn {
+#next-btn, #check-btn {
   display: block;
   margin: 12px auto 0;
   background: var(--ink);
@@ -252,7 +254,9 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
   letter-spacing: .06em;
   cursor: pointer;
 }
-#next-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#check-btn { background: var(--accent); }
+#check-btn:disabled { background: var(--line); color: var(--ink-light); cursor: default; }
+#next-btn:focus-visible, #check-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .kbd-hint { text-align: center; font-size: 11px; color: var(--ink-light); margin-top: 8px; }
 
 /* ---------- 進捗 ---------- */
@@ -416,7 +420,6 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
   <div class="stats">
     <span>正解<b id="st-correct">0 / 0</b></span>
     <span>連続<b id="st-streak">0</b></span>
-    <span>XP<b id="st-xp">0</b></span>
   </div>
   <button class="title-print-btn" id="title-print-btn" type="button" title="このモードでプリントを作る（A4・10問）" aria-label="印刷"><span class="pi">🖨</span><span class="pl">印刷</span></button>
 </header>
@@ -447,8 +450,9 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
 
     <div id="choices"></div>
     <div class="feedback" id="feedback"></div>
+    <button id="check-btn" type="button" disabled>答え合わせ</button>
     <button id="next-btn" type="button" hidden>次の問題へ</button>
-    <div class="kbd-hint">キーボード：1〜6で選択 ／ Enterで次へ</div>
+    <div class="kbd-hint">キーボード：1〜6で選択 ／ Enterで答え合わせ・次へ</div>
   </div>
 
   <div id="result-card" hidden>
@@ -664,46 +668,120 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
      ============================================================ */
   const GEN = {};
 
-  /* --- 1) 平方根: x² = k --- */
+  /* --- 1) 平方根: x² = k（係数つき ax²=M・有理化が必要な qx²=p も混ぜる） --- */
+  // 有理化パターン用の題材: qx²=p → x²=p/q → x=±√(pq)/q（pq は平方因子なし＝分母に√が残る）
+  const RATLZ = [
+    { q: 2, p: 1 }, { q: 2, p: 3 }, { q: 2, p: 5 }, { q: 2, p: 7 },
+    { q: 3, p: 1 }, { q: 3, p: 2 }, { q: 3, p: 5 }, { q: 3, p: 7 },
+    { q: 5, p: 1 }, { q: 5, p: 2 }, { q: 5, p: 3 },
+    { q: 7, p: 2 }, { q: 7, p: 3 },
+  ];
   GEN.heihokon = function () {
+    // 25% で有理化パターン（qx²=p）。それ以外は従来の x²=k / ax²=M
+    if (Math.random() < 0.25) {
+      const { q, p } = pick(RATLZ);
+      const PQ = p * q;                       // 平方因子なし → √PQ は無理数
+      const correct = normPm(0, 1, PQ, q);    // x = ±√(pq)/q
+      const cands = [
+        { kind: 'pmSingle', p: 0, s: 1, d: PQ, r: q },   // ± 忘れ
+        listSol([frac(p, q), frac(-p, q)]),               // √ 忘れ（x=±p/q）
+        normPm(0, 1, PQ, PQ),                             // 有理化しすぎ（分母 pq）
+        normPm(0, 1, PQ, p > 1 ? p : q + 1),              // 分母を取り違え
+        normPm(0, 1, PQ, q === 2 ? 3 : 2),                // 別の分母
+        listSol([frac(PQ), frac(-PQ)]),                   // √も有理化も忘れ
+      ];
+      const form = axRhsForm(q, p);
+      return pack('heihokon', form.tex, form.txt, correct, cands,
+        { type: 'rationalize', p, q, a: q, b: 0, c: -p, form: form.kind });
+    }
     const rational = Math.random() < 0.3;
+    const coef = Math.random() < 0.45 ? pick([2, 3, 4, 5]) : 1;   // 係数 a（1=係数なし）
     let qTex, qTxt, correct, cands, params;
     if (rational) {
       const m = ri(2, 12);
       const k = m * m;
       correct = listSol([frac(m), frac(-m)]);
-      cands = [
-        listSol([frac(m)]),                       // ±忘れ
-        listSol([frac(k), frac(-k)]),             // √忘れ
-        listSol([frac(m + 1), frac(-(m + 1))]),
-        listSol([frac(k / 2), frac(-k / 2)]),
-        listSol([frac(m), frac(-m - 1)]),
-      ];
-      const form = eqZeroForm(k);
+      if (coef === 1) {
+        cands = [
+          listSol([frac(m)]),                       // ±忘れ
+          listSol([frac(k), frac(-k)]),             // √忘れ
+          listSol([frac(m + 1), frac(-(m + 1))]),
+          listSol([frac(k / 2), frac(-k / 2)]),
+          listSol([frac(m), frac(-m - 1)]),
+        ];
+      } else {
+        const M = coef * k;
+        cands = [
+          listSol([frac(m)]),                       // ±忘れ
+          listSol([frac(coef * m), frac(-coef * m)]), // a で割らず掛けてしまう
+          listSol([frac(M), frac(-M)]),             // 移項後 √忘れ
+          listSol([frac(k), frac(-k)]),             // √忘れ
+          listSol([frac(m + 1), frac(-(m + 1))]),
+        ];
+      }
+      const form = eqZeroForm(k, coef);
       qTex = form.tex; qTxt = form.txt;
-      params = { type: 'rational', k, a: 1, b: 0, c: -k, form: form.kind };
+      params = { type: 'rational', k, a: coef, b: 0, c: -coef * k, form: form.kind };
     } else {
       const t = pick(IRR_NICE);
       correct = normPm(0, t.s, t.d, 1);           // x = ±s√d
-      cands = [
-        { kind: 'pmSingle', p: 0, s: t.s, d: t.d, r: 1 },   // ±忘れ
-        listSol([frac(t.n), frac(-t.n)]),          // √忘れ
-        normPm(0, t.d, t.s === 1 ? nextD(t.d) : t.s, 1),     // s と d の取り違え風
-        normPm(0, t.s + 1, t.d, 1),
-        normPm(0, t.s, nextD(t.d), 1),
-        listSol([frac(t.n, 2), frac(-t.n, 2)]),
-      ];
-      const form = eqZeroForm(t.n);
+      if (coef === 1) {
+        cands = [
+          { kind: 'pmSingle', p: 0, s: t.s, d: t.d, r: 1 },   // ±忘れ
+          listSol([frac(t.n), frac(-t.n)]),          // √忘れ
+          normPm(0, t.d, t.s === 1 ? nextD(t.d) : t.s, 1),     // s と d の取り違え風
+          normPm(0, t.s + 1, t.d, 1),
+          normPm(0, t.s, nextD(t.d), 1),
+          listSol([frac(t.n, 2), frac(-t.n, 2)]),
+        ];
+      } else {
+        const M = coef * t.n;
+        const w = sqDecomp(M);                       // a で割り忘れて x²=M を解いた形
+        cands = [
+          { kind: 'pmSingle', p: 0, s: t.s, d: t.d, r: 1 },   // ±忘れ
+          w.d > 1 ? normPm(0, w.s, w.d, 1) : listSol([frac(w.s), frac(-w.s)]), // a で割り忘れ
+          listSol([frac(t.n), frac(-t.n)]),          // √忘れ
+          normPm(0, t.s + 1, t.d, 1),
+          normPm(0, t.s, nextD(t.d), 1),
+        ];
+      }
+      const form = eqZeroForm(t.n, coef);
       qTex = form.tex; qTxt = form.txt;
-      params = { type: 'irrational', k: t.n, a: 1, b: 0, c: -t.n, form: form.kind };
+      params = { type: 'irrational', k: t.n, a: coef, b: 0, c: -coef * t.n, form: form.kind };
     }
     return pack('heihokon', qTex, qTxt, correct, cands, params);
   };
   function nextD(d) { const L = [2, 3, 5, 6, 7, 10, 11, 13]; const i = L.indexOf(d); return L[(i + 1) % L.length]; }
-  // 平方根モードの出題形式: x²=k（移項ずみ）／ x²−k=0（=0 形・要移項）を混ぜる
-  function eqZeroForm(k) {
-    if (Math.random() < 0.5) return { kind: 'eq', tex: 'x^2=' + k, txt: 'x²=' + k };
-    return { kind: 'zero', tex: 'x^2-' + k + '=0', txt: 'x²-' + k + '=0' };
+  // 平方根モードの出題形式: x²=k（移項ずみ）／ x²−k=0（=0 形・要移項）を混ぜる。
+  // a>1 のときは係数つき ax²=M ／ ax²−M=0（M=a·k、両辺 a で割ってから平方根）
+  function eqZeroForm(k, a) {
+    a = a || 1;
+    const aT = a === 1 ? '' : String(a);       // ax² の係数部
+    const M = a * k;
+    if (Math.random() < 0.5) return { kind: a === 1 ? 'eq' : 'coefEq', tex: aT + 'x^2=' + M, txt: aT + 'x²=' + M };
+    return { kind: a === 1 ? 'zero' : 'coefZero', tex: aT + 'x^2-' + M + '=0', txt: aT + 'x²-' + M + '=0' };
+  }
+  // 有理化パターンの出題形式: qx²=p（右辺そのまま）／ qx²−p=0（=0 形）
+  function axRhsForm(a, rhs) {
+    const aT = a === 1 ? '' : String(a);
+    if (Math.random() < 0.5) return { kind: 'ratlzEq', tex: aT + 'x^2=' + rhs, txt: aT + 'x²=' + rhs };
+    return { kind: 'ratlzZero', tex: aT + 'x^2-' + rhs + '=0', txt: aT + 'x²-' + rhs + '=0' };
+  }
+  // 分数係数の2次式: (1/d)x² + (B/d)x + (C/d) = 0（両辺 d 倍で分母をはらう）
+  function fracEqForms(d, B, C) {
+    const T = (n, body, first) => {
+      if (n === 0) return { tex: '', txt: '' };
+      const g = gcd(n, d), nn = n / g, dd = d / g;
+      const sign = nn < 0 ? '-' : (first ? '' : '+');
+      const a = Math.abs(nn);
+      if (dd === 1) { const mag = (a === 1 && body) ? '' : String(a); return { tex: sign + mag + body, txt: sign + mag + body }; }
+      return { tex: sign + '\\dfrac{' + a + '}{' + dd + '}' + body, txt: sign + a + '/' + dd + body };
+    };
+    const t1 = T(1, 'x^2', true), t2 = T(B, 'x', false), t3 = T(C, '', false);
+    return {
+      tex: t1.tex + t2.tex + t3.tex + '=0',
+      txt: (t1.txt + t2.txt + t3.txt + '=0').replace(/x\^2/g, 'x²'),
+    };
   }
 
   /* --- 2) （ ）²の塊: (x+m)² = n --- */
@@ -734,11 +812,38 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
         normPm(-m, t.s, t.d, 2),
       ];
     }
+    // ---- 出題形式: そのまま / 移項が必要 / 係数つき（解は同じ、見せ方だけ変える） ----
     const inner = linTex(1, m);
-    const qTex = '(' + inner + ')^2=' + n;
-    const qTxt = '(' + inner + ')²=' + n;
-    return pack('katamari', qTex, qTxt, correct, cands,
-      { m, n, a: 1, b: 2 * m, c: m * m - n });
+    const style = pick(['plain', 'plain', 'iko', 'iko', 'coef', 'coef']);
+    let qTex, qTxt, params;
+    if (style === 'coef') {
+      const a = pick([2, 3, 4, 5]);
+      const A = a * n;                                   // a(x+m)²=A → (x+m)²=n
+      qTex = a + '(' + inner + ')^2=' + A;
+      qTxt = a + '(' + inner + ')²=' + A;
+      // a で割り忘れて (x+m)²=A を解く誤答
+      const w = sqDecomp(A);
+      cands.push(w.d > 1 ? normPm(-m, w.s, w.d, 1) : listSol([frac(-m + w.s), frac(-m - w.s)]));
+      params = { m, n, style: 'coef', a, b: 2 * a * m, c: a * (m * m - n) };
+    } else if (style === 'iko') {
+      // (x+m)² + e = n+e （定数を移項してから平方根）
+      const e = pick([2, 3, 4, 5, 6, 7, 8]) * pick([1, -1]);
+      const rhs = n + e;
+      const eStr = (e > 0 ? '+' : '-') + Math.abs(e);
+      qTex = '(' + inner + ')^2' + eStr + '=' + rhs;
+      qTxt = '(' + inner + ')²' + eStr + '=' + rhs;
+      // 移項し忘れて (x+m)²=rhs を解く誤答（rhs>0 のときのみ）
+      if (rhs > 0) {
+        const w = sqDecomp(rhs);
+        cands.push(w.d > 1 ? normPm(-m, w.s, w.d, 1) : listSol([frac(-m + w.s), frac(-m - w.s)]));
+      }
+      params = { m, n, style: 'iko', e, a: 1, b: 2 * m, c: m * m - n };
+    } else {
+      qTex = '(' + inner + ')^2=' + n;
+      qTxt = '(' + inner + ')²=' + n;
+      params = { m, n, style: 'plain', a: 1, b: 2 * m, c: m * m - n };
+    }
+    return pack('katamari', qTex, qTxt, correct, cands, params);
   };
 
   /* --- 3) 平方完成: x² + 2ux + c = 0（D/4 が非平方） --- */
@@ -870,9 +975,35 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
       listSol(p === q ? [frac(p), frac(-p)] : [frac(p), frac(-q)]),
       listSol([frac(p + 1), frac(q - 1)]),
     ];
-    const qTex = polyTex(1, B, C) + '=0';
-    return pack('insu_jibun', qTex, polyTxt(1, B, C) + '=0', correct, cands,
-      { pattern, a: 1, b: B, c: C, roots: [p, q] });
+    // ---- 出題形式: 標準形 / 展開して移項 / 分数をはらう / 係数を割る（解は同じ、途中操作を変える） ----
+    const style = pick(['plain', 'plain', 'expand', 'frac', 'divide']);
+    let qTex, qTxt, params;
+    if (style === 'expand') {
+      // (x+r)(x+s)=k を展開・移項すると x²+Bx+C=0（r+s=B, rs-k=C）
+      let r = 0, s = 0, k = 0, tries = 0;
+      do { r = ri(-5, 5); s = B - r; k = r * s - C; tries++; }
+      while ((r === 0 || s === 0 || k === 0) && tries < 60);
+      if (k === 0) k = 1;
+      qTex = '(' + linTex(1, r) + ')(' + linTex(1, s) + ')=' + k;
+      qTxt = qTex;
+      cands.push(listSol(r === s ? [frac(-r)] : [frac(-r), frac(-s)])); // 移項せず左辺=0 として解く誤答
+      params = { pattern, style: 'expand', a: 1, b: B, c: C, roots: [p, q], expand: { r, s, k } };
+    } else if (style === 'frac') {
+      const d = pick([2, 3, 4]);
+      const f = fracEqForms(d, B, C);
+      qTex = f.tex; qTxt = f.txt;
+      params = { pattern, style: 'frac', denom: d, a: 1, b: B, c: C, roots: [p, q] };
+    } else if (style === 'divide') {
+      const d = pick([2, 3]);
+      qTex = polyTex(d, d * B, d * C) + '=0';
+      qTxt = polyTxt(d, d * B, d * C) + '=0';
+      params = { pattern, style: 'divide', a: d, b: d * B, c: d * C, roots: [p, q] };
+    } else {
+      qTex = polyTex(1, B, C) + '=0';
+      qTxt = polyTxt(1, B, C) + '=0';
+      params = { pattern, style: 'plain', a: 1, b: B, c: C, roots: [p, q] };
+    }
+    return pack('insu_jibun', qTex, qTxt, correct, cands, params);
   };
 
   /* --- 6) 解の公式: ax² + bx + c = 0（D 非平方） --- */
@@ -896,14 +1027,37 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
         normPm(-b, s, nextD(d), 2 * a),               // 簡約ミス
         normPm(-2 * b, s, d, 2 * a),
       ];
-      const qTex = polyTex(a, b, c) + '=0';
+      // ---- 出題形式: 標準形 / 移項 / 展開して移項 / 分数をはらう（解は同じ、公式の前に変形が要る） ----
+      const stdTex = polyTex(a, b, c) + '=0';
+      let style = pick(['plain', 'plain', 'plain', 'ikou', 'tenkai', 'bunsuu']);
+      let qTex = stdTex;
+      if (style === 'ikou') {                 // 定数（＋一次項）を右辺へ
+        const moveB = b !== 0 && Math.random() < 0.4;
+        const lhs = polyTex(a, moveB ? 0 : b, 0);
+        const rhs = polyTex(0, moveB ? -b : 0, -c);
+        qTex = lhs + '=' + rhs;
+      } else if (style === 'tenkai' && a === 1) {  // (x+α)(x+β)=k を展開・移項
+        const al = pick([1, 2, 3, 4, 5, 6]) * pick([1, -1]);
+        const be = b - al;
+        const k = al * be - c;
+        if (k === 0 || be === 0 || Math.abs(be) > 10 || Math.abs(k) > 60) { style = 'plain'; }
+        else {
+          qTex = '(' + linTex(1, al) + ')(' + linTex(1, be) + ')=' + k;
+          cands.push(listSol([frac(-al), frac(-be)]));   // 移項せず左辺=0 として解く誤答
+        }
+      } else if (style === 'bunsuu') {         // 全体を 1/e 倍した分数係数（両辺 e 倍で分母をはらう）
+        const e = pick([2, 3]);
+        if (a % e === 0 && b % e === 0 && c % e === 0) { style = 'plain'; } // 割り切れると変形にならない
+        else qTex = fracCoefTex(a, b, c, e);
+      } else if (style === 'tenkai') { style = 'plain'; } // a≠1 は展開形にしない
+      const qTxt = qTex.replace(/\^2/g, '²').replace(/\\dfrac\{(\d+)\}\{(\d+)\}/g, '$1/$2').replace(/\\,/g, '');
       const g = gcd(gcd(b, s), 2 * a);
       const hint = {
         D, s, d, a, b, g,
-        normTex: null,
+        normTex: style === 'plain' ? null : stdTex,   // 変形形は「整理すると…」を表示
       };
-      return pack('kai_koshiki', qTex, polyTxt(a, b, c) + '=0', correct, cands,
-        { a, b, c, D }, hint);
+      return pack('kai_koshiki', qTex, qTxt, correct, cands,
+        { a, b, c, D, style }, hint);
     }
     return GEN.kai_koshiki();
   };
@@ -1017,16 +1171,16 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
 
   /* ---------- 設定 ---------- */
   const UNIT_KEY = 'math_js3_nijihoteishiki';
-  const XP = { heihokon: 5, katamari: 5, heihokansei: 5, insu_zumi: 5, insu_jibun: 5, kai_koshiki: 5, random: 10 };
   const MODES = [
-    { key: 'heihokon',    label: '平方根',        desc: 'x²=k の形' },
-    { key: 'katamari',    label: '（　）²を塊で', desc: '(x+m)²=n の形' },
+    { key: 'heihokon',    label: '平方根',        desc: 'x²=k・ax²=M・有理化' },
+    { key: 'katamari',    label: '（　）²を塊で', desc: '(x+m)²=n・係数つき・移項' },
     { key: 'heihokansei', label: '平方完成',      desc: '自分で (x+m)² の形に' },
     { key: 'insu_zumi',   label: '因数分解ずみ',  desc: '解を読み取る' },
-    { key: 'insu_jibun',  label: '自分で因数分解', desc: '因数分解してから解く' },
-    { key: 'kai_koshiki', label: '解の公式',      desc: '公式で解く' },
-    { key: 'random',      label: 'ランダム',      desc: '整理してから解く（XP2倍）' },
+    { key: 'insu_jibun',  label: '自分で因数分解', desc: '展開・移項・分数・係数を整理して' },
+    { key: 'kai_koshiki', label: '解の公式',      desc: '移項・展開・分数を整理して公式で' },
+    { key: 'random',      label: 'ランダム',      desc: '整理してから解く' },
   ];
+  const MODE_KEYS = new Set(MODES.map((m) => m.key));   // DB解き直しで有効なmode判定用
   const SET_SIZE = 10;
   const PRINT_COUNT = 10;
   // ランク判定（連続パーフェクト方式）
@@ -1049,7 +1203,8 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
   let mode = 'heihokon';
   let current = null;
   let answered = false;
-  let stats = { total: 0, correct: 0, streak: 0, xp: 0, consecutivePerfect: 0 };
+  let selectedIndex = -1;   // 答え合わせ前に選んでいる選択肢
+  let stats = { total: 0, correct: 0, streak: 0, consecutivePerfect: 0 };
   // セット管理
   let set = null; // { num, results:[bool], wrong:[q], retry:false, queue:[q] }
 
@@ -1103,7 +1258,7 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
     const stepEl = $('hint-steps');
     stepEl.innerHTML = '';
     const lines = [];
-    if (h.normTex && q.mode === 'random') lines.push('\\text{整理すると }' + h.normTex);
+    if (h.normTex) lines.push('\\text{整理すると }' + h.normTex);
     if (h.D > 0 && h.d) {
       if (h.s > 1) lines.push('\\sqrt{' + h.D + '}=\\sqrt{' + (h.s * h.s) + '\\times ' + h.d + '}=' + h.s + '\\sqrt{' + h.d + '}');
       else lines.push('\\sqrt{' + h.D + '}\\ \\text{はこれ以上簡単にできない}');
@@ -1140,6 +1295,7 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
       current = C.GEN[mode]();
     }
     answered = false;
+    selectedIndex = -1;
     renderProgress();
     tex($('q-tex'), current.qTex, true);
     buildHint(current);
@@ -1158,12 +1314,27 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
       btn.appendChild(num);
       btn.appendChild(body);
       tex(body, C.solTex(ch), false);
-      btn.addEventListener('click', () => judge(i, btn));
+      btn.addEventListener('click', () => select(i, btn));
       grid.appendChild(btn);
     });
     $('feedback').textContent = '';
     $('feedback').className = 'feedback';
     $('next-btn').hidden = true;
+    const cb = $('check-btn');
+    cb.hidden = false;
+    cb.disabled = true;
+  }
+  /* ---------- 選択（答え合わせ前） ---------- */
+  function select(i, btn) {
+    if (answered) return;
+    selectedIndex = i;
+    const buttons = $('choices').children;
+    for (let k = 0; k < buttons.length; k++) buttons[k].classList.toggle('is-selected', k === i);
+    $('check-btn').disabled = false;
+  }
+  function checkAnswer() {
+    if (answered || selectedIndex < 0) return;
+    judge(selectedIndex, $('choices').children[selectedIndex]);
   }
   function setTotal() { return set.retry ? set.queue.length : SET_SIZE; }
   function renderProgress() {
@@ -1187,21 +1358,23 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
     set.results.push(ok);
     if (!ok) set.wrong.push(current);
     stats.total++;
-    if (ok) { stats.correct++; stats.streak++; stats.xp += set.retry ? 1 : XP[current.mode]; }
+    if (ok) { stats.correct++; stats.streak++; }
     else stats.streak = 0;
     renderStats();
     renderProgress();
 
+    $('check-btn').hidden = true;
     const buttons = $('choices').children;
     for (let k = 0; k < buttons.length; k++) {
       buttons[k].disabled = true;
+      buttons[k].classList.remove('is-selected');
       if (C.solKey(current.choices[k]) === C.solKey(current.correct)) buttons[k].classList.add('is-correct');
     }
     if (!ok) btn.classList.add('is-wrong');
 
     const fb = $('feedback');
     if (ok) {
-      fb.textContent = '正解！ +' + (set.retry ? 1 : XP[current.mode]) + 'XP';
+      fb.textContent = '正解！';
       fb.className = 'feedback ok';
       if (!divpCorrectEffect()) localStamp();
     } else {
@@ -1267,7 +1440,7 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
       const queue = [];
       (items || []).forEach((it) => {
         const p = it.question_params;
-        if (!XP[it.question_key]) return;                                   // 未知のモードは弾く
+        if (!MODE_KEYS.has(it.question_key)) return;                        // 未知のモードは弾く
         if (!p || !p.qTex || !p.sol || !Array.isArray(p.cands) || !p.cands.length) return; // 古い形式は再出題不可
         const q = {
           mode: it.question_key,
@@ -1298,7 +1471,6 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
   function renderStats() {
     $('st-correct').textContent = stats.correct + ' / ' + stats.total;
     $('st-streak').textContent = stats.streak;
-    $('st-xp').textContent = stats.xp;
   }
 
   /* ---------- モード切替 ---------- */
@@ -1376,9 +1548,9 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
       const idx = Number(e.key) - 1;
       const btn = $('choices').children[idx];
       if (btn) btn.click();
-    } else if ((e.key === 'Enter' || e.key === ' ') && answered) {
-      e.preventDefault();
-      advance();
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      if (answered) { e.preventDefault(); advance(); }
+      else if (selectedIndex >= 0) { e.preventDefault(); checkAnswer(); }
     }
   });
 
@@ -1388,6 +1560,7 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
     if (window.Divp && typeof window.Divp.init === 'function') window.Divp.init(UNIT_KEY);
     buildModeSwitcher();
     renderStats();
+    $('check-btn').addEventListener('click', checkAnswer);
     $('next-btn').addEventListener('click', advance);
     $('retry-btn').addEventListener('click', retryWrong);
     $('again-btn').addEventListener('click', () => startSet());
