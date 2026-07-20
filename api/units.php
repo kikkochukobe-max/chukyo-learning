@@ -67,6 +67,11 @@ return [
         'sub'   => '数学・中1',
         'url'   => '/learning/math/math_js1_houteishiki_master.html',
     ],
+    'math_js1_hyomenseki_taiseki' => [
+        'title' => '立体マスター（表面積・体積）',
+        'sub'   => '数学・中1',
+        'url'   => '/learning/math/math_js1_hyomenseki_taiseki.html',
+    ],
     'math_es3_warizanwakete' => [
         'title' => 'わり算れんしゅう（分けて計算）',
         'sub'   => '算数・小3',
@@ -76,6 +81,11 @@ return [
         'title' => 'とけいマスター',
         'sub'   => '算数・小3',
         'url'   => '/learning/math/math_es3_tokei.html',
+    ],
+    'math_es_hyakumasu' => [
+        'title' => '100マス たし算れんしゅう',
+        'sub'   => '算数・小学生',
+        'url'   => '/learning/math/math_es_hyakumasu.html',
     ],
     'math_es6_keisan_dousuru' => [
         'title' => '計算どぅする？',

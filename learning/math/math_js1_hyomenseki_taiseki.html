@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>立体マスター〜表面積・体積〜｜中1空間図形｜中京個別指導学院</title>
+<meta name="description" content="中1空間図形の表面積・体積を練習。立体を指で回して、ボタンひとつで展開図に。回転体・組み合わせ立体・転がし軌跡(発展)まで。中京個別指導学院(神丘)の学習ツール。">
+<style>
+:root{
+  --washi:#f5efe2; --paper:#fffdf6; --paper2:#f8f1e2;
+  --ink:#3d372f; --ink2:#6a5f52; --line:#d8c9ac;
+  --sakura:#c9556b; --sakura-soft:#f3d6dc; --sakura-deep:#a83a51;
+  --gold:#b9913f; --matcha:#8a9a6b;
+  --ok:#2f7d4f; --ng:#b23a48;
+  --shadow:0 3px 14px rgba(90,75,50,.12);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(1100px 560px at 88% -8%, #fdf7eb 0%, rgba(253,247,235,0) 60%),
+    radial-gradient(900px 520px at -8% 108%, #f0e3cf 0%, rgba(240,227,207,0) 55%),
+    var(--washi);
+  min-height:calc(100svh + 1px);
+}
+#app{max-width:980px;margin:0 auto;padding:10px 12px 40px}
+/* ---- header ---- */
+#topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:6px 2px 10px;border-bottom:2px solid var(--line);flex-wrap:wrap}
+.ttl{font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-size:clamp(20px,4.6vw,28px);font-weight:700;letter-spacing:.04em;line-height:1.2}
+.ttl .hana{color:var(--sakura);margin-right:6px}
+.ttl small{display:block;font-size:12px;color:var(--ink2);font-family:inherit;letter-spacing:.12em;margin-top:2px}
+/* ---- chips ---- */
+#modenav{margin:12px 0 4px;border:1px solid var(--line);border-radius:12px;background:var(--paper);box-shadow:var(--shadow);overflow:hidden}
+.modenav-hint{font-size:11.5px;color:var(--ink2);background:var(--paper2);border-bottom:1px solid var(--line);padding:7px 12px;text-align:center;letter-spacing:.02em;line-height:1.4}
+.modenav-hint b{color:var(--sakura-deep);font-weight:800}
+.acc{border-bottom:1px solid var(--line)}
+.acc:last-child{border-bottom:none}
+.acc-head{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;background:none;border:none;cursor:pointer;padding:13px 14px;font-family:inherit}
+.acc-title{font-size:14.5px;font-weight:800;letter-spacing:.08em}
+#accLearn .acc-title{color:var(--matcha)}
+#accQuiz .acc-title{color:var(--sakura)}
+.acc-caret{flex:none;font-size:12px;color:var(--ink2);transition:transform .25s;width:26px;height:26px;line-height:24px;text-align:center;border-radius:50%;background:var(--paper2);border:1px solid var(--line)}
+.acc:not(.open) .acc-caret{transform:rotate(-90deg)}
+.acc:not(.open) .acc-head{opacity:.72}
+.acc-body{overflow:hidden;max-height:0;opacity:0;transition:max-height .32s ease,opacity .2s;padding:0 14px}
+.acc.open .acc-body{max-height:1200px;opacity:1;padding-bottom:13px}
+.mlabel{font-size:11.5px;font-weight:800;letter-spacing:.14em}
+.chiprow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mhint{font-size:11.5px;color:var(--ink2);opacity:.85;line-height:1.4;margin-bottom:9px}
+#labpick{margin-top:2px}
+.labpick-lead{font-size:12.5px;font-weight:800;color:var(--matcha);margin-bottom:6px;letter-spacing:.06em}
+.labpick-sub{flex-basis:100%;font-size:11.5px;font-weight:800;color:var(--matcha);margin:9px 0 1px;letter-spacing:.04em;opacity:.9}
+#labchips{display:flex;gap:8px;flex-wrap:wrap;padding:0}
+.chip{border:1.5px solid var(--line);background:var(--paper);color:#5a5245;border-radius:999px;padding:9px 15px;font-weight:700;font-size:14px;cursor:pointer;transition:transform .08s}
+.chip:active{transform:scale(.95)}
+.chip.on{background:var(--sakura);border-color:var(--sakura);color:#fff;box-shadow:0 2px 7px rgba(201,85,107,.35)}
+#labchips .chip{padding:7px 12px;font-size:13px}
+#labchips .chip.on{background:var(--matcha);border-color:var(--matcha);color:#fff;box-shadow:0 2px 7px rgba(138,154,107,.4)}
+/* ---- stage ---- */
+#stagecard{margin-top:8px}
+#stage{position:relative;height:clamp(300px,46vh,540px);background:linear-gradient(#fffdf6,#f6eedb);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+#stage::after{content:"❀";position:absolute;right:-14px;bottom:-30px;font-size:120px;color:rgba(201,85,107,.07);pointer-events:none}
+#c3d,#c2d{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#c2d{display:none}
+#stagebtns{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:8px;z-index:5}
+.sbtn{border:1.5px solid var(--ink2);background:rgba(255,253,246,.92);color:var(--ink);border-radius:10px;padding:9px 13px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 2px 6px rgba(90,75,50,.15)}
+.sbtn:active{transform:scale(.96)}
+.sbtn.accent{border-color:var(--sakura);color:var(--sakura-deep)}
+.sbtn.ghost{opacity:.85;font-size:13px;padding:7px 11px}
+.sbtn.hidden{display:none}
+#hint3d{position:absolute;left:10px;bottom:8px;font-size:11px;color:var(--ink2);opacity:.75;z-index:4;pointer-events:none}
+#stamp-layer{position:absolute;inset:0;pointer-events:none;z-index:9}
+.stamp{position:absolute;left:50%;top:40%;width:130px;height:130px;margin:-65px 0 0 -65px;border:5px solid #c03b4d;border-radius:50%;color:#c03b4d;display:flex;align-items:center;justify-content:center;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-size:44px;font-weight:800;letter-spacing:3px;transform:rotate(-12deg) scale(2.3);opacity:0;background:rgba(255,252,246,.72);box-shadow:0 0 0 2px rgba(192,59,77,.25) inset;animation:stampIn .45s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes stampIn{to{opacity:1;transform:rotate(-12deg) scale(1)}}
+@media (prefers-reduced-motion: reduce){.stamp{animation:none;opacity:1;transform:rotate(-12deg) scale(1)}}
+#labinfo{margin-top:10px;background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--matcha);border-radius:12px;padding:12px 14px;font-size:14.5px;line-height:1.9;box-shadow:var(--shadow)}
+#labinfo b{color:var(--sakura-deep)}
+#labinfo .fname{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-size:17px;font-weight:700;border-bottom:1px dashed var(--line);display:inline-block;padding-bottom:2px;margin-bottom:4px}
+#labbanner{background:rgba(138,154,107,.14);color:#5a6a3f;font-size:12px;font-weight:700;border-radius:8px;padding:7px 11px;margin-bottom:11px;line-height:1.5}
+#labsliders{margin-bottom:6px}
+.slrow{display:flex;align-items:center;gap:12px;margin:9px 0}
+.slrow .sllabel{font-size:13.5px;font-weight:700;color:var(--ink2);min-width:92px}
+.slrow .sllabel b{color:var(--sakura-deep);font-size:16px;margin:0 2px}
+.slrow input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:6px;border-radius:99px;background:linear-gradient(90deg,var(--matcha),#c8d4ad);outline:none;margin:0}
+.slrow input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;border:3px solid var(--matcha);cursor:pointer;box-shadow:0 1px 4px rgba(90,75,50,.3)}
+.slrow input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--matcha);cursor:pointer}
+#labvals{border-top:1px dashed var(--line);padding-top:9px;margin-top:4px}
+.labline{font-size:15px;line-height:2}
+.labline b{color:var(--sakura-deep)}
+.labextra{font-size:13px;color:var(--ink2);margin:2px 0 6px}
+.labtag{display:inline-block;font-size:10.5px;font-weight:700;color:#8a6d1f;background:rgba(185,145,63,.16);border-radius:6px;padding:1px 7px;margin-left:3px;letter-spacing:.02em}
+.labnote{font-size:12.5px;color:var(--ink2);margin-top:7px}
+/* ---- question ---- */
+#qcard{margin-top:12px;background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--sakura);border-radius:12px;padding:12px 15px;box-shadow:var(--shadow)}
+#qno{font-size:12px;color:var(--gold);font-weight:700;letter-spacing:.15em;margin-bottom:3px}
+#qtext{font-size:clamp(15px,2.6vw,17.5px);line-height:1.75}
+#qtext b{color:var(--sakura-deep)}
+/* ---- answer ---- */
+#anscard{margin-top:12px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 15px 16px;box-shadow:var(--shadow)}
+.ansrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.anslabel{font-weight:700;color:var(--ink2);font-size:14px}
+#ansbox{flex:1;min-width:170px;display:flex;align-items:baseline;justify-content:flex-end;gap:6px;background:var(--paper2);border:2px solid var(--line);border-radius:10px;padding:10px 14px;min-height:52px}
+#ansbox.err{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+#ansdisp{font-size:26px;font-weight:700;letter-spacing:.03em;font-family:"Hiragino Mincho ProN","Yu Mincho",serif}
+#ansdisp.ph{color:#c9bda4;font-weight:400}
+#unit{font-size:15px;color:var(--ink2);font-weight:700}
+#streak{font-size:13px;color:var(--sakura-deep);font-weight:700;min-width:52px;text-align:right}
+#tenkey{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px;max-width:480px}
+.tk{border:1.5px solid var(--line);background:#fff;border-radius:10px;font-size:21px;font-weight:700;color:var(--ink);padding:0;height:52px;cursor:pointer;box-shadow:0 2px 0 rgba(90,75,50,.12)}
+.tk:active{transform:translateY(1px);box-shadow:none}
+.tk.pi{background:var(--sakura-soft);border-color:#e3aab6;color:var(--sakura-deep);grid-column:span 2;font-family:"Hiragino Mincho ProN",serif}
+.tk.op{background:var(--paper2)}
+.tk.del{background:var(--paper2);font-size:17px}
+.actrow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+#checkbtn{flex:1;min-width:160px;border:none;background:var(--sakura);color:#fff;font-size:18px;font-weight:800;letter-spacing:.2em;border-radius:12px;padding:14px;cursor:pointer;box-shadow:0 3px 0 var(--sakura-deep)}
+#checkbtn:active{transform:translateY(2px);box-shadow:none}
+#checkbtn:disabled{background:#d9cdb6;box-shadow:none;color:#fffdf6}
+#nextbtn{flex:1;min-width:140px;border:2px solid var(--gold);background:#fff;color:var(--gold);font-size:16px;font-weight:800;border-radius:12px;padding:12px;cursor:pointer}
+#nextbtn:active{transform:scale(.97)}
+.hidden{display:none !important}
+#feedback{margin-top:12px;font-size:16.5px;font-weight:800;min-height:1.2em}
+#feedback.ok{color:var(--ok)}
+#feedback.ng{color:var(--ng)}
+#expl{margin-top:10px;background:var(--paper2);border-left:4px solid var(--gold);border-radius:8px;padding:11px 14px;font-size:15px;line-height:2}
+#expl .ehead{font-weight:800;color:var(--gold);font-size:13px;letter-spacing:.2em;margin-bottom:2px}
+#expl b{color:var(--sakura-deep)}
+footer{margin-top:26px;text-align:center;font-size:11.5px;color:var(--ink2);letter-spacing:.1em}
+@media (max-width:560px){
+  #stagebtns{flex-direction:row;left:10px;right:auto;top:8px}
+  .sbtn{font-size:12.5px;padding:8px 10px}
+}
+</style>
+</head>
+<body data-unit-key="math_js1_hyomenseki_taiseki" data-theme="washi" data-effect="jh">
+<!-- 共通ヘッダー/正誤エフェクト/学習記録：body直後・同期実行で読む。
+     divp-header は document.currentScript の位置にヘッダーを差し込むため defer 不可・最上部に置く -->
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-core.js"></script>
+<div id="app">
+  <header id="topbar">
+    <div class="ttl"><span class="hana">❀</span>立体マスター<small>表面積・体積｜中1 空間図形</small></div>
+  </header>
+  <nav id="modenav">
+    <div class="modenav-hint">右の<b>▼</b>ボタンをタップすると、各メニューを開いたり閉じたりできます</div>
+    <section class="acc open" id="accLearn">
+      <button class="acc-head" data-acc="learn">
+        <span class="acc-title">🔍 学ぶモード（立体ラボ）</span><span class="acc-caret" title="タップで開閉">▼</span>
+      </button>
+      <div class="acc-body">
+        <div class="mhint">問題ではありません。立体を回して・展開して・寸法を変えて観察できます</div>
+        <div id="labpick">
+          <div class="labpick-lead">👇 図形を選んで観察しよう</div>
+          <nav id="labchips">
+            <button class="chip on" data-solid="cube">立方体</button>
+            <button class="chip" data-solid="box">直方体</button>
+            <button class="chip" data-solid="prism">三角柱</button>
+            <button class="chip" data-solid="cyl">円柱</button>
+            <button class="chip" data-solid="pyr">正四角錐</button>
+            <button class="chip" data-solid="cone">円錐</button>
+            <button class="chip" data-solid="sphere">球</button>
+            <span class="labpick-sub">✂️ 切り抜き</span>
+            <button class="chip" data-solid="cut4">立方体→正四面体</button>
+            <span class="labpick-sub">📐 軌跡（円・多角形の転がり）</span>
+            <button class="chip" data-solid="roll_tri">正三角形</button>
+            <button class="chip" data-solid="roll_sq">正方形</button>
+            <button class="chip" data-solid="roll_rect">長方形</button>
+            <button class="chip" data-solid="roll_cline">円→直線</button>
+            <button class="chip" data-solid="roll_cout">円→外側</button>
+            <button class="chip" data-solid="roll_cin">円→内側</button>
+          </nav>
+        </div>
+      </div>
+    </section>
+    <section class="acc" id="accQuiz">
+      <button class="acc-head" data-acc="quiz">
+        <span class="acc-title">✏️ 練習問題</span><span class="acc-caret" title="タップで開閉">▼</span>
+      </button>
+      <div class="acc-body">
+        <div class="chiprow">
+          <button class="chip" data-mode="vol">体積</button>
+          <button class="chip" data-mode="surf">表面積</button>
+          <button class="chip" data-mode="kaiten">回転体</button>
+          <button class="chip" data-mode="kumi">切り抜き</button>
+          <button class="chip" data-mode="kiseki">発展・軌跡</button>
+        </div>
+        <div class="mhint">👆 モードを選ぶと問題が出ます。テンキーで答えて「答え合わせ」。間違えても解説が出るので、繰り返し練習しよう</div>
+      </div>
+    </section>
+  </nav>
+  <main>
+    <section id="stagecard">
+      <div id="stage">
+        <canvas id="c3d"></canvas>
+        <canvas id="c2d"></canvas>
+        <div id="stagebtns">
+          <button id="btnUnfold" class="sbtn accent hidden">▤ 展開する</button>
+          <button id="btnSweep" class="sbtn accent hidden">↻ 回転させる</button>
+          <button id="btnRoll" class="sbtn accent hidden">▶ 転がす</button>
+          <button id="btnView" class="sbtn ghost">⟲ 視点</button>
+        </div>
+        <div id="hint3d">ドラッグで回転／ホイール・ピンチで拡大</div>
+        <div id="stamp-layer"></div>
+      </div>
+      <div id="labinfo" class="hidden">
+        <div id="labbanner">🔍 学ぶモード（立体ラボ）　スライダーで寸法を変えて、体積・表面積がどう変わるか見てみよう</div>
+        <div id="labsliders"></div>
+        <div id="labvals"></div>
+      </div>
+    </section>
+    <section id="qcard" class="hidden"><div id="qno"></div><div id="qtext"></div></section>
+    <section id="anscard" class="hidden">
+      <div class="ansrow"><span class="anslabel">答え</span><div id="ansbox"><span id="ansdisp" class="ph">？</span><span id="unit"></span></div><span id="streak"></span></div>
+      <div id="tenkey"></div>
+      <div class="actrow"><button id="checkbtn">答え合わせ</button><button id="nextbtn" class="hidden">次の問題 ▶</button></div>
+      <div id="feedback"></div>
+      <div id="expl" class="hidden"></div>
+    </section>
+  </main>
+  <footer>中京個別指導学院（神丘）｜divp-suite</footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script id="main">
+'use strict';
+/* 学習記録システムの単元ID（＝ファイル名と一致）。ファイルパスから自動生成しない */
+const UNIT_KEY='math_js1_hyomenseki_taiseki';
+/* ================= utils ================= */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[ri(0,a.length-1)];
+const SUP2='<sup>2</sup>',SUP3='<sup>3</sup>';
+function piWrap(k){return (k===1?'':k)+'π';}
+function fmtAns(a){const p=[];if(a.pi)p.push(piWrap(a.pi));if(a.num)p.push(String(a.num));if(!p.length)p.push('0');return p.join('＋');}
+function ansVal(a){return a.pi*Math.PI+a.num;}
+function parseExpr(s){
+  if(!s)return null;
+  const parts=s.split('＋');let pi=0,num=0;
+  for(const p of parts){
+    if(!p)return null;
+    const m=p.match(/^([0-9]*)π$/);
+    if(m){pi+=(m[1]===''?1:parseInt(m[1],10));continue;}
+    if(/^[0-9]+$/.test(p)){num+=parseInt(p,10);continue;}
+    return null;
+  }
+  return {pi,num};
+}
+/* ================= 問題ジェネレータ ================= */
+/* --- 体積 --- */
+function genVolCube(){const a=ri(3,6),v=a*a*a;return{key:'vol_cube',unit:'cm³',xp:10,ans:{pi:0,num:v},
+ text:`1辺が <b>${a}cm</b> の立方体の<b>体積</b>を求めましょう。`,
+ expl:`体積 ＝ 1辺 × 1辺 × 1辺<br>＝ ${a} × ${a} × ${a} ＝ <b>${v} cm${SUP3}</b>`,
+ fig:{t:'solid',kind:'cube',d:{a}}};}
+function genVolCuboid(){const a=ri(2,6),b=ri(2,6),c=ri(2,6),v=a*b*c;return{key:'vol_cuboid',unit:'cm³',xp:10,ans:{pi:0,num:v},
+ text:`縦 <b>${a}cm</b>、横 <b>${b}cm</b>、高さ <b>${c}cm</b> の直方体の<b>体積</b>を求めましょう。`,
+ expl:`体積 ＝ 縦 × 横 × 高さ<br>＝ ${a} × ${b} × ${c} ＝ <b>${v} cm${SUP3}</b>`,
+ fig:{t:'solid',kind:'box',d:{w:b,h:c,dp:a}}};}
+function genVolTriPrism(){const s=pick([[3,4,5],[6,8,10]]),p=s[0],q=s[1],hy=s[2],L=ri(3,7);const base=p*q/2,v=base*L;
+ return{key:'vol_triprism',unit:'cm³',xp:10,ans:{pi:0,num:v},
+ text:`底面が直角三角形（直角をはさむ2辺が <b>${p}cm</b> と <b>${q}cm</b>）で、高さが <b>${L}cm</b> の三角柱の<b>体積</b>を求めましょう。`,
+ expl:`底面積 ＝ ${q} × ${p} ÷ 2 ＝ ${base} (cm${SUP2})<br>体積 ＝ 底面積 × 高さ ＝ ${base} × ${L} ＝ <b>${v} cm${SUP3}</b>`,
+ fig:{t:'solid',kind:'prism',d:{p,q,hy,L}}};}
+function genVolCyl(){const r=ri(2,4),h=ri(3,7),k=r*r*h;return{key:'vol_cyl',unit:'cm³',xp:10,ans:{pi:k,num:0},
+ text:`底面の半径が <b>${r}cm</b>、高さが <b>${h}cm</b> の円柱の<b>体積</b>を求めましょう。`,
+ expl:`底面積 ＝ π × ${r} × ${r} ＝ ${piWrap(r*r)} (cm${SUP2})<br>体積 ＝ 底面積 × 高さ ＝ ${piWrap(r*r)} × ${h} ＝ <b>${piWrap(k)} cm${SUP3}</b>`,
+ fig:{t:'solid',kind:'cyl',d:{r,h}}};}
+function genVolPyr(){const a=ri(3,6),h=pick([3,6]),v=a*a*h/3;return{key:'vol_pyr',unit:'cm³',xp:10,ans:{pi:0,num:v},
+ text:`底面が1辺 <b>${a}cm</b> の正方形で、高さが <b>${h}cm</b> の正四角錐の<b>体積</b>を求めましょう。`,
+ expl:`錐（すい）の体積 ＝ <b>1/3</b> × 底面積 × 高さ<br>＝ 1/3 × ${a*a} × ${h} ＝ <b>${v} cm${SUP3}</b>`,
+ fig:{t:'solid',kind:'pyr',d:{a,h,showH:true}}};}
+function genVolCone(){const r=ri(2,5),h=pick([3,6]),k=r*r*h/3;return{key:'vol_cone',unit:'cm³',xp:10,ans:{pi:k,num:0},
+ text:`底面の半径が <b>${r}cm</b>、高さが <b>${h}cm</b> の円錐の<b>体積</b>を求めましょう。`,
+ expl:`錐（すい）の体積 ＝ <b>1/3</b> × 底面積 × 高さ<br>＝ 1/3 × ${piWrap(r*r)} × ${h} ＝ <b>${piWrap(k)} cm${SUP3}</b>`,
+ fig:{t:'solid',kind:'cone',d:{r,h,showH:true}}};}
+function genVolSphere(){const r=pick([3,6]),k=4*r*r*r/3;return{key:'vol_sphere',unit:'cm³',xp:10,ans:{pi:k,num:0},
+ text:`半径が <b>${r}cm</b> の球の<b>体積</b>を求めましょう。`,
+ expl:`球の体積 ＝ <b>4/3</b> × π × 半径 × 半径 × 半径<br>＝ 4/3 × π × ${r}³ ＝ 4/3 × ${piWrap(r*r*r)} ＝ <b>${piWrap(k)} cm${SUP3}</b>`,
+ fig:{t:'solid',kind:'sphere',d:{r}}};}
+/* --- 表面積 --- */
+function genSurfCube(){const a=ri(3,7),v=6*a*a;return{key:'surf_cube',unit:'cm²',xp:10,ans:{pi:0,num:v},
+ text:`1辺が <b>${a}cm</b> の立方体の<b>表面積</b>を求めましょう。<br><span style="font-size:.85em;color:#6a5f52">【展開】ボタンで展開図が見られるよ</span>`,
+ expl:`正方形の面が6つ。<br>1つの面 ＝ ${a} × ${a} ＝ ${a*a} (cm${SUP2})<br>表面積 ＝ ${a*a} × 6 ＝ <b>${v} cm${SUP2}</b>`,
+ fig:{t:'solid',kind:'cube',d:{a}}};}
+function genSurfCuboid(){const a=ri(2,6),b=ri(2,6),c=ri(2,6),v=2*(a*b+b*c+c*a);return{key:'surf_cuboid',unit:'cm²',xp:10,ans:{pi:0,num:v},
+ text:`縦 <b>${a}cm</b>、横 <b>${b}cm</b>、高さ <b>${c}cm</b> の直方体の<b>表面積</b>を求めましょう。`,
+ expl:`同じ形の面が2つずつ3組ある。<br>(${a}×${b} ＋ ${b}×${c} ＋ ${c}×${a}) × 2<br>＝ (${a*b} ＋ ${b*c} ＋ ${c*a}) × 2 ＝ <b>${v} cm${SUP2}</b>`,
+ fig:{t:'solid',kind:'box',d:{w:b,h:c,dp:a}}};}
+function genSurfTriPrism(){const s=pick([1,2]),p=3*s,q=4*s,hy=5*s,L=ri(3,7);const base=p*q/2,side=(p+q+hy)*L,v=base*2+side;
+ return{key:'surf_triprism',unit:'cm²',xp:10,ans:{pi:0,num:v},
+ text:`底面が直角三角形（3辺が <b>${p}cm</b>・<b>${q}cm</b>・<b>${hy}cm</b>）で、高さが <b>${L}cm</b> の三角柱の<b>表面積</b>を求めましょう。`,
+ expl:`底面（直角三角形）2つ ＝ ${q}×${p}÷2 × 2 ＝ ${base*2} (cm${SUP2})<br>展開すると側面は「縦${L}cm・横(${p}＋${q}＋${hy})cm」の長方形。<br>側面積 ＝ ${p+q+hy} × ${L} ＝ ${side} (cm${SUP2})<br>表面積 ＝ ${base*2} ＋ ${side} ＝ <b>${v} cm${SUP2}</b>`,
+ fig:{t:'solid',kind:'prism',d:{p,q,hy,L,showHy:true}}};}
+function genSurfCyl(){const r=ri(2,4),h=ri(3,7),k=2*r*r+2*r*h;return{key:'surf_cyl',unit:'cm²',xp:10,ans:{pi:k,num:0},
+ text:`底面の半径が <b>${r}cm</b>、高さが <b>${h}cm</b> の円柱の<b>表面積</b>を求めましょう。<br><span style="font-size:.85em;color:#6a5f52">【展開】ボタンで確かめてみよう</span>`,
+ expl:`展開すると、側面は「縦＝高さ、横＝底面の円周」の長方形。<br>底面の円周 ＝ 2 × π × ${r} ＝ ${piWrap(2*r)} (cm)<br>側面積 ＝ ${h} × ${piWrap(2*r)} ＝ ${piWrap(2*r*h)} (cm${SUP2})<br>底面2つ ＝ ${piWrap(r*r)} × 2 ＝ ${piWrap(2*r*r)} (cm${SUP2})<br>表面積 ＝ ${piWrap(2*r*h)} ＋ ${piWrap(2*r*r)} ＝ <b>${piWrap(k)} cm${SUP2}</b>`,
+ fig:{t:'solid',kind:'cyl',d:{r,h}}};}
+function genSurfPyr(){const s=pick([[6,5,4],[8,5,3],[12,10,8]]),a=s[0],m=s[1],h=s[2];const v=a*a+2*a*m;
+ return{key:'surf_pyr',unit:'cm²',xp:10,ans:{pi:0,num:v},
+ text:`底面が1辺 <b>${a}cm</b> の正方形で、側面の二等辺三角形の高さが <b>${m}cm</b> の正四角錐の<b>表面積</b>を求めましょう。`,
+ expl:`底面 ＝ ${a} × ${a} ＝ ${a*a} (cm${SUP2})<br>側面の三角形1つ ＝ ${a} × ${m} ÷ 2 ＝ ${a*m/2} (cm${SUP2})<br>それが4つ ＝ ${a*m/2} × 4 ＝ ${2*a*m} (cm${SUP2})<br>表面積 ＝ ${a*a} ＋ ${2*a*m} ＝ <b>${v} cm${SUP2}</b>`,
+ fig:{t:'solid',kind:'pyr',d:{a,h,m,showM:true}}};}
+function genSurfCone(){const s=pick([[3,4,5],[6,8,10],[8,6,10],[4,3,5]]),r=s[0],h=s[1],l=s[2];const k=r*(r+l);
+ return{key:'surf_cone',unit:'cm²',xp:10,ans:{pi:k,num:0},
+ text:`底面の半径が <b>${r}cm</b>、母線の長さが <b>${l}cm</b> の円錐の<b>表面積</b>を求めましょう。<br><span style="font-size:.85em;color:#6a5f52">【展開】ボタンでおうぎ形を確かめよう</span>`,
+ expl:`展開すると、側面は半径${l}cm（母線）のおうぎ形。弧の長さ＝底面の円周 ＝ ${piWrap(2*r)} (cm)<br>おうぎ形の面積 ＝ 1/2 × 弧 × 半径 ＝ 1/2 × ${piWrap(2*r)} × ${l} ＝ ${piWrap(r*l)} (cm${SUP2})<br>底面 ＝ ${piWrap(r*r)} (cm${SUP2})<br>表面積 ＝ ${piWrap(r*l)} ＋ ${piWrap(r*r)} ＝ <b>${piWrap(k)} cm${SUP2}</b>`,
+ fig:{t:'solid',kind:'cone',d:{r,h,l,showL:true}}};}
+function genSurfSphere(){const r=ri(2,5),k=4*r*r;return{key:'surf_sphere',unit:'cm²',xp:10,ans:{pi:k,num:0},
+ text:`半径が <b>${r}cm</b> の球の<b>表面積</b>を求めましょう。`,
+ expl:`球の表面積 ＝ <b>4</b> × π × 半径 × 半径<br>＝ 4 × π × ${r} × ${r} ＝ <b>${piWrap(k)} cm${SUP2}</b>`,
+ fig:{t:'solid',kind:'sphere',d:{r}}};}
+/* --- 回転体 --- */
+function genKaiCyl(){const r=ri(2,4),h=ri(3,6),isV=Math.random()<0.5;
+ const fig={t:'lathe',pts:[[0,0],[r,0],[r,h],[0,h]],labels:[{x:r/2,y:-0.6,text:r+'cm'},{x:r+0.7,y:h/2,text:h+'cm'}]};
+ if(isV){const k=r*r*h;return{key:'kai_cyl_v',unit:'cm³',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の長方形（横 <b>${r}cm</b>・縦 <b>${h}cm</b>）を、直線ℓを軸として1回転させます。できる立体の<b>体積</b>を求めましょう。<br><span style="font-size:.85em;color:#6a5f52">【回転】ボタンで確かめられるよ</span>`,
+  expl:`できる立体は、底面の半径${r}cm・高さ${h}cmの<b>円柱</b>。<br>体積 ＝ π × ${r}² × ${h} ＝ <b>${piWrap(k)} cm${SUP3}</b>`};}
+ const k=2*r*r+2*r*h;return{key:'kai_cyl_s',unit:'cm²',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の長方形（横 <b>${r}cm</b>・縦 <b>${h}cm</b>）を、直線ℓを軸として1回転させます。できる立体の<b>表面積</b>を求めましょう。`,
+  expl:`できる立体は、底面の半径${r}cm・高さ${h}cmの<b>円柱</b>。<br>側面積 ＝ ${h} × 2π×${r} ＝ ${piWrap(2*r*h)}、底面2つ ＝ ${piWrap(2*r*r)}<br>表面積 ＝ ${piWrap(2*r*h)} ＋ ${piWrap(2*r*r)} ＝ <b>${piWrap(k)} cm${SUP2}</b>`};}
+function genKaiCone(){const s=pick([[3,4,5],[4,3,5],[6,8,10],[8,6,10]]),r=s[0],h=s[1],l=s[2],isV=Math.random()<0.5;
+ const fig={t:'lathe',pts:[[0,0],[r,0],[0,h]],labels:[{x:r/2,y:-0.6,text:r+'cm'},{x:-0.8,y:h/2,text:h+'cm'},{x:r/2+0.6,y:h/2+0.3,text:l+'cm'}]};
+ if(isV){const k=r*r*h/3;return{key:'kai_cone_v',unit:'cm³',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の直角三角形（底辺 <b>${r}cm</b>・高さ <b>${h}cm</b>・斜辺 <b>${l}cm</b>）を、直線ℓを軸として1回転させます。できる立体の<b>体積</b>を求めましょう。<br><span style="font-size:.85em;color:#6a5f52">【回転】ボタンで確かめられるよ</span>`,
+  expl:`できる立体は、底面の半径${r}cm・高さ${h}cmの<b>円錐</b>。<br>体積 ＝ 1/3 × π × ${r}² × ${h} ＝ 1/3 × ${piWrap(r*r*h)} ＝ <b>${piWrap(k)} cm${SUP3}</b>`};}
+ const k=r*(r+l);return{key:'kai_cone_s',unit:'cm²',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の直角三角形（底辺 <b>${r}cm</b>・高さ <b>${h}cm</b>・斜辺 <b>${l}cm</b>）を、直線ℓを軸として1回転させます。できる立体の<b>表面積</b>を求めましょう。`,
+  expl:`できる立体は、底面の半径${r}cm・母線${l}cmの<b>円錐</b>。<br>側面積 ＝ 1/2 × 弧(＝${piWrap(2*r)}) × ${l} ＝ ${piWrap(r*l)}、底面 ＝ ${piWrap(r*r)}<br>表面積 ＝ ${piWrap(r*l)} ＋ ${piWrap(r*r)} ＝ <b>${piWrap(k)} cm${SUP2}</b>`};}
+function genKaiSphere(){const r=pick([3,6]),isV=Math.random()<0.5;
+ const pts=[];for(let i=0;i<=24;i++){const t=Math.PI*i/24;pts.push([r*Math.sin(t),r-r*Math.cos(t)]);}
+ const fig={t:'lathe',pts,labels:[{x:r/2,y:r+0.45,text:r+'cm'}],lines:[{a:[0,r],b:[r,r]}]};
+ if(isV){const k=4*r*r*r/3;return{key:'kai_sphere_v',unit:'cm³',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の半円（半径 <b>${r}cm</b>）を、直線ℓを軸として1回転させます。できる立体の<b>体積</b>を求めましょう。`,
+  expl:`できる立体は半径${r}cmの<b>球</b>。<br>体積 ＝ 4/3 × π × ${r}³ ＝ <b>${piWrap(k)} cm${SUP3}</b>`};}
+ const k=4*r*r;return{key:'kai_sphere_s',unit:'cm²',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の半円（半径 <b>${r}cm</b>）を、直線ℓを軸として1回転させます。できる立体の<b>表面積</b>を求めましょう。`,
+  expl:`できる立体は半径${r}cmの<b>球</b>。<br>表面積 ＝ 4 × π × ${r}² ＝ <b>${piWrap(k)} cm${SUP2}</b>`};}
+function genKaiPipe(){const d=ri(1,2),w=ri(1,2),h=ri(3,6),R=d+w,isV=Math.random()<0.55;
+ const fig={t:'lathe',pts:[[d,0],[R,0],[R,h],[d,h]],closed:true,
+  labels:[{x:d/2,y:-0.75,text:d+'cm'},{x:d+w/2,y:-1.55,text:w+'cm'},{x:R+0.7,y:h/2,text:h+'cm'}],
+  lines:[{a:[0,-0.35],b:[d,-0.35]},{a:[d,-1.15],b:[R,-1.15]}]};
+ if(isV){const k=(R*R-d*d)*h;return{key:'kai_pipe_v',unit:'cm³',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の長方形（横 <b>${w}cm</b>・縦 <b>${h}cm</b>）は、直線ℓから <b>${d}cm</b> 離れています。直線ℓを軸として1回転させてできる立体の<b>体積</b>を求めましょう。<br><span style="font-size:.85em;color:#6a5f52">【回転】ボタンで確かめられるよ</span>`,
+  expl:`できる立体は、大きい円柱から小さい円柱をくり抜いた<b>パイプ形</b>。<br>大きい円柱：半径${R}cm → ${piWrap(R*R)}×${h} ＝ ${piWrap(R*R*h)}<br>小さい円柱：半径${d}cm → ${piWrap(d*d)}×${h} ＝ ${piWrap(d*d*h)}<br>体積 ＝ ${piWrap(R*R*h)} − ${piWrap(d*d*h)} ＝ <b>${piWrap(k)} cm${SUP3}</b>`};}
+ const k=2*R*h+2*d*h+2*(R*R-d*d);return{key:'kai_pipe_s',unit:'cm²',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の長方形（横 <b>${w}cm</b>・縦 <b>${h}cm</b>）は、直線ℓから <b>${d}cm</b> 離れています。直線ℓを軸として1回転させてできる立体の<b>表面積</b>を求めましょう。`,
+  expl:`できる立体は<b>パイプ形</b>。表面は「外側の側面・内側の側面・上下のドーナツ形2つ」。<br>外側 ＝ 2π×${R}×${h} ＝ ${piWrap(2*R*h)}<br>内側 ＝ 2π×${d}×${h} ＝ ${piWrap(2*d*h)}<br>ドーナツ形2つ ＝ (${piWrap(R*R)}−${piWrap(d*d)})×2 ＝ ${piWrap(2*(R*R-d*d))}<br>表面積 ＝ <b>${piWrap(k)} cm${SUP2}</b>`};}
+function genKaiStep(){const R=pick([3,4]),r=ri(1,R-1),h1=ri(2,4),h2=ri(2,4),isV=Math.random()<0.5;
+ const fig={t:'lathe',pts:[[0,0],[R,0],[R,h1],[r,h1],[r,h1+h2],[0,h1+h2]],
+  labels:[{x:R/2,y:-0.6,text:R+'cm'},{x:r/2,y:h1+h2+0.55,text:r+'cm'},{x:R+0.7,y:h1/2,text:h1+'cm'},{x:r+0.7,y:h1+h2/2,text:h2+'cm'}],
+  lines:[{a:[0,h1+h2+0.25],b:[r,h1+h2+0.25]}],rings:[{y:h1,r:R},{y:h1,r:r}]};
+ if(isV){const k=R*R*h1+r*r*h2;return{key:'kai_step_v',unit:'cm³',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の形を、直線ℓを軸として1回転させます。できる立体の<b>体積</b>を求めましょう。<br><span style="font-size:.85em;color:#6a5f52">【回転】ボタンで確かめられるよ</span>`,
+  expl:`できる立体は、円柱の上に円柱が乗った<b>2段の形</b>。<br>下の円柱 ＝ ${piWrap(R*R)}×${h1} ＝ ${piWrap(R*R*h1)}<br>上の円柱 ＝ ${piWrap(r*r)}×${h2} ＝ ${piWrap(r*r*h2)}<br>体積 ＝ ${piWrap(R*R*h1)} ＋ ${piWrap(r*r*h2)} ＝ <b>${piWrap(k)} cm${SUP3}</b>`};}
+ const k=2*R*h1+2*r*h2+2*R*R;return{key:'kai_step_s',unit:'cm²',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の形を、直線ℓを軸として1回転させます。できる立体の<b>表面積</b>を求めましょう。（★工夫して求めよう）`,
+  expl:`側面：下の段 ＝ 2π×${R}×${h1} ＝ ${piWrap(2*R*h1)}、上の段 ＝ 2π×${r}×${h2} ＝ ${piWrap(2*r*h2)}<br>★上下の面の工夫：<b>真上から見ても真下から見ても、半径${R}cmの円</b>に見える！<br>→ 上下の面の合計 ＝ ${piWrap(R*R)} × 2 ＝ ${piWrap(2*R*R)}<br>表面積 ＝ ${piWrap(2*R*h1)} ＋ ${piWrap(2*r*h2)} ＋ ${piWrap(2*R*R)} ＝ <b>${piWrap(k)} cm${SUP2}</b>`};}
+function genKaiConeCyl(){const r=ri(2,4),h1=ri(2,5),h2=pick([3,6]);const k=r*r*h1+r*r*h2/3;
+ const fig={t:'lathe',pts:[[0,0],[r,0],[r,h1],[0,h1+h2]],
+  labels:[{x:r/2,y:-0.6,text:r+'cm'},{x:r+0.7,y:h1/2,text:h1+'cm'},{x:r/2+0.7,y:h1+h2/2+0.3,text:h2+'cm'}],rings:[{y:h1,r:r}]};
+ return{key:'kai_conecyl_v',unit:'cm³',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の形を、直線ℓを軸として1回転させます。できる立体の<b>体積</b>を求めましょう。<br><span style="font-size:.85em;color:#6a5f52">【回転】ボタンで確かめられるよ</span>`,
+  expl:`できる立体は、円柱の上に円錐が乗った形。<br>円柱 ＝ ${piWrap(r*r)}×${h1} ＝ ${piWrap(r*r*h1)}<br>円錐 ＝ 1/3 × ${piWrap(r*r)}×${h2} ＝ ${piWrap(r*r*h2/3)}<br>体積 ＝ ${piWrap(r*r*h1)} ＋ ${piWrap(r*r*h2/3)} ＝ <b>${piWrap(k)} cm${SUP3}</b>`};}
+function genKaiBicone(){const isV=Math.random()<0.5;
+ if(isV){const r=pick([3,6]),h1=ri(2,6),h2=ri(2,6),k=r*r*(h1+h2)/3;
+  const fig={t:'lathe',pts:[[0,0],[r,h1],[0,h1+h2]],
+   labels:[{x:r/2+0.5,y:h1+0.25,text:r+'cm'},{x:-0.8,y:h1/2,text:h1+'cm'},{x:-0.8,y:h1+h2/2,text:h2+'cm'}],
+   lines:[{a:[0,h1],b:[r,h1]}],rings:[{y:h1,r:r}]};
+  return{key:'kai_bicone_v',unit:'cm³',xp:15,ans:{pi:k,num:0},fig,
+   text:`図の三角形を、直線ℓを軸として1回転させます。できる立体（<b>円錐が2つくっついた形</b>）の<b>体積</b>を求めましょう。<br><span style="font-size:.85em;color:#6a5f52">【回転】ボタンで確かめられるよ</span>`,
+   expl:`上下2つの円錐に分けて考える（底面はどちらも半径${r}cmの円）。<br>下の円錐 ＝ 1/3×${piWrap(r*r)}×${h1} ＝ ${piWrap(r*r*h1/3)}<br>上の円錐 ＝ 1/3×${piWrap(r*r)}×${h2} ＝ ${piWrap(r*r*h2/3)}<br>体積 ＝ 1/3×${piWrap(r*r)}×(${h1}＋${h2}) ＝ <b>${piWrap(k)} cm${SUP3}</b>`};}
+ const s=pick([[3,4,5],[4,3,5],[6,8,10]]),r=s[0],h=s[1],l=s[2],k=2*r*l;
+ const fig={t:'lathe',pts:[[0,0],[r,h],[0,2*h]],
+  labels:[{x:-0.8,y:h,text:r+'cm'},{x:r/2+0.6,y:h/2,text:l+'cm'}],
+  lines:[{a:[0,h],b:[r,h]}],rings:[{y:h,r:r}]};
+ return{key:'kai_bicone_s',unit:'cm²',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の二等辺三角形（底辺が軸ℓと垂直、母線 <b>${l}cm</b>）を、直線ℓを軸として1回転させます。できる立体（<b>同じ円錐が2つ</b>）の<b>表面積</b>を求めましょう。`,
+  expl:`表面は2つの円錐の側面だけ（底面は内側でくっつくので無い）。<br>円錐1つの側面 ＝ 1/2×弧(2π×${r}) × ${l} ＝ ${piWrap(r*l)}<br>表面積 ＝ ${piWrap(r*l)} × 2 ＝ <b>${piWrap(k)} cm${SUP2}</b>`};}
+function genKaiHemiCyl(){const r=pick([3,6]),h=ri(3,6),isV=Math.random()<0.5;
+ const pts=[[0,0],[r,0]];for(let i=0;i<=10;i++){const u=Math.PI/2*i/10;pts.push([r*Math.cos(u),h+r*Math.sin(u)]);}
+ const fig={t:'lathe',pts,labels:[{x:r/2,y:-0.6,text:r+'cm'},{x:r+0.7,y:h/2,text:h+'cm'}],lines:[{a:[0,h],b:[r,h]}],rings:[{y:h,r:r}]};
+ if(isV){const k=r*r*h+2*r*r*r/3;return{key:'kai_hemicyl_v',unit:'cm³',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の形（長方形と四分円）を、直線ℓを軸として1回転させます。できる立体（<b>円柱の上に半球</b>）の<b>体積</b>を求めましょう。<br><span style="font-size:.85em;color:#6a5f52">【回転】ボタンで確かめられるよ</span>`,
+  expl:`円柱 ＝ ${piWrap(r*r)}×${h} ＝ ${piWrap(r*r*h)}<br>半球 ＝ 4/3×π×${r}³ ÷ 2 ＝ ${piWrap(2*r*r*r/3)}<br>体積 ＝ ${piWrap(r*r*h)} ＋ ${piWrap(2*r*r*r/3)} ＝ <b>${piWrap(k)} cm${SUP3}</b>`};}
+ const k=3*r*r+2*r*h;return{key:'kai_hemicyl_s',unit:'cm²',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の形（長方形と四分円）を、直線ℓを軸として1回転させます。できる立体（<b>円柱の上に半球</b>）の<b>表面積</b>を求めましょう。`,
+  expl:`底面の円 ＝ ${piWrap(r*r)}<br>円柱の側面 ＝ 2π×${r}×${h} ＝ ${piWrap(2*r*h)}<br>半球の曲面 ＝ 4π×${r}² ÷ 2 ＝ ${piWrap(2*r*r)}<br>表面積 ＝ ${piWrap(r*r)} ＋ ${piWrap(2*r*h)} ＋ ${piWrap(2*r*r)} ＝ <b>${piWrap(k)} cm${SUP2}</b>`};}
+function genKaiHemiCone(){const s=pick([[3,4,5],[6,8,10]]),r=s[0],h=s[1],l=s[2],isV=Math.random()<0.5;
+ const pts=[[0,0],[r,h]];for(let i=1;i<=10;i++){const u=Math.PI/2*i/10;pts.push([r*Math.cos(u),h+r*Math.sin(u)]);}
+ const fig={t:'lathe',pts,labels:[{x:r/2+0.6,y:h/2,text:l+'cm'},{x:-0.8,y:h,text:r+'cm'}],lines:[{a:[0,h],b:[r,h]}],rings:[{y:h,r:r}]};
+ if(isV){const k=r*r*h/3+2*r*r*r/3;return{key:'kai_hemicone_v',unit:'cm³',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の形（直角三角形と四分円）を、直線ℓを軸として1回転させます。できる立体（<b>円錐の上に半球</b>）の<b>体積</b>を求めましょう。<br><span style="font-size:.85em;color:#6a5f52">【回転】ボタンで確かめられるよ</span>`,
+  expl:`円錐 ＝ 1/3×${piWrap(r*r)}×${h} ＝ ${piWrap(r*r*h/3)}<br>半球 ＝ 4/3×π×${r}³ ÷ 2 ＝ ${piWrap(2*r*r*r/3)}<br>体積 ＝ ${piWrap(r*r*h/3)} ＋ ${piWrap(2*r*r*r/3)} ＝ <b>${piWrap(k)} cm${SUP3}</b>`};}
+ const k=r*l+2*r*r;return{key:'kai_hemicone_s',unit:'cm²',xp:15,ans:{pi:k,num:0},fig,
+  text:`図の形（母線 <b>${l}cm</b> の円錐と半球）を、直線ℓを軸として1回転させてできる立体の<b>表面積</b>を求めましょう。`,
+  expl:`円錐の側面 ＝ 1/2×弧(2π×${r})×${l} ＝ ${piWrap(r*l)}<br>半球の曲面 ＝ 4π×${r}² ÷ 2 ＝ ${piWrap(2*r*r)}<br>表面積 ＝ ${piWrap(r*l)} ＋ ${piWrap(2*r*r)} ＝ <b>${piWrap(k)} cm${SUP2}</b>`};}
+/* --- 組み合わせ --- */
+function genKumiL(){const p=ri(5,7),q=ri(4,6),s=ri(2,p-2),t=ri(2,q-2),H=ri(3,6);const v=(p*q-s*t)*H;
+ return{key:'kumi_lprism',unit:'cm³',xp:15,ans:{pi:0,num:v},
+ text:`図は、底面が縦 <b>${q}cm</b>・横 <b>${p}cm</b> の長方形の直方体から、縦 <b>${t}cm</b>・横 <b>${s}cm</b> の直方体を切り取った立体です（高さはどちらも <b>${H}cm</b>）。この立体の<b>体積</b>を求めましょう。`,
+ expl:`元の直方体から、切り取った直方体を引く。<br>元 ＝ ${q}×${p}×${H} ＝ ${p*q*H} (cm${SUP3})<br>切り取り ＝ ${t}×${s}×${H} ＝ ${s*t*H} (cm${SUP3})<br>体積 ＝ ${p*q*H} − ${s*t*H} ＝ <b>${v} cm${SUP3}</b>`,
+ fig:{t:'combo',kind:'lprism',d:{p,q,s,t,H}}};}
+function genKumiTower(){const a1=ri(4,7),b1=ri(4,7),h1=ri(2,4),a2=ri(2,a1-2),b2=ri(2,b1-2),h2=ri(2,4);
+ const v=2*a1*b1+2*h1*(a1+b1)+2*h2*(a2+b2);
+ return{key:'kumi_tower_s',unit:'cm²',xp:15,ans:{pi:0,num:v},
+ text:`図のように、直方体（縦 <b>${b1}cm</b>・横 <b>${a1}cm</b>・高さ <b>${h1}cm</b>）の上に、直方体（縦 <b>${b2}cm</b>・横 <b>${a2}cm</b>・高さ <b>${h2}cm</b>）が乗った立体があります。この立体の<b>表面積</b>を求めましょう。（★工夫して求めよう）`,
+ expl:`★上下の面の工夫：<b>真上から見ても真下から見ても、${a1}cm×${b1}cmの長方形</b>に見える！<br>→ 上下の面の合計 ＝ ${a1}×${b1} × 2 ＝ ${2*a1*b1} (cm${SUP2})<br>側面：下の段 ＝ (${a1}＋${b1})×2×${h1} ＝ ${2*h1*(a1+b1)}、上の段 ＝ (${a2}＋${b2})×2×${h2} ＝ ${2*h2*(a2+b2)}<br>表面積 ＝ ${2*a1*b1} ＋ ${2*h1*(a1+b1)} ＋ ${2*h2*(a2+b2)} ＝ <b>${v} cm${SUP2}</b>`,
+ fig:{t:'combo',kind:'tower',d:{a1,b1,h1,a2,b2,h2}}};}
+function genKumiCyl2(){const R=pick([3,4]),r=ri(1,R-1),h1=ri(2,4),h2=ri(2,4),isV=Math.random()<0.5;
+ const fig={t:'combo',kind:'cyl2',d:{R,r,h1,h2}};
+ if(isV){const k=R*R*h1+r*r*h2;return{key:'kumi_cyl2_v',unit:'cm³',xp:15,ans:{pi:k,num:0},fig,
+  text:`図のように、円柱（半径 <b>${R}cm</b>・高さ <b>${h1}cm</b>）の上に、円柱（半径 <b>${r}cm</b>・高さ <b>${h2}cm</b>）が乗った立体があります。この立体の<b>体積</b>を求めましょう。`,
+  expl:`下の円柱 ＝ ${piWrap(R*R)}×${h1} ＝ ${piWrap(R*R*h1)}<br>上の円柱 ＝ ${piWrap(r*r)}×${h2} ＝ ${piWrap(r*r*h2)}<br>体積 ＝ <b>${piWrap(k)} cm${SUP3}</b>`};}
+ const k=2*R*h1+2*r*h2+2*R*R;return{key:'kumi_cyl2_s',unit:'cm²',xp:15,ans:{pi:k,num:0},fig,
+  text:`図のように、円柱(半径 <b>${R}cm</b>・高さ <b>${h1}cm</b>)の上に円柱(半径 <b>${r}cm</b>・高さ <b>${h2}cm</b>)が乗った立体があります。この立体の<b>表面積</b>を求めましょう。（★工夫して求めよう）`,
+  expl:`側面 ＝ 2π×${R}×${h1} ＋ 2π×${r}×${h2} ＝ ${piWrap(2*R*h1)} ＋ ${piWrap(2*r*h2)}<br>★<b>真上・真下から見るとどちらも半径${R}cmの円</b> → 上下の面 ＝ ${piWrap(R*R)}×2 ＝ ${piWrap(2*R*R)}<br>表面積 ＝ <b>${piWrap(k)} cm${SUP2}</b>`};}
+function genKumiHemi(){const r=pick([3,6]),h=ri(2,5);const k=r*r*h+2*r*r*r/3;
+ return{key:'kumi_hemicyl_v',unit:'cm³',xp:15,ans:{pi:k,num:0},
+ text:`図のように、円柱（半径 <b>${r}cm</b>・高さ <b>${h}cm</b>）の上に、半径 <b>${r}cm</b> の半球が乗った立体があります。この立体の<b>体積</b>を求めましょう。`,
+ expl:`円柱 ＝ ${piWrap(r*r)}×${h} ＝ ${piWrap(r*r*h)}<br>半球 ＝ 球の半分 ＝ 4/3×π×${r}³ ÷ 2 ＝ ${piWrap(2*r*r*r/3)}<br>体積 ＝ ${piWrap(r*r*h)} ＋ ${piWrap(2*r*r*r/3)} ＝ <b>${piWrap(k)} cm${SUP3}</b>`,
+ fig:{t:'combo',kind:'hemicyl',d:{r,h}}};}
+function genKumiConeCyl(){const r=ri(2,4),h1=ri(2,5),h2=pick([3,6]);const k=r*r*h1+r*r*h2/3;
+ return{key:'kumi_conecyl_v',unit:'cm³',xp:15,ans:{pi:k,num:0},
+ text:`図のように、円柱（半径 <b>${r}cm</b>・高さ <b>${h1}cm</b>）の上に、円錐（半径 <b>${r}cm</b>・高さ <b>${h2}cm</b>）が乗った立体があります。この立体の<b>体積</b>を求めましょう。`,
+ expl:`円柱 ＝ ${piWrap(r*r)}×${h1} ＝ ${piWrap(r*r*h1)}<br>円錐 ＝ 1/3×${piWrap(r*r)}×${h2} ＝ ${piWrap(r*r*h2/3)}<br>体積 ＝ <b>${piWrap(k)} cm${SUP3}</b>`,
+ fig:{t:'combo',kind:'conecyl',d:{r,h1,h2}}};}
+function genKumiCubeCut(){
+ const mid=Math.random()<0.5;
+ const a=mid?12:pick([6,12]);       // 中点版は (a/2)³/6 が整数になる a=12
+ const e=mid?a/2:a;                  // 切り取る三角錐の辺の長さ
+ const piece=e*e*e/6,cube=a*a*a,rest=cube-piece,isPiece=Math.random()<0.5;
+ const fig={t:'combo',kind:'cubecut',d:{a,mid}};
+ const cutDesc=mid?`各辺の<b>中点</b>を通る平面で切り取った三角錐（切り口の3辺は ${e}cm）`:`図の赤い<b>三角錐</b>（3辺が立方体の辺 ${a}cm と重なる）`;
+ if(isPiece)return{key:'kumi_cubecut_p',unit:'cm³',xp:15,ans:{pi:0,num:piece},fig,
+  text:`1辺 <b>${a}cm</b> の立方体から、${cutDesc}を切り取ります。切り取った<b>三角錐の体積</b>を求めましょう。`,
+  expl:`三角錐の底面は直角三角形（${e}×${e}÷2）、高さは${e}cm。<br>体積 ＝ 1/3 × (${e}×${e}÷2) × ${e} ＝ 1/3 × ${e*e/2} × ${e} ＝ <b>${piece} cm${SUP3}</b>`};
+ return{key:'kumi_cubecut_r',unit:'cm³',xp:15,ans:{pi:0,num:rest},fig,
+  text:`1辺 <b>${a}cm</b> の立方体から、${cutDesc}を切り取ります。<b>残った立体</b>の体積を求めましょう。`,
+  expl:`立方体 ＝ ${a}³ ＝ ${cube} (cm${SUP3})<br>三角錐 ＝ 1/3 × (${e}×${e}÷2) × ${e} ＝ ${piece} (cm${SUP3})<br>残り ＝ ${cube} − ${piece} ＝ <b>${rest} cm${SUP3}</b>`};}
+function genKumiCube4Cut(){const a=pick([6,12]),cube=a*a*a,cut=a*a*a/6,rest=cube-4*cut;
+ return{key:'kumi_cube4cut_r',unit:'cm³',xp:18,ans:{pi:0,num:rest},
+  fig:{t:'combo',kind:'cube4cut',d:{a}},
+  text:`1辺 <b>${a}cm</b> の立方体から、4つの角の<b>三角錐</b>（赤）を切り取ります。残った立体（緑の正四面体）の<b>体積</b>を求めましょう。`,
+  expl:`角の三角錐1つ ＝ 1/3 × (${a}×${a}÷2) × ${a} ＝ ${cut} (cm${SUP3})<br>4つ分 ＝ ${cut} × 4 ＝ ${4*cut}<br>残り ＝ ${cube} − ${4*cut} ＝ <b>${rest} cm${SUP3}</b>（立方体の 1/3）`};}
+function genKumiOcta(){const a=pick([6,12]),v=a*a*a/6;
+ return{key:'kumi_octa_v',unit:'cm³',xp:18,ans:{pi:0,num:v},
+  fig:{t:'combo',kind:'octa',d:{a}},
+  text:`1辺 <b>${a}cm</b> の立方体の、6つの面の<b>中心</b>を結んでできる立体（正八面体）の<b>体積</b>を求めましょう。`,
+  expl:`上下2つの四角錐に分ける。<br>底面の正方形は対角線が ${a}cm なので、面積 ＝ ${a}×${a}÷2 ＝ ${a*a/2} (cm${SUP2})<br>高さ ＝ ${a}÷2 ＝ ${a/2} (cm)<br>四角錐1つ ＝ 1/3 × ${a*a/2} × ${a/2} ＝ ${a*a*a/12}<br>体積 ＝ ${a*a*a/12} × 2 ＝ <b>${v} cm${SUP3}</b>`};}
+function genKumiHole(){const A=ri(4,7),B=ri(4,7),C=ri(3,6),s=ri(1,A-2),t=ri(1,B-2);const v=(A*B-s*t)*C;
+ return{key:'kumi_hole_v',unit:'cm³',xp:15,ans:{pi:0,num:v},
+ text:`図のように、直方体（横 <b>${A}cm</b>・縦 <b>${B}cm</b>・奥行き <b>${C}cm</b>）に、横 <b>${s}cm</b>・縦 <b>${t}cm</b> の四角い穴が反対側まで突き抜けています。この立体の<b>体積</b>を求めましょう。`,
+ expl:`元の直方体から、穴（直方体）を引く。<br>元 ＝ ${A}×${B}×${C} ＝ ${A*B*C} (cm${SUP3})<br>穴 ＝ ${s}×${t}×${C} ＝ ${s*t*C} (cm${SUP3})<br>体積 ＝ ${A*B*C} − ${s*t*C} ＝ <b>${v} cm${SUP3}</b>`,
+ fig:{t:'combo',kind:'hole',d:{A,B,C,s,t}}};}
+function genKumiHollow(){const A=ri(5,7),B=ri(5,7),C=ri(4,6),s=ri(2,A-2),t=ri(2,B-2),u=ri(2,C-2);const v=A*B*C-s*t*u;
+ return{key:'kumi_hollow_v',unit:'cm³',xp:15,ans:{pi:0,num:v},
+ text:`図のように、直方体（横 <b>${A}cm</b>・縦 <b>${B}cm</b>・奥行き <b>${C}cm</b>）の内部から、直方体（横 <b>${s}cm</b>・縦 <b>${t}cm</b>・奥行き <b>${u}cm</b>）をくり抜いた立体です（中の空洞は外に出ていません）。この立体の<b>体積</b>を求めましょう。`,
+ expl:`元の直方体から、内部の空洞（直方体）を引く。<br>元 ＝ ${A}×${B}×${C} ＝ ${A*B*C} (cm${SUP3})<br>空洞 ＝ ${s}×${t}×${u} ＝ ${s*t*u} (cm${SUP3})<br>体積 ＝ ${A*B*C} − ${s*t*u} ＝ <b>${v} cm${SUP3}</b>`,
+ fig:{t:'combo',kind:'hollow',d:{A,B,C,s,t,u}}};}
+/* --- 発展・軌跡 --- */
+function genKisTri(){const a=pick([3,6,9]),k=4*a/3;
+ return{key:'kis_tri_len',unit:'cm',xp:20,ans:{pi:k,num:0},
+ text:`1辺 <b>${a}cm</b> の正三角形ABCが、直線ℓの上を滑らないように、元の向きに戻るまで転がります。<b>頂点Aが描く線の長さ</b>を求めましょう。<br><span style="font-size:.85em;color:#6a5f52">【転がす】ボタンでアニメーションを見よう</span>`,
+ expl:`転がるたびに、Aは<b>おうぎ形の弧</b>を描く。回転の角はいつも 180°−60°＝<b>120°</b>。<br>1回目：半径${a}cmで120°、2回目：半径${a}cmで120°、3回目：<b>Aが中心</b>なので動かない！<br>弧1つ ＝ 2π×${a} × 120/360 ＝ ${piWrap(2*a)}×1/3<br>長さ ＝ ${piWrap(2*a)}×1/3 × 2 ＝ <b>${piWrap(k)} cm</b>`,
+ fig:{t:'roll',anim:{type:'poly',n:3,a}}};}
+function genKisSq(){const a=pick([2,4,6]),k=a*a;
+ return{key:'kis_sq_area',unit:'cm²',xp:20,ans:{pi:k,num:k},
+ text:`1辺 <b>${a}cm</b> の正方形が、直線ℓの上を滑らないように、元の向きに戻るまで転がります。<b>頂点Aが描いた線と直線ℓで囲まれた図形の面積</b>を求めましょう。<br><span style="font-size:.85em;color:#6a5f52">【転がす】ボタンでアニメーションを見よう</span>`,
+ expl:`囲まれた図形 ＝ <b>おうぎ形3つ ＋ 直角二等辺三角形2つ</b>（回転の角はすべて90°）。<br>半径は「${a}cm・対角線・${a}cm」。対角線×対角線 ＝ 正方形の面積の2倍 ＝ ${2*a*a}（ひし形の面積の公式から）<br>おうぎ形3つ ＝ π×(${a*a}＋${2*a*a}＋${a*a})×90/360 ＝ ${piWrap(4*a*a)}×1/4 ＝ ${piWrap(a*a)}<br>三角形2つ ＝ 正方形1つ分 ＝ ${a*a}<br>面積 ＝ <b>${piWrap(k)}＋${k} cm${SUP2}</b>`,
+ fig:{t:'roll',anim:{type:'poly',n:4,a,area:true}}};}
+function genKisCircLine(){const r=ri(1,4),n=pick([1,2]),k=2*r*n;
+ return{key:'kis_cline_len',unit:'cm',xp:20,ans:{pi:k,num:0},
+ text:`半径 <b>${r}cm</b> の円が、直線ℓの上を滑らないように <b>${n}回転</b>します。<b>中心Oが描く線の長さ</b>を求めましょう。`,
+ expl:`円が滑らずに1回転すると、<b>円周と同じ長さ</b>だけ進む。中心Oはℓと平行にまっすぐ動く。<br>円周 ＝ 2π×${r} ＝ ${piWrap(2*r)} (cm)<br>長さ ＝ ${piWrap(2*r)} × ${n} ＝ <b>${piWrap(k)} cm</b>`,
+ fig:{t:'roll',anim:{type:'cline',r,n}}};}
+function genKisCircOutLen(){const l=ri(4,8),w=ri(3,6),r=pick([1,2]);const k={pi:2*r,num:2*(l+w)};
+ return{key:'kis_cout_len',unit:'cm',xp:20,ans:k,
+ text:`半径 <b>${r}cm</b> の円が、横 <b>${l}cm</b>・縦 <b>${w}cm</b> の長方形の<b>外側</b>を、滑らないように1周します。<b>中心Oが描く線の長さ</b>を求めましょう。`,
+ expl:`辺に沿って動く部分 ＝ 長方形の周りと同じ ＝ (${l}＋${w})×2 ＝ ${2*(l+w)} (cm)<br>4つの角では、Oは<b>半径${r}cm・90°の弧</b>を描く → 4つ合わせて円1つ分！<br>＝ 2π×${r} ＝ ${piWrap(2*r)} (cm)<br>長さ ＝ ${2*(l+w)} ＋ ${piWrap(2*r)} ＝ <b>${piWrap(2*r)}＋${2*(l+w)} cm</b>`,
+ fig:{t:'roll',anim:{type:'cout',l,w,r}}};}
+function genKisCircOutArea(){const l=ri(4,8),w=ri(3,6),r=pick([1,2]);const k={pi:4*r*r,num:4*r*(l+w)};
+ return{key:'kis_cout_area',unit:'cm²',xp:20,ans:k,
+ text:`半径 <b>${r}cm</b> の円が、横 <b>${l}cm</b>・縦 <b>${w}cm</b> の長方形の<b>外側</b>を、滑らないように1周します。<b>円が通った後の部分の面積</b>を求めましょう。`,
+ expl:`辺にそった部分 ＝ 幅が円の直径${2*r}cmの帯 ＝ ${2*r}×(${l}＋${w})×2 ＝ ${4*r*(l+w)} (cm${SUP2})<br>4つの角 ＝ <b>半径${2*r}cm・90°のおうぎ形</b> → 4つ合わせて半径${2*r}cmの円1つ分<br>＝ π×${2*r}² ＝ ${piWrap(4*r*r)} (cm${SUP2})<br>面積 ＝ <b>${piWrap(4*r*r)}＋${4*r*(l+w)} cm${SUP2}</b>`,
+ fig:{t:'roll',anim:{type:'cout',l,w,r,area:true}}};}
+function genKisCircIn(){const l=ri(7,10),w=ri(6,8),r=1;const v=2*(l+w)-8*r;
+ return{key:'kis_cin_len',unit:'cm',xp:20,ans:{pi:0,num:v},
+ text:`半径 <b>${r}cm</b> の円が、横 <b>${l}cm</b>・縦 <b>${w}cm</b> の長方形の<b>内側</b>を、辺に沿って滑らないように1周します。<b>中心Oが描く線の長さ</b>を求めましょう。`,
+ expl:`中心Oは、どの辺からもいつも${r}cm離れた所を動く。<br>→ Oの通り道は「横 ${l}−${2*r}＝${l-2*r}cm・縦 ${w}−${2*r}＝${w-2*r}cm」の長方形（角はぴったり曲がる）。<br>長さ ＝ (${l-2*r}＋${w-2*r})×2 ＝ <b>${v} cm</b>　★πは出てこない！`,
+ fig:{t:'roll',anim:{type:'cin',l,w,r}}};}
+const GENS={
+ vol:[genVolCube,genVolCuboid,genVolTriPrism,genVolCyl,genVolPyr,genVolCone,genVolSphere],
+ surf:[genSurfCube,genSurfCuboid,genSurfTriPrism,genSurfCyl,genSurfPyr,genSurfCone,genSurfSphere],
+ kaiten:[genKaiCyl,genKaiCone,genKaiSphere,genKaiPipe,genKaiStep,genKaiConeCyl,genKaiBicone,genKaiHemiCyl,genKaiHemiCone],
+ kumi:[genKumiL,genKumiCubeCut,genKumiCube4Cut,genKumiOcta,genKumiHole,genKumiHollow],
+ kiseki:[genKisTri,genKisSq,genKisCircLine,genKisCircOutLen,genKisCircOutArea,genKisCircIn]
+};
+/* ================= 3D (three.js) ================= */
+const COL={side:0x8580d2,side2:0xa39ee4,top:0xc4b6ef,green:0x77aedd,red:0xc9556b,ink:0x574f6e,shadow:0x000000};
+// 計測線の色分け：半径=桜, 高さ=青, 母線/斜面=橙
+const MC={radius:0xc9556b,rHex:'#c9556b',height:0x2f6fb0,hHex:'#2f6fb0',slant:0xcf7a1f,sHex:'#cf7a1f',circ:0x00786a,circHex:'#00786a'};
+let renderer=null,scene=null,camera=null,tiltG=null,spinG=null;
+const VIEW={dist:16,distT:16,cy:2,cyT:2,cx:0,cxT:0,cz:0,czT:0,elev:0.42,elevT:0.42};
+const DEF_YAW=0.62,DEF_TILT=0.12;
+let CUR={obj:null,setUnfold:null,setSweep:null,unfoldT:0,unfoldTarget:0,sweepPhi:0,sweepOn:false};
+const TW=[];
+function tween(dur,fn,done,linear){TW.push({t0:performance.now(),dur,fn,done,linear});}
+function easeIO(k){return k<0.5?2*k*k:1-Math.pow(-2*k+2,2)/2;}
+function runTweens(now){
+  for(let i=TW.length-1;i>=0;i--){const t=TW[i];let k=Math.min(1,(now-t.t0)/t.dur);
+    t.fn(t.linear?k:easeIO(k));
+    if(k>=1){TW.splice(i,1);if(t.done)t.done();}}
+}
+function faceMat(hex,op){const o={color:hex,roughness:0.85,metalness:0,side:THREE.DoubleSide};
+  if(op!==undefined&&op<1){o.transparent=true;o.opacity=op;o.depthWrite=false;}
+  return new THREE.MeshStandardMaterial(o);}
+function lineMat(hex){return new THREE.LineBasicMaterial({color:hex===undefined?COL.ink:hex});}
+function facePlane(w,h,color){const g=new THREE.Group();const geo=new THREE.PlaneGeometry(w,h);
+  g.add(new THREE.Mesh(geo,faceMat(color)));
+  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),lineMat()));return g;}
+function faceShape(shape,color){const g=new THREE.Group();const geo=new THREE.ShapeGeometry(shape);
+  g.add(new THREE.Mesh(geo,faceMat(color)));
+  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),lineMat()));return g;}
+function lineSeg(pts3,dashed,hex){
+  const g=new THREE.BufferGeometry().setFromPoints(pts3.map(p=>new THREE.Vector3(p[0],p[1],p[2])));
+  let m;
+  if(dashed){m=new THREE.LineDashedMaterial({color:hex===undefined?COL.ink:hex,dashSize:0.32,gapSize:0.2});}
+  else{m=new THREE.LineBasicMaterial({color:hex===undefined?COL.ink:hex});}
+  const l=new THREE.Line(g,m);if(dashed)l.computeLineDistances();return l;}
+function makeLabel(text,col){
+  const c=document.createElement('canvas');c.width=256;c.height=96;
+  const x=c.getContext('2d');
+  let fs=52;x.font='700 '+fs+'px "Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif';
+  while(x.measureText(text).width>236&&fs>22){fs-=4;x.font='700 '+fs+'px "Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif';}
+  x.textAlign='center';x.textBaseline='middle';
+  x.lineWidth=12;x.strokeStyle='rgba(255,253,246,0.95)';x.strokeText(text,128,50);
+  x.fillStyle=col||'#3d372f';x.fillText(text,128,50);
+  const tex=new THREE.CanvasTexture(c);tex.anisotropy=2;
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));
+  sp.scale.set(2.3,0.86,1);sp.userData.isLabel=true;sp.renderOrder=20;
+  return sp;}
+function addLabel(parent,text,x,y,z,col){const s=makeLabel(text,col);s.position.set(x,y,z);parent.add(s);return s;}
+function measureLine(pts3,dashed,hex){const l=lineSeg(pts3,dashed,hex);l.material.depthTest=false;l.renderOrder=16;return l;}
+const _rv1=new THREE.Vector3(),_rv2=new THREE.Vector3(),_rvd=new THREE.Vector3(),_rup=new THREE.Vector3(0,1,0);
+function makeRod(hex,thick){
+  const grp=new THREE.Group();
+  const mat=new THREE.MeshBasicMaterial({color:hex,transparent:true,depthTest:false});
+  const cyl=new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,16),mat);
+  const s1=new THREE.Mesh(new THREE.SphereGeometry(1,12,10),mat);
+  const s2=new THREE.Mesh(new THREE.SphereGeometry(1,12,10),mat);
+  [cyl,s1,s2].forEach(function(m){m.renderOrder=17;m.userData.noBounds=true;grp.add(m);});
+  grp.userData={rodR:thick,cyl:cyl,s1:s1,s2:s2,mat:mat,noBounds:true,isRod:true};
+  return grp;}
+function setRod(m,x1,y1,z1,x2,y2,z2){
+  _rv1.set(x1,y1,z1);_rv2.set(x2,y2,z2);_rvd.subVectors(_rv2,_rv1);
+  const len=_rvd.length();if(len<1e-6){m.visible=false;return;}m.visible=true;
+  m.position.copy(_rv1).addScaledVector(_rvd,0.5);
+  m.quaternion.setFromUnitVectors(_rup,_rvd.clone().normalize());
+  const rr=m.userData.rodR,u=m.userData;
+  u.cyl.scale.set(rr,len,rr);
+  u.s1.position.set(0,-len/2,0);u.s1.scale.set(rr,rr,rr);
+  u.s2.position.set(0,len/2,0);u.s2.scale.set(rr,rr,rr);}
+function scaleLabels(root,k){root.traverse(n=>{if(n.userData&&n.userData.isLabel){n.scale.set(2.3*k,0.86*k,1);}});}
+function disposeDeep(o){o.traverse(n=>{
+  if(n.geometry)n.geometry.dispose();
+  if(n.material){const arr=Array.isArray(n.material)?n.material:[n.material];
+    arr.forEach(m=>{if(m.map)m.map.dispose();m.dispose();});}});}
+/* ---- builders ---- */
+function facePanelCorner(L,H,color){
+  // panel whose bottom-left corner sits at the group origin, extending +x (width L) and +y (height H)
+  const grp=new THREE.Group();
+  const geo=new THREE.PlaneGeometry(L,H);
+  const holder=new THREE.Group();holder.position.set(L/2,H/2,0);
+  holder.add(new THREE.Mesh(geo,faceMat(color)));
+  holder.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),lineMat()));
+  grp.add(holder);
+  return grp;
+}
+function buildBoxSolid(w,h,d,opts){
+  opts=opts||{};
+  const g=new THREE.Group();
+  // 側面の帯：前→右→後→左 の順に連結し、開くと横一列の大きな長方形になる
+  const W=new THREE.Group();W.position.set(-w/2,0,d/2);g.add(W); // 前面の左下かどが基点
+  const widths=[w,d,w,d];
+  const cols=[COL.side,COL.side2,COL.side,COL.side2];
+  const P=[];let parent=W;
+  for(let i=0;i<4;i++){
+    const pv=new THREE.Group();
+    if(i>0)pv.position.set(widths[i-1],0,0); // 前の面の右端に接続
+    parent.add(pv);
+    pv.add(facePanelCorner(widths[i],h,cols[i]));
+    P.push(pv);parent=pv;
+  }
+  // 底面・上面は「左から2番目の側面」(P[1]) の下辺・上辺に接続（BP=facePanelCorner(d,w)：x=奥行きd, y=横w）
+  const BP=new THREE.Group();P[1].add(BP);
+  BP.add(facePanelCorner(d,w,COL.top));
+  const TP=new THREE.Group();TP.position.set(0,h,0);P[1].add(TP);
+  TP.add(facePanelCorner(d,w,COL.top));
+  let hLab=null,hNet=null;const sideLabs=[];
+  if(opts.color){
+    const CW=0xc0392b,CD=0x229954,CWh='#c0392b',CDh='#229954'; // 横w=赤 奥行きd=緑
+    function baseEdges(grp,withLab){
+      const rt=0.055;
+      let e=makeRod(CD,rt);grp.add(e);setRod(e,0,0,0,d,0,0);      // 奥行きd（下辺）
+      e=makeRod(CD,rt);grp.add(e);setRod(e,0,w,0,d,w,0);          // 奥行きd（上辺）
+      e=makeRod(CW,rt);grp.add(e);setRod(e,0,0,0,0,w,0);          // 横w（左辺）
+      e=makeRod(CW,rt);grp.add(e);setRod(e,d,0,0,d,w,0);          // 横w（右辺）
+      if(withLab){addLabel(grp,d+'cm',d/2,-0.4,0,CDh);addLabel(grp,w+'cm',-0.5,w/2,0,CWh);}
+    }
+    baseEdges(BP,true);baseEdges(TP,false);
+    const fc=[CWh,CDh,CWh,CDh];
+    for(let i=0;i<4;i++){if(i===1)continue;const sl=addLabel(P[i],widths[i]+'cm',widths[i]/2,-0.4,0,fc[i]);sl.material.opacity=0;sideLabs.push(sl);} // 中央のP[1]は底面の共有辺と重なるので省く
+    hLab=addLabel(g,'高さ '+h+'cm',w/2+0.9,h/2,d/2,MC.hHex);
+    hNet=addLabel(P[0],h+'cm',0.55,h/2,0,MC.hHex);hNet.material.opacity=0; // 展開図での側面のたて＝高さ
+  }else if(opts.labels){
+    opts.labels.forEach(L=>addLabel(g,L.text,L.x,L.y,L.z));
+  }
+  const setU=function(t){
+    W.rotation.x=(Math.PI/2)*t;                 // 帯全体を前へ倒す
+    const hinge=(Math.PI/2)*(1-t);              // 角の折れを 90°→0°（まっすぐ）に
+    P[1].rotation.y=hinge;
+    P[2].rotation.y=hinge;
+    P[3].rotation.y=hinge;
+    BP.rotation.x=-(Math.PI/2)*(1+t);           // 底面を2番目の面の下へ開く
+    TP.rotation.x=-(Math.PI/2)*(1-t);           // 上面を2番目の面の上へ開く
+    if(hLab)hLab.material.opacity=Math.max(0,1-t*1.4); // 展開したら3Dの高さラベルは消す
+    const so=Math.max(0,Math.min(1,(t-0.5)/0.4));sideLabs.forEach(function(l){l.material.opacity=so;});if(hNet)hNet.material.opacity=so; // 展開で側面の横の長さ＋たて(高さ)を表示
+  };
+  setU(0);
+  return{group:g,setUnfold:setU};
+}
+function triShape(q,p,color){
+  const s=new THREE.Shape();s.moveTo(0,0);s.lineTo(q,0);s.lineTo(0,p);
+  const geo=new THREE.ShapeGeometry(s);
+  const grp=new THREE.Group();
+  grp.add(new THREE.Mesh(geo,faceMat(color)));
+  grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),lineMat()));
+  return grp;
+}
+function buildTriPrism(p,q,hy,L,showHy){
+  const g=new THREE.Group();
+  const core=new THREE.Group();core.position.set(-q/3,0,-p/3);g.add(core);
+  const CQ=0xc0392b,CP=0x229954,CHY=0x8e44ad,CQh='#c0392b',CPh='#229954',CHYh='#8e44ad'; // 横q=赤 縦p=緑 斜辺hy=紫
+  // 側面の帯：CA(幅p)→AB(幅q)→BC(幅hy) を連結。開くと L×(p+q+hy) の大きな長方形
+  const Wo=new THREE.Group();Wo.position.set(0,0,p);Wo.rotation.y=Math.PI/2;core.add(Wo);
+  const Wt=new THREE.Group();Wo.add(Wt);
+  const F0=new THREE.Group();Wt.add(F0);F0.add(facePanelCorner(p,L,COL.side));      // CA面（幅p）
+  const H1=new THREE.Group();H1.position.set(p,0,0);F0.add(H1);H1.add(facePanelCorner(q,L,COL.side2)); // AB面（中央・幅q）
+  const H2=new THREE.Group();H2.position.set(q,0,0);H1.add(H2);H2.add(facePanelCorner(hy,L,COL.green)); // BC面（幅hy）
+  // 側面の長さは展開時に追加表示。ただし中央のAB面(幅q)は底面の共有辺と重なるので省く
+  const sideLabs=[addLabel(F0,p+'cm',p/2,-0.4,0,CPh),addLabel(H2,fmtLen(hy),hy/2,-0.4,0,CHYh)];
+  sideLabs.forEach(function(l){l.material.opacity=0;});
+  const extB=Math.PI-Math.acos(q/hy);
+  // 底面・上面：中央のAB面(H1)の下辺・上辺に接続＝展開図の真ん中に底面が来る
+  const BP=new THREE.Group();H1.add(BP);BP.add(triShape(q,p,COL.top));
+  const TP=new THREE.Group();TP.position.set(0,L,0);H1.add(TP);TP.add(triShape(q,p,COL.top));
+  function baseEdges(grp,withLab){
+    const rt=0.055;
+    let e=makeRod(CQ,rt);grp.add(e);setRod(e,0,0,0,q,0,0);          // 横の辺 q
+    e=makeRod(CP,rt);grp.add(e);setRod(e,0,0,0,0,p,0);              // 縦の辺 p
+    e=makeRod(CHY,rt);grp.add(e);setRod(e,q,0,0,0,p,0);            // 斜辺 hy
+    const rm=Math.max(0.32,Math.min(p,q)*0.13);
+    grp.add(measureLine([[rm,0,0],[rm,rm,0],[0,rm,0]],false,COL.ink)); // 底面の直角マーク(縦pと横qの間)
+    if(withLab){
+      addLabel(grp,q+'cm',q/2,-0.45,0,CQh);
+      addLabel(grp,p+'cm',-0.5,p/2,0,CPh);
+      addLabel(grp,fmtLen(hy),q/2+0.4,p/2+0.4,0,CHYh);
+    }
+  }
+  baseEdges(BP,true);baseEdges(TP,false);
+  const hLab=addLabel(core,'高さ '+L+'cm',-0.55,L/2,-0.4,MC.hHex);
+  const hNet=addLabel(F0,L+'cm',0.55,L/2,0,MC.hHex);hNet.material.opacity=0; // 展開図での側面のたて＝高さ
+  const setU=function(t){
+    Wt.rotation.x=Math.PI/2*t;                 // 帯全体を倒す
+    H1.rotation.y=-Math.PI/2*(1-t);            // A の折れ（直角）
+    H2.rotation.y=-extB*(1-t);                 // B の折れ
+    BP.rotation.x=Math.PI/2*(1+t);             // 底面を中央面の下へ
+    TP.rotation.x=Math.PI/2*(1-t);             // 上面を中央面の上へ（反対側）
+    hLab.material.opacity=Math.max(0,1-t*1.4); // 展開したら3Dの高さラベルは消す
+    const so=Math.max(0,Math.min(1,(t-0.5)/0.4));sideLabs.forEach(function(l){l.material.opacity=so;});hNet.material.opacity=so; // 展開で側面の横の長さ＋たて(高さ)を表示
+  };
+  setU(0);
+  return{group:g,setUnfold:setU,netYaw:Math.PI/2};
+}
+function buildPyramid(a,h,m,opts){
+  opts=opts||{};
+  const g=new THREE.Group();
+  const base=facePlane(a,a,COL.top);base.rotation.x=-Math.PI/2;g.add(base);
+  const shape=new THREE.Shape();shape.moveTo(-a/2,0);shape.lineTo(a/2,0);shape.lineTo(0,m);
+  const thF=-Math.acos(Math.min(1,h/m));
+  const pivots=[];
+  for(let k=0;k<4;k++){
+    const hold=new THREE.Group();hold.rotation.y=k*Math.PI/2;g.add(hold);
+    const P=new THREE.Group();P.position.set(0,0,a/2);hold.add(P);
+    const f=faceShape(shape,k%2?COL.side2:COL.side);P.add(f);
+    pivots.push(P);
+  }
+  addLabel(g,a+'cm',0,-0.45,a/2+0.2);
+  const pRodT=Math.max(0.05,m*0.013);
+  let hRod=null,hLab=null;
+  if(opts.showH){hRod=makeRod(MC.height,pRodT);g.add(hRod);setRod(hRod,0,0,0,0,h,0);hLab=addLabel(g,'高さ '+h+'cm',-1.25,h*0.42,0,MC.hHex);}
+  if(opts.showM){
+    // 斜面(面の高さ)は面の中心線＝ピボットの子にして展開に追従
+    const P0=pivots[0];
+    const sRod=makeRod(MC.slant,pRodT);P0.add(sRod);setRod(sRod,0,0,0,0,m,0);
+    addLabel(P0,'斜面 '+fmtLen(m),m*0.16+0.55,m*0.5,0,MC.sHex);
+    // 底辺⊥斜面 の直角マーク（面ローカルのxy平面）
+    const d=Math.max(0.32,Math.min(a,m)*0.13);
+    P0.add(measureLine([[d,0,0],[d,d,0],[0,d,0]],false,COL.ink));
+  }
+  const setU=function(t){
+    pivots.forEach(function(P){P.rotation.x=thF+(Math.PI/2-thF)*t;});
+    if(hRod){const o=Math.max(0,1-t*1.4);hRod.userData.mat.opacity=o;if(hLab)hLab.material.opacity=o;}
+  };
+  setU(0);
+  return{group:g,setUnfold:setU};
+}
+function buildCylinder(r,h){
+  const g=new THREE.Group();const inner=new THREE.Group();g.add(inner);
+  const cols=64;
+  const pos=new Float32Array((cols+1)*2*3);
+  const idx=[];
+  for(let i=0;i<cols;i++){const a=i,b=i+1,c=cols+1+i,d2=cols+2+i;idx.push(a,b,c,b,d2,c);}
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setIndex(idx);
+  const mesh=new THREE.Mesh(geo,faceMat(COL.side));inner.add(mesh);
+  const seamA=lineSeg([[0,0,0],[0,h,0]]),seamB=lineSeg([[0,0,0],[0,h,0]]);
+  inner.add(seamA,seamB);
+  const topPts=new Float32Array((cols+1)*3),botPts=new Float32Array((cols+1)*3);
+  const circMat=new THREE.MeshBasicMaterial({color:MC.circ});
+  const topLine=new THREE.Mesh(new THREE.BufferGeometry(),circMat);topLine.userData.noBounds=true;
+  const botLine=new THREE.Mesh(new THREE.BufferGeometry(),circMat);botLine.userData.noBounds=true;
+  inner.add(topLine,botLine);
+  function rebuildRim(mesh,arr){
+    const vs=[];for(let i=0;i<=cols;i++)vs.push(new THREE.Vector3(arr[i*3],arr[i*3+1],arr[i*3+2]));
+    const c=new THREE.CatmullRomCurve3(vs,false);
+    mesh.geometry.dispose();
+    mesh.geometry=new THREE.TubeGeometry(c,cols,0.05,6,false);
+  }
+  function mkDisc(y0){
+    const P=new THREE.Group();P.position.set(0,y0,0);inner.add(P);
+    const C=new THREE.Group();C.position.set(0,0,-r);P.add(C);
+    const grp=new THREE.Group();grp.rotation.x=-Math.PI/2;C.add(grp);
+    const cg=new THREE.CircleGeometry(r,48);
+    const face=new THREE.Mesh(cg,faceMat(COL.top));grp.add(face);
+    grp.add(new THREE.Mesh(new THREE.TorusGeometry(r,0.05,6,48),new THREE.MeshBasicMaterial({color:MC.circ})));
+    return{P:P,grp:grp,face:face};}
+  const top=mkDisc(h),bot=mkDisc(0);
+  top.grp.add(lineSeg([[0,0,0],[r,0,0]],false,COL.red));
+  addLabel(top.grp,r+'cm',r/2,0.02,0);
+  const hLabel=addLabel(inner,h+'cm',r+0.9,h/2,-r);
+  function makeUnrollHi(edgeY,dir){
+    const mesh=new THREE.Mesh(new THREE.BufferGeometry(),new THREE.MeshBasicMaterial({color:0xffab00,depthTest:false}));
+    mesh.renderOrder=19;mesh.userData.noBounds=true;mesh.visible=false;inner.add(mesh);
+    let playing=false;
+    function setHi(u){
+      const kappa=(1/r)*(1-u),vs=[];
+      for(let i=0;i<=cols;i++){
+        const s=(i/cols-0.5)*2*Math.PI*r;let px,py;
+        if(kappa<1e-4){px=s;py=0;}else{px=Math.sin(s*kappa)/kappa;py=(Math.cos(s*kappa)-1)/kappa;}
+        vs.push(new THREE.Vector3(px,dir<0?edgeY+py:edgeY-py,0.03));
+      }
+      const c=new THREE.CatmullRomCurve3(vs,false);mesh.geometry.dispose();
+      mesh.geometry=new THREE.TubeGeometry(c,cols,0.07,6,false);
+    }
+    return{play:function(){
+      if(playing||CUR.unfoldT<0.9)return;playing=true;mesh.visible=true;setHi(0);
+      tween(2400,function(k){let u;if(k<0.35)u=k/0.35;else if(k<0.65)u=1;else u=1-(k-0.65)/0.35;setHi(u);},
+        function(){mesh.visible=false;playing=false;});
+    }};
+  }
+  const hiBot=makeUnrollHi(0,-1),hiTop=makeUnrollHi(h,1);
+  const taps=[{mesh:bot.face,play:hiBot.play},{mesh:top.face,play:hiTop.play}];
+  function upd(t){
+    const tt=Math.min(t,1);
+    const R=r/(1-0.999*tt);
+    const pa=geo.attributes.position.array;
+    for(let i=0;i<=cols;i++){
+      const s=(i/cols-0.5)*2*Math.PI*r;
+      const phi=s/R;
+      const x=R*Math.sin(phi),z=R*Math.cos(phi)-R;
+      pa[i*3]=x;pa[i*3+1]=0;pa[i*3+2]=z;
+      const j=cols+1+i;
+      pa[j*3]=x;pa[j*3+1]=h;pa[j*3+2]=z;
+      botPts[i*3]=x;botPts[i*3+1]=0.002;botPts[i*3+2]=z;
+      topPts[i*3]=x;topPts[i*3+1]=h-0.002;topPts[i*3+2]=z;
+    }
+    geo.attributes.position.needsUpdate=true;geo.computeVertexNormals();
+    rebuildRim(topLine,topPts);
+    rebuildRim(botLine,botPts);
+    const x0=pa[0],z0=pa[2],x1=pa[cols*3],z1=pa[cols*3+2];
+    seamA.geometry.setFromPoints([new THREE.Vector3(x0,0,z0),new THREE.Vector3(x0,h,z0)]);
+    seamB.geometry.setFromPoints([new THREE.Vector3(x1,0,z1),new THREE.Vector3(x1,h,z1)]);
+    top.P.rotation.x=Math.PI/2*t;
+    bot.P.rotation.x=-Math.PI/2*t;
+    inner.position.z=r*(1-t);
+    // 高さラベルは展開に合わせて長方形の右端へスライド
+    hLabel.position.set((r+0.9)+t*((Math.PI*r-0.9)-(r+0.9)),h/2,-r*(1-t)); // 展開後は長方形の右端の内側にたて(高さ)を表示（枠外だとカメラのフィットで切れるため）
+  }
+  upd(0);
+  return{group:g,setUnfold:upd,netFront:true,taps:taps};
+}
+function buildCone(r,h,opts){
+  opts=opts||{};
+  const g=new THREE.Group();
+  const l=Math.sqrt(r*r+h*h),a0=Math.asin(r/l);
+  const cols=64,dv=[0.002*l,l];
+  const pos=new Float32Array((cols+1)*2*3);
+  const idx=[];
+  for(let i=0;i<cols;i++){const a=i,b=i+1,c=cols+1+i,d2=cols+2+i;idx.push(a,b,c,b,d2,c);}
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setIndex(idx);
+  g.add(new THREE.Mesh(geo,faceMat(COL.side,opts.showH?0.28:undefined)));
+  const rimPts=new Float32Array((cols+1)*3);
+  const rimLine=new THREE.Mesh(new THREE.BufferGeometry(),new THREE.MeshBasicMaterial({color:MC.circ}));rimLine.userData.noBounds=true;
+  g.add(rimLine);
+  function rebuildRim(){
+    const vs=[];for(let i=0;i<=cols;i++)vs.push(new THREE.Vector3(rimPts[i*3],rimPts[i*3+1],rimPts[i*3+2]));
+    const c=new THREE.CatmullRomCurve3(vs,false);
+    rimLine.geometry.dispose();
+    rimLine.geometry=new THREE.TubeGeometry(c,cols,0.05,6,false);
+  }
+  const seamA=lineSeg([[0,h,0],[r,0,0]]),seamB=lineSeg([[0,h,0],[r,0,0]]);
+  g.add(seamA,seamB);
+  const piv=new THREE.Group();g.add(piv);
+  const C=new THREE.Group();C.position.set(-r,0,0);piv.add(C);
+  const dgrp=new THREE.Group();dgrp.rotation.x=-Math.PI/2;C.add(dgrp);
+  const cg=new THREE.CircleGeometry(r,48);
+  const coneFace=new THREE.Mesh(cg,faceMat(COL.top,opts.showH?0.5:undefined));dgrp.add(coneFace);
+  dgrp.add(new THREE.Mesh(new THREE.TorusGeometry(r,0.05,6,48),new THREE.MeshBasicMaterial({color:MC.circ})));
+  dgrp.add(measureLine([[0,0,0],[r,0,0]],false,MC.radius));
+  addLabel(dgrp,r+'cm',r/2,0.02,-0.5,MC.rHex);
+  const rodT=Math.max(0.05,l*0.013);
+  let hRod=null,hLab=null,mRod=null,mLab=null;
+  if(opts.showH){hRod=makeRod(MC.height,rodT);g.add(hRod);hLab=addLabel(g,'高さ '+h+'cm',-1.25,h*0.4,0,MC.hHex);}
+  if(opts.showL){mRod=makeRod(MC.slant,rodT);g.add(mRod);mLab=addLabel(g,'母線 '+fmtLen(opts.l),r/2+0.9,h*0.62,0,MC.sHex);}
+  function upd(t){
+    const alpha=a0+(Math.PI/2-a0)*t;
+    const sa=Math.sin(alpha),ca=Math.cos(alpha),kk=Math.sin(a0)/sa;
+    const pa=geo.attributes.position.array;
+    for(let row=0;row<2;row++){
+      const d=dv[row];
+      for(let i=0;i<=cols;i++){
+        const th=(i/cols-0.5)*2*Math.PI;
+        const tt2=th*kk;
+        const x=d*sa*Math.cos(tt2),y=h-d*ca,z=d*sa*Math.sin(tt2);
+        const j=row*(cols+1)+i;
+        pa[j*3]=x;pa[j*3+1]=y;pa[j*3+2]=z;
+        if(row===1){rimPts[i*3]=x;rimPts[i*3+1]=y+0.002;rimPts[i*3+2]=z;}
+      }
+    }
+    geo.attributes.position.needsUpdate=true;geo.computeVertexNormals();
+    rebuildRim();
+    const i0=cols+1,i1=cols+1+cols;
+    seamA.geometry.setFromPoints([new THREE.Vector3(0,h,0),new THREE.Vector3(pa[i0*3],pa[i0*3+1],pa[i0*3+2])]);
+    seamB.geometry.setFromPoints([new THREE.Vector3(0,h,0),new THREE.Vector3(pa[i1*3],pa[i1*3+1],pa[i1*3+2])]);
+    piv.position.set(l*sa,h-l*ca,0);
+    piv.rotation.z=-Math.PI*t;
+    if(hRod){setRod(hRod,0,0,0,0,h,0);const o=Math.max(0,1-t*1.4);hRod.userData.mat.opacity=o;if(hLab)hLab.material.opacity=o;}
+    if(mRod){const im=cols>>1,jx=(cols+1+im)*3,ex=pa[jx],ey=pa[jx+1],ez=pa[jx+2];
+      setRod(mRod,0,h,0,ex,ey,ez);
+      if(mLab)mLab.position.set(ex*0.55+0.9,(h+ey)*0.5+0.55,ez*0.55);}
+  }
+  const coneHi=(function(){
+    const mesh=new THREE.Mesh(new THREE.BufferGeometry(),new THREE.MeshBasicMaterial({color:0xffab00,depthTest:false}));
+    mesh.renderOrder=19;mesh.userData.noBounds=true;mesh.visible=false;g.add(mesh);
+    let playing=false;
+    function setHi(u){
+      const kappa=(1/r)*(1-u)-(1/l)*u,vs=[];
+      for(let i=0;i<=cols;i++){
+        const s=(i/cols-0.5)*2*Math.PI*r;let xu,xv;
+        if(Math.abs(kappa)<1e-4){xu=s;xv=0;}
+        else{xu=Math.sin(kappa*s)/kappa;xv=(1-Math.cos(kappa*s))/kappa;}
+        vs.push(new THREE.Vector3(l+xv,h+0.03,xu));
+      }
+      const c=new THREE.CatmullRomCurve3(vs,false);mesh.geometry.dispose();
+      mesh.geometry=new THREE.TubeGeometry(c,cols,0.07,6,false);
+    }
+    return{play:function(){
+      if(playing||CUR.unfoldT<0.9)return;playing=true;mesh.visible=true;setHi(0);
+      tween(2400,function(k){let u;if(k<0.35)u=k/0.35;else if(k<0.65)u=1;else u=1-(k-0.65)/0.35;setHi(u);},
+        function(){mesh.visible=false;playing=false;});
+    }};
+  })();
+  upd(0);
+  return{group:g,setUnfold:upd,taps:[{mesh:coneFace,play:coneHi.play}]};
+}
+function buildSphere(r){
+  const g=new THREE.Group();
+  const mesh=new THREE.Mesh(new THREE.SphereGeometry(r,48,32),faceMat(COL.side));
+  mesh.position.y=r;g.add(mesh);
+  const circ=[];for(let i=0;i<=64;i++){const t=i/64*2*Math.PI;circ.push([r*Math.cos(t),r,r*Math.sin(t)]);}
+  g.add(lineSeg(circ,false,COL.ink));
+  const dot=new THREE.Mesh(new THREE.SphereGeometry(0.09,12,8),faceMat(COL.ink));
+  dot.position.set(0,r,0);g.add(dot);
+  g.add(lineSeg([[0,r,0],[r,r,0]],false,COL.red));
+  addLabel(g,r+'cm',r/2,r+0.45,0);
+  return{group:g,setUnfold:null};
+}
+function buildSolid(fig){
+  const d=fig.d;
+  switch(fig.kind){
+    case 'cube':return buildBoxSolid(d.a,d.a,d.a,{labels:[{text:d.a+'cm',x:0,y:-0.45,z:d.a/2+0.2}]});
+    case 'box':return buildBoxSolid(d.w,d.h,d.dp,{color:true});
+    case 'prism':return buildTriPrism(d.p,d.q,d.hy,d.L,d.showHy);
+    case 'cyl':return buildCylinder(d.r,d.h);
+    case 'pyr':{const m=d.m!==undefined?d.m:Math.sqrt(d.h*d.h+d.a*d.a/4);
+      return buildPyramid(d.a,d.h,m,{showH:d.showH,showM:d.showM});}
+    case 'cone':return buildCone(d.r,d.h,{showH:d.showH,showL:d.showL,l:d.l});
+    case 'sphere':return buildSphere(d.r);
+  }
+  return null;
+}
+/* ---- 回転体 ---- */
+function makeProfileGroup(fig,color,op){
+  const shape=new THREE.Shape();
+  shape.moveTo(fig.pts[0][0],fig.pts[0][1]);
+  for(let i=1;i<fig.pts.length;i++)shape.lineTo(fig.pts[i][0],fig.pts[i][1]);
+  return faceShape2(shape,color,op);
+}
+function faceShape2(shape,color,op){
+  const g=new THREE.Group();const geo=new THREE.ShapeGeometry(shape);
+  g.add(new THREE.Mesh(geo,faceMat(color,op)));
+  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),lineMat()));
+  return g;}
+function buildLathe(fig){
+  const g=new THREE.Group();
+  const ys=fig.pts.map(p=>p[1]),xs=fig.pts.map(p=>p[0]);
+  const maxY=Math.max.apply(null,ys),minY=Math.min.apply(null,ys);
+  const ax=lineSeg([[0,minY-1.4,0],[0,maxY+1.4,0]],true,COL.ink);
+  g.add(ax);
+  addLabel(g,'ℓ',0.45,maxY+1.25,0);
+  const prof=makeProfileGroup(fig,COL.top,0.95);g.add(prof);
+  const endCap=makeProfileGroup(fig,COL.top,0.95);endCap.visible=false;g.add(endCap);
+  if(fig.lines)fig.lines.forEach(L=>{g.add(lineSeg([[L.a[0],L.a[1],0.01],[L.b[0],L.b[1],0.01]],false,COL.red));});
+  if(fig.labels)fig.labels.forEach(L=>addLabel(g,L.text,L.x,L.y,0));
+  const ringLines=[];
+  const ringTube=Math.max(0.028,Math.max(maxY,Math.max.apply(null,xs))*0.006);
+  if(fig.rings)fig.rings.forEach(function(rg){
+    const m=new THREE.Mesh(new THREE.TorusGeometry(rg.r,ringTube,6,8,0.01),new THREE.MeshBasicMaterial({color:0x2e2b45}));
+    m.rotation.x=-Math.PI/2;m.position.y=rg.y;m.visible=false;m.userData.noBounds=true;m.renderOrder=3;
+    g.add(m);ringLines.push({y:rg.y,r:rg.r,tube:ringTube,mesh:m});
+  });
+  const pts2=fig.pts.map(p=>new THREE.Vector2(p[0],p[1]));
+  if(fig.closed)pts2.push(pts2[0].clone());
+  let latheMesh=null;
+  function setSweep(phi){
+    CUR.sweepPhi=phi;
+    if(latheMesh){g.remove(latheMesh);latheMesh.geometry.dispose();latheMesh.material.dispose();latheMesh=null;}
+    endCap.visible=(phi>0.03&&phi<Math.PI*2-0.03);
+    endCap.rotation.y=phi;
+    if(phi>0.03){
+      const segs=Math.max(4,Math.round(64*phi/(Math.PI*2)));
+      const lg=new THREE.LatheGeometry(pts2,segs,Math.PI/2,phi);
+      latheMesh=new THREE.Mesh(lg,faceMat(COL.side));
+      g.add(latheMesh);
+    }
+    ringLines.forEach(function(rl){
+      rl.mesh.visible=(phi>0.03);
+      if(phi<=0.03)return;
+      const seg=Math.max(3,Math.round(64*phi/(Math.PI*2)));
+      rl.mesh.geometry.dispose();
+      rl.mesh.geometry=new THREE.TorusGeometry(rl.r,rl.tube,6,seg,phi);
+    });
+  }
+  return{group:g,setSweep:setSweep};
+}
+/* ---- 組み合わせ ---- */
+function tetraMesh(vs,color,op){
+  const F=[[0,1,2],[0,1,3],[0,2,3],[1,2,3]],arr=[];
+  F.forEach(function(f){f.forEach(function(vi){arr.push(vs[vi][0],vs[vi][1],vs[vi][2]);});});
+  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(arr),3));geo.computeVertexNormals();
+  const grp=new THREE.Group();grp.add(new THREE.Mesh(geo,faceMat(color,op)));
+  grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),lineMat(color)));return grp;}
+function boxMesh(w,h,d,color,op){
+  const g=new THREE.Group();const geo=new THREE.BoxGeometry(w,h,d);
+  g.add(new THREE.Mesh(geo,faceMat(color,op)));
+  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),lineMat()));return g;}
+function cylMesh(r,h,color){
+  const g=new THREE.Group();const geo=new THREE.CylinderGeometry(r,r,h,48);
+  g.add(new THREE.Mesh(geo,faceMat(color)));
+  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo,25),lineMat()));return g;}
+function coneMesh(r,h,color){
+  const g=new THREE.Group();const geo=new THREE.ConeGeometry(r,h,48);
+  g.add(new THREE.Mesh(geo,faceMat(color)));
+  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo,25),lineMat()));return g;}
+function hemiMesh(r,color){
+  const g=new THREE.Group();const geo=new THREE.SphereGeometry(r,48,24,0,Math.PI*2,0,Math.PI/2);
+  g.add(new THREE.Mesh(geo,faceMat(color)));
+  const circ=[];for(let i=0;i<=64;i++){const t=i/64*2*Math.PI;circ.push([r*Math.cos(t),0,r*Math.sin(t)]);}
+  g.add(lineSeg(circ));return g;}
+function radiusMark(parent,r,y,text){
+  parent.add(lineSeg([[0,y,0],[r,y,0]],false,COL.red));
+  addLabel(parent,text,r/2,y+0.3,0);}
+function buildCombo(fig){
+  const d=fig.d,g=new THREE.Group();
+  if(fig.kind==='lprism'){
+    const p=d.p,q=d.q,s=d.s,t=d.t,H=d.H;
+    const shape=new THREE.Shape();
+    shape.moveTo(-p/2,q/2);
+    shape.lineTo(p/2,q/2);
+    shape.lineTo(p/2,-(q-2*t)/2);
+    shape.lineTo((p-2*s)/2,-(q-2*t)/2);
+    shape.lineTo((p-2*s)/2,-q/2);
+    shape.lineTo(-p/2,-q/2);
+    shape.closePath();
+    const geo=new THREE.ExtrudeGeometry(shape,{depth:H,bevelEnabled:false,curveSegments:1});
+    const lp=new THREE.Group();lp.rotation.x=-Math.PI/2;g.add(lp);
+    lp.add(new THREE.Mesh(geo,faceMat(COL.side)));
+    lp.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),lineMat()));
+    addLabel(g,p+'cm',0,-0.5,-q/2-0.3);
+    addLabel(g,q+'cm',-p/2-0.8,-0.5,0);
+    addLabel(g,H+'cm',p/2+0.7,H/2,-q/2);
+    addLabel(g,s+'cm',(p-s)/2,H+0.5,(q-2*t)/2);
+    addLabel(g,t+'cm',(p-2*s)/2,H+0.5,(q-t)/2);
+  }else if(fig.kind==='tower'){
+    const A=boxMesh(d.a1,d.h1,d.b1,COL.side);A.position.y=d.h1/2;g.add(A);
+    const B=boxMesh(d.a2,d.h2,d.b2,COL.top);B.position.y=d.h1+d.h2/2;g.add(B);
+    addLabel(g,d.a1+'cm',0,-0.5,d.b1/2+0.3);
+    addLabel(g,d.b1+'cm',d.a1/2+0.8,-0.5,0);
+    addLabel(g,d.h1+'cm',d.a1/2+0.7,d.h1/2,d.b1/2);
+    addLabel(g,d.a2+'cm',0,d.h1+d.h2+0.5,d.b2/2);
+    addLabel(g,d.b2+'cm',d.a2/2+0.9,d.h1+d.h2+0.5,0);
+    addLabel(g,d.h2+'cm',d.a2/2+0.8,d.h1+d.h2/2,d.b2/2);
+  }else if(fig.kind==='cyl2'){
+    const A=cylMesh(d.R,d.h1,COL.side);A.position.y=d.h1/2;g.add(A);
+    const B=cylMesh(d.r,d.h2,COL.top);B.position.y=d.h1+d.h2/2;g.add(B);
+    radiusMark(g,d.R,d.h1+0.01,d.R+'cm');
+    radiusMark(g,d.r,d.h1+d.h2+0.01,d.r+'cm');
+    addLabel(g,d.h1+'cm',d.R+0.8,d.h1/2,0);
+    addLabel(g,d.h2+'cm',d.r+0.8,d.h1+d.h2/2,0);
+  }else if(fig.kind==='hemicyl'){
+    const A=cylMesh(d.r,d.h,COL.side);A.position.y=d.h/2;g.add(A);
+    const B=hemiMesh(d.r,COL.top);B.position.y=d.h;g.add(B);
+    radiusMark(g,d.r,0.01,d.r+'cm');
+    addLabel(g,d.h+'cm',d.r+0.8,d.h/2,0);
+  }else if(fig.kind==='conecyl'){
+    const A=cylMesh(d.r,d.h1,COL.side);A.position.y=d.h1/2;g.add(A);
+    const B=coneMesh(d.r,d.h2,COL.top);B.position.y=d.h1+d.h2/2;g.add(B);
+    radiusMark(g,d.r,0.01,d.r+'cm');
+    addLabel(g,d.h1+'cm',d.r+0.8,d.h1/2,0);
+    addLabel(g,d.h2+'cm',d.r/2+0.9,d.h1+d.h2*0.55,0);
+  }else if(fig.kind==='cubecut'){
+    const a=d.a,e=d.mid?a/2:a;
+    const cube=new THREE.Group();
+    const bg=new THREE.BoxGeometry(a,a,a);
+    cube.add(new THREE.Mesh(bg,faceMat(COL.side,0.35)));
+    cube.add(new THREE.LineSegments(new THREE.EdgesGeometry(bg),lineMat()));
+    cube.position.y=a/2;g.add(cube);
+    const V=[a/2,a,a/2],P1=[a/2-e,a,a/2],P2=[a/2,a-e,a/2],P3=[a/2,a,a/2-e];
+    const tris=[P1,P2,P3, V,P1,P2, V,P2,P3, V,P3,P1];
+    const arr=new Float32Array(tris.length*3);
+    tris.forEach((p,i)=>{arr[i*3]=p[0];arr[i*3+1]=p[1];arr[i*3+2]=p[2];});
+    const tg=new THREE.BufferGeometry();
+    tg.setAttribute('position',new THREE.BufferAttribute(arr,3));
+    tg.computeVertexNormals();
+    g.add(new THREE.Mesh(tg,faceMat(COL.red,0.5)));
+    g.add(new THREE.LineSegments(new THREE.EdgesGeometry(tg),lineMat(COL.red)));
+    addLabel(g,a+'cm',0,-0.5,a/2+0.3);
+    addLabel(g,a+'cm',a/2+0.8,a/2,a/2);
+    if(d.mid)addLabel(g,e+'cm',a/2+0.5,a-e/2,a/2,'#c9556b'); // 切り取る辺（中点まで）
+  }else if(fig.kind==='cube4cut'){
+    const a=d.a,h=a/2;
+    const cube=new THREE.Group();const bg=new THREE.BoxGeometry(a,a,a);
+    cube.add(new THREE.Mesh(bg,faceMat(COL.side,0.13)));
+    cube.add(new THREE.LineSegments(new THREE.EdgesGeometry(bg),lineMat()));
+    cube.position.y=a/2;g.add(cube);
+    const T=[[-h,0,-h],[h,a,-h],[h,0,h],[-h,a,h]];     // 残る正四面体
+    g.add(tetraMesh(T,0x4f9d63,0.55));
+    [[h,0,-h],[-h,a,-h],[-h,0,h],[h,a,h]].forEach(function(C){ // 切り取る4つの角
+      const nb=T.filter(function(t){let d2=0;for(let k=0;k<3;k++)if(Math.abs(t[k]-C[k])>1e-6)d2++;return d2===1;});
+      g.add(tetraMesh([C].concat(nb),COL.red,0.28));
+    });
+    addLabel(g,a+'cm',0,-0.5,h+0.3);
+    addLabel(g,a+'cm',h+0.8,a/2,h);
+  }else if(fig.kind==='cube4lab'){
+    const a=d.a,h=a/2,n=d.n;
+    const cube=new THREE.Group();const bg=new THREE.BoxGeometry(a,a,a);
+    cube.add(new THREE.LineSegments(new THREE.EdgesGeometry(bg),lineMat()));
+    cube.position.y=a/2;g.add(cube);
+    const T=[[-h,0,-h],[h,a,-h],[h,0,h],[-h,a,h]];
+    g.add(tetraMesh(T,0x4f9d63,0.85));   // 残る正四面体
+    [[h,0,-h],[-h,a,-h],[-h,0,h],[h,a,h]].forEach(function(C,i){
+      if(i<n)return;                     // 切り取り済みは消す
+      const nb=T.filter(function(t){let d2=0;for(let k=0;k<3;k++)if(Math.abs(t[k]-C[k])>1e-6)d2++;return d2===1;});
+      g.add(tetraMesh([C].concat(nb),COL.side2,0.7)); // まだ切ってない角
+    });
+    addLabel(g,a+'cm',0,-0.5,h+0.3);
+    addLabel(g,a+'cm',h+0.8,a/2,h);
+  }else if(fig.kind==='octa'){
+    const a=d.a,h=a/2;
+    const cube=new THREE.Group();const bg=new THREE.BoxGeometry(a,a,a);
+    cube.add(new THREE.Mesh(bg,faceMat(COL.side,0.13)));
+    cube.add(new THREE.LineSegments(new THREE.EdgesGeometry(bg),lineMat()));
+    cube.position.y=a/2;g.add(cube);
+    const vt=[0,a,0],vb=[0,0,0],v1=[-h,h,0],v2=[h,h,0],v3=[0,h,h],v4=[0,h,-h]; // 6面の中心
+    const tris=[vt,v1,v3, vt,v3,v2, vt,v2,v4, vt,v4,v1, vb,v3,v1, vb,v2,v3, vb,v4,v2, vb,v1,v4];
+    const arr=new Float32Array(tris.length*3);tris.forEach(function(p,i){arr[i*3]=p[0];arr[i*3+1]=p[1];arr[i*3+2]=p[2];});
+    const og=new THREE.BufferGeometry();og.setAttribute('position',new THREE.BufferAttribute(arr,3));og.computeVertexNormals();
+    g.add(new THREE.Mesh(og,faceMat(0x4f9d63,0.6)));
+    g.add(new THREE.LineSegments(new THREE.EdgesGeometry(og),lineMat(0x2e6e46)));
+    [vt,vb,v1,v2,v3,v4].forEach(function(p){
+      const dot=new THREE.Mesh(new THREE.SphereGeometry(Math.max(0.1,a*0.035),10,8),new THREE.MeshBasicMaterial({color:0x2e6e46}));
+      dot.position.set(p[0],p[1],p[2]);dot.userData.noBounds=true;g.add(dot);});
+    addLabel(g,a+'cm',0,-0.5,h+0.3);
+    addLabel(g,a+'cm',h+0.8,a/2,h);
+  }else if(fig.kind==='hole'){
+    // 実際に穴の開いた直方体：枠形(長方形−長方形の穴)を奥行きぶん押し出し、トンネルの内壁まで見せる
+    const shape=new THREE.Shape();
+    shape.moveTo(-d.A/2,0);shape.lineTo(d.A/2,0);shape.lineTo(d.A/2,d.B);shape.lineTo(-d.A/2,d.B);shape.closePath();
+    const hole=new THREE.Path();const hx=d.s/2,hy0=d.B/2-d.t/2,hy1=d.B/2+d.t/2;
+    hole.moveTo(-hx,hy0);hole.lineTo(hx,hy0);hole.lineTo(hx,hy1);hole.lineTo(-hx,hy1);hole.closePath();
+    shape.holes.push(hole);
+    const geo=new THREE.ExtrudeGeometry(shape,{depth:d.C,bevelEnabled:false,steps:1});
+    geo.translate(0,0,-d.C/2);
+    g.add(new THREE.Mesh(geo,faceMat(COL.side)));
+    g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),lineMat()));
+    addLabel(g,d.A+'cm',0,-0.5,d.C/2+0.3);
+    addLabel(g,d.C+'cm',d.A/2+0.8,-0.5,0);
+    addLabel(g,d.B+'cm',d.A/2+0.7,d.B/2,d.C/2);
+    addLabel(g,d.s+'cm',0,d.B/2+d.t/2+0.45,d.C/2+0.1);
+    addLabel(g,d.t+'cm',d.s/2+0.7,d.B/2,d.C/2+0.1);
+  }else if(fig.kind==='hollow'){
+    const A=boxMesh(d.A,d.B,d.C,COL.side,0.22);A.position.y=d.B/2;g.add(A);
+    // 内部の空洞：色を付けず、隠れ線（破線）の輪郭だけで表す
+    const heg=new THREE.EdgesGeometry(new THREE.BoxGeometry(d.s,d.t,d.u));
+    const hl=new THREE.LineSegments(heg,new THREE.LineDashedMaterial({color:0x5a5266,dashSize:0.28,gapSize:0.16}));
+    hl.computeLineDistances();hl.position.y=d.B/2;g.add(hl);
+    addLabel(g,d.A+'cm',0,-0.5,d.C/2+0.3);
+    addLabel(g,d.C+'cm',d.A/2+0.8,-0.5,0);
+    addLabel(g,d.B+'cm',d.A/2+0.7,d.B/2,d.C/2);
+    addLabel(g,'空洞 '+d.s+'×'+d.t+'×'+d.u,0,d.B/2,d.C/2+0.6);
+  }
+  return{group:g,setUnfold:null};
+}
+/* ================= 2D 軌跡アニメ ================= */
+const R2={anim:null,prog:0,trace:null};
+function polyInit(n,a,q){
+  if(n===3)return[[0,0],[a,0],[a/2,a*Math.sqrt(3)/2]];
+  q=q||a;
+  return[[0,0],[a,0],[a,q],[0,q]];
+}
+function rotPt(p,c,ang){
+  const s=Math.sin(ang),co=Math.cos(ang);
+  const dx=p[0]-c[0],dy=p[1]-c[1];
+  return[c[0]+dx*co-dy*s,c[1]+dx*s+dy*co];
+}
+function bottomRight(pts){
+  let best=null;
+  for(const p of pts){if(Math.abs(p[1])<1e-4){if(!best||p[0]>best[0])best=p;}}
+  return best||pts[0];
+}
+function polyState(n,a,g,q){
+  let pts=polyInit(n,a,q);
+  const th=-2*Math.PI/n;
+  const gg=Math.max(0,Math.min(g,n));
+  const k=Math.floor(Math.min(gg,n-1e-9)),f=gg-k;
+  for(let i=0;i<k;i++){
+    const piv=bottomRight(pts);
+    pts=pts.map(p=>rotPt(p,piv,th)).map(p=>[p[0],Math.abs(p[1])<1e-6?0:p[1]]);
+  }
+  if(f>1e-9){
+    const piv=bottomRight(pts);
+    pts=pts.map(p=>rotPt(p,piv,th*f));
+  }
+  return pts;
+}
+function buildTrace(n,a,q){
+  const N=n*80,S2=[];
+  for(let j=0;j<=N;j++)S2.push(polyState(n,a,j/80,q)[0]);
+  return S2;
+}
+function coutTotal(l,w,r){return 2*(l+w)+2*Math.PI*r;}
+function coutPoint(l,w,r,s){
+  const q=Math.PI*r/2;
+  const segs=[
+    {len:l,f:function(u){return[u,-r];}},
+    {len:q,c:[l,0],a0:-Math.PI/2},
+    {len:w,f:function(u){return[l+r,u];}},
+    {len:q,c:[l,w],a0:0},
+    {len:l,f:function(u){return[l-u,w+r];}},
+    {len:q,c:[0,w],a0:Math.PI/2},
+    {len:w,f:function(u){return[-r,w-u];}},
+    {len:q,c:[0,0],a0:Math.PI}
+  ];
+  let rem=Math.max(0,Math.min(s,coutTotal(l,w,r)));
+  for(const sg of segs){
+    if(rem<=sg.len+1e-9){
+      if(sg.f)return sg.f(rem);
+      const ang=sg.a0+rem/r;
+      return[sg.c[0]+r*Math.cos(ang),sg.c[1]+r*Math.sin(ang)];
+    }
+    rem-=sg.len;
+  }
+  return[0,-r];
+}
+function cinPoint(l,w,r,s){
+  const L1=l-2*r,W1=w-2*r;
+  const segs=[
+    {len:L1,f:function(u){return[r+u,r];}},
+    {len:W1,f:function(u){return[l-r,r+u];}},
+    {len:L1,f:function(u){return[l-r-u,w-r];}},
+    {len:W1,f:function(u){return[r,w-r-u];}}
+  ];
+  let rem=Math.max(0,Math.min(s,2*(L1+W1)));
+  for(const sg of segs){
+    if(rem<=sg.len+1e-9)return sg.f(rem);
+    rem-=sg.len;
+  }
+  return[r,r];
+}
+function draw2D(){
+  const cv=document.getElementById('c2d'),st=document.getElementById('stage');
+  if(!cv||!st)return;
+  const w=st.clientWidth,h=st.clientHeight;
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);}
+  const x=cv.getContext('2d');
+  x.setTransform(dpr,0,0,dpr,0,0);
+  x.clearRect(0,0,w,h);
+  const A=R2.anim;if(!A)return;
+  let bx0,bx1,by0,by1;
+  if(A.type==='poly'){
+    const tr=R2.trace||[];const big=Math.max(A.a,A.q||A.a);
+    let mxx=(A.n+1)*A.a,mxy=1.3*A.a,mnx=0;
+    if(tr.length){mnx=1e9;mxx=-1e9;mxy=0;for(const pt of tr){if(pt[0]<mnx)mnx=pt[0];if(pt[0]>mxx)mxx=pt[0];if(pt[1]>mxy)mxy=pt[1];}}
+    bx0=mnx-0.5;bx1=mxx+big*0.5+0.5;by0=-0.4;by1=mxy+0.6;
+  }
+  else if(A.type==='cline'){const W2=2*Math.PI*A.r*A.n;bx0=-A.r-0.6;bx1=W2+A.r+0.6;by0=-0.9;by1=2*A.r+0.9;}
+  else if(A.type==='cout'){bx0=-2*A.r-0.6;bx1=A.l+2*A.r+0.6;by0=-2*A.r-0.6;by1=A.w+2*A.r+0.6;}
+  else{bx0=-0.6;bx1=A.l+0.6;by0=-0.6;by1=A.w+0.6;}
+  const sc=Math.min((w-36)/(bx1-bx0),(h-108)/(by1-by0));
+  const ox=(w-(bx1-bx0)*sc)/2-bx0*sc;
+  const oy=h-30+by0*sc;
+  const X=function(wx){return ox+wx*sc;},Y=function(wy){return oy-wy*sc;};
+  const INK='#3d372f',INK2='#6a5f52',SAK='#c9556b',PAPER='rgba(255,253,246,0.97)';
+  x.lineJoin='round';x.lineCap='round';x.textBaseline='alphabetic';
+  let legend='';
+  if(A.type==='poly'){
+    x.strokeStyle=INK;x.lineWidth=2;
+    x.beginPath();x.moveTo(6,Y(0));x.lineTo(w-6,Y(0));x.stroke();
+    x.font='italic 700 16px serif';x.fillStyle=INK;x.fillText('ℓ',w-22,Y(0)+20);
+    const tr=R2.trace||[];
+    const cur=Math.max(0,Math.round(R2.prog*(tr.length-1)));
+    if(A.area&&cur>1){
+      x.beginPath();x.moveTo(X(tr[0][0]),Y(tr[0][1]));
+      for(let i=1;i<=cur;i++)x.lineTo(X(tr[i][0]),Y(tr[i][1]));
+      x.lineTo(X(tr[cur][0]),Y(0));x.lineTo(X(tr[0][0]),Y(0));
+      x.closePath();x.fillStyle='rgba(201,85,107,0.20)';x.fill();
+    }
+    if(A.area){
+      // 補助線：各回転の中心(ピボット)から頂点Aの弧の両端へ半径を引き、おうぎ形に分ける
+      const g=R2.prog*A.n;
+      x.save();x.lineWidth=1.5;x.strokeStyle='#b9913f';x.setLineDash([5,4]);
+      for(let k=0;k<A.n;k++){
+        if(g<=k+1e-6)break;
+        const sb=polyState(A.n,A.a,k,A.q),piv=bottomRight(sb),aS=sb[0];
+        if(Math.hypot(piv[0]-aS[0],piv[1]-aS[1])<1e-6)continue; // Aが中心＝半径0
+        const aE=polyState(A.n,A.a,Math.min(k+1,g),A.q)[0];
+        x.beginPath();x.moveTo(X(piv[0]),Y(piv[1]));x.lineTo(X(aS[0]),Y(aS[1]));x.stroke();
+        x.beginPath();x.moveTo(X(piv[0]),Y(piv[1]));x.lineTo(X(aE[0]),Y(aE[1]));x.stroke();
+      }
+      x.setLineDash([]);x.fillStyle='#b9913f';
+      for(let k=0;k<A.n;k++){
+        if(g<=k+1e-6)break;
+        const piv=bottomRight(polyState(A.n,A.a,k,A.q));
+        x.beginPath();x.arc(X(piv[0]),Y(piv[1]),3,0,7);x.fill();
+      }
+      x.restore();
+    }
+    if(cur>0){
+      x.beginPath();x.moveTo(X(tr[0][0]),Y(tr[0][1]));
+      for(let i=1;i<=cur;i++)x.lineTo(X(tr[i][0]),Y(tr[i][1]));
+      x.strokeStyle=SAK;x.lineWidth=3;x.stroke();
+    }
+    const pts=polyState(A.n,A.a,R2.prog*A.n,A.q);
+    x.beginPath();x.moveTo(X(pts[0][0]),Y(pts[0][1]));
+    for(let i=1;i<pts.length;i++)x.lineTo(X(pts[i][0]),Y(pts[i][1]));
+    x.closePath();x.fillStyle=PAPER;x.fill();
+    x.strokeStyle=INK;x.lineWidth=2;x.stroke();
+    x.beginPath();x.arc(X(pts[0][0]),Y(pts[0][1]),5,0,7);x.fillStyle=SAK;x.fill();
+    x.font='700 15px sans-serif';x.fillStyle=SAK;
+    x.fillText('A',X(pts[0][0])+8,Y(pts[0][1])-8);
+    legend=(A.q&&A.q!==A.a? '長方形 '+A.a+'cm×'+A.q+'cm' : '1辺 '+A.a+'cm の正'+(A.n===3?'三角形':'方形'))+(A.area?'：囲まれた面積':'：頂点Aの軌跡');
+  }else if(A.type==='cline'){
+    x.strokeStyle=INK;x.lineWidth=2;
+    x.beginPath();x.moveTo(6,Y(0));x.lineTo(w-6,Y(0));x.stroke();
+    x.font='italic 700 16px serif';x.fillStyle=INK;x.fillText('ℓ',w-22,Y(0)+20);
+    const total=2*Math.PI*A.r*A.n,cx=total*R2.prog;
+    if(cx>0.01){x.beginPath();x.moveTo(X(0),Y(A.r));x.lineTo(X(cx),Y(A.r));
+      x.strokeStyle=SAK;x.lineWidth=3;x.stroke();}
+    x.beginPath();x.arc(X(cx),Y(A.r),A.r*sc,0,7);
+    x.fillStyle=PAPER;x.fill();x.strokeStyle=INK;x.lineWidth=2;x.stroke();
+    const ang=-cx/A.r;
+    x.beginPath();x.moveTo(X(cx),Y(A.r));
+    x.lineTo(X(cx+A.r*Math.cos(ang)),Y(A.r+A.r*Math.sin(ang)));
+    x.strokeStyle=INK2;x.lineWidth=1.5;x.stroke();
+    x.beginPath();x.arc(X(cx),Y(A.r),4,0,7);x.fillStyle=SAK;x.fill();
+    x.font='700 15px sans-serif';x.fillStyle=SAK;x.fillText('O',X(cx)+7,Y(A.r)-8);
+    legend='半径 '+A.r+'cm・'+A.n+'回転：中心Oの軌跡';
+  }else if(A.type==='cout'){
+    const total=coutTotal(A.l,A.w,A.r),s=total*R2.prog;
+    const N=Math.max(2,Math.round(Math.max(s,0.01)/total*260));
+    if(A.area&&s>0.01){
+      // オフスクリーンに不透明で帯を描き、一定の透明度で合成（重なっても濃さ均一）
+      const oc=R2._oc||(R2._oc=document.createElement('canvas'));
+      if(oc.width!==cv.width||oc.height!==cv.height){oc.width=cv.width;oc.height=cv.height;}
+      const oxx=oc.getContext('2d');
+      oxx.setTransform(dpr,0,0,dpr,0,0);oxx.clearRect(0,0,w,h);
+      oxx.lineJoin='round';oxx.lineCap='round';
+      oxx.beginPath();
+      for(let i=0;i<=N;i++){const p=coutPoint(A.l,A.w,A.r,s*i/N);
+        if(i===0)oxx.moveTo(X(p[0]),Y(p[1]));else oxx.lineTo(X(p[0]),Y(p[1]));}
+      oxx.strokeStyle='#c9556b';oxx.lineWidth=2*A.r*sc;oxx.stroke();
+      x.save();x.globalAlpha=0.24;x.setTransform(1,0,0,1,0,0);x.drawImage(oc,0,0);x.restore();
+    }
+    x.fillStyle='#f3ebd8';x.strokeStyle=INK;x.lineWidth=2;
+    x.beginPath();x.rect(X(0),Y(A.w),A.l*sc,A.w*sc);x.fill();x.stroke();
+    if(s>0.01){
+      x.beginPath();
+      for(let i=0;i<=N;i++){const p=coutPoint(A.l,A.w,A.r,s*i/N);
+        if(i===0)x.moveTo(X(p[0]),Y(p[1]));else x.lineTo(X(p[0]),Y(p[1]));}
+      x.strokeStyle=SAK;x.lineWidth=2.5;x.stroke();
+    }
+    const c=coutPoint(A.l,A.w,A.r,s);
+    x.beginPath();x.arc(X(c[0]),Y(c[1]),A.r*sc,0,7);
+    x.fillStyle=PAPER;x.fill();x.strokeStyle=INK;x.lineWidth=2;x.stroke();
+    const ang=s/A.r;
+    x.beginPath();x.moveTo(X(c[0]),Y(c[1]));
+    x.lineTo(X(c[0]+A.r*Math.cos(ang)),Y(c[1]+A.r*Math.sin(ang)));
+    x.strokeStyle=INK2;x.lineWidth=1.5;x.stroke();
+    x.beginPath();x.arc(X(c[0]),Y(c[1]),3.5,0,7);x.fillStyle=SAK;x.fill();
+    x.font='700 15px sans-serif';x.fillStyle=SAK;x.fillText('O',X(c[0])+7,Y(c[1])-8);
+    legend='長方形 '+A.l+'cm×'+A.w+'cm・円の半径 '+A.r+'cm（外側を1周）';
+  }else{
+    x.fillStyle='#f3ebd8';x.strokeStyle=INK;x.lineWidth=3;
+    x.beginPath();x.rect(X(0),Y(A.w),A.l*sc,A.w*sc);x.fill();x.stroke();
+    const P2=2*((A.l-2*A.r)+(A.w-2*A.r)),s=P2*R2.prog;
+    if(s>0.01){
+      x.beginPath();
+      const N=Math.max(2,Math.round(s/P2*220));
+      for(let i=0;i<=N;i++){const p=cinPoint(A.l,A.w,A.r,s*i/N);
+        if(i===0)x.moveTo(X(p[0]),Y(p[1]));else x.lineTo(X(p[0]),Y(p[1]));}
+      x.strokeStyle=SAK;x.lineWidth=2.5;x.stroke();
+    }
+    const c=cinPoint(A.l,A.w,A.r,s);
+    x.beginPath();x.arc(X(c[0]),Y(c[1]),A.r*sc,0,7);
+    x.fillStyle=PAPER;x.fill();x.strokeStyle=INK;x.lineWidth=2;x.stroke();
+    const ang=-s/A.r;
+    x.beginPath();x.moveTo(X(c[0]),Y(c[1]));
+    x.lineTo(X(c[0]+A.r*Math.cos(ang)),Y(c[1]+A.r*Math.sin(ang)));
+    x.strokeStyle=INK2;x.lineWidth=1.5;x.stroke();
+    x.beginPath();x.arc(X(c[0]),Y(c[1]),3.5,0,7);x.fillStyle=SAK;x.fill();
+    x.font='700 15px sans-serif';x.fillStyle=SAK;x.fillText('O',X(c[0])+8,Y(c[1])-8);
+    legend='長方形 '+A.l+'cm×'+A.w+'cm・円の半径 '+A.r+'cm（内側を1周）';
+  }
+  x.font='700 13px sans-serif';x.textAlign='left';
+  const lgw=x.measureText(legend).width;
+  x.fillStyle='rgba(255,252,246,0.85)';x.fillRect(8,47,lgw+12,21);
+  x.fillStyle=INK2;x.fillText(legend,14,61);
+  x.textAlign='start';
+}
+/* ================= UI / 進行 ================= */
+const $=function(id){return document.getElementById(id);};
+const S={mode:null,q:null,expr:'',answered:false,qcount:0,streak:0,lastKey:'',lab:'cube',lastQuiz:'vol',openPanel:null,retryQueue:[]};
+const MODENAME={vol:'体積',surf:'表面積',kaiten:'回転体',kumi:'切り抜き',kiseki:'発展・軌跡'};
+function safeCorrect(){
+  /* 共通の正解はんこ（divp-correct-jh）。1.1秒で自動フェード＝#stageに残さない */
+  try{if(window.Divp&&window.Divp.correct){window.Divp.correct('#stage',{fadeMs:1100});return;}}catch(e){}
+  /* 未読込・ローカル起動時のフォールバック */
+  const st=document.createElement('div');st.className='stamp';st.textContent='正解';
+  $('stamp-layer').appendChild(st);
+  setTimeout(function(){st.remove();},1000);
+}
+function safeIncorrect(){
+  /* 共通の不正解バッジ（divp-correct-jh、「ナイスチャレンジ！」）。既定で自動フェード */
+  try{if(window.Divp&&window.Divp.incorrect)window.Divp.incorrect('#stage');}catch(e){}
+}
+/* 再出題用に問題オブジェクトを丸ごと保存（JSON化できる値のみ）。
+   同じ問題は同じJSON→同じ params_hash になり、2連続正解で mastered 判定が成立する。
+   JSON形状を変えると既存 pending 行のハッシュと合わなくなる点に注意（本単元は新規）。*/
+function qParams(q){return {key:q.key,unit:q.unit,ans:q.ans,text:q.text,expl:q.expl,fig:q.fig};}
+function safeAnswer(ok,meta){
+  try{if(window.Divp&&window.Divp.answer)window.Divp.answer(ok,meta);}catch(e){}
+}
+/* ---- three 初期化 ---- */
+let threeOK=false;
+function initThree(){
+  if(!window.THREE){$('hint3d').textContent='3D表示ライブラリを読み込めませんでした（通信環境を確認してね）';return;}
+  const cv=$('c3d');
+  renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(38,1,0.1,600);
+  tiltG=new THREE.Group();spinG=new THREE.Group();
+  tiltG.add(spinG);scene.add(tiltG);
+  scene.add(new THREE.HemisphereLight(0xfff8ec,0xcbbfa8,1.0));
+  const dl=new THREE.DirectionalLight(0xffffff,0.5);dl.position.set(6,10,8);scene.add(dl);
+  const dl2=new THREE.DirectionalLight(0xffe9d8,0.25);dl2.position.set(-7,4,-6);scene.add(dl2);
+  threeOK=true;
+  resize3d();
+  setupDrag(cv);
+}
+function resize3d(){
+  if(!threeOK)return;
+  const st=$('stage'),w=st.clientWidth,h=st.clientHeight;
+  renderer.setSize(w,h,false);
+  camera.aspect=w/h;camera.updateProjectionMatrix();
+}
+function setupDrag(cv){
+  const P=new Map();let lastD=0,downXY=null,moved=0;
+  const ray=new THREE.Raycaster();
+  function tryTap(e){
+    if(!threeOK||!CUR.taps||!CUR.taps.length||CUR.unfoldT<0.9)return;
+    const rect=cv.getBoundingClientRect();
+    const ndc=new THREE.Vector2(((e.clientX-rect.left)/rect.width)*2-1,-((e.clientY-rect.top)/rect.height)*2+1);
+    ray.setFromCamera(ndc,camera);
+    for(const tp of CUR.taps){if(ray.intersectObject(tp.mesh,false).length){tp.play();break;}}
+  }
+  cv.addEventListener('pointerdown',function(e){cv.setPointerCapture(e.pointerId);P.set(e.pointerId,[e.clientX,e.clientY]);if(P.size===1){downXY=[e.clientX,e.clientY];moved=0;}});
+  cv.addEventListener('pointermove',function(e){
+    if(!P.has(e.pointerId))return;
+    const prev=P.get(e.pointerId);P.set(e.pointerId,[e.clientX,e.clientY]);
+    if(P.size===1){
+      moved+=Math.abs(e.clientX-prev[0])+Math.abs(e.clientY-prev[1]);
+      spinG.rotation.y+=(e.clientX-prev[0])*0.008;
+      tiltG.rotation.x=Math.max(-0.6,Math.min(1.15,tiltG.rotation.x+(e.clientY-prev[1])*0.006));
+    }else if(P.size===2){
+      const pts=Array.from(P.values());
+      const d=Math.hypot(pts[0][0]-pts[1][0],pts[0][1]-pts[1][1]);
+      if(lastD>0)VIEW.distT=Math.max(4,Math.min(140,VIEW.distT*lastD/d));
+      lastD=d;
+    }
+  });
+  const up=function(e){
+    if(P.size===1&&downXY&&moved<7)tryTap(e);
+    P.delete(e.pointerId);lastD=0;
+  };
+  cv.addEventListener('pointerup',up);
+  cv.addEventListener('pointercancel',up);
+  cv.addEventListener('wheel',function(e){e.preventDefault();
+    VIEW.distT=Math.max(4,Math.min(140,VIEW.distT*(1+e.deltaY*0.001)));},{passive:false});
+}
+function boundsOf(){
+  const box=new THREE.Box3();let any=false;
+  spinG.traverse(function(n){
+    if(n.userData&&n.userData.noBounds)return;
+    if((n.isMesh||n.isLine||n.isLineSegments)&&n.geometry){
+      n.geometry.computeBoundingBox();
+      const bb=n.geometry.boundingBox;
+      if(bb&&isFinite(bb.min.x)&&isFinite(bb.max.x)){
+        box.union(bb.clone().applyMatrix4(n.matrixWorld));any=true;
+      }
+    }
+  });
+  return any?box:null;
+}
+function fitCamera(pad,opts){
+  if(!threeOK)return null;
+  pad=pad||1;opts=opts||{};
+  spinG.updateWorldMatrix(true,true);
+  const box=boundsOf();if(!box)return null;
+  const sp=box.getBoundingSphere(new THREE.Sphere());
+  VIEW.cyT=sp.center.y;
+  VIEW.distT=Math.max(6,sp.radius*2.6*pad);
+  if(opts.center){VIEW.cxT=sp.center.x;VIEW.czT=sp.center.z;}
+  else{VIEW.cxT=0;VIEW.czT=0;}
+  return sp;
+}
+function clearFigure(){
+  for(let i=TW.length-1;i>=0;i--)if(!TW[i].spin)TW.splice(i,1); // 自動回転は残す
+  if(threeOK&&CUR.obj){spinG.remove(CUR.obj);disposeDeep(CUR.obj);}
+  CUR={obj:null,setUnfold:null,setSweep:null,unfoldT:0,unfoldTarget:0,sweepPhi:0,sweepOn:false,netFront:false,unfoldYaw:0,taps:[]};
+  if(threeOK){spinG.rotation.set(0,DEF_YAW,0);tiltG.rotation.set(DEF_TILT,0,0);VIEW.elevT=0.42;VIEW.cxT=0;VIEW.czT=0;}
+}
+function addShadow(rad){
+  const c=document.createElement('canvas');c.width=128;c.height=128;
+  const x=c.getContext('2d');
+  const gr=x.createRadialGradient(64,64,4,64,64,62);
+  gr.addColorStop(0,'rgba(70,58,40,0.20)');gr.addColorStop(1,'rgba(70,58,40,0)');
+  x.fillStyle=gr;x.fillRect(0,0,128,128);
+  const tex=new THREE.CanvasTexture(c);
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(rad*2.4,rad*2.4),
+    new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
+  m.rotation.x=-Math.PI/2;m.position.y=-0.03;
+  m.userData.noBounds=true;m.renderOrder=-1;
+  if(CUR.obj)CUR.obj.add(m);
+}
+function showFigure(fig,opts){
+  opts=opts||{};
+  let keepYaw=null,keepTilt=null;
+  if(opts.keepView&&threeOK){keepYaw=spinG.rotation.y;keepTilt=tiltG.rotation.x;}
+  clearFigure();
+  R2.anim=null;
+  const is2d=!!(fig&&fig.t==='roll');
+  $('c3d').style.display=is2d?'none':'block';
+  $('c2d').style.display=is2d?'block':'none';
+  $('hint3d').style.display=is2d?'none':'block';
+  $('btnView').classList.toggle('hidden',is2d);
+  $('btnUnfold').classList.add('hidden');
+  $('btnSweep').classList.add('hidden');
+  $('btnRoll').classList.toggle('hidden',!is2d);
+  if(is2d){
+    R2.anim=fig.anim;R2.prog=0;R2.trace=null;
+    if(fig.anim.type==='poly')R2.trace=buildTrace(fig.anim.n,fig.anim.a,fig.anim.q);
+    const b=$('btnRoll');b.disabled=false;b.textContent='▶ 転がす';
+    return;
+  }
+  if(!threeOK||!fig)return;
+  let built=null;
+  if(fig.t==='solid')built=buildSolid(fig);
+  else if(fig.t==='lathe')built=buildLathe(fig);
+  else if(fig.t==='combo')built=buildCombo(fig);
+  if(!built)return;
+  CUR.obj=built.group;
+  CUR.setUnfold=built.setUnfold||null;
+  CUR.setSweep=built.setSweep||null;
+  CUR.netFront=!!built.netFront;
+  CUR.unfoldYaw=built.netYaw||0;
+  CUR.taps=built.taps||[];
+  spinG.add(built.group);
+  if(CUR.setSweep){CUR.setSweep(0);
+    const b=$('btnSweep');b.classList.remove('hidden');b.textContent='↻ 回転させる';}
+  if(CUR.setUnfold){
+    const b=$('btnUnfold');b.classList.remove('hidden');b.textContent='▤ 展開する';}
+  const sp=fitCamera(CUR.setSweep?1.45:1);
+  if(sp){
+    scaleLabels(spinG,Math.max(0.8,Math.min(2.4,sp.radius/4.5)));
+    addShadow(sp.radius*0.8);
+  }
+  if(keepYaw!==null){spinG.rotation.y=keepYaw;tiltG.rotation.x=keepTilt;}
+}
+function toggleUnfold(){
+  if(!CUR.setUnfold||!CUR.obj)return;
+  const target=CUR.unfoldTarget>0.5?0:1;
+  CUR.unfoldTarget=target;
+  const from=CUR.unfoldT;
+  $('btnUnfold').textContent=target===1?'▣ 組み立てる':'▤ 展開する';
+  if(target===1){VIEW.distT=VIEW.distT*1.8;VIEW.elevT=CUR.netFront?0.06:1.45;}
+  else{VIEW.elevT=0.42;}
+  const fromYaw=spinG.rotation.y,fromTilt=tiltG.rotation.x;
+  const toYaw=target===1?(CUR.unfoldYaw||0):DEF_YAW,toTilt=target===1?0:DEF_TILT;
+  tween(1200,function(k){
+    CUR.unfoldT=from+(target-from)*k;
+    if(CUR.setUnfold)CUR.setUnfold(CUR.unfoldT);
+    spinG.rotation.y=fromYaw+(toYaw-fromYaw)*k;
+    tiltG.rotation.x=fromTilt+(toTilt-fromTilt)*k;
+  },function(){fitCamera(target===1?1.12:1.08,{center:target===1});});
+}
+function toggleSweep(){
+  if(!CUR.setSweep)return;
+  if(!CUR.sweepOn){
+    CUR.sweepOn=true;
+    $('btnSweep').textContent='⟲ 平面に戻す';
+    const from=CUR.sweepPhi;
+    tween(1800,function(k){if(CUR.setSweep)CUR.setSweep(from+(Math.PI*2-from)*k);});
+  }else{
+    CUR.sweepOn=false;
+    $('btnSweep').textContent='↻ 回転させる';
+    CUR.setSweep(0);
+  }
+}
+function playRoll(){
+  if(!R2.anim)return;
+  const A=R2.anim;
+  let dur=2600;
+  if(A.type==='poly')dur=A.n*950;
+  else if(A.type==='cline')dur=1800+A.n*700;
+  else if(A.type==='cout')dur=3400;
+  else if(A.type==='cin')dur=2800;
+  R2.prog=0;
+  const b=$('btnRoll');b.disabled=true;
+  tween(dur,function(k){R2.prog=k;},function(){b.disabled=false;b.textContent='↺ もう一度';},true);
+}
+/* ---- 出題 ---- */
+function renderQ(q,label){
+  S.lastKey=q.key;S.q=q;S.expr='';S.answered=false;S.qcount++;
+  $('qno').textContent=(label||('【'+(MODENAME[S.mode]||'練習')+'】'))+'第'+S.qcount+'問';
+  $('qtext').innerHTML=q.text;
+  $('unit').textContent=q.unit;
+  renderExpr();
+  const f=$('feedback');f.textContent='';f.className='';
+  $('expl').classList.add('hidden');$('expl').innerHTML='';
+  $('checkbtn').disabled=false;
+  $('nextbtn').classList.add('hidden');
+  /* 前問の正解/不正解スタンプが残っていれば消す */
+  try{$('stage').querySelectorAll('.divp-hanko,.divp-nice').forEach(function(e){e.remove();});}catch(e){}
+  showFigure(q.fig);
+}
+function newQuestion(){
+  /* 解き直しキュー（?retry=1）があれば、pendingを同一問題で消化する */
+  if(S.retryQueue&&S.retryQueue.length){renderQ(S.retryQueue.shift(),'【解き直し】');return;}
+  const gens=GENS[S.mode];if(!gens)return;
+  let q=pick(gens)();
+  for(let i=0;i<8&&q.key===S.lastKey;i++)q=pick(gens)();
+  renderQ(q);
+}
+/* ?retry=1 で開いたとき、api/list_retries.php の pending を question_params から
+   完全復元して出題する。&focus=<params_hash> 付きなら その1問だけ（mypageの今日の1問用）。*/
+function initRetry(){
+  const focus=(location.search.match(/[?&]focus=([a-f0-9]{64})/i)||[])[1];
+  Divp.getRetries().then(function(items){
+    let use=(items||[]).filter(function(it){return it&&it.question_params&&it.question_params.fig&&it.question_params.ans&&it.question_params.key;});
+    if(focus)use=use.filter(function(it){return it.params_hash===focus;});
+    if(!use.length)return;              /* 対象なし → 通常の学ぶモード表示のまま */
+    S.retryQueue=use.map(function(it){return it.question_params;});
+    openAcc('quiz');                    /* → setMode → newQuestion がキューを消化 */
+  }).catch(function(){});
+}
+function renderExpr(){
+  const d=$('ansdisp');
+  if(S.expr){d.textContent=S.expr;d.classList.remove('ph');}
+  else{d.textContent='？';d.classList.add('ph');}
+}
+function buildTenkey(){
+  const keys=['1','2','3','4','5','6','7','8','9','0','π','＋','⌫','C'];
+  const tk=$('tenkey');
+  keys.forEach(function(k){
+    const b=document.createElement('button');
+    b.type='button';b.textContent=k;b.className='tk';
+    if(k==='π')b.classList.add('pi');
+    if(k==='＋')b.classList.add('op');
+    if(k==='⌫'||k==='C')b.classList.add('del');
+    b.addEventListener('click',function(){onKey(k);});
+    tk.appendChild(b);
+  });
+}
+function onKey(k){
+  if(S.answered)return;
+  if(k==='C')S.expr='';
+  else if(k==='⌫')S.expr=S.expr.slice(0,-1);
+  else if(S.expr.length<14)S.expr+=k;
+  renderExpr();
+}
+function feedbackMsg(t,cls){const f=$('feedback');f.textContent=t;f.className=cls;}
+function shakeAns(){const b=$('ansbox');b.classList.remove('err');void b.offsetWidth;b.classList.add('err');}
+function renderStreak(){$('streak').textContent=S.streak>=2?'🔥×'+S.streak:'';}
+function onCheck(){
+  if(!S.q||S.answered)return;
+  if(!S.expr){feedbackMsg('答えを入力してね','');return;}
+  const p=parseExpr(S.expr);
+  if(!p){feedbackMsg('式の形を確かめてね（例：12π＋16）','ng');shakeAns();return;}
+  const ok=Math.abs(ansVal(p)-ansVal(S.q.ans))<1e-6;
+  S.answered=true;
+  $('checkbtn').disabled=true;
+  $('nextbtn').classList.remove('hidden');
+  const correct=fmtAns(S.q.ans)+' '+S.q.unit;
+  if(ok){
+    S.streak++;
+    feedbackMsg('⭕ 正解！','ok');
+    safeCorrect();
+  }else{
+    S.streak=0;
+    feedbackMsg('✖ 残念…　正解は '+correct,'ng');
+    shakeAns();
+    safeIncorrect();
+  }
+  renderStreak();
+  $('expl').innerHTML='<div class="ehead">解説</div>'+S.q.expl;
+  $('expl').classList.remove('hidden');
+  /* 学習記録システムへ送信（判定直後に1行）。question_params は再出題用の完全表現 */
+  safeAnswer(ok,{
+    question_key:S.q.key,
+    question_params:qParams(S.q),
+    question_text:$('qtext').textContent,
+    correct_answer:correct,
+    wrong_answer:ok?null:(S.expr+' '+S.q.unit)
+  });
+}
+/* ---- 立体ラボ（スライダーで寸法変更） ---- */
+function fmtNum(x){const r=Math.round(x*100)/100;return Math.abs(r-Math.round(r))<1e-9?String(Math.round(r)):String(r);}
+function eqS(x){return Math.abs(x-Math.round(x))<1e-9?'＝':'≒';}
+function fmtLen(x){const r=Math.round(x*100)/100;return (Math.abs(r-Math.round(r))<1e-9?'':'≒')+fmtNum(x)+'cm';}
+function slantExtra(name,val){
+  const clean=Math.abs(val-Math.round(val))<1e-9;
+  if(clean)return name+' ＝ '+fmtNum(val)+'cm';
+  return name+' ≒ '+fmtNum(val)+'cm <span class="labtag">三平方の定理（中3）で求める長さ</span>';
+}
+function fmtPi(k){if(Math.abs(k-1)<1e-9)return 'π';if(Math.abs(k)<1e-9)return '0';return fmtNum(k)+'π';}
+const LABDEF={
+ cube:{name:'立方体',note:'体積＝1辺×1辺×1辺　／　表面積＝1つの面×6',
+  params:[{k:'a',label:'1辺',min:2,max:8,val:4}],
+  compute:function(v){const a=v.a;return{
+   fig:{t:'solid',kind:'cube',d:{a}},pi:false,
+   V:{val:a*a*a,f:a+'×'+a+'×'+a},
+   S:{val:6*a*a,f:a+'×'+a+'×6'}};}},
+ box:{name:'直方体',note:'体積＝縦×横×高さ　／　表面積＝3種類の面×2ずつ',
+  params:[{k:'w',label:'横',min:2,max:8,val:5},{k:'d',label:'縦',min:2,max:8,val:3},{k:'h',label:'高さ',min:2,max:8,val:4}],
+  compute:function(v){const w=v.w,d=v.d,h=v.h;return{
+   fig:{t:'solid',kind:'box',d:{w,h,dp:d}},pi:false,
+   V:{val:w*d*h,f:d+'×'+w+'×'+h},
+   S:{val:2*(w*d+d*h+h*w),f:'('+w+'×'+d+'＋'+d+'×'+h+'＋'+h+'×'+w+')×2'}};}},
+ prism:{name:'三角柱',note:'底面は直角三角形。体積＝底面積×高さ　／　側面は展開すると1枚の長方形',
+  params:[{k:'p',label:'縦の辺',min:2,max:8,val:3},{k:'q',label:'横の辺',min:2,max:8,val:4},{k:'L',label:'奥行き',min:2,max:8,val:6}],
+  compute:function(v){const p=v.p,q=v.q,L=v.L,hy=Math.sqrt(p*p+q*q),base=p*q/2,clean=Math.abs(hy-Math.round(hy))<1e-9;return{
+   fig:{t:'solid',kind:'prism',d:{p,q,hy,L,showHy:true}},pi:false,
+   extra:slantExtra('斜辺（一番長い辺）',hy),
+   V:{val:base*L,f:'('+p+'×'+q+'÷2)×'+L},
+   S:{val:2*base+(p+q+hy)*L,f:p+'×'+q+'÷2×2 ＋ ('+p+'＋'+q+'＋'+fmtNum(hy)+')×'+L,approx:!clean}};}},
+ cyl:{name:'円柱',note:'側面は「縦＝高さ・横＝底面の円周」の長方形',
+  params:[{k:'r',label:'半径',min:1,max:5,val:3},{k:'h',label:'高さ',min:2,max:8,val:5}],
+  compute:function(v){const r=v.r,h=v.h;return{
+   fig:{t:'solid',kind:'cyl',d:{r,h}},pi:true,
+   V:{k:r*r*h,f:'π×'+r+'²×'+h},
+   S:{k:2*r*r+2*r*h,f:'π×'+r+'²×2 ＋ 2π×'+r+'×'+h}};}},
+ pyr:{name:'正四角錐',note:'<span style="color:#cf7a1f;font-weight:800">■斜面の高さ</span> <span style="color:#2f6fb0;font-weight:800">■高さ</span>　錐（すい）の体積＝1/3×底面積×高さ',
+  params:[{k:'a',label:'底辺',min:2,max:8,val:6},{k:'h',label:'高さ',min:2,max:8,val:4}],
+  compute:function(v){const a=v.a,h=v.h,m=Math.sqrt(h*h+a*a/4),clean=Math.abs(m-Math.round(m))<1e-9;return{
+   fig:{t:'solid',kind:'pyr',d:{a,h,m,showH:true,showM:true}},pi:false,
+   extra:slantExtra('斜面の高さ',m),
+   V:{val:a*a*h/3,f:'1/3×'+a+'²×'+h,approx:(a*a*h)%3!==0},
+   S:{val:a*a+2*a*m,f:a+'² ＋ '+a+'×'+fmtNum(m)+'÷2×4',approx:!clean}};}},
+ cone:{name:'円錐',note:'<span style="color:#cf7a1f;font-weight:800">■母線</span> <span style="color:#2f6fb0;font-weight:800">■高さ</span> <span style="color:#c9556b;font-weight:800">■半径</span>　側面は半径＝母線のおうぎ形（面積＝1/2×弧×半径）',
+  params:[{k:'r',label:'半径',min:1,max:5,val:3},{k:'h',label:'高さ',min:2,max:8,val:4}],
+  compute:function(v){const r=v.r,h=v.h,l=Math.sqrt(r*r+h*h),clean=Math.abs(l-Math.round(l))<1e-9;return{
+   fig:{t:'solid',kind:'cone',d:{r,h,l,showH:true,showL:true}},pi:true,
+   extra:slantExtra('母線',l),
+   V:{k:r*r*h/3,f:'1/3×π×'+r+'²×'+h,approx:(r*r*h)%3!==0},
+   S:{k:r*l+r*r,f:'π×'+r+'×'+fmtNum(l)+' ＋ π×'+r+'²',approx:!clean}};}},
+ sphere:{name:'球',note:'体積＝4/3×π×r³　／　表面積＝4×π×r²',
+  params:[{k:'r',label:'半径',min:1,max:6,val:3}],
+  compute:function(v){const r=v.r;return{
+   fig:{t:'solid',kind:'sphere',d:{r}},pi:true,
+   V:{k:4*r*r*r/3,f:'4/3×π×'+r+'³',approx:(4*r*r*r)%3!==0},
+   S:{k:4*r*r,f:'4×π×'+r+'²'}};}},
+ cut4:{name:'立方体 → 正四面体（4隅を切る）',note:'立方体の4つの角の三角錐（青）を1つずつ切り取ると、正四面体（緑）が残る。残りはいつも立方体の 1/3',
+  params:[{k:'a',label:'1辺',min:4,max:8,val:6},{k:'n',label:'切り取る個数',min:0,max:4,val:0,unit:'個',spinOnChange:true}],
+  compute:function(v){const a=v.a,n=v.n,cube=a*a*a,cut=a*a*a/6,vol=cube-n*cut;return{
+   fig:{t:'combo',kind:'cube4lab',d:{a,n}},
+   rows:['立方体 ＝ '+a+'³ ＝ '+cube+'　／　角の三角錐1つ ＝ '+a+'³÷6 '+eqS(cut)+' '+fmtNum(cut),
+         '今の体積 ＝ '+cube+' − '+n+'×'+fmtNum(cut)+' '+eqS(vol)+' <b>'+fmtNum(vol)+' cm³</b>'+(n===4?'（＝立方体の1/3）':'')]};}},
+ roll_tri:{name:'正三角形の転がし',note:'転がるたび頂点Aはおうぎ形の弧を描く（回転の角はいつも120°）。3回目はAが回転の中心なので動かない。［▶転がす］',
+  params:[{k:'a',label:'1辺',min:2,max:9,val:6}],
+  compute:function(v){const a=v.a;return{
+   fig:{t:'roll',anim:{type:'poly',n:3,a:a,area:true}},
+   rows:['頂点Aが描く線の長さ ＝ 2π×'+a+'×(120/360)×2 ＝ <b>'+fmtPi(4*a/3)+' cm</b>',
+         '囲まれた面積 ＝ おうぎ形2つ＋正三角形1つ ≒ <b>'+fmtNum(2/3*Math.PI*a*a+Math.sqrt(3)/4*a*a)+' cm²</b> <span class="labtag">正三角形の面積に√3（中3）</span>']};}},
+ roll_sq:{name:'正方形の転がし',note:'頂点Aはおうぎ形の弧を描く（回転の角はいつも90°）。囲まれた図形＝おうぎ形3つ＋直角二等辺三角形2つ。［▶転がす］',
+  params:[{k:'a',label:'1辺',min:2,max:8,val:4}],
+  compute:function(v){const a=v.a;return{
+   fig:{t:'roll',anim:{type:'poly',n:4,a:a,area:true}},
+   rows:['頂点Aが描く線の長さ ＝ おうぎ形3つ ≒ <b>'+fmtNum(Math.PI*(2+Math.sqrt(2))/2*a)+' cm</b> <span class="labtag">対角線に√2（中3）</span>',
+         '頂点Aと直線ℓで囲まれた面積 ＝ <b>'+fmtPi(a*a)+'＋'+fmtNum(a*a)+' cm²</b>']};}},
+ roll_rect:{name:'長方形の転がし',note:'頂点Aはおうぎ形の弧を描く（回転の角はいつも90°）。囲まれた図形＝おうぎ形3つ（半径は 縦・対角線・横）＋直角三角形2つ（＝長方形1つぶん）。［▶転がす］',
+  params:[{k:'p',label:'横',min:2,max:8,val:5},{k:'q',label:'縦',min:2,max:8,val:3}],
+  compute:function(v){const p=v.p,q=v.q;return{
+   fig:{t:'roll',anim:{type:'poly',n:4,a:p,q:q,area:true}},
+   rows:['頂点Aと直線ℓで囲まれた面積 ＝ おうぎ形3つ＋長方形1つ ＝ <b>'+fmtPi((p*p+q*q)/2)+'＋'+fmtNum(p*q)+' cm²</b>',
+         '頂点Aが描く線の長さ ＝ おうぎ形3つ ≒ <b>'+fmtNum(Math.PI/2*(p+q+Math.sqrt(p*p+q*q)))+' cm</b> <span class="labtag">対角線に√（中3）</span>']};}},
+ roll_cline:{name:'円の直線転がし',note:'すべらず1回転すると円周ぶん進む。中心Oはℓと平行にまっすぐ動く。［▶転がす］',
+  params:[{k:'r',label:'半径',min:1,max:5,val:2},{k:'n',label:'回転数',min:1,max:4,val:2,unit:'回'}],
+  compute:function(v){const r=v.r,n=v.n;return{
+   fig:{t:'roll',anim:{type:'cline',r:r,n:n}},
+   rows:['中心Oが描く線の長さ ＝ 2π×'+r+'×'+n+' ＝ <b>'+fmtPi(2*r*n)+' cm</b>']};}},
+ roll_cout:{name:'円が長方形の外側を1周',note:'辺にそう部分＋角の弧。4つの角でOは半径＝円の半径の弧を描き、合わせて円1個ぶん。［▶転がす］',
+  params:[{k:'l',label:'横',min:4,max:9,val:6},{k:'w',label:'縦',min:3,max:8,val:5},{k:'r',label:'円の半径',min:1,max:2,val:2}],
+  compute:function(v){const l=v.l,w=v.w,r=v.r;return{
+   fig:{t:'roll',anim:{type:'cout',l:l,w:w,r:r,area:true}},
+   rows:['中心Oが描く線の長さ ＝ <b>'+fmtPi(2*r)+'＋'+fmtNum(2*(l+w))+' cm</b>',
+         '円が通った部分の面積 ＝ <b>'+fmtPi(4*r*r)+'＋'+fmtNum(4*r*(l+w))+' cm²</b>']};}},
+ roll_cin:{name:'円が長方形の内側を1周',note:'中心Oはどの辺からも半径ぶん内側を動く。角はぴったり曲がるので、なんと πは出てこない！［▶転がす］',
+  params:[{k:'l',label:'横',min:6,max:10,val:8},{k:'w',label:'縦',min:5,max:9,val:6},{k:'r',label:'円の半径',min:1,max:2,val:1}],
+  compute:function(v){const l=v.l,w=v.w,r=v.r;return{
+   fig:{t:'roll',anim:{type:'cin',l:l,w:w,r:r}},
+   rows:['中心Oが描く線の長さ ＝ ('+(l-2*r)+'＋'+(w-2*r)+')×2 ＝ <b>'+fmtNum(2*((l-2*r)+(w-2*r)))+' cm</b>']};}}
+};
+const LABV={};
+(function(){for(const kind in LABDEF){LABV[kind]={};LABDEF[kind].params.forEach(function(p){LABV[kind][p.k]=p.val;});}})();
+function valStr(o,pi,sup){
+  const pre=o.approx?'≒ ':'';
+  const val=pi?fmtPi(o.k):fmtNum(o.val);
+  return o.f+' ＝ <b>'+pre+val+' cm'+sup+'</b>';
+}
+let labRAF=0;
+function scheduleLab(){if(labRAF)return;labRAF=requestAnimationFrame(function(){labRAF=0;renderLab();});}
+function renderLab(){
+  const kind=S.lab,def=LABDEF[kind],c=def.compute(LABV[kind]);
+  showFigure(c.fig,{keepView:true});
+  let h='<span class="fname">'+def.name+'</span>';
+  if(c.extra)h+='<div class="labextra">'+c.extra+'</div>';
+  if(c.rows){c.rows.forEach(function(r){h+='<div class="labline">'+r+'</div>';});}
+  else{
+    h+='<div class="labline">体積　'+valStr(c.V,c.pi,'³')+'</div>';
+    h+='<div class="labline">表面積　'+valStr(c.S,c.pi,'²')+'</div>';
+  }
+  h+='<div class="labnote">'+def.note+'</div>';
+  $('labvals').innerHTML=h;
+}
+function autoSpin(){
+  if(!threeOK)return;
+  for(let i=TW.length-1;i>=0;i--)if(TW[i].spin)TW.splice(i,1);
+  const from=spinG.rotation.y;
+  TW.push({t0:performance.now(),dur:1500,linear:true,spin:true,fn:function(k){spinG.rotation.y=from+2*Math.PI*k;}});
+}
+function buildSliders(kind){
+  const def=LABDEF[kind],box=$('labsliders');
+  box.innerHTML='';
+  def.params.forEach(function(p){
+    const unit=p.unit||'cm';
+    const row=document.createElement('div');row.className='slrow';
+    const lab=document.createElement('span');lab.className='sllabel';
+    lab.innerHTML=p.label+' <b>'+LABV[kind][p.k]+'</b>'+unit;
+    const inp=document.createElement('input');
+    inp.type='range';inp.min=p.min;inp.max=p.max;inp.step=1;inp.value=LABV[kind][p.k];
+    inp.addEventListener('input',function(){
+      LABV[kind][p.k]=parseInt(inp.value,10);
+      lab.innerHTML=p.label+' <b>'+LABV[kind][p.k]+'</b>'+unit;
+      scheduleLab();
+      if(p.spinOnChange)autoSpin();
+    });
+    row.appendChild(lab);row.appendChild(inp);box.appendChild(row);
+  });
+}
+function showLab(kind){
+  S.lab=kind;
+  document.querySelectorAll('#labchips .chip').forEach(function(b){
+    b.classList.toggle('on',b.dataset.solid===kind);});
+  buildSliders(kind);
+  renderLab();
+}
+function setMode(m){
+  S.mode=m;
+  if(m!=='lab')S.lastQuiz=m;
+  document.querySelectorAll('#accQuiz .chip').forEach(function(b){
+    b.classList.toggle('on',b.dataset.mode===m);});
+  const lab=(m==='lab');
+  $('labpick').classList.toggle('hidden',!lab);
+  $('labinfo').classList.toggle('hidden',!lab);
+  $('qcard').classList.toggle('hidden',lab);
+  $('anscard').classList.toggle('hidden',lab);
+  if(lab){S.lastKey='';if(threeOK){spinG.rotation.y=DEF_YAW;tiltG.rotation.x=DEF_TILT;}showLab(S.lab);}
+  else{S.qcount=0;newQuestion();}
+}
+function openAcc(which){
+  // 同じパネルの矢印をもう一度押したら閉じる（モード・出題は維持したままメニューだけ畳む）
+  if(S.openPanel===which){
+    S.openPanel=null;
+    $('accLearn').classList.remove('open');
+    $('accQuiz').classList.remove('open');
+    return;
+  }
+  S.openPanel=which;
+  const learn=(which==='learn');
+  $('accLearn').classList.toggle('open',learn);
+  $('accQuiz').classList.toggle('open',!learn);
+  // モードが実際に変わるときだけ出題し直す（畳んで開き直しただけなら今の問題を保つ）
+  const wantMode=learn?'lab':(S.lastQuiz||'vol');
+  if(S.mode!==wantMode)setMode(wantMode);
+}
+/* ---- メインループ ---- */
+function loop(){
+  requestAnimationFrame(loop);
+  runTweens(performance.now());
+  VIEW.dist+=(VIEW.distT-VIEW.dist)*0.12;
+  VIEW.cy+=(VIEW.cyT-VIEW.cy)*0.12;
+  VIEW.cx+=(VIEW.cxT-VIEW.cx)*0.12;
+  VIEW.cz+=(VIEW.czT-VIEW.cz)*0.12;
+  VIEW.elev+=(VIEW.elevT-VIEW.elev)*0.12;
+  if(threeOK&&$('c3d').style.display!=='none'){
+    const elev=VIEW.elev;
+    camera.position.set(VIEW.cx,VIEW.cy+Math.sin(elev)*VIEW.dist,VIEW.cz+Math.cos(elev)*VIEW.dist);
+    camera.lookAt(VIEW.cx,VIEW.cy,VIEW.cz);
+    renderer.render(scene,camera);
+  }
+  if($('c2d').style.display==='block')draw2D();
+}
+function boot(){
+  buildTenkey();
+  renderStreak();
+  initThree();
+  document.querySelectorAll('.acc-head').forEach(function(b){
+    b.addEventListener('click',function(){openAcc(b.dataset.acc);});});
+  document.querySelectorAll('#accQuiz .chip').forEach(function(b){
+    b.addEventListener('click',function(){setMode(b.dataset.mode);});});
+  document.querySelectorAll('#labchips .chip').forEach(function(b){
+    b.addEventListener('click',function(){showLab(b.dataset.solid);});});
+  $('checkbtn').addEventListener('click',onCheck);
+  $('nextbtn').addEventListener('click',newQuestion);
+  $('btnUnfold').addEventListener('click',toggleUnfold);
+  $('btnSweep').addEventListener('click',toggleSweep);
+  $('btnRoll').addEventListener('click',playRoll);
+  $('btnView').addEventListener('click',function(){
+    if(!threeOK)return;
+    const unfolded=CUR.unfoldTarget>0.5;
+    const toYaw=unfolded?(CUR.unfoldYaw||0):DEF_YAW,toTilt=unfolded?0:DEF_TILT;
+    const fy=spinG.rotation.y,fx=tiltG.rotation.x;
+    tween(500,function(k){spinG.rotation.y=fy+(toYaw-fy)*k;tiltG.rotation.x=fx+(toTilt-fx)*k;});
+    VIEW.elevT=unfolded?(CUR.netFront?0.06:1.45):0.42;
+    fitCamera(CUR.setSweep?1.45:(unfolded?1.12:1),{center:unfolded});
+  });
+  window.addEventListener('resize',resize3d);
+  openAcc('learn');
+  /* ---- 学習記録システム連携（未ログイン/ローカル起動時は黙ってスキップ） ---- */
+  if(window.Divp&&typeof Divp.init==='function'){try{Divp.init(UNIT_KEY);}catch(e){}}
+  if(/[?&]retry=1/.test(location.search)&&window.Divp&&typeof Divp.getRetries==='function'){
+    try{initRetry();}catch(e){}
+  }
+  loop();
+}
+if(typeof window!=='undefined'&&typeof document!=='undefined'){
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
+  else boot();
+}
+</script>
+<!--
+question_catalog 登録用SQL は seed_math_js1_hyomenseki_taiseki.sql（リポジトリ直下）に分離した。
+本番反映時はそれを phpMyAdmin で1回実行する（全49種・base_xp=1・ON DUPLICATE KEY UPDATE）。
+未登録でも記録・XP(既定1)は動くが、講師/保護者画面のラベルが question_key の生値になる。
+-->
+</body>
+</html>

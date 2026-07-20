@@ -210,6 +210,7 @@ function sf(string $col, string $tag, array &$params): string
 }
 
 $unitMeta = require __DIR__ . '/api/units.php';
+require_once __DIR__ . '/api/time_ranking.php';   // 100マス等のタイム集計（生徒詳細・ランキング共用）
 $detailStudentId = isset($_GET['student_id']) ? (int)$_GET['student_id'] : 0;
 
 // ============================================================
@@ -308,6 +309,20 @@ if ($rankView) {
         'rate'    => ranking_ranked($rows, 'rate'),
         'xp'      => ranking_ranked($rows, 'xp'),
     ];
+
+    // 100マス（タイムアタック）ランキング: メインと同じスコープ（教室×期間 or イベント）で集計。
+    // 志望校モードは「速さ」となじまないので出さない。
+    $timeRankUnit = 'math_es_hyakumasu';
+    $timeRankLabel = time_rank_units()[$timeRankUnit] ?? $timeRankUnit;
+    $timeRankRows = [];
+    if ($rankSchool === 0) {
+        if ($evMode) {
+            $timeRankRows = time_ranking_rows($pdo, $rankEvent['classroom_ids'] ?? null, $timeRankUnit, $evFromStr, $evToStr, $showTest);
+        } else {
+            $scopeCids = !empty($cids) ? $cids : $allowedClassroomIds;
+            $timeRankRows = time_ranking_rows($pdo, $scopeCids, $timeRankUnit, $fromStr, $toStr, $showTest);
+        }
+    }
 }
 
 // ============================================================
@@ -431,6 +446,20 @@ if ($detailStudentId > 0) {
     );
     $stmt->execute($params);
     $dSessions = $stmt->fetchAll();
+
+    // タイムアタック記録（100マス等・全期間のベストと上位10件）。
+    // answer_logs を残さないゲームなので単元カルテには出ない → 専用に集計して見せる。
+    $dTimeUnits = [];
+    foreach (time_rank_units() as $tuk => $tlabel) {
+        $tsum = time_records_summary($pdo, $detailStudentId, $tuk, null, null);
+        if ($tsum['plays'] > 0) {
+            $dTimeUnits[$tuk] = [
+                'label'   => $tlabel,
+                'summary' => $tsum,
+                'top'     => time_records_top($pdo, $detailStudentId, $tuk, 10),
+            ];
+        }
+    }
 }
 
 // ============================================================
@@ -739,6 +768,32 @@ function qtab(array $extra): string
 <?php endif; ?>
   </div>
 
+<?php if (!empty($dTimeUnits)): ?>
+  <div class="card" style="border-top-color:var(--kin);">
+    <h2>タイムアタック記録（全期間・速い順）</h2>
+<?php foreach ($dTimeUnits as $tuk => $tinfo): ?>
+    <p style="font-size:13px;font-weight:700;margin-top:8px;"><?= h($tinfo['label']) ?>
+      <span style="font-size:11px;color:var(--ink-soft);font-weight:500;">ベスト <?= h(fmt_time_ms((int)$tinfo['summary']['best'])) ?> ・ これまで<?= (int)$tinfo['summary']['plays'] ?>回</span></p>
+    <div class="scroll">
+    <table>
+      <tr><th class="num">順位</th><th class="num">タイム</th><th class="num">ミス</th><th>表示</th><th>日時</th></tr>
+<?php foreach ($tinfo['top'] as $ti => $trow):
+    $tmode = isset($trow['meta']['mode']) ? ($trow['meta']['mode'] === 'grid' ? '100マス' : 'よこ') : '';
+?>
+      <tr>
+        <td class="num" style="font-weight:700;<?= $ti < 3 ? 'color:var(--kin);' : '' ?>"><?= $ti + 1 ?>位</td>
+        <td class="num" style="font-weight:700;"><?= h(fmt_time_ms((int)$trow['time_ms'])) ?></td>
+        <td class="num"><?= (int)$trow['miss_count'] ?></td>
+        <td><?= h($tmode) ?></td>
+        <td style="white-space:nowrap;"><?= h(substr((string)$trow['created_at'], 0, 16)) ?></td>
+      </tr>
+<?php endforeach; ?>
+    </table>
+    </div>
+<?php endforeach; ?>
+  </div>
+<?php endif; ?>
+
   <div class="card">
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <h2 style="margin:0;">直近の誤答（最大60件・同じ問題は1件にまとめ）</h2>
@@ -974,6 +1029,39 @@ function qtab(array $extra): string
   </div>
 <?php endforeach; ?>
   </div>
+
+<?php if ($rankSchool === 0): ?>
+  <!-- 100マス たし算 タイムアタック ランキング（速い順） -->
+  <div class="card" style="border-top-color:var(--kin);">
+    <h2><?= h($timeRankLabel) ?> タイムアタック <span style="font-size:11px;color:var(--ink-soft);font-weight:500;">（ベストタイムの速い順）</span></h2>
+<?php if (count($timeRankRows) === 0): ?>
+    <p style="font-size:13px;color:var(--ink-soft);">この期間に 100マスで遊んだ生徒はいません</p>
+<?php else: ?>
+    <div class="scroll">
+    <table style="table-layout:fixed;width:auto;min-width:460px;">
+      <colgroup>
+        <col style="width:64px"><col style="width:130px"><col style="width:78px"><col style="width:52px"><col style="width:92px"><col style="width:64px">
+      </colgroup>
+      <tr><th class="num">順位</th><th>生徒</th><th>教室</th><th>学年</th><th class="num">ベスト</th><th class="num">回数</th></tr>
+<?php foreach ($timeRankRows as $r): ?>
+      <tr>
+        <td class="num" style="font-weight:700;<?= $r['rank'] <= 3 ? 'color:var(--kin);' : '' ?>"><?= $r['rank'] ?>位</td>
+<?php if (in_array((int)$r['classroom_id'], $allowedClassroomIds, true)): ?>
+        <td><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'grade' => null, 'school' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
+<?php else: ?>
+        <td><?= h($r['student_name']) ?></td>
+<?php endif; ?>
+        <td><?= h($r['classroom_name']) ?></td>
+        <td><?= h(grade_label($r['grade'])) ?></td>
+        <td class="num" style="font-weight:700;"><?= h(fmt_time_ms((int)$r['best_ms'])) ?></td>
+        <td class="num"><?= (int)$r['plays'] ?></td>
+      </tr>
+<?php endforeach; ?>
+    </table>
+    </div>
+<?php endif; ?>
+  </div>
+<?php endif; ?>
 
 <?php else: ?>
   <!-- ============ 生徒一覧 ============ -->

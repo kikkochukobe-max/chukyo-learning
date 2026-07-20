@@ -199,6 +199,23 @@ if ($activeEvent) {
     }
 }
 
+// ---- 100マス計算（タイムアタック）: 自分のベスト＆教室内じゅんい（全期間） ----
+// answer_logs を残さないゲームなので単元カルテには出ない。ここに専用カードで見せる。
+require_once __DIR__ . '/api/time_ranking.php';
+$hyakuUnit = 'math_es_hyakumasu';
+$hyakuSummary = time_records_summary($pdo, $studentId, $hyakuUnit, null, null);
+$hyakuTop = [];
+$hyakuRank = null;
+$hyakuTotal = 0;
+if ($hyakuSummary['plays'] > 0) {
+    $hyakuTop = time_records_top($pdo, $studentId, $hyakuUnit, 5);
+    $hRankRows = time_ranking_rows($pdo, [(int)$student['classroom_id']], $hyakuUnit, null, null, $viewerIsTest);
+    $hyakuTotal = count($hRankRows);
+    foreach ($hRankRows as $r) {
+        if ((int)$r['student_id'] === $studentId) { $hyakuRank = (int)$r['rank']; break; }
+    }
+}
+
 // ---- 単元カルテ(選択期間・種類別) ----
 $params = ['id' => $studentId];
 $where = period_where('al.answered_at', $from, $to, $params);
@@ -425,6 +442,20 @@ function h(?string $s): string
   .rankrow .pos.top3{color:var(--kin)}
   .rankrow .none{font-size:12px;color:var(--ink-soft)}
 
+  /* ---------- 100マス タイムアタック ---------- */
+  .hyaku-best{display:flex;align-items:baseline;gap:8px;margin:8px 0 2px;flex-wrap:wrap}
+  .hyaku-best .t{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:34px;
+    color:var(--ai);font-feature-settings:'tnum';line-height:1}
+  .hyaku-best .u{font-size:12px;color:var(--ink-soft)}
+  .hyaku-list{list-style:none;margin:6px 0 4px;padding:0}
+  .hyaku-list li{display:flex;align-items:center;gap:10px;padding:7px 0;
+    border-bottom:1px solid #F3F0E8;font-size:14px;font-feature-settings:'tnum'}
+  .hyaku-list li:last-child{border-bottom:none}
+  .hyaku-list .rk{width:1.6em;text-align:center;font-weight:900;color:var(--ink-soft)}
+  .hyaku-list .tm{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:17px;color:var(--ai);flex:1}
+  .hyaku-list .mc{font-size:11px;color:var(--ink-soft)}
+  .hyaku-list .dt{font-size:11px;color:var(--ink-soft)}
+
   /* ---------- 単元カルテ ---------- */
   .section-title{
     display:flex;align-items:center;gap:10px;margin:28px 2px 10px;
@@ -573,6 +604,35 @@ function h(?string $s): string
     </div>
 <?php endforeach; ?>
   </section>
+
+<?php if ($hyakuSummary['plays'] > 0): ?>
+  <!-- 100マス計算 タイムアタック（全期間・自分の記録） -->
+  <section class="rankcard" style="border-top-color:var(--ai);">
+    <div class="rc-title" style="color:var(--ai);">100マス たし算 タイムアタック</div>
+    <div class="hyaku-best">
+      <span class="t"><?= h(fmt_time_ms((int)$hyakuSummary['best'])) ?></span>
+      <span class="u">ベストタイム ・ これまで <?= (int)$hyakuSummary['plays'] ?>回</span>
+    </div>
+<?php if ($hyakuRank !== null): ?>
+    <div class="rankrow">
+      <span><?= h($student['classroom_name']) ?>教室での じゅんい（速さ）</span>
+      <span class="pos<?= $hyakuRank <= 3 ? ' top3' : '' ?>"><?= $hyakuRank ?>位<small><?= $hyakuTotal ?>人中</small></span>
+    </div>
+<?php endif; ?>
+    <ol class="hyaku-list">
+<?php foreach ($hyakuTop as $i => $t):
+    $medal = ['🥇', '🥈', '🥉'][$i] ?? (string)($i + 1);
+?>
+      <li>
+        <span class="rk"><?= h((string)$medal) ?></span>
+        <span class="tm"><?= h(fmt_time_ms((int)$t['time_ms'])) ?></span>
+        <span class="mc">ミス <?= (int)$t['miss_count'] ?></span>
+        <span class="dt"><?= h(substr((string)$t['created_at'], 5, 5)) ?></span>
+      </li>
+<?php endforeach; ?>
+    </ol>
+  </section>
+<?php endif; ?>
 
 <?php if ($eventRanks !== null):
     $evFromD = new DateTimeImmutable($activeEvent['from']);

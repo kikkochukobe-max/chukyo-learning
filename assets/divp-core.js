@@ -146,6 +146,55 @@
     if (sessionStarting) { sessionStarting.then(send); } else { send(); }
   }
 
+  // ── タイムアタック記録（クリアタイムだけを保存する）───────────────────
+  // 100マス計算のような「速さを競う」ツール用。answer_logs には残さず、
+  // 専用の time_records に「1プレイ=1クリアタイム」で記録する
+  // （種類別集計・XPを汚さない）。戻り値でサーバー判定の自己ベスト更新を受け取れる。
+  //   Divp.saveTime({ time_ms: 83400, miss_count: 2, meta:{mode:'h'} })
+  //     .then(function (r) { if (r.is_best) { …新記録演出… } });
+  // 未ログイン・ローカル・API未疎通では {ok:false, skipped:true} を返す（ツールを壊さない）。
+  function saveTime(info) {
+    info = info || {};
+    if (!unitKey || isLocal()) return Promise.resolve({ ok: false, skipped: true });
+
+    var doSave = function () {
+      if (!enabled) return { ok: false, skipped: true, authState: authState };
+      return postJSON('save_time.php', {
+        session_id: sessionId,
+        unit_key: unitKey,
+        question_key: info.question_key || 'default',
+        time_ms: info.time_ms,
+        miss_count: info.miss_count || 0,
+        meta: info.meta || null,
+      })
+        .then(function (res) { return res.ok ? res.json() : { ok: false, skipped: true }; })
+        .catch(function () { return { ok: false, skipped: true }; });
+    };
+
+    return sessionStarting ? sessionStarting.then(doSave) : Promise.resolve(doSave());
+  }
+
+  // 自分のタイム記録トップ10（速い順）を取得する。
+  // 常に { items:[…], total_plays:n } の形で解決する（未ログイン・失敗時は空）。
+  function listTimes(opts) {
+    opts = opts || {};
+    if (!unitKey || isLocal()) return Promise.resolve({ items: [], total_plays: 0 });
+    var qs = 'unit_key=' + encodeURIComponent(unitKey);
+    if (opts.question_key) qs += '&question_key=' + encodeURIComponent(opts.question_key);
+    return fetch(API_BASE + 'list_times.php?' + qs, { credentials: 'same-origin' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) { return (data && data.ok) ? data : { items: [], total_plays: 0 }; })
+      .catch(function () { return { items: [], total_plays: 0 }; });
+  }
+
+  // セッション確立（start_session）の完了を待つ Promise。
+  // ログイン状態が確定してからUI（記録ボタンの表示など）を出すのに使う。
+  function ready() { return sessionStarting || Promise.resolve(); }
+
+  // 現在ログイン済みか（start_session が成功して authState='in' の時のみ true）。
+  // ready() の解決後に呼ぶこと。
+  function loggedIn() { return authState === 'in'; }
+
   // 解き直し(pending)一覧を取得する。未ログイン等では空配列を返す
   function getRetries() {
     if (!unitKey || isLocal()) return Promise.resolve([]);
@@ -361,5 +410,9 @@
   Divp.init = init;
   Divp.answer = answer;
   Divp.getRetries = getRetries;
+  Divp.saveTime = saveTime;
+  Divp.listTimes = listTimes;
+  Divp.ready = ready;
+  Divp.loggedIn = loggedIn;
   Divp.resetTrial = resetTrial;
 })(window);
