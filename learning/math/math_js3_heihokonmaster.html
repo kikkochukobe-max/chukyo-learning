@@ -4729,12 +4729,145 @@ function genExamEqn(){
   return null;
 }
 
+// √ を含む連立方程式（和と差の形）を解いて x（または y）を求める入試頻出タイプ。
+// x=m√k, y=n√k（m>n≥1）とすると  x+y=(m+n)√k,  x−y=(m−n)√k  が成り立つ。
+function _exRootCoef(a,k){ if(a===0) return '0'; return (a===1?'':String(a))+'\\sqrt{'+k+'}'; }
+function _exRootPlain(a,k){ if(a===0) return '0'; return (a===1?'':String(a))+'√'+k; }
+function genExamSimul(){
+  for(let t=0;t<80;t++){
+    const k=pick([2,3,5,6,7]);
+    const m=pick([2,3,4,5]);
+    const n=pick([1,2,3,4].filter(x=>x<m));
+    const s=m+n, d=m-n;               // x+y=s√k, x−y=d√k
+    const askY=Math.random()<0.4;     // 4割は y を問う
+    const ansCoef=askY?n:m, ansVar=askY?'y':'x';
+    const sig='simul|'+k+'|'+m+'|'+n+'|'+ansVar;
+    if(_exRecent.includes(sig)) continue;
+    _exRecent.push(sig); if(_exRecent.length>6)_exRecent.shift();
+    // 選択肢：正解 ans√k ＋ よくある誤答
+    const cands=[ansCoef, askY?m:n, s, d, ansCoef+1, Math.max(1,ansCoef-1)];
+    const seen=new Set(); const opts=[];
+    for(const v of cands){ if(v<1||seen.has(v)) continue; seen.add(v); opts.push({txt:_exRootCoef(v,k), correct:v===ansCoef}); if(opts.length>=4) break; }
+    let extra=ansCoef+2; while(opts.length<4){ if(!seen.has(extra)){ seen.add(extra); opts.push({txt:_exRootCoef(extra,k), correct:false}); } extra++; }
+    _shuffle(opts);
+    const cond='\\begin{cases} x + y = '+_exRootCoef(s,k)+' \\\\[2pt] x - y = '+_exRootCoef(d,k)+' \\end{cases}';
+    const expLines=[
+      '\\text{2式を辺々加えて}\\quad 2x = '+_exRootCoef(2*m,k)+'\\ \\Rightarrow\\ x = '+_exRootCoef(m,k),
+      '\\text{2式を辺々引いて}\\quad 2y = '+_exRootCoef(2*n,k)+'\\ \\Rightarrow\\ y = '+_exRootCoef(n,k),
+      '\\therefore '+ansVar+' = '+_exRootCoef(ansCoef,k)
+    ];
+    return {type:'exam', family:'simul', subtype:'simul', opts, latexOpts:true, cond,
+      headline:'次の連立方程式を解け。', ask:'このとき <b>'+ansVar+'</b> の値は？',
+      qtext:'連立方程式（x+y='+_exRootPlain(s,k)+', x−y='+_exRootPlain(d,k)+'）の '+ansVar,
+      params:{k, m, n, ansVar}, ansNote:'答え：'+ansVar+' = '+_exRootPlain(ansCoef,k), expLines};
+  }
+  return null;
+}
+
+// 係数が √ の連立方程式。両辺を √k で割ると整数係数の連立に帰着する入試頻出のひっかけ型。
+//   a√k·x + b√k·y = (a·x0+b·y0)√k,  c√k·x + d√k·y = (c·x0+d·y0)√k  → 解 (x0,y0) は整数
+function _exRootTerm(coef,k,varName){ // 係数×√k×変数 の LaTeX（1は係数省略）
+  return (coef===1?'':String(coef))+'\\sqrt{'+k+'}\\,'+varName;
+}
+function genExamSimulRoot(){
+  for(let t=0;t<120;t++){
+    const k=pick([2,3,5,6,7]);
+    const a=pick([1,2,3]), b=pick([1,2,3]), c=pick([1,2,3]), d=pick([1,2,3]);
+    if(a*d-b*c===0) continue;                 // 解が一意でない
+    const x0=pick([1,2,3,4,5]), y0=pick([1,2,3,4,5]);
+    const C1=a*x0+b*y0, C2=c*x0+d*y0;
+    if(C1>40||C2>40) continue;
+    const askY=Math.random()<0.4;
+    const ans=askY?y0:x0, ansVar=askY?'y':'x';
+    const sig='simulR|'+k+'|'+a+b+c+d+'|'+x0+y0+'|'+ansVar;
+    if(_exRecent.includes(sig)) continue;
+    _exRecent.push(sig); if(_exRecent.length>6)_exRecent.shift();
+    // 選択肢：正解（整数）＋ 近い整数・もう一方の解を罠に
+    const cands=[ans, askY?x0:y0, ans+1, Math.max(1,ans-1), ans+2, Math.max(1,ans-2)];
+    const seen=new Set(); const opts=[];
+    for(const v of cands){ if(v<1||seen.has(v)) continue; seen.add(v); opts.push({txt:String(v), correct:v===ans}); if(opts.length>=4) break; }
+    let extra=ans+3; while(opts.length<4){ if(!seen.has(extra)){ seen.add(extra); opts.push({txt:String(extra), correct:false}); } extra++; }
+    _shuffle(opts);
+    const cond='\\begin{cases} '+_exRootTerm(a,k,'x')+' + '+_exRootTerm(b,k,'y')+' = '+C1+'\\sqrt{'+k+'} \\\\[2pt] '
+             + _exRootTerm(c,k,'x')+' + '+_exRootTerm(d,k,'y')+' = '+C2+'\\sqrt{'+k+'} \\end{cases}';
+    const expLines=[
+      '\\text{両辺を }\\sqrt{'+k+'}\\text{ で割ると}',
+      '\\begin{cases} '+(a===1?'':a)+'x + '+(b===1?'':b)+'y = '+C1+' \\\\[2pt] '+(c===1?'':c)+'x + '+(d===1?'':d)+'y = '+C2+' \\end{cases}',
+      '\\text{これを解いて}\\quad x = '+x0+',\\ y = '+y0,
+      '\\therefore '+ansVar+' = '+ans
+    ];
+    return {type:'exam', family:'simulR', subtype:'simul_root', opts, latexOpts:false, cond,
+      headline:'次の連立方程式を解け。', ask:'このとき <b>'+ansVar+'</b> の値は？',
+      qtext:'係数が√の連立方程式（√'+k+'の係数）の '+ansVar,
+      params:{k, a, b, c, d, x0, y0, ansVar}, ansNote:'答え：'+ansVar+' = '+ans, expLines};
+  }
+  return null;
+}
+
+// √(n²−D) が整数となる正の整数 n をすべて求める入試頻出タイプ。
+//   n²−D=m² ⇒ (n−m)(n+m)=D。D の同符号・同偶奇の因数対から n を列挙する。
+function _exSolveIntN(D){
+  const sols=[];
+  for(let s=1;s*s<=D;s++){
+    if(D%s!==0) continue;
+    const t=D/s;
+    if((t-s)%2!==0) continue;   // n−m と n+m の偶奇が一致する対のみ
+    const m=(t-s)/2, n=(s+t)/2;
+    if(m>=1 && n>=1) sols.push({s, t, n, m});
+  }
+  return sols.sort((a,b)=>a.n-b.n);
+}
+function genExamIntN(){
+  const pool=[48,45,27,32,15,21,24,40,33];
+  for(let t=0;t<40;t++){
+    const D=pick(pool);
+    const sols=_exSolveIntN(D);
+    if(sols.length<2) continue;
+    const sig='intn|'+D;
+    if(_exRecent.includes(sig)) continue;
+    _exRecent.push(sig); if(_exRecent.length>6)_exRecent.shift();
+    const arr=sols.map(o=>o.n);
+    const setStr=a=>'n = '+a.join(', ');
+    const correct=setStr(arr);
+    // 誤答セット：一部欠け・余分・全体ずらし
+    const cands=[
+      arr.slice(0,-1),                       // 最大が抜け
+      arr.slice(1),                          // 最小が抜け
+      [...arr, arr[arr.length-1]+2],         // 余分に1つ
+      arr.map(v=>v+1),                       // 全体を1ずらし
+      sols.map(o=>o.m)                       // n の代わりに m を答えるミス
+    ];
+    const seen=new Set([correct]); const opts=[{txt:correct, correct:true}];
+    for(const a of cands){ if(opts.length>=4) break; if(!a.length||a.some(v=>v<1)) continue; const s=setStr([...a].sort((x,y)=>x-y)); if(!seen.has(s)){ seen.add(s); opts.push({txt:s, correct:false}); } }
+    let ex=2; while(opts.length<4){ const s=setStr(arr.map(v=>v+ex)); if(!seen.has(s)){ seen.add(s); opts.push({txt:s, correct:false}); } ex++; }
+    _shuffle(opts);
+    const expLines=[
+      'n^2-'+D+'=m^2\\ (m\\geqq 0\\ \\text{の整数})',
+      '(n-m)(n+m)='+D,
+      ...sols.map(o=>'\\quad n-m='+o.s+',\\ n+m='+o.t+'\\ \\Rightarrow\\ n='+o.n),
+      '\\therefore n='+arr.join(',\\ ')
+    ];
+    return {type:'exam', family:'intn', subtype:'intn', opts, latexOpts:false,
+      cond:'\\sqrt{n^2-'+D+'}\\ \\text{が整数}',
+      headline:'', ask:'となる<b>正の整数 n</b> をすべて求めよ',
+      qtext:'√(n²−'+D+') が整数となる n', params:{D, ns:arr},
+      ansNote:'答え：n = '+arr.join(', '), expLines};
+  }
+  return null;
+}
+
 function genExamProblem(){
   for(let t=0;t<20;t++){
-    const p = Math.random()<0.55 ? genExamDice() : genExamEqn();
+    const rnd=Math.random();
+    let p;
+    if(rnd<0.3) p=genExamDice();
+    else if(rnd<0.5) p=genExamEqn();
+    else if(rnd<0.65) p=genExamSimul();
+    else if(rnd<0.8) p=genExamSimulRoot();
+    else p=genExamIntN();
     if(p) return p;
   }
-  return genExamDice() || genExamEqn();
+  return genExamDice() || genExamEqn() || genExamSimul() || genExamSimulRoot() || genExamIntN();
 }
 
 function initExam(){
