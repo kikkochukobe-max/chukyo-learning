@@ -18,7 +18,7 @@
   --line:#d9cfba;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 body{
   font-family:"Zen Maru Gothic",system-ui,sans-serif;
   background:var(--washi);
@@ -26,15 +26,17 @@ body{
   user-select:none;-webkit-user-select:none;
   touch-action:manipulation;
   display:flex;flex-direction:column;
-  min-height:calc(100svh + 1px);
+  height:100svh;
 }
 .wrap{width:100%;max-width:430px;margin:0 auto;flex:1;display:flex;flex-direction:column;padding:6px 14px 12px}
 
 /* ---- header ---- */
-.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.title{font-weight:900;font-size:17px;letter-spacing:.04em}
+.top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px}
+.title{font-weight:900;font-size:17px;letter-spacing:.04em;text-align:center}
 .title small{font-size:11px;color:var(--ink-soft);font-weight:700;display:block;letter-spacing:.1em}
-.timer{font-variant-numeric:tabular-nums;font-weight:900;font-size:32px;color:var(--ink)}
+.timer{font-family:"Consolas","Menlo","Roboto Mono",monospace;
+  font-variant-numeric:tabular-nums;font-weight:700;font-size:30px;color:var(--ink);
+  text-align:right;justify-self:end;min-width:5.2ch}
 .home-btn{font-family:inherit;font-size:20px;line-height:1;background:#fff;
   border:2px solid var(--line);border-radius:12px;padding:6px 10px;cursor:pointer;
   box-shadow:0 2px 0 var(--line)}
@@ -51,7 +53,7 @@ body{
 
 /* ---- question ---- */
 .stage{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:0;gap:8px;overflow:hidden;position:relative}
-.q-h{display:flex;flex-direction:column;align-items:center;gap:8px;transform:translateY(4vh)}
+.q-h{display:flex;flex-direction:column;align-items:center;gap:8px;transform:translateY(2vh)}
 .countdown{
   position:fixed;inset:0;display:none;align-items:center;justify-content:center;
   background:var(--washi);z-index:10;
@@ -67,6 +69,7 @@ body{
 .answer-box{
   min-width:2.4em;padding:0 .15em;text-align:center;
   font-weight:900;font-size:min(17vw,68px);font-variant-numeric:tabular-nums;
+  line-height:1.25;padding-bottom:8px;
   border-bottom:6px solid var(--line);color:var(--sakura-deep);
   transition:border-color .12s;
 }
@@ -80,10 +83,10 @@ body{
 .q-grid .cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
   font-weight:900;font-size:min(8vw,38px)}
 .q-grid .head{border:4px solid var(--ink-soft);color:var(--ink);background:#fff}
-.q-grid .head.n{border-radius:12px 12px 0 0;color:var(--leaf)}
-.q-grid .head.m{border-radius:12px 0 0 12px;color:var(--sakura-deep)}
-.q-grid .corner{color:var(--ink-soft);font-size:min(6vw,26px);opacity:.5}
-.q-grid .ans{border:4px solid var(--sakura);border-radius:0 12px 12px 0;
+.q-grid .head.n{border-radius:0 4px 0 0;color:var(--leaf)}
+.q-grid .head.m{border-radius:0 0 0 4px;color:var(--sakura-deep)}
+.q-grid .corner{color:var(--ink-soft);font-size:min(6vw,26px);opacity:.5;border-radius:4px 0 0 0}
+.q-grid .ans{border:4px solid var(--sakura);border-radius:0 0 4px 0;
   color:var(--sakura-deep);background:#fff8fa;
   min-width:0;padding:0;font-size:min(8vw,38px)}
 .q-grid .ans.on{border-color:var(--sakura-deep)}
@@ -100,6 +103,7 @@ body{
   background:#fff;border:2px solid var(--line);border-radius:14px;
   padding:12px 0;box-shadow:0 2px 0 var(--line);cursor:pointer;
   transition:transform .05s;
+  touch-action:none;user-select:none;-webkit-user-select:none;
 }
 .tenkey button:active{transform:translateY(2px);box-shadow:none}
 .tenkey .fn{font-size:20px;color:var(--ink-soft);background:var(--washi-deep)}
@@ -504,7 +508,7 @@ body{
   function start(){
     build();
     idx=0; miss=0; splits=[];
-    document.getElementById('topBar').style.display='flex';
+    document.getElementById('topBar').style.display='grid';
     stage.setAttribute('data-mode', mode);
     show(scrPlay);
     renderQ();
@@ -666,10 +670,26 @@ body{
     }
   }
 
+  // タッチ端末: changedTouches を全部処理＝2本指の同時押しも取りこぼさない
+  $('tenkey').addEventListener('touchstart',function(e){
+    var hit=false;
+    for(var i=0;i<e.changedTouches.length;i++){
+      var t=e.changedTouches[i];
+      var el=(t.target&&t.target.closest)?t.target.closest('button'):null;
+      // 指の座標直下も確認（target がずれる端末対策）
+      if(!el){ var p=document.elementFromPoint(t.clientX,t.clientY); el=p&&p.closest?p.closest('button'):null; }
+      if(el&&$('tenkey').contains(el)){ press(el.dataset.k); hit=true; }
+    }
+    if(hit)e.preventDefault();     // ダブルタップ判定・合成クリックを抑止
+  },{passive:false});
+  // マウス/ペンのみ（touch は上の touchstart が担当＝二重発火しない）
   $('tenkey').addEventListener('pointerdown',function(e){
+    if(e.pointerType==='touch')return;
     var b=e.target.closest('button');
-    if(b)press(b.dataset.k);
-  });
+    if(!b)return;
+    e.preventDefault();
+    press(b.dataset.k);
+  },{passive:false});
   document.addEventListener('keydown',function(e){
     if(/^[0-9]$/.test(e.key))press(e.key);
     else if(e.key==='Backspace')press('B');
