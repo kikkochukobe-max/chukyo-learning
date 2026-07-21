@@ -12,6 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="/assets/print-watermark.js"></script>
 <script src="/assets/divp-core.js" defer></script>
 <script src="/assets/divp-header.js" defer></script>
 <script src="/assets/divp-correct-jh.js" defer></script>
@@ -53,6 +54,18 @@ h1{
 }
 h1 .accent{color:var(--sakura-deep)}
 .sub{font-size:.78rem;color:var(--ink-soft);letter-spacing:.05em}
+/* 印刷ボタン（ヘッダー右） */
+.print-btn{
+  margin-left:auto;align-self:center;
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:"M PLUS Rounded 1c",sans-serif;font-size:.78rem;font-weight:700;
+  color:var(--sakura-deep);background:var(--card);
+  border:1.5px solid var(--line);border-radius:10px;
+  padding:7px 12px;cursor:pointer;letter-spacing:.04em;transition:all .15s;
+}
+.print-btn:hover{border-color:var(--sakura);background:var(--sakura-pale)}
+.print-btn:active{transform:translateY(1px)}
+.print-btn .pi{font-size:1rem;line-height:1}
 /* ---- control rows ---- */
 .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(58,50,38,.05);overflow:hidden}
 .panel-toggle{
@@ -229,6 +242,7 @@ footer a{color:var(--sakura-deep)}
   <header class="site">
     <h1>文字式の計算<span class="accent">マスター</span></h1>
     <span class="sub">中1数学｜項・係数・1次式の計算</span>
+    <button class="print-btn" id="btnPrint" type="button" title="いま選んでいるモードの練習プリントを作る" aria-label="印刷"><span class="pi">🖨</span><span>プリント</span></button>
   </header>
 
   <div class="panel" id="settingsPanel">
@@ -1356,6 +1370,97 @@ function syncChips(){
   updateNow();
 }
 updateNow();
+
+/* ================= 印刷（いま選んでいるモードを10問＋解答／別ウィンドウ） =================
+ * 平方根マスターと同じ流儀: katex.renderToString で問題・解答をHTML化し、
+ * 別ウィンドウに問題ページ＋解答ページを書き出して window.print()。
+ * ロゴ透かしは共通モジュール print-watermark.js（未読込でも透かし無しで動く）。*/
+const PRINT_INSTR={
+  term:"次の式の項を、符号もふくめてすべて書きなさい。",
+  coef:"文字の係数を答えなさい。文字が2つあるときは、それぞれについて答えること。",
+  linear:"次のうち、1次式であるものをすべて選び、記号で答えなさい。",
+  douruikou:"次の同類項をまとめなさい。",
+  kagen:"次の計算をしなさい。",
+  kakejowari:"次の計算をしなさい。",
+  bunpai:"次のかっこをはずして計算しなさい。",
+  mix:"次の計算をしなさい。"
+};
+const PRINT_LABELS=["ア","イ","ウ","エ","オ","カ"];
+// 問題オブジェクト → { q:問題LaTeX, a:解答LaTeX, tall?:縦長 }
+function printItem(q){
+  if(state.cat==="linear"){
+    // 選択肢を縦に並べ、記号で答えさせる
+    const rows=q.options.map((o,i)=>"\\text{"+PRINT_LABELS[i]+".}\\ & "+o.tex).join(" \\\\ ");
+    const ans=q.options.map((o,i)=>o.ok?PRINT_LABELS[i]:null).filter(Boolean).join("、");
+    return { q:"\\begin{array}{ll} "+rows+" \\end{array}", a:"\\text{"+ans+"}", tall:true };
+  }
+  if(state.cat==="coef" && q.kind==="single"){
+    // easy: 単一文字の係数。どの文字かを問題文に添える（prompt 例「x の係数を選ぼう」）
+    const v=(q.prompt||"x の係数").split(" ")[0]||"x";
+    return { q:q.tex+"\\qquad(\\text{"+v+" の係数})", a:q.ansTexStr };
+  }
+  return { q:q.tex||q.ansTexStr, a:q.ansTexStr };
+}
+function openPrint(){
+  const cat=state.cat, diff=state.diff;
+  const count = cat==="linear" ? 6 : 10;      // 1次式えらびは選択肢が縦長なので少なめ
+  const items=[], seen=new Set();
+  for(let attempt=0; items.length<count && attempt<count*10; attempt++){
+    const it=printItem(GEN[cat](diff));
+    if(seen.has(it.q)) continue;               // 同一問題の重複を避ける
+    seen.add(it.q); items.push(it);
+  }
+  const label=CATNAME[cat]+"（"+DIFFNAME[diff]+"）";
+  buildPrintWindow("文字式の計算マスター", label, PRINT_INSTR[cat]||"次の問題を解きなさい。", items);
+}
+function buildPrintWindow(title, label, instr, items){
+  const rk=latex=>{ try{ return katex.renderToString(latex,{throwOnError:false,displayMode:false}); }catch(e){ return latex; } };
+  const WM_CSS=(window.ChukyoPrint?ChukyoPrint.css():"");
+  const WM_IMG=(window.ChukyoPrint?ChukyoPrint.img():"");
+  const now=new Date();
+  const dateStr=now.getFullYear()+"年"+(now.getMonth()+1)+"月"+now.getDate()+"日";
+  const head=sub=>
+    '<div class="ph-head"><div><div class="ph-school">中京個別指導学院</div>'
+    +'<div class="ph-title">'+title+'　'+sub+'</div></div>'
+    +'<div class="ph-meta"><div class="ph-name">名前：</div><div class="ph-date">'+dateStr+'</div></div></div>';
+  const rows=(list,ans)=>list.map((it,i)=>
+    '<div class="p-item'+(ans?' ans':(it.tall?' tall':''))+'"><span class="no">('+(i+1)+')</span>'
+    +'<span class="p-ex">'+rk(ans?it.a:it.q)+'</span></div>').join("");
+  const html='<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">'
+    +'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">'
+    +'<title>'+title+'　'+label+' 練習プリント｜中京個別指導学院</title><style>'
+    +'@page{size:A4 portrait;margin:14mm 16mm;}'
+    +'*{box-sizing:border-box;margin:0;padding:0;}'
+    +'body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;color:#1a1a1a;}'
+    +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}'
+    +'.page{position:relative;}.page.answers{page-break-before:always;}'
+    +'.ph-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2.5px solid #A63E54;padding-bottom:7px;margin-bottom:12px;}'
+    +'.ph-school{font-size:9pt;font-weight:700;color:#A63E54;margin-bottom:3px;}'
+    +'.ph-title{font-size:16pt;font-weight:800;color:#3A3226;}'
+    +'.ph-meta{text-align:right;}'
+    +'.ph-name{border:1px solid #999;border-radius:5px;min-width:180px;height:34px;display:flex;align-items:center;padding:0 12px;margin-bottom:5px;font-size:10pt;color:#3A3226;}'
+    +'.ph-date{font-size:9pt;color:#666;}'
+    +'.label-bar{display:inline-block;font-size:11pt;font-weight:700;color:#fff;background:#A63E54;border-radius:5px;padding:3px 14px;margin-bottom:6px;}'
+    +'.instr{font-size:10pt;color:#444;margin-bottom:10px;}'
+    +'.p-item{display:flex;align-items:baseline;gap:12px;min-height:16mm;padding:5px 4px 3px;border-bottom:1px solid #d8d2c4;}'
+    +'.p-item.tall{align-items:flex-start;min-height:auto;padding:9px 4px;}'
+    +'.p-item.ans{min-height:0;padding:6px 4px;}'
+    +'.p-item .no{font-weight:800;font-size:12pt;min-width:34px;flex:0 0 auto;color:#A63E54;}'
+    +'.p-item .p-ex{font-size:13pt;}.p-item.ans .p-ex{font-size:12pt;}'
+    +WM_CSS+'</style></head><body>'
+    +'<div class="page">'+WM_IMG+head(label)
+    +'<div class="label-bar">'+label+'</div><div class="instr">'+instr+'</div>'
+    +'<div class="problems">'+rows(items,false)+'</div></div>'
+    +'<div class="page answers">'+WM_IMG+head("解答")
+    +'<div class="label-bar" style="background:#6B6152;">解答</div>'
+    +'<div class="problems">'+rows(items,true)+'</div></div>'
+    +'</body></html>';
+  const w=window.open("","_blank","width=794,height=1123");
+  if(!w){ alert("印刷用ウィンドウを開けませんでした。ポップアップを許可してください。"); return; }
+  w.document.write(html); w.document.close();
+  setTimeout(function(){ try{ w.focus(); w.print(); }catch(e){} }, 500);
+}
+$("btnPrint").addEventListener("click", openPrint);
 
 /* ================= 解き直し（DB連携） =================
  * ?retry=1 で開くと、divp-core の Divp.getRetries()（api/list_retries.php）から
