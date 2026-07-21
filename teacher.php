@@ -1249,6 +1249,10 @@ function renderMathToHTML(src){
   src = String(src == null ? '' : src);
   if (/[\\^_{}]/.test(src)) return _texWhole(src);   // 既にLaTeX
   if (/[√²³]/.test(src) || /F\(\d+\/\d+\)/.test(src)) return _renderMath(src);   // Unicode数式混じりの日本語文
+  // \ を含まない記号だけの数式（-4x - 8 / 5y, 1 など）も KaTeX で統一描画する。
+  // 文字式マスター等は分数のときだけ \dfrac を含むため、整数係数の答えが素の文字列で
+  // 混在して見た目が割れていた。数式に使う文字だけで構成されていれば数式扱いにする。
+  if (/[0-9A-Za-z]/.test(src) && /^[\s0-9A-Za-z+\-*/=(),.]+$/.test(src)) return _texWhole(src);
   return _mescape(src).replace(/\n/g, '<br>');
 }
 document.querySelectorAll('.math').forEach(function (el) {
