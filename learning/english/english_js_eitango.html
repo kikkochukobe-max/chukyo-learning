@@ -2259,6 +2259,9 @@ function renderQuiz() {
   if(quizIdx >= quizWords.length) { showScore('quiz'); return; }
   safeDivpClear('.quiz-q-card');
   const w = quizWords[quizIdx];
+  // 解き直しでは単語ごとに出身ユニットが違うので、選択肢の生成元と
+  // 記録する question_params(lv/cat) をその単語の出身に合わせる
+  if(w && w._group){ currentLevel = LEVELS[w._lv]; currentUnit = w._group; }
   document.getElementById('quiz-word').textContent = w.en;
   document.getElementById('quiz-ph').textContent = w.ph || '';
   document.getElementById('quiz-feedback').style.display = 'none';
@@ -2322,6 +2325,8 @@ function renderSpell() {
   if(spellIdx >= spellWords.length) { showScore('spell'); return; }
   safeDivpClear('.spell-q-card');
   const w = spellWords[spellIdx];
+  // 解き直し：記録する question_params(lv/cat) をその単語の出身に合わせる
+  if(w && w._group){ currentLevel = LEVELS[w._lv]; currentUnit = w._group; }
   document.getElementById('spell-meaning').textContent = w.jp;
   const inp = document.getElementById('spell-input');
   inp.value=''; inp.className='spell-input'; inp.disabled=false;
@@ -2372,7 +2377,7 @@ function spellNext() { spellIdx++; renderSpell(); }
 function showScore(mode) {
   document.getElementById('study-area').style.display='none';
   document.getElementById('score-screen').style.display='block';
-  const tot = currentUnit.words.length;
+  const tot = (mode==='quiz' ? quizWords.length : spellWords.length);
   const score = mode==='quiz' ? quizScore : spellScore;
   const pct = Math.round(score/tot*100);
   document.getElementById('ss-num').textContent = score;
@@ -2389,6 +2394,102 @@ function retryMode() {
 }
 
 init();
+
+// ============================================================
+// 解き直し（マイページ → retry.php → ?retry=1 で同一問題を再出題）
+//  ・?retry=1            … この単元の pending を種類別に解き直し
+//  ・?retry=1&focus=hash … マイページ「今日の1問」からその1問だけ
+// question_params {lv,cat,en} から元の単語を復元して再出題する。
+// 同じ問題(params_hash)に2連続正解するとサーバー側で mastered になり消える。
+// ============================================================
+// pending 1件を元の単語オブジェクト＋出身ユニットに復元（復元不能ならnull）
+function reconstructRetry(it){
+  const p = it.question_params || {};
+  const lvl = LEVELS[p.lv];
+  if(!lvl || !Array.isArray(lvl.data)) return null;
+  const grp = lvl.data.find(g => g.id === p.cat);
+  if(!grp) return null;
+  const word = grp.words.find(x => x.en === p.en);
+  if(!word) return null;
+  return { word, group: grp, lv: p.lv, qkey: it.question_key, hash: it.params_hash };
+}
+
+// 指定モードの解き直しセッションを開始する。list=[{word,group,lv},…]
+function startRetrySession(qkey, list){
+  document.getElementById('home-screen').style.display = 'none';
+  document.getElementById('unit-selector').style.display = 'none';
+  document.getElementById('score-screen').style.display = 'none';
+  document.getElementById('study-area').style.display = 'block';
+  document.getElementById('sh-title').textContent = '🔁 まちがい直し';
+  document.getElementById('sh-sub').textContent =
+    list.length + '問（' + (qkey === 'quiz' ? '英→意味クイズ' : 'スペル') + '）';
+  updateRing(0);
+  const tabIdx = qkey === 'quiz' ? 1 : 2;
+  document.querySelectorAll('.mode-tab').forEach((t,i) => t.classList.toggle('active', i === tabIdx));
+  currentMode = qkey;
+  ['flash','quiz','spell'].forEach(m =>
+    document.getElementById('mode-'+m).style.display = (m === qkey ? 'block' : 'none'));
+  updateAutoBar();
+  // 元の単語に出身情報(_lv/_group)を付けて renderQuiz/renderSpell に渡す
+  const words = list.map(it => Object.assign({}, it.word, { _lv: it.lv, _group: it.group }));
+  if(qkey === 'quiz'){
+    quizWords = words; quizIdx = 0; quizScore = 0; quizAnswered = false; renderQuiz();
+  } else {
+    spellWords = words; spellIdx = 0; spellScore = 0; spellAnswered = false; renderSpell();
+  }
+}
+
+// クイズ・スペル両方に解き直しがある時の選択画面
+function showRetryChooser(quizList, spellList){
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:2500;background:rgba(13,31,60,.55);display:flex;align-items:center;justify-content:center;padding:20px';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:16px;max-width:360px;width:100%;padding:26px 22px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.3)';
+  box.innerHTML =
+    '<div style="font-size:34px;margin-bottom:6px">🔁</div>'
+    + '<div style="font-weight:800;font-size:18px;color:var(--navy);margin-bottom:4px">まちがえた問題を解き直す</div>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:16px">同じ問題が出ます。2回連続で正解するとリストから消えます。</div>';
+  const mk = (label, n, cb) => {
+    const b = document.createElement('button');
+    b.textContent = '🔁 ' + label + '（' + n + '問）';
+    b.style.cssText = 'display:block;width:100%;margin-bottom:10px;padding:12px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit';
+    b.onclick = () => { ov.remove(); cb(); };
+    return b;
+  };
+  if(quizList.length)  box.appendChild(mk('英→意味クイズ', quizList.length, () => startRetrySession('quiz', quizList)));
+  if(spellList.length) box.appendChild(mk('スペル', spellList.length, () => startRetrySession('spell', spellList)));
+  const cancel = document.createElement('button');
+  cancel.textContent = 'ふつうに練習する';
+  cancel.style.cssText = 'display:block;width:100%;margin-top:4px;padding:10px;border:1.5px solid var(--border);border-radius:10px;background:#fff;color:var(--navy);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit';
+  cancel.onclick = () => ov.remove();
+  box.appendChild(cancel);
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+}
+
+(function(){
+  if(!/[?&]retry=1/.test(location.search)) return;
+  if(!window.Divp || !Divp.getRetries) return;
+  const focusHash = (location.search.match(/[?&]focus=([a-f0-9]{64})/i) || [])[1];
+  Divp.getRetries().then(function(items){
+    if(!items || !items.length) return;
+    const recon = items
+      .filter(it => it.question_key === 'quiz' || it.question_key === 'spell')
+      .map(reconstructRetry)
+      .filter(Boolean);
+    if(!recon.length) return;
+    if(focusHash){
+      const hit = recon.find(r => r.hash === focusHash);
+      if(hit){ startRetrySession(hit.qkey, [hit]); return; }
+      // 見つからない（既にマスター済み等）→ 通常の解き直しにフォールバック
+    }
+    const quizList  = recon.filter(r => r.qkey === 'quiz');
+    const spellList = recon.filter(r => r.qkey === 'spell');
+    if(quizList.length && !spellList.length){ startRetrySession('quiz', quizList); return; }
+    if(spellList.length && !quizList.length){ startRetrySession('spell', spellList); return; }
+    showRetryChooser(quizList, spellList);
+  });
+})();
 </script>
 </body>
 </html>
