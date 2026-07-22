@@ -599,6 +599,12 @@ function safeDivpCorrect(selector){
 function safeDivpIncorrect(selector){
   if(window.Divp && typeof Divp.incorrect==='function'){ try{ Divp.incorrect(selector); }catch(e){} }
 }
+// カードを使い回すツールなので、次の問題を出す前に前回のスタンプ／バッジを消す
+// （正解はんこ .divp-hanko は自動で消えないため、残ると次問に出っぱなしになる）
+function safeDivpClear(selector){
+  const card = document.querySelector(selector);
+  if(card){ card.querySelectorAll('.divp-hanko, .divp-nice').forEach(el=>el.remove()); }
+}
 
 // ============================================================
 // DATA — 小学校
@@ -2251,6 +2257,7 @@ function initQuiz() {
 
 function renderQuiz() {
   if(quizIdx >= quizWords.length) { showScore('quiz'); return; }
+  safeDivpClear('.quiz-q-card');
   const w = quizWords[quizIdx];
   document.getElementById('quiz-word').textContent = w.en;
   document.getElementById('quiz-ph').textContent = w.ph || '';
@@ -2313,6 +2320,7 @@ function initSpell() {
 
 function renderSpell() {
   if(spellIdx >= spellWords.length) { showScore('spell'); return; }
+  safeDivpClear('.spell-q-card');
   const w = spellWords[spellIdx];
   document.getElementById('spell-meaning').textContent = w.jp;
   const inp = document.getElementById('spell-input');
