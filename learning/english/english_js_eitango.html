@@ -1189,7 +1189,7 @@ const JHS1_DATA = [
       {en:'you',jp:'あなた（たち）を・に',pos:'代名詞'},
       {en:'good',jp:'よい',pos:'形容詞'},
       {en:'morning',jp:'朝、午前',pos:'名詞'},
-      {en:'I',jp:'私は・が',pos:'代名詞'},
+      {en:'I',jp:'私は・が',pos:'代名詞',say:'eye'},
       {en:'am',jp:'〜です（be動詞）',pos:'動詞'},
       {en:'hi',jp:'やあ、こんにちは',pos:'感嘆詞'},
       {en:'my',jp:'私の',pos:'代名詞'},
@@ -2132,6 +2132,8 @@ if('speechSynthesis' in window){
 }
 
 let speakingBtn = null;
+// 発音は原則 en をそのまま読み上げるが、単語に say を持たせると読み上げだけ差し替えできる
+// （例: "I" は単独だとローマ数字と誤読されるため同音の "eye" を say に指定。表示は "I" のまま）
 function speak(text, btn){
   if(!text || !('speechSynthesis' in window)) return;
   try{
@@ -2154,11 +2156,11 @@ function speak(text, btn){
 function speakFlash(e){
   if(e) e.stopPropagation();                  // カードを裏返さない
   const w = flashWords[flashIdx];
-  if(w) speak(w.en, document.getElementById('fc-speak'));
+  if(w) speak(w.say || w.en, document.getElementById('fc-speak'));
 }
 function speakQuiz(){
   const w = quizWords[quizIdx];
-  if(w) speak(w.en, document.getElementById('quiz-speak'));
+  if(w) speak(w.say || w.en, document.getElementById('quiz-speak'));
 }
 
 function renderAutoToggle(){
@@ -2234,7 +2236,7 @@ function buildWordList() {
     const sp = document.createElement('button');
     sp.className = 'wl-speak'; sp.type = 'button'; sp.textContent = '🔊';
     sp.setAttribute('aria-label', w.en + ' の発音');
-    sp.onclick = () => speak(w.en, sp);
+    sp.onclick = () => speak(w.say || w.en, sp);
     const en = document.createElement('span'); en.className = 'wl-eng'; en.textContent = w.en;
     const jp = document.createElement('span'); jp.className = 'wl-jpn'; jp.textContent = w.jp;
     d.appendChild(sp); d.appendChild(en); d.appendChild(jp);
