@@ -107,4 +107,9 @@ return [
         'sub'   => '社会・小4',
         'url'   => '/learning/social/social_es4_todofuken.html',
     ],
+    'english_js_eitango' => [
+        'title' => '英単語練習',
+        'sub'   => '英語・小学〜中3',
+        'url'   => '/learning/english/english_js_eitango.html',
+    ],
 ];
