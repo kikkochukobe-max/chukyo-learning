@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>時差計算練習アプリ</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.9.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F8F9FB;
+  --surface:#FFFFFF;
+  --border:#E4E7EC;
+  --border-light:#F0F2F5;
+  --text-primary:#1A1D23;
+  --text-secondary:#6B7280;
+  --text-muted:#9CA3AF;
+  --accent:#1A6B9A;
+  --accent-light:#EBF4FA;
+  --green:#0E7A5A;
+  --green-bg:#E8F5F0;
+  --orange:#C45C1A;
+  --orange-bg:#FEF0E6;
+  --red:#B91C1C;
+  --red-bg:#FEE2E2;
+  --radius-sm:6px;
+  --radius-md:10px;
+  --radius-lg:14px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh}
+
+/* NAV */
+/* 共通ヘッダー(divp-header, sticky)と二重固定にならないよう、ツール側のナビは固定しない */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:0;height:52px;position:relative;z-index:1}
+.nav-logo{font-size:15px;font-weight:700;color:var(--accent);margin-right:20px;white-space:nowrap}
+.nav-tabs{display:flex;height:100%;gap:2px}
+.nav-tab{font-size:13px;padding:0 16px;border:none;background:transparent;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-weight:500;height:100%}
+.nav-tab:hover{color:var(--text-primary)}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.nav-link{font-size:12px;color:var(--text-muted);text-decoration:none;white-space:nowrap;padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);transition:all .15s}
+.nav-link:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
+/* PAGE */
+.page{display:none;max-width:720px;margin:0 auto;padding:24px 20px 60px}
+.page.active{display:block}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow)}
+
+/* MAP */
+.map-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow)}
+svg.map{width:100%;height:80px;display:block}
+
+/* POINTS */
+.points-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.point-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow)}
+.point-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
+.point-deg{font-size:24px;font-weight:700;color:var(--text-primary);line-height:1.1}
+.point-sub{font-size:12px;color:var(--text-secondary);margin-top:3px}
+.point-card.a-card{border-top:3px solid var(--green)}
+.point-card.b-card{border-top:3px solid var(--orange)}
+
+/* QUESTION */
+.q-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:14px;box-shadow:var(--shadow)}
+.q-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:12px}
+.badge-jisa{background:var(--green-bg);color:var(--green)}
+.badge-jikoku{background:var(--orange-bg);color:var(--orange)}
+.q-text{font-size:15px;color:var(--text-primary);line-height:1.8;margin-bottom:16px}
+.ans-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ans-row input[type=number]{font-size:14px;padding:7px 11px;width:86px;border:1px solid var(--border);border-radius:var(--radius-md);outline:none;transition:border .15s}
+.ans-row input:focus{border-color:var(--accent)}
+.ans-row select{font-size:14px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);outline:none}
+.ans-row .unit{font-size:14px;color:var(--text-secondary)}
+.btn{font-size:13px;padding:7px 16px;border:none;border-radius:var(--radius-md);cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{filter:brightness(1.1)}
+.btn-secondary{background:var(--bg);border:1px solid var(--border);color:var(--text-secondary)}
+.btn-secondary:hover{background:var(--border-light);color:var(--text-primary)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* FEEDBACK */
+.fb{display:none;margin-top:14px;padding:12px 16px;border-radius:var(--radius-md);font-size:14px;line-height:1.8}
+.fb.ok{background:var(--green-bg);color:var(--green);display:block}
+.fb.ng{background:var(--red-bg);color:var(--red);display:block}
+.fb table{margin-top:10px;border-collapse:collapse;font-size:13px;width:100%}
+.fb table th,.fb table td{padding:5px 10px;border:1px solid rgba(0,0,0,.12);text-align:center}
+.fb table th{background:rgba(0,0,0,.06);font-weight:700}
+
+/* SCORE BAR */
+.score-bar{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.score-item{font-size:13px;color:var(--text-secondary);display:flex;align-items:center;gap:5px}
+.score-val{font-size:15px;font-weight:700;color:var(--text-primary)}
+.bottom-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+
+/* MODE TABS */
+.mode-tabs{display:flex;gap:6px;margin-bottom:16px}
+
+/* SECTION HEADER */
+.sec-head{font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:4px}
+.sec-sub{font-size:13px;color:var(--text-secondary);margin-bottom:20px}
+
+/* TABLE (解説用) */
+.explain-table{width:100%;border-collapse:collapse;font-size:14px;margin-top:14px}
+.explain-table th,.explain-table td{padding:8px 12px;border:1px solid var(--border);text-align:center}
+.explain-table th{background:var(--bg);font-weight:700;color:var(--text-secondary);font-size:12px}
+.explain-table tr:nth-child(even) td{background:var(--border-light)}
+
+/* === TEST PAGE === */
+.timer-wrap{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.timer-circle{width:64px;height:64px;border-radius:50%;border:4px solid var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .3s}
+.timer-circle.warn{border-color:#F59E0B}
+.timer-circle.danger{border-color:var(--red);animation:pulse .8s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.timer-num{font-size:16px;font-weight:800;color:var(--text-primary)}
+.timer-label{font-size:9px;color:var(--text-muted);margin-top:-1px}
+.test-score-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow);flex:1}
+.test-score-big{font-size:32px;font-weight:800;color:var(--accent)}
+.test-score-label{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.streak-info{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+.streak-badge{font-size:12px;padding:3px 10px;border-radius:20px;font-weight:600}
+.streak-ok{background:var(--green-bg);color:var(--green)}
+.streak-ng{background:var(--red-bg);color:var(--red)}
+
+/* RESULT */
+.result-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
+.result-overlay.show{display:flex}
+.result-box{background:var(--surface);border-radius:var(--radius-lg);padding:36px;max-width:400px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.result-title{font-size:22px;font-weight:800;margin-bottom:8px}
+.result-score{font-size:52px;font-weight:800;color:var(--accent);line-height:1.1;margin-bottom:4px}
+.result-sub{font-size:14px;color:var(--text-secondary);margin-bottom:24px}
+.result-stats{display:flex;gap:16px;justify-content:center;margin-bottom:24px}
+.result-stat{text-align:center}
+.result-stat-num{font-size:22px;font-weight:700;color:var(--text-primary)}
+.result-stat-label{font-size:11px;color:var(--text-muted);font-weight:600}
+
+/* FOOTER LINK */
+.footer-link-bar{margin-top:24px;padding-top:16px;border-top:1px solid var(--border);text-align:center}
+.footer-link-bar a{font-size:12px;color:var(--text-muted);text-decoration:none}
+.footer-link-bar a:hover{color:var(--accent);text-decoration:underline}
+
+/* PROGRESS BAR */
+.progress-wrap{height:4px;background:var(--border);border-radius:2px;margin-bottom:16px;overflow:hidden}
+.progress-bar{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+
+</style>
+</head>
+<body>
+
+<!-- 共通モジュール（ヘッダー＋ログイン窓 / 中学生用 正解スタンプ / 学習記録クライアント）-->
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script>Divp.init('social_js_jisa');</script>
+
+<!-- NAV -->
+<nav class="nav">
+  <span class="nav-logo">🌏 時差計算</span>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('basic')">基本篇</button>
+    <button class="nav-tab" onclick="showPage('applied')">応用篇</button>
+    <button class="nav-tab" onclick="showPage('test')">確認テスト</button>
+  </div>
+  <a class="nav-link" href="https://chukyokobetsu.com/" target="_blank" rel="noopener" style="margin-left:auto">中京個別指導学院 ↗</a>
+</nav>
+
+<!-- ====== 基本篇 ====== -->
+<div class="page active" id="page-basic">
+  <p class="sec-head">基本篇</p>
+  <p class="sec-sub">A・B地点はそれぞれ15°刻みの経度でランダムに決まります。</p>
+
+  <div class="map-wrap">
+    <svg class="map" id="b-mapsvg" viewBox="0 0 680 80" xmlns="http://www.w3.org/2000/svg">
+      <line x1="0" y1="40" x2="680" y2="40" stroke="#E4E7EC" stroke-width="1"/>
+      <line x1="340" y1="0" x2="340" y2="80" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="3,3"/>
+      <text x="336" y="10" text-anchor="end" font-size="9" fill="#9CA3AF">W180°</text>
+      <text x="344" y="10" text-anchor="start" font-size="9" fill="#9CA3AF">E180°</text>
+      <text x="341" y="72" text-anchor="start" font-size="8" fill="#9CA3AF">日付変更線</text>
+      <text x="170" y="72" text-anchor="middle" font-size="9" fill="#9CA3AF">西経</text>
+      <text x="510" y="72" text-anchor="middle" font-size="9" fill="#9CA3AF">東経</text>
+      <text x="338" y="54" text-anchor="end" font-size="8" fill="#9CA3AF">0°</text>
+      <line id="b-connLine" x1="0" y1="40" x2="0" y2="40" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <circle id="b-dotA" cx="0" cy="40" r="7" fill="#0E7A5A" stroke="white" stroke-width="2"/>
+      <circle id="b-dotB" cx="0" cy="40" r="7" fill="#C45C1A" stroke="white" stroke-width="2"/>
+      <text id="b-labelA" x="0" y="28" text-anchor="middle" font-size="10" font-weight="700" fill="#0E7A5A">A</text>
+      <text id="b-labelB" x="0" y="28" text-anchor="middle" font-size="10" font-weight="700" fill="#C45C1A">B</text>
+    </svg>
+  </div>
+
+  <div class="points-row">
+    <div class="point-card a-card">
+      <div class="point-label">A地点</div>
+      <div class="point-deg" id="b-degA">—</div>
+      <div class="point-sub" id="b-subA">—</div>
+    </div>
+    <div class="point-card b-card">
+      <div class="point-label">B地点</div>
+      <div class="point-deg" id="b-degB">—</div>
+      <div class="point-sub" id="b-subB">—</div>
+    </div>
+  </div>
+
+  <div class="mode-tabs">
+    <button class="btn btn-secondary" id="b-tab-mix" onclick="bSetMode('mix')">ミックス</button>
+    <button class="btn btn-secondary" id="b-tab-jisa" onclick="bSetMode('jisa')">時差のみ</button>
+    <button class="btn btn-secondary" id="b-tab-jikoku" onclick="bSetMode('jikoku')">時刻のみ</button>
+  </div>
+
+  <div class="q-card" id="b-qcard">
+    <span class="q-badge" id="b-qBadge"></span>
+    <div class="q-text" id="b-qText"></div>
+    <div class="ans-row" id="b-ansArea"></div>
+    <div class="fb" id="b-fb"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="btn btn-primary" onclick="bNextQ()">次の問題 <i class="ti ti-arrow-right"></i></button>
+    <div class="score-bar">
+      <div class="score-item">正解 <span class="score-val" id="b-ok">0</span></div>
+      <div class="score-item">問題数 <span class="score-val" id="b-total">0</span></div>
+      <div class="score-item">正答率 <span class="score-val" id="b-rate">—</span></div>
+    </div>
+    <button class="btn btn-secondary" onclick="bReset()" style="font-size:12px">リセット</button>
+  </div>
+
+  <div class="footer-link-bar">
+    <a href="https://chukyokobetsu.com/" target="_blank" rel="noopener">中京個別指導学院 | 名古屋 長久手 日進の個別指導 学習塾</a>
+  </div>
+</div>
+
+<!-- ====== 応用篇 ====== -->
+<div class="page" id="page-applied">
+  <p class="sec-head">応用篇</p>
+  <p class="sec-sub">一部に15°刻み以外の経度も含まれます。難易度が少し上がります。</p>
+
+  <div class="map-wrap">
+    <svg class="map" id="a-mapsvg" viewBox="0 0 680 80" xmlns="http://www.w3.org/2000/svg">
+      <line x1="0" y1="40" x2="680" y2="40" stroke="#E4E7EC" stroke-width="1"/>
+      <line x1="340" y1="0" x2="340" y2="80" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="3,3"/>
+      <text x="336" y="10" text-anchor="end" font-size="9" fill="#9CA3AF">W180°</text>
+      <text x="344" y="10" text-anchor="start" font-size="9" fill="#9CA3AF">E180°</text>
+      <text x="341" y="72" text-anchor="start" font-size="8" fill="#9CA3AF">日付変更線</text>
+      <text x="170" y="72" text-anchor="middle" font-size="9" fill="#9CA3AF">西経</text>
+      <text x="510" y="72" text-anchor="middle" font-size="9" fill="#9CA3AF">東経</text>
+      <text x="338" y="54" text-anchor="end" font-size="8" fill="#9CA3AF">0°</text>
+      <line id="a-connLine" x1="0" y1="40" x2="0" y2="40" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <circle id="a-dotA" cx="0" cy="40" r="7" fill="#0E7A5A" stroke="white" stroke-width="2"/>
+      <circle id="a-dotB" cx="0" cy="40" r="7" fill="#C45C1A" stroke="white" stroke-width="2"/>
+      <text id="a-labelA" x="0" y="28" text-anchor="middle" font-size="10" font-weight="700" fill="#0E7A5A">A</text>
+      <text id="a-labelB" x="0" y="28" text-anchor="middle" font-size="10" font-weight="700" fill="#C45C1A">B</text>
+    </svg>
+  </div>
+
+  <div class="points-row">
+    <div class="point-card a-card">
+      <div class="point-label">A地点</div>
+      <div class="point-deg" id="a-degA">—</div>
+      <div class="point-sub" id="a-subA">—</div>
+    </div>
+    <div class="point-card b-card">
+      <div class="point-label">B地点</div>
+      <div class="point-deg" id="a-degB">—</div>
+      <div class="point-sub" id="a-subB">—</div>
+    </div>
+  </div>
+
+  <div class="mode-tabs">
+    <button class="btn btn-secondary" id="a-tab-mix" onclick="aSetMode('mix')">ミックス</button>
+    <button class="btn btn-secondary" id="a-tab-jisa" onclick="aSetMode('jisa')">時差のみ</button>
+    <button class="btn btn-secondary" id="a-tab-jikoku" onclick="aSetMode('jikoku')">時刻のみ</button>
+  </div>
+
+  <div class="q-card" id="a-qcard">
+    <span class="q-badge" id="a-qBadge"></span>
+    <div class="q-text" id="a-qText"></div>
+    <div class="ans-row" id="a-ansArea"></div>
+    <div class="fb" id="a-fb"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="btn btn-primary" onclick="aNextQ()">次の問題 <i class="ti ti-arrow-right"></i></button>
+    <div class="score-bar">
+      <div class="score-item">正解 <span class="score-val" id="a-ok">0</span></div>
+      <div class="score-item">問題数 <span class="score-val" id="a-total">0</span></div>
+      <div class="score-item">正答率 <span class="score-val" id="a-rate">—</span></div>
+    </div>
+    <button class="btn btn-secondary" onclick="aReset()" style="font-size:12px">リセット</button>
+  </div>
+
+  <div class="footer-link-bar">
+    <a href="https://chukyokobetsu.com/" target="_blank" rel="noopener">中京個別指導学院 | 名古屋 長久手 日進の個別指導 学習塾</a>
+  </div>
+</div>
+
+<!-- ====== 確認テスト ====== -->
+<div class="page" id="page-test">
+  <p class="sec-head">確認テスト</p>
+  <p class="sec-sub">制限時間 5分。連続正解でボーナスあり！</p>
+
+  <!-- スタート画面 -->
+  <div id="t-start">
+    <div class="card" style="text-align:center;padding:36px 24px">
+      <div style="font-size:48px;margin-bottom:12px">⏱️</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:8px">5分間 確認テスト</div>
+      <div style="font-size:14px;color:var(--text-secondary);line-height:1.8;margin-bottom:24px">
+        ✅ 正解：+10pt（連続正解で +10+連続数 pt）<br>
+        ❌ 誤答：−5pt（連続誤答で −5−連続数 pt）<br>
+        基本篇・応用篇ミックスで出題されます
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:8px">出題モード</label>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-secondary" id="t-tab-mix" onclick="tSetMode('mix')">ミックス</button>
+          <button class="btn btn-secondary" id="t-tab-jisa" onclick="tSetMode('jisa')">時差のみ</button>
+          <button class="btn btn-secondary" id="t-tab-jikoku" onclick="tSetMode('jikoku')">時刻のみ</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="font-size:15px;padding:10px 28px" onclick="startTest()">
+        <i class="ti ti-player-play"></i> テスト開始
+      </button>
+    </div>
+    <div class="footer-link-bar">
+      <a href="https://chukyokobetsu.com/" target="_blank" rel="noopener">中京個別指導学院 | 名古屋 長久手 日進の個別指導 学習塾</a>
+    </div>
+  </div>
+
+  <!-- テスト中 -->
+  <div id="t-playing" style="display:none">
+    <div class="progress-wrap"><div class="progress-bar" id="t-progress" style="width:100%"></div></div>
+
+    <div style="display:flex;gap:12px;align-items:stretch;margin-bottom:16px">
+      <div class="timer-circle" id="t-timerCircle">
+        <span class="timer-num" id="t-timerNum">5:00</span>
+        <span class="timer-label">残り時間</span>
+      </div>
+      <div class="test-score-panel">
+        <div class="test-score-label">スコア</div>
+        <div class="test-score-big" id="t-scoreDisp">0</div>
+        <div class="streak-info">
+          <span class="streak-badge streak-ok" id="t-streakOk">連続正解 0</span>
+          <span class="streak-badge streak-ng" id="t-streakNg">連続誤答 0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-wrap">
+      <svg class="map" id="t-mapsvg" viewBox="0 0 680 80" xmlns="http://www.w3.org/2000/svg">
+        <line x1="0" y1="40" x2="680" y2="40" stroke="#E4E7EC" stroke-width="1"/>
+        <line x1="340" y1="0" x2="340" y2="80" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="336" y="10" text-anchor="end" font-size="9" fill="#9CA3AF">W180°</text>
+        <text x="344" y="10" text-anchor="start" font-size="9" fill="#9CA3AF">E180°</text>
+        <text x="341" y="72" text-anchor="start" font-size="8" fill="#9CA3AF">日付変更線</text>
+        <text x="170" y="72" text-anchor="middle" font-size="9" fill="#9CA3AF">西経</text>
+        <text x="510" y="72" text-anchor="middle" font-size="9" fill="#9CA3AF">東経</text>
+        <text x="338" y="54" text-anchor="end" font-size="8" fill="#9CA3AF">0°</text>
+        <line id="t-connLine" x1="0" y1="40" x2="0" y2="40" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <circle id="t-dotA" cx="0" cy="40" r="7" fill="#0E7A5A" stroke="white" stroke-width="2"/>
+        <circle id="t-dotB" cx="0" cy="40" r="7" fill="#C45C1A" stroke="white" stroke-width="2"/>
+        <text id="t-labelA" x="0" y="28" text-anchor="middle" font-size="10" font-weight="700" fill="#0E7A5A">A</text>
+        <text id="t-labelB" x="0" y="28" text-anchor="middle" font-size="10" font-weight="700" fill="#C45C1A">B</text>
+      </svg>
+    </div>
+
+    <div class="points-row">
+      <div class="point-card a-card">
+        <div class="point-label">A地点</div>
+        <div class="point-deg" id="t-degA">—</div>
+        <div class="point-sub" id="t-subA">—</div>
+      </div>
+      <div class="point-card b-card">
+        <div class="point-label">B地点</div>
+        <div class="point-deg" id="t-degB">—</div>
+        <div class="point-sub" id="t-subB">—</div>
+      </div>
+    </div>
+
+    <div class="q-card" id="t-qcard">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span class="q-badge" id="t-qBadge"></span>
+        <span style="font-size:12px;color:var(--text-muted)" id="t-qNum">1問目</span>
+      </div>
+      <div class="q-text" id="t-qText"></div>
+      <div class="ans-row" id="t-ansArea"></div>
+      <div class="fb" id="t-fb"></div>
+    </div>
+
+    <div class="bottom-bar">
+      <button class="btn btn-primary" onclick="tNextQ()" id="t-nextBtn" style="display:none">次の問題 <i class="ti ti-arrow-right"></i></button>
+      <div class="score-bar">
+        <div class="score-item">正解 <span class="score-val" id="t-okCount">0</span></div>
+        <div class="score-item">問題数 <span class="score-val" id="t-totalCount">0</span></div>
+      </div>
+    </div>
+    <div class="footer-link-bar">
+      <a href="https://chukyokobetsu.com/" target="_blank" rel="noopener">中京個別指導学院 | 名古屋 長久手 日進の個別指導 学習塾</a>
+    </div>
+  </div>
+</div>
+
+<!-- RESULT MODAL -->
+<div class="result-overlay" id="resultModal">
+  <div class="result-box">
+    <div class="result-title">⏰ テスト終了！</div>
+    <div class="result-score" id="r-score">0</div>
+    <div class="result-sub">ポイント</div>
+    <div class="result-stats">
+      <div class="result-stat">
+        <div class="result-stat-num" id="r-ok">0</div>
+        <div class="result-stat-label">正解</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-num" id="r-total">0</div>
+        <div class="result-stat-label">問題数</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-num" id="r-rate">—</div>
+        <div class="result-stat-label">正答率</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-num" id="r-maxStreak">0</div>
+        <div class="result-stat-label">最大連続正解</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:10px" onclick="closeResult()">
+      <i class="ti ti-refresh"></i> もう一度挑戦
+    </button>
+    <div style="margin-top:12px;text-align:center">
+      <a href="https://chukyokobetsu.com/" target="_blank" rel="noopener" style="font-size:12px;color:var(--text-muted);text-decoration:none">中京個別指導学院 | 名古屋 長久手 日進の個別指導 学習塾</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────
+const TIMES=['午前0時','午前1時','午前2時','午前3時','午前4時','午前5時','午前6時','午前7時','午前8時','午前9時','午前10時','午前11時','正午','午後1時','午後2時','午後3時','午後4時','午後5時','午後6時','午後7時','午後8時','午後9時','午後10時','午後11時'];
+const MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+const DAYS=[28,15,21,14,20,19,25,17,24,16,23,26];
+
+// 基本篇用：15°刻み
+const BASIC_DEGS=[0,15,30,45,60,75,90,105,120,135,150,165,180];
+
+// 応用篇用：15°刻み + 少数の非倍数
+const APPLIED_EXTRAS=[20,35,50,65,80,95,110,125,140,155,170];
+
+// ─────────────────────────────────────────
+// UTILITIES
+// ─────────────────────────────────────────
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function randFrom(arr){return arr[randInt(0,arr.length-1)];}
+
+function genBasicPoint(){
+  return {isEast:Math.random()<0.5, deg:randFrom(BASIC_DEGS)};
+}
+
+function genAppliedPoint(){
+  // 70% 確率で15°刻み、30% で非倍数
+  if(Math.random()<0.7){
+    return {isEast:Math.random()<0.5, deg:randFrom(BASIC_DEGS)};
+  } else {
+    return {isEast:Math.random()<0.5, deg:randFrom(APPLIED_EXTRAS)};
+  }
+}
+
+function degLabel(p){
+  if(p.deg===0) return '経度0°（本初子午線）';
+  if(p.deg===180) return (p.isEast?'東経':'西経')+'180°（日付変更線付近）';
+  return (p.isEast?'東経':'西経')+p.deg+'°';
+}
+function degShort(p){
+  if(p.deg===0) return '0°';
+  return (p.isEast?'E':'W')+p.deg+'°';
+}
+
+function calcDiff(a,b){
+  const aE=a.isEast?a.deg:-a.deg;
+  const bE=b.isEast?b.deg:-b.deg;
+  return Math.abs(aE-bE);
+}
+function jisa(diff){return diff/15;}
+
+function mapX(p){
+  const e=p.isEast?p.deg:-p.deg;
+  return Math.round(340+(e/180)*340);
+}
+
+function updateMap(pfx,a,b){
+  const xa=mapX(a),xb=mapX(b);
+  document.getElementById(pfx+'-dotA').setAttribute('cx',xa);
+  document.getElementById(pfx+'-dotB').setAttribute('cx',xb);
+  document.getElementById(pfx+'-labelA').setAttribute('x',xa);
+  document.getElementById(pfx+'-labelB').setAttribute('x',xb);
+  document.getElementById(pfx+'-connLine').setAttribute('x1',xa);
+  document.getElementById(pfx+'-connLine').setAttribute('x2',xb);
+}
+
+// ─────────────────────────────────────────
+// QUESTION GENERATORS
+// ─────────────────────────────────────────
+function genJisaQ(a,b,diff,jisaH){
+  const sameDir=a.isEast===b.isEast;
+  const tableHTML=`
+<table class="explain-table">
+<tr><th>東経 A</th><th>東経 B</th><th>経度差</th><th>時差</th></tr>
+<tr><td>${a.isEast?'+':'-'}${a.deg}°</td><td>${b.isEast?'+':'-'}${b.deg}°</td><td>${diff}°</td><td>${jisaH}時間</td></tr>
+</table>`;
+  return {
+    type:'jisa',
+    text:`${degLabel(a)} と ${degLabel(b)} の時差は何時間ですか？`,
+    answer:jisaH,
+    answerStr:jisaH+'時間',
+    exp:`${sameDir?`同じ向き → |${a.deg} − ${b.deg}| = ${diff}°`:`東経 + 西経 → ${a.isEast?a.deg:b.deg} + ${a.isEast?b.deg:a.deg} = ${diff}°`}　　${diff} ÷ 15 = <strong>${jisaH}時間</strong>${tableHTML}`
+  };
+}
+
+function genJikokuQ(a,b,diff,jisaH){
+  const miH=randInt(0,23);
+  const miMonth=randInt(0,11);
+  const miDay=DAYS[miMonth];
+  const aE=a.isEast?a.deg:-a.deg;
+  const bE=b.isEast?b.deg:-b.deg;
+  const bIsLater=bE>aE;
+
+  let bH=bIsLater?miH+jisaH:miH-jisaH;
+  let dayOffset=0;
+  if(bH>=24){bH-=24;dayOffset=1;}
+  else if(bH<0){bH+=24;dayOffset=-1;}
+
+  let dayStr='';
+  let bMonth=miMonth,bDay=miDay;
+  if(dayOffset===1){
+    bDay++;
+    const maxDay=[31,28,31,30,31,30,31,31,30,31,30,31];
+    if(bDay>maxDay[bMonth]){bDay=1;bMonth=(bMonth+1)%12;}
+    dayStr='翌日';
+  } else if(dayOffset===-1){
+    bDay--;
+    if(bDay<1){bMonth=(bMonth+11)%12;bDay=DAYS[bMonth];}
+    dayStr='前日';
+  }
+
+  const bDayLabel=dayOffset===0?`${MONTHS[miMonth]}${miDay}日`:`${dayStr}（${MONTHS[bMonth]}${bDay}日）`;
+  const ansLabel=`${bDayLabel} ${TIMES[bH]}`;
+
+  const tableHTML=`
+<table class="explain-table">
+<tr><th>A地点の時刻</th><th>時差</th><th>方向</th><th>B地点の時刻</th></tr>
+<tr><td>${MONTHS[miMonth]}${miDay}日 ${TIMES[miH]}</td><td>${jisaH}時間</td><td>${bIsLater?'B→東（進む）':'B→西（遅れる）'}</td><td>${ansLabel}</td></tr>
+</table>`;
+
+  return {
+    type:'jikoku',
+    text:`${degLabel(a)} が ${MONTHS[miMonth]}${miDay}日 ${TIMES[miH]} のとき、${degLabel(b)} は何月何日の何時ですか？`,
+    answer:ansLabel,
+    answerStr:ansLabel,
+    exp:`時差 = ${diff}° ÷ 15 = <strong>${jisaH}時間</strong>　B地点は${bIsLater?'東（進んでいる）':'西（遅れている）'}${tableHTML}`,
+    bH,bMonth,bDay,dayOffset,jisaH,bIsLater,bDayLabel,miH,miMonth,miDay
+  };
+}
+
+function generateQ(genPointFn,mode){
+  let a,b,diff,jisaH,attempts=0;
+  do{
+    a=genPointFn();b=genPointFn();
+    diff=calcDiff(a,b);jisaH=jisa(diff);
+    attempts++;
+    // 応用篇は整数時差でなくてもOKだが、小数の場合はskip（.5時間は考慮外）
+  }while((!Number.isInteger(jisaH)||jisaH>12||diff===0)&&attempts<300);
+
+  const useJisa=mode==='jisa'||(mode==='mix'&&Math.random()<0.4);
+  const q=useJisa?genJisaQ(a,b,diff,jisaH):genJikokuQ(a,b,diff,jisaH);
+  return {q,a,b,diff,jisaH};
+}
+
+// ─────────────────────────────────────────
+// RENDER HELPERS
+// ─────────────────────────────────────────
+function renderPoints(pfx,a,b){
+  document.getElementById(pfx+'-degA').textContent=degShort(a);
+  document.getElementById(pfx+'-subA').textContent=degLabel(a);
+  document.getElementById(pfx+'-degB').textContent=degShort(b);
+  document.getElementById(pfx+'-subB').textContent=degLabel(b);
+  updateMap(pfx,a,b);
+}
+
+function renderQ(pfx,q,onCheck){
+  safeDivpClear('#'+pfx+'-qcard');   // 前問の正解スタンプ／バッジを消す
+  const badge=document.getElementById(pfx+'-qBadge');
+  badge.className='q-badge '+(q.type==='jisa'?'badge-jisa':'badge-jikoku');
+  badge.textContent=q.type==='jisa'?'時差を求める':'時刻を求める';
+  document.getElementById(pfx+'-qText').textContent=q.text;
+  document.getElementById(pfx+'-fb').className='fb';
+  document.getElementById(pfx+'-fb').innerHTML='';
+
+  const area=document.getElementById(pfx+'-ansArea');
+  if(q.type==='jisa'){
+    area.innerHTML=`<input type="number" id="${pfx}-userAns" min="0" max="12" placeholder="0〜12"><span class="unit">時間</span><button class="btn btn-primary" onclick="${onCheck}()">確認 <i class="ti ti-send"></i></button>`;
+    setTimeout(()=>{const el=document.getElementById(pfx+'-userAns');if(el){el.focus();el.addEventListener('keydown',e=>{if(e.key==='Enter')window[onCheck]();})}},80);
+  } else {
+    const opts=Array.from({length:24},(_,i)=>`<option value="${i}">${TIMES[i]}</option>`).join('');
+    const dayOpts=['同じ日','翌日','前日'].map(d=>`<option value="${d}">${d}</option>`).join('');
+    area.innerHTML=`<select id="${pfx}-selDay">${dayOpts}</select><select id="${pfx}-selH">${opts}</select><button class="btn btn-primary" onclick="${onCheck}()">確認 <i class="ti ti-send"></i></button>`;
+  }
+}
+
+function checkQ(pfx,q){
+  let correct=false,userAns='';
+  if(q.type==='jisa'){
+    const el=document.getElementById(pfx+'-userAns');
+    if(!el||el.value==='') return null;   // 未入力は何もしない
+    userAns=el.value+'時間';
+    correct=parseInt(el.value)===q.answer;
+    el.disabled=true;
+  } else {
+    const sd=document.getElementById(pfx+'-selDay');
+    const sh=document.getElementById(pfx+'-selH');
+    if(!sd||!sh) return null;
+    const dv=sd.value;
+    const hv=parseInt(sh.value);
+    userAns=dv+' '+TIMES[hv];
+    const dayMatch=(q.dayOffset===0&&dv==='同じ日')||(q.dayOffset===1&&dv==='翌日')||(q.dayOffset===-1&&dv==='前日');
+    correct=dayMatch&&hv===q.bH;
+    sd.disabled=true;sh.disabled=true;
+  }
+
+  const fb=document.getElementById(pfx+'-fb');
+  fb.className='fb '+(correct?'ok':'ng');
+  fb.innerHTML=correct
+    ?`<strong>✅ 正解！</strong>　${q.answerStr}<br><small>${q.exp}</small>`
+    :`<strong>❌ 不正解</strong>　正解：<strong>${q.answerStr}</strong><br><small>${q.exp}</small>`;
+
+  document.querySelectorAll(`#${pfx}-ansArea button`).forEach(b=>b.disabled=true);
+  return {correct,userAns};
+}
+
+// ─────────────────────────────────────────
+// PAGE NAVIGATION
+// ─────────────────────────────────────────
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const tabs={basic:0,applied:1,test:2};
+  document.querySelectorAll('.nav-tab')[tabs[id]].classList.add('active');
+}
+
+// ─────────────────────────────────────────
+// 基本篇
+// ─────────────────────────────────────────
+let bMode='mix',bOk=0,bTotal=0,bAnswered=false,bState={};
+
+function bSetMode(m){
+  bMode=m;
+  ['mix','jisa','jikoku'].forEach(id=>{
+    const btn=document.getElementById('b-tab-'+id);
+    btn.className='btn '+(id===m?'btn-primary':'btn-secondary');
+  });
+  bGenerate();
+}
+
+function bGenerate(){
+  const {q,a,b}=generateQ(genBasicPoint,bMode);
+  bState={q,a,b};
+  bAnswered=false;
+  renderPoints('b',a,b);
+  renderQ('b',q,'bCheck');
+}
+
+function bCheck(){
+  if(bAnswered) return;
+  const res=checkQ('b',bState.q);
+  if(!res) return;                 // 未入力
+  const correct=res.correct;
+  bAnswered=true;bTotal++;
+  if(correct) bOk++;
+  bUpdateScore();
+  logJisaAnswer('basic',bState,correct,res.userAns);
+  if(correct) safeDivpCorrect('#b-qcard'); else safeDivpIncorrect('#b-qcard');
+}
+
+function bUpdateScore(){
+  document.getElementById('b-ok').textContent=bOk;
+  document.getElementById('b-total').textContent=bTotal;
+  document.getElementById('b-rate').textContent=bTotal>0?Math.round(bOk/bTotal*100)+'%':'—';
+}
+
+function bNextQ(){bGenerate();}
+function bReset(){bOk=0;bTotal=0;bUpdateScore();bGenerate();}
+
+// init tabs
+['mix','jisa','jikoku'].forEach(id=>{
+  const btn=document.getElementById('b-tab-'+id);
+  btn.className='btn '+(id===bMode?'btn-primary':'btn-secondary');
+});
+
+// ─────────────────────────────────────────
+// 応用篇
+// ─────────────────────────────────────────
+let aMode='mix',aOk=0,aTotal=0,aAnswered=false,aState={};
+
+function aSetMode(m){
+  aMode=m;
+  ['mix','jisa','jikoku'].forEach(id=>{
+    const btn=document.getElementById('a-tab-'+id);
+    btn.className='btn '+(id===m?'btn-primary':'btn-secondary');
+  });
+  aGenerate();
+}
+
+function aGenerate(){
+  const {q,a,b}=generateQ(genAppliedPoint,aMode);
+  aState={q,a,b};
+  aAnswered=false;
+  renderPoints('a',a,b);
+  renderQ('a',q,'aCheck');
+}
+
+function aCheck(){
+  if(aAnswered) return;
+  const res=checkQ('a',aState.q);
+  if(!res) return;                 // 未入力
+  const correct=res.correct;
+  aAnswered=true;aTotal++;
+  if(correct) aOk++;
+  aUpdateScore();
+  logJisaAnswer('applied',aState,correct,res.userAns);
+  if(correct) safeDivpCorrect('#a-qcard'); else safeDivpIncorrect('#a-qcard');
+}
+
+function aUpdateScore(){
+  document.getElementById('a-ok').textContent=aOk;
+  document.getElementById('a-total').textContent=aTotal;
+  document.getElementById('a-rate').textContent=aTotal>0?Math.round(aOk/aTotal*100)+'%':'—';
+}
+
+function aNextQ(){aGenerate();}
+function aReset(){aOk=0;aTotal=0;aUpdateScore();aGenerate();}
+
+['mix','jisa','jikoku'].forEach(id=>{
+  const btn=document.getElementById('a-tab-'+id);
+  btn.className='btn '+(id===aMode?'btn-primary':'btn-secondary');
+});
+
+// ─────────────────────────────────────────
+// 確認テスト
+// ─────────────────────────────────────────
+let tMode='mix',tTimer=null,tSecondsLeft=300;
+let tScore=0,tOk=0,tTotal=0;
+let tStreakOk=0,tStreakNg=0,tMaxStreak=0;
+let tAnswered=false,tState={};
+
+function tSetMode(m){
+  tMode=m;
+  ['mix','jisa','jikoku'].forEach(id=>{
+    const btn=document.getElementById('t-tab-'+id);
+    btn.className='btn '+(id===m?'btn-primary':'btn-secondary');
+  });
+}
+['mix','jisa','jikoku'].forEach(id=>{
+  document.getElementById('t-tab-'+id).className='btn '+(id===tMode?'btn-primary':'btn-secondary');
+});
+
+function startTest(){
+  tScore=0;tOk=0;tTotal=0;tStreakOk=0;tStreakNg=0;tMaxStreak=0;
+  tSecondsLeft=300;
+  document.getElementById('t-start').style.display='none';
+  document.getElementById('t-playing').style.display='block';
+  tUpdateScoreUI();
+  tGenerate();
+  tTimer=setInterval(()=>{
+    tSecondsLeft--;
+    tUpdateTimer();
+    if(tSecondsLeft<=0){
+      clearInterval(tTimer);
+      tTimer=null;
+      showResult();
+    }
+  },1000);
+}
+
+function tUpdateTimer(){
+  const m=Math.floor(tSecondsLeft/60);
+  const s=tSecondsLeft%60;
+  document.getElementById('t-timerNum').textContent=m+':'+(s<10?'0':'')+s;
+  const pct=Math.max(0,tSecondsLeft/300*100);
+  document.getElementById('t-progress').style.width=pct+'%';
+  const circle=document.getElementById('t-timerCircle');
+  if(tSecondsLeft<=30) circle.className='timer-circle danger';
+  else if(tSecondsLeft<=60) circle.className='timer-circle warn';
+  else circle.className='timer-circle';
+}
+
+function tGenerate(){
+  // mix of basic + applied
+  const genFn=Math.random()<0.6?genBasicPoint:genAppliedPoint;
+  const {q,a,b}=generateQ(genFn,tMode);
+  tState={q,a,b};
+  tAnswered=false;
+  tTotal++;
+  renderPoints('t',a,b);
+  document.getElementById('t-qNum').textContent=tTotal+'問目';
+  renderQ('t',q,'tCheck');
+  document.getElementById('t-nextBtn').style.display='none';
+}
+
+function tCheck(){
+  if(tAnswered||!tTimer) return;
+  const res=checkQ('t',tState.q);
+  if(!res) return;                 // 未入力
+  const correct=res.correct;
+  tAnswered=true;
+
+  if(correct){
+    tOk++;
+    tStreakNg=0;
+    tStreakOk++;
+    if(tStreakOk>tMaxStreak) tMaxStreak=tStreakOk;
+    // 連続正解ボーナス: 1連続=10+(1)=11, 2連続=10+(2)=12 …
+    const bonus=10+tStreakOk;
+    tScore+=bonus;
+  } else {
+    tStreakOk=0;
+    tStreakNg++;
+    const penalty=5+tStreakNg;
+    tScore-=penalty;
+  }
+
+  tUpdateScoreUI();
+  document.getElementById('t-nextBtn').style.display='inline-flex';
+  logJisaAnswer('test',tState,correct,res.userAns);
+  if(correct) safeDivpCorrect('#t-qcard'); else safeDivpIncorrect('#t-qcard');
+}
+
+function tNextQ(){tGenerate();}
+
+function tUpdateScoreUI(){
+  document.getElementById('t-scoreDisp').textContent=tScore;
+  document.getElementById('t-streakOk').textContent='連続正解 '+tStreakOk;
+  document.getElementById('t-streakNg').textContent='連続誤答 '+tStreakNg;
+  document.getElementById('t-okCount').textContent=tOk;
+  document.getElementById('t-totalCount').textContent=tTotal>0?tTotal-1:0;
+}
+
+function showResult(){
+  if(tAnswered) tTotal--; // 未解答問題は除く
+  document.getElementById('r-score').textContent=tScore;
+  document.getElementById('r-ok').textContent=tOk;
+  document.getElementById('r-total').textContent=tTotal;
+  document.getElementById('r-rate').textContent=tTotal>0?Math.round(tOk/tTotal*100)+'%':'—';
+  document.getElementById('r-maxStreak').textContent=tMaxStreak;
+  document.getElementById('resultModal').classList.add('show');
+}
+
+function closeResult(){
+  document.getElementById('resultModal').classList.remove('show');
+  document.getElementById('t-playing').style.display='none';
+  document.getElementById('t-start').style.display='block';
+  if(tTimer){clearInterval(tTimer);tTimer=null;}
+}
+
+// ─────────────────────────────────────────
+// 学習記録（共通モジュール divp-core.js 経由でヘテムルDBへ記録）
+// 生徒管理は teacher.php / mypage.php が担うので、ツール内の集計画面は廃止。
+// ログインは divp-header.js のログイン窓に一本化（このファイルにログインUIは持たない）。
+// 未ログイン・ローカル起動(file://)・API未疎通では黙ってスキップ（ツールは壊れない）。
+// ─────────────────────────────────────────
+function safeDivpAnswer(ok,info){
+  if(window.Divp && typeof Divp.answer==='function'){ try{ Divp.answer(ok,info); }catch(e){} }
+}
+function safeDivpCorrect(selector){
+  if(window.Divp && typeof Divp.correct==='function'){ try{ Divp.correct(selector); }catch(e){} }
+}
+function safeDivpIncorrect(selector){
+  if(window.Divp && typeof Divp.incorrect==='function'){ try{ Divp.incorrect(selector); }catch(e){} }
+}
+// カードを使い回すので、次の問題を出す前に前回のスタンプ／バッジを消す
+function safeDivpClear(selector){
+  const card=document.querySelector(selector);
+  if(card){ card.querySelectorAll('.divp-hanko, .divp-nice').forEach(el=>el.remove()); }
+}
+
+// 正誤判定の直後に呼ぶ。question_key は 出題面(basic/applied/test)×種類(jisa/jikoku)。
+// question_params は同一問題の判定キー(params_hash)＝A・B地点の経度、時刻問題は基準時刻も含める。
+function logJisaAnswer(page,state,correct,userAns){
+  const q=state.q,a=state.a,b=state.b;
+  const params={a:{e:a.isEast?1:0,d:a.deg},b:{e:b.isEast?1:0,d:b.deg},t:q.type};
+  if(q.type==='jikoku'){params.h=q.miH;params.mo=q.miMonth;params.dy=q.miDay;}
+  safeDivpAnswer(correct,{
+    question_key:page+'_'+q.type,   // 例: basic_jisa / applied_jikoku / test_jisa
+    question_params:params,
+    question_text:q.text,
+    correct_answer:q.answerStr,
+    wrong_answer:userAns
+  });
+}
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+bGenerate();
+aGenerate();
+</script>
+</body>
+</html>
