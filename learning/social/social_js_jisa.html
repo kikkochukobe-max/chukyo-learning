@@ -40,6 +40,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',san
 .nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .nav-link{font-size:12px;color:var(--text-muted);text-decoration:none;white-space:nowrap;padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);transition:all .15s}
 .nav-link:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
+.nav-print{margin-left:12px;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-light);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:5px 12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;transition:all .15s}
+.nav-print:hover{background:var(--accent);color:#fff}
+.print-hint{max-width:720px;margin:8px auto 0;padding:6px 20px;font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:5px}
 /* PAGE */
 .page{display:none;max-width:720px;margin:0 auto;padding:24px 20px 60px}
 .page.active{display:block}
@@ -49,13 +52,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',san
 
 /* MAP */
 .map-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow)}
-svg.map{width:100%;height:80px;display:block}
+svg.map{width:100%;height:auto;display:block}
 
 /* POINTS */
 .points-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 .point-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow)}
 .point-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
-.point-deg{font-size:24px;font-weight:700;color:var(--text-primary);line-height:1.1}
+.point-deg{font-size:30px;font-weight:700;color:var(--text-primary);line-height:1.15}
 .point-sub{font-size:12px;color:var(--text-secondary);margin-top:3px}
 .point-card.a-card{border-top:3px solid var(--green)}
 .point-card.b-card{border-top:3px solid var(--orange)}
@@ -71,6 +74,13 @@ svg.map{width:100%;height:80px;display:block}
 .ans-row input:focus{border-color:var(--accent)}
 .ans-row select{font-size:14px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);outline:none}
 .ans-row .unit{font-size:14px;color:var(--text-secondary)}
+.ans-disp{display:inline-block;min-width:44px;text-align:center;font-size:22px;font-weight:800;color:var(--accent);border-bottom:2px solid var(--border);padding:0 6px;line-height:1.3}
+/* テンキー（横一列・小さめ） */
+.keypad{display:flex;gap:3px;margin-top:12px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.keynum{flex:1 1 0;min-width:26px;padding:7px 2px;font-size:14px;font-weight:700;border:1px solid var(--border);background:var(--bg);color:var(--text-primary);border-radius:7px;cursor:pointer;transition:all .12s}
+.keynum:hover{background:var(--border-light)}
+.keynum.sel{background:var(--accent);color:#fff;border-color:var(--accent)}
+.keynum:disabled{opacity:.45;cursor:not-allowed}
 .btn{font-size:13px;padding:7px 16px;border:none;border-radius:var(--radius-md);cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
 .btn-primary{background:var(--accent);color:#fff}
 .btn-primary:hover{filter:brightness(1.1)}
@@ -150,39 +160,57 @@ svg.map{width:100%;height:80px;display:block}
 <script src="/assets/divp-header.js"></script>
 <script src="/assets/divp-correct-jh.js"></script>
 <script src="/assets/divp-core.js"></script>
+<script src="/assets/print-watermark.js"></script>
 <script>Divp.init('social_js_jisa');</script>
 
 <!-- NAV -->
 <nav class="nav">
   <span class="nav-logo">🌏 時差計算</span>
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="showPage('basic')">基本篇</button>
-    <button class="nav-tab" onclick="showPage('applied')">応用篇</button>
+    <button class="nav-tab active" onclick="showPage('basic')">基本</button>
+    <button class="nav-tab" onclick="showPage('applied')">応用</button>
     <button class="nav-tab" onclick="showPage('test')">確認テスト</button>
   </div>
-  <a class="nav-link" href="https://chukyokobetsu.com/" target="_blank" rel="noopener" style="margin-left:auto">中京個別指導学院 ↗</a>
+  <button class="nav-print" onclick="printTest()" title="選択中のモードの問題をA4印刷"><i class="ti ti-printer"></i> 印刷</button>
 </nav>
+<p class="print-hint"><i class="ti ti-info-circle"></i> 「印刷」ボタンから、選択中のモードの問題が印刷されます</p>
 
 <!-- ====== 基本篇 ====== -->
 <div class="page active" id="page-basic">
-  <p class="sec-head">基本篇</p>
-  <p class="sec-sub">A・B地点はそれぞれ15°刻みの経度でランダムに決まります。</p>
+  <p class="sec-sub" style="margin:4px 0 8px">A・B地点はそれぞれ15°刻みの経度でランダムに決まります。</p>
+  <div class="mode-tabs">
+    <button class="btn btn-secondary" id="b-tab-mix" onclick="bSetMode('mix')">ミックス</button>
+    <button class="btn btn-secondary" id="b-tab-jisa" onclick="bSetMode('jisa')">時差のみ</button>
+    <button class="btn btn-secondary" id="b-tab-jikoku" onclick="bSetMode('jikoku')">時刻のみ</button>
+  </div>
+
+  <div class="q-card" id="b-qcard">
+    <span class="q-badge" id="b-qBadge"></span>
+    <div class="q-text" id="b-qText"></div>
+    <div class="ans-row" id="b-ansArea"></div>
+    <div class="fb" id="b-fb"></div>
+  </div>
 
   <div class="map-wrap">
-    <svg class="map" id="b-mapsvg" viewBox="0 0 680 80" xmlns="http://www.w3.org/2000/svg">
-      <line x1="0" y1="40" x2="680" y2="40" stroke="#E4E7EC" stroke-width="1"/>
-      <line x1="340" y1="0" x2="340" y2="80" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="3,3"/>
-      <text x="336" y="10" text-anchor="end" font-size="9" fill="#9CA3AF">W180°</text>
-      <text x="344" y="10" text-anchor="start" font-size="9" fill="#9CA3AF">E180°</text>
-      <text x="341" y="72" text-anchor="start" font-size="8" fill="#9CA3AF">日付変更線</text>
-      <text x="170" y="72" text-anchor="middle" font-size="9" fill="#9CA3AF">西経</text>
-      <text x="510" y="72" text-anchor="middle" font-size="9" fill="#9CA3AF">東経</text>
-      <text x="338" y="54" text-anchor="end" font-size="8" fill="#9CA3AF">0°</text>
-      <line id="b-connLine" x1="0" y1="40" x2="0" y2="40" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="4,3"/>
-      <circle id="b-dotA" cx="0" cy="40" r="7" fill="#0E7A5A" stroke="white" stroke-width="2"/>
-      <circle id="b-dotB" cx="0" cy="40" r="7" fill="#C45C1A" stroke="white" stroke-width="2"/>
-      <text id="b-labelA" x="0" y="28" text-anchor="middle" font-size="10" font-weight="700" fill="#0E7A5A">A</text>
-      <text id="b-labelB" x="0" y="28" text-anchor="middle" font-size="10" font-weight="700" fill="#C45C1A">B</text>
+    <svg class="map" id="b-mapsvg" viewBox="0 0 680 272" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="680" height="272" fill="#EAF3FA"/>
+      <g id="b-land"></g>
+      <line x1="0" y1="158.7" x2="680" y2="158.7" stroke="#B9C4CE" stroke-width="1" stroke-dasharray="2,6"/>
+      <line x1="340" y1="0" x2="340" y2="272" stroke="#8A96A2" stroke-width="1.2" stroke-dasharray="5,4"/>
+      <line x1="1.5" y1="0" x2="1.5" y2="272" stroke="#C77767" stroke-width="1.5" stroke-dasharray="5,4" opacity=".6"/>
+      <line x1="678.5" y1="0" x2="678.5" y2="272" stroke="#C77767" stroke-width="1.5" stroke-dasharray="5,4" opacity=".6"/>
+      <text x="345" y="19" text-anchor="start" font-size="18" fill="#5B6470">0°（本初子午線）</text>
+      <text x="7" y="19" text-anchor="start" font-size="15" fill="#B5675C">日付変更線</text>
+      <text x="673" y="19" text-anchor="end" font-size="15" fill="#B5675C">日付変更線</text>
+      <text x="170" y="262" text-anchor="middle" font-size="22" fill="#7C8792">西経</text>
+      <text x="510" y="262" text-anchor="middle" font-size="22" fill="#7C8792">東経</text>
+      <line id="b-merA" x1="0" y1="0" x2="0" y2="272" stroke="#0E7A5A" stroke-width="1.5" opacity=".55"/>
+      <line id="b-merB" x1="0" y1="0" x2="0" y2="272" stroke="#C45C1A" stroke-width="1.5" opacity=".55"/>
+      <line id="b-connLine" x1="0" y1="158.7" x2="0" y2="158.7" stroke="#C45C1A" stroke-width="2.5" stroke-dasharray="6,4"/>
+      <circle id="b-dotA" cx="0" cy="158.7" r="8" fill="#0E7A5A" stroke="white" stroke-width="2.5"/>
+      <circle id="b-dotB" cx="0" cy="158.7" r="8" fill="#C45C1A" stroke="white" stroke-width="2.5"/>
+      <text id="b-labelA" x="0" y="147" text-anchor="middle" font-size="27" font-weight="700" fill="#0E7A5A" stroke="white" stroke-width="4" style="paint-order:stroke">A</text>
+      <text id="b-labelB" x="0" y="147" text-anchor="middle" font-size="27" font-weight="700" fill="#C45C1A" stroke="white" stroke-width="4" style="paint-order:stroke">B</text>
     </svg>
   </div>
 
@@ -197,19 +225,6 @@ svg.map{width:100%;height:80px;display:block}
       <div class="point-deg" id="b-degB">—</div>
       <div class="point-sub" id="b-subB">—</div>
     </div>
-  </div>
-
-  <div class="mode-tabs">
-    <button class="btn btn-secondary" id="b-tab-mix" onclick="bSetMode('mix')">ミックス</button>
-    <button class="btn btn-secondary" id="b-tab-jisa" onclick="bSetMode('jisa')">時差のみ</button>
-    <button class="btn btn-secondary" id="b-tab-jikoku" onclick="bSetMode('jikoku')">時刻のみ</button>
-  </div>
-
-  <div class="q-card" id="b-qcard">
-    <span class="q-badge" id="b-qBadge"></span>
-    <div class="q-text" id="b-qText"></div>
-    <div class="ans-row" id="b-ansArea"></div>
-    <div class="fb" id="b-fb"></div>
   </div>
 
   <div class="bottom-bar">
@@ -229,24 +244,41 @@ svg.map{width:100%;height:80px;display:block}
 
 <!-- ====== 応用篇 ====== -->
 <div class="page" id="page-applied">
-  <p class="sec-head">応用篇</p>
-  <p class="sec-sub">一部に15°刻み以外の経度も含まれます。難易度が少し上がります。</p>
+  <p class="sec-sub" style="margin:4px 0 8px">一部に15°刻み以外の経度も含まれます。難易度が少し上がります。</p>
+  <div class="mode-tabs">
+    <button class="btn btn-secondary" id="a-tab-mix" onclick="aSetMode('mix')">ミックス</button>
+    <button class="btn btn-secondary" id="a-tab-jisa" onclick="aSetMode('jisa')">時差のみ</button>
+    <button class="btn btn-secondary" id="a-tab-jikoku" onclick="aSetMode('jikoku')">時刻のみ</button>
+    <button class="btn btn-secondary" id="a-tab-flight" onclick="aSetMode('flight')">✈ 飛行機</button>
+  </div>
+
+  <div class="q-card" id="a-qcard">
+    <span class="q-badge" id="a-qBadge"></span>
+    <div class="q-text" id="a-qText"></div>
+    <div class="ans-row" id="a-ansArea"></div>
+    <div class="fb" id="a-fb"></div>
+  </div>
 
   <div class="map-wrap">
-    <svg class="map" id="a-mapsvg" viewBox="0 0 680 80" xmlns="http://www.w3.org/2000/svg">
-      <line x1="0" y1="40" x2="680" y2="40" stroke="#E4E7EC" stroke-width="1"/>
-      <line x1="340" y1="0" x2="340" y2="80" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="3,3"/>
-      <text x="336" y="10" text-anchor="end" font-size="9" fill="#9CA3AF">W180°</text>
-      <text x="344" y="10" text-anchor="start" font-size="9" fill="#9CA3AF">E180°</text>
-      <text x="341" y="72" text-anchor="start" font-size="8" fill="#9CA3AF">日付変更線</text>
-      <text x="170" y="72" text-anchor="middle" font-size="9" fill="#9CA3AF">西経</text>
-      <text x="510" y="72" text-anchor="middle" font-size="9" fill="#9CA3AF">東経</text>
-      <text x="338" y="54" text-anchor="end" font-size="8" fill="#9CA3AF">0°</text>
-      <line id="a-connLine" x1="0" y1="40" x2="0" y2="40" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="4,3"/>
-      <circle id="a-dotA" cx="0" cy="40" r="7" fill="#0E7A5A" stroke="white" stroke-width="2"/>
-      <circle id="a-dotB" cx="0" cy="40" r="7" fill="#C45C1A" stroke="white" stroke-width="2"/>
-      <text id="a-labelA" x="0" y="28" text-anchor="middle" font-size="10" font-weight="700" fill="#0E7A5A">A</text>
-      <text id="a-labelB" x="0" y="28" text-anchor="middle" font-size="10" font-weight="700" fill="#C45C1A">B</text>
+    <svg class="map" id="a-mapsvg" viewBox="0 0 680 272" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="680" height="272" fill="#EAF3FA"/>
+      <g id="a-land"></g>
+      <line x1="0" y1="158.7" x2="680" y2="158.7" stroke="#B9C4CE" stroke-width="1" stroke-dasharray="2,6"/>
+      <line x1="340" y1="0" x2="340" y2="272" stroke="#8A96A2" stroke-width="1.2" stroke-dasharray="5,4"/>
+      <line x1="1.5" y1="0" x2="1.5" y2="272" stroke="#C77767" stroke-width="1.5" stroke-dasharray="5,4" opacity=".6"/>
+      <line x1="678.5" y1="0" x2="678.5" y2="272" stroke="#C77767" stroke-width="1.5" stroke-dasharray="5,4" opacity=".6"/>
+      <text x="345" y="19" text-anchor="start" font-size="18" fill="#5B6470">0°（本初子午線）</text>
+      <text x="7" y="19" text-anchor="start" font-size="15" fill="#B5675C">日付変更線</text>
+      <text x="673" y="19" text-anchor="end" font-size="15" fill="#B5675C">日付変更線</text>
+      <text x="170" y="262" text-anchor="middle" font-size="22" fill="#7C8792">西経</text>
+      <text x="510" y="262" text-anchor="middle" font-size="22" fill="#7C8792">東経</text>
+      <line id="a-merA" x1="0" y1="0" x2="0" y2="272" stroke="#0E7A5A" stroke-width="1.5" opacity=".55"/>
+      <line id="a-merB" x1="0" y1="0" x2="0" y2="272" stroke="#C45C1A" stroke-width="1.5" opacity=".55"/>
+      <line id="a-connLine" x1="0" y1="158.7" x2="0" y2="158.7" stroke="#C45C1A" stroke-width="2.5" stroke-dasharray="6,4"/>
+      <circle id="a-dotA" cx="0" cy="158.7" r="8" fill="#0E7A5A" stroke="white" stroke-width="2.5"/>
+      <circle id="a-dotB" cx="0" cy="158.7" r="8" fill="#C45C1A" stroke="white" stroke-width="2.5"/>
+      <text id="a-labelA" x="0" y="147" text-anchor="middle" font-size="27" font-weight="700" fill="#0E7A5A" stroke="white" stroke-width="4" style="paint-order:stroke">A</text>
+      <text id="a-labelB" x="0" y="147" text-anchor="middle" font-size="27" font-weight="700" fill="#C45C1A" stroke="white" stroke-width="4" style="paint-order:stroke">B</text>
     </svg>
   </div>
 
@@ -261,19 +293,6 @@ svg.map{width:100%;height:80px;display:block}
       <div class="point-deg" id="a-degB">—</div>
       <div class="point-sub" id="a-subB">—</div>
     </div>
-  </div>
-
-  <div class="mode-tabs">
-    <button class="btn btn-secondary" id="a-tab-mix" onclick="aSetMode('mix')">ミックス</button>
-    <button class="btn btn-secondary" id="a-tab-jisa" onclick="aSetMode('jisa')">時差のみ</button>
-    <button class="btn btn-secondary" id="a-tab-jikoku" onclick="aSetMode('jikoku')">時刻のみ</button>
-  </div>
-
-  <div class="q-card" id="a-qcard">
-    <span class="q-badge" id="a-qBadge"></span>
-    <div class="q-text" id="a-qText"></div>
-    <div class="ans-row" id="a-ansArea"></div>
-    <div class="fb" id="a-fb"></div>
   </div>
 
   <div class="bottom-bar">
@@ -304,7 +323,7 @@ svg.map{width:100%;height:80px;display:block}
       <div style="font-size:14px;color:var(--text-secondary);line-height:1.8;margin-bottom:24px">
         ✅ 正解：+10pt（連続正解で +10+連続数 pt）<br>
         ❌ 誤答：−5pt（連続誤答で −5−連続数 pt）<br>
-        基本篇・応用篇ミックスで出題されます
+        基本・応用ミックスで出題されます
       </div>
       <div style="margin-bottom:20px">
         <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:8px">出題モード</label>
@@ -313,6 +332,9 @@ svg.map{width:100%;height:80px;display:block}
           <button class="btn btn-secondary" id="t-tab-jisa" onclick="tSetMode('jisa')">時差のみ</button>
           <button class="btn btn-secondary" id="t-tab-jikoku" onclick="tSetMode('jikoku')">時刻のみ</button>
         </div>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.7;margin-bottom:20px;padding:10px 14px;background:var(--bg);border-radius:var(--radius-md)">
+        <i class="ti ti-info-circle"></i> このポイントはマイページに保存されません。<br>解答数・正解数は保存されます。
       </div>
       <button class="btn btn-primary" style="font-size:15px;padding:10px 28px" onclick="startTest()">
         <i class="ti ti-player-play"></i> テスト開始
@@ -342,21 +364,36 @@ svg.map{width:100%;height:80px;display:block}
       </div>
     </div>
 
+    <div class="q-card" id="t-qcard">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span class="q-badge" id="t-qBadge"></span>
+        <span style="font-size:12px;color:var(--text-muted)" id="t-qNum">1問目</span>
+      </div>
+      <div class="q-text" id="t-qText"></div>
+      <div class="ans-row" id="t-ansArea"></div>
+      <div class="fb" id="t-fb"></div>
+    </div>
+
     <div class="map-wrap">
-      <svg class="map" id="t-mapsvg" viewBox="0 0 680 80" xmlns="http://www.w3.org/2000/svg">
-        <line x1="0" y1="40" x2="680" y2="40" stroke="#E4E7EC" stroke-width="1"/>
-        <line x1="340" y1="0" x2="340" y2="80" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="3,3"/>
-        <text x="336" y="10" text-anchor="end" font-size="9" fill="#9CA3AF">W180°</text>
-        <text x="344" y="10" text-anchor="start" font-size="9" fill="#9CA3AF">E180°</text>
-        <text x="341" y="72" text-anchor="start" font-size="8" fill="#9CA3AF">日付変更線</text>
-        <text x="170" y="72" text-anchor="middle" font-size="9" fill="#9CA3AF">西経</text>
-        <text x="510" y="72" text-anchor="middle" font-size="9" fill="#9CA3AF">東経</text>
-        <text x="338" y="54" text-anchor="end" font-size="8" fill="#9CA3AF">0°</text>
-        <line id="t-connLine" x1="0" y1="40" x2="0" y2="40" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="4,3"/>
-        <circle id="t-dotA" cx="0" cy="40" r="7" fill="#0E7A5A" stroke="white" stroke-width="2"/>
-        <circle id="t-dotB" cx="0" cy="40" r="7" fill="#C45C1A" stroke="white" stroke-width="2"/>
-        <text id="t-labelA" x="0" y="28" text-anchor="middle" font-size="10" font-weight="700" fill="#0E7A5A">A</text>
-        <text id="t-labelB" x="0" y="28" text-anchor="middle" font-size="10" font-weight="700" fill="#C45C1A">B</text>
+      <svg class="map" id="t-mapsvg" viewBox="0 0 680 272" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="680" height="272" fill="#EAF3FA"/>
+        <g id="t-land"></g>
+        <line x1="0" y1="158.7" x2="680" y2="158.7" stroke="#B9C4CE" stroke-width="1" stroke-dasharray="2,6"/>
+        <line x1="340" y1="0" x2="340" y2="272" stroke="#8A96A2" stroke-width="1.2" stroke-dasharray="5,4"/>
+        <line x1="1.5" y1="0" x2="1.5" y2="272" stroke="#C77767" stroke-width="1.5" stroke-dasharray="5,4" opacity=".6"/>
+        <line x1="678.5" y1="0" x2="678.5" y2="272" stroke="#C77767" stroke-width="1.5" stroke-dasharray="5,4" opacity=".6"/>
+        <text x="345" y="19" text-anchor="start" font-size="18" fill="#5B6470">0°（本初子午線）</text>
+        <text x="7" y="19" text-anchor="start" font-size="15" fill="#B5675C">日付変更線</text>
+        <text x="673" y="19" text-anchor="end" font-size="15" fill="#B5675C">日付変更線</text>
+        <text x="170" y="262" text-anchor="middle" font-size="22" fill="#7C8792">西経</text>
+        <text x="510" y="262" text-anchor="middle" font-size="22" fill="#7C8792">東経</text>
+        <line id="t-merA" x1="0" y1="0" x2="0" y2="272" stroke="#0E7A5A" stroke-width="1.5" opacity=".55"/>
+        <line id="t-merB" x1="0" y1="0" x2="0" y2="272" stroke="#C45C1A" stroke-width="1.5" opacity=".55"/>
+        <line id="t-connLine" x1="0" y1="158.7" x2="0" y2="158.7" stroke="#C45C1A" stroke-width="2.5" stroke-dasharray="6,4"/>
+        <circle id="t-dotA" cx="0" cy="158.7" r="8" fill="#0E7A5A" stroke="white" stroke-width="2.5"/>
+        <circle id="t-dotB" cx="0" cy="158.7" r="8" fill="#C45C1A" stroke="white" stroke-width="2.5"/>
+        <text id="t-labelA" x="0" y="147" text-anchor="middle" font-size="27" font-weight="700" fill="#0E7A5A" stroke="white" stroke-width="4" style="paint-order:stroke">A</text>
+        <text id="t-labelB" x="0" y="147" text-anchor="middle" font-size="27" font-weight="700" fill="#C45C1A" stroke="white" stroke-width="4" style="paint-order:stroke">B</text>
       </svg>
     </div>
 
@@ -371,16 +408,6 @@ svg.map{width:100%;height:80px;display:block}
         <div class="point-deg" id="t-degB">—</div>
         <div class="point-sub" id="t-subB">—</div>
       </div>
-    </div>
-
-    <div class="q-card" id="t-qcard">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span class="q-badge" id="t-qBadge"></span>
-        <span style="font-size:12px;color:var(--text-muted)" id="t-qNum">1問目</span>
-      </div>
-      <div class="q-text" id="t-qText"></div>
-      <div class="ans-row" id="t-ansArea"></div>
-      <div class="fb" id="t-fb"></div>
     </div>
 
     <div class="bottom-bar">
@@ -486,12 +513,14 @@ function mapX(p){
 
 function updateMap(pfx,a,b){
   const xa=mapX(a),xb=mapX(b);
-  document.getElementById(pfx+'-dotA').setAttribute('cx',xa);
-  document.getElementById(pfx+'-dotB').setAttribute('cx',xb);
-  document.getElementById(pfx+'-labelA').setAttribute('x',xa);
-  document.getElementById(pfx+'-labelB').setAttribute('x',xb);
-  document.getElementById(pfx+'-connLine').setAttribute('x1',xa);
-  document.getElementById(pfx+'-connLine').setAttribute('x2',xb);
+  const set=(id,attrs)=>{const el=document.getElementById(id);if(el)for(const k in attrs)el.setAttribute(k,attrs[k]);};
+  set(pfx+'-dotA',{cx:xa});
+  set(pfx+'-dotB',{cx:xb});
+  set(pfx+'-labelA',{x:xa});
+  set(pfx+'-labelB',{x:xb});
+  set(pfx+'-connLine',{x1:xa,x2:xb});
+  set(pfx+'-merA',{x1:xa,x2:xa});
+  set(pfx+'-merB',{x1:xb,x2:xb});
 }
 
 // ─────────────────────────────────────────
@@ -558,7 +587,54 @@ function genJikokuQ(a,b,diff,jisaH){
   };
 }
 
-function generateQ(genPointFn,mode){
+// 日付をdelta日ずらす（月またぎ対応・平年）
+function shiftDate(month,day,delta){
+  const maxDay=[31,28,31,30,31,30,31,31,30,31,30,31];
+  let m=month,d=day+delta;
+  while(d>maxDay[m]){d-=maxDay[m];m=(m+1)%12;}
+  while(d<1){m=(m+11)%12;d+=maxDay[m];}
+  return {m,d};
+}
+
+// 飛行機の移動時間問題（応用）：A地点を現地時刻に出発、F時間の飛行でB地点着。B現地の到着日時を問う
+function genFlightQ(a,b,diff,jisaH){
+  const depH=randInt(0,23);
+  const depMonth=randInt(0,11);
+  const depDay=DAYS[depMonth];
+  const flight=randInt(2,13);
+  const aE=a.isEast?a.deg:-a.deg;
+  const bE=b.isEast?b.deg:-b.deg;
+  const signed=(bE-aE)/15;              // B現地 − A現地（整数時間）
+  const totalH=depH+signed+flight;      // A出発を基準にB到着までの経過
+  const dayOffset=Math.floor(totalH/24);
+  const bH=((totalH%24)+24)%24;
+  const arr=shiftDate(depMonth,depDay,dayOffset);
+
+  const dayWord={'-1':'前日','0':'','1':'翌日','2':'翌々日'}[String(dayOffset)]||'';
+  const bDayLabel=dayOffset===0?`${MONTHS[arr.m]}${arr.d}日`:`${dayWord}（${MONTHS[arr.m]}${arr.d}日）`;
+  const ansLabel=`${bDayLabel} ${TIMES[bH]}`;
+
+  const dirTxt=signed>0?`B地点はA地点より東で ${signed}時間 進んでいる`
+             :signed<0?`B地点はA地点より西で ${-signed}時間 遅れている`
+             :`A・B地点の時差はない`;
+  const tableHTML=`
+<table class="explain-table">
+<tr><th>A出発(現地)</th><th>時差</th><th>飛行時間</th><th>B到着(現地)</th></tr>
+<tr><td>${MONTHS[depMonth]}${depDay}日 ${TIMES[depH]}</td><td>${signed>=0?'+':''}${signed}時間</td><td>${flight}時間</td><td>${ansLabel}</td></tr>
+</table>`;
+
+  return {
+    type:'flight',
+    text:`${degLabel(a)} のA地点を ${MONTHS[depMonth]}${depDay}日 ${TIMES[depH]}（現地時刻）に出発する飛行機が、${flight}時間の飛行で ${degLabel(b)} のB地点に到着します。到着はB地点の現地時刻で何月何日の何時ですか？`,
+    answer:ansLabel,
+    answerStr:ansLabel,
+    exp:`時差 = ${diff}° ÷ 15 = <strong>${jisaH}時間</strong>（${dirTxt}）。<br>到着(B現地) = 出発 ${TIMES[depH]} ＋ 時差(${signed>=0?'+':''}${signed}時間) ＋ 飛行 ${flight}時間 → <strong>${ansLabel}</strong>${tableHTML}`,
+    dayChoices:[{l:'同じ日',o:0},{l:'翌日',o:1},{l:'翌々日',o:2},{l:'前日',o:-1}],
+    dayOffset,bH,depH,depMonth,depDay,flight
+  };
+}
+
+function generateQ(genPointFn,mode,allowFlight){
   let a,b,diff,jisaH,attempts=0;
   do{
     a=genPointFn();b=genPointFn();
@@ -567,8 +643,15 @@ function generateQ(genPointFn,mode){
     // 応用篇は整数時差でなくてもOKだが、小数の場合はskip（.5時間は考慮外）
   }while((!Number.isInteger(jisaH)||jisaH>12||diff===0)&&attempts<300);
 
-  const useJisa=mode==='jisa'||(mode==='mix'&&Math.random()<0.4);
-  const q=useJisa?genJisaQ(a,b,diff,jisaH):genJikokuQ(a,b,diff,jisaH);
+  let q;
+  if(mode==='flight'){
+    q=genFlightQ(a,b,diff,jisaH);
+  } else {
+    const useJisa=mode==='jisa'||(mode==='mix'&&Math.random()<0.4);
+    if(useJisa) q=genJisaQ(a,b,diff,jisaH);
+    else if(allowFlight&&Math.random()<0.4) q=genFlightQ(a,b,diff,jisaH);
+    else q=genJikokuQ(a,b,diff,jisaH);
+  }
   return {q,a,b,diff,jisaH};
 }
 
@@ -576,10 +659,10 @@ function generateQ(genPointFn,mode){
 // RENDER HELPERS
 // ─────────────────────────────────────────
 function renderPoints(pfx,a,b){
-  document.getElementById(pfx+'-degA').textContent=degShort(a);
-  document.getElementById(pfx+'-subA').textContent=degLabel(a);
-  document.getElementById(pfx+'-degB').textContent=degShort(b);
-  document.getElementById(pfx+'-subB').textContent=degLabel(b);
+  document.getElementById(pfx+'-degA').textContent=degLabel(a);
+  document.getElementById(pfx+'-subA').textContent='';
+  document.getElementById(pfx+'-degB').textContent=degLabel(b);
+  document.getElementById(pfx+'-subB').textContent='';
   updateMap(pfx,a,b);
 }
 
@@ -587,20 +670,49 @@ function renderQ(pfx,q,onCheck){
   safeDivpClear('#'+pfx+'-qcard');   // 前問の正解スタンプ／バッジを消す
   const badge=document.getElementById(pfx+'-qBadge');
   badge.className='q-badge '+(q.type==='jisa'?'badge-jisa':'badge-jikoku');
-  badge.textContent=q.type==='jisa'?'時差を求める':'時刻を求める';
+  badge.textContent=q.type==='jisa'?'時差を求める':(q.type==='flight'?'✈ 到着時刻を求める':'時刻を求める');
   document.getElementById(pfx+'-qText').textContent=q.text;
   document.getElementById(pfx+'-fb').className='fb';
   document.getElementById(pfx+'-fb').innerHTML='';
 
   const area=document.getElementById(pfx+'-ansArea');
   if(q.type==='jisa'){
-    area.innerHTML=`<input type="number" id="${pfx}-userAns" min="0" max="12" placeholder="0〜12"><span class="unit">時間</span><button class="btn btn-primary" onclick="${onCheck}()">確認 <i class="ti ti-send"></i></button>`;
-    setTimeout(()=>{const el=document.getElementById(pfx+'-userAns');if(el){el.focus();el.addEventListener('keydown',e=>{if(e.key==='Enter')window[onCheck]();})}},80);
+    // 数値入力はテンキー（0〜12・横一列・小さめ）。値は hidden input に保持
+    area.style.cssText='display:flex;flex-direction:column;align-items:stretch;gap:0';
+    const keys=Array.from({length:10},(_,i)=>`<button type="button" class="keynum" onclick="pickNum('${pfx}',${i})">${i}</button>`).join('')
+      +`<button type="button" class="keynum keyback" onclick="delNum('${pfx}')">⌫</button>`;
+    area.innerHTML=`<div class="ans-row"><span class="ans-disp" id="${pfx}-ansDisp">?</span><span class="unit">時間</span>`
+      +`<button class="btn btn-primary" onclick="${onCheck}()">答え合わせ <i class="ti ti-circle-check"></i></button>`
+      +`<input type="hidden" id="${pfx}-userAns"></div>`
+      +`<div class="keypad" id="${pfx}-keypad">${keys}</div>`;
   } else {
+    area.style.cssText='';
+    const choices=q.dayChoices||[{l:'同じ日',o:0},{l:'翌日',o:1},{l:'前日',o:-1}];
+    const dayOpts=choices.map(c=>`<option value="${c.o}">${c.l}</option>`).join('');
     const opts=Array.from({length:24},(_,i)=>`<option value="${i}">${TIMES[i]}</option>`).join('');
-    const dayOpts=['同じ日','翌日','前日'].map(d=>`<option value="${d}">${d}</option>`).join('');
-    area.innerHTML=`<select id="${pfx}-selDay">${dayOpts}</select><select id="${pfx}-selH">${opts}</select><button class="btn btn-primary" onclick="${onCheck}()">確認 <i class="ti ti-send"></i></button>`;
+    area.innerHTML=`<select id="${pfx}-selDay">${dayOpts}</select><select id="${pfx}-selH">${opts}</select><button class="btn btn-primary" onclick="${onCheck}()">答え合わせ <i class="ti ti-circle-check"></i></button>`;
   }
+}
+
+// テンキー（0〜9）で桁を積み上げて入力（時差 0〜12）。checkQ は hidden input の value を読む
+function setNumDisp(pfx){
+  const inp=document.getElementById(pfx+'-userAns');
+  const disp=document.getElementById(pfx+'-ansDisp');
+  if(disp) disp.textContent=(inp&&inp.value!=='')?inp.value:'?';
+}
+function pickNum(pfx,n){
+  const inp=document.getElementById(pfx+'-userAns');
+  if(!inp||inp.disabled) return;
+  let v=inp.value===''?n:parseInt(inp.value,10)*10+n;
+  if(v>12) v=n;                 // 13以上になったら、今押した数字で入れ直し
+  inp.value=String(v);
+  setNumDisp(pfx);
+}
+function delNum(pfx){
+  const inp=document.getElementById(pfx+'-userAns');
+  if(!inp||inp.disabled) return;
+  inp.value=inp.value.slice(0,-1);
+  setNumDisp(pfx);
 }
 
 function checkQ(pfx,q){
@@ -615,11 +727,10 @@ function checkQ(pfx,q){
     const sd=document.getElementById(pfx+'-selDay');
     const sh=document.getElementById(pfx+'-selH');
     if(!sd||!sh) return null;
-    const dv=sd.value;
+    const dv=parseInt(sd.value,10);        // 日付オフセット
     const hv=parseInt(sh.value);
-    userAns=dv+' '+TIMES[hv];
-    const dayMatch=(q.dayOffset===0&&dv==='同じ日')||(q.dayOffset===1&&dv==='翌日')||(q.dayOffset===-1&&dv==='前日');
-    correct=dayMatch&&hv===q.bH;
+    userAns=sd.options[sd.selectedIndex].text+' '+TIMES[hv];
+    correct=(dv===q.dayOffset)&&(hv===q.bH);
     sd.disabled=true;sh.disabled=true;
   }
 
@@ -700,7 +811,7 @@ let aMode='mix',aOk=0,aTotal=0,aAnswered=false,aState={};
 
 function aSetMode(m){
   aMode=m;
-  ['mix','jisa','jikoku'].forEach(id=>{
+  ['mix','jisa','jikoku','flight'].forEach(id=>{
     const btn=document.getElementById('a-tab-'+id);
     btn.className='btn '+(id===m?'btn-primary':'btn-secondary');
   });
@@ -708,7 +819,7 @@ function aSetMode(m){
 }
 
 function aGenerate(){
-  const {q,a,b}=generateQ(genAppliedPoint,aMode);
+  const {q,a,b}=generateQ(genAppliedPoint,aMode,true);
   aState={q,a,b};
   aAnswered=false;
   renderPoints('a',a,b);
@@ -736,7 +847,7 @@ function aUpdateScore(){
 function aNextQ(){aGenerate();}
 function aReset(){aOk=0;aTotal=0;aUpdateScore();aGenerate();}
 
-['mix','jisa','jikoku'].forEach(id=>{
+['mix','jisa','jikoku','flight'].forEach(id=>{
   const btn=document.getElementById('a-tab-'+id);
   btn.className='btn '+(id===aMode?'btn-primary':'btn-secondary');
 });
@@ -788,6 +899,95 @@ function tUpdateTimer(){
   if(tSecondsLeft<=30) circle.className='timer-circle danger';
   else if(tSecondsLeft<=60) circle.className='timer-circle warn';
   else circle.className='timer-circle';
+}
+
+// ── 印刷（A4縦・1ページ4問・均等配置・共通ロゴ透かし付き）──
+function printTest(){
+  // 今表示中のページで選択されているモードを印字する
+  const active=document.querySelector('.page.active');
+  const pageId=active?active.id:'page-test';
+  let mode,allowFlight=false,pageLabel;
+  if(pageId==='page-basic'){ mode=bMode; pageLabel='基本'; }
+  else if(pageId==='page-applied'){ mode=aMode; allowFlight=true; pageLabel='応用'; }
+  else { mode=tMode; pageLabel='確認テスト'; }
+  const modeLabel={mix:'ミックス',jisa:'時差',jikoku:'時刻',flight:'飛行機'}[mode]||'';
+  const sheetTitle=`時差計算 ${pageLabel}（${modeLabel}）`;
+  const pickGen=()=> pageId==='page-basic'?genBasicPoint
+                   : pageId==='page-applied'?genAppliedPoint
+                   : (Math.random()<0.6?genBasicPoint:genAppliedPoint);
+  const items=[],seen=new Set();
+  for(let att=0;att<400&&items.length<4;att++){
+    const {q}=generateQ(pickGen(),mode,allowFlight);
+    if(seen.has(q.text)) continue;
+    seen.add(q.text);
+    items.push({q:q.text,a:q.answerStr});
+  }
+  const WM_CSS=window.ChukyoPrint?ChukyoPrint.css():'';
+  const WM_IMG=window.ChukyoPrint?ChukyoPrint.img():'';
+  const t=new Date();
+  const dateStr=`${t.getFullYear()}年${t.getMonth()+1}月${t.getDate()}日`;
+  const header=lbl=>`<div class="phead">
+      <div>
+        <div class="pschool">中京個別指導学院</div>
+        <div class="ptitle">${lbl}</div>
+      </div>
+      <div class="pmeta">
+        <div>名前：<span class="pname">&nbsp;</span></div>
+        <div class="pdate">${dateStr}</div>
+      </div>
+    </div>`;
+  const probBlocks=items.map((it,i)=>`<div class="prob">
+      <div class="qline"><span class="qno">(${i+1})</span><span class="qtext">${it.q}</span></div>
+      <div class="ansline">答え：<span class="blank">&nbsp;</span></div>
+    </div>`).join('');
+  const ansBlocks=items.map((it,i)=>`<div class="prob">
+      <div class="qline"><span class="qno">(${i+1})</span><span class="qtext">${it.q}</span></div>
+      <div class="ansline">答え：<strong>${it.a}</strong></div>
+    </div>`).join('');
+  const html=`<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8">
+<title>${sheetTitle}｜中京個別指導学院</title>
+<style>
+  @page { size: A4 portrait; margin: 10mm 18mm 14mm; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif; color:#111; }
+  @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
+  .page { height:273mm; display:flex; flex-direction:column; overflow:hidden; position:relative; }
+  .phead { display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2.5px solid #1A6B9A; padding-bottom:7px; margin-bottom:6px; }
+  .pschool { font-size:9pt; font-weight:700; color:#1A6B9A; margin-bottom:2px; }
+  .ptitle { font-size:17pt; font-weight:900; color:#0a1628; }
+  .pmeta { font-size:10.5pt; display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
+  .pname { border-bottom:1px solid #111; display:inline-block; min-width:120px; }
+  .pdate { font-size:9pt; color:#374151; }
+  .instr { font-size:9.5pt; color:#374151; margin-bottom:6px; }
+  .problems { display:flex; flex-direction:column; flex:1; }
+  .prob { flex:1; display:flex; flex-direction:column; justify-content:flex-start; gap:12px; border-bottom:1px dashed #cbd5e1; padding:10px 2px 4px; }
+  .prob:first-child { padding-top:0; }
+  .prob:last-child { border-bottom:none; }
+  .qline { display:flex; gap:8px; align-items:flex-start; }
+  .qno { font-weight:700; font-size:12.5pt; min-width:30px; }
+  .qtext { font-size:12.5pt; line-height:1.75; }
+  .ansline { font-size:12pt; padding-left:38px; }
+  .blank { border-bottom:1px solid #111; display:inline-block; min-width:230px; }
+  ${WM_CSS}
+</style></head><body>
+  <div class="page">
+    ${WM_IMG}
+    ${header(sheetTitle)}
+    <div class="instr">次の問いに答えなさい。（時差は 経度差 ÷ 15）</div>
+    <div class="problems">${probBlocks}</div>
+  </div>
+  <div class="page" style="page-break-before:always;">
+    ${WM_IMG}
+    ${header(sheetTitle+'　解答')}
+    <div class="instr">&nbsp;</div>
+    <div class="problems">${ansBlocks}</div>
+  </div>
+<\/body><\/html>`;
+  const w=window.open('','_blank','width=794,height=1123');
+  if(!w){ alert('ポップアップがブロックされました。印刷を許可してください。'); return; }
+  w.document.write(html); w.document.close();
+  setTimeout(()=>{ w.focus(); w.print(); },500);
 }
 
 function tGenerate(){
@@ -885,6 +1085,7 @@ function logJisaAnswer(page,state,correct,userAns){
   const q=state.q,a=state.a,b=state.b;
   const params={a:{e:a.isEast?1:0,d:a.deg},b:{e:b.isEast?1:0,d:b.deg},t:q.type};
   if(q.type==='jikoku'){params.h=q.miH;params.mo=q.miMonth;params.dy=q.miDay;}
+  if(q.type==='flight'){params.h=q.depH;params.mo=q.depMonth;params.dy=q.depDay;params.f=q.flight;}
   safeDivpAnswer(correct,{
     question_key:page+'_'+q.type,   // 例: basic_jisa / applied_jikoku / test_jisa
     question_params:params,
@@ -895,8 +1096,89 @@ function logJisaAnswer(page,state,correct,userAns){
 }
 
 // ─────────────────────────────────────────
+// 簡易世界地図（equirectangular・0°=中央、東経=右／西経=左）
+// 経度→x は mapX と同じ座標系。大陸は概略のシルエット（正確な地形ではない）。
+// ─────────────────────────────────────────
+const WORLD_PXPD=680/360, WORLD_TOPLAT=84; // 上端=北緯84°, 下端=南緯60°で272px
+function wPrj(lon,lat){return ((lon+180)*WORLD_PXPD).toFixed(1)+' '+((WORLD_TOPLAT-lat)*WORLD_PXPD).toFixed(1);}
+// 各大陸 = [経度,緯度] の頂点列（時計回り・概略）
+const WORLD_LANDS=[
+  // 北アメリカ（中米パナマまで＝南米とつながる）
+  [[-168,66],[-156,71],[-130,70],[-110,68],[-95,69],[-82,73],[-64,60],[-56,52],[-66,44],[-74,40],[-81,31],[-80,25],[-84,30],[-94,29],[-97,26],[-95,18],[-88,21],[-87,16],[-83,9],[-78,8],[-84,11],[-92,16],[-96,16],[-105,20],[-110,24],[-114,29],[-117,32],[-122,37],[-124,42],[-124,48],[-130,54],[-140,60],[-152,59],[-165,60]],
+  // グリーンランド
+  [[-45,60],[-50,64],[-55,70],[-45,76],[-30,80],[-20,76],[-22,70],[-30,66],[-40,62]],
+  // 南アメリカ（コロンビア＝パナマ側から）
+  [[-78,8],[-72,11],[-64,10],[-60,5],[-51,4],[-48,-2],[-42,-5],[-35,-8],[-39,-13],[-40,-20],[-48,-25],[-53,-34],[-62,-40],[-65,-45],[-68,-52],[-66,-55],[-71,-53],[-73,-45],[-72,-38],[-70,-30],[-70,-18],[-76,-14],[-81,-6],[-80,-2],[-79,2],[-78,5]],
+  // アフリカ（赤道はガボン〜ケニアを横切る）
+  [[-16,15],[-6,36],[10,37],[20,32],[25,32],[32,31],[35,28],[43,12],[51,11],[48,5],[41,-2],[40,-8],[40,-16],[35,-22],[32,-26],[26,-34],[18,-34],[13,-17],[9,-1],[8,4],[3,6],[-8,4],[-13,8]],
+  // マダガスカル
+  [[43,-13],[49,-15],[50,-20],[47,-25],[44,-22],[43,-16]],
+  // ヨーロッパ本土
+  [[-2,43],[-4,48],[0,49],[4,51],[9,54],[14,54],[19,54],[24,50],[28,48],[26,44],[20,42],[13,45],[7,44],[3,43]],
+  // イベリア半島
+  [[-9,43],[-9,37],[-6,36],[-2,36.5],[0,39],[3,42],[-2,43]],
+  // スカンジナビア半島
+  [[5,58],[5,62],[11,64],[15,68],[21,70],[25,71],[24,68],[20,65],[17,61],[12,59],[8,58]],
+  // イタリア半島
+  [[7,44],[13,45],[16,42],[18,40],[16,38],[15,40],[12,42],[10,44]],
+  // グレートブリテン島（本初子午線0°が通る）
+  [[-5,50],[-3,51],[0,51.5],[1.7,52.5],[0,53.5],[-2,56],[-3,58],[-5,58],[-6,56],[-5,54],[-4,52]],
+  // アイルランド島
+  [[-10,52],[-9,54.5],[-6,55],[-6,52],[-9,51.5]],
+  // アイスランド
+  [[-24,65],[-14,65],[-14,66.5],[-22,66.5]],
+  // ロシア西部（ウラル周辺でヨーロッパとアジアを連結）
+  [[24,50],[27,56],[33,60],[42,60],[50,55],[52,50],[47,46],[40,45],[33,46],[28,47]],
+  // アジア本土（シベリア〜中国）
+  [[30,60],[40,66],[55,68],[70,72],[90,75],[105,77],[120,74],[135,72],[150,70],[165,68],[178,66],[172,62],[162,58],[155,52],[143,53],[135,48],[131,43],[126,38],[122,40],[121,33],[120,28],[110,21],[108,15],[100,20],[95,22],[88,25],[80,30],[72,32],[62,38],[55,42],[48,42],[40,44],[33,50],[30,55]],
+  // インド半島
+  [[68,24],[73,18],[76,12],[78,8],[80,10],[83,16],[87,21],[89,24],[82,26],[74,28]],
+  // アラビア半島
+  [[35,30],[40,24],[47,20],[53,18],[57,22],[59,25],[57,28],[50,30],[44,30],[38,32]],
+  // 朝鮮半島
+  [[126,38],[129,36],[129,35],[127,34.5],[126,35],[125,37]],
+  // インドネシア・スマトラ島（赤道をまたぐ）
+  [[95,5],[99,2],[104,-2],[106,-6],[102,-5],[98,0],[95,3]],
+  // ジャワ島
+  [[105,-6],[110,-7],[114,-8],[112,-8.5],[108,-7.5],[105,-6.5]],
+  // ボルネオ島（赤道をまたぐ）
+  [[109,1],[113,4],[117,4],[119,1],[117,-3],[114,-3.5],[110,-2]],
+  // スラウェシ島
+  [[119,1],[121,1],[124,0],[125,-2],[121,-5],[120,-3],[120,0]],
+  // フィリピン諸島
+  [[120,18],[122,14],[126,10],[126,6],[123,7],[121,13],[120,16]],
+  // ニューギニア島
+  [[131,-1],[141,-3],[150,-6],[147,-8],[140,-8],[134,-5],[131,-2]],
+  // オーストラリア
+  [[113,-22],[114,-28],[115,-34],[120,-34],[125,-33],[129,-32],[134,-33],[138,-35],[141,-38],[146,-39],[150,-37],[153,-30],[153,-25],[148,-20],[142,-11],[137,-12],[132,-11],[126,-14],[122,-18],[116,-20]],
+  // タスマニア島
+  [[145,-41],[147,-41],[148,-43],[146,-43.5],[144,-42]],
+  // ニュージーランド
+  [[173,-35],[175,-38],[178,-40],[174,-42],[172,-45],[167,-46],[170,-43],[172,-40]],
+  // 日本（九州〜本州〜北海道の弓なりの列島）
+  [[130.5,31],[129.5,32],[130,33.5],[131,34],[132,35.3],[135,35.7],[137,37.2],[138.5,37.8],[140,39.2],[140.3,40.5],[140.7,41.5],[140.5,42.3],[141,43.3],[141.5,45.3],[144,44.3],[145.3,43.4],[143.5,42.5],[142,41.5],[141.5,40],[141.5,38.3],[140.8,36.8],[140,35.2],[138,34.6],[136,34.2],[135,33.5],[133,33.4],[132,32.8],[131.5,32],[131,31.3]]
+];
+// 各陸塊は独立した<path>として塗るだけ（線なし）。重なっても穴も継ぎ目もできず、
+// ユーラシアのように複数パーツが重なる大陸もきれいに一体で見える。
+function landD(poly){return 'M'+poly.map(pt=>wPrj(pt[0],pt[1])).join(' L ')+' Z';}
+function drawWorld(){
+  const NS='http://www.w3.org/2000/svg', LAND='#D3E3BE';
+  ['b','a','t'].forEach(pfx=>{
+    const g=document.getElementById(pfx+'-land');if(!g)return;
+    while(g.firstChild)g.removeChild(g.firstChild);
+    WORLD_LANDS.forEach(poly=>{
+      const p=document.createElementNS(NS,'path');
+      p.setAttribute('d',landD(poly));
+      p.setAttribute('fill',LAND);
+      g.appendChild(p);
+    });
+  });
+}
+
+// ─────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────
+drawWorld();
 bGenerate();
 aGenerate();
 </script>
