@@ -73,8 +73,9 @@ function grade_badge(string $filename): string
     $parts = explode('_', pathinfo($filename, PATHINFO_FILENAME));
     foreach ($parts as $p) {
         if (preg_match('/^(es|js|hs)(\d?)$/', $p, $m)) {
-            $school = ['es' => '小', 'js' => '中', 'hs' => '高'][$m[1]];
-            return $m[2] !== '' ? $school . $m[2] : $school . '学';
+            // 番号あり: 小3 / 中1 / 高2。番号なし: 小学 / 中学 / 高校（校種ごとに正しい語尾）
+            if ($m[2] !== '') return ['es' => '小', 'js' => '中', 'hs' => '高'][$m[1]] . $m[2];
+            return ['es' => '小学', 'js' => '中学', 'hs' => '高校'][$m[1]];
         }
     }
     return '';

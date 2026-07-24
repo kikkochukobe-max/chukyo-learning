@@ -92,6 +92,11 @@ return [
         'sub'   => '算数・小6',
         'url'   => '/learning/math/math_es6_keisan_dousuru.html',
     ],
+    'math_js2_keisan' => [
+        'title' => '計算完璧マスター',
+        'sub'   => '数学・中2',
+        'url'   => '/learning/math/math_js2_keisan.html',
+    ],
     'math_js2_renritsu_riyou' => [
         'title' => '連立方程式マスター 文章題編',
         'sub'   => '数学・中2',
@@ -111,5 +116,20 @@ return [
         'title' => '英単語練習',
         'sub'   => '英語・小学〜中3',
         'url'   => '/learning/english/english_js_eitango.html',
+    ],
+    'english_hs_target' => [
+        'title' => 'TARGET 1900+',
+        'sub'   => '英語・高校',
+        'url'   => '/learning/english/english_hs_target.html',
+    ],
+    'social_js_jisa' => [
+        'title' => '時差計算練習',
+        'sub'   => '社会・中学',
+        'url'   => '/learning/social/social_js_jisa.html',
+    ],
+    'science_js1_busshitsu' => [
+        'title' => '身のまわりの物質マスター',
+        'sub'   => '理科・中1',
+        'url'   => '/learning/science/science_js1_busshitsu.html',
     ],
 ];
