@@ -220,22 +220,22 @@ body{
   #print-area{display:block !important;position:absolute;left:0;top:0;width:100%;}
   @page{size:A4 portrait;margin:14mm 12mm;}
 }
-.p-sheet{font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif;color:#111;}
+.p-sheet{font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif;color:#111;position:relative;z-index:1;}
 .p-sheet .ph-head{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:6px;margin-bottom:12px;}
 .p-sheet .ph-title{font-weight:800;font-size:18px;}
 .p-sheet .ph-school{font-size:12px;color:#444;}
 .p-sheet .ph-meta{display:flex;justify-content:space-between;font-size:14px;align-items:center;}
 .p-sheet .ph-meta .ph-name{min-width:260px;height:42px;border:1px solid #999;border-radius:5px;display:inline-flex;align-items:center;padding:0 14px;}
 .p-sheet .ph-meta .ph-score{border-bottom:1px solid #999;min-width:130px;display:inline-block;padding-bottom:2px;text-align:center;}
-.p-grid{display:flex;flex-direction:column;justify-content:space-between;margin-top:8mm;min-height:216mm;}
-.p-item{display:flex;align-items:baseline;gap:12px;font-size:18px;padding-bottom:4mm;}
+.p-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(5,1fr);grid-auto-flow:column;column-gap:14mm;margin-top:8mm;min-height:216mm;}
+.p-item{display:flex;align-items:baseline;gap:12px;font-size:16px;padding-bottom:4mm;}
 .p-item .no{font-weight:800;width:34px;flex:0 0 auto;}
 .p-qbody{display:flex;flex-direction:column;gap:3px;}
 .p-caption{font-size:12px;color:#444;}
 .p-choices{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px;}
 .p-choice b{margin-right:3px;}
 .p-keypage{page-break-before:always;}
-.p-kgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px 26px;font-size:15px;margin-top:8mm;}
+.p-kgrid{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(5,auto);grid-auto-flow:column;gap:10px 26px;font-size:15px;margin-top:8mm;}
 .p-kgrid div{padding:6px 0;border-bottom:1px dotted #ccc;}
 .p-kgrid .no{font-weight:800;}
 </style>
@@ -244,6 +244,7 @@ body{
 <script src="/assets/divp-header.js"></script>
 <script src="/assets/divp-correct-jh.js"></script>
 <script src="/assets/divp-core.js"></script>
+<script src="/assets/print-watermark.js"></script>
 <div class="divp-wrap">
 
   <div class="divp-title">
@@ -1469,6 +1470,15 @@ function ansText(p){
   return kxStr("x = "+fmtR(p.ans));
 }
 function openPrint(){
+  // センター透かしロゴ：共通モジュール（未読込でも透かし無しで印刷できる）。
+  // position:fixed 上書きで用紙センターに固定・全ページへ繰り返し印字。
+  // zIndex:0 は印刷時の白背景に隠れないため（.p-sheet が z-index:1）
+  if(window.ChukyoPrint && !document.getElementById("pr-wm-style")){
+    var wmst=document.createElement("style");
+    wmst.id="pr-wm-style";
+    wmst.textContent=ChukyoPrint.css({zIndex:0})+".wm{position:fixed;}";
+    document.head.appendChild(wmst);
+  }
   var mode=state.mode;
   var modeLabel=(MODES.filter(function(m){return m.key===mode;})[0]||{}).label||"";
   var items="",keys="";
@@ -1487,7 +1497,8 @@ function openPrint(){
     keys+='<div><span class="no">('+n+')</span> &nbsp;'+ansText(p)+'</div>';
   }
   $("print-area").innerHTML=
-    '<div class="p-sheet"><div class="ph-head"><div class="ph-title">方程式マスター　'+escHtml(modeLabel)+'</div>'
+    (window.ChukyoPrint?ChukyoPrint.img():"")
+    +'<div class="p-sheet"><div class="ph-head"><div class="ph-title">方程式マスター　'+escHtml(modeLabel)+'</div>'
     +'<div class="ph-school">中京個別指導学院　www.chukyokobetsu.com</div></div>'
     +'<div class="ph-meta"><span class="ph-name">名前：</span><span class="ph-score">得点：　　／10</span></div>'
     +'<div class="p-grid">'+items+'</div>'

@@ -81,11 +81,11 @@ body{
 .topbar{display:flex;align-items:center;gap:10px;padding:4px 0 12px}
 .divp-title{
   font-family:"Zen Maru Gothic","Zen Kaku Gothic New",sans-serif;
-  font-size:1.55rem;font-weight:900;margin:0;letter-spacing:.05em;line-height:1.35;
+  font-size:clamp(1.18rem,5vw,1.55rem);font-weight:900;margin:0;letter-spacing:.03em;line-height:1.3;
 }
 .divp-title .tmark{
   background:linear-gradient(transparent 62%, rgba(203,107,82,.30) 62%, rgba(203,107,82,.30) 92%, transparent 92%);
-  padding:0 2px;
+  padding:0 2px;white-space:nowrap;
 }
 .divp-title small{
   display:inline-block;font-size:.68rem;font-weight:700;color:var(--shu-soft);
@@ -99,7 +99,7 @@ body{
   transition:border-color .15s;
 }
 .ghost-btn:hover{border-color:var(--ink2)}
-.ghost-btn:focus-visible,.key:focus-visible,.divp-check-btn:focus-visible,.start-btn:focus-visible{
+.ghost-btn:focus-visible,.key:focus-visible,.divp-check-btn:focus-visible,.start-btn:focus-visible,.choice:focus-visible{
   outline:2.5px solid var(--ai);outline-offset:2px;
 }
 
@@ -188,6 +188,8 @@ sup{font-size:.62em}
 .fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .12em;line-height:1.25}
 .fr .fn{border-bottom:2px solid currentColor;padding:0 .3em}
 .fr .fd{padding:0 .3em}
+/* 分数をふくむ単項式のマイナスは分数バーの高さ（中央）にそろえる */
+.negfrac{display:inline-flex;align-items:center;vertical-align:middle}
 
 /* systems of equations */
 .sys{display:inline-flex;align-items:center}
@@ -228,6 +230,15 @@ font-family:var(--mathfont);}
 .ans-in:focus{border-color:var(--ai);outline:none}
 .ans-in[readonly]{background:var(--paper)}
 
+/* fraction answer input (通分四則) : 分子／罫線／分母の段組 */
+#ansFrac .frac-in{display:inline-flex;flex-direction:column;align-items:center;gap:8px}
+#ansFrac .ans-in{font-size:1.15rem;padding:9px 10px}
+#ansFrac .fnum{width:min(240px,66vw)}
+#ansFrac .fden{width:130px}
+#ansFrac .fbar{height:3px;width:min(240px,66vw);background:var(--ink);border-radius:99px}
+/* 分母を入力中は 文字・符号キーを無効化（分母は整数のみ） */
+.pad.den-active .key.op{opacity:.32;pointer-events:none}
+
 .btnrow{display:flex;justify-content:center;gap:12px;margin:6px 0 14px;flex-wrap:wrap}
 .divp-check-btn{
   background:var(--shu);color:#fff;border:none;border-radius:999px;
@@ -244,6 +255,25 @@ font-family:var(--mathfont);}
   font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:.95rem;
   letter-spacing:.1em;padding:11px 26px;cursor:pointer;
 }
+
+/* 選択肢（6択） */
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:520px;margin:16px auto 6px}
+.choice{
+  font:inherit;font-family:var(--mathfont);font-size:1.2rem;line-height:1.3;
+  min-height:56px;padding:12px 10px;background:#fff;color:var(--ink);
+  border:1.8px solid var(--grid);border-radius:12px;cursor:pointer;text-align:center;
+  display:flex;align-items:center;justify-content:center;
+  transition:border-color .12s,background .12s,box-shadow .12s;
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;
+}
+.choice:hover{border-color:var(--ink2)}
+.choice.sel{border-color:var(--shu);background:#FBEDE9;box-shadow:0 0 0 2px rgba(199,62,46,.18)}
+.choice.correct{border-color:#3E7A4E;background:#EAF3E7;box-shadow:0 0 0 2px rgba(62,122,78,.18)}
+.choice.wrong{border-color:var(--shu);background:#FBEDE9;opacity:.85}
+.choice:disabled{cursor:default}
+.choice:disabled:hover{border-color:var(--grid)}
+.choice.sel:disabled:hover,.choice.correct:disabled:hover,.choice.wrong:disabled:hover{border-color:inherit}
+@media (max-width:380px){.choice{font-size:1.08rem;min-height:52px}}
 
 /* feedback */
 .fb{min-height:2.2em;text-align:center;font-size:.95rem;margin-bottom:8px}
@@ -280,11 +310,14 @@ font-family:var(--mathfont);}
   }
   .psheet-head .t{font-weight:700;font-size:13pt}
   .psheet-head .nm{margin-left:auto}
-  .pgrid{column-count:2;column-gap:26pt;margin:0;padding:0;list-style:none}
-  .pgrid li{break-inside:avoid;margin-bottom:16pt;line-height:1.7;font-family:var(--mathfont)}
+  /* 各ページ（問題・解答）。透かしロゴは position:fixed で各ページ中央に反復するので、ここはページ区切りのみ */
+  .page{page-break-after:always}
+  .page:last-child{page-break-after:auto}
+  /* 10問を2列×5行で、ページの高さいっぱいに均等配置する */
+  .pgrid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(5,1fr);
+    grid-auto-flow:column;column-gap:26pt;min-height:230mm;margin:0;padding:0;list-style:none}
+  .pgrid li{break-inside:avoid;line-height:1.7;font-family:var(--mathfont);padding:2pt 0}
   .pgrid li .pno{font-weight:700;margin-right:6pt}
-  .pgrid.sysgrid li{margin-bottom:22pt}
-  .pans{break-before:page}
   .pans h2{font-size:12pt;border-bottom:1pt solid #000;padding-bottom:4pt}
   .pans ol{column-count:2;column-gap:26pt;margin:0;padding:0;list-style:none;font-size:10.5pt}
   .pans li{break-inside:avoid;margin-bottom:6pt;font-family:var(--mathfont)}
@@ -301,6 +334,7 @@ font-family:var(--mathfont);}
 <script src="/assets/divp-header.js"></script>
 <script src="/assets/divp-correct-jh.js"></script>
 <script src="/assets/divp-core.js"></script>
+<script src="/assets/print-watermark.js"></script>
 <script>if(window.Divp&&Divp.init)Divp.init('math_js2_keisan');</script>
 <div class="app">
   <header class="topbar">
@@ -337,27 +371,16 @@ font-family:var(--mathfont);}
         <div class="stamp-clear" id="fxClear">◎</div>
       </div>
 
-      <div class="ansrow" id="ansExpr" hidden>
-        <input class="ans-in" id="inExpr" inputmode="none" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="答えを入力" aria-label="答え">
-      </div>
-      <div class="ansrow" id="ansSys" hidden>
-        <label for="inX">x =</label><input class="ans-in short" id="inX" inputmode="none" autocomplete="off" spellcheck="false" aria-label="xの値">
-        <label for="inY">y =</label><input class="ans-in short" id="inY" inputmode="none" autocomplete="off" spellcheck="false" aria-label="yの値">
-      </div>
-      <div class="ansrow" id="ansNum" hidden>
-        <input class="ans-in short" id="inNum" inputmode="none" autocomplete="off" spellcheck="false" placeholder="答え" aria-label="答え">
-      </div>
+      <div class="choices" id="choices" role="group" aria-label="答えをえらぶ"></div>
 
       <div class="btnrow">
-        <button class="divp-check-btn" id="checkBtn">答え合わせ</button>
+        <button class="divp-check-btn" id="checkBtn" disabled>答え合わせ</button>
         <button class="next-btn" id="nextBtn" hidden>次の問題 →</button>
         <button class="nextstep-btn" id="nextStepBtn" hidden>次のSTEPへ ➜</button>
       </div>
 
       <div class="fb" id="fb" aria-live="polite"></div>
-
-      <div class="pad" id="pad"></div>
-      <p class="note">キーボード入力もOK（全角でも自動変換）。Enterで答え合わせ／次の問題。</p>
+      <p class="note">正しい答えを1つえらんで「答え合わせ」。Enterでも答え合わせ／次の問題ができます。</p>
     </section>
   </main>
 </div>
@@ -508,13 +531,21 @@ function fnumText(f){return f.isInt()?String(f.n):f.n+'/'+f.d;}
 /* 答え用: 符号付き指数の単項式を、負の指数は分母に回して1つの分数で表示。
    指数がすべて0以上なら従来どおり（分子に係数＋変数）。 */
 function monoAnsHTML(t){
-  if(t.ex>=0&&t.ey>=0)return termsHTML([t]);
   const neg=t.c.n<0, a=neg?t.c.neg():t.c;
-  const numV=supHTML('x',Math.max(t.ex,0))+supHTML('y',Math.max(t.ey,0));
-  const denV=supHTML('x',Math.max(-t.ex,0))+supHTML('y',Math.max(-t.ey,0));
-  const num=(a.n===1&&numV)?numV:(a.n+numV);
-  const den=(a.d>1?String(a.d):'')+denV;
-  return (neg?'−':'')+fracHTML(num,den);
+  let body;
+  if(t.ex>=0&&t.ey>=0){
+    body=termsHTML([{c:a,ex:t.ex,ey:t.ey}]);   /* 正の単項式（分数係数なら分数を含む） */
+  }else{
+    const numV=supHTML('x',Math.max(t.ex,0))+supHTML('y',Math.max(t.ey,0));
+    const denV=supHTML('x',Math.max(-t.ex,0))+supHTML('y',Math.max(-t.ey,0));
+    const num=(a.n===1&&numV)?numV:(a.n+numV);
+    const den=(a.d>1?String(a.d):'')+denV;
+    body=fracHTML(num,den);
+  }
+  if(!neg)return body;
+  /* 分数をふくむ単項式は、マイナスを分数バーの高さ（中央）にそろえる */
+  const hasFrac=(a.d>1)||(t.ex<0)||(t.ey<0);
+  return hasFrac?'<span class="negfrac">−'+body+'</span>':'−'+body;
 }
 function monoAnsText(t){
   if(t.ex>=0&&t.ey>=0)return termsText([t]);
@@ -893,6 +924,8 @@ function genBunsuu(lv){
       P.map(u=>T(u.c.div(F.int(p)),u.ex,u.ey))
       .concat(Q.map(u=>T(u.c.mul(F.int(sg)).div(F.int(q)),u.ex,u.ey))));
     if(ans.length<2)continue;
+    let Lden=1;for(const t of ans)Lden=lcm(Lden,t.c.d);
+    if(Lden===1)continue;   /* 整数係数だけの答えは分数の段組入力に合わないので避ける */
     const pk=exprPack(
       fracHTML(termsHTML(P),p)+' '+(op==='-'?'−':'+')+' '+fracHTML(termsHTML(Q),q),
       '('+termsText(P)+')/'+p+op+'('+termsText(Q)+')/'+q,ans,{lv:lv,p:p,q:q});
@@ -1644,8 +1677,8 @@ const MODES=[
   hint:'かっこの中のすべての項に、数をかける／数でわろう。符号のミスに注意！'},
  {unit:'tashiki',key:'bunpai_kagen',name:'四則計算',ex:'2(x+3y)−3(2x−y)',gen:genBunpai,at:'expr',
   hint:'まず分配法則でかっこを外してから、同類項をまとめよう。−のかけ算に注意！'},
- {unit:'tashiki',key:'bunsuu',name:'通分四則',ex:'(x+2y)/3 + (2x−y)/4',gen:genBunsuu,at:'expr',
-  hint:'通分してから分子を計算しよう。答えは分数が前でも後ろでもOK。'},
+ {unit:'tashiki',key:'bunsuu',name:'通分四則',ex:'(x+2y)/3 + (2x−y)/4',gen:genBunsuu,at:'frac',
+  hint:'通分して1つの分数にまとめよう。分子のわくに式（例 2x+3y）、分母のわくに数を入れてね。'},
  {unit:'tashiki',key:'tanko_kake',name:'累乗と乗法',ex:'3x × (−4y)、(−2x)² × 3y',at:'expr',
   subs:['tan_kake','jijou_kake'],
   gen:makeMixGen([
@@ -1711,9 +1744,8 @@ const UNITS=[
    応用ボタンだけ朱色で強調（既存の .lv4.on スタイルを流用）。 */
 const BANDS=[{v:1,name:'基本',cls:''},{v:2,name:'標準',cls:''},{v:3,name:'応用',cls:'lv4'}];
 function bandName(b){const x=BANDS.find(function(o){return o.v===b;});return x?x.name:'基本';}
-const state={key:null,q:null,answered:false,band:1,modes:{}};/* band: 1=基本,2=標準,3=応用 */
+const state={key:null,q:null,answered:false,band:1,modes:{},choices:null,correctHTML:''};/* band: 1=基本,2=標準,3=応用 */
 MODES.forEach(function(m){state.modes[m.key]={correct:0,streak:0,cleared:false};});
-let activeInput=null;
 
 function $(id){return document.getElementById(id);}
 /* テスト運用用: URLに ?lv=1〜4 を付けると内部レベル固定（例: math_js2_keisan.html?lv=4） */
@@ -1779,12 +1811,6 @@ function showPractice(key){
   newQuestion();
 }
 function curAt(){return (state.q&&state.q.at)||curMode().at;}
-function inputsOf(){
-  const at=curAt();
-  if(at==='expr')return [$('inExpr')];
-  if(at==='sys')return [$('inX'),$('inY')];
-  return [$('inNum')];
-}
 function renderDots(){
   const st=state.modes[state.key];
   let h='';
@@ -1807,11 +1833,111 @@ function fitExpr(){
     else el.style.fontSize=target+'px';
   }
 }
+/* =====================================================
+   6択（選択式）：正解＋それらしい誤答5つを作って並べる。
+   入力の負担をなくすため、全STEPで答えは選択式にする（プリントは記述式のまま）。
+   誤答は「よくある計算ミス」を模した摂動で作り、描画は正解と同じ関数を使う
+   （字体・分数バーの有無などで正解が見分けられないようにする）。
+===================================================== */
+function cloneTerms(ts){return ts.map(function(t){return {c:new F(t.c.n,t.c.d),ex:t.ex,ey:t.ey};});}
+function exprAnsHTML(ts){return ts.length===1?monoAnsHTML(ts[0]):termsHTML(ts);}
+function exprAnsText(ts){return ts.length===1?monoAnsText(ts[0]):termsText(ts);}
+function perturbTerms(terms){
+  const out=[], n=terms.length;
+  for(let i=0;i<n;i++){const c=cloneTerms(terms);c[i].c=c[i].c.neg();out.push(c);}               /* 符号ミス */
+  out.push(cloneTerms(terms).map(function(t){return {c:t.c.neg(),ex:t.ex,ey:t.ey};}));            /* 全項符号ミス */
+  for(let i=0;i<n;i++){
+    const a=cloneTerms(terms);a[i].c=a[i].c.add(F.int(1));out.push(a);                             /* 係数±1 */
+    const b=cloneTerms(terms);b[i].c=b[i].c.add(F.int(-1));out.push(b);
+    const d=cloneTerms(terms);d[i].c=d[i].c.mul(F.int(2));out.push(d);                             /* 係数×2 */
+  }
+  for(let i=0;i<n;i++){
+    const t=terms[i];
+    if((t.ex>0)!==(t.ey>0)){const e=cloneTerms(terms);const s=e[i].ex;e[i].ex=e[i].ey;e[i].ey=s;out.push(e);} /* x↔y取り違え */
+    if(t.ex>=1){const f=cloneTerms(terms);f[i].ex=t.ex-1;out.push(f);}                             /* 指数ミス */
+    if(t.ey>=1){const g=cloneTerms(terms);g[i].ey=t.ey-1;out.push(g);}
+  }
+  return out.map(combineTerms).filter(function(ts){return ts.length>0;});
+}
+function perturbPair(s,t){
+  return [[-s,t],[s,-t],[-s,-t],[t,s],
+    [s+1,t],[s-1,t],[s,t+1],[s,t-1],
+    [s+1,t+1],[s-1,t-1],[s+1,t-1],[s-1,t+1],[s+2,t],[s,t+2]];
+}
+function perturbNum(v){
+  const out=[];
+  if(v.isInt()){
+    [-1,1,-2,2,-3,3].forEach(function(d){out.push(F.int(v.n+d));});
+    out.push(F.int(-v.n));out.push(F.int(2*v.n));
+  }else{
+    const n=v.n,d=v.d;
+    [-1,1,-2,2].forEach(function(k){out.push(new F(n+k,d));});
+    out.push(new F(-n,d));out.push(new F(n+d,d));out.push(new F(n-d,d));
+    out.push(new F(n,d+1));
+    if(d>2)out.push(new F(n,d-1));
+  }
+  return out;
+}
+function buildChoices(q,at){
+  let correctHTML,correctText,renderH,renderT,pool,fallback;
+  if(at==='sys'){
+    const s=q.answer.x.n, t=q.answer.y.n;
+    renderH=function(p){return 'x = '+numDisp(p[0])+'，y = '+numDisp(p[1]);};
+    renderT=function(p){return 'x='+p[0]+', y='+p[1];};
+    correctHTML=renderH([s,t]);correctText=renderT([s,t]);
+    pool=perturbPair(s,t).map(function(p){return {html:renderH(p),text:renderT(p)};});
+    fallback=function(){const p=[s+ri(-4,4),t+ri(-4,4)];return {html:renderH(p),text:renderT(p)};};
+  }else if(at==='num'){
+    const v=q.answer.v;
+    renderH=function(f){return fnumHTML(f);};renderT=function(f){return fnumText(f);};
+    correctHTML=renderH(v);correctText=renderT(v);
+    let p=perturbNum(v).filter(function(f){return v.isInt()?f.isInt():!f.isInt();});   /* 整数/分数の形をそろえる */
+    pool=p.map(function(f){return {html:renderH(f),text:renderT(f)};});
+    fallback=function(){const f=v.add(new F(ri(-4,4),1));if(f.isInt()!==v.isInt())return null;return {html:renderH(f),text:renderT(f)};};
+  }else{
+    const fracMode=(at==='frac');
+    renderH=function(ts){return fracMode?fracFormHTML(ts):exprAnsHTML(ts);};
+    renderT=function(ts){return fracMode?fracFormText(ts):exprAnsText(ts);};
+    correctHTML=renderH(q.answer.terms);correctText=renderT(q.answer.terms);
+    let p=perturbTerms(q.answer.terms);
+    if(fracMode)p=p.filter(function(ts){let L=1;for(const t of ts)L=lcm(L,t.c.d);return L>1;});   /* 分数の形を保つ */
+    pool=p.map(function(ts){return {html:renderH(ts),text:renderT(ts)};});
+    fallback=function(){const c=cloneTerms(q.answer.terms);const i=ri(0,c.length-1);c[i].c=c[i].c.add(F.int(ri(-2,2)));const ts=combineTerms(c);if(!ts.length)return null;if(fracMode){let L=1;for(const t of ts)L=lcm(L,t.c.d);if(L<=1)return null;}return {html:renderH(ts),text:renderT(ts)};};
+  }
+  const seen={};seen[correctHTML]=true;
+  const distract=[];
+  shuffle(pool);
+  for(const cand of pool){
+    if(distract.length>=5)break;
+    if(seen[cand.html])continue;
+    seen[cand.html]=true;
+    distract.push({html:cand.html,text:cand.text,correct:false});
+  }
+  let guard=0;
+  while(distract.length<5&&guard<300){
+    guard++;
+    const fb=fallback();
+    if(!fb||seen[fb.html])continue;
+    seen[fb.html]=true;
+    distract.push({html:fb.html,text:fb.text,correct:false});
+  }
+  return shuffle(distract.concat([{html:correctHTML,text:correctText,correct:true}]));
+}
+function renderChoices(){
+  const list=buildChoices(state.q,curAt());
+  state.choices=list;
+  const cc=list.filter(function(c){return c.correct;})[0];
+  state.correctHTML=cc?cc.html:'';
+  let h='';
+  list.forEach(function(c,i){
+    h+='<button type="button" class="choice" data-i="'+i+'"'+(c.correct?' data-correct="1"':'')+'>'+c.html+'</button>';
+  });
+  $('choices').innerHTML=h;
+}
 function newQuestion(){
   const m=curMode();
   state.q=m.gen(curLv());
   state.answered=false;
-  buildPad(curAt());
   $('pLv').textContent=bandName(state.band);
   renderDots();
   $('qMain').innerHTML=state.q.html;
@@ -1824,85 +1950,31 @@ function newQuestion(){
   /* 共通ハンコ（divp-correct-jh）を出している場合、.paper は再描画しないので手動で消す */
   try{var pp=document.querySelector('.paper');if(pp)pp.querySelectorAll('.divp-hanko,.divp-nice').forEach(function(el){el.remove();});}catch(e){}
   $('fb').innerHTML='';
-  const at=curAt();
-  $('ansExpr').hidden=at!=='expr';
-  $('ansSys').hidden=at!=='sys';
-  $('ansNum').hidden=at!=='num';
-  inputsOf().forEach(function(el){el.value='';el.readOnly=false;});
-  $('checkBtn').hidden=false;
+  renderChoices();
+  $('checkBtn').hidden=false;$('checkBtn').disabled=true;
   $('nextBtn').hidden=true;$('nextStepBtn').hidden=true;
   document.dispatchEvent(new CustomEvent('divp:nextQuestion'));
-  if(window.matchMedia('(pointer:fine)').matches)inputsOf()[0].focus({preventScroll:true});
-}
-
-/* ---- keypad ---- */
-function buildPad(at){
-  const pad=$('pad');
-  pad.classList.toggle('numpad',at!=='expr');
-  const keys=at==='expr'
-    ?['7','8','9','0','⌫','4','5','6','x','y','1','2','3','+','−','(',')','²','^','/','C']
-    :['7','8','9','⌫','4','5','6','−','1','2','3','/','0','.','C'];
-  let h='';
-  for(const k of keys){
-    const cls='key'+((k==='⌫'||k==='C')?' util':('+-−()²^/xy.'.indexOf(k)>=0?' op':''));
-    h+='<button type="button" class="'+cls+'" data-k="'+k+'">'+k+'</button>';
-  }
-  pad.innerHTML=h;
-}
-function setCaret(el,pos){try{el.setSelectionRange(pos,pos);}catch(e){}}
-function padPress(k){
-  let el=activeInput;
-  if(!el||el.offsetParent===null||el.readOnly)el=inputsOf()[0];
-  if(!el||el.readOnly)return;
-  const st=el.selectionStart==null?el.value.length:el.selectionStart;
-  const en=el.selectionEnd==null?el.value.length:el.selectionEnd;
-  if(k==='C')el.value='';
-  else if(k==='⌫'){
-    if(st===en&&st>0){el.value=el.value.slice(0,st-1)+el.value.slice(en);setCaret(el,st-1);}
-    else{el.value=el.value.slice(0,st)+el.value.slice(en);setCaret(el,st);}
-  }else{
-    const ins=(k==='−')?'-':k;
-    el.value=el.value.slice(0,st)+ins+el.value.slice(en);
-    setCaret(el,st+ins.length);
-  }
-  if(window.matchMedia('(pointer:fine)').matches)el.focus({preventScroll:true});
 }
 
 /* ---- judge ---- */
 function warnMsg(msg){$('fb').innerHTML='<span class="warn">'+msg+'</span>';}
 function judge(){
   if(state.answered)return;
-  const m=curMode(), q=state.q;
-  try{
-    let ok=false, userText='';
-    const at=curAt();
-    if(at==='expr'){
-      const r=parseAnswerExpr($('inExpr').value);
-      userText=normalizeInput($('inExpr').value);
-      if(termsEq(r.terms,q.answer.terms)){
-        if(r.uns){warnMsg('計算は合っているけど、まだ整理できるよ。かっこを外して、同類項をまとめた形で答えよう。');return;}
-        if(r.unr){warnMsg('計算は合っているけど、まだ約分できるよ。');return;}
-        ok=true;
-      }
-    }else if(at==='sys'){
-      const x=parseNumberAns($('inX').value), y=parseNumberAns($('inY').value);
-      userText='x='+normalizeInput($('inX').value)+', y='+normalizeInput($('inY').value);
-      ok=x.eq(q.answer.x)&&y.eq(q.answer.y);
-    }else{
-      const v=parseNumberAns($('inNum').value);
-      userText=normalizeInput($('inNum').value);
-      ok=v.eq(q.answer.v);
-    }
-    finish(ok,userText);
-  }catch(err){
-    if(err&&err.parse){warnMsg(err.message);return;}
-    throw err;
-  }
+  const sel=$('choices').querySelector('.choice.sel');
+  if(!sel){warnMsg('答えをえらんでね');return;}
+  const choice=state.choices[+sel.dataset.i];
+  const ok=!!(choice&&choice.correct);
+  finish(ok, ok?null:(choice?choice.text:''));
 }
 function finish(ok,userText){
   const m=curMode(), q=state.q, st=state.modes[m.key];
   state.answered=true;
-  inputsOf().forEach(function(el){el.readOnly=true;});
+  const sel=$('choices').querySelector('.choice.sel');
+  $('choices').querySelectorAll('.choice').forEach(function(b){
+    b.disabled=true;
+    if(b.dataset.correct==='1')b.classList.add('correct');
+    else if(b===sel)b.classList.add('wrong');
+  });
   $('checkBtn').hidden=true;
   sendDivp(ok,userText);
   if(ok){
@@ -1919,7 +1991,7 @@ function finish(ok,userText){
   }else{
     st.streak=0;
     if(!safeStamp('incorrect'))$('fxBatsu').classList.add('show');
-    $('fb').innerHTML='<span class="ng">正解は <b>'+q.ansHTML+'</b></span><span class="hint">💡 '+(q.hint||m.hint)+'</span>';
+    $('fb').innerHTML='<span class="ng">正解は <b>'+(state.correctHTML||q.ansHTML)+'</b></span><span class="hint">💡 '+(q.hint||m.hint)+'</span>';
   }
   renderDots();
   $('nextBtn').hidden=false;
@@ -1955,15 +2027,22 @@ function sendDivp(ok,userText){
 function buildPrint(){
   const m=curMode();
   if(!m)return;
-  const n=m.at==='sys'?10:20;
+  const n=10;   /* どのSTEPも10問ずつ均等に */
   const items=[];
   for(let i=0;i<n;i++){
-    /* 基本=全問lv1 / 応用=全問lv4 / 標準=前半lv2・後半lv3で段階的に */
+    /* 基本=全問lv1 / 応用=全問lv4 / 標準=前半5問lv2・後半5問lv3で段階的に */
     const lv=FORCE_LV||(state.band===1?1:state.band===3?4:(i<n*.5?2:3));
     items.push(m.gen(lv,true));
   }
   const lbl=m.rand?'★':'STEP'+m.step;
-  let h='<div class="psheet-head"><span class="t">中2計算プリント　'+lbl+'　'+m.name+'</span>'
+  /* ロゴ透かし（print-watermark.js。全ツール共通の呼び方：既定の濃さ＋position:fixedで各ページ中央に反復。
+     未読込＝ローカル等では黙って省略） */
+  const wmImg=window.ChukyoPrint?ChukyoPrint.img():'';
+  const wmCss=window.ChukyoPrint?'<style>'+ChukyoPrint.css({zIndex:0})+'.wm{position:fixed;}</style>':'';
+  let h=wmCss+wmImg;
+  /* 1ページ目: 問題 */
+  h+='<div class="page">'
+    +'<div class="psheet-head"><span class="t">中2計算プリント　'+lbl+'　'+m.name+'</span>'
     +'<span class="nm">名前（　　　　　　　　　）</span></div>';
   h+='<ol class="pgrid'+(m.at==='sys'?' sysgrid':'')+'">';
   items.forEach(function(q,i){
@@ -1971,11 +2050,13 @@ function buildPrint(){
       +(q.cond?'<span style="font-size:9.5pt">'+q.cond+'</span><br>':'')
       +q.html+'</li>';
   });
-  h+='</ol><div class="pans"><h2>解答　'+lbl+'　'+m.name+'</h2><ol>';
+  h+='</ol></div>';
+  /* 2ページ目: 解答 */
+  h+='<div class="page"><div class="pans"><h2>解答　'+lbl+'　'+m.name+'</h2><ol>';
   items.forEach(function(q,i){
     h+='<li>('+(i+1)+')　'+q.ansHTML+'</li>';
   });
-  h+='</ol></div>';
+  h+='</ol></div></div>';
   $('printArea').innerHTML=h;
   window.print();
 }
@@ -2055,12 +2136,14 @@ function init(){
     const i=MODES.indexOf(curMode());
     if(i<MODES.length-1)showPractice(MODES[i+1].key);
   });
-  $('pad').addEventListener('click',function(e){
-    const b=e.target.closest('.key');
-    if(b)padPress(b.dataset.k);
-  });
-  document.addEventListener('focusin',function(e){
-    if(e.target&&e.target.classList&&e.target.classList.contains('ans-in'))activeInput=e.target;
+  /* 選択肢を1つえらぶ（もう一度押すと選び直し）。えらんだら「答え合わせ」が押せる */
+  $('choices').addEventListener('click',function(e){
+    if(state.answered)return;
+    const b=e.target.closest('.choice');
+    if(!b)return;
+    $('choices').querySelectorAll('.choice').forEach(function(x){x.classList.remove('sel');});
+    b.classList.add('sel');
+    $('checkBtn').disabled=false;
   });
   document.addEventListener('keydown',function(e){
     if($('practice').hidden)return;

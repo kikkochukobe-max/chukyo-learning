@@ -423,9 +423,6 @@ body.no-speech #autoplay-bar{display:none!important}
   </div>
   <div class="hd-right">
     <div class="total-badge">全 <b id="total-count">0</b> 語収録</div>
-    <a class="juku-link" href="https://chukyokobetsu.com/" target="_blank" rel="noopener">
-      <span class="jk-icon">🏫</span>中京個別指導学院
-    </a>
   </div>
 </header>
 
@@ -574,15 +571,6 @@ body.no-speech #autoplay-bar{display:none!important}
   </div>
 </div>
 
-<!-- FOOTER -->
-<footer class="site-footer">
-  <div class="footer-inner">
-    <a class="footer-juku-link" href="https://chukyokobetsu.com/" target="_blank" rel="noopener">
-      🏫&nbsp;中京個別指導学院 | 名古屋・長久手・日進の個別指導 学習塾
-    </a>
-    <div class="footer-copy">© 中京個別指導学院　このサイトは塾生の学習をサポートするために作成されました。</div>
-  </div>
-</footer>
 
 <script>
 // ===== 学習記録（共通モジュール divp-core.js 経由でヘテムルDBへ記録）=====
@@ -1789,7 +1777,7 @@ const JHS3_DATA = [
       { en: "the Northern Pacific Ocean", ph: "", jp: "北太平洋", pos: "固有名" },
       { en: "as a result", ph: "", jp: "（…の）結果として", pos: "熟" },
       { en: "bomb", ph: "[bɒm]", jp: "爆弾", pos: "名" },
-      { en: "lost", ph: "[lɒst]", jp: "（← lose）", pos: "動" },
+      { en: "lost", ph: "[lɒst]", jp: "loseの過去形", pos: "動" },
       { en: "injure(d)", ph: "[ɪndʒərd]", jp: "〜を傷つける", pos: "動" },
       { en: "shade", ph: "[ʃeɪd]", jp: "日陰", pos: "名" },
       { en: "dead", ph: "[ded]", jp: "死んだ", pos: "形" },
@@ -1810,11 +1798,11 @@ const JHS3_DATA = [
       { en: "kit", ph: "[kɪt]", jp: "道具[用品]一式", pos: "名" },
       { en: "recommend(ed)", ph: "[rekəmend(ɪd)]", jp: "〜をすすめる、〜を推薦する", pos: "動" },
       { en: "earthquake", ph: "[ɜːrθkweɪk]", jp: "地震", pos: "名" },
-      { en: "rode", ph: "[roʊd]", jp: "（← ride）", pos: "動" },
+      { en: "rode", ph: "[roʊd]", jp: "rideの過去形", pos: "動" },
       { en: "bicycle", ph: "[baɪsɪkl]", jp: "自転車", pos: "名" },
       { en: "toward", ph: "[tɔːrd]", jp: "〜に向かって", pos: "前" },
       { en: "apartment", ph: "[əpɑːrtmənt]", jp: "アパート", pos: "名" },
-      { en: "caught", ph: "[kɔːt]", jp: "（← catch）", pos: "動" },
+      { en: "caught", ph: "[kɔːt]", jp: "catchの過去形", pos: "動" },
       { en: "tsunami", ph: "[tsʊnɑːmi]", jp: "津波", pos: "名" },
       { en: "sudden", ph: "[sʌdn]", jp: "突然の", pos: "形" },
       { en: "news", ph: "[njuːz]", jp: "知らせ", pos: "名" },
@@ -1854,7 +1842,7 @@ const JHS3_DATA = [
       { en: "accept", ph: "[əksept]", jp: "〜を受け入れる", pos: "動" },
       { en: "law", ph: "[lɔː]", jp: "法律", pos: "名" },
       { en: "unfair", ph: "[ʌnfeər]", jp: "不公平な", pos: "形" },
-      { en: "stood", ph: "[stʊd]", jp: "（← stand）", pos: "動" },
+      { en: "stood", ph: "[stʊd]", jp: "standの過去形", pos: "動" },
       { en: "arrest(ed)", ph: "[ərest(ɪd)]", jp: "〜を逮捕する", pos: "動" },
       { en: "jail(s)", ph: "[dʒeɪl(z)]", jp: "刑務所", pos: "名" },
       { en: "non-violent", ph: "[nɒnvaɪələnt]", jp: "非暴力の", pos: "形" },
@@ -1906,7 +1894,7 @@ const JHS3_DATA = [
       { en: "coat(s)", ph: "[koʊt(s)]", jp: "コート", pos: "名" },
       { en: "Asian", ph: "[eɪʒn]", jp: "アジアの", pos: "形" },
       { en: "fact", ph: "[fækt]", jp: "事実", pos: "名" },
-      { en: "sold", ph: "[soʊld]", jp: "（← sell）", pos: "動" },
+      { en: "sold", ph: "[soʊld]", jp: "sellの過去形", pos: "動" },
       { en: "exception", ph: "[ɪksepʃən]", jp: "例外", pos: "名" },
       { en: "surround(ed)", ph: "[səraʊnd(ɪd)]", jp: "〜を囲む", pos: "動" },
       { en: "daily", ph: "[deɪli]", jp: "日常の", pos: "形" },
@@ -2317,6 +2305,18 @@ function quizNext() { quizIdx++; renderQuiz(); }
 // ============================================================
 // SPELL
 // ============================================================
+// データの英語は NEW HORIZON 表記に合わせて活用・複数形を括弧で示す
+// （例 "recycle(d)" / "drawing(s)" / "killer whale(s)"）。
+// スペル判定ではこの括弧をそのまま打たせず、
+// 原形（括弧ごと除去）と活用形（括弧記号のみ除去）の両方を正解として受け付ける。
+function spellVariants(en){
+  const set = new Set();
+  const add = s => { const t = s.replace(/\s+/g,' ').trim().toLowerCase(); if(t) set.add(t); };
+  add(en.replace(/\([^)]*\)/g, ''));   // 原形:   recycle / drawing / killer whale
+  add(en.replace(/[()]/g, ''));        // 活用形: recycled / drawings / killer whales
+  return set;
+}
+
 function initSpell() {
   spellWords = shuffle(currentUnit.words);
   spellIdx = 0; spellScore = 0; spellAnswered = false;
@@ -2347,10 +2347,9 @@ function checkSpell() {
   const raw = inp.value.trim();
   const ans = raw.toLowerCase();
   const w = spellWords[spellIdx];
-  const correct = w.en.toLowerCase();
   spellAnswered = true; inp.disabled = true;
   const fb = document.getElementById('spell-feedback');
-  const isOk = ans===correct;
+  const isOk = spellVariants(w.en).has(ans);
   if(isOk) {
     inp.classList.add('ok');
     fb.className='feedback-box ok'; fb.textContent='✓ 正解！ "'+w.en+'"'; spellScore++;
