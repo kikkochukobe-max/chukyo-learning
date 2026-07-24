@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 // ============================================================
-// 動的XP単価の日次バッチ（xp_dynamic_spec.md §2）
+// 動的XP単価の日次バッチ（docs/xp_dynamic_spec.md §2）
 // Hetemlのcronで深夜(例 3:00)に1日1回実行する。
 //
 // 全生徒の全期間の正答率から question_catalog.current_xp を更新する:

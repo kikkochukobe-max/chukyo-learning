@@ -51,13 +51,17 @@ function grade_label(?string $grade): string
 
 // ---- 表示期間(今週/先週/今月/全期間) ----
 $period = (string)($_GET['period'] ?? 'week');
-if (!in_array($period, ['today', 'week', 'last_week', 'month', 'all'], true)) {
+if (!in_array($period, ['today', 'yesterday', 'week', 'last_week', 'month', 'all'], true)) {
     $period = 'week';
 }
 $thisMonday = new DateTimeImmutable('monday this week');
 switch ($period) {
     case 'today':
         $from = new DateTimeImmutable('today 00:00:00');
+        $to = $from->modify('+1 day');
+        break;
+    case 'yesterday':
+        $from = new DateTimeImmutable('yesterday 00:00:00');
         $to = $from->modify('+1 day');
         break;
     case 'last_week':
@@ -77,7 +81,7 @@ switch ($period) {
         $to = $thisMonday->modify('+7 days');
         break;
 }
-$periodLabels = ['today' => '今日', 'week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => 'これまで'];
+$periodLabels = ['today' => '今日', 'yesterday' => '昨日', 'week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => 'これまで'];
 $eyebrow = $periodLabels[$period] . 'の がんばり';
 
 // 期間条件付きのWHERE句を組み立てる（$fromがnullなら全期間）
