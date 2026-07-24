@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 // 保護者閲覧ページ。ひもづく子ども全員の学習サマリー（学習時間・種類別の解答数/正解数/正答率）を表示。
 // 設計ルール: 誤解答の詳細・端末情報は出さない（それらは講師画面専用）。
-// 保護者ログインは login_id = g+代表の子の生徒コード / パスワード（auth.php の actor_type=guardian）。
-// パスワードは講師と同じ方式: 登録時に仮パスワード(8字英数)が自動発行され、
-// must_change_password=1 の間はこのページで本人が8〜15字の英数に変更するまで内容を表示しない。
+// 保護者ログインは login_id = g+代表の子の生徒コード / パスワード = お子さまの生徒PIN（4桁）。
+// 保護者は自前のパスワードを持たず、ひもづくお子さまのうち誰かの生徒PINが合えばログインできる
+// （認証は auth.php の actor_type=guardian が生徒側の password_hash と照合）。
 require_once __DIR__ . '/api/db.php';
 require_once __DIR__ . '/api/helpers.php';
 
@@ -27,22 +27,24 @@ function grade_label(?string $grade): string
 
 // ---- 表示期間 ----
 $period = (string)($_GET['period'] ?? 'week');
-if (!in_array($period, ['week', 'last_week', 'month', 'all'], true)) {
+if (!in_array($period, ['today', 'yesterday', 'week', 'last_week', 'month', 'all'], true)) {
     $period = 'week';
 }
 $thisMonday = new DateTimeImmutable('monday this week');
 switch ($period) {
+    case 'today':     $from = new DateTimeImmutable('today'); $to = $from->modify('+1 day'); break;
+    case 'yesterday': $from = new DateTimeImmutable('yesterday'); $to = $from->modify('+1 day'); break;
     case 'last_week': $from = $thisMonday->modify('-7 days'); $to = $thisMonday; break;
     case 'month':     $from = new DateTimeImmutable('first day of this month 00:00:00'); $to = $from->modify('+1 month'); break;
     case 'all':       $from = null; $to = null; break;
     default:          $from = $thisMonday; $to = $thisMonday->modify('+7 days'); break;
 }
-$periodLabels = ['week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => 'これまで'];
+$periodLabels = ['today' => '今日', 'yesterday' => '昨日', 'week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => 'これまで'];
 
-// 学習の足あと（日別ドット）は週表示のときだけ出す
-$showWeekDots = in_array($period, ['week', 'last_week'], true);
+// 学習の足あと（講師ページと同じ日別カレンダー）: 期間タブとは独立に直近35日を集計する。
+// 期間タブは4カードの初期値(＝そのまとめ)を決め、カレンダーの日付タップで一時的に上書きする。
 $todayStr = (new DateTimeImmutable('today'))->format('Y-m-d');
-$dayLabels = ['月', '火', '水', '木', '金', '土', '日'];
+$footFrom = (new DateTimeImmutable('today'))->modify('-34 days')->format('Y-m-d 00:00:00');
 
 function period_where(string $column, ?DateTimeImmutable $from, ?DateTimeImmutable $to, array &$params): string
 {
@@ -54,16 +56,14 @@ function period_where(string $column, ?DateTimeImmutable $from, ?DateTimeImmutab
 
 $children = [];
 $guardianName = '';
-$mustChange = false;
 if ($isGuardian) {
     $pdo = db();
-    $stmt = $pdo->prepare('SELECT guardian_name, must_change_password FROM guardians WHERE guardian_id = :id');
+    $stmt = $pdo->prepare('SELECT guardian_name FROM guardians WHERE guardian_id = :id');
     $stmt->execute(['id' => $actor['id']]);
     $g = $stmt->fetch();
     $guardianName = (string)($g['guardian_name'] ?? '');
-    $mustChange = (bool)($g['must_change_password'] ?? false);
 }
-if ($isGuardian && !$mustChange) {
+if ($isGuardian) {
     $pdo = db();
     $stmt = $pdo->prepare(
         'SELECT s.student_id, s.student_name, s.grade, c.classroom_name
@@ -127,31 +127,24 @@ if ($isGuardian && !$mustChange) {
             $units[$row['unit_key']][] = $row;
         }
 
-        // 学習の足あと（週表示時のみ・日別の学習秒数と解いた問題数）
-        $daily = [];
-        $dailySolved = [];
-        if ($showWeekDots) {
-            $range = ['id' => $sid, 'from' => $from->format('Y-m-d 00:00:00'), 'to' => $to->format('Y-m-d 00:00:00')];
-            $st = $pdo->prepare(
-                'SELECT DATE(started_at) AS d, COALESCE(SUM(duration_sec),0) AS sec FROM study_sessions
-                 WHERE student_id = :id AND started_at >= :from AND started_at < :to
-                 GROUP BY DATE(started_at)'
-            );
-            $st->execute($range);
-            foreach ($st->fetchAll() as $row) {
-                $daily[$row['d']] = (int)$row['sec'];
-            }
-            // 解いた問題数を日別に
-            $st = $pdo->prepare(
-                'SELECT DATE(answered_at) AS d, COUNT(*) AS cnt FROM answer_logs
-                 WHERE student_id = :id AND answered_at >= :from AND answered_at < :to
-                 GROUP BY DATE(answered_at)'
-            );
-            $st->execute($range);
-            foreach ($st->fetchAll() as $row) {
-                $dailySolved[$row['d']] = (int)$row['cnt'];
-            }
-        }
+        // 学習の足あと（直近35日・日別）: 分＝学習時間 / 問＝解答数 / 正解数を日別に。
+        // 講師ページと同じカレンダー用。日付タップで4カードをその日の値に差し替える。
+        $daily = [];   // 'Y-m-d' => ['min'=>, 'solved'=>, 'correct'=>]
+        $touchDay = function (string $d) use (&$daily) {
+            if (!isset($daily[$d])) $daily[$d] = ['min' => 0, 'solved' => 0, 'correct' => 0];
+        };
+        $st = $pdo->prepare(
+            'SELECT DATE(started_at) AS d, COALESCE(SUM(duration_sec),0) AS sec FROM study_sessions
+             WHERE student_id = :id AND started_at >= :ff GROUP BY DATE(started_at)'
+        );
+        $st->execute(['id' => $sid, 'ff' => $footFrom]);
+        foreach ($st->fetchAll() as $row) { $touchDay($row['d']); $daily[$row['d']]['min'] = (int)floor((int)$row['sec'] / 60); }
+        $st = $pdo->prepare(
+            'SELECT DATE(answered_at) AS d, COUNT(*) AS total, COALESCE(SUM(is_correct),0) AS correct FROM answer_logs
+             WHERE student_id = :id AND answered_at >= :ff GROUP BY DATE(answered_at)'
+        );
+        $st->execute(['id' => $sid, 'ff' => $footFrom]);
+        foreach ($st->fetchAll() as $row) { $touchDay($row['d']); $daily[$row['d']]['solved'] = (int)$row['total']; $daily[$row['d']]['correct'] = (int)$row['correct']; }
 
         $children[] = [
             'name' => $kid['student_name'],
@@ -164,7 +157,6 @@ if ($isGuardian && !$mustChange) {
             'level' => $level,
             'pending' => $pending,
             'daily' => $daily,
-            'dailySolved' => $dailySolved,
             'units' => $units,
         ];
     }
@@ -217,17 +209,35 @@ if ($isGuardian && !$mustChange) {
   .lv{color:var(--kin)}
   .pending{margin-top:10px;font-size:14px;color:var(--shu);font-weight:700}
 
-  /* 学習の足あと（週ドット） */
-  .week-title{font-size:13px;color:var(--ink-soft);font-weight:700;margin:14px 0 6px}
-  .week{display:flex;justify-content:space-between;background:var(--paper);border-radius:10px;padding:12px 10px}
-  .day{text-align:center;font-size:12px;color:var(--ink-soft)}
-  .dot{width:30px;height:30px;border-radius:50%;margin:0 auto 4px;border:2px dashed var(--grid);display:flex;align-items:center;justify-content:center}
-  .dot.on{border:none;background:var(--shu);color:#fff;font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:13px}
-  .dot.today{outline:2px solid var(--ai);outline-offset:2px}
-  .day .dname{font-weight:700;color:var(--ink);margin-top:2px}
-  .day .dq{font-size:13px;font-feature-settings:'tnum';color:var(--ink-soft);margin-top:1px}
-  .day .dq b{color:var(--ink);font-weight:700}
-  .day .dq.zero{opacity:.45}
+  /* 学習の足あと（講師ページと同じ日別カレンダー） */
+  .foot{margin-top:14px;border-top:1px dashed var(--grid);padding-top:12px}
+  .foot-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .foot-title{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;color:var(--ink)}
+  .foot-scope{font-size:12px;color:var(--ink-soft);flex:1 1 auto}
+  .foot-scope.on{color:var(--ai);font-weight:700}
+  .foot-more{flex:0 0 auto;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:12px;
+    color:var(--ai);background:none;border:1.5px solid var(--ai);border-radius:999px;padding:3px 12px;cursor:pointer}
+  .foot-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px 4px}
+  .foot-cell{border:none;background:none;padding:2px 0 3px;cursor:pointer;text-align:center;font:inherit;border-radius:8px}
+  .foot-cell .fd{font-size:10px;color:var(--ink-soft);margin-bottom:3px;
+    font-family:system-ui,'Segoe UI',Arial,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .foot-cell .fd.sun{color:var(--shu)}
+  .foot-cell .fd.sat{color:var(--ai)}
+  .foot-cell .sq{width:100%;aspect-ratio:1/1;max-width:26px;margin:0 auto 4px;border-radius:6px;
+    background:var(--grid);border:1.5px solid transparent}
+  .foot-cell .sq.l1{background:#F3D2CC}
+  .foot-cell .sq.l2{background:#E59C8F}
+  .foot-cell .sq.l3{background:#D4614E}
+  .foot-cell .sq.l4{background:var(--shu)}
+  /* 分＝学習時間 / 問＝解いた問題数 を各日に表示（0はグレー） */
+  .foot-cell .fm,.foot-cell .fs{font-size:10px;line-height:1.35;color:var(--ink-soft);
+    font-family:system-ui,'Segoe UI',Arial,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .foot-cell .fm b,.foot-cell .fs b{font-weight:900;color:var(--ink)}
+  .foot-cell .fm.z,.foot-cell .fm.z b,.foot-cell .fs.z,.foot-cell .fs.z b{color:#C7C2B6}
+  .foot-cell.today .sq{border-color:var(--ink-soft)}
+  .foot-cell.today .fd{color:var(--ink);font-weight:700}
+  .foot-cell.sel .sq{border-color:var(--ai);box-shadow:0 0 0 2px var(--ai)}
+  .foot-cell.sel .fd{color:var(--ai);font-weight:700}
 
   .unit{margin-top:14px}
   .unit .ut{font-size:15px;font-weight:700;font-family:'Zen Maru Gothic',sans-serif}
@@ -255,9 +265,9 @@ if ($isGuardian && !$mustChange) {
 <?php if (!$isGuardian): ?>
 <div class="box">
   <h1>保護者ページ</h1>
-  <p class="sub">保護者IDとパスワードでログインしてください</p>
-  <label>保護者ID（例: g260038）<input type="text" id="lid" autocomplete="username"></label>
-  <label>パスワード<input type="password" id="lpin" maxlength="15" autocomplete="current-password"></label>
+  <p class="sub">保護者IDと、お子さまのPIN（4桁）でログインしてください</p>
+  <label>保護者ID（例: g260038）<input type="text" id="lid" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+  <label>お子さまのPIN（4桁）<input type="password" id="lpin" inputmode="numeric" maxlength="4" autocomplete="current-password"></label>
   <button id="login-btn" type="button">ログイン</button>
   <div class="err" id="login-err"></div>
 </div>
@@ -267,7 +277,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
   errEl.textContent = '';
   const login_id = document.getElementById('lid').value.trim();
   const pin = document.getElementById('lpin').value.trim();
-  if (!login_id || !pin) { errEl.textContent = '保護者IDとパスワードを入力してください'; return; }
+  if (!login_id || !pin) { errEl.textContent = '保護者IDとお子さまのPINを入力してください'; return; }
   try {
     const res = await fetch('/api/auth.php', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
@@ -276,57 +286,16 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     const data = await res.json().catch(() => null);
     if (res.ok && data && data.ok) { location.reload(); }
     else if (data && data.error === 'locked') { errEl.textContent = '失敗が続いたためロック中です。10分後にやり直してください'; }
-    else { errEl.textContent = '保護者IDかパスワードが違います'; }
+    else { errEl.textContent = '保護者IDか、お子さまのPINが違います'; }
   } catch (e) { errEl.textContent = '通信エラーが発生しました'; }
 });
 document.getElementById('lpin').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('login-btn').click(); });
-</script>
-<?php elseif ($mustChange): ?>
-<div class="box">
-  <h1>パスワードの設定</h1>
-  <p class="sub"><?= h($guardianName) ?><br>仮パスワードでログインしています。<br>ご自身の新しいパスワードを設定してください（8〜15文字の半角英数）</p>
-  <label>仮パスワード（今ログインに使ったもの）<input type="password" id="cur" maxlength="15" autocomplete="current-password"></label>
-  <label>新しいパスワード<input type="password" id="npw" maxlength="15" autocomplete="new-password"></label>
-  <label>新しいパスワード（確認）<input type="password" id="npw2" maxlength="15" autocomplete="new-password"></label>
-  <button id="pw-btn" type="button">設定する</button>
-  <div class="err" id="pw-err"></div>
-  <footer><a href="#" id="logout" style="color:var(--ai);">ログアウト</a></footer>
-</div>
-<script>
-document.getElementById('pw-btn').addEventListener('click', async () => {
-  const err = document.getElementById('pw-err');
-  err.textContent = '';
-  const cur = document.getElementById('cur').value;
-  const npw = document.getElementById('npw').value;
-  const npw2 = document.getElementById('npw2').value;
-  if (!/^[A-Za-z0-9]{8,15}$/.test(npw)) { err.textContent = 'パスワードは8〜15文字の半角英数にしてください'; return; }
-  if (npw !== npw2) { err.textContent = '確認用のパスワードが一致しません'; return; }
-  try {
-    const res = await fetch('/api/change_password.php', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
-      body: JSON.stringify({ current_password: cur, new_password: npw }),
-    });
-    const data = await res.json().catch(() => null);
-    if (res.ok && data && data.ok) {
-      alert('新しいパスワードを設定しました。次回からこのパスワードでログインしてください。');
-      location.reload();
-    }
-    else if (data && data.error === 'wrong_password') { err.textContent = '仮パスワードが違います'; }
-    else if (data && data.error === 'same_password') { err.textContent = '仮パスワードと同じパスワードにはできません'; }
-    else { err.textContent = '設定に失敗しました。もう一度お試しください'; }
-  } catch (e) { err.textContent = '通信エラーが発生しました'; }
-});
-document.getElementById('logout').addEventListener('click', async (e) => {
-  e.preventDefault();
-  await fetch('/api/logout.php', { method: 'POST', credentials: 'same-origin' });
-  location.reload();
-});
 </script>
 <?php else: ?>
 <div class="wrap">
   <header>
     <img class="logo" src="https://chukyokobetsu.com/manage/wp-content/themes/chukyo/images/common/logo_chukyo.png" alt="中京個別指導学院">
-    <div class="who"><b><?= h($guardianName) ?> 様</b><a href="#" id="logout">ログアウト</a></div>
+    <div class="who"><b><?= h($guardianName) ?></b><a href="#" id="logout">ログアウト</a></div>
   </header>
   <a class="tolist" href="/learning/index.php">← 学習ツールの目次へ</a>
 
@@ -343,36 +312,30 @@ document.getElementById('logout').addEventListener('click', async (e) => {
   <section class="child">
     <h2><?= h($c['name']) ?> さん<small><?= h($c['classroom']) ?>教室<?= $c['grade'] ? '・' . h(grade_label($c['grade'])) : '' ?></small></h2>
     <div class="stats">
-      <div class="stat"><div class="num"><?= $c['minutes'] ?><small>分</small></div><div class="lbl">学習時間</div></div>
-      <div class="stat"><div class="num"><?= $c['solved'] ?><small>問</small></div><div class="lbl">解いた問題</div></div>
-      <div class="stat"><div class="num"><?= $c['correct'] ?><small>問</small></div><div class="lbl">正解</div></div>
-      <div class="stat"><div class="num"><?= $c['rate'] ?><small>%</small></div><div class="lbl">正答率</div></div>
+      <div class="stat"><div class="num js-min"><?= $c['minutes'] ?><small>分</small></div><div class="lbl">学習時間</div></div>
+      <div class="stat"><div class="num js-solved"><?= $c['solved'] ?><small>問</small></div><div class="lbl">解いた問題</div></div>
+      <div class="stat"><div class="num js-correct"><?= $c['correct'] ?><small>問</small></div><div class="lbl">正解</div></div>
+      <div class="stat"><div class="num js-rate"><?= $c['rate'] ?><small>%</small></div><div class="lbl">正答率</div></div>
       <div class="stat"><div class="num lv">Lv.<?= $c['level'] ?></div><div class="lbl">レベル（累計）</div></div>
     </div>
 <?php if ($c['pending'] > 0): ?>
     <div class="pending">解き直しが <?= $c['pending'] ?>問 のこっています</div>
 <?php endif; ?>
 
-<?php if ($showWeekDots): ?>
-    <div class="week-title">学習の足あと（ドットの数字は学習時間・分／下は解いた問題数）</div>
-    <div class="week">
-<?php for ($i = 0; $i < 7; $i++):
-      $day = $from->modify("+{$i} days");
-      $dayStr = $day->format('Y-m-d');
-      $mins = isset($c['daily'][$dayStr]) ? (int)floor($c['daily'][$dayStr] / 60) : 0;
-      $qcount = $c['dailySolved'][$dayStr] ?? 0;
-      $isToday = $dayStr === $todayStr;
-      $active = $mins > 0 || $qcount > 0;
-      $classes = 'dot' . ($active ? ' on' : '') . ($isToday ? ' today' : '');
-?>
-      <div class="day">
-        <div class="<?= $classes ?>"><?= $mins > 0 ? $mins : '' ?></div>
-        <div class="dname"><?= $dayLabels[$i] ?></div>
-        <div class="dq<?= $qcount > 0 ? '' : ' zero' ?>"><b><?= $qcount ?></b>問</div>
+    <!-- 足あと（直近2週間、「さらに見る」で1か月。日付タップで上のカードがその日に切替） -->
+    <div class="foot">
+      <div class="foot-head">
+        <span class="foot-title">足あと</span>
+        <span class="foot-scope js-foot-scope"><?= h($periodLabels[$period]) ?>のまとめ</span>
+        <button type="button" class="foot-more js-foot-more" aria-expanded="false">さらに見る ▼</button>
       </div>
-<?php endfor; ?>
+      <div class="foot-grid js-foot-grid"></div>
+      <script type="application/json" class="js-foot-data"><?= json_encode([
+          'today'  => $todayStr,
+          'period' => $periodLabels[$period],
+          'daily'  => $c['daily'],
+      ], JSON_UNESCAPED_UNICODE) ?></script>
     </div>
-<?php endif; ?>
 
 <?php if (count($c['units']) === 0): ?>
     <p class="empty" style="margin-top:12px;">この期間の学習記録はありません</p>
@@ -413,6 +376,106 @@ document.getElementById('logout').addEventListener('click', async (e) => {
   await fetch('/api/logout.php', { method: 'POST', credentials: 'same-origin' });
   location.reload();
 });
+
+// ===== 学習の足あと（講師ページと同じ日別カレンダー。日付タップでその子の4カードをその日に切替） =====
+// 子どもが複数いるので .foot ごとに独立して動かす（IDでなくクラス＋closest('.child')でスコープ）。
+(function () {
+  var WD = ['日', '月', '火', '水', '木', '金', '土'];
+  function pad(x) { return x < 10 ? '0' + x : '' + x; }
+  function ymd(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function level(s) { return s <= 0 ? 0 : (s < 5 ? 1 : (s < 15 ? 2 : (s < 40 ? 3 : 4))); }
+
+  document.querySelectorAll('.foot').forEach(function (foot) {
+    var grid = foot.querySelector('.js-foot-grid');
+    var dataEl = foot.querySelector('.js-foot-data');
+    var moreBtn = foot.querySelector('.js-foot-more');
+    var scopeEl = foot.querySelector('.js-foot-scope');
+    if (!grid || !dataEl) return;
+    var data;
+    try { data = JSON.parse(dataEl.textContent || '{}'); } catch (e) { return; }
+    var daily = data.daily || {};
+    var today = data.today;
+    if (!today) return;
+    var periodLabel = data.period || '';
+
+    // この子の4カード（＝期間のまとめ）。日付タップで一時的に上書き、解除で戻す。レベルは累計なので触らない。
+    var section = foot.closest('.child');
+    var cards = {
+      min: section && section.querySelector('.js-min'),
+      solved: section && section.querySelector('.js-solved'),
+      correct: section && section.querySelector('.js-correct'),
+      rate: section && section.querySelector('.js-rate')
+    };
+    var defHTML = {};
+    Object.keys(cards).forEach(function (k) { if (cards[k]) defHTML[k] = cards[k].innerHTML; });
+
+    var expanded = false, selKey = null;
+
+    function dateList(n) {                       // 左上=今日、そこから過去へ（新しい→古い）
+      var base = new Date(today + 'T00:00:00');  // ローカル時刻で解釈＝日付ずれを防ぐ
+      var arr = [];
+      for (var i = 0; i < n; i++) {
+        var d = new Date(base.getTime());
+        d.setDate(d.getDate() - i);
+        arr.push(d);
+      }
+      return arr;
+    }
+
+    function applyScope() {
+      if (selKey) {
+        var d = new Date(selKey + 'T00:00:00');
+        var r = daily[selKey] || { min: 0, solved: 0, correct: 0 };
+        var rate = r.solved > 0 ? Math.round(100 * r.correct / r.solved) : 0;
+        if (cards.min) cards.min.innerHTML = (r.min || 0) + '<small>分</small>';
+        if (cards.solved) cards.solved.innerHTML = (r.solved || 0) + '<small>問</small>';
+        if (cards.correct) cards.correct.innerHTML = (r.correct || 0) + '<small>問</small>';
+        if (cards.rate) cards.rate.innerHTML = rate + '<small>%</small>';
+        if (scopeEl) { scopeEl.textContent = (d.getMonth() + 1) + '/' + d.getDate() + '（' + WD[d.getDay()] + '）の記録'; scopeEl.classList.add('on'); }
+      } else {
+        Object.keys(cards).forEach(function (k) { if (cards[k]) cards[k].innerHTML = defHTML[k]; });
+        if (scopeEl) { scopeEl.textContent = periodLabel + 'のまとめ'; scopeEl.classList.remove('on'); }
+      }
+    }
+
+    function render() {
+      grid.innerHTML = '';
+      dateList(expanded ? 35 : 14).forEach(function (d) {
+        var key = ymd(d);
+        var r = daily[key] || { min: 0, solved: 0 };
+        var wd = d.getDay(), lv = level(r.solved || 0);
+        var mn = r.min || 0, sv = r.solved || 0;
+        var cell = document.createElement('button');
+        cell.type = 'button';
+        cell.className = 'foot-cell' + (key === today ? ' today' : '') + (key === selKey ? ' sel' : '');
+        cell.setAttribute('data-key', key);
+        cell.innerHTML = '<div class="fd' + (wd === 0 ? ' sun' : (wd === 6 ? ' sat' : '')) + '">'
+          + (d.getMonth() + 1) + '/' + d.getDate() + '</div>'
+          + '<div class="sq' + (lv ? ' l' + lv : '') + '"></div>'
+          + '<div class="fm' + (mn > 0 ? '' : ' z') + '"><b>' + mn + '</b>分</div>'
+          + '<div class="fs' + (sv > 0 ? '' : ' z') + '"><b>' + sv + '</b>問</div>';
+        cell.addEventListener('click', function () {
+          selKey = (selKey === key) ? null : key;
+          applyScope();
+          grid.querySelectorAll('.foot-cell').forEach(function (c) {
+            c.classList.toggle('sel', c.getAttribute('data-key') === selKey);
+          });
+        });
+        grid.appendChild(cell);
+      });
+    }
+
+    if (moreBtn) {
+      moreBtn.addEventListener('click', function () {
+        expanded = !expanded;
+        moreBtn.textContent = expanded ? 'とじる ▲' : 'さらに見る ▼';
+        moreBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        render();
+      });
+    }
+    render();
+  });
+})();
 </script>
 <?php endif; ?>
 </body>

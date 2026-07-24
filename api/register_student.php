@@ -83,13 +83,14 @@ $yearPrefix = date('y');
 $passwordHash = password_hash($pin, PASSWORD_DEFAULT);
 
 // 同時登録で連番が衝突した場合はUNIQUE制約違反(23000)を捕まえて採番し直す。
-// 保護者アカウント（ID=g+生徒コード / PIN自動生成 / 表示名=生徒名+保護者様）も
-// 同じトランザクションで自動発行する。兄弟が後から入塾した場合は自動発行されたものを
-// admin.php の「兄弟・姉妹の追加」で上の子の保護者へ付け替えて統合する。
+// 保護者アカウント（ID=g+生徒コード / 表示名=生徒名+保護者様）も同じトランザクションで
+// 自動発行する。兄弟が後から入塾した場合は自動発行されたものを admin.php の
+// 「兄弟・姉妹の追加」で上の子の保護者へ付け替えて統合する。
+// 保護者は自前のパスワードを持たず「お子さまの生徒PIN」でログインするため、
+// guardians.password_hash は使わない（NOT NULL を満たすためだけの未使用ダミー値を入れる）。
+$guardianDummyHash = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
 for ($attempt = 0; $attempt < 5; $attempt++) {
     $loginId = next_student_login_id($pdo, $yearPrefix);
-    // 保護者は講師と同じ仮パスワード方式（8字英数を自動発行、初回ログインで本人が8〜15字英数に変更）
-    $guardianPassword = generate_temp_password();
     $pdo->beginTransaction();
     try {
         $stmt = $pdo->prepare(
@@ -108,13 +109,15 @@ for ($attempt = 0; $attempt < 5; $attempt++) {
         ]);
         $studentId = (int)$pdo->lastInsertId();
 
+        // must_change_password は列に触れない（別マイグレーションで後付けの列＝未適用環境では
+        // 存在しない可能性があるため。保護者では未使用なのでDEFAULTのままでよい）。
         $stmt = $pdo->prepare(
             'INSERT INTO guardians (login_id, password_hash, guardian_name)
              VALUES (:login_id, :password_hash, :guardian_name)'
         );
         $stmt->execute([
             'login_id'      => 'g' . $loginId,
-            'password_hash' => password_hash($guardianPassword, PASSWORD_DEFAULT),
+            'password_hash' => $guardianDummyHash,
             'guardian_name' => mb_substr($studentName . ' 保護者様', 0, 50),
         ]);
         $guardianId = (int)$pdo->lastInsertId();
@@ -128,7 +131,6 @@ for ($attempt = 0; $attempt < 5; $attempt++) {
             'student_id'        => $studentId,
             'login_id'          => $loginId,
             'guardian_login_id' => 'g' . $loginId,
-            'guardian_password' => $guardianPassword,
         ]);
     } catch (PDOException $e) {
         $pdo->rollBack();

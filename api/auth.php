@@ -43,7 +43,30 @@ if ($row) {
     }
 }
 
-if (!$row || !password_verify($password, $row['password_hash'])) {
+// 保護者は自前のパスワードを持たず「ひもづくお子さまの生徒PIN」でログインする。
+// 兄弟のうちアクティブなお子さまの誰かのPINが合えば認証成立（親がどの子のPINでも入れる）。
+// guardians.password_hash は使わない（登録時のダミー値のまま）。
+$passwordOk = false;
+if ($row) {
+    if ($actorType === 'guardian') {
+        $childStmt = $pdo->prepare(
+            'SELECT s.password_hash FROM guardian_students gs
+             JOIN students s ON s.student_id = gs.student_id
+             WHERE gs.guardian_id = :gid AND s.is_active = 1'
+        );
+        $childStmt->execute(['gid' => (int)$row[$t['id']]]);
+        foreach ($childStmt->fetchAll(PDO::FETCH_COLUMN) as $childHash) {
+            if (password_verify($password, (string)$childHash)) {
+                $passwordOk = true;
+                break;
+            }
+        }
+    } else {
+        $passwordOk = password_verify($password, (string)$row['password_hash']);
+    }
+}
+
+if (!$row || !$passwordOk) {
     // 失敗も login_logs に記録する（存在しないIDの場合は記録先が無いのでスキップ）
     if ($row) {
         $stmt = $pdo->prepare(
@@ -91,10 +114,6 @@ $actor = [
 ];
 if ($actorType === 'teacher') {
     $actor['role'] = $row['role'];
-    $actor['must_change_password'] = (bool)$row['must_change_password'];
-}
-if ($actorType === 'guardian') {
-    // 保護者も講師と同じ「仮パスワード→初回ログインで変更」方式
     $actor['must_change_password'] = (bool)$row['must_change_password'];
 }
 if ($actorType === 'student') {

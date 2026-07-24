@@ -3,19 +3,15 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-// ログイン中の講師・保護者が自分のパスワードを変更する。
+// ログイン中の講師が自分のパスワードを変更する。
 // 現在のパスワードの照合を必須にし、成功時に must_change_password を落とす。
-// パスワードルールは両者共通（8〜15文字の半角英数）。
+// パスワードルールは8〜15文字の半角英数。
+// （保護者はお子さまの生徒PINでログインする方式のため、パスワード変更の対象外）
 
 require_post();
-$actor = require_login(['teacher', 'guardian']);
+$actor = require_login(['teacher']);
 
-// actor_type ごとの更新先（require_login を通っているので type はこの2つに限られる）
-$tables = [
-    'teacher'  => ['table' => 'teachers',  'id' => 'teacher_id'],
-    'guardian' => ['table' => 'guardians', 'id' => 'guardian_id'],
-];
-$t = $tables[$actor['type']];
+$t = ['table' => 'teachers', 'id' => 'teacher_id'];
 
 $input = json_input();
 $current = (string)($input['current_password'] ?? '');

@@ -232,7 +232,7 @@ if ($role === 'super_admin') {
   <div class="pane" id="pane-student">
   <div class="card">
     <h2>生徒登録</h2>
-    <p class="note">生徒コードは自動採番（入塾年度2桁+通し番号4桁）。<strong>保護者アカウント（ID=生徒コードにg、仮パスワード自動発行）も同時に自動発行</strong>されます。登録後に下に出る案内文をコピーしてご家庭に渡してください。<br>
+    <p class="note">生徒コードは自動採番（入塾年度2桁+通し番号4桁）。<strong>保護者アカウント（ID=生徒コードにg）も同時に自動発行</strong>されます（<strong>保護者はお子さまと同じPINでログイン</strong>。専用パスワードはありません）。登録後に下に出る案内文をコピーしてご家庭に渡してください。<br>
       ※兄弟が後から入塾した場合も自動発行されます。上の子の保護者IDにまとめたいときは「保護者登録」タブの「兄弟・姉妹の追加」で付け替えてください（自動発行された方は無効化されます）。</p>
     <form id="student-form">
       <div class="row2">
@@ -270,7 +270,7 @@ if ($role === 'super_admin') {
   <div class="pane" id="pane-bulk" style="display:none;">
   <div class="card">
     <h2>生徒一括登録</h2>
-    <p class="note">1行1人、「教室ID・生徒名・学年・PIN」の4列（学年は空欄可）。Excelで4列を範囲コピーしてそのまま貼り付けるか、UTF-8のCSVを読み込みます。<strong>保護者アカウント（ID=生徒コードにg、仮パスワード自動発行）も1人ずつ同時に自動発行</strong>されます。登録後に「案内文をまとめて生成」でご家庭向けの案内文（生徒のコード/PIN・保護者のID/仮パスワード入り）を作成・コピーできます（保護者の仮パスワードはこの画面でしか確認できません）。<br>
+    <p class="note">1行1人、「教室ID・生徒名・学年・PIN」の4列（学年は空欄可）。Excelで4列を範囲コピーしてそのまま貼り付けるか、UTF-8のCSVを読み込みます。<strong>保護者アカウント（ID=生徒コードにg）も1人ずつ同時に自動発行</strong>されます（<strong>保護者はお子さまと同じPINでログイン</strong>）。登録後に「案内文をまとめて生成」でご家庭向けの案内文（生徒のコード/PIN・保護者ID入り）を作成・コピーできます。<br>
       教室ID: <?= h(implode(' / ', array_map(fn($c) => $c['classroom_id'] . '=' . $c['classroom_name'], $classrooms))) ?></p>
     <label>CSVファイルを読み込む<input type="file" id="csv-file" accept=".csv,.txt"></label>
     <form id="bulk-form">
@@ -299,7 +299,7 @@ if ($role === 'super_admin') {
   <div class="card">
     <h2>保護者登録</h2>
     <p class="note"><strong>新しく登録する生徒は「生徒登録」時に保護者アカウントが自動発行されるため、このフォームは不要です。</strong>保護者アカウントがまだ無い既存の生徒に後から発行するときに使ってください。<br>
-      お子さまの生徒コードと紐づけて登録します（兄弟はカンマ区切りで複数可）。<strong>保護者IDは「最初に入力したお子さまの生徒コードに g を付けたもの」を自動発行</strong>します（例: 260038 → g260038）。保護者氏名の登録は不要で、<strong>「代表のお子さまの生徒名＋保護者様」が表示名</strong>になります。<strong>仮パスワード（8文字の英数）も自動発行され、登録直後に一度だけ表示</strong>されるので、保護者に伝えてください。保護者は初回ログイン時にご自身のパスワード（8〜15文字の半角英数）へ変更します。保護者ページ: <a href="/guardian.php" target="_blank">/guardian.php</a></p>
+      お子さまの生徒コードと紐づけて登録します（兄弟はカンマ区切りで複数可）。<strong>保護者IDは「最初に入力したお子さまの生徒コードに g を付けたもの」を自動発行</strong>します（例: 260038 → g260038）。保護者氏名の登録は不要で、<strong>「代表のお子さまの生徒名＋保護者様」が表示名</strong>になります。<strong>保護者はお子さまと同じPIN（4桁）でログイン</strong>します（専用パスワードはありません。兄弟のうち誰かのPINでログインできます）。保護者ページ: <a href="/guardian.php" target="_blank">/guardian.php</a></p>
     <form id="guardian-form">
       <div class="row2">
         <label>お子さまの生徒コード（例: 260001, 260002 ／ 先頭が代表）<input type="text" name="student_codes" required placeholder="260001, 260002"></label>
@@ -321,7 +321,7 @@ if ($role === 'super_admin') {
     <p class="note"><strong>保護者アカウントがまだ無い既存の生徒への後追い発行用</strong>です（新規生徒は生徒登録時に自動発行されます）。<br>
       1行=1家庭。<strong>お子さまの生徒コード（6桁）を並べて書くだけ</strong>です（区切りはスペース・カンマ・タブどれでも可。Excelからの貼り付けもそのまま使えます。数字6桁以外の文字は無視されます）。兄弟は同じ行にまとめてください（先頭が代表→保護者IDになります）。保護者の表示名は「代表のお子さまの生徒名＋保護者様」が自動で付きます。<br>
       例: <code>260001 260002</code>（兄弟） ／ <code>260003</code><br>
-      <strong>仮パスワード（8文字の英数）を自動発行し、下の結果一覧にだけ表示します</strong>（画面を離れると再表示できません。保護者は初回ログイン時にご自身のパスワードへ変更します）。「結果をコピー」で Excel に貼り付けて各教室へ配布してください。<br>
+      <strong>保護者はお子さまと同じPIN（4桁）でログイン</strong>します（専用パスワードはありません）。「結果をコピー」で Excel に貼り付けて各教室へ配布できます。<br>
       すでに保護者が登録されているお子さまを含む行はエラーになります（下の子の追加は「兄弟・姉妹の追加」を使ってください）。</p>
     <form id="gbulk-form">
       <label>貼り付け欄<textarea name="rows" placeholder="260001, 260002&#10;260003"></textarea></label>
@@ -337,7 +337,7 @@ if ($role === 'super_admin') {
       </div>
       <div class="scroll">
       <table>
-        <thead><tr><th>#</th><th>結果</th><th>教室</th><th>保護者ID</th><th>仮パスワード</th><th>表示名</th><th>お子さま</th></tr></thead>
+        <thead><tr><th>#</th><th>結果</th><th>教室</th><th>保護者ID</th><th>表示名</th><th>お子さま</th></tr></thead>
         <tbody id="gbulk-tbody"></tbody>
       </table>
       </div>
@@ -522,7 +522,7 @@ if ($role === 'super_admin') {
       <div class="list-count" id="guardians-count"></div>
       <div class="scroll">
       <table id="guardians-table">
-        <thead><tr><th class="sortable" data-key="login_id">ログインID</th><th class="sortable" data-key="guardian_name">氏名</th><th class="sortable" data-key="children">お子さま</th><th class="sortable" data-key="is_active">状態</th><th class="sortable" data-key="created_at">登録日</th><th>操作</th></tr></thead>
+        <thead><tr><th class="sortable" data-key="login_id">ログインID</th><th class="sortable" data-key="guardian_name">氏名</th><th class="sortable" data-key="children">お子さま</th><th class="sortable" data-key="is_active">状態</th><th class="sortable" data-key="created_at">登録日</th><th class="sortable" data-key="last_login_at">最終ログイン</th><th>操作</th></tr></thead>
         <tbody></tbody>
       </table>
       </div>
@@ -817,14 +817,15 @@ kindButtons.forEach((btn) => {
 const KIND_JA = { students: '生徒', guardians: '保護者', teachers: '講師' };
 const KIND_API = { students: 'student', guardians: 'guardian', teachers: 'teacher' };
 
-function fillRow(tr, values, isNew, isActive) {
+function fillRow(tr, values, isNew, isActive, stateIdx) {
   for (const v of values) {
     const td = document.createElement('td');
     td.textContent = v;
     tr.appendChild(td);
   }
-  // 状態セル（values側は空文字で渡し、ここで色付きの表示を入れる）
-  const stateTd = tr.children[values.length - 2];
+  // 状態セル（values側は空文字で渡し、ここで色付きの表示を入れる）。
+  // 既定は末尾から2番目。列を足したテーブルは stateIdx で位置を明示する。
+  const stateTd = tr.children[stateIdx == null ? values.length - 2 : stateIdx];
   stateTd.innerHTML = isActive ? '<span class="state-on">✓ 有効</span>' : '<span class="state-off">停止中</span>';
   if (isNew) {
     tr.classList.add('new-row');
@@ -860,7 +861,8 @@ function actionCell(tr, kind, loginId, name, isActive, row) {
     td.appendChild(edit);
   }
   // 保護者は「兄弟追加」で保護者登録タブの追加フォームに保護者IDを流し込む。
-  // 「PW初期化」は保護者がパスワードを忘れた時用（仮パスワード再発行→本人が再設定）
+  // 保護者はお子さまのPINでログインするため、パスワード初期化ボタンは無い
+  // （ログインできない＝お子さまのPINが不明なので、生徒PIN側で対応する）。
   if (kind === 'guardians' && CAN_MANAGE) {
     const sib = document.createElement('button');
     sib.type = 'button';
@@ -876,13 +878,6 @@ function actionCell(tr, kind, loginId, name, isActive, row) {
       form.student_codes.focus();
     });
     td.appendChild(sib);
-    const rst = document.createElement('button');
-    rst.type = 'button';
-    rst.className = 'mini on';
-    rst.style.marginRight = '6px';
-    rst.textContent = 'PW初期化';
-    rst.addEventListener('click', () => resetGuardianPassword(loginId, name));
-    td.appendChild(rst);
   }
   // 自分自身の講師アカウントにはボタンを出さない(APIも拒否する)
   if (!(kind === 'teachers' && loginId === MY_LOGIN_ID)) {
@@ -931,25 +926,6 @@ function actionCell(tr, kind, loginId, name, isActive, row) {
     td.appendChild(del);
   }
   tr.appendChild(td);
-}
-
-async function resetGuardianPassword(loginId, name) {
-  const message = '保護者「' + name + '（' + loginId + '）」のパスワードを初期化しますか？\n\n'
-    + '・新しい仮パスワードが自動生成されます\n'
-    + '・保護者は次回ログイン時に新しいパスワード（8〜15文字の半角英数）を設定し直します';
-  if (!confirm(message)) return;
-  try {
-    const { res, data } = await post('/api/reset_guardian_password.php', { login_id: loginId });
-    if (res.ok && data && data.ok) {
-      recent.guardians.add(loginId);
-      prompt('初期化しました。この仮パスワードを ' + data.guardian_name + ' にお伝えください\n（この画面を閉じると二度と表示されません）', data.temp_password);
-      loadList('guardians');
-    } else {
-      alert(errText(data, res.status));
-    }
-  } catch (err) {
-    alert('通信エラー: ' + err);
-  }
 }
 
 async function resetTeacherPassword(loginId, name) {
@@ -1189,8 +1165,8 @@ function renderRows(kind) {
         recent.students.has(r.login_id), r.is_active);
     } else if (kind === 'guardians') {
       name = r.guardian_name;
-      fillRow(tr, [r.login_id, r.guardian_name, r.children, '', r.created_at],
-        recent.guardians.has(r.login_id), r.is_active);
+      fillRow(tr, [r.login_id, r.guardian_name, r.children, '', r.created_at, r.last_login_at || '未ログイン'],
+        recent.guardians.has(r.login_id), r.is_active, 3);
     } else {
       name = r.teacher_name;
       fillRow(tr, [r.login_id, r.teacher_name, r.role, r.classroom_names, '', r.created_at],
@@ -1205,22 +1181,22 @@ function renderRows(kind) {
   }
 }
 
-// ---- ご家庭向け案内文の生成（登録結果から作る。保護者の仮パスワードはこの画面でしか確認できない） ----
+// ---- ご家庭向け案内文の生成（登録結果から作る。保護者はお子さまのPINでログインする） ----
 const GUIDE_SEP = '\n\n──────── ✂ ────────\n\n';
-function buildGuideText(headerName, studentBlock, guardianId, guardianPassword) {
+function buildGuideText(headerName, studentBlock, guardianId) {
   return '【中京個別指導学院 学習記録サイトのご案内】\n'
     + headerName + '\n'
     + '\n■ お子さま用（学習ツール・マイページ）\n'
     + studentBlock
     + '\n■ 保護者用（保護者ページ）\n'
     + '　保護者ID：' + guardianId + '\n'
-    + '　仮パスワード：' + guardianPassword + '\n'
-    + '　※初回ログイン時に、ご自身の新しいパスワード（8〜15文字の半角英数）を設定していただきます\n'
+    + '　パスワード：お子さまのPIN（4桁・生徒ログインと同じ）\n'
+    + '　※兄弟がいる場合は、どのお子さまのPINでもログインできます\n'
     + '\n▼ 学習ツール\nhttps://chukyokobetsu.com/learning/\n'
     + '▼ がんばりの記録（生徒マイページ）\nhttps://chukyokobetsu.com/mypage.php\n'
     + '▼ 保護者ページ（お子さまのがんばりを見られます）\nhttps://chukyokobetsu.com/guardian.php\n'
     + '\n※ログインして学習すると記録が残り、マイページ・保護者ページでがんばりを確認できます。\n'
-    + '※ID・パスワードはご家庭で大切に保管してください。';
+    + '※ID・PINはご家庭で大切に保管してください。';
 }
 async function copyWithNote(text, noteId) {
   const note = document.getElementById(noteId);
@@ -1248,12 +1224,12 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
     if (res.ok && data && data.ok) {
       recent.students.add(data.login_id);
       recent.guardians.add(data.guardian_login_id);
-      showMsg('student-msg', true, '登録しました。生徒コード: ' + data.login_id + ' ／ 保護者ID: ' + data.guardian_login_id + '。下の案内文をコピーしてご家庭に渡してください（保護者の仮パスワードはこの画面でしか確認できません）');
+      showMsg('student-msg', true, '登録しました。生徒コード: ' + data.login_id + ' ／ 保護者ID: ' + data.guardian_login_id + '（保護者はお子さまと同じPINでログイン）。下の案内文をコピーしてご家庭に渡してください');
       // 案内文は入力欄を消す前に組み立てる（生徒PINは手元の入力値が唯一の源泉）
       document.getElementById('student-guide-text').value = buildGuideText(
         f.student_name.value.trim() + ' さん・保護者様',
         '　生徒コード：' + data.login_id + '\n　PIN：' + f.pin.value + '\n',
-        data.guardian_login_id, data.guardian_password);
+        data.guardian_login_id);
       document.getElementById('student-guide-note').textContent = '';
       document.getElementById('student-guide').style.display = '';
       f.student_name.value = ''; f.pin.value = '';
@@ -1320,13 +1296,12 @@ document.getElementById('bulk-form').addEventListener('submit', async (e) => {
         recent.students.add(data.login_id);
         recent.guardians.add(data.guardian_login_id);
         row.children[2].innerHTML = '<span class="ok-cell">OK</span>';
-        row.children[3].textContent = data.login_id + ' ／ 保護者: ' + data.guardian_login_id + '（仮PW ' + data.guardian_password + '）';
+        row.children[3].textContent = data.login_id + ' ／ 保護者: ' + data.guardian_login_id + '（PINでログイン）';
         bulkOkRows.push({
           student_name: studentName,
           login_id: data.login_id,
           pin: pin,
           guardian_login_id: data.guardian_login_id,
-          guardian_password: data.guardian_password,
         });
       } else {
         row.children[2].innerHTML = '<span class="ng-cell">失敗</span>';
@@ -1347,7 +1322,7 @@ document.getElementById('bulk-guide-btn').addEventListener('click', () => {
   const text = bulkOkRows.map(r => buildGuideText(
     r.student_name + ' さん・保護者様',
     '　生徒コード：' + r.login_id + '\n　PIN：' + r.pin + '\n',
-    r.guardian_login_id, r.guardian_password)).join(GUIDE_SEP);
+    r.guardian_login_id)).join(GUIDE_SEP);
   const ta = document.getElementById('bulk-guide-text');
   ta.value = text;
   ta.style.display = '';
@@ -1368,11 +1343,11 @@ document.getElementById('guardian-form').addEventListener('submit', async (e) =>
     });
     if (res.ok && data && data.ok) {
       recent.guardians.add(data.login_id);
-      showMsg('guardian-msg', true, '登録しました。保護者ID: ' + data.login_id + '（お子さま' + data.linked + '人と紐づけ済み）。下の案内文をコピーしてご家庭に渡してください（仮パスワードはこの画面でしか確認できません）');
+      showMsg('guardian-msg', true, '登録しました。保護者ID: ' + data.login_id + '（お子さま' + data.linked + '人と紐づけ済み。お子さまと同じPINでログイン）。下の案内文をコピーしてご家庭に渡してください');
       document.getElementById('guardian-guide-text').value = buildGuideText(
         data.guardian_name,
         '　お子さま：' + data.children + '\n　生徒コード・PIN：お子さまがお使いのもの\n',
-        data.login_id, data.temp_password);
+        data.login_id);
       document.getElementById('guardian-guide-note').textContent = '';
       document.getElementById('guardian-guide').style.display = '';
       f.reset();
@@ -1417,17 +1392,13 @@ document.getElementById('gbulk-form').addEventListener('submit', async (e) => {
         tr.appendChild(st);
         if (r.ok) {
           recent.guardians.add(r.login_id);
-          const pin = td(r.temp_password);
-          pin.style.fontFamily = 'monospace';
-          pin.style.fontWeight = '700';
           tr.appendChild(td(r.classroom_name));
           tr.appendChild(td(r.login_id));
-          tr.appendChild(pin);
           tr.appendChild(td(r.guardian_name));
           tr.appendChild(td(r.children));
         } else {
           const err = td(((r.codes || []).join(' ') + '： ' + errText(r, 0)).trim());
-          err.colSpan = 5;
+          err.colSpan = 4;
           err.classList.add('ng-cell');
           tr.appendChild(err);
         }
@@ -1437,7 +1408,7 @@ document.getElementById('gbulk-form').addEventListener('submit', async (e) => {
       document.getElementById('gbulk-copy-note').textContent = '';
       const failed = gbulkRows.length - data.registered;
       showMsg('gbulk-msg', failed === 0,
-        data.registered + '家庭を登録しました' + (failed > 0 ? '（' + failed + '行は失敗。下の一覧を確認してください）' : '。結果をコピーして各教室に配布してください（この画面でしか確認できません）'));
+        data.registered + '家庭を登録しました（保護者はお子さまと同じPINでログイン）' + (failed > 0 ? '。' + failed + '行は失敗。下の一覧を確認してください' : ''));
     } else {
       showMsg('gbulk-msg', false, errText(data, res.status));
     }
@@ -1450,9 +1421,9 @@ document.getElementById('gbulk-form').addEventListener('submit', async (e) => {
 
 document.getElementById('gbulk-copy-btn').addEventListener('click', async () => {
   // Excel/スプレッドシートにそのまま貼れるタブ区切り（ヘッダー付き・成功行のみ）
-  const tsv = ['教室\t保護者ID\t仮パスワード\t表示名\tお子さま']
+  const tsv = ['教室\t保護者ID\t表示名\tお子さま']
     .concat(gbulkRows.filter(r => r.ok).map(r =>
-      [r.classroom_name, r.login_id, r.temp_password, r.guardian_name, r.children].join('\t')))
+      [r.classroom_name, r.login_id, r.guardian_name, r.children].join('\t')))
     .join('\n');
   const note = document.getElementById('gbulk-copy-note');
   try {
@@ -1473,7 +1444,7 @@ document.getElementById('gbulk-guide-btn').addEventListener('click', () => {
   const text = okRows.map(r => buildGuideText(
     r.guardian_name,
     '　お子さま：' + r.children + '\n　生徒コード・PIN：お子さまがお使いのもの\n',
-    r.login_id, r.temp_password)).join(GUIDE_SEP);
+    r.login_id)).join(GUIDE_SEP);
   const ta = document.getElementById('gbulk-guide-text');
   ta.value = text;
   ta.style.display = '';

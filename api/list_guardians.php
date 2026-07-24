@@ -12,10 +12,15 @@ $stmt = $pdo->prepare('SELECT role FROM teachers WHERE teacher_id = :id');
 $stmt->execute(['id' => $actor['id']]);
 $requesterRole = $stmt->fetchColumn();
 
+// last_login_at = ひもづく guardian_id の成功ログイン(success=1)の最終時刻。
+// idx_ll_actor(actor_type,actor_id,logged_in_at) が効くのでスカラサブクエリで十分軽い。
 $baseSql =
     "SELECT g.login_id, g.guardian_name, g.is_active, g.created_at,
             COALESCE(GROUP_CONCAT(CONCAT(s.login_id, ' ', s.student_name)
-              ORDER BY s.login_id SEPARATOR '、'), '') AS children
+              ORDER BY s.login_id SEPARATOR '、'), '') AS children,
+            (SELECT MAX(ll.logged_in_at) FROM login_logs ll
+              WHERE ll.actor_type = 'guardian' AND ll.actor_id = g.guardian_id
+                AND ll.success = 1) AS last_login_at
      FROM guardians g
      LEFT JOIN guardian_students gs ON gs.guardian_id = g.guardian_id
      LEFT JOIN students s ON s.student_id = gs.student_id";

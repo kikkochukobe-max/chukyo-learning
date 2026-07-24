@@ -29,9 +29,9 @@ if (count($studentCodes) === 0) {
     json_response(['ok' => false, 'error' => 'student_codes_required'], 400);
 }
 
-// 保護者は講師と同じ仮パスワード方式（8字英数を自動発行して応答でのみ返す。
-// 本人が初回ログイン時に8〜15字の英数へ変更する。must_change_password はDBのDEFAULT 1）
-$password = generate_temp_password();
+// 保護者は自前のパスワードを持たず「お子さまの生徒PIN」でログインする。
+// guardians.password_hash は使わない（NOT NULL を満たすためだけの未使用ダミー値）。
+$guardianDummyHash = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
 
 // 保護者ログインIDは「代表のお子さま（最初に指定した生徒）の生徒コード」に g を付けて自動採番。
 // 例: 260038 → g260038。兄弟は下の guardian_students で複数ひもづける。
@@ -68,13 +68,15 @@ $guardianName = mb_substr($repName . ' 保護者様', 0, 50);
 
 $pdo->beginTransaction();
 try {
+    // must_change_password は列に触れない（別マイグレーションで後付けの列＝未適用環境では
+    // 存在しない可能性があるため。保護者では未使用なのでDEFAULTのままでよい）。
     $stmt = $pdo->prepare(
         'INSERT INTO guardians (login_id, password_hash, guardian_name)
          VALUES (:login_id, :password_hash, :guardian_name)'
     );
     $stmt->execute([
         'login_id'      => $loginId,
-        'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+        'password_hash' => $guardianDummyHash,
         'guardian_name' => $guardianName,
     ]);
     $guardianId = (int)$pdo->lastInsertId();
@@ -96,7 +98,6 @@ json_response([
     'ok'            => true,
     'guardian_id'   => $guardianId,
     'login_id'      => $loginId,
-    'temp_password' => $password,
     'guardian_name' => $guardianName,
     'children'      => implode('、', $children),
     'linked'        => count($studentIds),

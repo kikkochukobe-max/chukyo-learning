@@ -4,10 +4,9 @@ declare(strict_types=1);
 require_once __DIR__ . '/bootstrap.php';
 
 // 保護者の一括登録。1行=1家庭（兄弟は同じ行にまとめる。行の先頭の生徒コードが代表）。
-// ログインIDは「代表のお子さまの生徒コード」に g を付けて自動採番し、
-// 仮パスワード（8字英数・講師と同じ方式）をサーバー側で自動生成して結果一覧で返す
-// （発行結果はこの応答でしか確認できないため、画面側でコピーして各教室へ配布する。
-//   本人が初回ログイン時に8〜15字の英数へ変更する）。
+// ログインIDは「代表のお子さまの生徒コード」に g を付けて自動採番する。
+// 保護者は自前のパスワードを持たず「お子さまの生徒PIN」でログインするため、
+// guardians.password_hash は使わない（NOT NULL を満たすためだけの未使用ダミー値）。
 // 行ごとに独立して登録するため、失敗行があっても他の行は登録される。
 // 兄弟のどれかが既に保護者に紐づいている行は already_has_guardian で弾く
 // （代表の子が違うと login_id の重複では検知できない家庭の二重登録を防ぐ。
@@ -49,6 +48,8 @@ $checkLinked = $pdo->prepare(
      JOIN guardians g ON g.guardian_id = gs.guardian_id
      WHERE gs.student_id = :sid LIMIT 1'
 );
+// must_change_password は列に触れない（別マイグレーションで後付けの列＝未適用環境では
+// 存在しない可能性があるため。保護者では未使用なのでDEFAULTのままでよい）。
 $insGuardian = $pdo->prepare(
     'INSERT INTO guardians (login_id, password_hash, guardian_name)
      VALUES (:login_id, :password_hash, :guardian_name)'
@@ -103,14 +104,14 @@ foreach ($rows as $row) {
     $loginId = 'g' . $codes[0];
     // 保護者氏名は登録せず「代表の子の生徒名＋保護者様」を自動設定する（登録時点のスナップショット）
     $guardianName = mb_substr($students[0]['student_name'] . ' 保護者様', 0, 50);
-    // 講師と同じ仮パスワード方式（8字英数。本人が初回ログインで8〜15字英数に変更）
-    $password = generate_temp_password();
+    // 保護者はお子さまの生徒PINでログインするため未使用のダミーhashを入れる（NOT NULL対策）
+    $dummyHash = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
 
     $pdo->beginTransaction();
     try {
         $insGuardian->execute([
             'login_id'      => $loginId,
-            'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+            'password_hash' => $dummyHash,
             'guardian_name' => $guardianName,
         ]);
         $guardianId = (int)$pdo->lastInsertId();
@@ -136,7 +137,6 @@ foreach ($rows as $row) {
         'ok'             => true,
         'codes'          => $codes,
         'login_id'       => $loginId,
-        'temp_password'  => $password,
         'guardian_name'  => $guardianName,
         'classroom_name' => $students[0]['classroom_name'],  // 代表の子の教室（配布先の目安）
         'children'       => implode('、', $children),
