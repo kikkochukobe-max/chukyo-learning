@@ -53,16 +53,15 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif}
 .card-panel .lead{font-size:13.5px;color:var(--ink-soft);margin-bottom:16px}
 
 /* モード選択カード */
-.mode-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
-.mode-card{display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;
-  background:var(--paper);border:1.6px solid var(--grid);border-radius:14px;padding:15px 15px;
+.mode-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px}
+.mode-card{display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;
+  background:var(--paper);border:1.6px solid var(--grid);border-radius:12px;padding:9px 12px;
   cursor:pointer;font-family:inherit;color:var(--ink);transition:transform .12s,box-shadow .12s,border-color .12s}
 .mode-card:hover{transform:translateY(-2px);border-color:var(--midori);box-shadow:0 5px 16px rgba(74,124,89,.18)}
 .mode-card.active{border-color:var(--midori);background:var(--midori-soft);box-shadow:0 4px 14px rgba(74,124,89,.2)}
-.mode-card .ico{font-size:26px;line-height:1}
-.mode-card .nm{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:18px;margin-top:2px}
-.mode-card .ds{font-size:11.5px;color:var(--ink-soft);line-height:1.5}
-.mode-card .ct{font-size:11px;color:var(--midori-d);font-weight:700;margin-top:2px}
+.mode-card .nm{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:16px}
+.mode-card .nm .ct{font-weight:700;font-size:12px;color:var(--midori-d)}
+.mode-card .ds{font-size:11px;color:var(--ink-soft);line-height:1.35}
 
 /* モード詳細パネル */
 .mode-panel{margin-top:16px;border-top:1px dashed var(--grid);padding-top:16px}
@@ -102,8 +101,26 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif}
 #qcard{position:relative;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 20px;overflow:hidden}
 #qnum{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:12px;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:6px}
 #qtext{font-size:calc(var(--fs) + 2px);font-weight:500;line-height:1.75;color:#1a1a1a;margin-bottom:18px}
+#qtbl{margin:-6px 0 18px}
+#qtbl:empty{display:none}
+#qtbl table{border-collapse:collapse;font-size:14px;margin:0 auto;background:var(--white)}
+#qtbl th,#qtbl td{border:1.4px solid var(--grid);padding:6px 12px;text-align:center;white-space:nowrap}
+#qtbl th{background:var(--midori-soft);font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--midori-d)}
+#qtbl td:first-child{font-weight:700;color:var(--ink)}
 #choices{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
-@media (max-width:520px){#choices{grid-template-columns:1fr}}
+@media (max-width:520px){
+  #choices{grid-template-columns:1fr;gap:7px}
+  /* スマホでは6択の縦を詰める */
+  #qcard{padding:16px 15px 74px}   /* 下は固定フッターのぶん空ける */
+  #qtext{margin-bottom:12px;line-height:1.55}
+  #qtbl{margin:-2px 0 12px}
+  .ch{padding:8px 12px;gap:9px;line-height:1.3}
+  .ch .no{width:22px;height:22px;font-size:13px}
+  /* 操作ボタンを画面下に固定＝解説が伸びても「答え合わせ／次へ」を常にスクロールなしで押せる */
+  .qfoot{position:fixed;left:0;right:0;bottom:0;margin:0;padding:10px 14px;box-sizing:border-box;
+    background:rgba(255,255,255,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+    box-shadow:0 -2px 12px rgba(0,0,0,.1);z-index:200}
+}
 .ch{display:flex;align-items:center;gap:10px;text-align:left;background:var(--paper);border:1.6px solid var(--grid);
   border-radius:12px;padding:13px 14px;cursor:pointer;font-family:inherit;font-size:var(--fs);color:var(--ink);
   line-height:1.5;transition:border-color .12s,background .12s,transform .1s}
@@ -111,6 +128,8 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif}
   display:flex;align-items:center;justify-content:center;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:14px;color:var(--ink-soft)}
 .ch:hover:not(:disabled){border-color:var(--midori);background:var(--midori-soft);transform:translateY(-1px)}
 .ch:disabled{cursor:default}
+.ch.sel{border-color:var(--midori);background:var(--midori-soft);box-shadow:0 0 0 2px var(--midori) inset}
+.ch.sel .no{background:var(--midori);color:#fff;border-color:var(--midori)}
 .ch.ok{border-color:var(--midori);background:var(--midori-soft)}
 .ch.ok .no{background:var(--midori);color:#fff;border-color:var(--midori)}
 .ch.ng{border-color:var(--daidai);background:#FBF1E1;opacity:.85}
@@ -121,8 +140,12 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif}
 #explain .lbl{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--midori-d);margin-right:6px}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .qfoot{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
+.qfoot-right{display:flex;gap:10px;align-items:center}
 #next{display:none}
 #next.show{display:inline-flex}
+#grade{display:none}
+#grade.show{display:inline-flex}
+#grade:disabled{opacity:.45;cursor:default}
 .retry-banner{background:#FFF7E8;border:1.5px solid var(--kin);border-radius:12px;padding:11px 15px;margin-bottom:16px;
   font-size:13.5px;color:#7a5f14;display:flex;align-items:center;gap:8px}
 
@@ -164,8 +187,13 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif}
 .ref-pane p,.ref-pane li{font-size:13.5px;line-height:1.85}
 .ref-pane ul{margin:2px 0 2px 1.1em}
 .ref-pane .formula{background:var(--white);border:1.5px solid var(--midori);border-radius:10px;padding:11px 14px;
-  font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--midori-d);margin:6px 0;font-size:15px}
+  font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--midori-d);margin:6px 0;font-size:15px;
+  overflow-x:auto}
 .ref-pane .hl{background:#FBF1E1;border-radius:4px;padding:0 4px;font-weight:700;color:#8a5a12}
+/* CSSだけで分数（横線）表記を作る */
+.frac{display:inline-flex;flex-direction:column;text-align:center;vertical-align:middle;margin:0 4px}
+.frac .nu{border-bottom:1.7px solid currentColor;padding:0 8px 1px}
+.frac .de{padding:1px 8px 0}
 .table-scroll{overflow-x:auto}
 table.gas{border-collapse:collapse;width:100%;min-width:720px;font-size:12.5px;margin-top:4px}
 table.gas th,table.gas td{border:1px solid #ddd7cb;padding:7px 9px;text-align:center;vertical-align:middle}
@@ -230,11 +258,15 @@ footer a:hover{text-decoration:underline}
     <div id="qcard">
       <div id="qnum"></div>
       <div id="qtext"></div>
+      <div id="qtbl"></div>
       <div id="choices"></div>
       <div id="explain"></div>
       <div class="qfoot">
-        <button class="btn btn-ghost" id="quitBtn">← やめる</button>
-        <button class="btn btn-primary" id="next">次へ →</button>
+        <button class="btn btn-ghost" id="quitBtn">← ホームに戻る</button>
+        <div class="qfoot-right">
+          <button class="btn btn-primary" id="grade">答え合わせ</button>
+          <button class="btn btn-primary" id="next">次へ →</button>
+        </div>
       </div>
     </div>
   </section>
@@ -304,7 +336,7 @@ footer a:hover{text-decoration:underline}
             <thead><tr><th>気体</th><th>色</th><th>におい</th><th>空気と比べた重さ</th><th>水へのとけ方</th><th>集め方</th><th>おもな性質</th></tr></thead>
             <tbody>
               <tr><td class="name">酸素</td><td>無色</td><td>無臭</td><td>少し重い(1.11)</td><td>とけにくい</td><td><span class="chip water">水上</span></td><td>ものを燃やす（線香が激しく燃える）</td></tr>
-              <tr><td class="name">二酸化炭素</td><td>無色</td><td>無臭</td><td>重い(1.53)</td><td>少しとける</td><td><span class="chip down">下方</span></td><td>石灰水を白くにごらせる／水溶液は酸性</td></tr>
+              <tr><td class="name">二酸化炭素</td><td>無色</td><td>無臭</td><td>重い(1.53)</td><td>少しとける</td><td><span class="chip down">下方</span> <span class="chip water">水上</span></td><td>石灰水を白くにごらせる／水溶液は酸性</td></tr>
               <tr><td class="name">アンモニア</td><td>無色</td><td>刺激臭</td><td>軽い(0.60)</td><td>非常にとけやすい</td><td><span class="chip up">上方</span></td><td><span class="chip poison">有毒</span>水溶液はアルカリ性／肥料</td></tr>
               <tr><td class="name">水素</td><td>無色</td><td>無臭</td><td>非常に軽い(0.07)</td><td>とけにくい</td><td><span class="chip water">水上</span></td><td>最も軽い／燃えて水ができる</td></tr>
               <tr><td class="name">窒素</td><td>無色</td><td>無臭</td><td>少し軽い(0.97)</td><td>とけにくい</td><td><span class="chip water">水上</span></td><td>空気の約78%／変化しにくい</td></tr>
@@ -326,7 +358,8 @@ footer a:hover{text-decoration:underline}
           <li>性質：透明・どこも均一・分離しない・ろ過では溶質を取り出せない</li>
         </ul>
         <h4>質量パーセント濃度</h4>
-        <div class="formula">濃度[%] ＝ 溶質の質量 ÷ 溶液の質量 × 100</div>
+        <div class="formula">濃度[%] ＝ <span class="frac"><span class="nu">溶質の質量[g]</span><span class="de">溶液の質量[g]</span></span> × 100</div>
+        <div class="formula">溶質の質量[g] ＝ 水溶液の質量[g] × <span class="frac"><span class="nu">％</span><span class="de">100</span></span></div>
         <h4>溶解度・飽和・再結晶</h4>
         <ul>
           <li><b>溶解度</b>＝水100gにとける限界の質量（温度で変化）。<b>飽和</b>＝限界までとけた状態</li>
@@ -362,9 +395,10 @@ footer a:hover{text-decoration:underline}
           <li>体積はメスシリンダーで（水に入れて増えた分）</li>
         </ul>
         <h4>質量パーセント濃度</h4>
-        <div class="formula">濃度[%] ＝ 溶質 ÷ 溶液 × 100 ＝ 溶質 ÷ (溶質＋溶媒) × 100</div>
+        <div class="formula">濃度[%] ＝ <span class="frac"><span class="nu">溶質の質量[g]</span><span class="de">溶液の質量[g]</span></span> × 100 ＝ <span class="frac"><span class="nu">溶質の質量[g]</span><span class="de">溶媒の質量[g]＋溶質の質量[g]</span></span> × 100</div>
+        <div class="formula">溶質の質量[g] ＝ 水溶液の質量[g] × <span class="frac"><span class="nu">％</span><span class="de">100</span></span></div>
         <ul>
-          <li>溶質＝溶液×濃度/100 ／ 溶媒(水)＝溶液−溶質</li>
+          <li>溶媒(水)＝溶液−溶質</li>
           <li>例：水100gに食塩25g → 25÷<span class="hl">125</span>×100＝20%（分母は溶液！）</li>
         </ul>
       </div>
@@ -384,7 +418,7 @@ function safeDivpClear(sel){ var c=document.querySelector(sel); if(c){c.querySel
 
 /* モード定義（表示順） */
 var MODES = {
-  busshitsu:{label:'物質',     ico:'🔬', desc:'有機物・金属・実験器具・粉末'},
+  busshitsu:{label:'物質',     ico:'🔬', desc:'有機物・金属・実験器具・粉末・密度'},
   kitai:    {label:'気体',     ico:'🎈', desc:'9種類の気体の性質・集め方'},
   suiyoueki:{label:'水溶液',   ico:'💧', desc:'溶質溶媒・濃度・溶解度'},
   joutai:   {label:'状態変化', ico:'🧊', desc:'三態・融点沸点・蒸留'},
@@ -393,7 +427,7 @@ var MODES = {
 
 /* 分野（サブカテゴリ）ラベル */
 var CATS = {
-  yuki:'有機物・無機物', kinzoku:'金属・非金属', jikken:'実験器具・操作', kona:'白い粉末の区別', plastic:'プラスチック',
+  yuki:'有機物・無機物', kinzoku:'金属・非金属', jikken:'実験器具・操作', kona:'白い粉末の区別', plastic:'プラスチック', b_mitsudo:'密度・浮き沈み',
   color_smell:'色とにおい', density:'重さ・密度', solubility:'水へのとけやすさ', collection:'気体の集め方',
   generation:'発生方法', property:'性質・特徴', solution:'水溶液の性質(気体)', air:'空気の成分', experiment:'実験・調べ方', identify:'総合判別',
   w_kihon:'溶質・溶媒・溶液', w_seishitsu:'水溶液の性質・粒子', w_youkaido:'溶解度・飽和・再結晶', w_roka:'ろ過・結晶',
@@ -403,7 +437,7 @@ var CATS = {
 
 /* 分野 → モード */
 var CAT_MODE = {
-  yuki:'busshitsu', kinzoku:'busshitsu', jikken:'busshitsu', kona:'busshitsu', plastic:'busshitsu',
+  yuki:'busshitsu', kinzoku:'busshitsu', jikken:'busshitsu', kona:'busshitsu', plastic:'busshitsu', b_mitsudo:'busshitsu',
   color_smell:'kitai', density:'kitai', solubility:'kitai', collection:'kitai', generation:'kitai',
   property:'kitai', solution:'kitai', air:'kitai', experiment:'kitai', identify:'kitai',
   w_kihon:'suiyoueki', w_seishitsu:'suiyoueki', w_youkaido:'suiyoueki', w_roka:'suiyoueki',
@@ -473,6 +507,13 @@ var BANK = [
   {id:'g6',cat:'generation',q:'オキシドールの正体（成分）は？',c:['うすい過酸化水素水','うすい塩酸','石灰水','食塩水','アンモニア水','炭酸水'],a:'うすい過酸化水素水',exp:'市販のオキシドールは約3%の過酸化水素水。二酸化マンガンを加えると酸素が出る。'},
   {id:'g7',cat:'generation',q:'家庭用の「塩素系」漂白剤と「酸性タイプ」の洗浄剤を混ぜると発生する、有毒な気体は？',c:['塩素','酸素','水素','二酸化炭素','窒素','アンモニア'],a:'塩素',exp:'「まぜるな危険」の表示はこのため。有毒な塩素が発生するので絶対に混ぜてはいけない。'},
   {id:'g8',cat:'generation',q:'過炭酸ナトリウム（酸素系漂白剤の成分）に湯を加えると発生する気体は？',c:['酸素','二酸化炭素','水素','塩素','アンモニア','窒素'],a:'酸素',exp:'過炭酸ナトリウムは酸素系漂白剤にふくまれる。湯を加えると酸素が発生する。'},
+  {id:'g9',cat:'generation',q:'過酸化水素水に二酸化マンガンを加えて酸素を発生させたとき、二酸化マンガン自身はどうなる？',c:['それ自身は変化せず、くり返しはたらく','二酸化マンガンも反応して酸素になる','とけてなくなる','酸素と結びついて別の物質になる','水素に変わる','量がふえていく'],a:'それ自身は変化せず、くり返しはたらく',exp:'二酸化マンガンは反応を速めるだけで、それ自身は変化しない（＝触媒）。だから残った二酸化マンガンは何度もくり返し使える。酸素は過酸化水素水が分解して発生する。'},
+  {id:'g10',cat:'generation',q:'ジャガイモやレバー、ダイコンにオキシドール（過酸化水素水）をかけると、あわを出して発生する気体は？',c:['酸素','二酸化炭素','水素','アンモニア','窒素','塩素'],a:'酸素',exp:'ジャガイモ・レバー・ダイコンには過酸化水素を分解する物質（カタラーゼ）がふくまれ、二酸化マンガンと同じ触媒としてはたらいて酸素が発生する。'},
+  {id:'g11',cat:'generation',q:'ジャガイモにオキシドールをかけると酸素が発生するのは、ジャガイモが二酸化マンガンと同じ何のはたらきをするから？',c:['触媒（反応を速める）','燃料','酸性','アルカリ性','水を吸う','電気を通す'],a:'触媒（反応を速める）',exp:'ジャガイモにふくまれるカタラーゼは、自分は変化せず過酸化水素水の分解を速める＝二酸化マンガンと同じ触媒のはたらき。'},
+  {id:'gr1',cat:'generation',q:'酸素を発生させる方法として正しいのは？',c:['二酸化マンガンにうすい過酸化水素水（オキシドール）を加える','石灰石にうすい塩酸を加える','亜鉛や鉄にうすい塩酸を加える','塩化アンモニウムと水酸化カルシウムを混ぜて加熱する','塩素系漂白剤に酸性の洗剤を混ぜる','食塩水を加熱する'],a:'二酸化マンガンにうすい過酸化水素水（オキシドール）を加える',exp:'酸素は二酸化マンガン（触媒）に過酸化水素水を加えて発生させる。過炭酸ナトリウムに湯を加えても酸素が出る。'},
+  {id:'gr2',cat:'generation',q:'二酸化炭素を発生させる方法として正しいのは？',c:['石灰石にうすい塩酸を加える','二酸化マンガンにうすい過酸化水素水を加える','亜鉛や鉄にうすい塩酸を加える','塩化アンモニウムと水酸化カルシウムを混ぜて加熱する','塩素系漂白剤に酸性の洗剤を混ぜる','アンモニア水を加熱する'],a:'石灰石にうすい塩酸を加える',exp:'二酸化炭素は石灰石（炭酸カルシウム）にうすい塩酸を加えて発生させる。卵の殻＋食酢、重そう＋塩酸でも出る。'},
+  {id:'gr3',cat:'generation',q:'水素を発生させる方法として正しいのは？',c:['亜鉛や鉄などの金属にうすい塩酸を加える','二酸化マンガンにうすい過酸化水素水を加える','石灰石にうすい塩酸を加える','塩化アンモニウムと水酸化カルシウムを混ぜて加熱する','塩素系漂白剤に酸性の洗剤を混ぜる','石灰水に息をふきこむ'],a:'亜鉛や鉄などの金属にうすい塩酸を加える',exp:'水素は亜鉛や鉄などの金属にうすい塩酸を加えて発生させる。'},
+  {id:'gr4',cat:'generation',q:'アンモニアを発生させる方法として正しいのは？',c:['塩化アンモニウムと水酸化カルシウムの混合物を加熱する','二酸化マンガンにうすい過酸化水素水を加える','石灰石にうすい塩酸を加える','亜鉛や鉄にうすい塩酸を加える','塩素系漂白剤に酸性の洗剤を混ぜる','砂糖を燃やす'],a:'塩化アンモニウムと水酸化カルシウムの混合物を加熱する',exp:'アンモニアは塩化アンモニウムと水酸化カルシウムの混合物を加熱して発生させる。アンモニア水を加熱しても出る。'},
   {id:'p1',cat:'property',q:'ものを燃やすはたらき（助燃性）がある気体は？',c:['酸素','二酸化炭素','水素','窒素','アンモニア','メタン'],a:'酸素',exp:'酸素にはものを燃やすはたらきがある。火のついた線香を入れると激しく燃える。'},
   {id:'p2',cat:'property',q:'火のついた線香を入れると、線香が激しく燃える気体は？',c:['酸素','二酸化炭素','窒素','アンモニア','水素','塩素'],a:'酸素',exp:'これは酸素かどうかを調べる方法。酸素中では線香が炎を上げて激しく燃える。'},
   {id:'p3',cat:'property',q:'石灰水を白くにごらせる気体は？',c:['二酸化炭素','酸素','水素','窒素','アンモニア','メタン'],a:'二酸化炭素',exp:'石灰水を白くにごらせるのは、二酸化炭素かどうかを調べる方法。'},
@@ -560,32 +601,22 @@ var BANK = [
   {id:'j_jou3',cat:'j_jouryu',q:'水とエタノールの混合物を蒸留すると、先に多く出てくるのは？（沸点：水100℃、エタノール約78℃）',c:['エタノール','水','食塩','どちらも同時','何も出ない','二酸化炭素'],a:'エタノール',exp:'沸点の低いエタノール（約78℃）のほうが先に多く出てくる。'},
   {id:'j_jou4',cat:'j_jouryu',q:'蒸留の実験で、突然の沸とう（突沸）を防ぐために入れるものは？',c:['沸騰石','ガラス棒','ろ紙','温度計','食塩','氷'],a:'沸騰石',exp:'沸騰石を入れると急な突沸を防げる。'},
   {id:'j_jou5',cat:'j_jouryu',q:'蒸留装置で、温度計の球部（液だめ）を置く正しい位置は？',c:['枝つきフラスコの枝の高さ','液の中','フラスコの底','ゴム栓の上','冷却器の中','どこでもよい'],a:'枝つきフラスコの枝の高さ',exp:'出てくる蒸気の温度をはかるため、温度計の球部は枝（気体が出る口）の高さに合わせる。'},
+  {id:'j_jou6',cat:'j_jouryu',q:'蒸留装置で、出てきた蒸気を冷やして再び液体にもどす器具は？',c:['冷却器（リービッヒ冷却器）','枝つきフラスコ','ろうと','ガスバーナー','温度計','メスシリンダー'],a:'冷却器（リービッヒ冷却器）',exp:'冷却器（リービッヒ冷却器）に冷たい水を流し、その中を通る蒸気を冷やして液体にもどす。'},
+  {id:'j_jou7',cat:'j_jouryu',q:'水とエタノールの混合物を蒸留し、はじめに集めた液体に火を近づけるとよく燃えた。この液体に多くふくまれているのは？',c:['エタノール','水','食塩','砂糖','石油','二酸化炭素'],a:'エタノール',exp:'沸点の低いエタノール(約78℃)が先に多く出てくる。エタノールは燃えるので火を近づけると燃える。あとから出る液体は水が多く、燃えにくい。'},
+  {id:'j_jou8',cat:'j_jouryu',q:'蒸留の実験で、加熱をやめるとき最初にすべきことは？',c:['ガラス管の先を液体から抜いてから火を消す','火を消してから管はそのままにする','急いで冷却器の水を止める','フラスコを水につけて冷やす','温度計を先に抜く','沸騰石を取り出す'],a:'ガラス管の先を液体から抜いてから火を消す',exp:'先に火を消すと、冷えて気圧が下がり、集めた液体が逆流して熱いフラスコに入り割れることがある。だから管先を液から抜いてから火を消す。'},
+  {id:'j_jou9',cat:'j_jouryu',q:'蒸留で、集めた液体が純粋な水にどんどん近づいていくのは、温度計が何℃付近を示しているときの後半か？',c:['100℃','78℃','0℃','50℃','200℃','20℃'],a:'100℃',exp:'先にエタノール(沸点約78℃)が多く出て、温度が100℃付近まで上がったあとは、出てくる液体に水が多くなる。純物質の水は100℃で沸とうする。'},
+  {id:'j_jou10',cat:'j_jouryu',q:'原油（石油）を、ふくまれる物質の沸点のちがいを利用して、ガソリン・灯油などに分けることを何という？',c:['分留（分別蒸留）','ろ過','再結晶','抽出','昇華','溶解'],a:'分留（分別蒸留）',exp:'沸点の異なる何種類もの液体の混合物を、蒸留で順に分けることを分留（分別蒸留）という。石油の精製に使われる。'},
   /* ========== 計算特集：密度 ========== */
-  {id:'k_mit1',cat:'k_mitsudo',q:'密度を求める公式は？',c:['密度＝質量÷体積','密度＝体積÷質量','密度＝質量×体積','密度＝質量＋体積','密度＝体積÷質量×100','密度＝質量÷面積'],a:'密度＝質量÷体積',exp:'密度[g/cm³]＝質量[g]÷体積[cm³]。'},
-  {id:'k_mit2',cat:'k_mitsudo',q:'質量54g、体積20cm³の物質の密度は？',c:['2.7 g/cm³','0.37 g/cm³','1.7 g/cm³','74 g/cm³','34 g/cm³','1080 g/cm³'],a:'2.7 g/cm³',exp:'54÷20＝2.7 g/cm³（アルミニウムの密度）。'},
-  {id:'k_mit3',cat:'k_mitsudo',q:'密度7.9g/cm³の鉄。体積10cm³の鉄の質量は？',c:['79g','0.79g','7.9g','17.9g','790g','1.3g'],a:'79g',exp:'質量＝密度×体積＝7.9×10＝79g。'},
-  {id:'k_mit4',cat:'k_mitsudo',q:'質量120g、密度8.0g/cm³の金属の体積は？',c:['15cm³','960cm³','0.067cm³','128cm³','112cm³','40cm³'],a:'15cm³',exp:'体積＝質量÷密度＝120÷8.0＝15cm³。'},
-  {id:'k_mit5',cat:'k_mitsudo',q:'水の密度は1.0g/cm³。密度0.9g/cm³の物質を水に入れるとどうなる？',c:['浮く','沈む','とける','消える','蒸発する','決まらない'],a:'浮く',exp:'水より密度が小さい（軽い）と浮き、大きいと沈む。0.9＜1.0なので浮く。'},
-  {id:'k_mit6',cat:'k_mitsudo',q:'質量40g、体積50cm³の物質を水（1.0g/cm³）に入れるとどうなる？',c:['浮く（密度0.8）','沈む（密度1.25）','とける','ちょうど中間で止まる','決まらない','蒸発する'],a:'浮く（密度0.8）',exp:'密度＝40÷50＝0.8g/cm³。水より小さいので浮く。'},
-  {id:'k_mit7',cat:'k_mitsudo',q:'メスシリンダーに水を50cm³入れ、金属を沈めたら液面が62cm³になった。金属の体積は？',c:['12cm³','62cm³','50cm³','112cm³','6cm³','24cm³'],a:'12cm³',exp:'増えた分が体積。62−50＝12cm³。'},
-  {id:'k_mit8',cat:'k_mitsudo',q:'体積が同じとき、密度が大きい物質ほど質量は？',c:['大きい','小さい','同じ','0になる','決まらない','半分になる'],a:'大きい',exp:'質量＝密度×体積。体積が同じなら密度が大きいほど質量が大きい。'},
-  {id:'k_mit9',cat:'k_mitsudo',q:'質量が同じ2つの物質A（密度2）とB（密度4）。体積が大きいのは？',c:['A','B','同じ','どちらも0','決まらない','質量で決まる'],a:'A',exp:'体積＝質量÷密度。質量が同じなら密度が小さいAのほうが体積が大きい。'},
-  {id:'k_mit10',cat:'k_mitsudo',q:'密度0.79g/cm³のエタノール200cm³の質量は？',c:['158g','253g','200g','79g','1580g','2.53g'],a:'158g',exp:'質量＝密度×体積＝0.79×200＝158g。'},
-  {id:'k_mit11',cat:'k_mitsudo',q:'ある金属の質量は216g、体積は80cm³。この密度は？',c:['2.7 g/cm³','3.7 g/cm³','0.37 g/cm³','27 g/cm³','296 g/cm³','1.35 g/cm³'],a:'2.7 g/cm³',exp:'216÷80＝2.7 g/cm³。'},
-  {id:'k_mit12',cat:'k_mitsudo',q:'密度11.3g/cm³の鉛と、密度2.7g/cm³のアルミ。同じ体積のとき重いのは？',c:['鉛','アルミ','同じ','決まらない','どちらも軽い','質量で決まる'],a:'鉛',exp:'同じ体積なら密度が大きいほど重い。鉛(11.3)＞アルミ(2.7)。'},
-  /* ========== 計算特集：濃度 ========== */
-  {id:'k_nou1',cat:'k_noudo',q:'質量パーセント濃度を求める公式は？',c:['溶質の質量÷溶液の質量×100','溶媒÷溶質×100','溶質÷溶媒×100','溶液÷溶質×100','溶質×溶媒','溶質÷溶液'],a:'溶質の質量÷溶液の質量×100',exp:'濃度[%]＝溶質÷溶液×100＝溶質÷(溶質＋溶媒)×100。'},
-  {id:'k_nou2',cat:'k_noudo',q:'水90gに食塩10gをとかした食塩水の質量パーセント濃度は？',c:['10%','11%','9%','100%','1%','90%'],a:'10%',exp:'10÷(90＋10)×100＝10÷100×100＝10%。分母は溶液（合計100g）に注意。'},
-  {id:'k_nou3',cat:'k_noudo',q:'水80gに砂糖20gをとかした砂糖水の濃度は？',c:['20%','25%','16%','4%','80%','100%'],a:'20%',exp:'20÷(80＋20)×100＝20÷100×100＝20%。'},
-  {id:'k_nou4',cat:'k_noudo',q:'水100gに食塩25gをとかした。濃度は？',c:['20%','25%','4%','125%','75%','5%'],a:'20%',exp:'25÷(100＋25)×100＝25÷125×100＝20%。分母を125にするのがポイント。'},
-  {id:'k_nou5',cat:'k_noudo',q:'濃度15%の食塩水200gにふくまれる食塩の質量は？',c:['30g','15g','170g','3g','300g','13g'],a:'30g',exp:'溶質＝溶液×濃度/100＝200×0.15＝30g。'},
-  {id:'k_nou6',cat:'k_noudo',q:'濃度8%の食塩水150gにとけている食塩は？',c:['12g','8g','138g','1.2g','120g','18g'],a:'12g',exp:'150×0.08＝12g。'},
-  {id:'k_nou7',cat:'k_noudo',q:'濃度10%の食塩水250g。ふくまれる水（溶媒）は何g？',c:['225g','25g','240g','200g','275g','125g'],a:'225g',exp:'食塩＝250×0.1＝25g。水＝溶液−溶質＝250−25＝225g。'},
-  {id:'k_nou8',cat:'k_noudo',q:'食塩5gを使って5%の食塩水（溶液100g）を作るには、水を何g加えればよい？',c:['95g','100g','5g','105g','90g','20g'],a:'95g',exp:'溶液100gで溶質5gなら5%（5÷100×100）。水＝100−5＝95g。'},
-  {id:'k_nou9',cat:'k_noudo',q:'20%の砂糖水100gに水を100g加えると、濃度は？',c:['10%','20%','40%','5%','15%','2%'],a:'10%',exp:'砂糖＝100×0.2＝20g。水を加えると溶液は200gに。20÷200×100＝10%。'},
-  {id:'k_nou10',cat:'k_noudo',q:'10%の食塩水100gから水を50g蒸発させると濃度は？',c:['20%','10%','5%','15%','50%','25%'],a:'20%',exp:'食塩＝10g（変わらない）。溶液は100−50＝50gに。10÷50×100＝20%。'},
-  {id:'k_nou11',cat:'k_noudo',q:'濃度25%の食塩水にとけている食塩と水の質量の比（溶質：溶媒）は？',c:['1：3','1：4','1：1','3：1','4：1','2：3'],a:'1：3',exp:'溶液100gなら食塩25g・水75g→25：75＝1：3。'},
-  {id:'k_nou12',cat:'k_noudo',q:'食塩12gを水にとかして濃度15%の食塩水を作った。食塩水は全部で何g？',c:['80g','68g','180g','12g','800g','27g'],a:'80g',exp:'溶液＝溶質÷(濃度/100)＝12÷0.15＝80g。'}
+  /* 密度の概念（計算ではないので「物質」モードの密度・浮き沈みカテゴリに置く） */
+  {id:'k_mit1',cat:'b_mitsudo',q:'密度を求める公式は？',c:['密度＝質量÷体積','密度＝体積÷質量','密度＝質量×体積','密度＝質量＋体積','密度＝体積÷質量×100','密度＝質量÷面積'],a:'密度＝質量÷体積',exp:'密度[g/cm³]＝質量[g]÷体積[cm³]。'},
+  {id:'k_mit8',cat:'b_mitsudo',q:'体積が同じとき、密度が大きい物質ほど質量は？',c:['大きい','小さい','同じ','0になる','決まらない','半分になる'],a:'大きい',exp:'質量＝密度×体積。体積が同じなら密度が大きいほど質量が大きい。'},
+  {id:'k_mit9',cat:'b_mitsudo',q:'質量が同じ2つの物質A（密度2）とB（密度4）。体積が大きいのは？',c:['A','B','同じ','どちらも0','決まらない','質量で決まる'],a:'A',exp:'体積＝質量÷密度。質量が同じなら密度が小さいAのほうが体積が大きい。'},
+  {id:'k_mit12',cat:'b_mitsudo',q:'密度11.3g/cm³の鉛と、密度2.7g/cm³のアルミ。同じ体積のとき重いのは？',c:['鉛','アルミ','同じ','決まらない','どちらも軽い','質量で決まる'],a:'鉛',exp:'同じ体積なら密度が大きいほど重い。鉛(11.3)＞アルミ(2.7)。'},
+  /* 濃度の概念（計算ではないので「水溶液」モードの溶質・溶媒・溶液カテゴリに置く） */
+  {id:'k_nou1',cat:'w_kihon',q:'質量パーセント濃度を求める公式は？',c:['溶質の質量÷溶液の質量×100','溶媒÷溶質×100','溶質÷溶媒×100','溶液÷溶質×100','溶質×溶媒','溶質÷溶液'],a:'溶質の質量÷溶液の質量×100',exp:'濃度[%]＝溶質÷溶液×100＝溶質÷(溶質＋溶媒)×100。'},
+  {id:'k_nou11',cat:'w_kihon',q:'濃度25%の食塩水にとけている食塩と水の質量の比（溶質：溶媒）は？',c:['1：3','1：4','1：1','3：1','4：1','2：3'],a:'1：3',exp:'溶液100gなら食塩25g・水75g→25：75＝1：3。'}
+  /* ↑ 計算特集モード(keisan)は数値計算問題だけ。上の概念問題は busshitsu / suiyoueki へ移動済み。
+     密度・濃度の数値問題は下の GENERATORS で毎回ランダム生成 */
 ];
 
 /* ── 状態 ── */
@@ -594,28 +625,33 @@ var state = { queue:[], idx:0, correct:0, byCat:{}, spec:null, retry:false, retr
 
 function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;} return a; }
 function byId(id){ return document.getElementById(id); }
-function countMode(m){ var n=0; for(var i=0;i<BANK.length;i++) if(CAT_MODE[BANK[i].cat]===m) n++; return n; }
-function countCat(c){ var n=0; for(var i=0;i<BANK.length;i++) if(BANK[i].cat===c) n++; return n; }
+/* 生成器の本数（＝1回の出題で増える問題数）。GENERATORSはこの関数より後に定義されるが、
+   呼ばれるのは描画時（スクリプト実行後）なので参照できる */
+function genCountCat(c){ return (typeof GENERATORS!=='undefined' && GENERATORS[c]) ? GENERATORS[c].length : 0; }
+function countMode(m){ var n=0; for(var i=0;i<BANK.length;i++) if(CAT_MODE[BANK[i].cat]===m) n++;
+  Object.keys(CAT_MODE).forEach(function(c){ if(CAT_MODE[c]===m) n+=genCountCat(c); }); return n; }
+function countCat(c){ var n=0; for(var i=0;i<BANK.length;i++) if(BANK[i].cat===c) n++; return n+genCountCat(c); }
 function catsOfMode(m){ var s=[]; Object.keys(CATS).forEach(function(c){ if(CAT_MODE[c]===m && countCat(c)>0) s.push(c); }); return s; }
 
-/* ── モードカード ── */
-(function buildModeGrid(){
+/* ── モードカード ──（GENERATORS定義後にスクリプト末尾で呼ぶ。
+   即時実行だと生成問題の本数が0で数えられてしまうため） */
+function buildModeGrid(){
   var g=byId('modeGrid'), html='';
   Object.keys(MODES).forEach(function(m){
     var d=MODES[m];
-    html+='<button class="mode-card" data-mode="'+m+'"><span class="ico">'+d.ico+'</span>'
-        +'<span class="nm">'+d.label+'</span><span class="ds">'+d.desc+'</span>'
-        +'<span class="ct">'+countMode(m)+'問</span></button>';
+    html+='<button class="mode-card" data-mode="'+m+'">'
+        +'<span class="nm">'+d.label+' <span class="ct">'+countMode(m)+'問</span></span>'
+        +'<span class="ds">'+d.desc+'</span></button>';
   });
   g.innerHTML=html;
   g.addEventListener('click',function(e){ var b=e.target.closest('.mode-card'); if(b) selectMode(b.getAttribute('data-mode')); });
-})();
+}
 
 function selectMode(m){
   state.selMode=m;
   byId('modeGrid').querySelectorAll('.mode-card').forEach(function(el){ el.classList.toggle('active', el.getAttribute('data-mode')===m); });
   var d=MODES[m], total=countMode(m), cats=catsOfMode(m);
-  var html='<h3>'+d.ico+' '+d.label+'</h3>';
+  var html='<h3>'+d.label+'</h3>';
   html+='<div class="big-actions"><button class="btn btn-primary sm" id="startModeAll">この単元を全部（'+total+'問）</button>';
   if(total>15) html+='<button class="btn btn-outline sm" id="startModeRand">ランダム15問</button>';
   html+='</div>';
@@ -629,6 +665,233 @@ function selectMode(m){
   try{ p.scrollIntoView({behavior:'smooth',block:'nearest'}); }catch(e){}
 }
 
+/* ── 動的生成問題（毎回ランダムな数値で作る）── */
+function ri(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function fmtT(n){ return n<0 ? ('−'+Math.abs(n)) : (''+n); }     /* 負号は表と統一 */
+function pick(a){ return a[ri(0,a.length-1)]; }
+function numStr(n){ return (Math.round(n*1000)/1000).toString(); }   /* 末尾0を落として表示 */
+function r1(n){ return Math.round(n*10)/10; }                        /* 誤答は小数第1位に丸め */
+/* 正解＋誤答候補から重複なし6択を作る。fmt=表示整形。正解は必ず含み、正の有限値のみ採用 */
+function assemble(correct, wrongs, fmt){
+  var a=fmt(correct), seen={}, out=[a]; seen[a]=1;
+  shuffle(wrongs).forEach(function(w){
+    if(out.length>=6 || !isFinite(w) || w<=0) return;
+    var t=fmt(r1(w)); if(!seen[t]){ seen[t]=1; out.push(t); }
+  });
+  var step=correct>=10?10:1;
+  var cand=[correct*2, correct*3, correct/2, correct*1.5, correct*0.8,
+            correct+step, correct+2*step, correct*4, correct*5, correct+3*step];
+  for(var i=0;i<cand.length && out.length<6;i++){
+    var w=r1(cand[i]); if(!isFinite(w)||w<=0) continue;
+    var t=fmt(w); if(!seen[t]){ seen[t]=1; out.push(t); }
+  }
+  return {c:shuffle(out), a:a};
+}
+/* 生成問題は「値を選ぶ gen」と「値から問題を組む build」に分離する。
+   build が返す question には params(=完全な生成情報)を持たせ、Divp.answer にそのまま渡す。
+   解き直し(?retry=1)では params から build を呼び直して同じ問題を再現する。
+   → params_hash が問題ごとに一意になり、2連続正解のmastered判定も正しく働く。 */
+var LETTERS6=['A','B','C','D','E','F'];
+function stateOf(mp,bp,T){ return T<mp?'s':(T<bp?'l':'g'); }   /* s=固体 l=液体 g=気体 */
+function yutenTableHTML(subs){
+  var rows='';
+  subs.forEach(function(s){ rows+='<tr><td>'+s.L+'</td><td>'+fmtT(s.mp)+'</td><td>'+fmtT(s.bp)+'</td></tr>'; });
+  return '<table><thead><tr><th>物質</th><th>融点(℃)</th><th>沸点(℃)</th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+/* 正解(ans={mp,bp})＋distractor()×5 を並べ、A〜Fを割り当てたsubs配列を返す */
+function makeYutenSubs(ans, distractor){
+  var arr=[{mp:ans.mp,bp:ans.bp}];
+  for(var i=0;i<5;i++) arr.push(distractor());
+  arr=shuffle(arr);
+  arr.forEach(function(s,i){ s.L=LETTERS6[i]; });
+  return arr;
+}
+/* p={kind:'solid'|'gas'|'combo', T, subs:[{mp,bp,L}...]} から融点沸点の問題を組む */
+function buildYuten(p){
+  var subs=p.subs, tbl=yutenTableHTML(subs), q, exp, ansL='A';
+  if(p.kind==='solid'){
+    subs.forEach(function(s){ if(stateOf(s.mp,s.bp,p.T)==='s') ansL=s.L; });
+    q='下の表を見て答えよ。'+p.T+'℃のとき固体なのはどれ？';
+    exp='固体なのは「温度＜融点」の物質。'+p.T+'℃で融点が'+p.T+'℃より高いのは'+ansL+'だけ。ほかは融点をこえているので液体か気体。';
+  } else if(p.kind==='gas'){
+    subs.forEach(function(s){ if(stateOf(s.mp,s.bp,p.T)==='g') ansL=s.L; });
+    q='下の表を見て答えよ。'+p.T+'℃のとき気体なのはどれ？';
+    exp='気体なのは「温度＞沸点」の物質。'+p.T+'℃で沸点が'+p.T+'℃より低いのは'+ansL+'だけ。ほかは沸点に達していないので固体か液体。';
+  } else {
+    subs.forEach(function(s){ if(stateOf(s.mp,s.bp,0)==='s'&&stateOf(s.mp,s.bp,15)==='l'&&stateOf(s.mp,s.bp,100)==='g') ansL=s.L; });
+    q='下の表を見て答えよ。0℃では固体、15℃では液体、100℃では気体である物質はどれ？';
+    exp='0℃で固体（融点＞0）、15℃で液体（融点＜15＜沸点）、100℃で気体（沸点＜100）をすべて満たすのは'+ansL+'だけ。';
+  }
+  return {id:'j_yut_'+p.kind,cat:'j_yuten',tbl:tbl,q:q,c:LETTERS6.slice(),a:ansL,exp:exp,
+    params:{gen:'yuten',kind:p.kind,T:p.T,subs:subs}};
+}
+function genYutenSolid(){
+  var T=ri(3,12)*10, ans={mp:0,bp:0}; ans.mp=T+ri(20,150); ans.bp=ans.mp+ri(60,400);
+  var subs=makeYutenSubs(ans, function(){ var mp=ri(T-230,T-10); return {mp:mp,bp:mp+ri(40,400)}; });
+  return buildYuten({kind:'solid',T:T,subs:subs});
+}
+function genYutenGas(){
+  var T=ri(2,10)*10, ans={mp:0,bp:0}; ans.bp=T-ri(20,150); ans.mp=ans.bp-ri(40,300);
+  var subs=makeYutenSubs(ans, function(){ var bp=ri(T+10,T+400); return {mp:bp-ri(40,400),bp:bp}; });
+  return buildYuten({kind:'gas',T:T,subs:subs});
+}
+function genYutenCombo(){
+  var ans={mp:ri(2,13),bp:ri(20,95)};   /* 0<mp<15 かつ 15<bp<100 */
+  var subs=makeYutenSubs(ans, function(){ var mp=ri(0,1)?ri(-230,-5):ri(16,150); return {mp:mp,bp:mp+ri(40,400)}; });
+  return buildYuten({kind:'combo',T:null,subs:subs});
+}
+/* ── 密度の計算 ── */
+var DENS_T=[8,9,12,25,27,79,89,113,135,193];   /* 密度×10（0.8〜19.3 g/cm³） */
+var VOL10=[10,20,30,40,50,80,100];             /* 体積は10の倍数→質量が整数になる */
+var fmtD=function(x){ return numStr(x)+' g/cm³'; };
+var fmtG=function(x){ return numStr(x)+'g'; };
+var fmtV=function(x){ return numStr(x)+'cm³'; };
+function buildDensFind(p){   /* 質量・体積 → 密度 */
+  var d=p.dT/10, V=p.V, mass=p.dT*V/10;
+  var s=assemble(d,[V/mass,mass,V,d*2,d/2,mass/V*2],fmtD);
+  return {id:'k_mit_find',cat:'k_mitsudo',q:'質量'+numStr(mass)+'g、体積'+V+'cm³の物質の密度は？',
+    c:s.c,a:s.a,exp:'密度＝質量÷体積＝'+numStr(mass)+'÷'+V+'＝'+numStr(d)+' g/cm³。',params:{gen:'densFind',dT:p.dT,V:p.V}};
+}
+function genDensFind(){ return buildDensFind({dT:pick(DENS_T),V:pick(VOL10)}); }
+function buildDensMass(p){   /* 密度・体積 → 質量 */
+  var d=p.dT/10, V=p.V, mass=p.dT*V/10;
+  var s=assemble(mass,[d,V,d+V,V/d,mass/10,mass*2],fmtG);
+  return {id:'k_mit_mass',cat:'k_mitsudo',q:'密度'+numStr(d)+'g/cm³の物質 体積'+V+'cm³の質量は？',
+    c:s.c,a:s.a,exp:'質量＝密度×体積＝'+numStr(d)+'×'+V+'＝'+numStr(mass)+'g。',params:{gen:'densMass',dT:p.dT,V:p.V}};
+}
+function genDensMass(){ return buildDensMass({dT:pick(DENS_T),V:pick(VOL10)}); }
+function buildDensVol(p){   /* 質量・密度 → 体積 */
+  var d=p.dT/10, V=p.V, mass=p.dT*V/10;
+  var s=assemble(V,[mass*d,mass,d,mass+d,mass/d/2],fmtV);
+  return {id:'k_mit_vol',cat:'k_mitsudo',q:'質量'+numStr(mass)+'g、密度'+numStr(d)+'g/cm³の物質の体積は？',
+    c:s.c,a:s.a,exp:'体積＝質量÷密度＝'+numStr(mass)+'÷'+numStr(d)+'＝'+numStr(V)+'cm³。',params:{gen:'densVol',dT:p.dT,V:p.V}};
+}
+function genDensVol(){ return buildDensVol({dT:pick(DENS_T),V:pick(VOL10)}); }
+function buildDensDisp(p){   /* メスシリンダーの目盛りの差 */
+  var b=p.b, V=p.V, a=b+V;
+  var s=assemble(V,[a,b,a+b,Math.round(a/2),b-V+a],fmtV);
+  return {id:'k_mit_disp',cat:'k_mitsudo',q:'メスシリンダーに水を'+b+'cm³入れ、金属を静かに沈めたら液面が'+a+'cm³になった。金属の体積は？',
+    c:s.c,a:s.a,exp:'ふえた分が金属の体積。'+a+'−'+b+'＝'+V+'cm³。',params:{gen:'densDisp',b:p.b,V:p.V}};
+}
+function genDensDisp(){ return buildDensDisp({b:pick([40,50,60,80,100]),V:pick([8,10,12,15,18,20,24])}); }
+function buildDensFloat(p){   /* 水に浮くか沈むか */
+  var d=p.dT/10, ok=d<1?'浮く':'沈む';
+  return {id:'k_mit_float',cat:'k_mitsudo',q:'水（密度1.0g/cm³）に、密度'+numStr(d)+'g/cm³の物質を入れるとどうなる？',
+    c:['浮く','沈む','とける','ちょうど中間で止まる','蒸発する','決まらない'],a:ok,
+    exp:'水(1.0)より密度が'+(d<1?'小さい':'大きい')+'('+numStr(d)+')ので'+ok+'。水より密度が小さいと浮き、大きいと沈む。',params:{gen:'densFloat',dT:p.dT}};
+}
+function genDensFloat(){ return buildDensFloat({dT:pick(DENS_T)}); }
+/* ── 濃度の計算 ── */
+var fmtP=function(x){ return numStr(x)+'%'; };
+function buildConcPct(p){   /* 溶質・溶媒 → 濃度% */
+  var total=p.total, pct=p.pct, s=total*pct/100, w=total-s;
+  var r=assemble(pct,[s/w*100,s,w,100-pct,pct*2,s/total*10],fmtP);
+  return {id:'k_nou_pct',cat:'k_noudo',q:'水'+w+'gに食塩'+s+'gをとかした食塩水の質量パーセント濃度は？',
+    c:r.c,a:r.a,exp:''+s+'÷('+w+'＋'+s+')×100＝'+s+'÷'+total+'×100＝'+pct+'%。分母は溶液('+total+'g)に注意。',params:{gen:'concPct',total:p.total,pct:p.pct}};
+}
+function genConcPct(){ return buildConcPct({total:pick([100,200,300,400]),pct:pick([5,10,15,20,25,40])}); }
+function buildConcSolute(p){   /* 濃度・溶液 → 溶質 */
+  var total=p.total, pct=p.pct, s=total*pct/100, w=total-s;
+  var r=assemble(s,[pct,w,total,total/pct,s*2,s/2],fmtG);
+  return {id:'k_nou_solute',cat:'k_noudo',q:'濃度'+pct+'%の食塩水'+total+'gにふくまれる食塩は何g？',
+    c:r.c,a:r.a,exp:'食塩＝溶液×濃度/100＝'+total+'×'+pct+'/100＝'+s+'g。',params:{gen:'concSolute',total:p.total,pct:p.pct}};
+}
+function genConcSolute(){ return buildConcSolute({total:pick([100,200,300,400]),pct:pick([5,10,15,20,25,40])}); }
+function buildConcSolvent(p){   /* 濃度・溶液 → 溶媒（水）*/
+  var total=p.total, pct=p.pct, s=total*pct/100, w=total-s;
+  var r=assemble(w,[s,total,total+s,pct,total-2*s],fmtG);
+  return {id:'k_nou_solvent',cat:'k_noudo',q:'濃度'+pct+'%の食塩水'+total+'g。ふくまれる水（溶媒）は何g？',
+    c:r.c,a:r.a,exp:'食塩＝'+total+'×'+pct+'/100＝'+s+'g。水＝溶液−溶質＝'+total+'−'+s+'＝'+w+'g。',params:{gen:'concSolvent',total:p.total,pct:p.pct}};
+}
+function genConcSolvent(){ return buildConcSolvent({total:pick([100,200,300,400]),pct:pick([5,10,15,20,25,40])}); }
+function buildConcDilute(p){   /* 水を加える（うすめる）*/
+  var total=p.total, pct=p.pct, s=total*pct/100, A=total, nt=total+A, np=s/nt*100;
+  var r=assemble(np,[pct,pct*2,s,s/nt*10,pct/4],fmtP);
+  return {id:'k_nou_dilute',cat:'k_noudo',q:''+pct+'%の食塩水'+total+'gに水を'+A+'g加えると、濃度は？',
+    c:r.c,a:r.a,exp:'食塩＝'+s+'g（変わらない）。溶液は'+total+'＋'+A+'＝'+nt+'gに。'+s+'÷'+nt+'×100＝'+numStr(np)+'%。',params:{gen:'concDilute',total:p.total,pct:p.pct}};
+}
+function genConcDilute(){ return buildConcDilute({total:pick([100,200,300]),pct:pick([10,20,40])}); }
+function buildConcEvap(p){   /* 水を蒸発させる（濃くする）*/
+  var total=p.total, pct=p.pct, s=total*pct/100, E=total/2, nt=total-E, np=s/nt*100;
+  var r=assemble(np,[pct,s,pct/2,s/nt*10,np+pct],fmtP);
+  return {id:'k_nou_evap',cat:'k_noudo',q:''+pct+'%の食塩水'+total+'gから水を'+E+'g蒸発させると、濃度は？',
+    c:r.c,a:r.a,exp:'食塩＝'+s+'g（変わらない）。溶液は'+total+'−'+E+'＝'+nt+'gに。'+s+'÷'+nt+'×100＝'+numStr(np)+'%。',params:{gen:'concEvap',total:p.total,pct:p.pct}};
+}
+function genConcEvap(){ return buildConcEvap({total:pick([100,200]),pct:pick([5,10,15,20])}); }
+function buildConcTotalAdd(p){   /* 溶質・溶媒 → 溶液の質量 */
+  var s=p.s, w=p.w, total=s+w;
+  var r=assemble(total,[w,s,w-s,w+2*s,s*2],fmtG);
+  return {id:'k_nou_totaladd',cat:'k_noudo',q:'水'+w+'gに食塩'+s+'gをとかした。できた食塩水の質量は何g？',
+    c:r.c,a:r.a,exp:'食塩水（溶液）の質量＝溶媒＋溶質＝'+w+'＋'+s+'＝'+total+'g。',params:{gen:'concTotalAdd',s:p.s,w:p.w}};
+}
+function genConcTotalAdd(){ return buildConcTotalAdd({s:pick([10,15,20,25,30,40]),w:pick([80,90,100,150,200])}); }
+function buildConcTotalFromPct(p){   /* 濃度・溶質 → 溶液の質量 */
+  var total=p.total, pct=p.pct, s=total*pct/100;
+  var r=assemble(total,[s,s*pct/10,total-s,s+pct,total/2],fmtG);
+  return {id:'k_nou_totalpct',cat:'k_noudo',q:'質量パーセント濃度'+pct+'%の食塩水をつくるために、食塩'+s+'gを全て水にとかした。食塩水の質量は何g？',
+    c:r.c,a:r.a,exp:'溶液の質量＝溶質÷濃度＝'+s+'×100÷'+pct+'＝'+total+'g。（濃度'+pct+'%＝溶質が溶液の'+pct+'/100）',params:{gen:'concTotalFromPct',total:p.total,pct:p.pct}};
+}
+function genConcTotalFromPct(){ return buildConcTotalFromPct({total:pick([100,200,300,400]),pct:pick([5,10,15,20,25,40])}); }
+var SOL4PCT=[[80,20],[100,20],[120,20],[160,20],[200,20],[90,25],[120,25],[150,25],[90,10],[180,10],[90,40],[120,40]];
+function buildConcSoluteForPct(p){   /* 溶媒・目標濃度 → とかす溶質 */
+  var w=p.w, pct=p.pct, x=w*pct/(100-pct);
+  var r=assemble(x,[w*pct/100,w,pct,x*2,w-x],fmtG);
+  return {id:'k_nou_soluteforpct',cat:'k_noudo',q:'水'+w+'gに砂糖をとかして質量パーセント濃度'+pct+'%の砂糖水をつくりたい。とかす砂糖は何g？',
+    c:r.c,a:r.a,exp:'とかす砂糖をx gとすると x÷('+w+'＋x)×100＝'+pct+'。これを解くと x＝'+x+'g。分母は水＋砂糖（溶液全体）になる点に注意。',params:{gen:'concSoluteForPct',w:p.w,pct:p.pct}};
+}
+function genConcSoluteForPct(){ var c=pick(SOL4PCT); return buildConcSoluteForPct({w:c[0],pct:c[1]}); }
+function buildConcDiluteTo(p){   /* 水を加えて目標濃度に → 加える水 */
+  var t0=p.total0, pct0=p.pct0, pct1=p.pct1, s=t0*pct0/100, nt=s*100/pct1, A=nt-t0;
+  var r=assemble(A,[nt,s,t0,Math.round(A/2),nt+t0],fmtG);
+  return {id:'k_nou_diluteto',cat:'k_noudo',q:'質量パーセント濃度'+pct0+'%の食塩水'+t0+'gに水を加えて質量パーセント濃度'+pct1+'%にしたい。加える水は何g？',
+    c:r.c,a:r.a,exp:'食塩＝'+t0+'×'+pct0+'/100＝'+s+'g（変わらない）。'+pct1+'%になる溶液の質量＝'+s+'×100÷'+pct1+'＝'+nt+'g。加える水＝'+nt+'−'+t0+'＝'+A+'g。',params:{gen:'concDiluteTo',total0:p.total0,pct0:p.pct0,pct1:p.pct1}};
+}
+function genConcDiluteTo(){
+  var t0,pct0,pct1,s,ok=false,tries=0;
+  while(!ok && tries++<50){
+    t0=pick([100,200]); pct0=pick([10,20,25,40]); s=t0*pct0/100;
+    var cands=[2,4,5,8,10,15,20].filter(function(x){return x<pct0 && (s*100)%x===0;});
+    if(cands.length){ pct1=pick(cands); ok=true; }
+  }
+  if(!ok){ t0=100; pct0=20; pct1=10; }
+  return buildConcDiluteTo({total0:t0,pct0:pct0,pct1:pct1});
+}
+function buildConcMix(p){   /* 2液混合 → 濃度 */
+  var tA=p.tA,pctA=p.pctA,tB=p.tB,pctB=p.pctB, sA=tA*pctA/100, sB=tB*pctB/100, total=tA+tB, pct=(sA+sB)/total*100;
+  var r=assemble(pct,[(pctA+pctB)/2,pctA+pctB,sA+sB,pctA,pctB],fmtP);
+  return {id:'k_nou_mix',cat:'k_noudo',q:'質量パーセント濃度'+pctA+'%の食塩水'+tA+'gと、質量パーセント濃度'+pctB+'%の食塩水'+tB+'gを混ぜ合わせた。濃度は何%？',
+    c:r.c,a:r.a,exp:'それぞれの食塩＝'+tA+'×'+pctA+'/100＝'+sA+'g、'+tB+'×'+pctB+'/100＝'+sB+'g。混ぜたあと＝('+sA+'＋'+sB+')÷('+tA+'＋'+tB+')×100＝'+numStr(pct)+'%。',params:{gen:'concMix',tA:p.tA,pctA:p.pctA,tB:p.tB,pctB:p.pctB}};
+}
+function genConcMix(){
+  var tA,pctA,tB,pctB,sA,sB,total,ok=false,tries=0;
+  while(!ok && tries++<80){
+    tA=pick([80,100,120,150,200]); tB=pick([80,100,120,150,200]);
+    pctA=pick([5,10,15,20,25]); pctB=pick([5,10,15,20,25]);
+    sA=tA*pctA/100; sB=tB*pctB/100; total=tA+tB;
+    if(sA===Math.floor(sA) && sB===Math.floor(sB) && ((sA+sB)*100)%total===0 && pctA!==pctB) ok=true;
+  }
+  if(!ok){ tA=80;pctA=5;tB=120;pctB=10; }
+  return buildConcMix({tA:tA,pctA:pctA,tB:tB,pctB:pctB});
+}
+/* cat → 生成関数（buildQueueで該当スコープに差し込む） */
+var GENERATORS={
+  j_yuten:[genYutenSolid, genYutenGas, genYutenCombo],
+  k_mitsudo:[genDensFind, genDensMass, genDensVol, genDensDisp, genDensFloat],
+  k_noudo:[genConcPct, genConcSolute, genConcSolvent, genConcDilute, genConcEvap,
+           genConcTotalAdd, genConcTotalFromPct, genConcSoluteForPct, genConcDiluteTo, genConcMix]
+};
+/* params.gen → build関数（解き直しで同じ問題を復元する） */
+var REBUILDERS={
+  yuten:buildYuten,
+  densFind:buildDensFind, densMass:buildDensMass, densVol:buildDensVol, densDisp:buildDensDisp, densFloat:buildDensFloat,
+  concPct:buildConcPct, concSolute:buildConcSolute, concSolvent:buildConcSolvent, concDilute:buildConcDilute, concEvap:buildConcEvap,
+  concTotalAdd:buildConcTotalAdd, concTotalFromPct:buildConcTotalFromPct, concSoluteForPct:buildConcSoluteForPct, concDiluteTo:buildConcDiluteTo, concMix:buildConcMix
+};
+function rebuildFromParams(p){
+  if(!p||!p.gen||!REBUILDERS[p.gen]) return null;
+  try{ return REBUILDERS[p.gen](p); }catch(e){ return null; }
+}
+
 /* ── 出題キューを作る ── */
 function buildQueue(spec){
   if(spec.queue) return spec.queue.slice();
@@ -636,6 +899,11 @@ function buildQueue(spec){
   if(spec.cat) pool=BANK.filter(function(q){return q.cat===spec.cat;});
   else if(spec.mode) pool=BANK.filter(function(q){return CAT_MODE[q.cat]===spec.mode;});
   else pool=BANK.slice();
+  /* 動的生成問題を該当スコープに追加（毎回ちがう数値で作られる） */
+  Object.keys(GENERATORS).forEach(function(c){
+    var inScope = spec.cat ? (spec.cat===c) : spec.mode ? (CAT_MODE[c]===spec.mode) : true;
+    if(inScope) GENERATORS[c].forEach(function(fn){ pool=pool.concat(fn()); });
+  });
   pool=shuffle(pool);
   if(spec.cap) pool=pool.slice(0,Math.min(spec.cap,pool.length));
   return pool;
@@ -660,24 +928,39 @@ function renderQ(){
   byId('progBar').style.width=(state.idx/state.queue.length*100)+'%';
   byId('qnum').textContent='Q'+(state.idx+1);
   byId('qtext').textContent=q.q;
+  byId('qtbl').innerHTML=q.tbl||'';
   var exp=byId('explain'); exp.className=''; exp.innerHTML='';
   var next=byId('next'); next.className='btn btn-primary';
   next.textContent=(state.idx===state.queue.length-1)?'結果を見る →':'次へ →';
+  var grade=byId('grade'); grade.className='btn btn-primary'; grade.disabled=false;
+  state.selected=null; state.graded=false;
   safeDivpClear('#qcard');
   var choices=shuffle(q.c), box=byId('choices'); box.innerHTML='';
   choices.forEach(function(txt,i){
     var b=document.createElement('button'); b.className='ch'; b.type='button';
     b.innerHTML='<span class="no">'+MARU[i]+'</span><span class="tx">'+txt+'</span>';
-    b.addEventListener('click',function(){ onAnswer(q,txt,b); });
+    b.addEventListener('click',function(){ onSelect(txt,b); });
     box.appendChild(b);
   });
 }
 
-/* ── 解答 ── */
-function onAnswer(q,chosen,btn){
+/* ── 選択（まだ採点しない）── */
+function onSelect(txt,btn){
+  if(state.graded) return;
+  state.selected={txt:txt,btn:btn};
+  byId('choices').querySelectorAll('.ch').forEach(function(el){ el.classList.remove('sel'); });
+  btn.classList.add('sel');
+  byId('grade').classList.add('show');   /* 選んだら「答え合わせ」を出す */
+}
+
+/* ── 採点（「答え合わせ」ボタンで実行）── */
+function gradeCurrent(){
+  if(!state.selected||state.graded) return;
+  var q=state.queue[state.idx], chosen=state.selected.txt, btn=state.selected.btn;
+  state.graded=true;
   var ok=(chosen===q.a);
   byId('choices').querySelectorAll('.ch').forEach(function(el){
-    el.disabled=true;
+    el.disabled=true; el.classList.remove('sel');
     if(el.querySelector('.tx').textContent===q.a) el.classList.add('ok');
   });
   if(!ok) btn.classList.add('ng');
@@ -688,10 +971,12 @@ function onAnswer(q,chosen,btn){
   var exp=byId('explain');
   exp.innerHTML='<span class="lbl">'+(ok?'正解！':'正解は「'+q.a+'」')+'</span>'+q.exp;
   exp.className='show';
-  safeDivpAnswer(ok,{question_key:CAT_MODE[q.cat],question_params:{id:q.id},question_text:q.q,correct_answer:q.a,wrong_answer:chosen});
+  safeDivpAnswer(ok,{question_key:CAT_MODE[q.cat],question_params:q.params||{id:q.id},question_text:q.q,correct_answer:q.a,wrong_answer:chosen});
+  byId('grade').classList.remove('show');   /* 採点したら「答え合わせ」を隠して「次へ」を出す */
   byId('next').classList.add('show');
   byId('progBar').style.width=((state.idx+1)/state.queue.length*100)+'%';
 }
+byId('grade').addEventListener('click',gradeCurrent);
 
 byId('next').addEventListener('click',function(){
   if(state.idx<state.queue.length-1){ state.idx++; renderQ(); window.scrollTo(0,0); } else showResult();
@@ -724,6 +1009,9 @@ byId('backBtn').addEventListener('click',backToStart);
 byId('againBtn').addEventListener('click',function(){ startQuiz(state.spec||{cap:20}); });
 function backToStart(){ byId('quiz').hidden=true; byId('result').hidden=true; byId('start').hidden=false; window.scrollTo(0,0); }
 
+/* モードカードを描画（GENERATORS定義後なので生成問題の本数も正しく数えられる） */
+buildModeGrid();
+
 /* ── まとめ表モーダル ── */
 byId('openTable').addEventListener('click',function(){
   byId('tableModal').hidden=false;
@@ -744,9 +1032,18 @@ function switchRef(ref){
   if(params.get('retry')!=='1' || !(window.Divp&&typeof Divp.getRetries==='function')) return;
   Divp.getRetries().then(function(items){
     if(!items||!items.length) return;
-    var ids={};
-    items.forEach(function(it){ var p=it.question_params; if(typeof p==='string'){try{p=JSON.parse(p);}catch(e){p=null;}} if(p&&p.id) ids[p.id]=true; });
-    var queue=shuffle(BANK.filter(function(q){return ids[q.id];}));
+    var queue=[], seenStatic={};
+    items.forEach(function(it){
+      var p=it.question_params; if(typeof p==='string'){try{p=JSON.parse(p);}catch(e){p=null;}}
+      if(!p) return;
+      if(p.gen){                                   /* 生成問題：paramsから同じ問題を復元 */
+        var g=rebuildFromParams(p); if(g) queue.push(g);
+      } else if(p.id && !seenStatic[p.id]){        /* 静的問題：BANKからidで取得 */
+        seenStatic[p.id]=true;
+        var b=BANK.filter(function(q){return q.id===p.id;})[0]; if(b) queue.push(b);
+      }
+    });
+    queue=shuffle(queue);
     if(!queue.length) return;
     state.retryQueue=queue; startQuiz({queue:queue,retry:true});
   }).catch(function(){});

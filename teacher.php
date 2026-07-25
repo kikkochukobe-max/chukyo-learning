@@ -7,6 +7,7 @@ declare(strict_types=1);
 // 権限: super_admin=全教室 / classroom_admin・teacher=担当教室(teacher_classrooms)のみ
 require_once __DIR__ . '/api/db.php';
 require_once __DIR__ . '/api/helpers.php';
+require_once __DIR__ . '/api/todofuken_map.php'; // 都道府県ミニ地図SVG（解き直しプリントの地図問題用）
 
 function h(?string $s): string
 {
@@ -149,9 +150,9 @@ if ($role === 'super_admin') {
 $allowedClassroomIds = array_map(fn($c) => (int)$c['classroom_id'], $classrooms);
 
 // ---- 期間 ----
-$period = (string)($_GET['period'] ?? 'week');
+$period = (string)($_GET['period'] ?? 'today');
 if (!in_array($period, ['today', 'yesterday', 'week', 'last_week', 'month', 'all'], true)) {
-    $period = 'week';
+    $period = 'today';
 }
 
 // 任意期間（カレンダー指定）: ランキング画面で from/to が両方そろって妥当なら、期間タブより優先する。
@@ -181,6 +182,8 @@ if ($isCustom) {
     }
 }
 $periodLabels = ['today' => '今日', 'yesterday' => '昨日', 'week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => '全期間'];
+// 生徒詳細ページのまとめ期間タブ（今日/昨日は足あとカレンダーの日付タップに置き換えたので出さない）
+$detailPeriods = ['week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => '全期間'];
 $fromStr = $from ? $from->format('Y-m-d 00:00:00') : null;
 $toStr = $to ? $to->format('Y-m-d 00:00:00') : null;
 
@@ -413,6 +416,33 @@ if ($detailStudentId > 0) {
     $stmt->execute($params);
     foreach ($stmt->fetchAll() as $r) { $touchDay($r['d']); $daily[$r['d']]['redo'] = (int)$r['cnt']; }
 
+    // 足あと用: 日別×単元×種類の集計（直近35日）。カレンダーの日付タップで単元カルテを
+    // その日の内容に描き替えるためJSONでクライアントに渡す。教科フィルタ(sf)はカードと揃える。
+    $params = ['id' => $detailStudentId, 'ff' => $footFrom];
+    $w = sf('al.unit_key', 'fd', $params);
+    $stmt = $pdo->prepare(
+        "SELECT DATE(al.answered_at) d, al.unit_key,
+                COALESCE(qc.label, al.question_key) AS label,
+                COUNT(*) AS solved, COALESCE(SUM(al.is_correct),0) AS correct,
+                MIN(al.answer_id) AS first_seen
+         FROM answer_logs al
+         LEFT JOIN question_catalog qc ON qc.unit_key = al.unit_key AND qc.question_key = al.question_key
+         WHERE al.student_id = :id AND al.answered_at >= :ff{$w}
+         GROUP BY DATE(al.answered_at), al.unit_key, al.question_key
+         ORDER BY al.unit_key, first_seen"
+    );
+    $stmt->execute($params);
+    $dailyUnits = [];   // 'Y-m-d' => [ unit_key => [ {label,solved,correct}, ... ] ]
+    $dailyUnitTitles = [];   // unit_key => 表示名（クライアントのカルテ描画用）
+    foreach ($stmt->fetchAll() as $r) {
+        $uk = $r['unit_key'];
+        $dailyUnits[$r['d']][$uk][] = ['label' => $r['label'], 'solved' => (int)$r['solved'], 'correct' => (int)$r['correct']];
+        if (!isset($dailyUnitTitles[$uk])) {
+            $m = $unitMeta[$uk] ?? ['title' => $uk, 'sub' => ''];
+            $dailyUnitTitles[$uk] = trim($m['title'] . ' ' . ($m['sub'] ?? ''));
+        }
+    }
+
     // 単元カルテ
     $params = ['id' => $detailStudentId];
     $w = pf('al.answered_at', $fromStr, 'c', $params) . sf('al.unit_key', 'c', $params);
@@ -439,7 +469,7 @@ if ($detailStudentId > 0) {
     $params = ['id' => $detailStudentId];
     $w = pf('al.answered_at', $fromStr, 'd', $params) . sf('al.unit_key', 'd', $params);
     $stmt = $pdo->prepare(
-        "SELECT al.answered_at, al.unit_key, al.params_hash,
+        "SELECT al.answered_at, al.unit_key, al.params_hash, al.question_key, al.question_params,
                 COALESCE(qc.label, al.question_key) AS label,
                 al.question_text, al.correct_answer, al.student_answer
          FROM answer_logs al
@@ -628,6 +658,7 @@ function sp_select(string $label, array $options): string
     padding:5px 14px;text-decoration:none;box-shadow:0 1px 2px rgba(199,62,46,.25)}
   .toollink:hover{background:#b0331f;border-color:#b0331f}
   .who{font-size:12px;color:var(--ink-soft);display:flex;align-items:center;gap:10px;margin-left:auto}
+  .who-id,.who-actions{display:contents}
   .who b{font-size:14px;color:var(--ai);font-family:'Zen Maru Gothic',sans-serif}
   .logout{font-size:11px;color:var(--ai);border:1px solid var(--ai);border-radius:999px;
     padding:3px 12px;background:none;cursor:pointer;font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
@@ -744,10 +775,13 @@ function sp_select(string $label, array $options): string
     header img.logo{height:30px}
     .toollink{flex:0 0 auto;font-size:13px;padding:6px 14px}
     #logout-btn{order:2;margin-left:auto}
-    .who{flex:1 1 100%;order:3;margin-left:0;flex-wrap:wrap;justify-content:flex-start;gap:6px 8px;align-items:center;font-size:13px}
+    .who{flex:1 1 100%;order:3;margin-left:0;flex-direction:column;align-items:flex-start;gap:8px;font-size:13px}
+    .who-id{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .who-actions{display:flex;gap:8px;width:100%}
+    .who-actions .logout{flex:1 1 0}
     .who b{font-size:16px}
-    .who>span{font-size:12px}
-    .logout{flex:0 0 auto;white-space:nowrap;font-size:13px;padding:5px 13px}
+    .who-id>span{font-size:12px}
+    .logout{flex:0 0 auto;white-space:nowrap;font-size:13px;padding:5px 13px;text-align:center}
 
     /* 余白を詰める */
     .card{padding:12px;margin-top:10px;border-radius:10px}
@@ -854,10 +888,14 @@ function sp_select(string $label, array $options): string
       <a class="toollink" href="/learning/">学習ツール一覧</a>
     </div>
     <div class="who">
-      <b><?= h($me['teacher_name']) ?> 先生</b>
-      <span><?= h($role) ?></span>
-      <a class="logout" href="/admin.php" style="text-decoration:none;">アカウント管理</a>
-      <a class="logout" href="/password.php" style="text-decoration:none;">パスワード変更</a>
+      <span class="who-id">
+        <b><?= h($me['teacher_name']) ?> 先生</b>
+        <span><?= h($role) ?></span>
+      </span>
+      <span class="who-actions">
+        <a class="logout" href="/admin.php" style="text-decoration:none;">生徒・保護者登録＆修正</a>
+        <a class="logout" href="/password.php" style="text-decoration:none;">パスワード変更</a>
+      </span>
     </div>
     <button class="logout" id="logout-btn" type="button">ログアウト</button>
   </header>
@@ -866,9 +904,6 @@ function sp_select(string $label, array $options): string
   <!-- ============ 生徒詳細 ============ -->
   <div class="bar-row sp-hide">
     <a class="back" href="<?= h(qtab(['student_id' => null])) ?>">← 生徒一覧へ</a>
-<?php foreach ($periodLabels as $key => $label): ?>
-    <a class="ptab<?= $period === $key ? ' active' : '' ?>" href="<?= h(qtab(['period' => $key])) ?>"><?= h($label) ?></a>
-<?php endforeach; ?>
 <?php if (count($dSubjects) > 1): ?>
     <span style="flex:1"></span>
     <a class="ptab stab<?= $filterSubject === '' ? ' active' : '' ?>" href="<?= h(qtab(['subject' => null])) ?>">全教科</a>
@@ -880,9 +915,6 @@ function sp_select(string $label, array $options): string
   <div class="bar-row sp-only row">
     <a class="back" href="<?= h(qtab(['student_id' => null])) ?>">← 一覧</a>
 <?php
-    $spOpt = [];
-    foreach ($periodLabels as $key => $label) $spOpt[] = [$label, qtab(['period' => $key]), $period === $key];
-    echo sp_select('期間', $spOpt);
     if (count($dSubjects) > 1) {
         $spOpt = [['全教科', qtab(['subject' => null]), $filterSubject === '']];
         foreach ($dSubjects as $sj) $spOpt[] = [subject_label($sj), qtab(['subject' => $sj]), $filterSubject === $sj];
@@ -903,8 +935,14 @@ function sp_select(string $label, array $options): string
         <div class="l">解き直し</div></div>
     </div>
 
-    <!-- 足あと（直近2週間、「さらに見る」で1か月。日付タップで上の4カードがその日に切替） -->
+    <!-- 足あと（直近2週間、「さらに見る」で1か月。日付タップで4カードと単元カルテがその日に切替） -->
     <div class="foot" id="foot">
+      <!-- まとめ期間タブ（点線と足あとのあいだ）。日付をタップすると4カードと単元カルテがその日に切替わる -->
+      <nav id="detail-periods" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+<?php foreach ($detailPeriods as $key => $label): ?>
+        <a class="ptab<?= $period === $key ? ' active' : '' ?>" href="<?= h(qtab(['period' => $key])) ?>"><?= h($label) ?></a>
+<?php endforeach; ?>
+      </nav>
       <div class="foot-head">
         <span class="foot-title">足あと</span>
         <span class="foot-scope" id="foot-scope"><?= h($periodLabels[$period]) ?>のまとめ</span>
@@ -917,10 +955,17 @@ function sp_select(string $label, array $options): string
         'period' => $periodLabels[$period],
         'daily'  => $daily,
     ], JSON_UNESCAPED_UNICODE) ?></script>
+    <script type="application/json" id="karte-day-data"><?= json_encode([
+        'units'  => $dailyUnits,
+        'titles' => $dailyUnitTitles,
+    ], JSON_UNESCAPED_UNICODE) ?></script>
   </div>
 
   <div class="card">
-    <h2>単元カルテ（<?= h($periodLabels[$period]) ?><?= $filterSubject !== '' ? '・' . h(subject_label($filterSubject)) : '' ?>）</h2>
+    <h2 id="karte-title">単元カルテ（<?= h($periodLabels[$period]) ?><?= $filterSubject !== '' ? '・' . h(subject_label($filterSubject)) : '' ?>）</h2>
+    <!-- 日付タップ時にその日の単元カルテを描き込む先（未選択時は空・非表示） -->
+    <div id="karte-day" style="display:none;"></div>
+    <div id="karte-server">
 <?php if (count($dUnits) === 0): ?>
     <p style="font-size:13px;color:var(--ink-soft);">この期間の解答記録はありません</p>
 <?php else: ?>
@@ -960,6 +1005,7 @@ function sp_select(string $label, array $options): string
 <?php endforeach; ?>
 <?php endforeach; ?>
 <?php endif; ?>
+    </div><!-- /#karte-server -->
   </div>
 
 <?php if (!empty($dTimeUnits)): ?>
@@ -998,7 +1044,21 @@ function sp_select(string $label, array $options): string
 <?php if (count($dWrongs) === 0): ?>
     <p style="font-size:13px;color:var(--ink-soft);">この期間の誤答はありません</p>
 <?php else: ?>
-<?php $wrongModes = array_keys(array_reduce($dWrongs, function ($c, $w) { $c[$w['label']] = true; return $c; }, [])); ?>
+<?php
+    // 種類フィルタのキー。モードが多いツールは単元単位にまとめる
+    // （計算どぅする？は15モードあるが、講師の誤答印刷は「計算どぅする？」単位で絞れれば十分）。
+    // 単元ごとにまとめたいツールは $collapseUnits に足す。
+    $collapseUnits = ['math_es6_keisan_dousuru' => true];
+    $wrongFilterKey = function ($w) use ($unitMeta, $collapseUnits) {
+        if (isset($collapseUnits[$w['unit_key']])) {
+            return ($unitMeta[$w['unit_key']] ?? null)['title'] ?? $w['unit_key'];
+        }
+        return $w['label'];
+    };
+    $wrongModes = [];
+    foreach ($dWrongs as $w) { $wrongModes[$wrongFilterKey($w)] = true; }
+    $wrongModes = array_keys($wrongModes);
+?>
 <?php if (count($wrongModes) > 1): ?>
     <div class="bar-row" id="wrong-mode-filter" style="margin:6px 0 2px;">
       <span style="font-size:12px;color:var(--ink-soft);font-weight:700;align-self:center;">種類でしぼる</span>
@@ -1014,7 +1074,7 @@ function sp_select(string $label, array $options): string
 <?php foreach ($dWrongs as $wr):
     $wUnitTitle = ($unitMeta[$wr['unit_key']] ?? null)['title'] ?? $wr['unit_key'];
 ?>
-      <tr data-mode="<?= h($wr['label']) ?>">
+      <tr data-mode="<?= h($wrongFilterKey($wr)) ?>">
         <td data-label="日時" style="white-space:nowrap;"><?= h(substr($wr['answered_at'], 5, 11)) ?></td>
         <td data-label="単元" style="white-space:nowrap;font-size:12px;"><?= h($wUnitTitle) ?></td>
         <td data-label="種類"><span class="chip"><?= h($wr['label']) ?></span></td>
@@ -1025,17 +1085,37 @@ function sp_select(string $label, array $options): string
 <?php endforeach; ?>
     </table>
     </div>
+<?php
+    // 解き直しプリントで地図問題(pref_from_map)を描くための日本地図SVGを1つだけ隠し
+    // テンプレートで持たせる（印刷JSがこれを複製して県を光らせる）。地図問題が無ければ出さない。
+    $hasTodofukenMap = false;
+    foreach ($dWrongs as $w) {
+        if ($w['unit_key'] === 'social_es4_todofuken' && $w['question_key'] === 'pref_from_map') { $hasTodofukenMap = true; break; }
+    }
+?>
+<?php if ($hasTodofukenMap): ?>
+    <template id="jp-map-tpl"><?= todofuken_map_svg(0) ?></template>
+<?php endif; ?>
     <script type="application/json" id="print-wrongs-data"><?= json_encode([
       'student' => $detail['student_name'],
       'meta'    => $detail['classroom_name'] . '教室' . ($detail['grade'] ? '・' . grade_label($detail['grade']) : ''),
       'period'  => $periodLabels[$period] . ($filterSubject !== '' ? '・' . subject_label($filterSubject) : ''),
-      'items'   => array_map(function ($w) use ($unitMeta) {
+      'items'   => array_map(function ($w) use ($unitMeta, $wrongFilterKey) {
+          // 地図モードの1問目(pref_from_map)は問題文だけでは解けない。
+          // question_params の code を渡し、印刷側で日本地図に光らせる。
+          $mapCode = 0;
+          if ($w['unit_key'] === 'social_es4_todofuken' && $w['question_key'] === 'pref_from_map') {
+              $qp = json_decode((string)$w['question_params'], true);
+              if (is_array($qp) && isset($qp['code'])) $mapCode = (int)$qp['code'];
+          }
           return [
               'unit'  => (($unitMeta[$w['unit_key']] ?? null)['title'] ?? $w['unit_key']),
               'label' => $w['label'],
+              'fkey'  => $wrongFilterKey($w),   // 種類フィルタの絞り込みキー（=data-mode）
               'q'     => $w['question_text'],
               'a'     => $w['correct_answer'],
               'sa'    => $w['student_answer'],
+              'code'  => ($mapCode >= 1 && $mapCode <= 47) ? $mapCode : 0,  // 地図問題なら県コード
           ];
       }, $dWrongs),
     ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
@@ -1525,6 +1605,18 @@ document.querySelectorAll('.math').forEach(function (el) {
   var dataEl = document.getElementById('print-wrongs-data');
   if (!btn || !dataEl) return;
 
+  // 地図問題用: 隠しテンプレートの日本地図SVGを複製し、該当県コードを data-hl に差した
+  // HTML文字列を返す（点灯・ズームは印刷ウィンドウ側のスクリプトが行う）。
+  var mapTpl = document.getElementById('jp-map-tpl');
+  function mapSvg(code) {
+    if (!mapTpl || !code) return '';
+    var svg = mapTpl.content ? mapTpl.content.querySelector('svg') : null;
+    if (!svg) return '';
+    var clone = svg.cloneNode(true);
+    clone.setAttribute('data-hl', String(code));
+    return '<div class="q-map">' + clone.outerHTML + '</div>';
+  }
+
   function esc(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -1541,21 +1633,33 @@ document.querySelectorAll('.math').forEach(function (el) {
     var items = data.items || [];
     // 種類(モード)で絞り込み中なら、その種類だけ印刷する
     var modeFilter = window.__wrongModeFilter || '';
-    if (modeFilter) items = items.filter(function (it) { return it.label === modeFilter; });
+    if (modeFilter) items = items.filter(function (it) { return (it.fkey != null ? it.fkey : it.label) === modeFilter; });
     if (!items.length) { alert('印刷できる誤答がありません'); return; }
 
-    var PER_PAGE = 5;   // 1枚あたりの問題数（A4に確実に収まる数。増やすと溢れて空白ページが出る）
-    var pages = [];
-    for (var i = 0; i < items.length; i += PER_PAGE) pages.push(items.slice(i, i + PER_PAGE));
+    // ページ割りは重み方式（地図問題は縦に大きいので重く数える）。
+    // テキスト=1 / 地図=2.5、1ページ上限5。→ テキスト5問 or 地図2枚+テキスト、等。
+    var PAGE_BUDGET = 5;
+    var pages = [], cur = [], load = 0;
+    items.forEach(function (it) {
+      var wt = it.code ? 2.5 : 1;
+      if (cur.length && load + wt > PAGE_BUDGET) { pages.push(cur); cur = []; load = 0; }
+      cur.push(it); load += wt;
+    });
+    if (cur.length) pages.push(cur);
 
     var n = 0;
     var body = pages.map(function (page) {
       var qs = page.map(function (it) {
         n++;
+        // 地図問題は問題文が「地図で光っている都道府県の名前」で紙では解けないため、
+        // 日本地図（該当県が光る）＋書き取り指示に差し替える。
+        var qbody = it.code
+          ? mapSvg(it.code) + '<div class="q-note">黒くぬられた都道府県の <b>名前</b> と <b>県庁所在地</b> を書きましょう</div>'
+          : fmt(it.q);
         return '<div class="q">'
           + '<div class="q-head"><span class="q-no">' + n + '</span>'
           + '<span class="q-meta">' + esc(it.unit) + '　<span class="q-tag">' + esc(it.label) + '</span></span></div>'
-          + '<div class="q-body">' + fmt(it.q) + '</div>'
+          + '<div class="q-body">' + qbody + '</div>'
           + '<div class="q-space"></div>'
           + '</div>';
       }).join('');
@@ -1581,13 +1685,25 @@ document.querySelectorAll('.math').forEach(function (el) {
       + '<table class="key"><tr><th>No.</th><th>問題</th><th>正解</th><th>前回の誤答</th></tr>'
       + keyRows + '</table></div>';
 
+    // 印刷ウィンドウ内で地図の該当県を点灯し、地方だけにズームするスクリプト。
+    // 文字列中のスクリプト閉じタグは teacher.php 自身のブロックを閉じないよう分割する。
+    var mapScript = '<scr' + 'ipt>(function(){'
+      + 'function reg(c){var R=[[1,7],[8,14],[15,23],[24,30],[31,39],[40,47]];for(var i=0;i<R.length;i++){if(c>=R[i][0]&&c<=R[i][1]){var o=[];for(var n=R[i][0];n<=R[i][1];n++)o.push(n);return o;}}return[c];}'
+      + 'function bb(svg,cs){var r=svg.getScreenCTM();if(!r)return null;var inv=r.inverse();var x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,f=false;cs.forEach(function(c){var g=svg.querySelector(".prefecture[data-code=\\""+c+"\\"]");if(!g)return;var b;try{b=g.getBBox();}catch(e){return;}if(!b||(!b.width&&!b.height))return;var sm=g.getScreenCTM();if(!sm)return;var m=inv.multiply(sm);[[b.x,b.y],[b.x+b.width,b.y],[b.x,b.y+b.height],[b.x+b.width,b.y+b.height]].forEach(function(p){var X=m.a*p[0]+m.c*p[1]+m.e,Y=m.b*p[0]+m.d*p[1]+m.f;if(X<x0)x0=X;if(Y<y0)y0=Y;if(X>x1)x1=X;if(Y>y1)y1=Y;f=true;});});return f?{x:x0,y:y0,w:x1-x0,h:y1-y0}:null;}'
+      + 'var M=[].slice.call(document.querySelectorAll(".jp-mini"));'
+      + 'M.forEach(function(svg){var c=parseInt(svg.getAttribute("data-hl"),10);if(!c)return;var t=svg.querySelector(".prefecture[data-code=\\""+c+"\\"]");if(t)t.classList.add("is-target");});'
+      + 'function zoom(){M.forEach(function(svg){var c=parseInt(svg.getAttribute("data-hl"),10);if(!c)return;var b=bb(svg,reg(c));if(!b)return;var p=Math.max(b.w,b.h)*0.12;var x=b.x-p,y=b.y-p,w=b.w+p*2,h=b.h+p*2;if(isFinite(x)&&isFinite(w)&&w>2&&h>2)svg.setAttribute("viewBox",x+" "+y+" "+w+" "+h);});}'
+      + 'requestAnimationFrame(function(){requestAnimationFrame(zoom);});'
+      + 'window.addEventListener("load",function(){requestAnimationFrame(zoom);});'
+      + '})();<\/scr' + 'ipt>';
+
     var html = '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">'
       + '<title>解き直しプリント ' + esc(data.student) + '</title>'
       + '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">'
       + '<style>'
       + '@page{size:A4;margin:14mm 14mm 12mm;}'
       + '*{box-sizing:border-box;}'
-      + 'body{font-family:"Zen Kaku Gothic New",system-ui,sans-serif;color:#222;margin:0;}'
+      + 'body{font-family:"Zen Kaku Gothic New",system-ui,sans-serif;color:#222;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
       /* 各ページの箱をA4印刷領域ぶんの高さに揃える。透かしロゴが毎ページ同じ位置に来る（高さがバラつくと上下にずれる） */
       + '.page{page-break-after:always;min-height:260mm;}.page:last-child{page-break-after:auto;}'
       + '.sheet-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #C73E2E;padding-bottom:6px;margin-bottom:14px;}'
@@ -1602,6 +1718,14 @@ document.querySelectorAll('.math').forEach(function (el) {
       + '.q-meta{font-size:12px;color:#888;}'
       + '.q-tag{background:#F3EFE6;color:#8a7a52;border-radius:4px;padding:1px 6px;font-size:11px;}'
       + '.q-body{font-size:17px;line-height:1.6;margin-left:34px;}'
+      /* 地図問題（都道府県）用のミニ日本地図 */
+      /* 白黒印刷前提: 色ではなく塗りの濃淡で区別する。対象の県だけ濃い塗り、他県は白。 */
+      + '.q-map{display:inline-block;background:#fff;border:1px solid #999;border-radius:8px;padding:6px;margin-top:2px;}'
+      + '.q-map svg{display:block;height:48mm;width:auto;max-width:120mm;}'
+      + '.jp-mini .prefecture{fill:#fff;stroke:#999;stroke-width:1px;}'
+      + '.jp-mini .prefecture.is-target{fill:#3a3a3a;stroke:#000;stroke-width:1.2px;}'
+      + '.jp-mini .boundary-line{stroke:#999;stroke-width:2px;}'
+      + '.q-note{font-size:14px;color:#555;margin-top:6px;}'
       + '.q-space{height:2.2cm;margin:5px 0 0 34px;border:1px dashed #cbcbcb;border-radius:8px;}'
       + '.key-page{page-break-before:always;}'
       + '.key{width:100%;border-collapse:collapse;font-size:13px;}'
@@ -1610,7 +1734,7 @@ document.querySelectorAll('.math').forEach(function (el) {
       + '.k-no{width:32px;text-align:center;color:#888;}'
       + '.k-ans{color:#1f7a3d;font-weight:700;}'
       + '.k-wa{color:#C73E2E;}'
-      + '</style></head><body>' + body + keyPage + '</body></html>';
+      + '</style></head><body>' + body + keyPage + mapScript + '</body></html>';
 
     if (window.ChukyoPrint && ChukyoPrint.inject) html = ChukyoPrint.inject(html, {opacity:0.15});
 
@@ -1729,6 +1853,51 @@ document.querySelectorAll('.math').forEach(function (el) {
   var defHTML = {};
   Object.keys(cards).forEach(function (k) { if (cards[k]) defHTML[k] = cards[k].innerHTML; });
 
+  // 単元カルテを日付タップでその日の内容に描き替えるためのデータと差し替え先
+  var karteServer = document.getElementById('karte-server');
+  var karteDay = document.getElementById('karte-day');
+  var karteTitle = document.getElementById('karte-title');
+  var karteTitleDef = karteTitle ? karteTitle.textContent : '';
+  var kData = { units: {}, titles: {} };
+  var kEl = document.getElementById('karte-day-data');
+  if (kEl) { try { kData = JSON.parse(kEl.textContent || '{}'); } catch (e) {} }
+
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function buildDayKarte(key) {
+    var units = (kData.units && kData.units[key]) || null;
+    if (!units) return '<p style="font-size:13px;color:var(--ink-soft);">この日の解答記録はありません</p>';
+    var html = '';
+    Object.keys(units).forEach(function (uk) {
+      html += '<p style="font-size:13px;font-weight:700;margin-top:8px;">' + esc((kData.titles && kData.titles[uk]) || uk) + '</p>';
+      html += '<div class="scroll"><table class="mcard"><tr><th>種類</th><th class="num">解答数</th><th class="num">正解</th><th class="num">正答率</th></tr>';
+      units[uk].forEach(function (row) {
+        var sv = row.solved || 0, co = row.correct || 0;
+        var rate = sv > 0 ? Math.round(100 * co / sv) : 0;
+        var cls = rate < 60 ? 'lowrate' : (rate >= 90 ? 'okrate' : '');
+        html += '<tr><td data-label="種類">' + esc(row.label) + '</td>'
+          + '<td class="num" data-label="解答数">' + sv + '</td>'
+          + '<td class="num" data-label="正解">' + co + '</td>'
+          + '<td class="num ' + cls + '" data-label="正答率">' + rate + '%</td></tr>';
+      });
+      html += '</table></div>';
+    });
+    return html;
+  }
+  function applyKarte(selKey) {
+    if (!karteServer || !karteDay) return;
+    if (selKey) {
+      var d = new Date(selKey + 'T00:00:00');
+      karteDay.innerHTML = buildDayKarte(selKey);
+      karteDay.style.display = '';
+      karteServer.style.display = 'none';
+      if (karteTitle) karteTitle.textContent = '単元カルテ（' + (d.getMonth() + 1) + '/' + d.getDate() + '）';
+    } else {
+      karteDay.style.display = 'none';
+      karteServer.style.display = '';
+      if (karteTitle) karteTitle.textContent = karteTitleDef;
+    }
+  }
+
   var WD = ['日', '月', '火', '水', '木', '金', '土'];
   function pad(x) { return x < 10 ? '0' + x : '' + x; }
   function ymd(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
@@ -1760,6 +1929,7 @@ document.querySelectorAll('.math').forEach(function (el) {
       Object.keys(cards).forEach(function (k) { if (cards[k]) cards[k].innerHTML = defHTML[k]; });
       if (scopeEl) { scopeEl.textContent = periodLabel + 'のまとめ'; scopeEl.classList.remove('on'); }
     }
+    applyKarte(selKey);
   }
 
   function render() {

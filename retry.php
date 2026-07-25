@@ -7,6 +7,7 @@ declare(strict_types=1);
 // 同一問題を再出題する仕組みが入るまでは、ここは復習リスト+練習への導線。
 require_once __DIR__ . '/api/db.php';
 require_once __DIR__ . '/api/helpers.php';
+require_once __DIR__ . '/api/todofuken_map.php'; // 都道府県ミニ地図SVG（地図モードの解き直し用）
 
 $actor = current_actor();
 
@@ -22,7 +23,7 @@ $pdo = db();
 $stmt = $pdo->prepare(
     "SELECT rq.unit_key, rq.question_key, rq.wrong_count, rq.correct_streak, rq.last_answered_at,
             COALESCE(qc.label, rq.question_key) AS label,
-            al.question_text
+            al.question_text, rq.question_params AS retry_params
      FROM retry_queue rq
      LEFT JOIN question_catalog qc
        ON qc.unit_key = rq.unit_key AND qc.question_key = rq.question_key
@@ -145,6 +146,19 @@ function h(?string $s): string
   }
   .qtext{margin-top:6px;font-size:15px;overflow-x:auto}
   .meta{font-size:11px;color:var(--ink-soft);margin-top:4px}
+
+  /* 地図モードの解き直し用ミニ日本地図 */
+  .mini-map-wrap{
+    margin-top:8px;max-width:240px;background:#cfe6f5;border:1px solid #b9dcf0;
+    border-radius:10px;padding:6px;
+    /* 印刷時も塗り色（光った県のオレンジ）を残す */
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  }
+  .jp-mini{display:block;width:100%;height:auto}
+  .jp-mini .prefecture{fill:#bfe0c9;stroke:#fff;stroke-width:1.1px}
+  .jp-mini .prefecture.is-target{fill:#ef6a35;stroke:#d8531f;stroke-width:1.6px}
+  .jp-mini .prefecture.dim{opacity:.85}
+  .jp-mini .boundary-line{stroke:#a9cfe6;stroke-width:2px}
   .golink{
     display:block;text-align:center;margin-top:14px;background:var(--shu);color:#fff;
     border-radius:10px;padding:12px;text-decoration:none;
@@ -193,10 +207,24 @@ function h(?string $s): string
   <div class="unit-block" data-subject="<?= h(subject_of($unitKey)) ?>">
   <div class="section-title"><?= h($meta['title']) ?></div>
   <section class="karte">
-<?php foreach ($items as $item): ?>
+<?php foreach ($items as $item):
+      // 地図モードの1問目(pref_from_map)は question_text が「地図で光っている
+      // 都道府県の名前」で、紙の上ではどの県か分からず解けない。question_params の
+      // code から同じ日本地図を描いて該当県を光らせる（答え＝県名は文字では出さない）。
+      $mapCode = 0;
+      if ($item['unit_key'] === 'social_es4_todofuken' && $item['question_key'] === 'pref_from_map') {
+          $qp = json_decode((string)$item['retry_params'], true);
+          if (is_array($qp) && isset($qp['code'])) {
+              $mapCode = (int)$qp['code'];
+          }
+      }
+?>
     <div class="item">
       <span class="chip"><?= h($item['label']) ?></span>
-      <?php if ($item['question_text']): ?>
+      <?php if ($mapCode >= 1 && $mapCode <= 47): ?>
+      <div class="mini-map-wrap"><?= todofuken_map_svg($mapCode) ?></div>
+      <div class="qtext">オレンジ色に光っている 都道府県の名前と 県庁所在地は？</div>
+      <?php elseif ($item['question_text']): ?>
       <div class="qtext" data-math="<?= h($item['question_text']) ?>"><?= h($item['question_text']) ?></div>
       <?php endif; ?>
       <div class="meta">まちがえた回数: <?= (int)$item['wrong_count'] ?>回 ・ <?= (int)$item['correct_streak'] === 1 ? 'あと1回連続で正解すると消えるよ' : '2回連続で正解すると消えるよ' ?></div>
@@ -260,8 +288,73 @@ function renderMathToHTML(src){
   return _mescape(src).replace(/\n/g, '<br>');
 }
 document.querySelectorAll('.qtext').forEach(function (el) {
+  if (!el.hasAttribute('data-math')) return; // 地図モードの案内文などはそのまま
   el.innerHTML = renderMathToHTML(el.getAttribute('data-math') || '');
 });
+
+// 都道府県ミニ地図: 該当県(data-hl)をオレンジで光らせ、その地方だけにズームする。
+// 地方は都道府県コードの連番グループ（social_es4_todofuken と同じ区分）で判定。
+(function () {
+  function regionCodes(code) {
+    var ranges = [[1,7],[8,14],[15,23],[24,30],[31,39],[40,47]];
+    for (var i = 0; i < ranges.length; i++) {
+      if (code >= ranges[i][0] && code <= ranges[i][1]) {
+        var out = [];
+        for (var n = ranges[i][0]; n <= ranges[i][1]; n++) out.push(n);
+        return out;
+      }
+    }
+    return [code];
+  }
+  // 県ローカル座標 → SVGのviewBox座標へ変換して、指定県群の外接矩形を求める
+  function unionBBox(svg, codes) {
+    var rootCTM = svg.getScreenCTM(); if (!rootCTM) return null;
+    var inv = rootCTM.inverse();
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, found = false;
+    codes.forEach(function (c) {
+      var g = svg.querySelector('.prefecture[data-code="' + c + '"]'); if (!g) return;
+      var b; try { b = g.getBBox(); } catch (e) { return; }
+      if (!b || (!b.width && !b.height)) return;
+      var sm = g.getScreenCTM(); if (!sm) return;
+      var m = inv.multiply(sm);
+      [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]]
+        .forEach(function (p) {
+          var X = m.a * p[0] + m.c * p[1] + m.e;
+          var Y = m.b * p[0] + m.d * p[1] + m.f;
+          if (X < x0) x0 = X; if (Y < y0) y0 = Y;
+          if (X > x1) x1 = X; if (Y > y1) y1 = Y; found = true;
+        });
+    });
+    return found ? { x: x0, y: y0, w: x1 - x0, h: y1 - y0 } : null;
+  }
+  var maps = Array.prototype.slice.call(document.querySelectorAll('.jp-mini'));
+  // ① 点灯はレイアウト不要なので即実行（地図が真っ白でも該当県は色が付く）
+  maps.forEach(function (svg) {
+    var code = parseInt(svg.getAttribute('data-hl'), 10);
+    if (!code) return;
+    var target = svg.querySelector('.prefecture[data-code="' + code + '"]');
+    if (target) target.classList.add('is-target');
+  });
+  // ② 地方へのズームはレイアウト確定後に。getScreenCTM がまだ 0 幅を返すと
+  //    viewBox が NaN になり SVG が描画されないため、load 後 + rAF で実行し、
+  //    数値が有効なときだけ viewBox を書き換える（失敗時は全国表示のまま）。
+  function zoomAll() {
+    maps.forEach(function (svg) {
+      var code = parseInt(svg.getAttribute('data-hl'), 10);
+      if (!code) return;
+      var bb = unionBBox(svg, regionCodes(code));
+      if (!bb) return;
+      var pad = Math.max(bb.w, bb.h) * 0.12;
+      var x = bb.x - pad, y = bb.y - pad, w = bb.w + pad * 2, h = bb.h + pad * 2;
+      if (isFinite(x) && isFinite(y) && isFinite(w) && isFinite(h) && w > 2 && h > 2) {
+        svg.setAttribute('viewBox', x + ' ' + y + ' ' + w + ' ' + h);
+      }
+    });
+  }
+  function scheduleZoom() { requestAnimationFrame(function () { requestAnimationFrame(zoomAll); }); }
+  if (document.readyState === 'complete') scheduleZoom();
+  else window.addEventListener('load', scheduleZoom);
+})();
 
 // 教科タブ: data-subject で単元ブロックを表示/非表示
 (function () {

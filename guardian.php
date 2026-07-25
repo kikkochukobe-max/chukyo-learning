@@ -40,6 +40,8 @@ switch ($period) {
     default:          $from = $thisMonday; $to = $thisMonday->modify('+7 days'); break;
 }
 $periodLabels = ['today' => '今日', 'yesterday' => '昨日', 'week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => 'これまで'];
+// まとめ期間タブ（今日/昨日は足あとカレンダーの日付タップに置き換えたので出さない）
+$detailPeriods = ['week' => '今週', 'last_week' => '先週', 'month' => '今月', 'all' => 'これまで'];
 
 // 学習の足あと（講師ページと同じ日別カレンダー）: 期間タブとは独立に直近35日を集計する。
 // 期間タブは4カードの初期値(＝そのまとめ)を決め、カレンダーの日付タップで一時的に上書きする。
@@ -146,6 +148,30 @@ if ($isGuardian) {
         $st->execute(['id' => $sid, 'ff' => $footFrom]);
         foreach ($st->fetchAll() as $row) { $touchDay($row['d']); $daily[$row['d']]['solved'] = (int)$row['total']; $daily[$row['d']]['correct'] = (int)$row['correct']; }
 
+        // 足あとの日付タップ用: 日別×単元×種類（直近35日）。単元カルテをその日の内容に描き替える。
+        $st = $pdo->prepare(
+            "SELECT DATE(al.answered_at) d, al.unit_key,
+                    COALESCE(qc.label, al.question_key) AS label,
+                    COUNT(*) AS solved, COALESCE(SUM(al.is_correct),0) AS correct,
+                    MIN(al.answer_id) AS first_seen
+             FROM answer_logs al
+             LEFT JOIN question_catalog qc ON qc.unit_key = al.unit_key AND qc.question_key = al.question_key
+             WHERE al.student_id = :id AND al.answered_at >= :ff
+             GROUP BY DATE(al.answered_at), al.unit_key, al.question_key
+             ORDER BY al.unit_key, first_seen"
+        );
+        $st->execute(['id' => $sid, 'ff' => $footFrom]);
+        $dailyUnits = [];
+        $dailyUnitTitles = [];
+        foreach ($st->fetchAll() as $row) {
+            $uk = $row['unit_key'];
+            $dailyUnits[$row['d']][$uk][] = ['label' => $row['label'], 'solved' => (int)$row['solved'], 'correct' => (int)$row['correct']];
+            if (!isset($dailyUnitTitles[$uk])) {
+                $m = $unitMeta[$uk] ?? ['title' => $uk, 'sub' => ''];
+                $dailyUnitTitles[$uk] = trim($m['title'] . ' ' . ($m['sub'] ?? ''));
+            }
+        }
+
         $children[] = [
             'name' => $kid['student_name'],
             'classroom' => $kid['classroom_name'],
@@ -158,6 +184,8 @@ if ($isGuardian) {
             'pending' => $pending,
             'daily' => $daily,
             'units' => $units,
+            'dailyUnits' => $dailyUnits,
+            'dailyUnitTitles' => $dailyUnitTitles,
         ];
     }
 }
@@ -266,7 +294,7 @@ if ($isGuardian) {
 <div class="box">
   <h1>保護者ページ</h1>
   <p class="sub">保護者IDと、お子さまのPIN（4桁）でログインしてください</p>
-  <label>保護者ID（例: g260038）<input type="text" id="lid" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+  <label>保護者ID（例: g260038 ／ ごきょうだいのどのコードでも可）<input type="text" id="lid" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
   <label>お子さまのPIN（4桁）<input type="password" id="lpin" inputmode="numeric" maxlength="4" autocomplete="current-password"></label>
   <button id="login-btn" type="button">ログイン</button>
   <div class="err" id="login-err"></div>
@@ -299,12 +327,6 @@ document.getElementById('lpin').addEventListener('keydown', (e) => { if (e.key =
   </header>
   <a class="tolist" href="/learning/index.php">← 学習ツールの目次へ</a>
 
-  <nav class="ptabs">
-<?php foreach ($periodLabels as $key => $label): ?>
-    <a class="ptab<?= $period === $key ? ' active' : '' ?>" href="?period=<?= $key ?>"><?= h($label) ?></a>
-<?php endforeach; ?>
-  </nav>
-
 <?php if (count($children) === 0): ?>
   <div class="child"><p class="empty">ひもづくお子さまが登録されていません。教室にお問い合わせください。</p></div>
 <?php else: ?>
@@ -322,8 +344,14 @@ document.getElementById('lpin').addEventListener('keydown', (e) => { if (e.key =
     <div class="pending">解き直しが <?= $c['pending'] ?>問 のこっています</div>
 <?php endif; ?>
 
-    <!-- 足あと（直近2週間、「さらに見る」で1か月。日付タップで上のカードがその日に切替） -->
+    <!-- 足あと（直近2週間、「さらに見る」で1か月。日付タップで4カードと単元カルテがその日に切替） -->
     <div class="foot">
+      <!-- まとめ期間タブ（点線と足あとのあいだ）。日付をタップすると4カードと単元カルテがその日に切替わる -->
+      <nav class="ptabs" style="margin:0 0 12px;">
+<?php foreach ($detailPeriods as $key => $label): ?>
+        <a class="ptab<?= $period === $key ? ' active' : '' ?>" href="?period=<?= $key ?>"><?= h($label) ?></a>
+<?php endforeach; ?>
+      </nav>
       <div class="foot-head">
         <span class="foot-title">足あと</span>
         <span class="foot-scope js-foot-scope"><?= h($periodLabels[$period]) ?>のまとめ</span>
@@ -335,8 +363,14 @@ document.getElementById('lpin').addEventListener('keydown', (e) => { if (e.key =
           'period' => $periodLabels[$period],
           'daily'  => $c['daily'],
       ], JSON_UNESCAPED_UNICODE) ?></script>
+      <script type="application/json" class="js-karte-data"><?= json_encode([
+          'units'  => $c['dailyUnits'],
+          'titles' => $c['dailyUnitTitles'],
+      ], JSON_UNESCAPED_UNICODE) ?></script>
     </div>
 
+    <div class="js-karte-day" style="display:none;"></div>
+    <div class="js-karte-server">
 <?php if (count($c['units']) === 0): ?>
     <p class="empty" style="margin-top:12px;">この期間の学習記録はありません</p>
 <?php else: ?>
@@ -364,6 +398,7 @@ document.getElementById('lpin').addEventListener('keydown', (e) => { if (e.key =
     </div>
 <?php endforeach; ?>
 <?php endif; ?>
+    </div><!-- /.js-karte-server -->
   </section>
 <?php endforeach; ?>
 <?php endif; ?>
@@ -409,6 +444,44 @@ document.getElementById('logout').addEventListener('click', async (e) => {
     var defHTML = {};
     Object.keys(cards).forEach(function (k) { if (cards[k]) defHTML[k] = cards[k].innerHTML; });
 
+    // 単元カルテ（日付タップでその日の内容に描き替える）
+    var karteServer = section && section.querySelector('.js-karte-server');
+    var karteDay = section && section.querySelector('.js-karte-day');
+    var kData = { units: {}, titles: {} };
+    var kEl = foot.querySelector('.js-karte-data');
+    if (kEl) { try { kData = JSON.parse(kEl.textContent || '{}'); } catch (e) {} }
+    function kesc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function buildDayKarte(key) {
+      var units = (kData.units && kData.units[key]) || null;
+      if (!units) return '<p class="empty" style="margin-top:12px;">この日の学習記録はありません</p>';
+      var html = '';
+      Object.keys(units).forEach(function (uk) {
+        html += '<div class="unit"><div class="ut">' + kesc((kData.titles && kData.titles[uk]) || uk) + '</div>';
+        html += '<table><tr><th>種類</th><th class="num">解答数</th><th class="num">正解</th><th class="num">正答率</th></tr>';
+        units[uk].forEach(function (row) {
+          var sv = row.solved || 0, co = row.correct || 0;
+          var rate = sv > 0 ? Math.round(100 * co / sv) : 0;
+          var cls = rate >= 90 ? 'rate-ok' : (rate < 60 ? 'rate-low' : '');
+          html += '<tr><td>' + kesc(row.label) + '</td>'
+            + '<td class="num">' + sv + '</td><td class="num">' + co + '</td>'
+            + '<td class="num ' + cls + '">' + rate + '%' + (rate >= 90 ? '◎' : '') + '</td></tr>';
+        });
+        html += '</table></div>';
+      });
+      return html;
+    }
+    function applyKarte() {
+      if (!karteServer || !karteDay) return;
+      if (selKey) {
+        karteDay.innerHTML = buildDayKarte(selKey);
+        karteDay.style.display = '';
+        karteServer.style.display = 'none';
+      } else {
+        karteDay.style.display = 'none';
+        karteServer.style.display = '';
+      }
+    }
+
     var expanded = false, selKey = null;
 
     function dateList(n) {                       // 左上=今日、そこから過去へ（新しい→古い）
@@ -436,6 +509,7 @@ document.getElementById('logout').addEventListener('click', async (e) => {
         Object.keys(cards).forEach(function (k) { if (cards[k]) cards[k].innerHTML = defHTML[k]; });
         if (scopeEl) { scopeEl.textContent = periodLabel + 'のまとめ'; scopeEl.classList.remove('on'); }
       }
+      applyKarte();
     }
 
     function render() {

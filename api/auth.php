@@ -29,6 +29,24 @@ $stmt = $pdo->prepare(
 $stmt->execute(['login_id' => $loginId]);
 $row = $stmt->fetch();
 
+// 保護者は「g + どの兄弟の生徒コード」でもログインできる。
+// login_id は代表の子のコードで1つだけ登録されるが、弟妹のコードで g〜 を打っても
+// その子→guardian_students をたどって同じ保護者アカウントに解決する。
+if (!$row && $actorType === 'guardian') {
+    $childCode = ltrim($loginId, 'gG');   // 'g260039' → '260039'
+    if ($childCode !== '') {
+        $gstmt = $pdo->prepare(
+            "SELECT gg.* FROM students s
+             JOIN guardian_students gs ON gs.student_id = s.student_id
+             JOIN guardians gg ON gg.guardian_id = gs.guardian_id
+             WHERE s.login_id = :code AND s.is_active = 1 AND gg.is_active = 1
+             LIMIT 1"
+        );
+        $gstmt->execute(['code' => $childCode]);
+        $row = $gstmt->fetch();
+    }
+}
+
 // PIN試行制限: 同一アカウントで直近10分に5回失敗していたらロック
 // （4桁PIN=1万通りの総当たり対策。判定はパスワード照合より先に行う）
 if ($row) {

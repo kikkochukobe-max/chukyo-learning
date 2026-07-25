@@ -122,6 +122,11 @@ return [
         'sub'   => '英語・高校',
         'url'   => '/learning/english/english_hs_target.html',
     ],
+    'english_js_grammar' => [
+        'title' => '中学英文法',
+        'sub'   => '英語・中1〜中3',
+        'url'   => '/learning/english/english_js_grammar_app.html',
+    ],
     'social_js_jisa' => [
         'title' => '時差計算練習',
         'sub'   => '社会・中学',

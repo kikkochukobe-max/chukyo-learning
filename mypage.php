@@ -50,9 +50,9 @@ function grade_label(?string $grade): string
 }
 
 // ---- 表示期間(今週/先週/今月/全期間) ----
-$period = (string)($_GET['period'] ?? 'week');
+$period = (string)($_GET['period'] ?? 'today');
 if (!in_array($period, ['today', 'yesterday', 'week', 'last_week', 'month', 'all'], true)) {
-    $period = 'week';
+    $period = 'today';
 }
 $thisMonday = new DateTimeImmutable('monday this week');
 switch ($period) {
@@ -367,7 +367,14 @@ function h(?string $s): string
     padding:14px 2px 10px;
   }
   header img.logo{height:34px;width:auto;display:block}
+  .headright{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
   .who{text-align:right;font-size:12px;color:var(--ink-soft)}
+  .logout-btn{
+    font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:11px;
+    padding:4px 12px;border-radius:999px;cursor:pointer;
+    background:transparent;color:var(--ink-soft);border:1.5px solid var(--grid);
+  }
+  .logout-btn:hover{color:var(--shu);border-color:var(--shu)}
   .tolist{display:inline-block;margin:0 2px 6px;font-size:13px;color:var(--ai);
     text-decoration:none;font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
   .who b{display:block;font-size:15px;color:var(--ink);
@@ -534,7 +541,10 @@ function h(?string $s): string
   <header>
     <img class="logo" src="https://chukyokobetsu.com/manage/wp-content/themes/chukyo/images/common/logo_chukyo.png"
          alt="中京個別指導学院">
-    <div class="who"><b><?= h($student['student_name']) ?> さん</b><?= h($student['classroom_name']) ?>教室<?= $student['grade'] ? '・' . h(grade_label($student['grade'])) : '' ?></div>
+    <div class="headright">
+      <div class="who"><b><?= h($student['student_name']) ?> さん</b><?= h($student['classroom_name']) ?>教室<?= $student['grade'] ? '・' . h(grade_label($student['grade'])) : '' ?></div>
+      <button type="button" class="logout-btn" id="logoutBtn">ログアウト</button>
+    </div>
   </header>
 
   <a class="tolist" href="/learning/index.php">← 学習ツールの目次へ</a>
@@ -728,6 +738,17 @@ function h(?string $s): string
   <footer>中京個別指導学院 学習の記録<?= $showWeekDots ? ' ・ 分=学習時間 / 問=解いた問題数' : '' ?></footer>
 </div>
 <script>
+// ログアウト（divp-header と同じ /api/logout.php にPOST）
+(function () {
+  var btn = document.getElementById('logoutBtn');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    fetch('/api/logout.php', { method: 'POST' }).then(function () {
+      location.href = '/mypage.php';
+    });
+  });
+})();
+
 // 「今日の1問」の問題文を KaTeX で整形。retry.php と同じ規則:
 // 全体がLaTeXのものと、Unicodeの√/²・分数F(a/b)混じりの日本語文の両方に対応する。
 function _mescape(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }

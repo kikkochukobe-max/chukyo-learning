@@ -2876,16 +2876,41 @@
   /* 学習記録：判定直後に1問=1行を送信（未ログイン・ローカル起動時は divp-core が黙ってスキップ）。
      divp-core.js 未読込の環境でも壊れないよう guard する（未組み込みツールと同じ思想）。
      問題は「機械用(params)」と「人間用(text/answer)」の二重表現で保存する。 */
-  function plainText(html) {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    return (tmp.textContent || '').replace(/\s+/g, ' ').trim();
+  /* トークン列→プレーンテキスト。分数は textContent だと分子分母が連結して
+     「1/2」が「12」に潰れるため、講師画面(teacher.php)がKaTeXの分数として
+     解釈できる F(分子/分母) トークン形式で書き出す（符号は F() の外に出す）。 */
+  function fracText(n, d) {
+    const s = String(n);
+    const neg = s.charAt(0) === '-' || s.charAt(0) === '−';
+    return (neg ? '-' : '') + 'F(' + (neg ? s.slice(1) : s) + '/' + d + ')';
+  }
+  function tokensToText(tokens) {
+    let out = '';
+    for (const tk of tokens) {
+      if (tk.t === 'txt') out += tk.v;
+      else if (tk.t === 'op') out += (tk.v === '-' ? '−' : tk.v);
+      else if (tk.t === 'paren') out += tk.v;
+      else if (tk.t === 'frac') out += fracText(tk.n, tk.d);
+      else if (tk.t === 'mix') out += tk.w + ' ' + fracText(tk.n, tk.d);
+      else if (tk.t === 'wp') out += tk.v;
+      else if (tk.t === 'geo') out += tk.text;
+      else if (tk.t === 'wpparts') {
+        for (const pt of tk.parts) out += pt.frac ? fracText(pt.frac[0], pt.frac[1]) : pt.txt;
+      }
+    }
+    return out.replace(/\s+/g, ' ').trim();
+  }
+  function answerText(p, typeId) {
+    let s = tokensToText(p.ansTokens);
+    const f = decFracToken(typeId, p.check);
+    if (f) s += '（' + tokensToText([f]) + '）';
+    return s;
   }
   function safeDivpAnswer(ok, t, p, userVal) {
     if (!(window.Divp && typeof window.Divp.answer === 'function')) return;
     try {
-      const qText = plainText(renderTokens(p.tokens));
-      const aText = plainText(answerHTML(p, t.id));
+      const qText = tokensToText(p.tokens);
+      const aText = answerText(p, t.id);
       window.Divp.answer(ok, {
         question_key: t.id,                       // カテゴリID＝モード名をそのまま使う
         question_params: { q: qText, a: aText },  // 同一問題の判定キー（params_hash）
