@@ -11,10 +11,12 @@ const RANK_MIN_SOLVED = 10;   // 正答率ランキングに載る最低解答�
  * 指定教室の生徒ごとに、期間内の解答数・正解数・獲得XPを集計して返す。
  * $classroomIds が null なら全教室混合。$fromStr/$toStr が null なら全期間。
  * $unitKey を渡すとその単元（モード）だけの実績に絞る。$grade を渡すとその学年の生徒だけに絞る。
+ * $subject（unit_key の先頭要素 例 'math'）を渡すとその教科の全モード合計で集計する
+ * （$unitKey も渡された場合はモード指定が優先。教科担当の講師が自分の教科だけ見られるように用意した軸）。
  * $targetSchoolId を渡すと、その学校を私立または公立の志望校にしている生徒だけに絞る（教室は問わない）。
  * 単元別XPは解答由来(answer_id)のXPのみ対象（セッション/イベントボーナスは単元に紐づかないため含めない）。
  */
-function ranking_rows(PDO $pdo, ?array $classroomIds, ?string $fromStr, ?string $toStr, bool $includeTest = false, ?string $unitKey = null, ?string $grade = null, ?int $targetSchoolId = null): array
+function ranking_rows(PDO $pdo, ?array $classroomIds, ?string $fromStr, ?string $toStr, bool $includeTest = false, ?string $unitKey = null, ?string $grade = null, ?int $targetSchoolId = null, ?string $subject = null): array
 {
     $wc = '';
     if ($classroomIds !== null) {
@@ -56,7 +58,8 @@ function ranking_rows(PDO $pdo, ?array $classroomIds, ?string $fromStr, ?string 
         $wx = ' AND xl.created_at >= :fromX AND xl.created_at < :toX';
     }
 
-    // 単元（モード）フィルタ
+    // 単元（モード）フィルタ。モード未指定で教科だけ指定なら unit_key の接頭辞で教科まるごと集計する
+    // （unit_key は「教科_校種学年_単元」なので先頭要素が教科。LIKE の _ はワイルドカードなのでエスケープ必須）
     $wu1 = $wu2 = $wux = '';
     $xpFrom = 'xp_logs xl';
     if ($unitKey !== null && $unitKey !== '') {
@@ -66,6 +69,13 @@ function ranking_rows(PDO $pdo, ?array $classroomIds, ?string $fromStr, ?string 
         // XPは由来の解答(answer_id)経由で単元を判定
         $xpFrom = 'xp_logs xl JOIN answer_logs alx ON alx.answer_id = xl.answer_id';
         $wux = ' AND alx.unit_key = :unitX';
+    } elseif ($subject !== null && preg_match('/^[a-z]+$/', $subject)) {
+        $pat = $subject . '\\_%';
+        $params += ['subjA1' => $pat, 'subjA2' => $pat, 'subjX' => $pat];
+        $wu1 = ' AND al.unit_key LIKE :subjA1';
+        $wu2 = ' AND al.unit_key LIKE :subjA2';
+        $xpFrom = 'xp_logs xl JOIN answer_logs alx ON alx.answer_id = xl.answer_id';
+        $wux = ' AND alx.unit_key LIKE :subjX';
     }
 
     $stmt = $pdo->prepare(

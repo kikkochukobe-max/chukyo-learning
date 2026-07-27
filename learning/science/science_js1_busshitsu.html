@@ -104,6 +104,7 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif}
 #qtbl{margin:-6px 0 18px}
 #qtbl:empty{display:none}
 #qtbl table{border-collapse:collapse;font-size:14px;margin:0 auto;background:var(--white)}
+#qtbl svg{display:block;margin:2px auto;max-width:100%;height:auto}
 #qtbl th,#qtbl td{border:1.4px solid var(--grid);padding:6px 12px;text-align:center;white-space:nowrap}
 #qtbl th{background:var(--midori-soft);font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--midori-d)}
 #qtbl td:first-child{font-weight:700;color:var(--ink)}
@@ -590,6 +591,9 @@ var BANK = [
   {id:'j_tai3',cat:'j_taiseki',q:'水が氷になると、体積と密度はどうなる？（水の特別な性質）',c:['体積はふえ、密度は小さくなる','体積はへり、密度は大きくなる','どちらも変わらない','体積はへり、密度も小さくなる','体積はふえ、密度も大きくなる','質量がふえる'],a:'体積はふえ、密度は小さくなる',exp:'水は例外で、氷（固体）のほうが体積が大きく密度が小さい。だから氷は水に浮く。'},
   {id:'j_tai4',cat:'j_taiseki',q:'状態変化で質量が変わらないのに体積が変わるのはなぜ？',c:['粒子の数は同じで、粒子どうしの間隔が変わるから','粒子がふえるから','粒子が消えるから','粒子が大きくなるから','別の物質になるから','質量も本当は変わるから'],a:'粒子の数は同じで、粒子どうしの間隔が変わるから',exp:'粒子の数（＝質量）は同じだが、間隔が変わるので体積（かさ）だけが変化する。'},
   {id:'j_tai5',cat:'j_taiseki',q:'液体のエタノールを入れた袋に熱い湯をかけると袋がふくらむのはなぜ？',c:['液体から気体に変化し、体積が大きくなったから','質量がふえたから','空気が入ったから','エタノールが増えたから','袋が縮んだから','冷えたから'],a:'液体から気体に変化し、体積が大きくなったから',exp:'液体のエタノールが気体になると体積が急激に大きくなり袋がふくらむ（質量は同じ）。'},
+  {id:'j_tai6',cat:'j_taiseki',q:'液体のロウが冷えて固体になると、体積と密度はどうなる？',c:['体積は小さくなり、密度は大きくなる','体積は大きくなり、密度は小さくなる','体積は大きくなり、密度も大きくなる','体積は小さくなり、密度も小さくなる','どちらも変わらない','質量が大きくなる'],a:'体積は小さくなり、密度は大きくなる',exp:'ふつうの物質（ロウ）は液体→固体で体積が小さくなる。質量は変わらないので密度は大きくなる。だから固まると中央がくぼむ。水は例外で逆（氷は体積がふえ密度が小さくなる）。'},
+  {id:'j_tai7',cat:'j_taiseki',q:'固体のロウがとけて液体になると、体積と密度はどうなる？',c:['体積は大きくなり、密度は小さくなる','体積は小さくなり、密度は大きくなる','体積は大きくなり、密度も大きくなる','体積は小さくなり、密度も小さくなる','どちらも変わらない','質量が小さくなる'],a:'体積は大きくなり、密度は小さくなる',exp:'ロウは固体→液体で体積が大きくなる。質量は変わらないので密度は小さくなる。（冷えて固体にもどると体積は小さく・密度は大きくなる＝逆の変化）'},
+  {id:'j_tai8',cat:'j_taiseki',q:'氷がとけて水になると、体積と密度はどうなる？',c:['体積は小さくなり、密度は大きくなる','体積は大きくなり、密度は小さくなる','体積は大きくなり、密度も大きくなる','体積は小さくなり、密度も小さくなる','どちらも変わらない','質量が小さくなる'],a:'体積は小さくなり、密度は大きくなる',exp:'水は例外の物質。氷（固体）→水（液体）では体積が小さくなり、質量は変わらないので密度は大きくなる（ふつうの物質＝ロウとは逆）。だから氷は水に浮く。'},
   {id:'j_yut1',cat:'j_yuten',q:'固体がとけて液体になるときの温度を何という？',c:['融点','沸点','凝固点','露点','発火点','常温'],a:'融点',exp:'融点＝固体がとける温度。沸点＝液体が沸騰する温度。'},
   {id:'j_yut2',cat:'j_yuten',q:'液体が沸騰して気体になるときの温度を何という？',c:['沸点','融点','凝固点','露点','引火点','室温'],a:'沸点',exp:'沸点＝液体が沸騰して気体に変わる温度。純粋な物質では一定。'},
   {id:'j_yut3',cat:'j_yuten',q:'水の融点と沸点の組み合わせで正しいのは？',c:['融点0℃・沸点100℃','融点100℃・沸点0℃','融点0℃・沸点50℃','融点-10℃・沸点90℃','融点10℃・沸点110℃','融点0℃・沸点78℃'],a:'融点0℃・沸点100℃',exp:'水は融点0℃、沸点100℃（1気圧のとき）。'},
@@ -781,6 +785,114 @@ function buildDensFloat(p){   /* 水に浮くか沈むか */
     exp:'水(1.0)より密度が'+(d<1?'小さい':'大きい')+'('+numStr(d)+')ので'+ok+'。水より密度が小さいと浮き、大きいと沈む。',params:{gen:'densFloat',dT:p.dT}};
 }
 function genDensFloat(){ return buildDensFloat({dT:pick(DENS_T)}); }
+/* ── 密度の座標（体積-質量グラフ）── 直線は描かず、格子点だけを打つ。
+   原点から見た点の位置（質量÷体積）が密度。同じ密度の点＝同じ物質。 */
+var GCOL=['#C73E2E','#2C5F8A','#4A7C59','#C9A227','#8a5a12'];   /* 朱・藍・緑・金・茶 */
+/* 密度(d)ごとの格子点（v=体積, m=質量, 0〜10グリッド内）。dが同じ複数点＝同じ物質。*/
+var DGROUPS=[
+  {d:0.4, pts:[{v:5,m:2}]},
+  {d:0.5, pts:[{v:2,m:1},{v:4,m:2},{v:6,m:3}]},
+  {d:0.8, pts:[{v:5,m:4}]},
+  {d:1,   pts:[{v:2,m:2},{v:4,m:4},{v:5,m:5}]},
+  {d:1.5, pts:[{v:2,m:3},{v:4,m:6}]},
+  {d:2,   pts:[{v:1,m:2},{v:2,m:4},{v:3,m:6}]},
+  {d:2.5, pts:[{v:2,m:5}]},
+  {d:3,   pts:[{v:1,m:3},{v:2,m:6}]}
+];
+function densGraphSVG(subs){
+  var W=280,H=210,padL=36,padR=12,padT=14,padB=28, pw=W-padL-padR, ph=H-padT-padB, VM=10, MM=10;
+  function X(v){ return Math.round((padL+v/VM*pw)*10)/10; }
+  function Y(m){ return Math.round((padT+(1-m/MM)*ph)*10)/10; }
+  var s='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" font-family="sans-serif">';
+  for(var k=1;k<=10;k++){   /* 1目盛りごとに線を引く→整数座標の点は必ず交点に乗る。数字は偶数だけ */
+    s+='<line x1="'+X(k)+'" y1="'+Y(0)+'" x2="'+X(k)+'" y2="'+Y(10)+'" stroke="#ECE9E0"/>'
+      +'<line x1="'+X(0)+'" y1="'+Y(k)+'" x2="'+X(10)+'" y2="'+Y(k)+'" stroke="#ECE9E0"/>';
+    if(k%2===0) s+='<text x="'+X(k)+'" y="'+(Y(0)+12)+'" font-size="9" fill="#8B877C" text-anchor="middle">'+k+'</text>'
+      +'<text x="'+(padL-5)+'" y="'+(Y(k)+3)+'" font-size="9" fill="#8B877C" text-anchor="end">'+k+'</text>';
+  }
+  s+='<line x1="'+X(0)+'" y1="'+Y(0)+'" x2="'+X(0)+'" y2="'+Y(10)+'" stroke="#33312B" stroke-width="1.4"/>'
+    +'<line x1="'+X(0)+'" y1="'+Y(0)+'" x2="'+X(10)+'" y2="'+Y(0)+'" stroke="#33312B" stroke-width="1.4"/>'
+    +'<text x="'+X(5)+'" y="'+(H-2)+'" font-size="10" fill="#33312B" text-anchor="middle">体積〔cm³〕</text>'
+    +'<text x="2" y="'+(padT-3)+'" font-size="10" fill="#33312B">質量〔g〕</text>';
+  subs.forEach(function(su,i){
+    var col=GCOL[i%GCOL.length];
+    s+='<circle cx="'+X(su.v)+'" cy="'+Y(su.m)+'" r="4" fill="'+col+'"/>'
+      +'<text x="'+(X(su.v)+6)+'" y="'+(Y(su.m)-5)+'" font-size="12" font-weight="700" fill="'+col+'">'+su.L+'</text>';
+  });
+  return s+'</svg>';
+}
+/* subsをランダムな格子点で組む（groups=使う密度グループ数、点は各グループから1つ）*/
+function pickGraphSubs(nGroups){
+  var gs=shuffle(DGROUPS).slice(0,nGroups);
+  return gs.map(function(g,i){ var pt=pick(g.pts); return {L:LETTERS6[i],v:pt.v,m:pt.m}; });
+}
+function buildDensGraphPick(p){   /* 密度が最大/最小の物質を選ぶ */
+  var subs=p.subs, best=subs[0];
+  subs.forEach(function(su){ var d=su.m/su.v, bd=best.m/best.v; if(p.kind==='max'?d>bd:d<bd) best=su; });
+  return {id:'k_mit_graph_'+p.kind,cat:'k_mitsudo',tbl:densGraphSVG(subs),
+    q:'下のグラフは、いくつかの物質の体積と質量を点で表している。密度が最も'+(p.kind==='max'?'大きい':'小さい')+'物質はどれ？',
+    c:subs.map(function(s){return s.L;}),a:best.L,
+    exp:'密度＝質量÷体積。原点から見て点が'+(p.kind==='max'?'上（急）':'下（ゆるやか）')+'にあるほど密度が'+(p.kind==='max'?'大きい':'小さい')+'。'+best.L+'が密度'+(p.kind==='max'?'最大':'最小')+'（'+numStr(best.m/best.v)+'g/cm³）。',
+    params:{gen:'densGraphPick',kind:p.kind,subs:subs}};
+}
+function genDensGraphPick(){ return buildDensGraphPick({kind:pick(['max','min']),subs:pickGraphSubs(4)}); }
+function buildDensGraphRead(p){   /* 点から密度を読み取る */
+  var t=null; p.subs.forEach(function(s){ if(s.L===p.target) t=s; });
+  var d=t.m/t.v, r=assemble(d,[t.v/t.m,t.m,t.v,t.m*t.v,t.m+t.v,t.m-t.v],fmtD);
+  return {id:'k_mit_graph_read',cat:'k_mitsudo',tbl:densGraphSVG(p.subs),
+    q:'下のグラフで、物質'+p.target+'の密度は何g/cm³？（点の位置を軸から読み取ろう）',
+    c:r.c,a:r.a,
+    exp:'物質'+p.target+'の点は体積'+t.v+'cm³・質量'+t.m+'g。密度＝質量÷体積＝'+t.m+'÷'+t.v+'＝'+numStr(d)+' g/cm³。',
+    params:{gen:'densGraphRead',subs:p.subs,target:p.target}};
+}
+function genDensGraphRead(){ var subs=pickGraphSubs(3); return buildDensGraphRead({subs:subs,target:pick(subs).L}); }
+function buildDensGraphSame(p){   /* 密度が等しい（＝同じ物質）点を選ぶ */
+  var ref=null; p.subs.forEach(function(s){ if(s.L===p.ref) ref=s; });
+  var rd=ref.m/ref.v, ans=null;
+  p.subs.forEach(function(s){ if(s.L!==p.ref && s.m/s.v===rd) ans=s.L; });
+  return {id:'k_mit_graph_same',cat:'k_mitsudo',tbl:densGraphSVG(p.subs),
+    q:'下のグラフで、物質'+p.ref+'と同じ物質と考えられる（密度が等しい）のはどれ？',
+    c:p.subs.filter(function(s){return s.L!==p.ref;}).map(function(s){return s.L;}),a:ans,
+    exp:'密度（＝質量÷体積）が等しい点は同じ物質。物質'+p.ref+'は密度'+numStr(rd)+'g/cm³で、同じ密度の点が答え。（原点とその点を結ぶ直線を考えると、同じ直線上にのる）',
+    params:{gen:'densGraphSame',subs:p.subs,ref:p.ref}};
+}
+function genDensGraphSame(){
+  var pg=pick(DGROUPS.filter(function(g){return g.pts.length>=2;}));   /* 2点以上ある密度＝ペアが作れる */
+  var pair=shuffle(pg.pts).slice(0,2);
+  var others=shuffle(DGROUPS.filter(function(g){return g!==pg;})).slice(0,3).map(function(g){return pick(g.pts);});
+  var subs=shuffle(pair.concat(others)).map(function(pt,i){ return {L:LETTERS6[i],v:pt.v,m:pt.m}; });
+  var refL=subs.filter(function(s){return s.m/s.v===pg.d;})[0].L;   /* ペアの一方を基準に */
+  return buildDensGraphSame({subs:subs,ref:refL});
+}
+function fmtLetters(arr){ return arr.slice().sort().join('、'); }
+function buildDensGraphFloat(p){   /* 水（密度1.0）に浮く物質＝密度1未満の点を全て選ぶ */
+  var subs=p.subs;
+  var F=subs.filter(function(s){return s.m/s.v<1;}).map(function(s){return s.L;});
+  var S=subs.filter(function(s){return s.m/s.v>1;}).map(function(s){return s.L;});
+  var correct=fmtLetters(F);
+  var cands=[fmtLetters(S), fmtLetters(subs.map(function(s){return s.L;})), '浮くものはない'];
+  subs.forEach(function(s){ cands.push(s.L); });                       /* 各1文字 */
+  if(S.length) cands.push(fmtLetters(F.concat(S[0])));                 /* 浮く＋沈む1つ（ひっかけ）*/
+  if(F.length>1) cands.push(fmtLetters(F.slice(0,F.length-1)));        /* 浮くを1つ取りこぼし */
+  var seen={}, out=[correct]; seen[correct]=1;
+  shuffle(cands).forEach(function(t){ if(out.length<6 && t && !seen[t]){ seen[t]=1; out.push(t); } });
+  var expList=subs.map(function(s){ return s.L+'='+numStr(s.m/s.v); }).join('、');
+  return {id:'k_mit_graph_float',cat:'k_mitsudo',tbl:densGraphSVG(subs),
+    q:'下のグラフの物質のうち、水に浮くものを全て選びなさい。（水の密度＝1.0 g/cm³）',
+    c:shuffle(out),a:correct,
+    exp:'密度が水（1.0）より小さいものが浮く。各点の密度（質量÷体積）は '+expList+'。1.0未満の '+correct+' が浮く。',
+    params:{gen:'densGraphFloat',subs:subs}};
+}
+function genDensGraphFloat(){
+  var floats=DGROUPS.filter(function(g){return g.d<1;});   /* 0.4・0.5・0.8 */
+  var sinks =DGROUPS.filter(function(g){return g.d>1;});   /* 1.5・2・2.5・3 */
+  var fN=ri(1,3), sN=4-fN;                                 /* 浮く1〜3・沈む1〜3（必ず両方あり）*/
+  if(fN>floats.length){ fN=floats.length; sN=4-fN; }
+  var fg=shuffle(floats).slice(0,fN), sg=shuffle(sinks).slice(0,sN);
+  var pts=fg.concat(sg).map(function(g){ return pick(g.pts); });
+  var subs=shuffle(pts).map(function(pt,i){ return {L:LETTERS6[i],v:pt.v,m:pt.m}; });
+  return buildDensGraphFloat({subs:subs});
+}
 /* ── 濃度の計算 ── */
 var fmtP=function(x){ return numStr(x)+'%'; };
 function buildConcPct(p){   /* 溶質・溶媒 → 濃度% */
@@ -876,7 +988,7 @@ function genConcMix(){
 /* cat → 生成関数（buildQueueで該当スコープに差し込む） */
 var GENERATORS={
   j_yuten:[genYutenSolid, genYutenGas, genYutenCombo],
-  k_mitsudo:[genDensFind, genDensMass, genDensVol, genDensDisp, genDensFloat],
+  k_mitsudo:[genDensFind, genDensMass, genDensVol, genDensDisp, genDensFloat, genDensGraphPick, genDensGraphRead, genDensGraphSame, genDensGraphFloat],
   k_noudo:[genConcPct, genConcSolute, genConcSolvent, genConcDilute, genConcEvap,
            genConcTotalAdd, genConcTotalFromPct, genConcSoluteForPct, genConcDiluteTo, genConcMix]
 };
@@ -884,6 +996,7 @@ var GENERATORS={
 var REBUILDERS={
   yuten:buildYuten,
   densFind:buildDensFind, densMass:buildDensMass, densVol:buildDensVol, densDisp:buildDensDisp, densFloat:buildDensFloat,
+  densGraphPick:buildDensGraphPick, densGraphRead:buildDensGraphRead, densGraphSame:buildDensGraphSame, densGraphFloat:buildDensGraphFloat,
   concPct:buildConcPct, concSolute:buildConcSolute, concSolvent:buildConcSolvent, concDilute:buildConcDilute, concEvap:buildConcEvap,
   concTotalAdd:buildConcTotalAdd, concTotalFromPct:buildConcTotalFromPct, concSoluteForPct:buildConcSoluteForPct, concDiluteTo:buildConcDiluteTo, concMix:buildConcMix
 };

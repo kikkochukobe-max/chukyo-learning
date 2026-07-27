@@ -108,7 +108,13 @@ body{
 /* gap を 0 にしてボタンを隙間なく敷き詰める＝キー間の“死角”をなくす。
    高速連打で指がズレても必ずどれかのキーに当たり、すき間タップの取りこぼしが消える。
    外枠だけ角丸＋overflow:hidden でパッド全体をまとめ、境界はボタンの1px枠で見せる。 */
-.tenkey{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:32px;margin-bottom:5vh;
+/* 下端の余白は「0.5vh＋ホームバー分」。viewport-fit=cover を指定しているため
+   コンテンツが iPhone のホームインジケータ領域まで伸びる＝そこに最下段(0/C/B)を置くと
+   タップがホームスワイプの開始と判定されて落ちることがある。
+   Safari(下ツールバー表示中)は env が 0 なので指定どおり下がり、
+   ホーム画面追加(standalone)の時だけ自動でホームバー分を戻す。 */
+.tenkey{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:32px;
+  margin-bottom:calc(0.5vh + env(safe-area-inset-bottom, 0px));
   touch-action:none;border-radius:16px;overflow:hidden;
   border:2px solid var(--line);background:var(--line);}
 .tenkey button{
@@ -510,6 +516,26 @@ body{
   var ms=[], ns=[], idx=0, miss=0, startT=0, splits=[], coolStart=0, running=false, input='';
   var rafId=null, lastShown='';
 
+  // ── 正解した答えを一瞬だけ見せる（ニニマス方式）────────────────────
+  // 従来は正解した瞬間に renderQ() が走って答え欄を空にしていたため、
+  // 2桁目を描いてから消すまでが同じタスク内＝ブラウザが一度も描画せず、
+  // 「2桁目が表示されないまま次の問題へ行く」ように見えていた。
+  // そこで「状態だけ先に進め、次の問題の描画だけ ANS_HOLD_MS ぶん保留」する。
+  // 保留中に次のキーが来たら即座に描画を吐き出す(flushQ)ので、
+  // 速く打つ生徒の入力は1つも待たされない＝タイムに影響しない。
+  var ANS_HOLD_MS=90;                // 見せる長さ。ここだけ触れば調整できる
+  var qHoldTimer=null, qPending=false;
+  function flushQ(){
+    if(!qPending) return;
+    qPending=false;
+    clearTimeout(qHoldTimer); qHoldTimer=null;
+    renderQ();
+  }
+  function cancelHold(){
+    qPending=false;
+    clearTimeout(qHoldTimer); qHoldTimer=null;
+  }
+
   // ── 計測モード（?debug=1 のときだけ）─────────────────────────────
   // 「ブラウザが受け取った生タップ数(raw)」と「数字として登録された数(key)」を画面隅に出す。
   // raw が指のタップ回数より少ない → OS/ブラウザ段階で落ちている（＝Web構造的ハンデ、コードでは救えない）
@@ -525,7 +551,7 @@ body{
     else if(/[?&]debug=1/.test(qs) || /(^|#)debug\b/.test(hs)){ localStorage.setItem('hm_dbg','1'); DBG=true; }
     else if(localStorage.getItem('hm_dbg')==='1'){ DBG=true; }
   }catch(e){ DBG = /[?&]debug=1/.test(String(location.search||'')); }
-  var dbgRaw=0, dbgKey=0, dbgBox=null, dbgLast=0;
+  var dbgRaw=0, dbgKey=0, dbgBox=null, dbgLast=0, dbgMulti=0, dbgMaxN=1;
   function dbgInit(){
     if(!DBG) return;
     dbgBox=document.createElement('div');
@@ -538,12 +564,21 @@ body{
   function dbgRender(){
     if(!dbgBox) return;
     dbgBox.textContent='raw(生タップ):'+dbgRaw+'\nkey(登録):'+dbgKey
-      +'\nΔ(取りこぼし):'+(dbgRaw-dbgKey);
+      +'\nΔ(取りこぼし):'+(dbgRaw-dbgKey)
+      +'\n同時2本以上:'+dbgMulti+' (最大'+dbgMaxN+'本)';
   }
   function dbgHit(isKey){
     if(!DBG) return;
     dbgRaw++;                 // touchstart で受け取った1接地=raw+1
     if(isKey) dbgKey++;       // 実際に数字/機能キーとして press に渡った=key+1
+    dbgRender();
+  }
+  // 両手同時押しがOSまで届いているかの確認用。n=その瞬間に接地している指の本数。
+  // 「同時2本以上」が増えないのに取りこぼす＝OS側で1接地に丸められている（Web側の限界）。
+  function dbgTouches(n){
+    if(!DBG) return;
+    if(n>dbgMaxN) dbgMaxN=n;
+    if(n>=2) dbgMulti++;
     dbgRender();
   }
 
@@ -555,6 +590,14 @@ body{
   var timerEl=$('timer'), stage=$('stage'), flash=$('flash');
   var countdown=$('countdown'), cdNum=$('cdNum');
   var mode='h', cdTimer=null, cdActive=false;
+
+  // ---- プレイ中のタイマー表示（試験的に非表示。?timer=1 を付けると出る）----
+  // 計測そのものは Date.now() で続けているので、結果画面のタイム・クール別スプリット・
+  // 記録の保存は今まで通り。非表示中は毎フレームの rAF ループも止める
+  //（残り時間を気にせず打てる＋タップ処理に回るメインスレッドが増える）。
+  // visibility で消すのは、レイアウトを1pxも動かさずタイトルの位置を保つため。
+  var SHOW_TIMER=/[?&]timer=1/.test(String(location.search||''));
+  if(!SHOW_TIMER) timerEl.style.visibility='hidden';
 
   // 結果・スプリット用（0.1秒まで）。ここは今まで通り正確に出す。
   function fmt(ms_){
@@ -608,6 +651,7 @@ body{
 
   function start(){
     build();
+    cancelHold();
     idx=0; miss=0; splits=[];
     document.getElementById('topBar').style.display='grid';
     stage.setAttribute('data-mode', mode);
@@ -621,7 +665,7 @@ body{
       if(c===0){
         countdown.classList.remove('show');
         startT=Date.now(); coolStart=startT; running=true;
-        cancelAnimationFrame(rafId); tick();
+        if(SHOW_TIMER){ cancelAnimationFrame(rafId); tick(); }
         return;
       }
       cdNum.textContent=c;
@@ -633,6 +677,7 @@ body{
 
   function goHome(){
     running=false; cdActive=false;
+    cancelHold();
     clearTimeout(cdTimer);
     cancelAnimationFrame(rafId);
     countdown.classList.remove('show');
@@ -641,17 +686,22 @@ body{
   }
 
   function correctNext(){
-    // ① 状態を進めて次の問題を“最優先”で即描画。速い連打を1フレームも待たせない。
+    // ① 状態は即進める。次の問題の“描画”だけを一瞬保留し、打ち終えた答えを見せる。
     idx++;
     if(idx%PER_COOL===0){
       var now=Date.now();
       splits.push(now-coolStart);
       coolStart=now;
     }
-    if(idx>=TOTAL){ finish(); return; }
+    // 100問目は保留せず結果画面へ（保留するとタイムに保留時間が乗ってしまう）
+    if(idx>=TOTAL){ cancelHold(); finish(); return; }
     // 高速モード常時：正解演出（フラッシュ／ぴょこっと）は出さない。
-    // 描画負荷ゼロで、次の問題を即描画するだけ＝連打に最速で追従する。
-    renderQ();
+    // input は状態として即クリアするが renderInput() は呼ばない
+    // ＝答え欄には打ち終えた数字が残ったまま、次の入力も受け付けられる。
+    input='';
+    qPending=true;
+    clearTimeout(qHoldTimer);
+    qHoldTimer=setTimeout(flushQ, ANS_HOLD_MS);
   }
 
   // 結果画面（タイム・ミス・クール別スプリット）を描画する共通ルーチン。
@@ -821,6 +871,10 @@ body{
 
   function press(k){
     if(!running)return;
+    // 「答えを見せている最中」に次のキーが来た＝もう次へ行きたい。
+    // 保留していた次の問題の描画を先に吐き出してから、このキーを処理する。
+    // これで待ち時間はゼロのまま、間があいた時だけ答えが見える。
+    if(qPending) flushQ();
     if(k==='C'){ input=''; renderInput(); return; }
     if(k==='B'){ input=input.slice(0,-1); renderInput(); return; }
     if(!/^[0-9]$/.test(k))return;
@@ -839,9 +893,12 @@ body{
     }
   }
 
+  // 同じキーに2本の指が続けて当たった時（例 答え77）に、1本目のタイマーが
+  // 2本目の点灯を消してしまわないよう、消灯タイマーはキーごとに持ち直す。
   function flashKey(el){
     el.classList.add('pressed');
-    setTimeout(function(){el.classList.remove('pressed');},90);
+    if(el._ft) clearTimeout(el._ft);
+    el._ft=setTimeout(function(){ el.classList.remove('pressed'); el._ft=null; },90);
   }
   // 入力経路は「タッチ=touchstart / マウス・ペン=pointerdown」に分ける。
   // 高速2桁入力の2桁目取りこぼし対策：touch では pointerdown だとブラウザが
@@ -850,6 +907,16 @@ body{
   // touchstart は指の接地ごとに即発火し間引かれにくいので、touch はこちらを主経路にする。
   // 二重発火は pointerdown 側で pointerType==='touch' を無視して防ぐ。
   // どちらも changedTouches / 座標直下判定で「指1本=1キー」を確実に拾い、同時押しも取りこぼさない。
+  //
+  // 【両手同時押し（十の位と一の位をほぼ同時に打つ）を必ず2発として通すこと】
+  // 以前は touchstart と pointerdown を union して「時間60ms＋座標30px」で
+  // 同一タップの二重発火を消していたが、この近接判定は
+  //   ・隣どうしのキーを両手で同時に打った（境目付近で30px以内に収まる）
+  //   ・同じキーを両手で打った（答え 11/77 など。ほぼ必ず30px以内）
+  // を「二重発火」と誤判定して2発目を丸ごと捨てていた。
+  // → 近接コアレスは廃止。touch は touchstart だけが担当し、pointerdown は
+  //    マウス/ペン専用にすることで、そもそも二重発火が起きない構造にする
+  //    （＝同時押しをいくら重ねても消えない）。
   // ヒットスロップ(px): キーの外縁からこの距離内の“かすり接地”は、
   // 一番近いキーに吸い寄せて拾う。大きくしすぎると隣キー誤爆になるので控えめに。
   var HIT_SLOP=20;
@@ -868,51 +935,72 @@ body{
     }
     return best;
   }
-  // touch と pointer はどちらが先に発火するか端末で異なる（順序に依存できない）。
-  // そこで「どちらが先でもよい。同じキーへの接地が直前(COALESCE_MS)にあれば
-  // 同一タップの二重発火として捨てる」対称的なコアレス方式にする。
-  // e.timeStamp は touch/pointer で基準がずれる端末があるため使わず、
-  // 両ハンドラを同じ時計 performance.now() で測る。
   var nowMs=(window.performance&&performance.now)?function(){return performance.now();}
                                                :function(){return +new Date();};
-  // 二重発火のペアは数ms差で来る。人間の同一キー連打は最速でも80ms超なので、
-  // 60ms を境にすれば「重複は消す・本物の連打は残す」を両立できる。
-  // 重複判定は「キーを解決する前」に時間＋座標で行う。touch/pointer の同一タップは
-  // ほぼ同座標・数ms差で来るので、片方がボタンに解決できなくても確実に捨てられる。
-  var COALESCE_MS=60, COALESCE_PX=30, lastHitTs=-1e9, lastHitX=0, lastHitY=0;
-  function isDupHit(x,y){
-    var dt=nowMs()-lastHitTs;
-    if(dt>=COALESCE_MS) return false;
-    var dx=x-lastHitX, dy=y-lastHitY;
-    return (dx*dx+dy*dy) <= COALESCE_PX*COALESCE_PX;
-  }
-  // 接地1つを処理。戻り値: 'ok'=入力した / 'dup'=同一タップの二重発火 / 'miss'=キー外。
-  // 'dup' は計測(raw)にも数えない＝raw は「押した回数」に一致する。
+  // 接地1つを処理。戻り値: 'ok'=入力した / 'miss'=キー外。
   // el = 接地点の target（あれば先に使う）。高速連打では elementFromPoint が
   // 同期レイアウトを誘発して律速になるため、target で拾えた時はそちらを優先。
+  // ここに「直前の入力と近いから捨てる」類の判定は一切置かない
+  //（両手同時押し＝同座標・同時刻の2発が正当な入力なので、近さで捨ててはいけない）。
   function handleHit(x,y,el){
-    if(isDupHit(x,y)) return 'dup';
     var b=(el&&el.closest)?el.closest('button'):null;
     if(!b||!$('tenkey').contains(b)){ b=keyBtnAt(x,y); }   // 外した時だけ座標判定＋吸着
     if(!b) return 'miss';
-    lastHitTs=nowMs(); lastHitX=x; lastHitY=y;
     flashKey(b); press(b.dataset.k);
     return 'ok';
   }
+  // touch イベントが実際に届いたか。届く端末では pointerdown(touch) を完全に無視する
+  // ＝二重発火の可能性そのものを消す（近接コアレス不要＝同時押しが消えない）。
+  var touchSeen=false;
+  // 保険経路（touchイベントが来ない端末向けに pointerdown で拾った接地）の記録。
+  // 万一そのあとに touchstart が来た場合だけ、その1接地を打ち消すために使う。
+  // 同一接地は両APIが同じ座標を報告するので窓は極小(12px/60ms)。両手同時押しの
+  // 2発目を巻き込まないよう、これは「初回接地が touchstart より先に pointerdown で
+  // 来てしまった場合」限定で働く。
+  var pdMarks=[];
+  function markPd(x,y){
+    pdMarks.push({x:x,y:y,t:nowMs()});
+    if(pdMarks.length>6) pdMarks.shift();
+  }
+  function takePdMark(x,y){
+    for(var i=0;i<pdMarks.length;i++){
+      var m=pdMarks[i];
+      if(nowMs()-m.t>60) continue;
+      var dx=x-m.x, dy=y-m.y;
+      if(dx*dx+dy*dy<=144){ pdMarks.splice(i,1); return true; }
+    }
+    return false;
+  }
   $('tenkey').addEventListener('touchstart',function(e){
-    var handled=false;
+    touchSeen=true;
+    // e.touches = いま接地している指の総数。両手同時押しの計測に使う。
+    dbgTouches(Math.max(e.touches?e.touches.length:1, e.changedTouches.length));
     for(var i=0;i<e.changedTouches.length;i++){
       var t=e.changedTouches[i];
+      // 保険経路(pointerdown)で既に入力済みの接地だけスキップ。通常運用では常に空。
+      if(takePdMark(t.clientX,t.clientY)) continue;
       var r=handleHit(t.clientX,t.clientY,t.target);
-      if(r!=='dup') dbgHit(r==='ok');   // 重複は計測しない。実接地だけ raw に載せる
-      if(r==='ok') handled=true;
+      dbgHit(r==='ok');
+      // ※changedTouches の並び＝接地された順。同一フレームに2本着地した場合は
+      //   この配列順がそのまま十の位→一の位の順になる。
     }
-    if(handled) e.preventDefault();   // 合成クリック・ダブルタップ判定を抑止
+    // 常に抑止する。合成クリック・ダブルタップ拡大だけでなく、2本同時接地を
+    // ピンチ開始と見なす審査（＝次の接地を握りつぶす原因）も止めたい。
+    e.preventDefault();
   },{passive:false});
+  // 2本の指がわずかに動いた瞬間にピンチ判定が走ると、以降の接地が
+  // pointercancel/touchcancel で落ちる。テンキー上の移動は無効化しておく。
+  $('tenkey').addEventListener('touchmove',function(e){ e.preventDefault(); },{passive:false});
   $('tenkey').addEventListener('pointerdown',function(e){
-    var r=handleHit(e.clientX,e.clientY,e.target);   // touch との重複は座標＋時間で自動的に捨てる
-    if(e.pointerType==='touch' && r!=='dup') dbgHit(r==='ok');
-    if(r==='ok'){ e.preventDefault(); }
+    if(e.pointerType==='touch'){
+      if(touchSeen) return;            // touch は touchstart が唯一の経路（同時押しを消さない）
+      var r0=handleHit(e.clientX,e.clientY,e.target);   // touchイベントが来ない端末の保険
+      if(r0==='ok'){ markPd(e.clientX,e.clientY); e.preventDefault(); }
+      dbgHit(r0==='ok');
+      return;
+    }
+    var r=handleHit(e.clientX,e.clientY,e.target);      // マウス / ペン
+    if(r==='ok') e.preventDefault();
   },{passive:false});
   // OSがタップをイベント化する前に握りつぶす経路を塞ぐ（テンキー上のみ）。
   // 長押しメニュー・ダブルタップ拡大・ピンチ判定が高速連打の次の1発を落とす原因になる。

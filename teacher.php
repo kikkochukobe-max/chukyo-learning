@@ -226,8 +226,11 @@ $rankData = null;
 $rankEvent = null;
 $evMode = false;
 $rankUnit = '';       // モード（単元）フィルタ。'' なら全モード
+$rankSubject = '';    // モード一覧を絞る教科。'' なら全教科
+$rankSubjectOptions = [];
 $rankGrade = '';      // 学年フィルタ。'' なら全学年
 $rankGradeOptions = [];
+$showTimeRank = false;   // 100マスのタイムアタック表を出すか（絞り込み対象外なら出さない）
 if ($rankView) {
     require_once __DIR__ . '/api/ranking.php';
     $showTest = isset($_GET['showtest']);   // テスト生を表示するトグル（既定は除外）
@@ -236,6 +239,26 @@ if ($rankView) {
     $rankUnit = (string)($_GET['unit'] ?? '');
     if ($rankUnit !== '' && !isset($unitMeta[$rankUnit])) {
         $rankUnit = '';
+    }
+    // 教科フィルタ: 教科担当の講師が自分の教科だけ見られるように、教科まるごと（その教科の全モード合計）で集計する。
+    // 同時にモード一覧もその教科だけに絞る（モードが増えて探しづらいため）。
+    // モードまで選んだ場合はモードが優先。選択肢は units.php に載っている教科だけ
+    $rankSubjectOptions = [];
+    foreach (array_keys(SUBJECT_LABELS) as $s) {   // 表示順は生徒一覧の教科タブと同じ
+        foreach (array_keys($unitMeta) as $uk) {
+            if (subject_of($uk) === $s) { $rankSubjectOptions[] = $s; break; }
+        }
+    }
+    foreach (array_keys($unitMeta) as $uk) {       // SUBJECT_LABELS に無い教科は後ろに
+        $s = subject_of($uk);
+        if (!in_array($s, $rankSubjectOptions, true)) $rankSubjectOptions[] = $s;
+    }
+    $rankSubject = (string)($_GET['usub'] ?? '');
+    if ($rankSubject !== '' && !in_array($rankSubject, $rankSubjectOptions, true)) {
+        $rankSubject = '';
+    }
+    if ($rankUnit !== '') {
+        $rankSubject = subject_of($rankUnit);   // モード選択中は必ずその教科に合わせる
     }
     // 学年プルダウンの選択肢: 担当教室に在籍する学年だけ。表記は問わない
     // （grade は自由入力なので es/js/hs 以外の表記=例「中3」も拾う。生徒一覧と同じ方針）。
@@ -284,6 +307,7 @@ if ($rankView) {
     if ($evMode) {
         // イベントは「生徒のマイページと同じ集計」を見せるものなので単元/学年フィルタは掛けない
         $rankUnit = '';
+        $rankSubject = '';
         $rankGrade = '';
         $evFromStr = $rankEvent['from'] . ' 00:00:00';
         $evToStr = (new DateTimeImmutable($rankEvent['to']))->modify('+1 day')->format('Y-m-d 00:00:00');
@@ -293,7 +317,7 @@ if ($rankView) {
         // 志望校ランキング: 全教室横断（教室チェックは無視）。全講師が同じ集計を見る。
         // 担当外教室の生徒は下の描画で名前のみ表示（詳細リンクなし）になる。
         $cids = [];
-        $rows = ranking_rows($pdo, null, $fromStr, $toStr, $showTest, $rankUnit ?: null, $rankGrade ?: null, $rankSchool);
+        $rows = ranking_rows($pdo, null, $fromStr, $toStr, $showTest, $rankUnit ?: null, $rankGrade ?: null, $rankSchool, $rankSubject ?: null);
     } else {
         $cids = $_GET['cids'] ?? [];
         if (!is_array($cids)) {
@@ -303,7 +327,7 @@ if ($rankView) {
         if (count($cids) === 0) {
             $cids = $allowedClassroomIds;   // 未指定は担当全教室の混合
         }
-        $rows = ranking_rows($pdo, $cids, $fromStr, $toStr, $showTest, $rankUnit ?: null, $rankGrade ?: null);
+        $rows = ranking_rows($pdo, $cids, $fromStr, $toStr, $showTest, $rankUnit ?: null, $rankGrade ?: null, null, $rankSubject ?: null);
     }
     $rankData = [
         'cids'   => $cids,
@@ -315,10 +339,14 @@ if ($rankView) {
 
     // 100マス（タイムアタック）ランキング: メインと同じスコープ（教室×期間 or イベント）で集計。
     // 志望校モードは「速さ」となじまないので出さない。
+    // 教科・モードで絞り込んでいて100マスが対象外になる時（例: 英語で絞る）もまるごと出さない。
     $timeRankUnit = 'math_es_hyakumasu';
     $timeRankLabel = time_rank_units()[$timeRankUnit] ?? $timeRankUnit;
     $timeRankRows = [];
-    if ($rankSchool === 0) {
+    $showTimeRank = $rankSchool === 0
+        && ($rankUnit === '' || $rankUnit === $timeRankUnit)
+        && ($rankSubject === '' || $rankSubject === subject_of($timeRankUnit));
+    if ($showTimeRank) {
         if ($evMode) {
             $timeRankRows = time_ranking_rows($pdo, $rankEvent['classroom_ids'] ?? null, $timeRankUnit, $evFromStr, $evToStr, $showTest);
         } else {
@@ -638,7 +666,7 @@ function sp_select(string $label, array $options): string
 <style>
   :root{
     --paper:#FBFAF6;--grid:#ECE9E0;--ink:#33312B;--ink-soft:#8B877C;
-    --shu:#C73E2E;--ai:#2C5F8A;--ai-soft:#E3ECF4;--kin:#C9A227;--white:#fff;
+    --shu:#C73E2E;--ai:#2C5F8A;--ai-soft:#E3ECF4;--kin:#C9A227;--dai:#D89A45;--white:#fff;
     --radius:14px;--shadow:0 1px 3px rgba(51,49,43,.08),0 6px 16px rgba(51,49,43,.06);
   }
   *{margin:0;padding:0;box-sizing:border-box}
@@ -657,6 +685,9 @@ function sp_select(string $label, array $options): string
     color:#fff;background:var(--shu);border:1px solid var(--shu);border-radius:999px;
     padding:5px 14px;text-decoration:none;box-shadow:0 1px 2px rgba(199,62,46,.25)}
   .toollink:hover{background:#b0331f;border-color:#b0331f}
+  /* 別サイト(Cloudflare Workers)の講師ページ。学習ツール一覧の朱と区別する橙 */
+  .toollink.ext{background:var(--dai);border-color:var(--dai);box-shadow:0 1px 2px rgba(216,154,69,.3)}
+  .toollink.ext:hover{background:#c2842f;border-color:#c2842f}
   .who{font-size:12px;color:var(--ink-soft);display:flex;align-items:center;gap:10px;margin-left:auto}
   .who-id,.who-actions{display:contents}
   .who b{font-size:14px;color:var(--ai);font-family:'Zen Maru Gothic',sans-serif}
@@ -771,7 +802,7 @@ function sp_select(string $label, array $options): string
 
     /* --- ヘッダー: 1行目=ロゴ+学習ツール一覧 … ログアウト(右上)、2行目=名前や他ボタン --- */
     header{padding:10px 0 6px;gap:8px 10px;flex-wrap:wrap;align-items:center}
-    .brand{flex:1 1 auto;gap:9px;order:1}
+    .brand{flex:1 1 auto;gap:9px 8px;order:1;flex-wrap:wrap}
     header img.logo{height:30px}
     .toollink{flex:0 0 auto;font-size:13px;padding:6px 14px}
     #logout-btn{order:2;margin-left:auto}
@@ -886,6 +917,8 @@ function sp_select(string $label, array $options): string
       <img class="logo" src="https://chukyokobetsu.com/manage/wp-content/themes/chukyo/images/common/logo_chukyo.png"
            alt="中京個別指導学院">
       <a class="toollink" href="/learning/">学習ツール一覧</a>
+      <a class="toollink ext" href="https://ranking.chukyo.workers.dev/Ranking"
+         target="_blank" rel="noopener">別サイト講師ページ</a>
     </div>
     <div class="who">
       <span class="who-id">
@@ -1108,6 +1141,12 @@ function sp_select(string $label, array $options): string
               $qp = json_decode((string)$w['question_params'], true);
               if (is_array($qp) && isset($qp['code'])) $mapCode = (int)$qp['code'];
           }
+          // 密度の座標(体積-質量グラフ)問題: question_params の点データ(subs)を渡し、印刷側でSVGを描く
+          $graph = null;
+          $qpG = json_decode((string)$w['question_params'], true);
+          if (is_array($qpG) && isset($qpG['gen']) && strpos($qpG['gen'], 'densGraph') === 0 && !empty($qpG['subs'])) {
+              $graph = ['subs' => $qpG['subs']];
+          }
           return [
               'unit'  => (($unitMeta[$w['unit_key']] ?? null)['title'] ?? $w['unit_key']),
               'label' => $w['label'],
@@ -1116,6 +1155,7 @@ function sp_select(string $label, array $options): string
               'a'     => $w['correct_answer'],
               'sa'    => $w['student_answer'],
               'code'  => ($mapCode >= 1 && $mapCode <= 47) ? $mapCode : 0,  // 地図問題なら県コード
+              'graph' => $graph,   // 座標グラフ問題なら {subs:[{L,v,m}...]}
           ];
       }, $dWrongs),
     ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
@@ -1150,7 +1190,7 @@ function sp_select(string $label, array $options): string
 <?php elseif ($rankView): ?>
   <!-- ============ ランキング ============ -->
   <div class="bar-row sp-hide">
-    <a class="back" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'grade' => null, 'school' => null, 'from' => null, 'to' => null])) ?>">← 生徒一覧へ</a>
+    <a class="back" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'usub' => null, 'grade' => null, 'school' => null, 'from' => null, 'to' => null])) ?>">← 生徒一覧へ</a>
 <?php foreach ($periodLabels as $key => $label): ?>
     <a class="ptab<?= !$evMode && !$isCustom && $period === $key ? ' active' : '' ?>" href="<?= h(qtab(['period' => $key, 'ev' => null, 'from' => null, 'to' => null])) ?>"><?= h($label) ?></a>
 <?php endforeach; ?>
@@ -1161,7 +1201,7 @@ function sp_select(string $label, array $options): string
     <a class="ptab<?= $showTest ? ' active' : '' ?>" href="<?= h(qtab(['showtest' => $showTest ? null : '1'])) ?>"><?= $showTest ? 'テスト生を隠す' : 'テスト生を表示' ?></a>
   </div>
   <div class="bar-row sp-only row">
-    <a class="back" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'grade' => null, 'school' => null, 'from' => null, 'to' => null])) ?>">← 一覧</a>
+    <a class="back" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'usub' => null, 'grade' => null, 'school' => null, 'from' => null, 'to' => null])) ?>">← 一覧</a>
 <?php
     $spOpt = [];
     foreach ($periodLabels as $key => $label) $spOpt[] = [$label, qtab(['period' => $key, 'ev' => null, 'from' => null, 'to' => null]), !$evMode && !$isCustom && $period === $key];
@@ -1184,6 +1224,7 @@ function sp_select(string $label, array $options): string
         ? (new DateTimeImmutable($customFrom))->format('Y/n/j') . '〜' . (new DateTimeImmutable($customTo))->format('Y/n/j')
         : $periodLabels[$period];
     if ($rankUnit !== '') $rankTitleSuffix .= '・' . (($unitMeta[$rankUnit] ?? null)['title'] ?? $rankUnit);
+    elseif ($rankSubject !== '') $rankTitleSuffix .= '・' . subject_label($rankSubject) . 'の全モード';
     if ($rankGrade !== '') $rankTitleSuffix .= '・' . grade_label($rankGrade);
     if ($rankSchool > 0) $rankTitleSuffix .= '・' . $rankSchoolName . '志望';
 ?>
@@ -1201,11 +1242,27 @@ function sp_select(string $label, array $options): string
         <span style="font-size:11px;color:var(--ink-soft);">日付を入れて「表示」で任意期間ランキング。空にして期間タブを押すと通常表示に戻ります</span>
       </div>
       <div class="bar-row" style="margin:0;">
+        <label class="fsel">教科
+          <select name="usub" id="rank-usub">
+            <option value="">全教科</option>
+<?php foreach ($rankSubjectOptions as $s): ?>
+            <option value="<?= h($s) ?>"<?= $rankSubject === $s ? ' selected' : '' ?>><?= h(subject_label($s)) ?></option>
+<?php endforeach; ?>
+          </select>
+        </label>
         <label class="fsel">モード
-          <select name="unit">
+          <select name="unit" id="rank-unit">
             <option value="">全モード</option>
-<?php foreach ($unitMeta as $uk => $um): ?>
-            <option value="<?= h($uk) ?>"<?= $rankUnit === $uk ? ' selected' : '' ?>><?= h($um['title']) ?></option>
+<?php foreach ($rankSubjectOptions as $s): ?>
+            <optgroup data-sub="<?= h($s) ?>" label="<?= h(subject_label($s)) ?>">
+<?php   foreach ($unitMeta as $uk => $um): ?>
+<?php       if (subject_of($uk) !== $s) continue; ?>
+<?php       // 'sub' が「教科・学年」の2要素のときだけ学年を添える（例「算数・小5」→「小5」）
+            $sp = explode('・', (string)($um['sub'] ?? ''));
+            $optLabel = $um['title'] . (count($sp) === 2 ? '（' . $sp[1] . '）' : ''); ?>
+              <option value="<?= h($uk) ?>"<?= $rankUnit === $uk ? ' selected' : '' ?>><?= h($optLabel) ?></option>
+<?php   endforeach; ?>
+            </optgroup>
 <?php endforeach; ?>
           </select>
         </label>
@@ -1244,6 +1301,7 @@ function sp_select(string $label, array $options): string
           </select>
         </label>
 <?php endif; ?>
+        <span style="font-size:11px;color:var(--ink-soft);">教科を選ぶとその教科の全モード合計で集計＋モード一覧もその教科だけになります</span>
       </div>
 <?php if ($rankSchool > 0): ?>
       <div class="bar-row" style="margin:0;">
@@ -1268,6 +1326,42 @@ function sp_select(string $label, array $options): string
       </div>
     </form>
   </div>
+  <script>
+  // 教科プルダウンでモード一覧を即座に絞り込む（optgroupごと出し入れするので選択肢が短くなる）。
+  // option の hidden はブラウザによって効かないので、選択肢を作り直す方式にしている。
+  (function () {
+    var sub = document.getElementById('rank-usub'), unit = document.getElementById('rank-unit');
+    if (!sub || !unit) return;
+    var groups = [].map.call(unit.querySelectorAll('optgroup'), function (g) {
+      return {
+        key: g.getAttribute('data-sub'), label: g.label,
+        items: [].map.call(g.querySelectorAll('option'), function (o) { return { v: o.value, t: o.textContent }; })
+      };
+    });
+    function render() {
+      var k = sub.value, keep = unit.value;
+      unit.innerHTML = '';
+      var all = document.createElement('option');
+      all.value = ''; all.textContent = '全モード';
+      unit.appendChild(all);
+      groups.forEach(function (g) {
+        if (k && g.key !== k) return;
+        var og = document.createElement('optgroup');
+        og.label = g.label;
+        g.items.forEach(function (it) {
+          var o = document.createElement('option');
+          o.value = it.v; o.textContent = it.t;
+          og.appendChild(o);
+        });
+        unit.appendChild(og);
+      });
+      unit.value = keep;
+      if (unit.value !== keep) unit.value = '';   // 教科外のモードが選ばれていたら全モードに戻す
+    }
+    sub.addEventListener('change', render);
+    render();
+  })();
+  </script>
 <?php endif; ?>
 
 <?php
@@ -1285,7 +1379,7 @@ function sp_select(string $label, array $options): string
         <option value="correct">正解数</option>
         <option value="rate">正答率</option>
         <option value="xp">XP</option>
-<?php if ($rankSchool === 0): ?>
+<?php if ($showTimeRank): ?>
         <option value="time"><?= h($timeRankLabel) ?></option>
 <?php endif; ?>
       </select>
@@ -1310,7 +1404,7 @@ function sp_select(string $label, array $options): string
         <td class="num" data-label="順位" style="font-weight:700;<?= $r['rank'] <= 3 ? 'color:var(--kin);' : '' ?>"><?= $r['rank'] ?>位</td>
         <?php // 担当外教室の生徒は詳細を開けないのでリンクにしない（イベントランキングで載りうる） ?>
 <?php if (in_array((int)$r['classroom_id'], $allowedClassroomIds, true)): ?>
-        <td data-label="生徒"><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'grade' => null, 'school' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
+        <td data-label="生徒"><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'usub' => null, 'grade' => null, 'school' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
 <?php else: ?>
         <td data-label="生徒"><?= h($r['student_name']) ?></td>
 <?php endif; ?>
@@ -1329,7 +1423,7 @@ function sp_select(string $label, array $options): string
 <?php endforeach; ?>
   </div>
 
-<?php if ($rankSchool === 0): ?>
+<?php if ($showTimeRank): ?>
   <!-- 100マス たし算 タイムアタック ランキング（速い順） -->
   <div class="card" data-rank="time" style="border-top-color:var(--kin);">
     <h2><?= h($timeRankLabel) ?> タイムアタック <span style="font-size:11px;color:var(--ink-soft);font-weight:500;">（ベストタイムの速い順）</span></h2>
@@ -1346,7 +1440,7 @@ function sp_select(string $label, array $options): string
       <tr>
         <td class="num" data-label="順位" style="font-weight:700;<?= $r['rank'] <= 3 ? 'color:var(--kin);' : '' ?>"><?= $r['rank'] ?>位</td>
 <?php if (in_array((int)$r['classroom_id'], $allowedClassroomIds, true)): ?>
-        <td data-label="生徒"><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'grade' => null, 'school' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
+        <td data-label="生徒"><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'usub' => null, 'grade' => null, 'school' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
 <?php else: ?>
         <td data-label="生徒"><?= h($r['student_name']) ?></td>
 <?php endif; ?>
@@ -1617,6 +1711,32 @@ document.querySelectorAll('.math').forEach(function (el) {
     return '<div class="q-map">' + clone.outerHTML + '</div>';
   }
 
+  // 密度の座標(体積-質量グラフ)問題用: 点データ(subs)から白黒印刷向けのSVGを描く。
+  // ツール側 densGraphSVG と同じ座標系(0〜10グリッド)。線は描かず点＋記号だけ。
+  function graphSvg(subs) {
+    if (!subs || !subs.length) return '';
+    var W = 300, H = 224, padL = 38, padR = 12, padT = 16, padB = 30,
+        pw = W - padL - padR, ph = H - padT - padB, VM = 10, MM = 10;
+    function X(v){ return Math.round((padL + v / VM * pw) * 10) / 10; }
+    function Y(m){ return Math.round((padT + (1 - m / MM) * ph) * 10) / 10; }
+    var s = '<svg class="q-graph-svg" viewBox="0 0 ' + W + ' ' + H + '">';
+    for (var k = 1; k <= 10; k++) {
+      s += '<line x1="' + X(k) + '" y1="' + Y(0) + '" x2="' + X(k) + '" y2="' + Y(10) + '"/>'
+        +  '<line x1="' + X(0) + '" y1="' + Y(k) + '" x2="' + X(10) + '" y2="' + Y(k) + '"/>';
+      if (k % 2 === 0) s += '<text class="g-num" x="' + X(k) + '" y="' + (Y(0) + 13) + '" text-anchor="middle">' + k + '</text>'
+        + '<text class="g-num" x="' + (padL - 5) + '" y="' + (Y(k) + 3) + '" text-anchor="end">' + k + '</text>';
+    }
+    s += '<line class="g-axis" x1="' + X(0) + '" y1="' + Y(0) + '" x2="' + X(0) + '" y2="' + Y(10) + '"/>'
+      +  '<line class="g-axis" x1="' + X(0) + '" y1="' + Y(0) + '" x2="' + X(10) + '" y2="' + Y(0) + '"/>'
+      +  '<text class="g-ttl" x="' + X(5) + '" y="' + (H - 3) + '" text-anchor="middle">体積〔cm³〕</text>'
+      +  '<text class="g-ttl" x="3" y="' + (padT - 4) + '">質量〔g〕</text>';
+    subs.forEach(function (su) {
+      s += '<circle class="g-dot" cx="' + X(su.v) + '" cy="' + Y(su.m) + '" r="4"/>'
+        +  '<text class="g-lbl" x="' + (X(su.v) + 6) + '" y="' + (Y(su.m) - 5) + '">' + esc(su.L) + '</text>';
+    });
+    return '<div class="q-graph">' + s + '</svg></div>';
+  }
+
   function esc(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -1641,7 +1761,7 @@ document.querySelectorAll('.math').forEach(function (el) {
     var PAGE_BUDGET = 5;
     var pages = [], cur = [], load = 0;
     items.forEach(function (it) {
-      var wt = it.code ? 2.5 : 1;
+      var wt = (it.code || it.graph) ? 2.5 : 1;
       if (cur.length && load + wt > PAGE_BUDGET) { pages.push(cur); cur = []; load = 0; }
       cur.push(it); load += wt;
     });
@@ -1655,7 +1775,7 @@ document.querySelectorAll('.math').forEach(function (el) {
         // 日本地図（該当県が光る）＋書き取り指示に差し替える。
         var qbody = it.code
           ? mapSvg(it.code) + '<div class="q-note">黒くぬられた都道府県の <b>名前</b> と <b>県庁所在地</b> を書きましょう</div>'
-          : fmt(it.q);
+          : (it.graph ? fmt(it.q) + graphSvg(it.graph.subs) : fmt(it.q));
         return '<div class="q">'
           + '<div class="q-head"><span class="q-no">' + n + '</span>'
           + '<span class="q-meta">' + esc(it.unit) + '　<span class="q-tag">' + esc(it.label) + '</span></span></div>'
@@ -1726,6 +1846,15 @@ document.querySelectorAll('.math').forEach(function (el) {
       + '.jp-mini .prefecture.is-target{fill:#3a3a3a;stroke:#000;stroke-width:1.2px;}'
       + '.jp-mini .boundary-line{stroke:#999;stroke-width:2px;}'
       + '.q-note{font-size:14px;color:#555;margin-top:6px;}'
+      /* 密度の座標グラフ（白黒印刷向け・点＋記号のみ） */
+      + '.q-graph{display:inline-block;background:#fff;border:1px solid #999;border-radius:8px;padding:6px;margin-top:6px;}'
+      + '.q-graph-svg{display:block;height:58mm;width:auto;max-width:110mm;}'
+      + '.q-graph-svg line{stroke:#d8d8d8;stroke-width:1px;}'
+      + '.q-graph-svg .g-axis{stroke:#000;stroke-width:1.4px;}'
+      + '.q-graph-svg .g-dot{fill:#000;stroke:none;}'
+      + '.q-graph-svg .g-lbl{font-size:12px;font-weight:700;fill:#000;}'
+      + '.q-graph-svg .g-num{font-size:9px;fill:#555;}'
+      + '.q-graph-svg .g-ttl{font-size:10px;fill:#000;}'
       + '.q-space{height:2.2cm;margin:5px 0 0 34px;border:1px dashed #cbcbcb;border-radius:8px;}'
       + '.key-page{page-break-before:always;}'
       + '.key{width:100%;border-collapse:collapse;font-size:13px;}'
