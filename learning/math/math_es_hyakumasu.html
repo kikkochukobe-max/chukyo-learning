@@ -911,11 +911,14 @@ body{
     var d=new Date();
     var dateStr=d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
 
+    // sub行は空でも高さぶんは必ず確保する（&nbsp;）。ここが両ページで
+    // 1行分でもズレると、こたえページのマス目が問題ページの真下からずれて
+    // 透かし丸つけができなくなるため（.psub の有無で phead の高さが変わる事故）。
     function head(sub){
       return '<div class="phead">'
         +'<div><div class="pschool">中京個別指導学院</div>'
         +'<div class="ptitle">100マス たし算</div></div>'
-        +'<div class="pmeta"><div class="psub">'+sub+'</div>'
+        +'<div class="pmeta"><div class="psub">'+(sub||'&nbsp;')+'</div>'
         +'<div>名前 <span class="pname"></span></div>'
         +'<div class="pdate">'+dateStr+'</div></div></div>';
     }
@@ -975,12 +978,13 @@ body{
       /* --- 100マスの下の帯：左＝おうえんイラスト／右＝タイム記入欄 ---
          height を固定してあるのは、こたえページにも同じ高さの帯を置いて
          2枚のマス目を紙面のまったく同じ位置に揃えるため（重ねて透かすと丸つけが速い）。
-         45mm ＝ イラスト側の実測 43.6mm（ふきだし9.8＋間2.6＋絵31.2）＋余白 */
-      +'.foot{display:flex;align-items:flex-end;gap:4mm;margin-top:4mm;height:45mm}'
+         58mm ＝ マス目の上下に余っていた空白ぶんをタイム記入欄の背丈に回した値
+         （イラスト側の実測は43.6mmのまま＝下端そろえなので絵の上に少し空くだけ）。 */
+      +'.foot{display:flex;align-items:flex-end;gap:3mm;margin-top:4mm;height:58mm}'
       +'.ansfoot{align-items:center;justify-content:center}'
       +'.anote{font-size:9.5pt;font-weight:700;color:#8a7d73;text-align:center;line-height:1.9}'
       +'.anote b{color:#c4526f}'
-      +'.mascot{flex:0 0 auto;width:46mm;display:flex;flex-direction:column;align-items:center}'
+      +'.mascot{flex:0 0 auto;width:43mm;display:flex;flex-direction:column;align-items:center}'
       +'.fbubble{position:relative;background:#fff;border:1.8pt solid #c4526f;'
         +'border-radius:99px;padding:1.6mm 4mm;font-size:11pt;font-weight:900;'
         +'color:#c4526f;white-space:nowrap;margin-bottom:2.6mm}'
@@ -993,32 +997,32 @@ body{
       /* 上段＝採点前／下段＝採点後。分秒の枠は .tslot の margin-left:auto で右端そろえ。
          下段は「まちがい×5びょう」の計算を見出しの下にもう1行ぶら下げる。
          1行に押し込むと横幅（イラストを除いた約140mm）に収まらないため。 */
-      +'.times{flex:1;display:flex;flex-direction:column;gap:3mm}'
+      +'.times{flex:1;min-width:0;display:flex;flex-direction:column;gap:4.5mm}'
       +'.trow{display:flex;align-items:center;gap:2mm;'
-        +'border:1.4pt solid #cfc6b4;border-radius:2.5mm;padding:2.4mm 3mm;background:#fbf8f1}'
+        +'border:1.4pt solid #cfc6b4;border-radius:2.5mm;padding:4mm 2.8mm;background:#fbf8f1}'
       +'.trow.fin{border:2.4pt solid #c4526f;background:#fff6f8}'
-      +'.tno{flex:0 0 auto;width:5mm;height:5mm;line-height:5mm;text-align:center;'
-        +'border-radius:50%;background:#a49a88;color:#fff;font-size:7.5pt;font-weight:900}'
+      +'.tno{flex:0 0 auto;width:5.6mm;height:5.6mm;line-height:5.6mm;text-align:center;'
+        +'border-radius:50%;background:#a49a88;color:#fff;font-size:8pt;font-weight:900}'
       +'.trow.fin .tno{background:#c4526f}'
-      +'.tbody{flex:0 0 auto;display:flex;flex-direction:column;gap:1.6mm}'
-      +'.tname{flex:0 0 auto;font-size:10pt;font-weight:900;color:#7a7060;white-space:nowrap}'
+      +'.tbody{flex:0 0 auto;display:flex;flex-direction:column;gap:2mm}'
+      +'.tname{flex:0 0 auto;font-size:10.5pt;font-weight:900;color:#7a7060;white-space:nowrap}'
       +'.trow.fin .tname{color:#c4526f}'
       +'.tcalc{display:flex;align-items:center;gap:1.2mm;'
         +'font-size:8.6pt;font-weight:900;color:#8a7d73;white-space:nowrap}'
-      +'.tslot{flex:0 0 auto;margin-left:auto;display:flex;align-items:center;gap:1.2mm;'
-        +'font-size:9.5pt;font-weight:900;white-space:nowrap}'
-      +'.wbox{display:inline-block;width:15mm;height:10mm;background:#fff;'
-        +'border:1.2pt solid #b3aa98;border-radius:1.2mm}'
-      +'.wbox.sm{width:10mm;height:7mm}'
+      +'.tslot{flex:0 0 auto;margin-left:auto;display:flex;align-items:center;gap:1.3mm;'
+        +'font-size:10pt;font-weight:900;white-space:nowrap}'
+      +'.wbox{display:inline-block;width:15.5mm;height:13mm;background:#fff;'
+        +'border:1.2pt solid #b3aa98;border-radius:1.6mm}'
+      +'.wbox.sm{width:11mm;height:9.5mm}'
       +'.trow.fin .wbox{border-color:#c4526f;border-width:1.6pt}'
       /* --- 100マス本体 --- */
       +'.masuwrap{flex:1;display:flex;align-items:center;justify-content:center}'
       +'table.masu{border-collapse:collapse;table-layout:fixed;border:2pt solid #6b6459}'
       +'table.masu th,table.masu td{width:17mm;height:17mm;border:0.8pt solid #a49a88;'
-        +'text-align:center;vertical-align:middle;font-size:13pt;font-weight:900;'
+        +'text-align:center;vertical-align:middle;font-size:16pt;font-weight:900;'
         +'font-variant-numeric:tabular-nums;background:transparent}'
       +'table.masu th{background:#f2ece0}'
-      +'table.masu th.op{background:#e4dbc9;font-size:15pt;color:#7a7060}'
+      +'table.masu th.op{background:#e4dbc9;font-size:18pt;color:#7a7060}'
       +'table.masu th.ch{color:#4d7a33}'
       +'table.masu th.rh{color:#b0456a;border-right:1.8pt solid #6b6459}'
       +'table.masu tr:first-child th{border-bottom:1.8pt solid #6b6459}'
@@ -1033,7 +1037,7 @@ body{
       +'<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">'
       +'<style>'+CSS+'</style></head><body>'
       +'<div class="page"><div class="pbody">'
-        +head('もんだい')
+        +head('')
         +masu(false)
         +foot
       +'</div></div>'

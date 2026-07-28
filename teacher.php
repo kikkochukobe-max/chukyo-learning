@@ -750,6 +750,11 @@ function sp_select(string $label, array $options): string
   .stat .frac i{padding:2px 7px 0;font-style:normal;font-weight:900}
   .back{font-size:13px;color:var(--ai);text-decoration:none;font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
   .math{overflow-x:auto}
+  /* 連立方程式（中2計算マスター等）を中かっこでまとめて表示する。SYS(...)マーカーの変換先 */
+  .sysbrace{display:inline-flex;align-items:center}
+  .sysbrace::before{content:'{';font-weight:100;font-size:2.6em;line-height:0;
+    transform:translateY(-.04em) scaleX(.55);transform-origin:left center;margin-right:.06em}
+  .sysrows{display:inline-flex;flex-direction:column;gap:6px;text-align:left}
   .wrong-ans{color:var(--shu);font-weight:700}
   .scroll{overflow-x:auto}
   /* ランキングはPCの広い横幅では2枚ずつ横並び、狭い画面では1枚ずつ縦積み */
@@ -1656,7 +1661,14 @@ function _toLatex(token){
   m = token.match(/^(\d+)√([\d.]+)$/);             if (m) return m[1] + '\\sqrt{' + m[2] + '}';
   m = token.match(/^[-－]√([\d.]+)$/);             if (m) return '-\\sqrt{' + m[1] + '}';
   m = token.match(/^√\((\d+)\/(\d+)\)$/);          if (m) return '\\sqrt{\\dfrac{' + m[1] + '}{' + m[2] + '}}';
-  m = token.match(/^F\((\d+)\/(\d+)\)$/);          if (m) return '\\dfrac{' + m[1] + '}{' + m[2] + '}';
+  // F(分子/分母) は数字だけとは限らない（math_js2_keisan.html の分数係数・多項式の
+  // 通分結果など、文字式が分子・分母どちらにも来る）。²³は\dfrac内で通常の上付きに戻す。
+  m = token.match(/^F\(([^()\/]+)\/([^()\/]+)\)$/);
+  if (m) {
+    var fnum = m[1].replace(/²/g, '^{2}').replace(/³/g, '^{3}');
+    var fden = m[2].replace(/²/g, '^{2}').replace(/³/g, '^{3}');
+    return '\\dfrac{' + fnum + '}{' + fden + '}';
+  }
   m = token.match(/^[-－]√\(\(-(\d+)\)²\)$/);      if (m) return '-\\sqrt{(-' + m[1] + ')^2}';
   m = token.match(/^√\(\(-(\d+)\)²\)$/);           if (m) return '\\sqrt{(-' + m[1] + ')^2}';
   m = token.match(/^√([\d.]+)$/);                  if (m) return '\\sqrt{' + m[1] + '}';
@@ -1667,7 +1679,7 @@ function _toLatex(token){
 function _plain(t){ return _mescape(t).replace(/(?<!\d)-([\d])/g, '－$1').replace(/\n/g, '<br>'); }
 // 日本語文中の数式トークンだけをKaTeX描画し、地の文はエスケープして返す
 function _renderMath(str){
-  var re = /[-－]√\(\(-\d+\)²\)|√\(\(-\d+\)²\)|\([-－]√[\d.]+\)²|\(√[\d.]+\)²|√\(\d+\/\d+\)|±√[\d.]+|\d+√[\d.]+|[-－]√[\d.]+|√[\d.]+|F\(\d+\/\d+\)/g;
+  var re = /[-－]√\(\(-\d+\)²\)|√\(\(-\d+\)²\)|\([-－]√[\d.]+\)²|\(√[\d.]+\)²|√\(\d+\/\d+\)|±√[\d.]+|\d+√[\d.]+|[-－]√[\d.]+|√[\d.]+|F\([^()\/]+\/[^()\/]+\)/g;
   var out = '', last = 0, mt;
   while ((mt = re.exec(str)) !== null) {
     out += _plain(str.slice(last, mt.index));
@@ -1679,8 +1691,18 @@ function _renderMath(str){
 }
 function renderMathToHTML(src){
   src = String(src == null ? '' : src);
+  // SYS(式1|式2) は連立方程式（math_js2_keisan.html等）。中かっこでまとめて縦に並べる。
+  // 各式は再帰的に renderMathToHTML へ通すので、式の中の F(分子/分母) 等もそのまま効く。
+  var sysM = /^SYS\(([\s\S]*)\)$/.exec(src);
+  if (sysM) {
+    var sysParts = sysM[1].split('|');
+    if (sysParts.length === 2) {
+      return '<span class="sysbrace"><span class="sysrows"><span>' + renderMathToHTML(sysParts[0])
+        + '</span><span>' + renderMathToHTML(sysParts[1]) + '</span></span></span>';
+    }
+  }
   if (/[\\^_{}]/.test(src)) return _texWhole(src);   // 既にLaTeX（生徒の答えの ^2 など）
-  if (/√/.test(src) || /F\(\d+\/\d+\)/.test(src)) return _renderMath(src);   // √・分数トークン混じり文（正誤問題・平方根）
+  if (/√/.test(src) || /F\([^()\/]+\/[^()\/]+\)/.test(src)) return _renderMath(src);   // √・分数トークン混じり文（正誤問題・平方根）
   // 上付き ² ³ を KaTeX の ^2 ^3 に正規化してから判定する。ツールは問題文・正解を
   // Unicode上付き（x²）で、生徒の答えを normalizeInput 後（x^2 など）で保存するため、
   // 同じ数式でも列ごとに立体／斜体が割れていた。純粋な数式は3列とも KaTeX に寄せて統一する。
@@ -1838,6 +1860,11 @@ document.querySelectorAll('.math').forEach(function (el) {
       + '.q-meta{font-size:12px;color:#888;}'
       + '.q-tag{background:#F3EFE6;color:#8a7a52;border-radius:4px;padding:1px 6px;font-size:11px;}'
       + '.q-body{font-size:17px;line-height:1.6;margin-left:34px;}'
+      /* 連立方程式（中2計算マスター等）を中かっこでまとめて表示する。SYS(...)マーカーの変換先 */
+      + '.sysbrace{display:inline-flex;align-items:center;}'
+      + '.sysbrace::before{content:"{";font-weight:100;font-size:2.2em;line-height:0;'
+        + 'transform:translateY(-.04em) scaleX(.55);transform-origin:left center;margin-right:.08em;}'
+      + '.sysrows{display:inline-flex;flex-direction:column;gap:5px;text-align:left;}'
       /* 地図問題（都道府県）用のミニ日本地図 */
       /* 白黒印刷前提: 色ではなく塗りの濃淡で区別する。対象の県だけ濃い塗り、他県は白。 */
       + '.q-map{display:inline-block;background:#fff;border:1px solid #999;border-radius:8px;padding:6px;margin-top:2px;}'

@@ -157,6 +157,12 @@ body{
   background:transparent;color:var(--ink2);cursor:pointer;letter-spacing:.05em;
 }
 .lv-pick button.on{background:var(--ink);border-color:var(--ink);color:#FFFDF7}
+/* 解き直しモード（マイページの「解き直す」から ?retry=1 で開いたとき）の進捗バナー */
+.retry-banner{
+  background:#EAF1F6;border:1.5px solid var(--ai);color:var(--ai);
+  border-radius:12px;padding:8px 14px;margin-bottom:10px;
+  font-weight:700;font-size:.85rem;letter-spacing:.03em;text-align:center;
+}
 .lv-pick button.lv4.on{background:var(--shu);border-color:var(--shu)}
 .phead .pname{font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:1rem}
 .lv-chip{
@@ -363,6 +369,8 @@ font-family:var(--mathfont);}
 
       <div class="lv-pick" id="lvPick" role="group" aria-label="レベルをえらぶ"></div>
 
+      <div class="retry-banner" id="retryBanner" hidden aria-live="polite"></div>
+
       <div class="paper">
         <div class="q-cond" id="qCond" hidden></div>
         <div class="q-main" id="qMain"></div>
@@ -399,6 +407,31 @@ function ri(a,b){return a+Math.floor(Math.random()*(b-a+1));}
 function rnz(a,b){let v=0,g=0;while(v===0&&g<99){v=ri(a,b);g++;}return v||1;}
 function pick(arr){return arr[ri(0,arr.length-1)];}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=ri(0,i);const t=a[i];a[i]=a[j];a[j]=t;}return a;}
+
+/* ---------- 解き直し（同一問題の再現）用: 乱数の録画・再生 -----------------------
+   このツールの各STEPは Math.random()（ri/rnz/pick/shuffle 経由や直接呼び出し）を
+   何十回も引きながら、その場限りの問題を組み立てる。同じ問題を再現するために
+   個々の変数を20STEPぶん手作業でquestion_paramsへ書き出す代わりに、Math.random()
+   そのものを録画・再生できるようにし、「同じ乱数列を同じ順番で流し込めば同じ関数から
+   同じ問題が組み上がる」という決定性を利用する（gen(lv)本体・makeMixGen/makeRandomGen
+   の内部抽選・buildChoicesの選択肢シャッフルまで、すべてMath.random()経由なので
+   1回のテープで丸ごと再現できる）。録画したテープ(数値の配列)をquestion_paramsに
+   保存し、解き直し時はテープを差し戻して同じ関数を同じ引数(lv)で呼ぶだけでよい。 */
+const _nativeRandom=Math.random.bind(Math);
+let _rngMode='live', _rngTape=null, _rngIdx=0, _rngLog=null;
+Math.random=function(){
+  if(_rngMode==='replay'){
+    if(_rngIdx<_rngTape.length)return _rngTape[_rngIdx++];
+    return _nativeRandom();   /* テープ切れの保険（通常は起きない） */
+  }
+  const v=_nativeRandom();
+  if(_rngMode==='record')_rngLog.push(v);
+  return v;
+};
+function rngStartRecord(){_rngMode='record';_rngLog=[];}
+function rngStopRecord(){const t=_rngLog;_rngMode='live';_rngLog=null;return t;}
+function rngStartReplay(tape){_rngMode='replay';_rngTape=tape||[];_rngIdx=0;}
+function rngStopReplay(){_rngMode='live';_rngTape=null;_rngIdx=0;}
 
 /* fraction */
 function F(n,d){
@@ -472,7 +505,7 @@ function termsText(terms){
     const neg=t.c.n<0, a=neg?t.c.neg():t.c, hasVar=!!(t.ex||t.ey);
     s+= i===0 ? (neg?'-':'') : (neg?'-':'+');
     if(a.isInt()){ if(!(a.n===1&&hasVar)) s+=a.n; }
-    else s+=a.n+'/'+a.d;
+    else s+='F('+a.n+'/'+a.d+')';   /* retry.php が F(分子/分母) を縦型分数に変換する目印 */
     s+=varText(t.ex,t.ey);
   });
   return s;
@@ -490,7 +523,7 @@ function fracFormText(terms){
   for(const t of terms)L=lcm(L,t.c.d);
   if(L===1)return termsText(terms);
   const num=terms.map(t=>T(t.c.n*(L/t.c.d),t.ex,t.ey));
-  return '('+termsText(num)+')/'+L;
+  return 'F('+termsText(num)+'/'+L+')';
 }
 function numDisp(n){return String(n).replace('-','−');}
 function signCoef(k,v,first){
@@ -523,11 +556,15 @@ function Fpow(f,e){let r=F.int(1);for(let i=0;i<e;i++)r=r.mul(f);return r;}
 function coefMul(f){
   const neg=f.n<0, a=neg?f.neg():f;
   if(a.isInt())return {html:(neg?'−':'')+a.n,text:(neg?'-':'')+a.n};
-  return {html:(neg?'−':'')+fracHTML(a.n,a.d),text:(neg?'-':'')+a.n+'/'+a.d};
+  return {html:(neg?'−':'')+fracHTML(a.n,a.d),text:(neg?'-':'')+'F('+a.n+'/'+a.d+')'};
 }
 /* 分数の数（式の値の代入値・答え）を素朴に表示 */
 function fnumHTML(f){return f.isInt()?numDisp(f.n):(f.n<0?'−':'')+fracHTML(Math.abs(f.n),f.d);}
+/* question_params にそのまま格納される（retry_queue の params_hash 対象）ため
+   書式を変えない。表示・ログ用テキストは下の fnumTextF を使うこと。 */
 function fnumText(f){return f.isInt()?String(f.n):f.n+'/'+f.d;}
+/* fnumText の表示・ログ用版。retry.php が F(分子/分母) を縦型分数に変換する目印を付ける。 */
+function fnumTextF(f){return f.isInt()?String(f.n):(f.n<0?'-':'')+'F('+Math.abs(f.n)+'/'+f.d+')';}
 /* 答え用: 符号付き指数の単項式を、負の指数は分母に回して1つの分数で表示。
    指数がすべて0以上なら従来どおり（分子に係数＋変数）。 */
 function monoAnsHTML(t){
@@ -555,7 +592,7 @@ function monoAnsText(t){
   const denV=sv('x',Math.max(-t.ex,0))+sv('y',Math.max(-t.ey,0));
   const num=(a.n===1&&numV)?numV:(a.n+numV);
   const den=(a.d>1?String(a.d):'')+denV;
-  return (neg?'-':'')+'('+num+')/('+den+')';
+  return (neg?'-':'')+'F('+num+'/'+den+')';
 }
 
 /* =====================================================
@@ -718,7 +755,9 @@ function exprPack(html,text,terms,params){
 function sysHTML(h1,h2){return '<span class="sys"><span class="rows"><span>'+h1+'</span><span>'+h2+'</span></span></span>';}
 function sysPack(h1,h2,t1,t2,s,t,eqs,params){
   const p=params||{};p.eqs=eqs;p.sol=[s,t];
-  return {html:sysHTML(h1,h2),text:t1+' ， '+t2,params:p,
+  /* retry.php/teacher.php が SYS(式1|式2) を中かっこでまとめた縦並びに変換する目印。
+     画面（.sys + sysHTML）と同じ見た目を、講師画面の誤答一覧・解き直しプリントでも出すため。 */
+  return {html:sysHTML(h1,h2),text:'SYS('+t1+'|'+t2+')',params:p,
     answer:{type:'sys',x:F.int(s),y:F.int(t)},
     ansHTML:'x = '+numDisp(s)+'，y = '+numDisp(t),
     ansText:'x='+s+', y='+t};
@@ -928,7 +967,7 @@ function genBunsuu(lv){
     if(Lden===1)continue;   /* 整数係数だけの答えは分数の段組入力に合わないので避ける */
     const pk=exprPack(
       fracHTML(termsHTML(P),p)+' '+(op==='-'?'−':'+')+' '+fracHTML(termsHTML(Q),q),
-      '('+termsText(P)+')/'+p+op+'('+termsText(Q)+')/'+q,ans,{lv:lv,p:p,q:q});
+      'F('+termsText(P)+'/'+p+')'+op+'F('+termsText(Q)+'/'+q+')',ans,{lv:lv,p:p,q:q});
     pk.ansHTML=fracFormHTML(ans);pk.ansText=fracFormText(ans);
     return pk;
   }
@@ -1108,7 +1147,7 @@ function genShikiNoAtai(lv){
       params:{lv:lv,x:fnumText(sF),y:fnumText(tF)},
       answer:{type:'num',v:v},
       ansHTML:v.isInt()?numDisp(v.n):fracHTML(numDisp(v.n),v.d),
-      ansText:v.isInt()?String(v.n):v.n+'/'+v.d};
+      ansText:v.isInt()?String(v.n):(v.n<0?'-':'')+'F('+Math.abs(v.n)+'/'+v.d+')'};
   }
   return genShikiNoAtai(1);
 }
@@ -1458,7 +1497,7 @@ function fracEqAdv(s,t){
       const Rf=new F(V,L);            /* 右辺（整数or分数） */
       if(Math.abs(Rf.n)>20)continue;
       return {html:fracHTML(linExprHTML(a,b),L)+' = '+fnumHTML(Rf),
-              text:'('+linExprText(a,b)+')/'+L+'='+fnumText(Rf), eq:[a,b,V]};
+              text:'F('+linExprText(a,b)+'/'+L+')='+fnumTextF(Rf), eq:[a,b,V]};
     }
     return null;
   }
@@ -1468,7 +1507,7 @@ function fracEqAdv(s,t){
   if(Math.abs(ef.n)>30)return null;
   const L=lcm(p,q);
   return {html:fracHTML('x',p)+(sg>0?' + ':' − ')+fracHTML('y',q)+' = '+fnumHTML(ef),
-          text:'x/'+p+(sg>0?'+':'-')+'y/'+q+'='+fnumText(ef), eq:[L/p, sg*L/q, (L/p)*s+sg*(L/q)*t]};
+          text:'F(x/'+p+')'+(sg>0?'+':'-')+'F(y/'+q+')='+fnumTextF(ef), eq:[L/p, sg*L/q, (L/p)*s+sg*(L/q)*t]};
 }
 /* 応用: 両方とも分数の式にする（かっこがあってもよい） */
 function genBunsuuRAdv(){
@@ -1504,7 +1543,7 @@ function genBunsuuR(lv){
     if(det2(e1,e2)===0)continue;
     if(Math.abs(e2[2])>60||Math.abs(ef.n)>40)continue;
     const h1=fracHTML('x',p)+(op>0?' + ':' − ')+fracHTML('y',q)+' = '+fnumHTML(ef);
-    const t1='x/'+p+(op>0?'+':'-')+'y/'+q+'='+fnumText(ef);
+    const t1='F(x/'+p+')'+(op>0?'+':'-')+'F(y/'+q+')='+fnumTextF(ef);
     return sysPack(h1,linEq(c,d,e2[2]),t1,linEqText(c,d,e2[2]),s,t,[e1,e2],{lv:lv});
   }
   return genSonomama(lv);
@@ -1535,7 +1574,7 @@ function abcStyle(terms){
   let L=1; for(const t of terms)L=lcm(L,t.c.d);
   if(L===1||L>12)return {style:'frac',html:termsHTML(terms),text:termsText(terms)};
   const num=terms.map(function(t){return T(t.c.n*(L/t.c.d),t.ex,t.ey);});
-  return {style:'paren',html:fracHTML(termsHTML(num),L),text:'('+termsText(num)+')/'+L};
+  return {style:'paren',html:fracHTML(termsHTML(num),L),text:'F('+termsText(num)+'/'+L+')'};
 }
 /* ---- A=B=C 標準: 3辺すべて多項式（定数だけの辺を作らない）---- */
 function genAbcStd(){
@@ -1746,6 +1785,10 @@ const BANDS=[{v:1,name:'基本',cls:''},{v:2,name:'標準',cls:''},{v:3,name:'�
 function bandName(b){const x=BANDS.find(function(o){return o.v===b;});return x?x.name:'基本';}
 const state={key:null,q:null,answered:false,band:1,modes:{},choices:null,correctHTML:''};/* band: 1=基本,2=標準,3=応用 */
 MODES.forEach(function(m){state.modes[m.key]={correct:0,streak:0,cleared:false};});
+/* 解き直しモード（マイページ → /retry.php →「同じ問題に再チャレンジする」→ ?retry=1）用 */
+let retryMode=false;       // pending解き直しキューを消化中か
+let retryQueue=[];         // {key,lv,tape} の配列（保存時のMODESキー・lv・乱数テープ）
+let retryTotal=0;          // バナー表示用（このセッションで消化する解き直しの総数）
 
 function $(id){return document.getElementById(id);}
 /* テスト運用用: URLに ?lv=1〜4 を付けると内部レベル固定（例: math_js2_keisan.html?lv=4） */
@@ -1889,7 +1932,7 @@ function buildChoices(q,at){
     fallback=function(){const p=[s+ri(-4,4),t+ri(-4,4)];return {html:renderH(p),text:renderT(p)};};
   }else if(at==='num'){
     const v=q.answer.v;
-    renderH=function(f){return fnumHTML(f);};renderT=function(f){return fnumText(f);};
+    renderH=function(f){return fnumHTML(f);};renderT=function(f){return fnumTextF(f);};
     correctHTML=renderH(v);correctText=renderT(v);
     let p=perturbNum(v).filter(function(f){return v.isInt()?f.isInt():!f.isInt();});   /* 整数/分数の形をそろえる */
     pool=p.map(function(f){return {html:renderH(f),text:renderT(f)};});
@@ -1935,8 +1978,29 @@ function renderChoices(){
   $('choices').innerHTML=h;
 }
 function newQuestion(){
-  const m=curMode();
-  state.q=m.gen(curLv());
+  /* 解き直しモード中はキューから1問取り出して「同じ問題」を再現する。
+     キューが尽きたら通常モードへ戻り、以降は普通に新しい問題を出す。 */
+  let forced=null;
+  if(retryMode){
+    if(retryQueue.length)forced=retryQueue.shift();
+    else{retryMode=false;updateRetryBanner();}
+  }
+  let m,lv;
+  if(forced){
+    m=MODES.find(function(x){return x.key===forced.key;});
+    if(!m){newQuestion();return;}   /* 万一キーが見つからない解き直しはスキップして次へ */
+    state.key=forced.key;
+    lv=forced.lv;
+    $('pStepNo').textContent=m.rand?'★':'STEP '+m.step;
+    $('pName').textContent=m.name;
+    renderLvPick();
+    rngStartReplay(forced.tape);
+  }else{
+    m=curMode();
+    lv=curLv();          /* レコード開始より前に確定（curLv自身のMath.random消費をテープに混ぜない） */
+    rngStartRecord();
+  }
+  state.q=m.gen(lv);
   state.answered=false;
   $('pLv').textContent=bandName(state.band);
   renderDots();
@@ -1951,8 +2015,19 @@ function newQuestion(){
   try{var pp=document.querySelector('.paper');if(pp)pp.querySelectorAll('.divp-hanko,.divp-nice').forEach(function(el){el.remove();});}catch(e){}
   $('fb').innerHTML='';
   renderChoices();
+  if(forced){
+    rngStopReplay();
+    /* 解き直し中にまた間違えた場合も再度キューへ戻せるよう、同じテープを引き継ぐ。 */
+    state.q._rngTape=forced.tape;
+  }else{
+    /* 録画したテープをこの問題に紐づけ、sendDivp() が question_params に埋め込む。 */
+    state.q._rngTape=rngStopRecord();
+  }
+  state.q._rngOuterKey=state.key;
+  state.q._rngLv=lv;
   $('checkBtn').hidden=false;$('checkBtn').disabled=true;
   $('nextBtn').hidden=true;$('nextStepBtn').hidden=true;
+  if(retryMode)updateRetryBanner();
   document.dispatchEvent(new CustomEvent('divp:nextQuestion'));
 }
 
@@ -2007,12 +2082,25 @@ function safeStamp(kind){
   }catch(e){}
   return false;
 }
+/* question_params に、STEP自前の値（lv/p/q等）に加えて解き直し用の乱数テープを埋め込む。
+   _replayKey/_replayLv/_replayTape が揃っている行だけ list_retries.php 経由で
+   同一問題として復元できる（無い＝この仕組み導入前の古い記録は、いままで通り
+   再現できない解き直し一覧行として扱われるだけで、他の動作は壊れない）。 */
+function qParamsWithReplay(q){
+  const p=Object.assign({},q.params||{});
+  if(q._rngTape){
+    p._replayKey=q._rngOuterKey;
+    p._replayLv=q._rngLv;
+    p._replayTape=q._rngTape;
+  }
+  return p;
+}
 function sendDivp(ok,userText){
   try{
     if(window.Divp&&typeof window.Divp.answer==='function'){
       window.Divp.answer(!!ok,{
         question_key:(state.q&&state.q.srcKey)||state.key,
-        question_params:state.q.params,
+        question_params:qParamsWithReplay(state.q),
         question_text:(state.q.cond?state.q.cond+'　':'')+state.q.text,
         correct_answer:state.q.ansText,
         wrong_answer:ok?null:userText
@@ -2159,6 +2247,39 @@ function init(){
   if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){if(!$('practice').hidden&&state.q)fitExpr();});}
 }
 
+/* ================= 解き直し（DB連携） =================
+ * マイページ →「解き直す」→ /retry.php →「同じ問題に再チャレンジする」で
+ * ?retry=1 付きで開かれたときのエントリーポイント。Divp.getRetries()
+ * （api/list_retries.php）から pending を取得し、_replayKey/_replayLv/_replayTape
+ * （＝乱数テープ）が揃っている行だけを「同一問題」としてキューに積んで順に出題する。
+ * 同じ params_hash に2連続正解するとサーバー側で mastered になる。 */
+function updateRetryBanner(){
+  const el=$('retryBanner');
+  if(!el)return;
+  el.hidden=false;
+  if(!retryMode){
+    el.textContent='🔁 解き直し完了！ よくがんばりました（'+retryTotal+'問）';
+    return;
+  }
+  const done=retryTotal-retryQueue.length;   /* いま出している分も消化済みに数える */
+  el.textContent='🔁 解き直し中　'+done+' / '+retryTotal+'問';
+}
+function initRetry(){
+  Divp.getRetries().then(function(items){
+    const use=(items||[]).filter(function(it){
+      const p=it.question_params;
+      return p&&p._replayTape&&p._replayKey&&MODES.some(function(m){return m.key===p._replayKey;});
+    });
+    if(!use.length)return;   /* 復元できる解き直しが無ければ、いつも通りSTEP一覧のまま */
+    retryQueue=use.map(function(it){
+      return {key:it.question_params._replayKey, lv:it.question_params._replayLv, tape:it.question_params._replayTape};
+    });
+    retryTotal=retryQueue.length;
+    retryMode=true;
+    showPractice(retryQueue[0].key);
+  }).catch(function(){});
+}
+
 /* node テスト用エクスポート */
 if(typeof module!=='undefined'&&module.exports){
   module.exports={MODES:MODES,F:F,T:T,combineTerms:combineTerms,mulPoly:mulPoly,
@@ -2166,7 +2287,11 @@ if(typeof module!=='undefined'&&module.exports){
     fracFormText:fracFormText,parseAnswerExpr:parseAnswerExpr,
     parseNumberAns:parseNumberAns,normalizeInput:normalizeInput};
 }
-if(typeof document!=='undefined')init();
+function boot(){
+  init();
+  if(/[?&]retry=1/.test(location.search)&&window.Divp&&typeof Divp.getRetries==='function')initRetry();
+}
+if(typeof document!=='undefined')boot();
 </script>
 </body>
 </html>

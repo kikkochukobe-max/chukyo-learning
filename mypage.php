@@ -436,6 +436,11 @@ function h(?string $s): string
     background:var(--shu-soft);border-radius:999px;padding:1px 10px;font-family:'Zen Maru Gothic',sans-serif}
   .today-q{margin-top:8px;font-size:16px;overflow-x:auto;padding:10px 12px;background:var(--paper);
     border:1px dashed var(--grid);border-radius:10px}
+  /* 連立方程式（中2計算マスター等）を中かっこでまとめて表示する。SYS(...)マーカーの変換先 */
+  .sysbrace{display:inline-flex;align-items:center}
+  .sysbrace::before{content:'{';font-weight:100;font-size:2.6em;line-height:0;
+    transform:translateY(-.04em) scaleX(.55);transform-origin:left center;margin-right:.06em}
+  .sysrows{display:inline-flex;flex-direction:column;gap:6px;text-align:left}
   .today-go{display:block;text-align:center;margin-top:12px;background:var(--shu);color:#fff;
     border-radius:10px;padding:12px;text-decoration:none;
     font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:14px}
@@ -765,7 +770,14 @@ function _toLatex(token){
   m = token.match(/^(\d+)√([\d.]+)$/);             if (m) return m[1] + '\\sqrt{' + m[2] + '}';
   m = token.match(/^[-－]√([\d.]+)$/);             if (m) return '-\\sqrt{' + m[1] + '}';
   m = token.match(/^√\((\d+)\/(\d+)\)$/);          if (m) return '\\sqrt{\\dfrac{' + m[1] + '}{' + m[2] + '}}';
-  m = token.match(/^F\((\d+)\/(\d+)\)$/);          if (m) return '\\dfrac{' + m[1] + '}{' + m[2] + '}';
+  // F(分子/分母) は数字だけとは限らない（math_js2_keisan.html の分数係数・多項式の
+  // 通分結果など、文字式が分子・分母どちらにも来る）。²³は\dfrac内で通常の上付きに戻す。
+  m = token.match(/^F\(([^()\/]+)\/([^()\/]+)\)$/);
+  if (m) {
+    var fnum = m[1].replace(/²/g, '^{2}').replace(/³/g, '^{3}');
+    var fden = m[2].replace(/²/g, '^{2}').replace(/³/g, '^{3}');
+    return '\\dfrac{' + fnum + '}{' + fden + '}';
+  }
   m = token.match(/^[-－]√\(\(-(\d+)\)²\)$/);      if (m) return '-\\sqrt{(-' + m[1] + ')^2}';
   m = token.match(/^√\(\(-(\d+)\)²\)$/);           if (m) return '\\sqrt{(-' + m[1] + ')^2}';
   m = token.match(/^√([\d.]+)$/);                  if (m) return '\\sqrt{' + m[1] + '}';
@@ -773,7 +785,7 @@ function _toLatex(token){
 }
 function _plain(t){ return _mescape(t).replace(/(?<!\d)-([\d])/g, '－$1').replace(/\n/g, '<br>'); }
 function _renderMath(str){
-  var re = /[-－]√\(\(-\d+\)²\)|√\(\(-\d+\)²\)|\([-－]√[\d.]+\)²|\(√[\d.]+\)²|√\(\d+\/\d+\)|±√[\d.]+|\d+√[\d.]+|[-－]√[\d.]+|√[\d.]+|F\(\d+\/\d+\)/g;
+  var re = /[-－]√\(\(-\d+\)²\)|√\(\(-\d+\)²\)|\([-－]√[\d.]+\)²|\(√[\d.]+\)²|√\(\d+\/\d+\)|±√[\d.]+|\d+√[\d.]+|[-－]√[\d.]+|√[\d.]+|F\([^()\/]+\/[^()\/]+\)/g;
   var out = '', last = 0, mt;
   while ((mt = re.exec(str)) !== null) {
     out += _plain(str.slice(last, mt.index));
@@ -785,8 +797,18 @@ function _renderMath(str){
 }
 function renderMathToHTML(src){
   src = String(src == null ? '' : src);
+  // SYS(式1|式2) は連立方程式（math_js2_keisan.html等）。中かっこでまとめて縦に並べる。
+  // 各式は再帰的に renderMathToHTML へ通すので、式の中の F(分子/分母) 等もそのまま効く。
+  var sysM = /^SYS\(([\s\S]*)\)$/.exec(src);
+  if (sysM) {
+    var sysParts = sysM[1].split('|');
+    if (sysParts.length === 2) {
+      return '<span class="sysbrace"><span class="sysrows"><span>' + renderMathToHTML(sysParts[0])
+        + '</span><span>' + renderMathToHTML(sysParts[1]) + '</span></span></span>';
+    }
+  }
   if (/[\\^_{}]/.test(src)) return _texWhole(src);
-  if (/[√²³]/.test(src) || /F\(\d+\/\d+\)/.test(src)) return _renderMath(src);
+  if (/[√²³]/.test(src) || /F\([^()\/]+\/[^()\/]+\)/.test(src)) return _renderMath(src);
   return _mescape(src).replace(/\n/g, '<br>');
 }
 document.querySelectorAll('.today-q').forEach(function (el) {
