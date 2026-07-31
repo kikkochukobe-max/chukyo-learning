@@ -92,6 +92,11 @@ foreach ($dirs as $dir) {
         // 不正UTF-8」と見なして失敗し、<title>が取れずファイル名表示に落ちる。
         // 末尾の壊れたバイト列を除去して妥当なUTF-8に整えてから処理する。
         $head = mb_scrub($head, 'UTF-8');
+        // 調整中・テストプレイ中のツールは一覧に出さない
+        // （ツール側に <meta name="divp-hidden" content="1"> を書いておく。公開時にその1行を消すだけ）
+        if (preg_match('/<meta\s+name=["\']divp-hidden["\']/iu', $head)) {
+            continue;
+        }
         $rawTitle = '';
         if (preg_match('/<title>(.*?)<\/title>/isu', $head, $m)) {
             $rawTitle = html_entity_decode(trim($m[1]), ENT_QUOTES, 'UTF-8');

@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>3D光学実験室｜中京個別指導学院</title>
+<style>
+  :root{
+    --bg:#0a0e18; --panel:rgba(14,19,32,.88); --line:#26314a;
+    --ink:#dfe7f4; --sub:#8fa0bd; --brass:#f0b429;
+    --ray-fan:#ffd54f; --ray1:#ff5b6e; --ray2:#55e6a5; --ray3:#5bb8ff; --ray-v:#c792ff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden;background:var(--bg);
+    font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;color:var(--ink)}
+  #stage{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:default}
+
+  /* ---- 塾名バナー ---- */
+  #brandBar{position:fixed;top:14px;left:18px;z-index:9;pointer-events:none;
+    font-family:'Hiragino Mincho ProN','Yu Mincho',serif;font-size:23px;font-weight:700;
+    letter-spacing:.14em;color:#efe6d3;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+  #brandBar::after{content:'';display:block;margin-top:5px;width:100%;height:2px;
+    background:linear-gradient(90deg,var(--brass),transparent)}
+
+  /* ---- 常時表示のfスライダー ---- */
+  #fBar{position:fixed;top:12px;right:12px;width:276px;z-index:11;
+    display:flex;align-items:center;gap:10px;padding:10px 14px;
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    backdrop-filter:blur(10px);box-shadow:0 10px 34px rgba(0,0,0,.5)}
+  #fBar .fTitle{font-size:11px;color:var(--sub);letter-spacing:.1em;white-space:nowrap}
+  #fBar output{font-size:13px;color:var(--brass);font-weight:700;min-width:56px;text-align:right;font-variant-numeric:tabular-nums}
+  #matSeg{display:none;flex:1}
+  #matSeg button{padding:6px 0;font-size:12px}
+
+  /* ---- control panel ---- */
+  #panel{position:fixed;top:66px;right:12px;width:276px;background:var(--panel);
+    border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(10px);
+    box-shadow:0 10px 34px rgba(0,0,0,.5);z-index:10;overflow:hidden}
+  #panelHead{display:flex;align-items:center;gap:8px;padding:12px 14px 10px;cursor:pointer;user-select:none}
+  #panelHead h1{font-family:'Hiragino Mincho ProN','Yu Mincho',serif;font-size:15.5px;font-weight:700;letter-spacing:.06em}
+  #panelHead .brand{font-size:9.5px;color:var(--brass);letter-spacing:.22em;margin-bottom:2px}
+  #panelHead .sub{font-size:10px;color:var(--sub);letter-spacing:.12em;margin-top:2px}
+  #panelHead .caret{margin-left:auto;color:var(--sub);font-size:11px;transition:transform .25s}
+  #panel.closed .caret{transform:rotate(-90deg)}
+  #panelBody{padding:0 14px 14px;max-height:calc(100vh - 150px);overflow-y:auto}
+  #panel.closed #panelBody{display:none}
+
+  .sec{margin-top:10px}
+  .secLabel{font-size:10.5px;color:var(--sub);letter-spacing:.14em;margin-bottom:6px}
+  .seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg button{flex:1;padding:8px 0;background:transparent;border:none;color:var(--sub);
+    font-size:13px;font-family:inherit;cursor:pointer;transition:.15s}
+  .seg button.on{background:rgba(240,180,41,.16);color:var(--brass);font-weight:700}
+  .seg button+button{border-left:1px solid var(--line)}
+  #modeSeg button{font-size:12px;padding:8px 0}
+
+  .frow{display:flex;align-items:center;gap:10px}
+  .frow output{font-size:13px;color:var(--brass);font-weight:700;min-width:56px;text-align:right;font-variant-numeric:tabular-nums}
+  input[type=range]{flex:1;appearance:none;-webkit-appearance:none;height:4px;border-radius:2px;
+    background:linear-gradient(90deg,var(--brass),#7d6120);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+    background:var(--brass);border:3px solid #0a0e18;box-shadow:0 0 0 1px var(--brass);cursor:pointer}
+
+  .chk{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);padding:4px 0;cursor:pointer}
+  .chk input{accent-color:var(--brass);width:15px;height:15px}
+
+  /* readout */
+  #readout{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:rgba(9,12,22,.6)}
+  #badge{display:inline-block;font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:999px;margin-bottom:7px}
+  #badge.real{background:rgba(255,91,110,.15);color:#ff8797;border:1px solid rgba(255,91,110,.4)}
+  #badge.virtual{background:rgba(199,146,255,.14);color:var(--ray-v);border:1px solid rgba(199,146,255,.45)}
+  #badge.none{background:rgba(143,160,189,.12);color:var(--sub);border:1px solid var(--line)}
+  .kv{display:flex;justify-content:space-between;font-size:12px;padding:2px 0;color:var(--sub)}
+  .kv b{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600}
+  #note{font-size:11px;color:var(--sub);margin-top:6px;line-height:1.55}
+
+  /* legend */
+  .lg{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--sub);padding:2.5px 0}
+  .sw{width:22px;height:0;border-top:2.5px solid;flex:none}
+  .sw.dash{border-top-style:dashed}
+
+  /* コラム */
+  .col{border:1px solid var(--line);border-radius:9px;margin-bottom:6px;overflow:hidden}
+  .col summary{padding:8px 11px;font-size:12px;color:var(--ink);cursor:pointer;
+    list-style:none;position:relative;padding-right:26px}
+  .col summary::-webkit-details-marker{display:none}
+  .col summary::after{content:'＋';position:absolute;right:10px;top:7px;color:var(--brass);font-size:12px}
+  .col[open] summary::after{content:'−'}
+  .col[open] summary{background:rgba(240,180,41,.10);color:var(--brass);font-weight:700}
+  .colBody{padding:9px 11px 11px;font-size:11.5px;line-height:1.85;color:var(--sub);
+    border-top:1px dashed var(--line)}
+  .colBody b{color:var(--ink)}
+  .colBody p+p{margin-top:7px}
+  .colBody ul{margin:5px 0 0 16px}
+  .colBody li{margin-bottom:2px}
+
+  .hint{margin-top:10px;font-size:10.5px;color:#63719048;color:#637190;line-height:1.7;border-top:1px dashed var(--line);padding-top:8px}
+  #resetBtn{margin-top:10px;width:100%;padding:8px 0;border-radius:9px;border:1px solid var(--line);
+    background:transparent;color:var(--sub);font-family:inherit;font-size:12.5px;cursor:pointer}
+  #resetBtn:active{background:rgba(255,255,255,.06)}
+
+  /* ---- 3Dスティック ---- */
+  #nav{position:fixed;left:14px;top:50%;transform:translateY(-50%);z-index:10;
+    display:flex;flex-direction:column;align-items:center;gap:10px;user-select:none}
+  #joy{width:104px;height:104px;border-radius:50%;position:relative;touch-action:none;
+    background:rgba(14,19,32,.85);border:1px solid var(--line);backdrop-filter:blur(8px);
+    box-shadow:0 8px 24px rgba(0,0,0,.45)}
+  #knob{width:44px;height:44px;border-radius:50%;position:absolute;left:50%;top:50%;
+    transform:translate(-50%,-50%);background:radial-gradient(circle at 35% 30%,#ffd884,var(--brass));
+    box-shadow:0 3px 10px rgba(0,0,0,.55);pointer-events:none}
+  .jArrow{position:absolute;font-size:9px;color:#4a5878;pointer-events:none}
+  .zbtn{width:44px;height:44px;border-radius:50%;background:rgba(14,19,32,.85);
+    border:1px solid var(--line);color:var(--ink);font-size:20px;line-height:1;cursor:pointer;
+    backdrop-filter:blur(8px);touch-action:none;font-family:inherit}
+  .zbtn:active{background:rgba(240,180,41,.22);color:var(--brass)}
+
+  @media (max-width:640px){
+    #brandBar{top:64px;left:12px;font-size:14px}
+    #fBar{left:10px;right:10px;width:auto}
+    #panel{top:auto;bottom:10px;left:10px;right:10px;width:auto}
+    #panelBody{max-height:36vh}
+    #nav{left:auto;right:8px;top:42%}
+    #joy{width:88px;height:88px}
+    #knob{width:38px;height:38px}
+    .zbtn{width:38px;height:38px;font-size:17px}
+  }
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+
+<div id="brandBar">中京個別指導学院</div>
+
+<div id="fBar">
+  <span class="fTitle" id="fTitle">焦点距離 f</span>
+  <input type="range" id="fRange" min="4" max="20" step="0.5" value="10">
+  <div class="seg" id="matSeg">
+    <button data-n="1.5" class="on">ガラス</button>
+    <button data-n="2.42">💎 ダイヤ</button>
+  </div>
+  <output id="fOut">10.0 cm</output>
+</div>
+
+<div id="panel">
+  <div id="panelHead">
+    <div>
+      <h1>3D光学実験室</h1>
+      <div class="sub">光の進みかたを立体で見る</div>
+    </div>
+    <span class="caret">▼</span>
+  </div>
+  <div id="panelBody">
+
+    <div class="sec">
+      <div class="secLabel">実験モード</div>
+      <div class="seg" id="modeSeg">
+        <button data-mode="lens" class="on">凸レンズ</button>
+        <button data-mode="glass">ガラス越し</button>
+        <button data-mode="laser">レーザー</button>
+      </div>
+    </div>
+
+    <div class="sec" id="shapeSec" style="display:none">
+      <div class="secLabel">ガラスの形</div>
+      <div class="seg" id="shapeSeg">
+        <button data-shape="rect" class="on">平らな板</button>
+        <button data-shape="trap" id="trapBtn" style="display:none">台形</button>
+        <button data-shape="semi">半円型</button>
+      </div>
+    </div>
+
+    <div class="sec" id="objSec">
+      <div class="secLabel">物体をえらぶ</div>
+      <div class="seg" id="objSeg">
+        <button data-obj="candle" class="on">🕯 ロウソク</button>
+        <button data-obj="lplate">Ｌ字の板</button>
+      </div>
+    </div>
+
+    <div class="sec" id="raysSec">
+      <label class="chk"><input type="checkbox" id="chkFan" checked> 光の帯（先端から出る光）</label>
+      <label class="chk"><input type="checkbox" id="chkMain" checked> 3つの基本光線</label>
+    </div>
+
+    <div id="readout">
+      <span id="badge" class="real">実像</span>
+      <div class="kv"><span id="kA">物体の距離 a</span><b id="vA">25.0 cm</b></div>
+      <div class="kv"><span id="kB">像の距離 b</span><b id="vB">–</b></div>
+      <div class="kv"><span id="kM">倍率</span><b id="vM">–</b></div>
+      <div id="note"></div>
+    </div>
+
+    <div class="sec" id="columnSec">
+      <div class="secLabel">サイエンスコラム</div>
+      <details class="col">
+        <summary>なぜダイヤは臨界角が小さいの？</summary>
+        <div class="colBody">
+          <p><b>① 臨界角は屈折率で決まる</b><br>
+          sin(臨界角) = 1 ÷ n という関係があり、n が大きいほど臨界角は小さくなる。</p>
+          <ul>
+            <li>ガラス n=1.50 → 41.8°</li>
+            <li>ダイヤ n=2.42 → 24.4°</li>
+            <li>水 n=1.33 → 48.8°</li>
+          </ul>
+          <p><b>② ではなぜダイヤの n は大きいのか</b><br>
+          n は「その物質の中で光がどれだけ遅くなるか」を表す値(真空の光速 ÷ 物質中の光速)。ダイヤは炭素原子がぎゅうぎゅうに詰まり、強い結合で固められている。光がそこを通るとき密集した電子と激しくやりとりしてブレーキがかかり、中では秒速約12.4万km(真空の約1/2.42)まで落ちる。</p>
+          <p>つまり <b>原子が密 → 光が大きく減速 → n が大きい → よく曲がる・臨界角が小さい・閉じこめやすい</b> という一本の流れ。</p>
+        </div>
+      </details>
+      <details class="col">
+        <summary>ダイヤモンドが輝くしくみ</summary>
+        <div class="colBody">
+          <p>臨界角24.4°ということは、法線から24.4°より浅く当たった光はすべて外に出られず全反射する。ブリリアントカットは、入った光が内部で何度も全反射して<b>正面(見る人の方向)へ戻ってくる</b>ように角度が計算された形。</p>
+          <p>レーザーモードで台形＋ダイヤを選び、斜めに当ててみよう。光が中で何度も跳ね返る様子(黄色い●)が、宝石の中で起きていることと同じしくみ。</p>
+        </div>
+      </details>
+      <details class="col">
+        <summary>水中から見上げると鏡になる — スネルの窓</summary>
+        <div class="colBody">
+          <p>水の臨界角は48.8°。水中から水面を見上げると、真上を中心とした角度48.8°以内の円い範囲にだけ外の景色が見え、それより外側は全反射して<b>水面が鏡</b>のように見える。この円形の窓を「スネルの窓」という。プールにもぐると体験できる。</p>
+        </div>
+      </details>
+      <details class="col">
+        <summary>光ファイバーは全反射でできている</summary>
+        <div class="colBody">
+          <p>細いガラスの糸に光を浅い角度で入れると、側面に当たるたびに全反射をくり返し、光は外へもれずに遠くまで運ばれる。インターネットの通信ケーブルはこの原理。</p>
+          <p>平行な2つの面のあいだで跳ねる光は入射角が変わらないので、全反射がいつまでも続く。いっぽう<b>台形</b>では面が傾いているため跳ねるたびに角度が変わり、臨界角を下回った面からようやく外へ出る。レーザーモードで見くらべてみよう。</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="sec" id="legendSec">
+      <div class="secLabel">光線の見かた</div>
+      <div class="lg"><span class="sw" style="border-color:var(--ray1)"></span>① 光軸に平行 → 反対側の焦点を通る</div>
+      <div class="lg"><span class="sw" style="border-color:var(--ray2)"></span>② レンズの中心 → そのまま直進</div>
+      <div class="lg"><span class="sw" style="border-color:var(--ray3)"></span>③ 手前の焦点(の向き) → 光軸に平行</div>
+      <div class="lg"><span class="sw" style="border-color:var(--ray-fan)"></span>先端から広がる光の帯</div>
+      <div class="lg"><span class="sw dash" style="border-color:var(--ray-v)"></span>虚像の補助線（光を逆向きに延長）</div>
+    </div>
+
+    <div class="hint">
+      物体をドラッグ＝位置を移動 ／ 背景ドラッグ・右のスティック・矢印キー＝視点を回転<br>
+      ＋−ボタン・ホイール・ピンチ＝ズーム ／ 光線は物体の<b>先端の1点</b>から出た光。どの点から出た光も、同じしくみで像の対応点に集まる。
+    </div>
+
+    <button id="resetBtn">はじめの状態にもどす</button>
+  </div>
+</div>
+
+<div id="nav">
+  <button class="zbtn" data-z="-1" aria-label="ズームイン">＋</button>
+  <div id="joy">
+    <span class="jArrow" style="top:6px;left:50%;transform:translateX(-50%)">▲</span>
+    <span class="jArrow" style="bottom:6px;left:50%;transform:translateX(-50%)">▼</span>
+    <span class="jArrow" style="left:8px;top:50%;transform:translateY(-50%)">◀</span>
+    <span class="jArrow" style="right:8px;top:50%;transform:translateY(-50%)">▶</span>
+    <div id="knob"></div>
+  </div>
+  <button class="zbtn" data-z="1" aria-label="ズームアウト">−</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+/* ================= 定数 ================= */
+const TIP_Y = 6.5;              // 物体先端の高さ
+const APERTURE = 10.5;          // レンズ半径
+const OBJ_MIN_X = -48, OBJ_MAX_X = -1.2;
+const EPS = 0.35;               // a≒f 判定
+const FAR_REAL = 58, FAR_VIRT = 70;
+
+let f = 10;
+let objType = 'candle';
+let showFan = true, showMain = true;
+
+/* ================= three 基本 ================= */
+const canvas = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0e18);
+scene.fog = new THREE.Fog(0x0a0e18, 110, 230);
+
+const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 500);
+const camTarget = new THREE.Vector3(0, 2.5, 0);
+const sph = {r:64, theta:1.15, phi:1.18};
+function applyCam(){
+  camera.position.set(
+    camTarget.x + sph.r*Math.sin(sph.phi)*Math.cos(sph.theta),
+    camTarget.y + sph.r*Math.cos(sph.phi),
+    camTarget.z + sph.r*Math.sin(sph.phi)*Math.sin(sph.theta));
+  camera.lookAt(camTarget);
+}
+applyCam();
+
+scene.add(new THREE.HemisphereLight(0x6b7fae, 0x141824, 0.85));
+const dl = new THREE.DirectionalLight(0xffffff, 0.5);
+dl.position.set(20, 34, 22); scene.add(dl);
+
+const grid = new THREE.GridHelper(150, 30, 0x1d2740, 0x141b2c);
+grid.position.y = -9; scene.add(grid);
+
+/* ---- 光軸と目盛 ---- */
+(function(){
+  const g = new THREE.BufferGeometry().setFromPoints(
+    [new THREE.Vector3(-55,0,0), new THREE.Vector3(55,0,0)]);
+  scene.add(new THREE.Line(g, new THREE.LineBasicMaterial({color:0x3a4a63})));
+  const tick = [];
+  for(let x=-50; x<=50; x+=5){
+    if(x===0) continue;
+    tick.push(new THREE.Vector3(x,-0.45,0), new THREE.Vector3(x,0.45,0));
+  }
+  const tg = new THREE.BufferGeometry().setFromPoints(tick);
+  scene.add(new THREE.LineSegments(tg, new THREE.LineBasicMaterial({color:0x243050})));
+})();
+
+/* ---- 文字スプライト ---- */
+function label(text, color, px){
+  px = px || 46;
+  const c = document.createElement('canvas'), ctx = c.getContext('2d');
+  const font = `700 ${px}px 'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif`;
+  ctx.font = font;
+  c.width = Math.ceil(ctx.measureText(text).width + 22);
+  c.height = px + 26;
+  ctx.font = font; ctx.fillStyle = color; ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = 6;
+  ctx.fillText(text, 11, c.height/2);
+  const tex = new THREE.CanvasTexture(c); tex.minFilter = THREE.LinearFilter;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tex, transparent:true, depthTest:false}));
+  const k = 0.052;
+  sp.scale.set(c.width*k, c.height*k, 1);
+  return sp;
+}
+const axisLabel = label('光軸', '#5a6a8c', 38); axisLabel.position.set(-52, 1.6, 0); scene.add(axisLabel);
+
+/* ---- レンズ ---- */
+const lens = new THREE.Mesh(
+  new THREE.SphereGeometry(APERTURE, 48, 32),
+  new THREE.MeshPhongMaterial({color:0x9fd8ff, transparent:true, opacity:0.30,
+    shininess:130, specular:0xffffff, depthWrite:false, side:THREE.DoubleSide}));
+scene.add(lens);
+const lensLabel = label('凸レンズ', '#9fd8ff', 40);
+lensLabel.position.set(0, APERTURE+2.0, 0); scene.add(lensLabel);
+function updateLensShape(){
+  const half = Math.min(3.4, Math.max(1.0, 1.9*(10/f)));
+  lens.scale.x = half/APERTURE;
+}
+updateLensShape();
+
+/* ---- 焦点・2F の印 ---- */
+const markers = {list:[], hits:[]};
+function makeMarker(text, color, r, big){
+  const grp = new THREE.Group();
+  const s = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 14),
+    new THREE.MeshBasicMaterial({color}));
+  grp.add(s);
+  const lg = new THREE.BufferGeometry().setFromPoints(
+    [new THREE.Vector3(0,-0.9,0), new THREE.Vector3(0,0.9,0)]);
+  grp.add(new THREE.Line(lg, new THREE.LineBasicMaterial({color, transparent:true, opacity:0.55})));
+  const lb = label(text, '#'+new THREE.Color(color).getHexString(), 42);
+  lb.position.y = 1.9; grp.add(lb);
+  if(big){ // ドラッグ用の当たり判定
+    const hit = new THREE.Mesh(new THREE.SphereGeometry(1.7, 8, 8),
+      new THREE.MeshBasicMaterial({transparent:true, opacity:0, depthWrite:false}));
+    hit.userData.kind = 'focal'; grp.add(hit); markers.hits.push(hit);
+  }
+  scene.add(grp);
+  return grp;
+}
+const mF1  = makeMarker('F',  0xf0b429, 0.38, true);
+const mF2  = makeMarker('F',  0xf0b429, 0.38, true);
+const m2F1 = makeMarker('2F', 0x8fa3bf, 0.27, false);
+const m2F2 = makeMarker('2F', 0x8fa3bf, 0.27, false);
+function updateMarkers(){
+  mF1.position.x = -f;  mF2.position.x = f;
+  m2F1.position.x = -2*f; m2F2.position.x = 2*f;
+}
+updateMarkers();
+
+/* ================= 物体の生成 ================= */
+function tweak(mat, variant){
+  if(variant === 'solid') return mat;
+  mat.transparent = true;
+  mat.depthWrite = false;
+  if(variant === 'real'){ mat.opacity = 0.88; }
+  else { // virtual
+    mat.opacity = 0.42;
+    if(mat.color) mat.color.lerp(new THREE.Color(0xc792ff), 0.35);
+  }
+  return mat;
+}
+function buildCandle(variant){
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.05, 4.6, 26),
+    tweak(new THREE.MeshPhongMaterial({color:0xfdf0dc, shininess:24}), variant));
+  body.position.y = 2.3; g.add(body);
+  const wick = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.65, 8),
+    tweak(new THREE.MeshBasicMaterial({color:0x38312a}), variant));
+  wick.position.y = 4.9; g.add(wick);
+  const flame = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.6, 18),
+    tweak(new THREE.MeshBasicMaterial({color:0xffa733}), variant));
+  flame.position.y = 5.72; g.add(flame);
+  const core = new THREE.Mesh(new THREE.SphereGeometry(0.26, 12, 10),
+    tweak(new THREE.MeshBasicMaterial({color:0xfff3b0}), variant));
+  core.position.y = 5.45; g.add(core);
+  if(variant === 'solid'){
+    const pl = new THREE.PointLight(0xffb74d, 0.8, 26);
+    pl.position.y = 5.8; g.add(pl);
+    g.userData.flame = flame;
+  }
+  g.userData.tipZ = 0;
+  return g;
+}
+function buildLPlate(variant){
+  const g = new THREE.Group();
+  const plate = new THREE.Mesh(new THREE.BoxGeometry(0.5, 11, 11),
+    tweak(new THREE.MeshPhongMaterial({color:0x33414e, shininess:12}), variant));
+  plate.position.y = 4.5; g.add(plate);
+  const shape = new THREE.Shape();                       // Ｌ字を一体形状で(重なりなし)
+  shape.moveTo(-1.75, 0.5); shape.lineTo(1.85, 0.5); shape.lineTo(1.85, 2.0);
+  shape.lineTo(-0.25, 2.0); shape.lineTo(-0.25, 6.5); shape.lineTo(-1.75, 6.5);
+  shape.closePath();
+  const lgeo = new THREE.ExtrudeGeometry(shape, {depth:0.7, bevelEnabled:false});
+  const lmesh = new THREE.Mesh(lgeo, tweak(new THREE.MeshBasicMaterial({color:0xfff59d}), variant));
+  lmesh.rotation.y = -Math.PI/2; lmesh.position.x = 0.5;
+  g.add(lmesh);
+  g.userData.tipZ = -1.0;
+  return g;
+}
+function buildObject(type, variant){
+  const g = type === 'candle' ? buildCandle(variant) : buildLPlate(variant);
+  if(variant !== 'solid'){
+    /* 半透明どうしの描画順を固定: 発光パーツ(Ｌ・炎)を必ず板や本体の上に描く。
+       これをしないと視点の角度によって暗い板が上に描かれ、像が暗く見える */
+    g.traverse(o => { if(o.isMesh) o.renderOrder = o.material.isMeshBasicMaterial ? 3 : 2; });
+  }
+  return g;
+}
+
+/* 実体・実像・虚像 */
+let objGrp = null, realGrp = null, virtGrp = null;
+const objHit = new THREE.Mesh(new THREE.BoxGeometry(4.6, 12, 7),
+  new THREE.MeshBasicMaterial({transparent:true, opacity:0, depthWrite:false}));
+objHit.userData.kind = 'object';
+objHit.position.y = 5; scene.add(objHit);
+
+function setObjectType(type, keepX){
+  const x = keepX && objGrp ? objGrp.position.x : -25;
+  [objGrp, realGrp, virtGrp].forEach(g => { if(g) scene.remove(g); });
+  objGrp  = buildObject(type, 'solid');   objGrp.position.x = x;  scene.add(objGrp);
+  realGrp = buildObject(type, 'real');    realGrp.visible = false; scene.add(realGrp);
+  virtGrp = buildObject(type, 'virtual'); virtGrp.visible = false; scene.add(virtGrp);
+  objType = type;
+}
+setObjectType('candle', false);
+
+/* ================= 物理 ================= */
+function computeImage(a, f){
+  if(Math.abs(a - f) < EPS) return {type:'none'};
+  const b = a*f/(a - f);
+  if(a > f) return {type:'real', b, m:b/a};
+  return {type:'virtual', b, m:Math.abs(b)/a};
+}
+
+/* ================= 光線描画 ================= */
+const raysGroup = new THREE.Group(); scene.add(raysGroup);
+const matCache = {};
+function lineMat(color, opacity, dashed, additive){
+  const key = color+'|'+opacity+'|'+(dashed?1:0)+'|'+(additive?1:0);
+  if(matCache[key]) return matCache[key];
+  const opt = {color, transparent:true, opacity};
+  if(additive) opt.blending = THREE.AdditiveBlending;
+  const m = dashed
+    ? new THREE.LineDashedMaterial(Object.assign({dashSize:1.15, gapSize:0.75}, opt))
+    : new THREE.LineBasicMaterial(opt);
+  matCache[key] = m; return m;
+}
+function addLine(pts, color, opacity, dashed, additive){
+  const g = new THREE.BufferGeometry().setFromPoints(pts);
+  const l = new THREE.Line(g, lineMat(color, opacity, dashed, additive));
+  if(dashed) l.computeLineDistances();
+  raysGroup.add(l);
+}
+function addDot(p, color, r){
+  const s = new THREE.Mesh(new THREE.SphereGeometry(r, 14, 10),
+    new THREE.MeshBasicMaterial({color}));
+  s.position.copy(p); raysGroup.add(s);
+}
+function clearRays(){
+  while(raysGroup.children.length){
+    const c = raysGroup.children.pop();
+    if(c.geometry) c.geometry.dispose();
+  }
+}
+/* L から屈折後の方向 */
+function refrDir(L, P, st, Q){
+  if(st.type === 'none')
+    return new THREE.Vector3().sub(P).normalize();          // (0,0,0)-P：中心向きの平行光
+  if(st.type === 'real')
+    return Q.clone().sub(L).normalize();
+  return L.clone().sub(Q).normalize();                      // 虚像：Qvから出たように発散
+}
+function ptAtX(L, dir, x){
+  return L.clone().add(dir.clone().multiplyScalar((x - L.x)/dir.x));
+}
+function limitToward(L, Q, xLimit){                          // 補助線が遠すぎる時の打ち切り
+  if(Q.x >= xLimit) return Q.clone();
+  const t = (xLimit - L.x)/(Q.x - L.x);
+  return L.clone().lerp(Q, t);
+}
+
+function buildRays(st){
+  clearRays();
+  const a = -objGrp.position.x;
+  const P = new THREE.Vector3(-a, TIP_Y, objGrp.userData.tipZ);
+  let Q = null;
+  if(st.type !== 'none')
+    Q = new THREE.Vector3(st.b, -P.y*st.b/a, -P.z*st.b/a);
+  const xEnd = st.type === 'real' ? Math.min(FAR_REAL, Math.max(42, st.b + 16)) : 46;
+
+  /* --- 光の帯（レンズ面上の円環に向かう光） --- */
+  if(showFan){
+    const pts = [];
+    for(let i=0;i<8;i++){ const t = i/8*Math.PI*2 + 0.12; pts.push([6.4*Math.cos(t), 6.4*Math.sin(t)]); }
+    for(let i=0;i<5;i++){ const t = i/5*Math.PI*2 + 0.55; pts.push([3.4*Math.cos(t), 3.4*Math.sin(t)]); }
+    for(const [y,z] of pts){
+      const L = new THREE.Vector3(0, y, z);
+      addLine([P, L], 0xffd54f, 0.35, false, true);
+      const d = refrDir(L, P, st, Q);
+      addLine([L, ptAtX(L, d, xEnd)], 0xffd54f, 0.35, false, true);
+      if(st.type === 'virtual')
+        addLine([L, limitToward(L, Q, -FAR_VIRT)], 0xc792ff, 0.14, true, false);
+    }
+  }
+
+  /* --- 3つの基本光線 --- */
+  if(showMain){
+    const main = [];
+    main.push({L:new THREE.Vector3(0, P.y, P.z), c:0xff5b6e});          // ①平行
+    main.push({L:new THREE.Vector3(0, 0, 0),     c:0x55e6a5});          // ②中心
+    if(st.type !== 'none'){                                             // ③焦点
+      const F = new THREE.Vector3(-f, 0, 0);
+      const t = a/(a - f);
+      const L3 = P.clone().lerp(F, t);
+      /* 教科書の作図と同じく、レンズの縁を越えてもレンズ面の延長で折り曲げる */
+      if(Math.hypot(L3.y, L3.z) < 26){
+        main.push({L:L3, c:0x5bb8ff, viaF:true});
+      }
+    }
+    for(const r of main){
+      addLine([P, r.L], r.c, 0.95, false, false);
+      const d = refrDir(r.L, P, st, Q);
+      addLine([r.L, ptAtX(r.L, d, xEnd)], r.c, 0.95, false, false);
+      if(st.type === 'virtual')
+        addLine([r.L, limitToward(r.L, Q, -FAR_VIRT)], 0xc792ff, 0.85, true, false);
+      if(r.viaF && a < f)                                               // 手前焦点からの補助
+        addLine([new THREE.Vector3(-f,0,0), P], 0x8fa3bf, 0.45, true, false);
+    }
+  }
+
+  /* --- 像点マーク --- */
+  if(st.type === 'real' && st.b <= FAR_REAL) addDot(Q, 0xffd54f, 0.32);
+  if(st.type === 'virtual' && Math.abs(st.b) <= FAR_VIRT) addDot(Q, 0xc792ff, 0.38);
+}
+
+/* ================= ガラス板モード ================= */
+let mode = 'lens';
+let nGlass = 1.5;
+const GX1 = -3, GX2 = 3, GH = 8, EYE_X = -18;      // ガラス前面/背面/高さ/目の位置
+const glassRoot = new THREE.Group(); glassRoot.visible = false; scene.add(glassRoot);
+
+const slab = new THREE.Mesh(new THREE.BoxGeometry(GX2-GX1, GH, 26),
+  new THREE.MeshPhongMaterial({color:0x9fd8ff, transparent:true, opacity:0.30,
+    shininess:140, specular:0xffffff, depthWrite:false, side:THREE.DoubleSide}));
+slab.position.set((GX1+GX2)/2, GH/2, 0); glassRoot.add(slab);
+const slabEdge = new THREE.LineSegments(new THREE.EdgesGeometry(slab.geometry),
+  new THREE.LineBasicMaterial({color:0x9fd8ff, transparent:true, opacity:0.5}));
+slabEdge.position.copy(slab.position); glassRoot.add(slabEdge);
+
+/* 半円型ガラス(平らな面が目側、丸い面が鉛筆側) */
+const R_SEMI = 8;
+let glassShape = 'rect';
+const semiGrp = new THREE.Group(); semiGrp.visible = false; glassRoot.add(semiGrp);
+const halfGeo = new THREE.CylinderGeometry(R_SEMI, R_SEMI, GH, 40, 1, false, 0, Math.PI);
+const halfMesh = new THREE.Mesh(halfGeo, slab.material);
+halfMesh.position.y = GH/2; semiGrp.add(halfMesh);
+const flatMesh = new THREE.Mesh(new THREE.PlaneGeometry(R_SEMI*2, GH), slab.material);
+flatMesh.rotation.y = -Math.PI/2; flatMesh.position.y = GH/2; semiGrp.add(flatMesh);
+const semiEdge = new THREE.LineSegments(new THREE.EdgesGeometry(halfGeo, 30), slabEdge.material);
+semiEdge.position.y = GH/2; semiGrp.add(semiEdge);
+
+/* 半円: 目からの視線を逆向きに追跡(平面で屈折→円弧で屈折) */
+function semiPath(aAng, xP, zE){
+  const z0 = zE + (0 - EYE_X)*Math.tan(aAng);
+  if(Math.abs(z0) >= R_SEMI) return {miss:true};
+  const b = Math.asin(Math.sin(aAng)/nGlass);
+  const u = {x:Math.cos(b), z:Math.sin(b)};
+  const B2 = z0*u.z, C = z0*z0 - R_SEMI*R_SEMI;
+  const s = -B2 + Math.sqrt(B2*B2 - C);
+  const H = {x:u.x*s, z:z0 + u.z*s};
+  const m = {x:H.x/R_SEMI, z:H.z/R_SEMI};
+  const cosi = u.x*m.x + u.z*m.z;
+  const sin2t = nGlass*nGlass*(1 - cosi*cosi);
+  if(sin2t >= 1) return {tir:true};
+  const cost = Math.sqrt(1 - sin2t);
+  const t = {x:nGlass*u.x + (cost - nGlass*cosi)*m.x,
+             z:nGlass*u.z + (cost - nGlass*cosi)*m.z};
+  if(t.x <= 0.02) return {tir:true};
+  return {z0, H, zAtP: H.z + (xP - H.x)*t.z/t.x, aAir:aAng, bIn:b};
+}
+function solveSemi(xP, zE, zT){
+  let prevA = null, prevV = null, best = null;
+  for(let i=0; i<=240; i++){
+    const a = -1.35 + 2.7*i/240;
+    const r = semiPath(a, xP, zE);
+    const v = (r.tir || r.miss) ? null : (r.zAtP - zT);
+    if(v !== null && prevV !== null &&
+       ((v <= 0 && prevV >= 0) || (v >= 0 && prevV <= 0))){
+      let lo = prevA, hi = a, flo = prevV;
+      for(let k=0; k<50; k++){
+        const mid = (lo+hi)/2, rm = semiPath(mid, xP, zE);
+        const vm = (rm.tir || rm.miss) ? null : (rm.zAtP - zT);
+        if(vm === null){ lo = mid; continue; }
+        if((vm <= 0 && flo >= 0) || (vm >= 0 && flo <= 0)) hi = mid;
+        else { lo = mid; flo = vm; }
+      }
+      const aSol = (lo+hi)/2, sol = semiPath(aSol, xP, zE);
+      if(!sol.tir && !sol.miss){
+        const dev = Math.abs(aSol);
+        if(!best || dev < best.dev) best = {sol, a:aSol, dev};
+      }
+    }
+    prevA = a; prevV = v;
+  }
+  return best;
+}
+const slabLabel = label('ガラス板', '#9fd8ff', 30);
+slabLabel.position.set(0, GH + 1.0, -11.5); glassRoot.add(slabLabel);
+const slabLabelD = label('ダイヤモンド', '#eaf6ff', 30);
+slabLabelD.position.set(0, GH + 1.0, -11.5); slabLabelD.visible = false; glassRoot.add(slabLabelD);
+function applyGlassMat(){
+  const dia = nGlass > 2;
+  slab.material.color.set(dia ? 0xeaf6ff : 0x9fd8ff);
+  slab.material.opacity = dia ? 0.40 : 0.30;
+  slab.material.shininess = dia ? 320 : 140;
+  slabEdge.material.color.set(dia ? 0xffffff : 0x9fd8ff);
+  slabLabel.visible = !dia;
+  slabLabelD.visible = dia;
+}
+
+function buildPencilMesh(ghost){
+  const g = new THREE.Group();
+  const mk = m => { if(ghost){ m.transparent=true; m.opacity=0.75; m.depthWrite=false; } return m; };
+  if(ghost){                                        // ガラス越しに見える区間(実物の代わり)
+    const sec = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, GH, 6),
+      mk(new THREE.MeshPhongMaterial({color:0xe0951e, emissive:0x3a2506, flatShading:true})));
+    sec.position.y = GH/2; g.add(sec);
+    return g;
+  }
+  const pm = () => new THREE.MeshPhongMaterial({color:0xe0951e, emissive:0x3a2506, shininess:26, flatShading:true});
+  const high = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 11 - GH, 6), pm());
+  high.position.y = (11 + GH)/2; g.add(high);       // ガラスの上に突き出た部分だけ実物(屈折なし)
+  const wood = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.3, 6),
+    new THREE.MeshPhongMaterial({color:0xe8cfa0, flatShading:true}));
+  wood.position.y = 11.65; g.add(wood);
+  const lead = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.55, 6),
+    new THREE.MeshPhongMaterial({color:0x3a3a3a}));
+  lead.position.y = 12.45; g.add(lead);
+  return g;
+}
+const pencilGrp = buildPencilMesh(false); pencilGrp.position.set(9, 0, 0); glassRoot.add(pencilGrp);
+const ghostGrp  = buildPencilMesh(true);  glassRoot.add(ghostGrp);
+
+const eyeGrp = new THREE.Group();
+const eyeball = new THREE.Mesh(new THREE.SphereGeometry(1.15, 20, 14),
+  new THREE.MeshPhongMaterial({color:0xf2f4f8, shininess:70}));
+eyeGrp.add(eyeball);
+const iris = new THREE.Mesh(new THREE.SphereGeometry(0.48, 14, 10),
+  new THREE.MeshPhongMaterial({color:0x203040}));
+iris.position.x = 0.95; eyeGrp.add(iris);
+const eyeLb = label('目', '#dfe7f4', 32); eyeLb.position.y = 2.3; eyeGrp.add(eyeLb);
+eyeGrp.position.set(EYE_X, 4.5, 8); glassRoot.add(eyeGrp);
+
+const eyeHit = new THREE.Mesh(new THREE.SphereGeometry(2.6, 8, 8),
+  new THREE.MeshBasicMaterial({transparent:true, opacity:0, depthWrite:false}));
+eyeHit.userData.kind = 'eye'; eyeGrp.add(eyeHit);
+const pencilHit = new THREE.Mesh(new THREE.BoxGeometry(3.4, 14, 3.4),
+  new THREE.MeshBasicMaterial({transparent:true, opacity:0, depthWrite:false}));
+pencilHit.userData.kind = 'pencil'; pencilHit.position.y = 7; pencilGrp.add(pencilHit);
+
+const pencilTag = label('鉛筆', '#dfe7f4', 32); glassRoot.add(pencilTag);
+const ghostTag  = label('ずれて見える位置', '#c792ff', 30); glassRoot.add(ghostTag);
+const glassRays = new THREE.Group(); glassRoot.add(glassRays);
+
+function solveTheta(d1, T, d2, n, dz){               // 折れ線経路の入射角を二分法で解く
+  let lo = -1.45, hi = 1.45;
+  const F = th => d1*Math.tan(th)
+    + T*Math.tan(Math.asin(Math.sin(th)/n))
+    + d2*Math.tan(th) - dz;
+  for(let i=0;i<60;i++){
+    const mid = (lo+hi)/2;
+    if(F(mid) > 0) hi = mid; else lo = mid;
+  }
+  return (lo+hi)/2;
+}
+
+function updateGlass(){
+  const xP = pencilGrp.position.x, zE = eyeGrp.position.z;
+  while(glassRays.children.length){
+    const c = glassRays.children.pop();
+    if(c.geometry) c.geometry.dispose();
+  }
+  const line2 = (pts, color, op, dash) => {
+    const g2 = new THREE.BufferGeometry().setFromPoints(pts);
+    const l = new THREE.Line(g2, lineMat(color, op, dash, false));
+    if(dash) l.computeLineDistances();
+    glassRays.add(l);
+  };
+
+  let ap = null, angIn = 0, angOut = 0, blocked = false, direct = false;
+  let ghostScaleZ = 1;
+
+  if(glassShape === 'rect'){
+    const d1 = xP - GX2, d2 = GX1 - EYE_X, T = GX2 - GX1;
+    const th = solveTheta(d1, T, d2, nGlass, zE);
+    const tr = Math.asin(Math.sin(th)/nGlass);
+    angIn = th; angOut = tr;
+    for(const y of [2.5, 6]){
+      const P  = new THREE.Vector3(xP, y, 0);
+      const B  = new THREE.Vector3(GX2, y, d1*Math.tan(th));
+      const F1 = new THREE.Vector3(GX1, y, B.z + T*Math.tan(tr));
+      const E  = new THREE.Vector3(EYE_X, y, zE);
+      line2([P, B],  0xffd54f, 0.95, false);           // ガラスの後ろ
+      line2([B, F1], 0xff8a5c, 0.95, false);           // ガラスの中(折れ曲がり)
+      line2([F1, E], 0xffd54f, 0.95, false);           // ガラスの前
+      const t = (xP - EYE_X)/(GX1 - EYE_X);
+      ap = E.clone().lerp(F1, t);                      // まっすぐ延長した見かけの位置
+      line2([F1, ap], 0xc792ff, 0.9, true);
+    }
+  }else{
+    const z0d = zE * xP/(xP - EYE_X);                  // まっすぐ見たときの平面通過位置
+    if(Math.abs(z0d) >= R_SEMI - 0.3){
+      direct = true;
+      for(const y of [2.5, 6]){
+        line2([new THREE.Vector3(xP, y, 0), new THREE.Vector3(EYE_X, y, zE)],
+          0xffd54f, 0.95, false);
+      }
+      ap = new THREE.Vector3(xP, 0, 0);
+    }else{
+      const best = solveSemi(xP, zE, 0);
+      if(!best){ blocked = true; }
+      else{
+        const s = best.sol;
+        angIn = s.bIn; angOut = s.aAir;
+        const zApp = zE + (xP - EYE_X)*Math.tan(best.a);
+        /* 鉛筆の左右の端(±0.5cm)も追跡して見かけの太さを求める */
+        const bL = solveSemi(xP, zE, -0.5), bR = solveSemi(xP, zE, 0.5);
+        if(bL && bR){
+          const zL = zE + (xP - EYE_X)*Math.tan(bL.a);
+          const zR = zE + (xP - EYE_X)*Math.tan(bR.a);
+          ghostScaleZ = Math.min(6, Math.max(0.3, Math.abs(zR - zL)));
+          /* 太く見える理屈: 端から出た光の道筋(緑=左端, 青=右端) */
+          const dotMat = c => matCache['dot'+c] || (matCache['dot'+c] = new THREE.MeshBasicMaterial({color:c}));
+          const drawEdge = (b, zTgt, zA, col) => {
+            const s2 = b.sol, y = 4.25;
+            const P = new THREE.Vector3(xP, y, zTgt);
+            const H = new THREE.Vector3(s2.H.x, y, s2.H.z);
+            const Q = new THREE.Vector3(0, y, s2.z0);
+            const E = new THREE.Vector3(EYE_X, y, zE);
+            line2([P, H], col, 0.9, false);
+            line2([H, Q], col, 0.9, false);
+            line2([Q, E], col, 0.9, false);
+            const A = new THREE.Vector3(xP, y, zA);
+            line2([Q, A], 0xc792ff, 0.85, true);      // 逆向き延長 → 見かけの端
+            const d = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), dotMat(col));
+            d.position.copy(A); glassRays.add(d);
+          };
+          drawEdge(bL, -0.5, zL, 0x55e6a5);
+          drawEdge(bR,  0.5, zR, 0x5bb8ff);
+        }
+        for(const y of [2.5, 6]){
+          const P  = new THREE.Vector3(xP, y, 0);
+          const H  = new THREE.Vector3(s.H.x, y, s.H.z);
+          const Q0 = new THREE.Vector3(0, y, s.z0);
+          const E  = new THREE.Vector3(EYE_X, y, zE);
+          line2([P, H],  0xffd54f, 0.95, false);       // 丸い面まで
+          line2([H, Q0], 0xff8a5c, 0.95, false);       // ガラスの中
+          line2([Q0, E], 0xffd54f, 0.95, false);       // 平面から目へ
+          ap = new THREE.Vector3(xP, y, zApp);
+          line2([Q0, ap], 0xc792ff, 0.9, true);
+        }
+      }
+    }
+  }
+
+  pencilTag.position.set(xP, 14.4, 0);
+  const badge = $('badge');
+  if(blocked){
+    ghostGrp.visible = false; ghostTag.visible = false;
+    $('vA').textContent = '–'; $('vB').textContent = '–'; $('vM').textContent = '–';
+    badge.className = 'real'; badge.textContent = '見えない(全反射)';
+    $('note').textContent = '光がガラスの中で全反射するなどして、この角度からはガラス越しに鉛筆が見えない。目を中央に寄せるか、鉛筆を動かしてみよう。';
+    return;
+  }
+  const shift = ap.z;
+  ghostGrp.position.set(xP, 0, shift);
+  ghostGrp.scale.set(1, 1, ghostScaleZ);             // 半円では実物より太く見える
+  ghostGrp.visible = true;
+  ghostTag.visible = Math.abs(shift) > 0.06;
+  ghostTag.position.set(xP, GH + 1.4, shift);
+
+  $('vA').textContent = Math.abs(angIn*180/Math.PI).toFixed(1) + '°';
+  $('vB').textContent = Math.abs(angOut*180/Math.PI).toFixed(1) + '°';
+  $('vM').textContent = Math.abs(shift).toFixed(2) + ' cm';
+  badge.className = 'virtual'; badge.textContent = 'ガラスによる屈折';
+  if(direct){
+    $('note').textContent = '視線がガラスから外れていて、鉛筆が直接(屈折なしで)見えている。目や鉛筆を動かして、ガラス越しにのぞいてみよう。';
+  }else if(Math.abs(shift) < 0.06){
+    $('note').textContent = '正面(まっすぐ)から見ると光はガラスを直進するので、ずれは起きない。目を横にドラッグしてみよう。';
+  }else if(glassShape === 'rect'){
+    $('note').textContent = 'ガラスに入るとき・出るときに光が折れ曲がる。出てきた光はもとの光と平行だが横にずれているため、目にはまっすぐ延長した先(紫の破線)、つまり少しずれた位置に鉛筆があるように見える。ダイヤモンド(n=2.42)はガラス(n=1.50)より光を大きく曲げるので、ずれも大きくなる。';
+  }else{
+    $('note').textContent = '緑の線=鉛筆の左はし、青の線=右はしから出た光。丸い面は凸レンズと同じはたらきで光を広げて目に届けるため、まっすぐ延長した見かけの端(紫の破線の先の●)の間隔が実物の太さより広くなる。だから鉛筆は太く(拡大されて)見える。目を大きくずらすと全反射で見えなくなる角度もある。';
+  }
+}
+
+/* ================= レーザーモード ================= */
+const laserRoot = new THREE.Group(); laserRoot.visible = false; scene.add(laserRoot);
+
+/* 形: 長方形板 */
+const lRect = new THREE.Group(); laserRoot.add(lRect);
+const lRectM = new THREE.Mesh(new THREE.BoxGeometry(6, GH, 16), slab.material);
+lRectM.position.y = GH/2; lRect.add(lRectM);
+const lRectE = new THREE.LineSegments(new THREE.EdgesGeometry(lRectM.geometry), slabEdge.material);
+lRectE.position.y = GH/2; lRect.add(lRectE);
+/* 形: 台形板 */
+const trapPts = [[-3,-8],[3,-4],[3,4],[-3,8]];
+const trapShape = new THREE.Shape();
+trapShape.moveTo(trapPts[0][0], trapPts[0][1]);
+for(let i=1;i<trapPts.length;i++) trapShape.lineTo(trapPts[i][0], trapPts[i][1]);
+trapShape.closePath();
+const trapGeo = new THREE.ExtrudeGeometry(trapShape, {depth:GH, bevelEnabled:false});
+const lTrap = new THREE.Group(); lTrap.visible = false; laserRoot.add(lTrap);
+const lTrapM = new THREE.Mesh(trapGeo, slab.material);
+lTrapM.rotation.x = Math.PI/2; lTrapM.position.y = GH; lTrap.add(lTrapM);
+const lTrapE = new THREE.LineSegments(new THREE.EdgesGeometry(trapGeo, 20), slabEdge.material);
+lTrapE.rotation.x = Math.PI/2; lTrapE.position.y = GH; lTrap.add(lTrapE);
+/* 形: 半円 */
+const lSemi = new THREE.Group(); lSemi.visible = false; laserRoot.add(lSemi);
+const lSemiM = new THREE.Mesh(halfGeo, slab.material); lSemiM.position.y = GH/2; lSemi.add(lSemiM);
+const lSemiF = new THREE.Mesh(new THREE.PlaneGeometry(R_SEMI*2, GH), slab.material);
+lSemiF.rotation.y = -Math.PI/2; lSemiF.position.y = GH/2; lSemi.add(lSemiF);
+const lSemiE = new THREE.LineSegments(new THREE.EdgesGeometry(halfGeo, 30), slabEdge.material);
+lSemiE.position.y = GH/2; lSemi.add(lSemiE);
+
+/* レーザー本体と向きつまみ */
+const laserPos = new THREE.Vector3(-16, 4, -6);
+let laserYaw = Math.atan2(6, 16);
+const laserGrp = new THREE.Group(); laserRoot.add(laserGrp);
+const lBody = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 3.4, 16),
+  new THREE.MeshPhongMaterial({color:0x2b3242, shininess:60}));
+lBody.rotation.z = -Math.PI/2; laserGrp.add(lBody);
+const lNozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.7, 12),
+  new THREE.MeshPhongMaterial({color:0x11151f}));
+lNozzle.rotation.z = -Math.PI/2; lNozzle.position.x = 2.0; laserGrp.add(lNozzle);
+const lGlow = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8),
+  new THREE.MeshBasicMaterial({color:0xff5050}));
+lGlow.position.x = 2.4; laserGrp.add(lGlow);
+const lLabel = label('レーザー', '#dfe7f4', 30); lLabel.position.y = 2.1; laserGrp.add(lLabel);
+const laserHit = new THREE.Mesh(new THREE.SphereGeometry(2.4, 8, 8),
+  new THREE.MeshBasicMaterial({transparent:true, opacity:0, depthWrite:false}));
+laserHit.userData.kind = 'laser'; laserGrp.add(laserHit);
+
+const aimGrp = new THREE.Group(); laserRoot.add(aimGrp);
+const aimKnob = new THREE.Mesh(new THREE.SphereGeometry(0.55, 14, 10),
+  new THREE.MeshBasicMaterial({color:0xf0b429, depthTest:false}));
+aimKnob.renderOrder = 10;
+aimGrp.add(aimKnob);
+const aimHit = new THREE.Mesh(new THREE.SphereGeometry(2.0, 8, 8),
+  new THREE.MeshBasicMaterial({transparent:true, opacity:0, depthWrite:false}));
+aimHit.userData.kind = 'aim'; aimGrp.add(aimHit);
+const laserRays = new THREE.Group(); laserRoot.add(laserRays);
+
+/* --- 2D光線追跡(水平面 y=4) --- */
+function shapePrims2D(){
+  const poly = pts => pts.map((a, i) => {
+    const b = pts[(i+1)%pts.length];
+    const ex = b[0]-a[0], ez = b[1]-a[1], L = Math.hypot(ex, ez);
+    return {type:'seg', a, b, n:{x:ez/L, z:-ex/L}};
+  });
+  if(glassShape === 'rect') return poly([[-3,-8],[3,-8],[3,8],[-3,8]]);
+  if(glassShape === 'trap') return poly(trapPts);
+  return [{type:'arc', r:R_SEMI},
+          {type:'seg', a:[0,8], b:[0,-8], n:{x:-1, z:0}}];
+}
+function hitPrim(p, d, pr){
+  if(pr.type === 'seg'){
+    const ex = pr.b[0]-pr.a[0], ez = pr.b[1]-pr.a[1];
+    const det = -(d.x*ez - ex*d.z);
+    if(Math.abs(det) < 1e-9) return null;
+    const ax = pr.a[0]-p.x, az = pr.a[1]-p.z;
+    const t = (-ax*ez + ex*az)/det;
+    const s = (d.x*az - d.z*ax)/det;
+    if(t < 1e-4 || s < 0 || s > 1) return null;
+    return {t, n:pr.n};
+  }
+  const b2 = p.x*d.x + p.z*d.z;
+  const c = p.x*p.x + p.z*p.z - pr.r*pr.r;
+  const disc = b2*b2 - c;
+  if(disc < 0) return null;
+  const sq = Math.sqrt(disc);
+  for(const t of [-b2-sq, -b2+sq]){
+    if(t > 1e-4){
+      const hx = p.x + t*d.x;
+      if(hx >= -1e-4) return {t, n:{x:hx/pr.r, z:(p.z + t*d.z)/pr.r}};
+    }
+  }
+  return null;
+}
+
+function updateLaser(){
+  const dir = {x:Math.cos(laserYaw), z:Math.sin(laserYaw)};
+  laserGrp.position.copy(laserPos);
+  laserGrp.rotation.y = -laserYaw;
+  aimGrp.position.set(laserPos.x + dir.x*5.5, 4, laserPos.z + dir.z*5.5);
+
+  while(laserRays.children.length){
+    const c = laserRays.children.pop();
+    if(c.geometry) c.geometry.dispose();
+    if(c.isSprite){ c.material.map.dispose(); c.material.dispose(); }
+  }
+  const Y = 4;
+  const v3 = pt => new THREE.Vector3(pt.x, Y, pt.z);
+  const seg3 = (a, b, color, op) => {
+    const g2 = new THREE.BufferGeometry().setFromPoints([v3(a), v3(b)]);
+    laserRays.add(new THREE.Line(g2, lineMat(color, op, false, true)));
+  };
+  const dashN = (q, n) => {
+    const g2 = new THREE.BufferGeometry().setFromPoints(
+      [v3({x:q.x-n.x*2.6, z:q.z-n.z*2.6}), v3({x:q.x+n.x*2.6, z:q.z+n.z*2.6})]);
+    const l = new THREE.Line(g2, lineMat(0x8fa3bf, 0.35, true, false));
+    l.computeLineDistances(); laserRays.add(l);
+  };
+  const dotAt = (q, color, r) => {
+    const key = 'dot'+color;
+    if(!matCache[key]) matCache[key] = new THREE.MeshBasicMaterial({color});
+    const s = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), matCache[key]);
+    s.position.set(q.x, Y, q.z); laserRays.add(s);
+  };
+
+  const prims = shapePrims2D();
+  let p = {x:laserPos.x + dir.x*2.4, z:laserPos.z + dir.z*2.4};
+  let d = {x:dir.x, z:dir.z};
+  let inGlass = false, firstIn = null, firstOut = null, tir = false, hitAny = false;
+
+  for(let k=0; k<12; k++){
+    let best = null;
+    for(const pr of prims){
+      const h = hitPrim(p, d, pr);
+      if(h && (!best || h.t < best.t)) best = h;
+    }
+    if(!best){
+      seg3(p, {x:p.x + d.x*60, z:p.z + d.z*60}, inGlass ? 0xff8055 : 0xff4646, 0.95);
+      break;
+    }
+    hitAny = true;
+    const q = {x:p.x + d.x*best.t, z:p.z + d.z*best.t};
+    seg3(p, q, inGlass ? 0xff8055 : 0xff4646, 0.95);
+    dashN(q, best.n);
+    dotAt(q, 0xffffff, 0.15);
+    const entering = (d.x*best.n.x + d.z*best.n.z) < 0;
+    const N = entering ? best.n : {x:-best.n.x, z:-best.n.z};
+    const cosi = -(d.x*N.x + d.z*N.z);
+    const eta = entering ? 1/nGlass : nGlass;
+    const sin2t = eta*eta*(1 - cosi*cosi);
+    if(firstIn === null) firstIn = Math.acos(Math.min(1, cosi));
+    /* 法線から測った角度を各点に表示 */
+    const aSp = label((Math.acos(Math.min(1, cosi))*180/Math.PI).toFixed(0) + '°',
+      sin2t > 1 ? '#ffdf6b' : '#cfd9ea', 26);
+    aSp.position.set(q.x + best.n.x*2.4, Y + 1.5, q.z + best.n.z*2.4);
+    laserRays.add(aSp);
+    if(sin2t > 1){                                     // 全反射
+      tir = true;
+      dotAt(q, 0xffdf6b, 0.32);
+      d = {x:d.x + 2*cosi*N.x, z:d.z + 2*cosi*N.z};
+    }else{
+      const cost = Math.sqrt(1 - sin2t);
+      /* 弱い部分反射 */
+      const rr = {x:d.x + 2*cosi*N.x, z:d.z + 2*cosi*N.z};
+      const rp = {x:q.x + rr.x*1e-3, z:q.z + rr.z*1e-3};
+      let rb = null;
+      for(const pr of prims){
+        const h = hitPrim(rp, rr, pr);
+        if(h && (!rb || h.t < rb.t)) rb = h;
+      }
+      const rl = rb ? rb.t : 8;
+      seg3(rp, {x:rp.x + rr.x*rl, z:rp.z + rr.z*rl}, 0xff4646, 0.18);
+      if(firstOut === null) firstOut = Math.acos(Math.min(1, cost));
+      d = {x:eta*d.x + (eta*cosi - cost)*N.x, z:eta*d.z + (eta*cosi - cost)*N.z};
+      inGlass = !inGlass;
+    }
+    p = {x:q.x + d.x*1e-3, z:q.z + d.z*1e-3};
+  }
+
+  const crit = Math.asin(1/nGlass);
+  $('vA').textContent = firstIn === null ? '–' : (firstIn*180/Math.PI).toFixed(1) + '°';
+  $('vB').textContent = firstOut === null ? (tir ? '全反射' : '–') : (firstOut*180/Math.PI).toFixed(1) + '°';
+  $('vM').textContent = (crit*180/Math.PI).toFixed(1) + '°';
+  const badge = $('badge');
+  if(!hitAny){
+    badge.className = 'none'; badge.textContent = '当たっていない';
+    $('note').textContent = 'レーザーがガラスに当たっていない。本体をドラッグして位置を、黄色いつまみをドラッグして向きを変え、ガラスに当ててみよう。';
+  }else if(tir){
+    badge.className = 'real'; badge.textContent = '全反射が発生!';
+    $('note').textContent = 'ガラスの中から面に当たる角度(灰色の破線=法線からの角度)が臨界角をこえたため、光は外に出られず鏡のようにはね返っている(黄色い●の点)。角度を少しずつ変えて、屈折→全反射が切りかわる瞬間をさがそう。';
+  }else{
+    badge.className = 'virtual'; badge.textContent = '屈折';
+    $('note').textContent = '空気→ガラスでは法線(灰色の破線)に近づく向きに、ガラス→空気では法線から遠ざかる向きに折れ曲がる。うすい赤の線は境界面でわずかに反射する光。入射角を大きくしていくと、出るときの角度が90°をこえられなくなり全反射が起こる。';
+  }
+}
+
+/* ================= 表示更新 ================= */
+const $ = id => document.getElementById(id);
+const objTag  = label('物体', '#dfe7f4', 32); scene.add(objTag);
+const realTag = label('実像', '#ff8797', 32); realTag.visible = false; scene.add(realTag);
+const virtTag = label('虚像', '#c792ff', 32); virtTag.visible = false; scene.add(virtTag);
+function updateAll(){
+  if(mode === 'glass') return;
+  const a = -objGrp.position.x;
+  const st = computeImage(a, f);
+  objHit.position.x = objGrp.position.x;
+
+  realGrp.visible = virtGrp.visible = false;
+  if(st.type === 'real' && st.b <= FAR_REAL){
+    realGrp.visible = true;
+    realGrp.position.x = st.b;
+    realGrp.rotation.x = Math.PI;              // 倒立（上下・左右が逆）
+    realGrp.scale.setScalar(st.m);
+  }else if(st.type === 'virtual' && Math.abs(st.b) <= FAR_VIRT){
+    virtGrp.visible = true;
+    virtGrp.position.x = st.b;
+    virtGrp.rotation.x = 0;                    // 正立
+    virtGrp.scale.setScalar(st.m);
+  }
+  buildRays(st);
+
+  /* 名札 */
+  objTag.position.set(objGrp.position.x, TIP_Y + 2.4, 0);
+  realTag.visible = realGrp.visible;
+  if(realGrp.visible) realTag.position.set(st.b, -st.m*TIP_Y - 2.2, 0);
+  virtTag.visible = virtGrp.visible;
+  if(virtGrp.visible) virtTag.position.set(st.b, st.m*TIP_Y + 2.4, 0);
+
+  /* 読み取りパネル */
+  $('vA').textContent = a.toFixed(1) + ' cm';
+  const badge = $('badge'), note = $('note');
+  if(st.type === 'none'){
+    badge.className = 'none'; badge.textContent = '像はできない';
+    $('vB').textContent = '∞'; $('vM').textContent = '–';
+    note.textContent = '物体が焦点の上にあるとき、レンズを通った光はすべて平行に進み、どこまで行っても交わらない。だからスクリーンをどこに置いても像はできない。';
+  }else if(st.type === 'real'){
+    badge.className = 'real';
+    const e = EPS;
+    badge.textContent =
+      a > 2*f + e ? '縮小・倒立の実像' :
+      Math.abs(a - 2*f) <= e ? '同じ大きさの倒立実像' : '拡大・倒立の実像';
+    $('vB').textContent = st.b.toFixed(1) + ' cm';
+    $('vM').textContent = st.m.toFixed(2) + ' 倍';
+    note.textContent = st.b > FAR_REAL
+      ? '像の位置が画面のずっと右の遠くにあるため、ここでは表示していない。焦点に近づくほど像は遠く・大きくなる。'
+      : '先端から出たすべての光が、レンズを通ったあと1点に集まる。そこにスクリーンを置くと像がうつる。';
+  }else{
+    badge.className = 'virtual'; badge.textContent = '拡大・正立の虚像';
+    $('vB').textContent = Math.abs(st.b).toFixed(1) + ' cm（物体と同じ側）';
+    $('vM').textContent = st.m.toFixed(2) + ' 倍';
+    note.textContent = Math.abs(st.b) > FAR_VIRT
+      ? '虚像は非常に遠く・非常に大きくなる（焦点に近いため）。'
+      : 'レンズを通った光は広がるだけで実際には交わらない。紫の破線のように逆向きに延長すると1点で交わり、そこから光が出ているように見える。これが虚像（実際に光は集まらないのでスクリーンにはうつらない）。';
+  }
+}
+
+/* ================= 操作 ================= */
+const raycaster = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+const pointers = new Map();
+let dragMode = null;            // 'object' | 'focal' | 'orbit'
+let lastSnap = null;
+let lastX = 0, lastY = 0, pinchDist = 0;
+const dragPlane = new THREE.Plane();
+const hitPoint = new THREE.Vector3();
+
+function setNDC(e){
+  const r = canvas.getBoundingClientRect();
+  ndc.x = ((e.clientX - r.left)/r.width)*2 - 1;
+  ndc.y = -((e.clientY - r.top)/r.height)*2 + 1;
+}
+function pick(e){
+  setNDC(e);
+  raycaster.setFromCamera(ndc, camera);
+  const targets = mode === 'lens' ? [objHit, ...markers.hits]
+    : mode === 'glass' ? [eyeHit, pencilHit]
+    : [laserHit, aimHit];
+  const hits = raycaster.intersectObjects(targets, true);
+  return hits.length ? hits[0] : null;
+}
+function planeAt(pos){
+  const n = new THREE.Vector3();
+  camera.getWorldDirection(n);
+  dragPlane.setFromNormalAndCoplanarPoint(n, pos);
+}
+
+canvas.addEventListener('pointerdown', e => {
+  canvas.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  if(pointers.size === 2){
+    dragMode = null;
+    const [p1, p2] = [...pointers.values()];
+    pinchDist = Math.hypot(p1.x-p2.x, p1.y-p2.y);
+    return;
+  }
+  const hit = pick(e);
+  if(hit){
+    dragMode = hit.object.userData.kind;
+    planeAt(hit.object.getWorldPosition(new THREE.Vector3()));
+    canvas.style.cursor = 'grabbing';
+  }else{
+    dragMode = 'orbit';
+  }
+  lastX = e.clientX; lastY = e.clientY;
+});
+
+canvas.addEventListener('pointermove', e => {
+  if(pointers.has(e.pointerId)) pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+
+  if(pointers.size === 2){                                   // ピンチズーム
+    const [p1, p2] = [...pointers.values()];
+    const d = Math.hypot(p1.x-p2.x, p1.y-p2.y);
+    if(pinchDist > 0){
+      sph.r = Math.min(150, Math.max(18, sph.r * pinchDist/d));
+      applyCam();
+    }
+    pinchDist = d;
+    return;
+  }
+  if(!dragMode){                                             // ホバーカーソル
+    if(!(e.buttons & 1)){
+      const hit = pick(e);
+      canvas.style.cursor = hit ? 'grab' : 'default';
+    }
+    return;
+  }
+  if(dragMode === 'orbit'){
+    sph.theta += (e.clientX - lastX)*0.006;
+    sph.phi = Math.min(Math.PI - 0.05, Math.max(0.05, sph.phi + (e.clientY - lastY)*0.006));
+    lastX = e.clientX; lastY = e.clientY;
+    applyCam();
+    return;
+  }
+  setNDC(e);
+  raycaster.setFromCamera(ndc, camera);
+  if(!raycaster.ray.intersectPlane(dragPlane, hitPoint)) return;
+  if(dragMode === 'object'){
+    let x = Math.min(OBJ_MAX_X, Math.max(OBJ_MIN_X, hitPoint.x));
+    const SNAP = 0.8;                                        // F・2Fにカチッと吸着
+    let snapped = null;
+    if(Math.abs(x + f) < SNAP){ x = -f; snapped = 'F'; }
+    else if(Math.abs(x + 2*f) < SNAP){ x = -2*f; snapped = '2F'; }
+    if(snapped && snapped !== lastSnap && navigator.vibrate) navigator.vibrate(12);
+    lastSnap = snapped;
+    objGrp.position.x = x;
+    updateAll();
+  }else if(dragMode === 'focal'){
+    f = Math.min(20, Math.max(4, Math.abs(hitPoint.x)));
+    $('fRange').value = f;
+    $('fOut').textContent = f.toFixed(1) + ' cm';
+    updateMarkers(); updateLensShape(); updateAll();
+  }else if(dragMode === 'eye'){
+    eyeGrp.position.z = Math.min(12, Math.max(-12, hitPoint.z));
+    updateGlass();
+  }else if(dragMode === 'pencil'){
+    const minX = (glassShape === 'semi' ? R_SEMI : GX2) + 2;
+    pencilGrp.position.x = Math.min(22, Math.max(minX, hitPoint.x));
+    updateGlass();
+  }else if(dragMode === 'laser'){
+    const len = Math.hypot(hitPoint.x, hitPoint.z);
+    const L = Math.min(30, Math.max(11, len));
+    const k2 = len > 1e-6 ? L/len : 1;
+    laserPos.set(hitPoint.x*k2, 4, hitPoint.z*k2);
+    /* 向きは保持。ビームがガラスを完全に外れたときだけ中心へ向け直す */
+    const dT = {x:Math.cos(laserYaw), z:Math.sin(laserYaw)};
+    const pT = {x:laserPos.x + dT.x*2.4, z:laserPos.z + dT.z*2.4};
+    let hits = false;
+    for(const pr of shapePrims2D()){ if(hitPrim(pT, dT, pr)){ hits = true; break; } }
+    if(!hits) laserYaw = Math.atan2(-laserPos.z, -laserPos.x);
+    updateLaser();
+  }else if(dragMode === 'aim'){
+    laserYaw = Math.atan2(hitPoint.z - laserPos.z, hitPoint.x - laserPos.x);
+    updateLaser();
+  }
+});
+
+function endPointer(e){
+  pointers.delete(e.pointerId);
+  if(pointers.size < 2) pinchDist = 0;
+  if(pointers.size === 0){ dragMode = null; canvas.style.cursor = 'default'; }
+}
+canvas.addEventListener('pointerup', endPointer);
+canvas.addEventListener('pointercancel', endPointer);
+
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  sph.r = Math.min(150, Math.max(18, sph.r * Math.pow(1.0012, e.deltaY)));
+  applyCam();
+}, {passive:false});
+
+/* ================= UI ================= */
+function applyShape(){
+  slab.visible = slabEdge.visible = (mode === 'glass' && glassShape === 'rect');
+  semiGrp.visible = (mode === 'glass' && glassShape === 'semi');
+  lRect.visible = (mode === 'laser' && glassShape === 'rect');
+  lTrap.visible = (mode === 'laser' && glassShape === 'trap');
+  lSemi.visible = (mode === 'laser' && glassShape === 'semi');
+}
+function refresh(){
+  if(mode === 'lens') updateAll();
+  else if(mode === 'glass') updateGlass();
+  else updateLaser();
+}
+function setMode(m){
+  mode = m;
+  const isLens = m === 'lens', isGlass = m === 'glass', isLaser = m === 'laser';
+  document.querySelectorAll('#modeSeg button').forEach(b =>
+    b.classList.toggle('on', b.dataset.mode === m));
+  [lens, lensLabel, axisLabel, mF1, mF2, m2F1, m2F2, raysGroup, objGrp, objTag].forEach(o => o.visible = isLens);
+  if(!isLens){ realGrp.visible = virtGrp.visible = realTag.visible = virtTag.visible = false; }
+  glassRoot.visible = isGlass;
+  laserRoot.visible = isLaser;
+  grid.position.y = isLens ? -9 : 0;                 // ガラスは床置きの前提
+  ['objSec','raysSec','legendSec'].forEach(id => $(id).style.display = isLens ? '' : 'none');
+  $('shapeSec').style.display = isLens ? 'none' : '';
+  $('trapBtn').style.display = isLaser ? '' : 'none';
+  if(!isLaser && glassShape === 'trap'){             // 台形はレーザー専用
+    glassShape = 'rect';
+    document.querySelectorAll('#shapeSeg button').forEach(x =>
+      x.classList.toggle('on', x.dataset.shape === 'rect'));
+  }
+  applyShape();
+  $('kA').textContent = isLens ? '物体の距離 a' : '入射角';
+  $('kB').textContent = isLens ? '像の距離 b'   : '屈折角';
+  $('kM').textContent = isLens ? '倍率' : (isLaser ? '臨界角' : '見かけのずれ');
+  const r = $('fRange');
+  if(isLens){
+    $('fTitle').textContent = '焦点距離 f';
+    r.style.display = ''; $('matSeg').style.display = 'none';
+    r.min = 4; r.max = 20; r.step = 0.5; r.value = f;
+    $('fOut').textContent = f.toFixed(1) + ' cm';
+  }else{
+    $('fTitle').textContent = '物質';
+    r.style.display = 'none'; $('matSeg').style.display = 'flex';
+    $('fOut').textContent = 'n = ' + nGlass.toFixed(2);
+    applyGlassMat();
+  }
+  refresh();
+}
+document.getElementById('modeSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  setMode(b.dataset.mode);
+});
+document.getElementById('objSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#objSeg button').forEach(x => x.classList.toggle('on', x === b));
+  setObjectType(b.dataset.obj, true);
+  updateAll();
+});
+document.getElementById('shapeSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#shapeSeg button').forEach(x => x.classList.toggle('on', x === b));
+  glassShape = b.dataset.shape;
+  applyShape();
+  if(mode === 'glass' && glassShape === 'semi' && pencilGrp.position.x < R_SEMI + 2)
+    pencilGrp.position.x = R_SEMI + 2;
+  refresh();
+});
+document.getElementById('matSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#matSeg button').forEach(x => x.classList.toggle('on', x === b));
+  nGlass = parseFloat(b.dataset.n);
+  $('fOut').textContent = 'n = ' + nGlass.toFixed(2);
+  applyGlassMat();
+  refresh();
+});
+$('fRange').addEventListener('input', e => {
+  f = parseFloat(e.target.value);
+  $('fOut').textContent = f.toFixed(1) + ' cm';
+  updateMarkers(); updateLensShape(); updateAll();
+});
+$('chkFan').addEventListener('change', e => { showFan = e.target.checked; updateAll(); });
+$('chkMain').addEventListener('change', e => { showMain = e.target.checked; updateAll(); });
+$('resetBtn').addEventListener('click', () => {
+  Object.assign(sph, {r:64, theta:1.15, phi:1.18}); applyCam();
+  if(mode === 'lens'){
+    f = 10; $('fRange').value = 10; $('fOut').textContent = '10.0 cm';
+    objGrp.position.x = -25;
+    updateMarkers(); updateLensShape(); updateAll();
+  }else if(mode === 'glass'){
+    nGlass = 1.5;
+    document.querySelectorAll('#matSeg button').forEach(x =>
+      x.classList.toggle('on', x.dataset.n === '1.5'));
+    $('fOut').textContent = 'n = 1.50';
+    eyeGrp.position.z = 8;
+    pencilGrp.position.x = glassShape === 'semi' ? 12 : 9;
+    applyGlassMat();
+    updateGlass();
+  }else{
+    nGlass = 1.5;
+    document.querySelectorAll('#matSeg button').forEach(x =>
+      x.classList.toggle('on', x.dataset.n === '1.5'));
+    $('fOut').textContent = 'n = 1.50';
+    laserPos.set(-16, 4, -6);
+    laserYaw = Math.atan2(6, 16);
+    applyGlassMat();
+    updateLaser();
+  }
+});
+document.getElementById('panelHead').addEventListener('click', () =>
+  document.getElementById('panel').classList.toggle('closed'));
+
+/* ================= スティック・キー操作 ================= */
+const joy = $('joy'), knob = $('knob');
+const nav = {jx:0, jy:0, zoom:0, keys:{}};
+let joyId = null;
+function joyMove(e){
+  const r = joy.getBoundingClientRect();
+  let dx = e.clientX - (r.left + r.width/2);
+  let dy = e.clientY - (r.top + r.height/2);
+  const max = r.width/2 - 18;
+  const len = Math.hypot(dx, dy);
+  if(len > max){ dx *= max/len; dy *= max/len; }
+  nav.jx = dx/max; nav.jy = dy/max;
+  knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+}
+joy.addEventListener('pointerdown', e => {
+  joyId = e.pointerId; joy.setPointerCapture(joyId); joyMove(e);
+});
+joy.addEventListener('pointermove', e => { if(e.pointerId === joyId) joyMove(e); });
+function joyEnd(e){
+  if(e.pointerId !== joyId) return;
+  joyId = null; nav.jx = nav.jy = 0;
+  knob.style.transform = 'translate(-50%,-50%)';
+}
+joy.addEventListener('pointerup', joyEnd);
+joy.addEventListener('pointercancel', joyEnd);
+
+document.querySelectorAll('.zbtn').forEach(b => {
+  const d = parseFloat(b.dataset.z);
+  b.addEventListener('pointerdown', e => { b.setPointerCapture(e.pointerId); nav.zoom = d; });
+  ['pointerup','pointercancel','pointerleave'].forEach(ev =>
+    b.addEventListener(ev, () => { nav.zoom = 0; }));
+});
+
+addEventListener('keydown', e => {
+  if(e.target && e.target.tagName === 'INPUT') return;      // fスライダー操作は邪魔しない
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','-','=','_'].includes(e.key))
+    e.preventDefault();
+  nav.keys[e.key] = true;
+});
+addEventListener('keyup', e => { nav.keys[e.key] = false; });
+
+function applyNav(dt){
+  const k = nav.keys;
+  let rx = nav.jx, ry = nav.jy;
+  if(k['ArrowLeft'])  rx -= 1;
+  if(k['ArrowRight']) rx += 1;
+  if(k['ArrowUp'])    ry -= 1;
+  if(k['ArrowDown'])  ry += 1;
+  let z = nav.zoom + ((k['+'] || k['=']) ? -1 : 0) + ((k['-'] || k['_']) ? 1 : 0);
+  if(!rx && !ry && !z) return;
+  sph.theta += rx * 1.6 * dt;
+  sph.phi = Math.min(Math.PI - 0.05, Math.max(0.05, sph.phi + ry * 1.4 * dt));
+  if(z) sph.r = Math.min(150, Math.max(18, sph.r * Math.pow(1.9, z * dt)));
+  applyCam();
+}
+
+/* ================= ループ ================= */
+function resize(){
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w/h; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize); resize();
+
+let t0 = performance.now(), prevT = t0;
+function loop(now){
+  requestAnimationFrame(loop);
+  const t = (now - t0)/1000;
+  const dt = Math.min(0.05, (now - prevT)/1000); prevT = now;
+  applyNav(dt);
+  const fl = objGrp.userData.flame;
+  if(fl){
+    const s = 1 + 0.07*Math.sin(t*13) + 0.04*Math.sin(t*29 + 1.7);
+    fl.scale.set(1, s, 1);
+  }
+  renderer.render(scene, camera);
+}
+updateAll();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

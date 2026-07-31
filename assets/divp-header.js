@@ -45,7 +45,7 @@
     + '.divp-header .divp-home{display:flex;align-items:center;flex-shrink:0;}'
     + '.divp-header .divp-textwrap{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;}'
     + '.divp-header img.divp-logo{width:44px;height:44px;object-fit:contain;flex-shrink:0;display:block;}'
-    + '.divp-header .divp-text{font-size:13px;font-weight:700;color:#fff;letter-spacing:0.03em;line-height:1.2;white-space:nowrap;}'
+    + '.divp-header .divp-text{font-size:12px;font-weight:700;color:#fff;letter-spacing:0.02em;line-height:1.2;white-space:nowrap;}'
     + '.divp-header a.divp-sub{font-size:11px;color:#e8a020;font-weight:700;letter-spacing:0.02em;line-height:1.2;white-space:nowrap;}'
     + '.divp-header a.divp-sub:hover{text-decoration:underline;}'
     + '.divp-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}'
@@ -60,7 +60,15 @@
     + '.divp-auth-pop label{display:block;font-size:11px;color:#334155;margin-top:8px;font-weight:700;}'
     + '.divp-auth-pop input{width:100%;padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:14px;box-sizing:border-box;margin-top:2px;}'
     + '.divp-auth-pop button{margin-top:12px;width:100%;background:#0a1628;color:#fff;border:none;border-radius:6px;padding:8px;font-size:13px;font-weight:700;cursor:pointer;}'
-    + '.divp-auth-error{color:#c0392b;font-size:11px;margin-top:6px;min-height:14px;}';
+    + '.divp-auth-error{color:#c0392b;font-size:11px;margin-top:6px;min-height:14px;}'
+    // 幅の狭い端末で校名と生徒名が重なるのを防ぐ（校名側をさらに一段小さくして譲る）
+    + '@media (max-width:420px){'
+    + '.divp-header{padding:8px 12px;}'
+    + '.divp-header .divp-brand{gap:8px;}'
+    + '.divp-header img.divp-logo{width:38px;height:38px;}'
+    + '.divp-header .divp-text{font-size:11px;letter-spacing:0;}'
+    + '.divp-header a.divp-sub{font-size:10px;}'
+    + '}';
 
   function injectFont() {
     if (document.getElementById('divp-font-zenmaru')) return;

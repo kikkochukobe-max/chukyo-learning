@@ -175,6 +175,9 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
 .opt .opt-main{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:16px;line-height:1.25}
 .opt .opt-sub{font-size:10.5px;color:var(--sub)}
 .opt:active{transform:scale(.97)}
+/* えらんでいる最中（まだ丸つけ前） */
+.opt.sel{border-color:var(--accent);background:#fff5f0;box-shadow:0 3px 10px rgba(239,106,53,.2)}
+.opt.sel .opt-main{color:var(--accent-d)}
 .opt.done{cursor:default}
 .opt.is-correct{border-color:var(--green);background:#e9f8f1}
 .opt.is-correct .opt-main{color:var(--green)}
@@ -195,6 +198,10 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
   box-shadow:0 5px 14px rgba(44,127,184,.32);
 }
 .nextbtn:active{transform:translateY(2px)}
+/* 答え合わせボタン（丸つけ前） */
+.checkbtn{background:linear-gradient(135deg,#ef6a35,#f59331);box-shadow:0 5px 14px rgba(239,106,53,.32)}
+.checkbtn:disabled{background:#cbd7e0;color:#fff;box-shadow:none;cursor:default}
+.checkbtn:disabled:active{transform:none}
 
 /* 結果画面 */
 .result{
@@ -570,7 +577,8 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
     steps: [],       // { key, code, showMap }
     idx: 0,
     total: 0, correct: 0, streak: 0,
-    locked: false
+    locked: false,
+    sel: null, selBtn: null   // 「答え合わせ」を押すまで保留している選択
   };
 
   var MAP_ITEMS = 8;   // 地図モード：出題する都道府県の数（×2問）
@@ -801,6 +809,7 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
     var step = state.steps[state.idx];
     var p = byCode(step.code);
     state.locked = false;
+    state.sel = null; state.selBtn = null;
 
     // 地図 or ヒントカード
     if (step.showMap){
@@ -836,11 +845,21 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
       b.className = "opt";
       b.dataset.code = o.code;
       b.innerHTML = '<span class="opt-main">'+o.main+'</span><span class="opt-sub">'+o.sub+'</span>';
-      b.addEventListener("click", function(){ choose(o, step, b); });
+      b.addEventListener("click", function(){ select(o, b); });
       wrap.appendChild(b);
     });
 
-    $("feedback").innerHTML = "";
+    // 「答え合わせ」ボタン（えらぶまで押せない）
+    $("feedback").innerHTML = '<div class="msgbox"></div>';
+    var cb = document.createElement("button");
+    cb.type = "button";
+    cb.id = "checkBtn";
+    cb.className = "nextbtn checkbtn";
+    cb.textContent = "答え合わせ";
+    cb.disabled = true;
+    cb.addEventListener("click", function(){ grade(step); });
+    $("feedback").appendChild(cb);
+
     renderHud();
   }
 
@@ -852,9 +871,21 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
     $("progFill").style.width = pct + "%";
   }
 
-  function choose(o, step, btn){
+  // えらぶだけ（まだ丸つけしない）。答え合わせボタンを押すまで何度でも選び直せる
+  function select(o, btn){
     if (state.locked) return;
+    state.sel = o; state.selBtn = btn;
+    Array.prototype.forEach.call($("options").children, function(b){
+      b.classList.toggle("sel", b === btn);
+    });
+    var cb = $("checkBtn");
+    if (cb) cb.disabled = false;
+  }
+
+  function grade(step){
+    if (state.locked || !state.sel) return;
     state.locked = true;
+    var o = state.sel, btn = state.selBtn;
     var p = byCode(step.code);
     var at = answerTypeOf(step.key);
     var correctText = at === "cap" ? p.cap : p.n;
@@ -862,6 +893,7 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
 
     // ボタンの見た目
     Array.prototype.forEach.call($("options").children, function(b){
+      b.classList.remove("sel");
       b.classList.add("done");
       if (+b.dataset.code === p.c) b.classList.add("is-correct");
       else if (b === btn) b.classList.add("is-wrong");
@@ -882,19 +914,23 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
     }
 
     // フィードバック
+    var box = $("feedback").querySelector(".msgbox");
     if (ok){
       if (window.Divp && Divp.correct){ try { Divp.correct(); } catch(e){} }
-      $("feedback").innerHTML = '<div class="msg good">せいかい！ 🎯</div>';
+      box.innerHTML = '<div class="msg good">せいかい！ 🎯</div>';
     } else {
-      $("feedback").innerHTML =
+      box.innerHTML =
         '<div class="msg bad">ざんねん… こたえは <span class="ans">「'+correctText+'」</span></div>';
     }
+
+    // 答え合わせボタン → つぎへボタンに差し替え
+    var cb = $("checkBtn");
     var nb = document.createElement("button");
     nb.type = "button";
     nb.className = "nextbtn";
     nb.textContent = (state.idx >= state.steps.length - 1) ? "けっかを見る" : "つぎへ →";
     nb.addEventListener("click", next);
-    $("feedback").appendChild(nb);
+    if (cb) cb.parentNode.replaceChild(nb, cb); else $("feedback").appendChild(nb);
     renderHud();
   }
 

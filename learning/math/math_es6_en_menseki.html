@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>円の面積マスター｜小6算数｜中京個別指導学院</title>
+<meta name="description" content="小学6年生の「円の面積」練習サイト。半径から・直径から・円周から求める3パターンと、図形をくり抜いたり入れかえたりして工夫して求める問題を自動で出題。3.14のかけ算早見表つき。">
+<style>
+:root{
+  --paper:#FBFAF6;
+  --card:#FFFDF7;
+  --grid:#ECE9E0;
+  --ink:#33312B;
+  --ink-soft:#8B877C;
+  --line:#E4E0D5;
+  --shu:#C73E2E;         /* 朱色（丸つけ・アクセント） */
+  --shu-pale:#F6DCD6;
+  --ai:#2C5F8A;          /* 藍 */
+  --ai-pale:#DCE8F2;
+  --kin:#C9A227;
+  --midori:#3E7A55;
+  --daidai:#D89A45;
+  /* 小学生向けツールなので、本文まで通して丸ゴシックにする。
+     Zen Maru Gothic は divp-header.js が読み込む（weightは 500/700/900 のみ）。
+     以降は divp-header 未読込・オフライン時のための端末フォントのフォールバック。 */
+  --round:"Zen Maru Gothic","Hiragino Maru Gothic ProN","ヒラギノ丸ゴ ProN",
+          "HGMaruGothicMPRO","HGP丸ｺﾞｼｯｸM-PRO","HG丸ｺﾞｼｯｸM-PRO",
+          "M PLUS Rounded 1c","Yu Gothic","YuGothic","Noto Sans JP",system-ui,sans-serif;
+  --shadow:0 1px 0 rgba(255,255,255,.7),0 2px 10px rgba(90,80,60,.07);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--round);color:var(--ink);line-height:1.6;
+  -webkit-text-size-adjust:100%;
+  background:
+    linear-gradient(var(--grid) 1px,transparent 1px) 0 0/26px 26px,
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/26px 26px,
+    var(--paper);
+}
+.wrap{max-width:760px;margin:0 auto;padding:14px 14px 70px}
+
+/* ---------- 見出し ---------- */
+header{display:flex;align-items:center;gap:12px;margin:2px 0 14px}
+header .hmark{flex:0 0 auto}
+h1{font-family:var(--round);font-size:clamp(19px,4.6vw,27px);font-weight:900;letter-spacing:.04em;margin:0}
+h1 .ac{color:var(--shu)}
+.subtitle{font-size:clamp(11.5px,2.7vw,13.5px);color:var(--ink-soft);margin-top:1px}
+
+/* ---------- カード共通 ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow)}
+
+/* ---------- モードえらび（常に表示・ボタンだけ） ---------- */
+/* grid で 1行4等分。スマホ幅では 2×2（flexだと 3+1 に割れて不揃いになる） */
+.modes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px;margin-bottom:12px}
+.mode{min-width:0;background:#F5F2EA;border:2px solid transparent;
+  border-radius:999px;padding:11px 10px;cursor:pointer;text-align:center;
+  font-family:var(--round);font-weight:700;font-size:clamp(13px,3.2vw,15.5px);
+  color:var(--ink);white-space:nowrap;
+  transition:background .14s,border-color .14s,color .14s}
+.mode:hover{background:#EFEBE0}
+.mode.on{background:#fff;border-color:var(--mc);color:var(--mc);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--mc) 18%,transparent)}
+@media (max-width:480px){
+  .modes{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ---------- 問題カード ---------- */
+.qcard{padding:12px 13px 14px;margin-bottom:12px;position:relative;overflow:hidden}
+.qhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  font-family:var(--round);font-weight:700;font-size:14px;color:var(--ink-soft);
+  border-bottom:1px dashed var(--line);padding-bottom:8px;margin-bottom:10px}
+.qhead .tag{background:var(--shu);color:#fff;border-radius:999px;padding:2px 11px;font-size:12.5px}
+.qhead .tag.retry{background:var(--kin)}
+.qhead .streak{margin-left:auto;color:var(--daidai);font-size:13px}
+
+.figbox{text-align:center;margin:2px 0 4px}
+.figbox svg{width:100%;max-width:300px;height:auto;display:inline-block}
+.legend{text-align:center;font-size:12px;color:var(--ink-soft);margin:0 0 8px}
+.legend .sw{display:inline-block;width:11px;height:11px;border-radius:3px;
+  background:var(--shu-pale);border:1.6px solid var(--shu);vertical-align:-1px;margin-right:4px}
+.swapbtn{display:block;margin:2px auto 8px;background:var(--ai-pale);color:var(--ai);
+  border:1.5px solid var(--ai);border-radius:999px;padding:7px 16px;font-size:13.5px;
+  font-family:var(--round);font-weight:700;cursor:pointer}
+.swapbtn:hover{background:#CEDFEE}
+
+.qtext{font-family:var(--round);font-weight:700;font-size:clamp(15px,3.5vw,17.5px);
+  line-height:1.7;margin:4px 2px 10px}
+.qtext em{font-style:normal;color:var(--shu);font-weight:700}
+
+/* こたえは4択 */
+.asklabel{font-family:var(--round);font-weight:700;font-size:13.5px;color:var(--ink-soft);
+  margin:0 2px 7px;display:flex;align-items:center;gap:8px}
+.asklabel::after{content:"";flex:1;height:1px;background:var(--line)}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.ch{position:relative;background:#fff;border:2px solid var(--line);border-radius:12px;
+  padding:15px 10px 13px;min-height:62px;
+  font-family:var(--round);font-weight:900;font-size:clamp(16.5px,4.1vw,21px);color:var(--ink);
+  transition:background .12s,border-color .12s,opacity .2s}
+.ch .u{font-size:.66em;color:var(--ink-soft);margin-left:3px}
+.ch .no{position:absolute;top:4px;left:8px;font-size:11px;color:var(--ink-soft);font-weight:700}
+.ch .mk{position:absolute;top:3px;right:7px;font-size:18px;line-height:1}
+.ch:hover:not(:disabled){background:#F7F4EC;border-color:#CFC7BB}
+.ch:active:not(:disabled){transform:scale(.985)}
+.ch:disabled{cursor:default}
+/* えらんだだけの状態（まだ丸つけしていない） */
+.ch.sel{background:#FFF6F4;border-color:var(--shu);color:var(--shu);
+  box-shadow:0 0 0 3px rgba(199,62,46,.14)}
+.ch.sel .no{color:var(--shu)}
+.checkrow{margin-top:12px;display:flex;justify-content:center}
+.checkrow .btn{min-width:210px}
+.checkrow.hidden{display:none}
+.ch.pick-ok{background:#E8F3EC;border-color:var(--midori);color:var(--midori)}
+.ch.pick-ng{background:#FBEAE7;border-color:var(--shu);color:var(--shu)}
+.ch.show-ok{background:#E8F3EC;border-color:var(--midori)}
+.ch.dim{opacity:.42}
+button{font-family:var(--round);font-weight:700;cursor:pointer;border:0}
+.btn{border-radius:11px;padding:11px 18px;font-size:15.5px;min-height:46px}
+.btn-shu{background:var(--shu);color:#fff;box-shadow:0 3px 0 #9E2F22}
+.btn-shu:active{transform:translateY(2px);box-shadow:0 1px 0 #9E2F22}
+.btn-shu:disabled{background:#CFC7BB;box-shadow:0 3px 0 #B6ADA0;cursor:default}
+.btn-ai{background:var(--ai);color:#fff;box-shadow:0 3px 0 #1F476A}
+.btn-ai:active{transform:translateY(2px);box-shadow:0 1px 0 #1F476A}
+.btn-ghost{background:#F1EDE3;color:var(--ink)}
+
+.feedback{min-height:1.6em;margin-top:12px;font-family:var(--round);font-weight:900;font-size:16px}
+.feedback.ok{color:var(--midori)}
+.feedback.ng{color:var(--shu)}
+.feedback .why{display:inline-block;margin-top:4px;font-size:13px;color:var(--ink-soft);
+  font-family:var(--round);font-weight:700}
+
+.expl{margin-top:11px;background:#F9F7F0;border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+.expl.hidden{display:none}
+.expl h3{font-family:var(--round);font-size:14px;margin:0 0 7px;color:var(--ai);
+  display:flex;align-items:center;gap:7px}
+.expl h3::after{content:"";flex:1;height:1px;background:var(--line)}
+.expl ol{margin:0;padding-left:1.3em}
+.expl li{font-size:14.5px;padding:2px 0;line-height:1.65}
+.expl li b{color:var(--shu)}
+.expl .parts{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;
+  margin:9px 0 4px;padding:8px 4px;background:#fff;border-radius:9px;border:1px dashed var(--line)}
+.expl .parts svg{width:58px;height:58px;flex:0 0 auto}
+.expl .parts .op{font-family:var(--round);font-weight:700;font-size:20px;color:var(--ink-soft)}
+.expl .parts .cap{font-size:10.5px;color:var(--ink-soft);text-align:center;line-height:1.25;
+  display:flex;flex-direction:column;align-items:center;gap:1px}
+.expl .kufu{margin-top:8px;font-size:13px;color:var(--ai);background:var(--ai-pale);
+  border-radius:8px;padding:6px 10px}
+.nextrow{margin-top:12px;display:flex;gap:8px;justify-content:flex-end}
+.nextrow.hidden{display:none}
+
+/* ---------- 道具箱 ---------- */
+.tools{margin-bottom:12px}
+details{background:var(--card);border:1px solid var(--line);border-radius:13px;
+  box-shadow:var(--shadow);margin-bottom:9px;overflow:hidden}
+summary{font-family:var(--round);font-weight:700;font-size:14.5px;padding:11px 14px;
+  cursor:pointer;color:var(--ai);list-style:none;display:flex;align-items:center;gap:8px}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸";color:var(--ink-soft);font-size:13px}
+details[open] summary::before{content:"▾"}
+.tbody{padding:0 14px 14px;font-size:14px}
+table.mul{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+table.mul td{border:1px solid var(--line);padding:5px 4px;text-align:center;font-size:13.5px}
+table.mul td.k{background:#F7F4EC;font-weight:700;color:var(--ai)}
+.kufulist{margin:0;padding-left:1.25em}
+.kufulist li{padding:3px 0;line-height:1.6}
+.kufulist b{color:var(--shu)}
+
+/* ---------- 成績 ---------- */
+.score{display:flex;gap:10px;padding:11px 13px;align-items:center;flex-wrap:wrap}
+.score .s{font-size:13px;color:var(--ink-soft)}
+.score .s b{font-family:var(--round);font-weight:900;font-size:19px;color:var(--ink);margin-left:3px}
+.score .s.rate b{color:var(--shu)}
+.score .reset{margin-left:auto;background:#F1EDE3;color:var(--ink-soft);border-radius:999px;
+  padding:6px 13px;font-size:12.5px}
+
+footer{margin-top:22px;text-align:center;font-size:11.5px;color:var(--ink-soft);letter-spacing:.05em}
+footer .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--shu);
+  margin-right:6px;vertical-align:1px}
+
+/* 入れかえアニメーション（rot=回して入れる / mv=平行移動して入れる） */
+.swapfig .swappiece{transition:transform .95s cubic-bezier(.4,0,.2,1);transform-box:view-box}
+.swapfig.on .swappiece.rot{transform:rotate(180deg)}
+.swapfig.on .swappiece.mv{transform:translateX(var(--mv))}
+@media (prefers-reduced-motion:reduce){
+  .swapfig .swappiece{transition:none}
+  .ansbox.err{animation:none}
+}
+@media (max-width:420px){
+  .wrap{padding:10px 10px 60px}
+  .qcard{padding:11px 10px 12px}
+  .modes{gap:7px;padding:7px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <svg class="hmark" width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+    <rect x="1" y="1" width="42" height="42" rx="8" fill="#FFFDF7" stroke="#E4E0D5"/>
+    <circle cx="22" cy="22" r="14" fill="#F6DCD6" stroke="#C73E2E" stroke-width="2.4"/>
+    <path d="M22 22 L36 22" stroke="#2C5F8A" stroke-width="2"/>
+    <circle cx="22" cy="22" r="2.6" fill="#2C5F8A"/>
+  </svg>
+  <div>
+    <h1>円の面積 <span class="ac">マスター</span></h1>
+    <p class="subtitle">半径・直径・円周から。そして、くふうして求める。（小6算数）</p>
+  </div>
+</header>
+
+<nav class="card modes" id="modes" aria-label="練習する種類"></nav>
+
+<section class="card qcard">
+  <div class="qhead">
+    <span class="tag" id="qtag">半径から</span>
+    <span id="qno">第1問</span>
+    <span class="streak" id="streak"></span>
+  </div>
+
+  <div class="figbox" id="figbox"></div>
+  <p class="legend" id="legend"></p>
+  <p class="qtext" id="qtext"></p>
+
+  <p class="asklabel">答えをえらぼう</p>
+  <div class="choices" id="choices" role="group" aria-label="答えをえらぶ"></div>
+
+  <div class="checkrow" id="checkrow">
+    <button class="btn btn-shu" id="checkbtn" disabled>答え合わせ</button>
+  </div>
+
+  <p class="feedback" id="feedback"></p>
+  <div class="expl hidden" id="expl"></div>
+  <div class="nextrow hidden" id="nextrow">
+    <button class="btn btn-ai" id="nextbtn">つぎの問題 →</button>
+  </div>
+</section>
+
+<div class="tools">
+  <details>
+    <summary>3.14 のかけ算 早見表</summary>
+    <div class="tbody" id="mulbody"></div>
+  </details>
+  <details>
+    <summary>くふうのコツ（工夫して求める）</summary>
+    <div class="tbody">
+      <ul class="kufulist">
+        <li><b>くり抜く</b>…大きい形の面積から、内側の形の面積を <b>ひく</b>。<br>
+          （正方形 − 円、大きい円 − 小さい円、四分円 − 三角形 など）</li>
+        <li><b>入れかえる</b>…はみ出た部分を、へこんだ部分に <b>移す</b>。<br>
+          形が変わっても面積は同じ。かんたんな形にしてから計算する。</li>
+        <li><b>かさねる</b>…重なりのある形は、<b>全部たしてから重なった分をひく</b>。</li>
+        <li>3.14 のかけ算は最後に1回だけにすると計算がらく。<br>
+          例）10×10×3.14 − 6×6×3.14 ＝ <b>(100 − 36)×3.14</b> ＝ 64×3.14</li>
+      </ul>
+    </div>
+  </details>
+</div>
+
+<section class="card score">
+  <span class="s">とけた数<b id="scCount">0</b></span>
+  <span class="s">せいかい<b id="scOk">0</b></span>
+  <span class="s rate">正答率<b id="scRate">–</b></span>
+  <button class="reset" id="scReset">リセット</button>
+</section>
+
+<footer><span class="dot"></span>中京個別指導学院｜divp-suite</footer>
+</div>
+
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-correct.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script>
+(function(){
+"use strict";
+
+var UNIT_KEY = 'math_es6_en_menseki';
+var PI = 3.14;
+
+/* ===================== ちいさな道具 ===================== */
+function $(id){ return document.getElementById(id); }
+function ri(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)), t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+/* 3.14 のかけ算は浮動小数の誤差が出るので、表示は小数第4位でそろえる */
+function fmt(x){
+  var r = Math.round(x*10000)/10000;
+  return String(r);
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ===================== 図（SVG） ===================== */
+var C = {
+  fill:'#F6DCD6', fill2:'#EFE9DC', paper:'#FFFDF7',
+  edge:'#C73E2E', dim:'#2C5F8A', guide:'#A9A498', sub:'#8A5A2B'
+};
+/* 図の中の文字も丸ゴシックでそろえる（CSS変数はSVG属性に使えないので実体で持つ） */
+var SVGFONT = "Zen Maru Gothic,Hiragino Maru Gothic ProN,HGMaruGothicMPRO,"
+            + "M PLUS Rounded 1c,Yu Gothic,sans-serif";
+
+function tx(x,y,s,color,anchor,size){
+  return '<text x="'+x+'" y="'+y+'" text-anchor="'+(anchor||'middle')+'" dominant-baseline="middle"'
+    + ' font-size="'+(size||14)+'" font-weight="700" font-family="'+SVGFONT+'"'
+    + ' fill="'+(color||C.dim)+'" paint-order="stroke" stroke="'+C.paper+'" stroke-width="4.5"'
+    + ' stroke-linejoin="round">'+esc(s)+'</text>';
+}
+/* 横方向の寸法線（下に文字） */
+function dimH(x1,x2,y,label,color){
+  var c = color||C.dim;
+  return '<g stroke="'+c+'" stroke-width="1.6" fill="none">'
+    + '<path d="M'+x1+','+(y-5)+' V'+(y+5)+'"/><path d="M'+x2+','+(y-5)+' V'+(y+5)+'"/>'
+    + '<path d="M'+x1+','+y+' H'+x2+'"/></g>'
+    + tx((x1+x2)/2, y+16, label, c);
+}
+/* 中心からのばす半径線（中心に点）。dx/dy はラベルを線の中点からずらす量 */
+function radLine(cx,cy,tx2,ty2,label,color,dx,dy){
+  var c = color||C.dim;
+  if(dx === undefined) dx = 0;
+  if(dy === undefined) dy = -11;
+  return '<path d="M'+fmt(cx)+','+fmt(cy)+' L'+fmt(tx2)+','+fmt(ty2)+'" stroke="'+c+'" stroke-width="1.8" fill="none"/>'
+    + '<circle cx="'+fmt(cx)+'" cy="'+fmt(cy)+'" r="3" fill="'+c+'"/>'
+    + tx((cx+tx2)/2+dx, (cy+ty2)/2+dy, label, c);
+}
+function svgOpen(w,h,cls){
+  return '<svg viewBox="0 0 '+fmt(w)+' '+fmt(h)+'" role="img"'
+    + (cls?' class="'+cls+'"':'') + ' aria-label="問題の図">';
+}
+
+/* --- 円・半円・四分円（半径/直径/円周のモード用） --- */
+function figCircle(f){
+  var P = 40, r = f.r, part = f.part||'full';
+  /* 四分円は縦横が半径ぶんしかないので、半径を大きめに取って図の大きさをそろえる */
+  var sc = (part === 'quarter' ? 185/r : 218/(2*r));
+  var R = r*sc, w, h, body='', deco='', padB = P;
+  if(part === 'full'){
+    w = 2*R; h = 2*R;
+    body = '<circle cx="'+fmt(R)+'" cy="'+fmt(R)+'" r="'+fmt(R)+'" fill="'+C.fill+'" stroke="'+C.edge+'" stroke-width="2.6"/>';
+    if(f.show === 'r'){
+      deco = radLine(R,R,2*R,R,'半径 '+r+'cm');
+    }else if(f.show === 'd'){
+      deco = '<path d="M0,'+fmt(R)+' H'+fmt(2*R)+'" stroke="'+C.dim+'" stroke-width="1.8"/>'
+        + '<circle cx="'+fmt(R)+'" cy="'+fmt(R)+'" r="3" fill="'+C.dim+'"/>'
+        + tx(R, R-13, '直径 '+f.dlabel+'cm');
+    }else{  /* 円周 */
+      deco = '<path d="M'+fmt(R)+','+fmt(2*R)+' V'+fmt(2*R+17)+'" stroke="'+C.dim+'" stroke-width="1.6" fill="none"/>'
+        + tx(R, 2*R+30, 'まわりの長さ '+f.clabel+'cm');
+      padB = P + 30;
+    }
+  }else if(part === 'half'){
+    w = 2*R; h = R;
+    body = '<path d="M0,'+fmt(R)+' A'+fmt(R)+','+fmt(R)+' 0 0,1 '+fmt(2*R)+','+fmt(R)+' Z"'
+      + ' fill="'+C.fill+'" stroke="'+C.edge+'" stroke-width="2.6"/>';
+    if(f.show === 'r'){
+      /* 半円は横に引くと弧とラベルが重なるので、中心から真上へ引く */
+      deco = radLine(R,R,R,0,'半径 '+r+'cm',null,42,0);
+    }else{
+      deco = dimH(0,2*R,R+18,'直径 '+f.dlabel+'cm');
+      padB = P + 26;
+    }
+  }else{  /* quarter：中心は左下 */
+    w = R; h = R;
+    body = '<path d="M0,'+fmt(R)+' H'+fmt(R)+' A'+fmt(R)+','+fmt(R)+' 0 0,0 0,0 Z"'
+      + ' fill="'+C.fill+'" stroke="'+C.edge+'" stroke-width="2.6"/>';
+    deco = dimH(0,R,R+18,'半径 '+r+'cm') + '<circle cx="0" cy="'+fmt(R)+'" r="3" fill="'+C.dim+'"/>';
+    padB = P + 26;
+  }
+  return svgOpen(w+2*P, h+P+padB)
+    + '<g transform="translate('+P+','+P+')">' + body + deco + '</g></svg>';
+}
+
+/* --- 正方形から内接円をくり抜く --- */
+function figSqCircle(f){
+  var P = 40, a = f.a, sc = 216/a, A = a*sc, R = A/2;
+  var g = '<path d="M0,0 H'+fmt(A)+' V'+fmt(A)+' H0 Z" fill="'+C.fill+'" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + '<circle cx="'+fmt(R)+'" cy="'+fmt(R)+'" r="'+fmt(R)+'" fill="'+C.paper+'" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + dimH(0,A,A+18,'1辺 '+a+'cm');
+  return svgOpen(A+2*P, A+P+P+26) + '<g transform="translate('+P+','+P+')">'+g+'</g></svg>';
+}
+
+/* --- 円の輪（ドーナツ） --- */
+function figDonut(f){
+  var P = 40, R0 = f.R, r0 = f.r, sc = 216/(2*R0);
+  var Ro = R0*sc, Ri = r0*sc, cx = Ro, cy = Ro;
+  var g = '<circle cx="'+fmt(cx)+'" cy="'+fmt(cy)+'" r="'+fmt(Ro)+'" fill="'+C.fill+'" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + '<circle cx="'+fmt(cx)+'" cy="'+fmt(cy)+'" r="'+fmt(Ri)+'" fill="'+C.paper+'" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    /* 外は真上・内は右へ。同じ向きに引くとラベルが重なるため向きを分ける */
+    + radLine(cx,cy,cx,cy-Ro,'外の半径 '+R0+'cm',null,52,0)
+    + radLine(cx,cy,cx+Ri,cy,'内の半径 '+r0+'cm',C.sub,0,17);
+  return svgOpen(2*Ro+2*P, 2*Ro+2*P) + '<g transform="translate('+P+','+P+')">'+g+'</g></svg>';
+}
+
+/* --- 葉っぱ形（四分円2つの重なり） --- */
+function figLeaf(f){
+  var P = 40, a = f.a, sc = 216/a, A = a*sc;
+  var leaf = 'M'+fmt(A)+',0 A'+fmt(A)+','+fmt(A)+' 0 0,1 0,'+fmt(A)
+           + ' A'+fmt(A)+','+fmt(A)+' 0 0,1 '+fmt(A)+',0 Z';
+  var g = '<path d="M0,0 H'+fmt(A)+' V'+fmt(A)+' H0 Z" fill="'+C.paper+'" stroke="'+C.guide+'"'
+        + ' stroke-width="1.8" stroke-dasharray="5 4"/>'
+    + '<path d="'+leaf+'" fill="'+C.fill+'" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + '<circle cx="0" cy="0" r="3" fill="'+C.guide+'"/><circle cx="'+fmt(A)+'" cy="'+fmt(A)+'" r="3" fill="'+C.guide+'"/>'
+    + dimH(0,A,A+18,'1辺 '+a+'cm');
+  return svgOpen(A+2*P, A+P+P+26) + '<g transform="translate('+P+','+P+')">'+g+'</g></svg>';
+}
+
+/* --- 弓形（四分円 − 直角三角形） --- */
+function figBow(f){
+  var P = 40, a = f.a, sc = 200/a, A = a*sc;
+  var quarter = 'M0,'+fmt(A)+' H'+fmt(A)+' A'+fmt(A)+','+fmt(A)+' 0 0,0 0,0 Z';
+  var bow = 'M'+fmt(A)+','+fmt(A)+' A'+fmt(A)+','+fmt(A)+' 0 0,0 0,0 Z';
+  var g = '<path d="'+quarter+'" fill="'+C.paper+'" stroke="'+C.guide+'" stroke-width="1.8"/>'
+    + '<path d="'+bow+'" fill="'+C.fill+'" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + '<path d="M0,0 L0,'+fmt(A)+' L'+fmt(A)+','+fmt(A)+' Z" fill="none" stroke="'+C.dim+'"'
+    + ' stroke-width="1.8" stroke-dasharray="5 4"/>'
+    + '<path d="M0,'+fmt(A-14)+' h14 v14" fill="none" stroke="'+C.dim+'" stroke-width="1.4"/>'
+    + dimH(0,A,A+18,'半径 '+a+'cm')
+    + '<circle cx="0" cy="'+fmt(A)+'" r="3" fill="'+C.dim+'"/>';
+  return svgOpen(A+2*P, A+P+P+26) + '<g transform="translate('+P+','+P+')">'+g+'</g></svg>';
+}
+
+/* --- 花びら4枚（正方形の各辺を直径とする半円4つの重なり） --- */
+function figFlower4(f){
+  var P = 40, a = f.a, sc = 216/a, A = a*sc, h = A/2;
+  var petal = 'M0,0 A'+fmt(h)+','+fmt(h)+' 0 0,0 '+fmt(h)+','+fmt(h)
+            + ' A'+fmt(h)+','+fmt(h)+' 0 0,0 0,0 Z';
+  var arcs = ''
+    + '<path d="M0,0 A'+fmt(h)+','+fmt(h)+' 0 0,0 '+fmt(A)+',0" fill="none" stroke="'+C.edge+'" stroke-width="1.6"/>'
+    + '<path d="M'+fmt(A)+',0 A'+fmt(h)+','+fmt(h)+' 0 0,0 '+fmt(A)+','+fmt(A)+'" fill="none" stroke="'+C.edge+'" stroke-width="1.6"/>'
+    + '<path d="M'+fmt(A)+','+fmt(A)+' A'+fmt(h)+','+fmt(h)+' 0 0,0 0,'+fmt(A)+'" fill="none" stroke="'+C.edge+'" stroke-width="1.6"/>'
+    + '<path d="M0,'+fmt(A)+' A'+fmt(h)+','+fmt(h)+' 0 0,0 0,0" fill="none" stroke="'+C.edge+'" stroke-width="1.6"/>';
+  var petals = '';
+  [0,90,180,270].forEach(function(deg){
+    petals += '<g transform="rotate('+deg+' '+fmt(h)+' '+fmt(h)+')"><path d="'+petal+'"'
+      + ' fill="'+C.fill+'" stroke="'+C.edge+'" stroke-width="2.2"/></g>';
+  });
+  var g = '<path d="M0,0 H'+fmt(A)+' V'+fmt(A)+' H0 Z" fill="'+C.paper+'" stroke="'+C.guide+'"'
+        + ' stroke-width="1.8" stroke-dasharray="5 4"/>'
+    + arcs + petals + dimH(0,A,A+18,'1辺 '+a+'cm');
+  return svgOpen(A+2*P, A+P+P+26) + '<g transform="translate('+P+','+P+')">'+g+'</g></svg>';
+}
+
+/* --- 大きい半円＋小さい半円2つ（入れかえるともとの大半円） ---
+   ※CSSで #swappiece を180°回転させるため、この図だけは
+     ラッパーの translate を使わず座標に余白を焼き込む（transform-origin をそろえる） */
+function figArbelos(f){
+  var PX = 40, PT = 46, D = f.D, sc = 214/D;
+  var d = D*sc, R = d/2, r = d/4;
+  var ox = PX, oy = PT + R;                 /* 直径の線（基準線）の位置 */
+  var W = d + 2*PX, H = oy + r + 44;
+  function X(v){ return fmt(ox+v); }
+  function Y(v){ return fmt(oy+v); }
+  /* 大半円（上）から左の小半円（上）をくり抜いた部分＝動かさない側 */
+  var stat = 'M'+X(0)+','+Y(0)
+    + ' A'+fmt(R)+','+fmt(R)+' 0 0,1 '+X(d)+','+Y(0)
+    + ' H'+X(d/2)
+    + ' A'+fmt(r)+','+fmt(r)+' 0 0,0 '+X(0)+','+Y(0)+' Z';
+  /* 右下の小半円＝動かす側。基準線の中点まわりに180°回すと左のへこみにぴったり入る */
+  var mov = 'M'+X(d/2)+','+Y(0)
+    + ' A'+fmt(r)+','+fmt(r)+' 0 0,0 '+X(d)+','+Y(0)+' Z';
+  var g = '<path d="M'+X(0)+','+Y(0)+' H'+X(d)+'" stroke="'+C.guide+'" stroke-width="1.6"'
+        + ' stroke-dasharray="5 4" fill="none"/>'
+    + '<path d="'+stat+'" fill="'+C.fill+'" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + '<g class="swappiece rot" style="transform-origin:'+X(d/2)+'px '+Y(0)+'px">'
+    +   '<path d="'+mov+'" fill="#EFC3B8" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + '</g>'
+    + '<circle cx="'+X(d/2)+'" cy="'+Y(0)+'" r="3" fill="'+C.dim+'"/>'
+    + dimH(ox, ox+d, oy+r+16, '大きい半円の直径 '+D+'cm');
+  return svgOpen(W, H, 'swapfig') + g + '</svg>';
+}
+
+/* --- 正方形＋半円の入れかえ（左をくり抜き、右へはみ出す） ---
+   はみ出た半円を左へ 1辺ぶん平行移動させると、へこみにぴったり入る＝もとの正方形 */
+function figSwapSq(f){
+  var P = 40, a = f.a, sc = 178/a, A = a*sc, h = A/2;
+  var sq    = 'M0,0 H'+fmt(A)+' V'+fmt(A)+' H0 Z';
+  var notch = 'M0,0 A'+fmt(h)+','+fmt(h)+' 0 0,1 0,'+fmt(A)+' Z';
+  var mov   = 'M'+fmt(A)+',0 A'+fmt(h)+','+fmt(h)+' 0 0,1 '+fmt(A)+','+fmt(A)+' Z';
+  var g = '<path d="'+sq+'" fill="'+C.fill+'" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + '<path d="'+notch+'" fill="'+C.paper+'" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + '<g class="swappiece mv" style="--mv:'+fmt(-A)+'px">'
+    +   '<path d="'+mov+'" fill="#EFC3B8" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + '</g>'
+    + '<path d="M'+fmt(A)+',0 V'+fmt(A)+'" stroke="'+C.guide+'" stroke-width="1.6"'
+    + ' stroke-dasharray="5 4" fill="none"/>'
+    + dimH(0,A,A+18,'1辺 '+a+'cm');
+  return svgOpen(A+h+2*P, A+P+P+26, 'swapfig')
+    + '<g transform="translate('+P+','+P+')">'+g+'</g></svg>';
+}
+
+/* --- 正方形の4頂点から四分円4つをくり抜く（中央に星形が残る） --- */
+function figStar4(f){
+  var P = 40, a = f.a, sc = 216/a, A = a*sc, h = A/2;
+  var q1 = 'M0,0 H'+fmt(h)+' A'+fmt(h)+','+fmt(h)+' 0 0,1 0,'+fmt(h)+' Z';
+  var g = '<path d="M0,0 H'+fmt(A)+' V'+fmt(A)+' H0 Z" fill="'+C.fill+'" stroke="'+C.edge+'" stroke-width="2.4"/>';
+  [0,90,180,270].forEach(function(deg){
+    g += '<g transform="rotate('+deg+' '+fmt(h)+' '+fmt(h)+')"><path d="'+q1+'"'
+       + ' fill="'+C.paper+'" stroke="'+C.edge+'" stroke-width="1.8"/></g>';
+  });
+  g += dimH(0,A,A+18,'1辺 '+a+'cm');
+  return svgOpen(A+2*P, A+P+P+26) + '<g transform="translate('+P+','+P+')">'+g+'</g></svg>';
+}
+
+/* --- 四分円 − 半円（下の辺を直径とする半円をくり抜く） --- */
+function figQuarterHalf(f){
+  var P = 40, a = f.a, sc = 198/a, A = a*sc, h = A/2;
+  var quarter = 'M0,'+fmt(A)+' H'+fmt(A)+' A'+fmt(A)+','+fmt(A)+' 0 0,0 0,0 Z';
+  var half    = 'M0,'+fmt(A)+' A'+fmt(h)+','+fmt(h)+' 0 0,1 '+fmt(A)+','+fmt(A)+' Z';
+  var g = '<path d="'+quarter+'" fill="'+C.fill+'" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + '<path d="'+half+'" fill="'+C.paper+'" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + '<path d="M0,'+fmt(A-14)+' h14 v14" fill="none" stroke="'+C.dim+'" stroke-width="1.4"/>'
+    + dimH(0,A,A+18,'半径 '+a+'cm')
+    + '<circle cx="0" cy="'+fmt(A)+'" r="3" fill="'+C.dim+'"/>';
+  return svgOpen(A+2*P, A+P+P+26) + '<g transform="translate('+P+','+P+')">'+g+'</g></svg>';
+}
+
+/* --- 4分の1の輪（同じ中心の四分円2つの差） --- */
+function figQuarterRing(f){
+  var P = 40, R0 = f.R, r0 = f.r, sc = 198/R0, Ro = R0*sc, Ri = r0*sc;
+  var big   = 'M0,'+fmt(Ro)+' H'+fmt(Ro)+' A'+fmt(Ro)+','+fmt(Ro)+' 0 0,0 0,0 Z';
+  var small = 'M0,'+fmt(Ro)+' H'+fmt(Ri)+' A'+fmt(Ri)+','+fmt(Ri)+' 0 0,0 0,'+fmt(Ro-Ri)+' Z';
+  var g = '<path d="'+big+'" fill="'+C.fill+'" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + '<path d="'+small+'" fill="'+C.paper+'" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + '<path d="M0,'+fmt(Ro-14)+' h14 v14" fill="none" stroke="'+C.dim+'" stroke-width="1.4"/>'
+    + dimH(0,Ri,Ro+18,'内 '+r0+'cm')
+    + dimH(0,Ro,Ro+42,'外 '+R0+'cm')
+    + '<circle cx="0" cy="'+fmt(Ro)+'" r="3" fill="'+C.dim+'"/>';
+  return svgOpen(Ro+2*P, Ro+P+P+50) + '<g transform="translate('+P+','+P+')">'+g+'</g></svg>';
+}
+
+/* --- 半円 − 内接する円 --- */
+function figHalfCirc(f){
+  var P = 40, dd = f.d, sc = 212/dd, dp = dd*sc, Rp = dp/2, rp = dp/4;
+  var half = 'M0,'+fmt(Rp)+' A'+fmt(Rp)+','+fmt(Rp)+' 0 0,1 '+fmt(dp)+','+fmt(Rp)+' Z';
+  var g = '<path d="'+half+'" fill="'+C.fill+'" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + '<circle cx="'+fmt(Rp)+'" cy="'+fmt(Rp-rp)+'" r="'+fmt(rp)+'"'
+    + ' fill="'+C.paper+'" stroke="'+C.edge+'" stroke-width="2.4"/>'
+    + '<path d="M'+fmt(Rp)+',0 V'+fmt(Rp)+'" stroke="'+C.guide+'" stroke-width="1.4"'
+    + ' stroke-dasharray="5 4" fill="none"/>'
+    + '<circle cx="'+fmt(Rp)+'" cy="'+fmt(Rp-rp)+'" r="2.6" fill="'+C.dim+'"/>'
+    + dimH(0,dp,Rp+18,'直径 '+dd+'cm');
+  return svgOpen(dp+2*P, Rp+P+P+26) + '<g transform="translate('+P+','+P+')">'+g+'</g></svg>';
+}
+
+function figSVG(f){
+  switch(f.t){
+    case 'circle':   return figCircle(f);
+    case 'sqcircle': return figSqCircle(f);
+    case 'donut':    return figDonut(f);
+    case 'leaf':     return figLeaf(f);
+    case 'bow':      return figBow(f);
+    case 'flower4':  return figFlower4(f);
+    case 'arbelos':  return figArbelos(f);
+    case 'swapsq':   return figSwapSq(f);
+    case 'star4':    return figStar4(f);
+    case 'qhalf':    return figQuarterHalf(f);
+    case 'qring':    return figQuarterRing(f);
+    case 'halfcirc': return figHalfCirc(f);
+  }
+  return '';
+}
+
+/* --- 解説用のミニ図（「正方形 − 円」のように式を絵で見せる） --- */
+function mini(kind){
+  var s = '<svg viewBox="0 0 60 60" aria-hidden="true">', F = C.fill, E = C.edge;
+  if(kind === 'square')    s += '<rect x="6" y="6" width="48" height="48" fill="'+F+'" stroke="'+E+'" stroke-width="2.2"/>';
+  else if(kind === 'circle')  s += '<circle cx="30" cy="30" r="24" fill="'+F+'" stroke="'+E+'" stroke-width="2.2"/>';
+  else if(kind === 'half')    s += '<path d="M4,42 A26,26 0 0,1 56,42 Z" fill="'+F+'" stroke="'+E+'" stroke-width="2.2"/>';
+  else if(kind === 'quarter') s += '<path d="M6,54 H54 A48,48 0 0,0 6,6 Z" fill="'+F+'" stroke="'+E+'" stroke-width="2.2"/>';
+  else if(kind === 'tri')     s += '<path d="M6,54 H54 L6,6 Z" fill="'+F+'" stroke="'+E+'" stroke-width="2.2"/>';
+  else if(kind === 'leaf')    s += '<path d="M54,6 A48,48 0 0,1 6,54 A48,48 0 0,1 54,6 Z" fill="'+F+'" stroke="'+E+'" stroke-width="2.2"/>';
+  return s + '</svg>';
+}
+function partsRow(items){
+  var h = '<div class="parts">';
+  items.forEach(function(it,i){
+    if(it.op) h += '<span class="op">'+esc(it.op)+'</span>';
+    else h += '<span class="cap">'+mini(it.k)+'<span>'+esc(it.cap)+'</span></span>';
+  });
+  return h + '</div>';
+}
+
+/* ===================== 問題づくり ===================== */
+/* build(mode, sub, dims) は「同じ引数なら必ず同じ問題」を返す純粋な関数。
+   question_params には {m,s,d} だけを保存し、解き直しはここで完全復元する
+   （JSONの形を変えると既存 pending 行の params_hash と合わなくなる点に注意）。*/
+
+function build(mode, sub, d){
+  var q = { mode:mode, sub:sub, d:d, unit:'cm²' };
+  var r, dia, C0, a, area, full, sq, quarter, halfS, big;
+
+  /* ---------- 半径から ---------- */
+  if(mode === 'hankei'){
+    r = d.r;
+    full = r*r*PI;
+    if(sub === 'full'){
+      q.fig  = { t:'circle', r:r, part:'full', show:'r' };
+      q.text = '半径が <em>'+r+'cm</em> の円の面積を求めましょう。';
+      q.plain= '半径が '+r+'cm の円の面積';
+      q.ans  = full;
+      q.steps= ['半径 × 半径 × 3.14 で求める。',
+                r+' × '+r+' × 3.14 ＝ <b>'+fmt(full)+' cm²</b>'];
+      q.cands= [{ v:(2*r)*(2*r)*PI, why:'半径のかわりに直径をかけた答え' },
+                { v:2*r*PI,         why:'円のまわりの長さ（円周）' },
+                { v:r*PI,           why:'半径 × 3.14 でとめた答え' },
+                { v:r*r,            why:'3.14 をかけわすれた答え' }];
+    }else if(sub === 'half'){
+      q.fig  = { t:'circle', r:r, part:'half', show:'r' };
+      q.text = '半径が <em>'+r+'cm</em> の半円の面積を求めましょう。';
+      q.plain= '半径が '+r+'cm の半円の面積';
+      q.ans  = full/2;
+      q.steps= ['まず円ぜんたいの面積：'+r+' × '+r+' × 3.14 ＝ '+fmt(full),
+                '半円は円の半分だから ÷ 2。',
+                fmt(full)+' ÷ 2 ＝ <b>'+fmt(full/2)+' cm²</b>'];
+      q.parts= [{k:'circle',cap:'円ぜんたい'},{op:'÷2'},{k:'half',cap:'半円'}];
+      q.cands= [{ v:full,   why:'円ぜんたいの面積（÷2 をわすれた答え）' },
+                { v:full/4, why:'4分の1にしてしまった答え' },
+                { v:r*PI,   why:'半円のまるい線の長さ' },
+                { v:r*r/2,  why:'3.14 をかけわすれた答え' }];
+    }else{
+      q.fig  = { t:'circle', r:r, part:'quarter', show:'r' };
+      q.text = '半径が <em>'+r+'cm</em> の、円を4等分した形（4分の1の円）の面積を求めましょう。';
+      q.plain= '半径が '+r+'cm の、円の4分の1の形の面積';
+      q.ans  = full/4;
+      q.steps= ['まず円ぜんたいの面積：'+r+' × '+r+' × 3.14 ＝ '+fmt(full),
+                '4分の1だから ÷ 4。',
+                fmt(full)+' ÷ 4 ＝ <b>'+fmt(full/4)+' cm²</b>'];
+      q.parts= [{k:'circle',cap:'円ぜんたい'},{op:'÷4'},{k:'quarter',cap:'4分の1'}];
+      q.cands= [{ v:full,   why:'円ぜんたいの面積（÷4 をわすれた答え）' },
+                { v:full/2, why:'半円にしてしまった答え' },
+                { v:r*r/4,  why:'3.14 をかけわすれた答え' },
+                { v:r*PI,   why:'半径 × 3.14 でとめた答え' }];
+    }
+  }
+
+  /* ---------- 直径から ---------- */
+  else if(mode === 'chokkei'){
+    dia = d.d; r = dia/2;
+    full = r*r*PI;
+    if(sub === 'full'){
+      q.fig  = { t:'circle', r:r, part:'full', show:'d', dlabel:dia };
+      q.text = '直径が <em>'+dia+'cm</em> の円の面積を求めましょう。';
+      q.plain= '直径が '+dia+'cm の円の面積';
+      q.ans  = full;
+      q.steps= ['半径 ＝ 直径 ÷ 2 ＝ '+dia+' ÷ 2 ＝ <b>'+fmt(r)+'cm</b>',
+                fmt(r)+' × '+fmt(r)+' × 3.14 ＝ <b>'+fmt(full)+' cm²</b>'];
+      q.cands= [{ v:dia*dia*PI, why:'直径をそのまま半径にして計算した答え' },
+                { v:dia*PI,     why:'円のまわりの長さ（円周）' },
+                { v:r*PI,       why:'半径 × 3.14 でとめた答え' },
+                { v:r*r,        why:'3.14 をかけわすれた答え' }];
+    }else{
+      q.fig  = { t:'circle', r:r, part:'half', show:'d', dlabel:dia };
+      q.text = '直径が <em>'+dia+'cm</em> の半円の面積を求めましょう。';
+      q.plain= '直径が '+dia+'cm の半円の面積';
+      q.ans  = full/2;
+      q.steps= ['半径 ＝ '+dia+' ÷ 2 ＝ <b>'+fmt(r)+'cm</b>',
+                '円ぜんたい：'+fmt(r)+' × '+fmt(r)+' × 3.14 ＝ '+fmt(full),
+                '半円だから ÷ 2 → <b>'+fmt(full/2)+' cm²</b>'];
+      q.parts= [{k:'circle',cap:'円ぜんたい'},{op:'÷2'},{k:'half',cap:'半円'}];
+      q.cands= [{ v:full,           why:'円ぜんたいの面積（÷2 をわすれた答え）' },
+                { v:dia*dia*PI/2,   why:'直径をそのまま半径にして計算した答え' },
+                { v:dia*PI/2,       why:'半円のまるい線の長さ' },
+                { v:r*r/2,          why:'3.14 をかけわすれた答え' }];
+    }
+  }
+
+  /* ---------- 円周から ---------- */
+  else if(mode === 'enshu'){
+    dia = d.d; r = dia/2; C0 = PI*dia;
+    full = r*r*PI;
+    /* このモードはヒントを出さない（手順をそのまま書くと答えが出てしまうため） */
+    q.fig  = { t:'circle', r:r, part:'full', show:'c', clabel:fmt(C0) };
+    q.ans  = full;
+    q.steps= ['直径 ＝ 円周 ÷ 3.14 ＝ '+fmt(C0)+' ÷ 3.14 ＝ <b>'+dia+'cm</b>',
+              '半径 ＝ '+dia+' ÷ 2 ＝ <b>'+fmt(r)+'cm</b>',
+              fmt(r)+' × '+fmt(r)+' × 3.14 ＝ <b>'+fmt(full)+' cm²</b>'];
+    /* きれいな数の候補を先に置く（小数がずらずら並ぶ答えは見た目で除外されてしまう） */
+    q.cands= [{ v:dia*dia*PI, why:'直径をそのまま半径にして計算した答え' },
+              { v:C0,         why:'円周（まわりの長さ）そのまま' },
+              { v:r*r,        why:'3.14 をかけわすれた答え' },
+              { v:r*PI,       why:'半径 × 3.14 でとめた答え' },
+              { v:C0*PI,      why:'円周にもう一度 3.14 をかけた答え' }];
+    if(sub === 'himo'){
+      q.text = '長さ <em>'+fmt(C0)+'cm</em> のひもを、すきまなく円の形にしました。<br>この円の面積を求めましょう。';
+      q.plain= '長さ '+fmt(C0)+'cm のひもでつくった円の面積';
+    }else{
+      q.text = '円周（まわりの長さ）が <em>'+fmt(C0)+'cm</em> の円の面積を求めましょう。';
+      q.plain= '円周が '+fmt(C0)+'cm の円の面積';
+    }
+  }
+
+  /* ---------- 工夫して求める ---------- */
+  else{
+    q.legend = true;
+    if(sub === 'sqcircle'){
+      a = d.a; r = a/2; sq = a*a; area = r*r*PI;
+      q.fig  = { t:'sqcircle', a:a };
+      q.text = '1辺 <em>'+a+'cm</em> の正方形に、円がぴったり入っています。<br>色のついた部分（すきま）の面積を求めましょう。';
+      q.plain= '1辺 '+a+'cm の正方形から、ぴったり入る円をくり抜いた、まわりのすきまの面積';
+      q.ans  = sq - area;
+      q.steps= ['正方形：'+a+' × '+a+' ＝ '+fmt(sq),
+                '円の半径は '+a+' ÷ 2 ＝ '+fmt(r)+'cm',
+                '円：'+fmt(r)+' × '+fmt(r)+' × 3.14 ＝ '+fmt(area),
+                fmt(sq)+' − '+fmt(area)+' ＝ <b>'+fmt(sq-area)+' cm²</b>'];
+      q.parts= [{k:'square',cap:'正方形'},{op:'−'},{k:'circle',cap:'円'}];
+      q.kufu = '大きい形から内側の形を「ひく」のが くり抜きのくふう。';
+      q.cands= [{ v:sq,       why:'正方形の面積だけ（円をひくのをわすれた答え）' },
+                { v:area,     why:'くり抜いた円の面積' },
+                { v:sq-sq/4,  why:'3.14 をかけわすれた答え' },
+                { v:sq+area,  why:'ひくのではなく、たしてしまった答え' }];
+    }
+    else if(sub === 'donut'){
+      var R0 = d.R, r0 = d.r;
+      var ao = R0*R0*PI, ai = r0*r0*PI;
+      q.fig  = { t:'donut', R:R0, r:r0 };
+      q.text = '外の半径が <em>'+R0+'cm</em>、内の半径が <em>'+r0+'cm</em> の円の輪（ドーナツの形）です。<br>色のついた部分の面積を求めましょう。';
+      q.plain= '外の半径 '+R0+'cm、内の半径 '+r0+'cm の円の輪（ドーナツ形）の面積';
+      q.ans  = ao - ai;
+      q.steps= ['大きい円：'+R0+' × '+R0+' × 3.14 ＝ '+fmt(ao),
+                '小さい円：'+r0+' × '+r0+' × 3.14 ＝ '+fmt(ai),
+                fmt(ao)+' − '+fmt(ai)+' ＝ <b>'+fmt(ao-ai)+' cm²</b>'];
+      q.parts= [{k:'circle',cap:'大きい円'},{op:'−'},{k:'circle',cap:'小さい円'}];
+      q.kufu = 'くふう：3.14 を最後に1回だけかけると らく。'
+             + '（'+R0+'×'+R0+' − '+r0+'×'+r0+'）× 3.14 ＝ '
+             + fmt(R0*R0-r0*r0)+' × 3.14 ＝ '+fmt(ao-ai);
+      q.cands= [{ v:ao,                     why:'大きい円の面積だけ' },
+                { v:ai,                     why:'小さい円の面積だけ' },
+                { v:(R0-r0)*(R0-r0)*PI,     why:'半径の差を半径にして計算した答え' },
+                { v:R0*R0-r0*r0,            why:'3.14 をかけわすれた答え' }];
+    }
+    else if(sub === 'leaf'){
+      a = d.a; quarter = a*a*PI/4; sq = a*a;
+      q.fig  = { t:'leaf', a:a };
+      q.text = '1辺 <em>'+a+'cm</em> の正方形の中に、向かい合う2つの頂点を中心にした'
+             + '半径 '+a+'cm のおうぎ形（4分の1の円）を2つかきました。<br>'
+             + '重なった葉っぱの形の面積を求めましょう。';
+      q.plain= '1辺 '+a+'cm の正方形の中で、半径 '+a+'cm の4分の1の円2つが重なった葉っぱ形の面積';
+      q.ans  = quarter*2 - sq;
+      q.steps= ['4分の1の円1つ：'+a+' × '+a+' × 3.14 ÷ 4 ＝ '+fmt(quarter),
+                '2つ分：'+fmt(quarter)+' × 2 ＝ '+fmt(quarter*2),
+                'これは正方形を1回よけいに数えているので、正方形をひく。',
+                fmt(quarter*2)+' − '+a+' × '+a+' ＝ '+fmt(quarter*2)+' − '+fmt(sq)+' ＝ <b>'+fmt(quarter*2-sq)+' cm²</b>'];
+      q.parts= [{k:'quarter',cap:'4分の1'},{op:'×2 −'},{k:'square',cap:'正方形'},{op:'＝'},{k:'leaf',cap:'葉っぱ'}];
+      q.kufu = '2つのおうぎ形をたすと、重なった葉っぱの部分だけ2回数えてしまう。'
+             + '正方形をひくと、ちょうど1回分になる。';
+      q.cands= [{ v:quarter*2,    why:'おうぎ形2つ分（正方形をひくのをわすれた答え）' },
+                { v:quarter,      why:'おうぎ形1つ分の面積' },
+                { v:sq,           why:'正方形の面積' },
+                { v:quarter*2+sq, why:'ひくのではなく、たしてしまった答え' }];
+    }
+    else if(sub === 'bow'){
+      a = d.a; quarter = a*a*PI/4; var tri = a*a/2;
+      q.fig  = { t:'bow', a:a };
+      q.text = '半径 <em>'+a+'cm</em> の4分の1の円から、直角三角形をとりのぞいた形です。<br>色のついた部分の面積を求めましょう。';
+      q.plain= '半径 '+a+'cm の4分の1の円から直角三角形をのぞいた形（弓形）の面積';
+      q.ans  = quarter - tri;
+      q.steps= ['4分の1の円：'+a+' × '+a+' × 3.14 ÷ 4 ＝ '+fmt(quarter),
+                '直角三角形：'+a+' × '+a+' ÷ 2 ＝ '+fmt(tri),
+                fmt(quarter)+' − '+fmt(tri)+' ＝ <b>'+fmt(quarter-tri)+' cm²</b>'];
+      q.parts= [{k:'quarter',cap:'4分の1'},{op:'−'},{k:'tri',cap:'三角形'}];
+      q.kufu = '三角形の底辺と高さは、どちらも半径と同じ長さ。';
+      q.cands= [{ v:quarter,        why:'おうぎ形（4分の1の円）の面積だけ' },
+                { v:tri,           why:'直角三角形の面積だけ' },
+                { v:quarter+tri,   why:'ひくのではなく、たしてしまった答え' },
+                { v:a*a*PI/2-tri,  why:'4分の1ではなく半円としてしまった答え' }];
+    }
+    else if(sub === 'flower4'){
+      a = d.a; var hr = a/2; halfS = hr*hr*PI/2; sq = a*a;
+      q.fig  = { t:'flower4', a:a };
+      q.text = '1辺 <em>'+a+'cm</em> の正方形の4つの辺を直径にして、内側に半円を4つかきました。<br>'
+             + '重なってできた花びら4枚の面積を求めましょう。';
+      q.plain= '1辺 '+a+'cm の正方形の各辺を直径とする半円4つが重なってできた花びら4枚の面積';
+      q.ans  = halfS*4 - sq;
+      q.steps= ['半円の半径は '+a+' ÷ 2 ＝ '+fmt(hr)+'cm',
+                '半円1つ：'+fmt(hr)+' × '+fmt(hr)+' × 3.14 ÷ 2 ＝ '+fmt(halfS),
+                '4つ分：'+fmt(halfS)+' × 4 ＝ '+fmt(halfS*4),
+                '花びらの部分を1回よけいに数えているので、正方形をひく。',
+                fmt(halfS*4)+' − '+fmt(sq)+' ＝ <b>'+fmt(halfS*4-sq)+' cm²</b>'];
+      q.parts= [{k:'half',cap:'半円'},{op:'×4 −'},{k:'square',cap:'正方形'}];
+      q.kufu = '半円4つ ＝ 円2つ分。'+fmt(hr)+'×'+fmt(hr)+'×3.14×2 ＝ '+fmt(halfS*4)+' と考えてもよい。';
+      q.cands= [{ v:halfS*4,  why:'半円4つ分（正方形をひくのをわすれた答え）' },
+                { v:halfS,    why:'半円1つ分の面積' },
+                { v:sq,       why:'正方形の面積' },
+                { v:hr*hr*PI, why:'円1つ分の面積' }];
+    }
+    else if(sub === 'swapsq'){
+      a = d.a; var hs = a/2; halfS = hs*hs*PI/2; sq = a*a;
+      q.fig  = { t:'swapsq', a:a };
+      q.text = '1辺 <em>'+a+'cm</em> の正方形です。左の辺を直径とする半円がくり抜かれ、'
+             + '右の辺を直径とする同じ大きさの半円が外にはみ出しています。<br>'
+             + '色のついた部分の面積を求めましょう。';
+      q.plain= '1辺 '+a+'cm の正方形から、辺を直径とする半円を1つくり抜き、'
+             + '同じ大きさの半円を1つ外側にたした形の面積';
+      q.ans  = sq;
+      q.steps= ['くり抜かれた半円と、はみ出た半円は <b>同じ大きさ</b>。',
+                'はみ出た半円を、左のへこみへ そのまま横に動かすと…',
+                'ちょうど 1辺 '+a+'cm の正方形になる！',
+                a+' × '+a+' ＝ <b>'+fmt(sq)+' cm²</b>'];
+      q.parts= [{k:'square',cap:'正方形'}];
+      q.kufu = '半円の大きさが同じだから、はみ出た分とくり抜いた分がちょうど打ち消し合う。'
+             + '3.14 を使わずに答えが出る。';
+      q.cands= [{ v:sq-halfS,  why:'くり抜いた分をひいただけの答え（たす分をわすれた）' },
+                { v:sq+halfS,  why:'はみ出た分をたしただけの答え（ひく分をわすれた）' },
+                { v:halfS,     why:'半円1つの面積' },
+                { v:hs*hs*PI,  why:'円1つ分の面積' }];
+      q.swap = true;
+    }
+    else if(sub === 'star4'){
+      a = d.a; var hq = a/2; area = hq*hq*PI; sq = a*a;
+      q.fig  = { t:'star4', a:a };
+      q.text = '1辺 <em>'+a+'cm</em> の正方形の4つの頂点を中心にして、'
+             + '半径 '+fmt(hq)+'cm のおうぎ形（4分の1の円）を4つかきました。<br>'
+             + '中央に残った色のついた部分の面積を求めましょう。';
+      q.plain= '1辺 '+a+'cm の正方形から、4つの頂点を中心とする半径 '+fmt(hq)+'cm の'
+             + '4分の1の円4つをくり抜いた、中央に残る部分の面積';
+      q.ans  = sq - area;
+      q.steps= ['4つのおうぎ形をあわせると、半径 '+fmt(hq)+'cm の <b>円1つ分</b>になる。',
+                '円：'+fmt(hq)+' × '+fmt(hq)+' × 3.14 ＝ '+fmt(area),
+                '正方形：'+a+' × '+a+' ＝ '+fmt(sq),
+                fmt(sq)+' − '+fmt(area)+' ＝ <b>'+fmt(sq-area)+' cm²</b>'];
+      q.parts= [{k:'square',cap:'正方形'},{op:'−'},{k:'circle',cap:'円1つ分'}];
+      q.kufu = '4分の1が4つ＝1つの円。ばらばらに4回計算しなくてよい。';
+      q.cands= [{ v:sq,       why:'正方形の面積だけ' },
+                { v:area,     why:'くり抜いた円1つ分の面積' },
+                { v:sq-sq/4,  why:'3.14 をかけわすれた答え' },
+                { v:area/4,   why:'おうぎ形1つ分の面積' }];
+    }
+    else if(sub === 'qhalf'){
+      a = d.a; quarter = a*a*PI/4;
+      var hh = a/2; halfS = hh*hh*PI/2;
+      q.fig  = { t:'qhalf', a:a };
+      q.text = '半径 <em>'+a+'cm</em> の4分の1の円の中に、下の辺を直径とする半円をかきました。<br>'
+             + '色のついた部分の面積を求めましょう。';
+      q.plain= '半径 '+a+'cm の4分の1の円から、下の辺（'+a+'cm）を直径とする半円をくり抜いた部分の面積';
+      q.ans  = quarter - halfS;
+      q.steps= ['4分の1の円：'+a+' × '+a+' × 3.14 ÷ 4 ＝ '+fmt(quarter),
+                '半円の半径は '+a+' ÷ 2 ＝ '+fmt(hh)+'cm',
+                '半円：'+fmt(hh)+' × '+fmt(hh)+' × 3.14 ÷ 2 ＝ '+fmt(halfS),
+                fmt(quarter)+' − '+fmt(halfS)+' ＝ <b>'+fmt(quarter-halfS)+' cm²</b>'];
+      q.parts= [{k:'quarter',cap:'4分の1'},{op:'−'},{k:'half',cap:'半円'}];
+      q.kufu = 'じつは答えは、くり抜いた半円とちょうど同じ面積になる。';
+      q.cands= [{ v:quarter,         why:'4分の1の円の面積だけ' },
+                { v:quarter+halfS,   why:'ひくのではなく、たしてしまった答え' },
+                { v:a*a/8,           why:'3.14 をかけわすれた答え' },
+                { v:quarter-a*a/2,   why:'半円ではなく三角形をひいた答え' }];
+    }
+    else if(sub === 'qring'){
+      var Rq = d.R, rq = d.r;
+      var aoq = Rq*Rq*PI/4, aiq = rq*rq*PI/4;
+      q.fig  = { t:'qring', R:Rq, r:rq };
+      q.text = '外の半径が <em>'+Rq+'cm</em>、内の半径が <em>'+rq+'cm</em> の、'
+             + '4分の1の輪の形です。<br>色のついた部分の面積を求めましょう。';
+      q.plain= '外の半径 '+Rq+'cm、内の半径 '+rq+'cm の4分の1の輪の面積';
+      q.ans  = aoq - aiq;
+      q.steps= ['大きい4分の1の円：'+Rq+' × '+Rq+' × 3.14 ÷ 4 ＝ '+fmt(aoq),
+                '小さい4分の1の円：'+rq+' × '+rq+' × 3.14 ÷ 4 ＝ '+fmt(aiq),
+                fmt(aoq)+' − '+fmt(aiq)+' ＝ <b>'+fmt(aoq-aiq)+' cm²</b>'];
+      q.parts= [{k:'quarter',cap:'大きい4分の1'},{op:'−'},{k:'quarter',cap:'小さい4分の1'}];
+      q.kufu = 'くふう：（'+Rq+'×'+Rq+' − '+rq+'×'+rq+'）× 3.14 ÷ 4 ＝ '
+             + fmt(Rq*Rq-rq*rq)+' × 3.14 ÷ 4 ＝ '+fmt(aoq-aiq);
+      q.cands= [{ v:aoq,                 why:'大きい4分の1の円だけ' },
+                { v:aiq,                 why:'小さい4分の1の円だけ' },
+                { v:(Rq*Rq-rq*rq)*PI,    why:'÷4 をわすれた答え（円の輪ぜんたい）' },
+                { v:(Rq*Rq-rq*rq)/4,     why:'3.14 をかけわすれた答え' }];
+    }
+    else if(sub === 'halfcirc'){
+      var dh = d.d, Rh = dh/2, rh = dh/4;
+      var halfB = Rh*Rh*PI/2, cirS = rh*rh*PI;
+      q.fig  = { t:'halfcirc', d:dh };
+      q.text = '直径 <em>'+dh+'cm</em> の半円の中に、円がぴったり入っています。<br>'
+             + '色のついた部分の面積を求めましょう。';
+      q.plain= '直径 '+dh+'cm の半円から、内側にぴったり入る円をくり抜いた部分の面積';
+      q.ans  = halfB - cirS;
+      q.steps= ['半円の半径は '+dh+' ÷ 2 ＝ '+fmt(Rh)+'cm',
+                '半円：'+fmt(Rh)+' × '+fmt(Rh)+' × 3.14 ÷ 2 ＝ '+fmt(halfB),
+                'ぴったり入る円の半径は、その半分の '+dh+' ÷ 4 ＝ '+fmt(rh)+'cm',
+                '円：'+fmt(rh)+' × '+fmt(rh)+' × 3.14 ＝ '+fmt(cirS),
+                fmt(halfB)+' − '+fmt(cirS)+' ＝ <b>'+fmt(halfB-cirS)+' cm²</b>'];
+      q.parts= [{k:'half',cap:'半円'},{op:'−'},{k:'circle',cap:'円'}];
+      q.kufu = '中の円の半径は、半円の半径のちょうど半分。答えは中の円と同じ面積になる。';
+      q.cands= [{ v:halfB,          why:'半円の面積だけ' },
+                { v:halfB+cirS,     why:'ひくのではなく、たしてしまった答え' },
+                { v:Rh*Rh*PI,       why:'半円ではなく円ぜんたいとして計算した答え' },
+                { v:Rh*Rh/2-rh*rh,  why:'3.14 をかけわすれた答え' }];
+    }
+    else{  /* arbelos：入れかえ */
+      var D0 = d.D; big = (D0/2)*(D0/2)*PI/2;
+      var sm = (D0/4)*(D0/4)*PI/2;   /* 小さい半円1つ */
+      q.fig  = { t:'arbelos', D:D0 };
+      q.text = '直径 <em>'+D0+'cm</em> の半円の中に、直径 '+(D0/2)+'cm の小さい半円が2つあります。<br>'
+             + '左の小さい半円はくり抜かれ、右の小さい半円は下にはみ出しています。<br>'
+             + '色のついた部分の面積を求めましょう。';
+      q.plain= '直径 '+D0+'cm の半円から、直径 '+(D0/2)+'cm の小半円を1つくり抜き、'
+             + '同じ大きさの小半円を1つ下側にたした形の面積';
+      q.ans  = big;
+      q.steps= ['くり抜かれた半円と、はみ出た半円は <b>同じ大きさ</b>。',
+                'はみ出た半円を、くり抜かれたところへ入れかえると…',
+                'ちょうど直径 '+D0+'cm の半円 1つになる！',
+                '半径は '+D0+' ÷ 2 ＝ '+fmt(D0/2)+'cm',
+                fmt(D0/2)+' × '+fmt(D0/2)+' × 3.14 ÷ 2 ＝ <b>'+fmt(big)+' cm²</b>'];
+      q.parts= [{k:'half',cap:'大きい半円'}];
+      q.kufu = '形が変わっても面積は変わらない。「入れかえ」で かんたんな形にするのがくふう。';
+      q.cands= [{ v:big-sm,  why:'くり抜いた分だけひいた答え（たす分をわすれた）' },
+                { v:big+sm,  why:'はみ出た分だけたした答え（ひく分をわすれた）' },
+                { v:big*2,   why:'円ぜんたいの面積' },
+                { v:sm,      why:'小さい半円1つの面積' }];
+      q.swap = true;
+    }
+  }
+  if(!q.legend) q.legend = false;
+  q.correct = fmt(q.ans) + ' cm²';
+  q.choices = makeChoices(q.ans, q.cands || []);
+  return q;
+}
+
+/* 4択をつくる。まちがい選択肢は「よくある間違い」から取り、
+   正解と同じ値・重複する値は落とす。3つに足りないときだけ機械的にずらして埋める。 */
+function vkey(v){ return String(Math.round(v*10000)); }
+function makeChoices(ans, cands){
+  var out = [], seen = {};
+  seen[vkey(ans)] = 1;
+  cands.forEach(function(c){
+    if(!(c.v > 0) || out.length >= 3) return;
+    var k = vkey(c.v);
+    if(seen[k]) return;
+    seen[k] = 1;
+    out.push({ v:c.v, why:c.why, ok:false });
+  });
+  var mults = [2, 0.5, 4, 0.25, 1.5, 3];
+  for(var i=0;i<mults.length && out.length<3;i++){
+    var v = ans*mults[i], k = vkey(v);
+    if(v > 0 && !seen[k]){ seen[k] = 1; out.push({ v:v, why:null, ok:false }); }
+  }
+  out.push({ v:ans, why:null, ok:true });
+  return shuffle(out);
+}
+
+/* ---- ランダムな寸法（サブタイプごと） ---- */
+var DIMS = {
+  hankei: {
+    full:    function(){ return { r: ri(1,12) }; },
+    half:    function(){ return { r: ri(2,12) }; },
+    quarter: function(){ return { r: pick([2,4,6,8,10,12]) }; }
+  },
+  chokkei: {
+    full: function(){ return { d: pick([2,4,6,8,10,12,14,16,18,20,24]) }; },
+    half: function(){ return { d: pick([4,6,8,10,12,14,16,20]) }; }
+  },
+  enshu: {
+    full: function(){ return { d: pick([2,4,6,8,10,12,14,16,20]) }; },
+    himo: function(){ return { d: pick([4,6,8,10,12,16,20]) }; }
+  },
+  kufu: {
+    sqcircle: function(){ return { a: pick([4,6,8,10,12,14,20]) }; },
+    donut:    function(){ var R = ri(5,12), r = ri(2,R-2); return { R:R, r:r }; },
+    leaf:     function(){ return { a: pick([4,6,8,10,12]) }; },
+    bow:      function(){ return { a: pick([4,6,8,10,12,20]) }; },
+    flower4:  function(){ return { a: pick([4,6,8,10,12,20]) }; },
+    arbelos:  function(){ return { D: pick([4,8,12,16,20]) }; },
+    swapsq:   function(){ return { a: pick([4,6,8,10,12]) }; },
+    star4:    function(){ return { a: pick([4,6,8,10,12,20]) }; },
+    qhalf:    function(){ return { a: pick([4,6,8,10,12]) }; },
+    qring:    function(){ var r = pick([2,4,6]); return { R: r + pick([2,4]), r: r }; },
+    halfcirc: function(){ return { d: pick([8,12,16,20]) }; }
+  }
+};
+/* 出やすさ（同じ重みを何回か並べて調整） */
+var SUBS = {
+  hankei:  ['full','full','full','full','half','half','half','quarter','quarter'],
+  chokkei: ['full','full','full','half','half'],
+  enshu:   ['full','full','full','himo','himo'],
+  kufu:    ['sqcircle','donut','leaf','bow','flower4','arbelos',
+            'swapsq','star4','qhalf','qring','halfcirc']
+};
+
+/* 画面のボタン。picks が出題対象の question_key。
+   「半径・直径」はボタンは1つだが、記録は hankei / chokkei に分けたまま残す
+   （question_catalog と講師ページの単元カルテをそのまま使いたいため）。 */
+var MODES = [
+  { id:'kihon', name:'半径・直径', picks:['hankei','chokkei'],              color:'#C73E2E' },
+  { id:'enshu', name:'円周',       picks:['enshu'],                         color:'#3E7A55' },
+  { id:'kufu',  name:'工夫',       picks:['kufu'],                          color:'#2C5F8A' },
+  { id:'mix',   name:'ランダム',   picks:['hankei','chokkei','enshu','kufu'],color:'#7B4E8E' }
+];
+/* 問題カードの見出しに出す名前（question_key ごと） */
+var QNAME = { hankei:'半径から', chokkei:'直径から', enshu:'円周から', kufu:'工夫して' };
+
+/* ===================== 状態 ===================== */
+var S = { mode:'kihon', q:null, answered:false, picked:-1, count:0, solved:0, ok:0, streak:0,
+          lastSub:'', retryQueue:[], isRetry:false };
+
+/* ===================== 画面 ===================== */
+function buildModes(){
+  var wrap = $('modes');
+  MODES.forEach(function(m){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'mode';
+    b.style.setProperty('--mc', m.color);
+    b.dataset.id = m.id;
+    b.textContent = m.name;
+    b.addEventListener('click', function(){ setMode(m.id); });
+    wrap.appendChild(b);
+  });
+}
+function syncModes(){
+  Array.prototype.forEach.call($('modes').children, function(b){
+    b.classList.toggle('on', b.dataset.id === S.mode);
+  });
+}
+var CHNO = ['ア','イ','ウ','エ'];
+function buildChoices(q){
+  var box = $('choices');
+  box.innerHTML = '';
+  q.choices.forEach(function(c, i){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'ch'; b.dataset.i = i;
+    b.innerHTML = '<span class="no">'+CHNO[i]+'</span>'
+      + fmt(c.v) + '<span class="u">cm²</span>';
+    b.addEventListener('click', function(){ onPick(i); });
+    box.appendChild(b);
+  });
+}
+function buildMulTable(){
+  var rows = '', i;
+  rows += '<p style="margin:0 0 8px;color:#8B877C;font-size:12.5px">3.14 × □</p><table class="mul"><tr>';
+  for(i=1;i<=6;i++) rows += '<td class="k">'+i+'</td>';
+  rows += '</tr><tr>';
+  for(i=1;i<=6;i++) rows += '<td>'+fmt(PI*i)+'</td>';
+  rows += '</tr><tr>';
+  for(i=7;i<=12;i++) rows += '<td class="k">'+i+'</td>';
+  rows += '</tr><tr>';
+  for(i=7;i<=12;i++) rows += '<td>'+fmt(PI*i)+'</td>';
+  rows += '</tr></table>';
+  rows += '<p style="margin:12px 0 8px;color:#8B877C;font-size:12.5px">半径×半径（□×□）</p><table class="mul"><tr>';
+  for(i=1;i<=6;i++) rows += '<td class="k">'+i+'</td>';
+  rows += '</tr><tr>';
+  for(i=1;i<=6;i++) rows += '<td>'+(i*i)+'</td>';
+  rows += '</tr><tr>';
+  for(i=7;i<=12;i++) rows += '<td class="k">'+i+'</td>';
+  rows += '</tr><tr>';
+  for(i=7;i<=12;i++) rows += '<td>'+(i*i)+'</td>';
+  rows += '</tr></table>';
+  $('mulbody').innerHTML = rows;
+}
+
+function renderQ(q, retryLabel){
+  S.q = q; S.answered = false; S.picked = -1;
+  S.count++;
+  S.isRetry = !!retryLabel;
+  $('qtag').textContent = retryLabel ? '解き直し' : (QNAME[q.mode] || q.mode);
+  $('qtag').classList.toggle('retry', !!retryLabel);
+  $('qno').textContent = '第' + S.count + '問';
+  $('figbox').innerHTML = figSVG(q.fig);
+  $('legend').innerHTML = q.legend ? '<span class="sw"></span>色のついた部分の面積を求めます' : '';
+  $('qtext').innerHTML = q.text;
+  buildChoices(q);
+  $('checkbtn').disabled = true;
+  $('checkrow').classList.remove('hidden');
+  $('feedback').textContent = ''; $('feedback').className = 'feedback';
+  $('expl').className = 'expl hidden'; $('expl').innerHTML = '';
+  $('nextrow').classList.add('hidden');
+  addSwapButton(null);          /* 出題中は入れかえボタンを出さない */
+  renderStreak();
+}
+/* 「入れかえてみる」ボタン（arbelos のときだけ）。
+   出題中に出すと解き方をそのまま見せてしまうので、答え合わせのあとだけ表示する。 */
+function addSwapButton(q){
+  var old = document.querySelector('.swapbtn');
+  if(old) old.remove();
+  if(!q || !q.swap) return;
+  var b = document.createElement('button');
+  b.type = 'button'; b.className = 'swapbtn';
+  b.textContent = '▶ 入れかえてみる';
+  b.addEventListener('click', function(){
+    var svg = $('figbox').querySelector('svg');
+    if(!svg) return;
+    var on = svg.classList.toggle('on');
+    b.textContent = on ? '↺ もとにもどす' : '▶ 入れかえてみる';
+  });
+  $('figbox').parentNode.insertBefore(b, $('legend'));
+}
+function renderStreak(){
+  $('streak').textContent = S.streak >= 2 ? '🔥 ' + S.streak + '問れんぞく正解' : '';
+}
+function renderScore(){
+  $('scCount').textContent = S.solved;
+  $('scOk').textContent = S.ok;
+  $('scRate').textContent = S.solved ? Math.round(100*S.ok/S.solved) + '%' : '–';
+}
+
+function newQuestion(){
+  /* 解き直しキュー（?retry=1）があれば、まったく同じ問題を出す */
+  if(S.retryQueue.length){
+    var p = S.retryQueue.shift();
+    renderQ(build(p.m, p.s, p.d), true);
+    return;
+  }
+  var ui = MODES.filter(function(m){ return m.id === S.mode; })[0] || MODES[0];
+  var mode = pick(ui.picks);
+  var sub = pick(SUBS[mode]);
+  for(var i=0;i<8 && (mode+':'+sub) === S.lastSub;i++) sub = pick(SUBS[mode]);
+  S.lastSub = mode + ':' + sub;
+  renderQ(build(mode, sub, DIMS[mode][sub]()));
+}
+
+function setMode(id){
+  S.mode = id;
+  syncModes();
+  S.retryQueue = [];
+  newQuestion();
+}
+
+/* ===================== 判定 ===================== */
+/* 選択肢をえらぶ（まだ丸つけはしない。「答え合わせ」ボタンで判定する） */
+function onPick(idx){
+  if(!S.q || S.answered) return;
+  S.picked = idx;
+  Array.prototype.forEach.call($('choices').children, function(b, i){
+    b.classList.toggle('sel', i === idx);
+  });
+  $('checkbtn').disabled = false;
+}
+
+/* 答え合わせ＝丸つけ */
+function onCheck(){
+  if(!S.q || S.answered || S.picked < 0) return;
+  var idx = S.picked, c = S.q.choices[idx], ok = !!c.ok;
+  S.answered = true;
+  S.solved++;
+  $('checkrow').classList.add('hidden');
+  $('nextrow').classList.remove('hidden');
+
+  /* 丸つけ：えらんだものに ○/✕、まちがいのときは正解にも ○ を付ける */
+  var btns = $('choices').children;
+  Array.prototype.forEach.call(btns, function(b, i){
+    b.disabled = true;
+    b.classList.remove('sel');
+    var ci = S.q.choices[i];
+    if(i === idx){
+      b.classList.add(ok ? 'pick-ok' : 'pick-ng');
+      b.insertAdjacentHTML('beforeend', '<span class="mk">' + (ok ? '○' : '✕') + '</span>');
+    }else if(ci.ok){
+      b.classList.add('show-ok');
+      b.insertAdjacentHTML('beforeend', '<span class="mk">○</span>');
+    }else{
+      b.classList.add('dim');
+    }
+  });
+
+  if(ok){
+    S.ok++; S.streak++;
+    $('feedback').className = 'feedback ok';
+    $('feedback').textContent = '⭕ 正解！　' + S.q.correct;
+    safeCorrect();
+  }else{
+    S.streak = 0;
+    $('feedback').className = 'feedback ng';
+    $('feedback').innerHTML = '✕ ざんねん…　正解は ' + esc(S.q.correct)
+      + (c.why ? '<br><span class="why">えらんだのは「' + esc(c.why) + '」</span>' : '');
+  }
+  renderStreak();
+  showExpl();
+  addSwapButton(S.q);           /* 答え合わせのあとに「入れかえてみる」を出す */
+  renderScore();
+  sendLog(ok, c.v);
+}
+function showExpl(){
+  var q = S.q, h = '<h3>とき方</h3>';
+  if(q.parts) h += partsRow(q.parts);
+  h += '<ol>';
+  q.steps.forEach(function(s){ h += '<li>'+s+'</li>'; });
+  h += '</ol>';
+  if(q.kufu) h += '<div class="kufu">💡 '+q.kufu+'</div>';
+  $('expl').innerHTML = h;
+  $('expl').className = 'expl';
+}
+function safeCorrect(){
+  /* 小学生用の共通正解エフェクト（星バースト）。未読込でも壊さない */
+  try{ if(window.Divp && typeof Divp.correct === 'function'){ Divp.correct(); return; } }catch(e){}
+}
+
+/* ===================== 学習記録 ===================== */
+/* 判定直後に1問=1行。question_params は再出題用の最小表現（{m,s,d}）にして
+   同じ問題が必ず同じ params_hash になるようにする。 */
+function sendLog(ok, userVal){
+  if(!(window.Divp && typeof Divp.answer === 'function')) return;
+  try{
+    Divp.answer(ok, {
+      question_key: S.q.mode,
+      question_params: { m:S.q.mode, s:S.q.sub, d:S.q.d },
+      question_text: S.q.plain,
+      correct_answer: S.q.correct,
+      wrong_answer: ok ? null : (fmt(userVal) + ' cm²')
+    });
+  }catch(e){}
+}
+/* ?retry=1 で開いたとき、api/list_retries.php の pending を復元して出題する。
+   &focus=<params_hash> 付きならその1問だけ（マイページの「今日の1問」用）。*/
+function initRetry(){
+  var focus = (location.search.match(/[?&]focus=([a-f0-9]{64})/i) || [])[1];
+  Divp.getRetries().then(function(items){
+    var use = (items||[]).filter(function(it){
+      var p = it && it.question_params;
+      return p && p.m && p.s && p.d && DIMS[p.m] && DIMS[p.m][p.s];
+    });
+    if(focus) use = use.filter(function(it){ return it.params_hash === focus; });
+    if(!use.length) return;
+    S.retryQueue = use.map(function(it){ return it.question_params; });
+    S.count = 0;
+    newQuestion();
+  }).catch(function(){});
+}
+
+/* ===================== イベント ===================== */
+$('checkbtn').addEventListener('click', onCheck);
+$('nextbtn').addEventListener('click', newQuestion);
+/* パソコンでは 1〜4 キーで選択、Enter/スペースで答え合わせ→次の問題へ */
+document.addEventListener('keydown', function(e){
+  if(e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+  if(!S.answered && e.key >= '1' && e.key <= '4'){
+    var i = +e.key - 1;
+    if(S.q && S.q.choices[i]){ e.preventDefault(); onPick(i); }
+    return;
+  }
+  if(e.key === 'Enter' || e.key === ' '){
+    e.preventDefault();
+    if(S.answered) newQuestion();
+    else if(S.picked >= 0) onCheck();
+  }
+});
+$('scReset').addEventListener('click', function(){
+  S.count = 0; S.solved = 0; S.ok = 0; S.streak = 0;
+  newQuestion(); renderStreak(); renderScore();
+});
+
+/* ===================== 起動 ===================== */
+buildModes();
+buildMulTable();
+syncModes();
+
+newQuestion();
+renderScore();
+
+if(window.Divp && typeof Divp.init === 'function'){ try{ Divp.init(UNIT_KEY); }catch(e){} }
+if(/[?&]retry=1/.test(location.search) && window.Divp && typeof Divp.getRetries === 'function'){
+  initRetry();
+}
+})();
+</script>
+</body>
+</html>

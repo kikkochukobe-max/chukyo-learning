@@ -92,6 +92,11 @@ return [
         'sub'   => '算数・小6',
         'url'   => '/learning/math/math_es6_keisan_dousuru.html',
     ],
+    'math_es6_en_menseki' => [
+        'title' => '円の面積マスター',
+        'sub'   => '算数・小6',
+        'url'   => '/learning/math/math_es6_en_menseki.html',
+    ],
     'math_js2_keisan' => [
         'title' => '計算完璧マスター',
         'sub'   => '数学・中2',
@@ -136,5 +141,10 @@ return [
         'title' => '身のまわりの物質マスター',
         'sub'   => '理科・中1',
         'url'   => '/learning/science/science_js1_busshitsu.html',
+    ],
+    'science_js2_seibutsu' => [
+        'title' => '生物の体のつくりとはたらきマスター',
+        'sub'   => '理科・中2',
+        'url'   => '/learning/science/science_js2_seibutsu.html',
     ],
 ];

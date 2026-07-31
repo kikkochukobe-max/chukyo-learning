@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>年輪で知る円の面積｜中京個別指導学院</title>
+<meta name="description" content="年輪で知る円の面積。円を年輪状の輪に切って三角形にする方法と、扇形に分けて平行四辺形にする方法の2通りで、円の面積の公式（半径×半径×3.14 / πr²）を目で見て納得する教材。">
+<style>
+:root{
+  --washi:#FAF6EC;
+  --card:#FFFDF7;
+  --ink:#3A2E22;
+  --ink-soft:#6B5B48;
+  --wood1:#EAD9B0;
+  --wood2:#DDBE8C;
+  --wood3:#CFA36B;
+  --wood4:#BC8451;
+  --wood-line:#7E5E3E;
+  --shu:#CE3A2A;
+  --midori:#3E7A55;
+  --line:#E4D9C4;
+  --btn:#8A6842;
+  --btn-hover:#75562F;
+  --brand:#FEB342;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--washi);color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic Medium","Yu Gothic",Meiryo,sans-serif;
+  line-height:1.6;}
+body{padding:0 12px 40px;max-width:1080px;margin:0 auto;}
+
+/* ブランドバー */
+.brandbar{display:flex;align-items:center;gap:9px;
+  padding:9px 14px;margin:0 -12px 12px;
+  background:linear-gradient(90deg,var(--brand) 0%,#FFC96B 100%);
+  border-radius:0 0 12px 12px;
+  box-shadow:0 2px 8px rgba(180,120,30,.18);}
+.brand-mark{flex:0 0 auto;filter:drop-shadow(0 1px 1px rgba(120,70,0,.18));}
+.brand-name{font-family:"Hiragino Mincho ProN","Yu Mincho","BIZ UDMincho",serif;
+  font-weight:700;font-size:clamp(15px,3.4vw,19px);letter-spacing:.1em;color:#fff;
+  text-shadow:0 1px 2px rgba(150,90,10,.28);white-space:nowrap;}
+.brand-tag{margin-left:auto;font-size:clamp(10.5px,2.3vw,12.5px);letter-spacing:.08em;
+  color:#7A4A05;background:rgba(255,255,255,.62);border-radius:999px;padding:3px 11px;
+  white-space:nowrap;}
+
+header{display:flex;align-items:center;gap:14px;padding:2px 4px 12px;}
+h1{font-family:"Hiragino Mincho ProN","Yu Mincho","BIZ UDMincho",serif;
+  font-size:clamp(20px,4.2vw,30px);font-weight:700;letter-spacing:.06em;}
+h1 .accent{color:var(--wood4);}
+.subtitle{font-size:clamp(12px,2.6vw,14px);color:var(--ink-soft);margin-top:2px;}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 2px 10px rgba(90,70,40,.06);}
+
+/* 方法えらび */
+.methodbar{display:flex;gap:10px;padding:10px;margin-bottom:12px;}
+.method{flex:1;display:flex;align-items:center;gap:11px;
+  background:#F6EFE0;border:2px solid transparent;border-radius:11px;
+  padding:10px 12px;cursor:pointer;text-align:left;min-height:60px;
+  transition:background .15s,border-color .15s;}
+.method:hover{background:#F0E6D2;}
+.method.on{background:#FFF6E4;border-color:var(--brand);
+  box-shadow:0 0 0 3px rgba(254,179,66,.18);}
+.method svg{flex:0 0 auto;}
+.method .mt{font-weight:700;font-size:clamp(13.5px,2.9vw,15.5px);letter-spacing:.03em;
+  color:var(--ink);line-height:1.3;}
+.method .ms{font-size:clamp(10.5px,2.3vw,12px);color:var(--ink-soft);line-height:1.35;
+  margin-top:2px;}
+
+.stage-card{padding:10px 10px 6px;}
+canvas{display:block;width:100%;height:auto;border-radius:10px;}
+.caption{min-height:2.6em;padding:8px 10px 10px;text-align:center;
+  font-size:clamp(13px,2.8vw,15.5px);color:var(--ink);}
+.caption b{color:var(--shu);}
+.caption .ratio{display:inline-block;margin-top:4px;font-size:.92em;color:var(--ink-soft);}
+.caption .ratio b{color:var(--midori);font-variant-numeric:tabular-nums;}
+
+.controls{margin-top:12px;padding:14px 16px;display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;}
+.ctl-slider{display:flex;align-items:center;gap:12px;flex:1 1 260px;min-width:240px;}
+.ctl-slider label{font-weight:700;white-space:nowrap;font-size:15px;}
+.ctl-slider output{font-variant-numeric:tabular-nums;font-weight:700;min-width:3.4em;text-align:right;font-size:15px;}
+input[type=range]{flex:1;accent-color:var(--btn);height:28px;cursor:pointer;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;}
+button{font-family:inherit;font-size:15.5px;font-weight:700;letter-spacing:.04em;
+  border:none;border-radius:999px;padding:11px 20px;min-height:46px;cursor:pointer;
+  transition:background .15s, transform .06s;}
+button:active{transform:scale(.985);}
+button:focus-visible{outline:3px solid #B98A4E;outline-offset:2px;}
+.btn-primary{background:var(--btn);color:#fff;}
+.btn-primary:hover{background:var(--btn-hover);}
+.btn-primary:disabled{background:#C9BBA5;cursor:default;}
+.btn-ghost{background:#F1E9D8;color:var(--ink);}
+.btn-ghost:hover{background:#E7DCC4;}
+.btn-fine{background:#FFF2EE;color:var(--shu);border:1.5px solid var(--shu);}
+.btn-fine:hover{background:#FDE4DD;}
+.btn-fine:disabled{opacity:.4;cursor:default;}
+
+.seg{display:flex;border:1.5px solid var(--btn);border-radius:999px;overflow:hidden;}
+.seg button{border-radius:0;min-height:44px;padding:8px 16px;background:transparent;color:var(--btn);font-size:14.5px;}
+.seg button.on{background:var(--btn);color:#fff;}
+
+.formula{margin-top:14px;padding:18px 20px 20px;}
+.formula h2{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+  font-size:clamp(16px,3.4vw,20px);letter-spacing:.08em;margin-bottom:10px;
+  display:flex;align-items:center;gap:10px;}
+.formula h2::after{content:"";flex:1;height:1px;background:var(--line);}
+.fx{display:none;}
+.fx.on{display:block;}
+.fline{display:flex;align-items:baseline;gap:.5em;flex-wrap:wrap;
+  font-size:clamp(15px,3.4vw,19px);padding:3px 0;
+  opacity:0;transform:translateY(6px);transition:opacity .5s, transform .5s;}
+.fline.show{opacity:1;transform:none;}
+.fline .lhs{min-width:5.4em;font-weight:700;}
+.fline .eq{color:var(--ink-soft);}
+.w-shu{color:var(--shu);font-weight:700;}
+.w-mid{color:var(--midori);font-weight:700;}
+.cancel{position:relative;padding:0 2px;}
+.cancel::after{content:"";position:absolute;left:-2px;right:-2px;top:52%;
+  border-top:2.5px solid var(--shu);transform:rotate(-14deg);}
+.fnote{font-size:13px;color:var(--ink-soft);margin-left:.6em;}
+.fgoal{background:#FBF3E2;border:1.5px solid #E0C489;border-radius:10px;
+  padding:6px 14px;display:inline-flex;align-items:baseline;gap:.5em;font-weight:700;}
+.fexample{margin-top:12px;font-size:14.5px;color:var(--ink-soft);
+  border-top:1px dashed var(--line);padding-top:10px;
+  opacity:0;transition:opacity .5s;}
+.fexample.show{opacity:1;}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;
+  line-height:1.15;font-size:.85em;margin:0 .15em;}
+.frac .num{border-bottom:1.6px solid currentColor;padding:0 .3em;}
+.formula .waiting{color:var(--ink-soft);font-size:14.5px;}
+.formula .waiting.hide{display:none;}
+i.mvar{font-style:italic;font-family:"Times New Roman",Georgia,serif;}
+
+footer{margin-top:26px;text-align:center;font-size:12px;color:var(--ink-soft);letter-spacing:.06em;}
+.foot-mark{display:inline-block;width:8px;height:8px;border-radius:50%;
+  background:var(--brand);margin-right:7px;vertical-align:middle;}
+
+@media (max-width:640px){
+  .controls{padding:12px 12px;gap:12px;}
+  .formula{padding:14px 14px 16px;}
+  .fline .lhs{min-width:0;}
+  .methodbar{gap:8px;padding:8px;}
+  .method{padding:9px 10px;gap:8px;}
+}
+@media (max-width:400px){
+  .brand-tag{display:none;}
+}
+@media (prefers-reduced-motion:reduce){
+  .fline,.fexample{transition:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="brandbar">
+  <svg class="brand-mark" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+    <circle cx="15" cy="15" r="14" fill="#FEB342"/>
+    <path d="M15 6.5 L22.5 20.5 L7.5 20.5 Z" fill="#FFF" opacity=".92"/>
+  </svg>
+  <span class="brand-name">中京個別指導学院</span>
+  <span class="brand-tag">算数・数学 学習ツール</span>
+</div>
+
+<header>
+  <svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true">
+    <circle cx="23" cy="23" r="21" fill="#EAD9B0"/>
+    <circle cx="23" cy="23" r="16" fill="#DDBE8C"/>
+    <circle cx="23" cy="23" r="11" fill="#CFA36B"/>
+    <circle cx="23" cy="23" r="6"  fill="#BC8451"/>
+    <circle cx="23" cy="23" r="21" fill="none" stroke="#7E5E3E" stroke-width="1"/>
+    <circle cx="23" cy="23" r="16" fill="none" stroke="#7E5E3E" stroke-width=".8" opacity=".7"/>
+    <circle cx="23" cy="23" r="11" fill="none" stroke="#7E5E3E" stroke-width=".8" opacity=".7"/>
+    <circle cx="23" cy="23" r="6"  fill="none" stroke="#7E5E3E" stroke-width=".8" opacity=".7"/>
+  </svg>
+  <div>
+    <h1 id="h1">年輪で知る <span class="accent">円の面積</span></h1>
+    <p class="subtitle" id="subtitle">切って並べかえると、知っている形になる。</p>
+  </div>
+</header>
+
+<!-- 方法えらび -->
+<nav class="card methodbar" aria-label="証明の方法">
+  <button class="method on" id="mRing" aria-pressed="true">
+    <svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true">
+      <circle cx="19" cy="12" r="9.5" fill="#EAD9B0" stroke="#7E5E3E" stroke-width=".9"/>
+      <circle cx="19" cy="12" r="6"   fill="#DDBE8C" stroke="#7E5E3E" stroke-width=".7"/>
+      <circle cx="19" cy="12" r="2.6" fill="#BC8451" stroke="#7E5E3E" stroke-width=".7"/>
+      <path d="M6 34 L32 34 L19 24 Z" fill="#CFA36B" stroke="#CE3A2A" stroke-width="1" stroke-dasharray="2.5 2"/>
+    </svg>
+    <span>
+      <span class="mt">年輪でわける</span>
+      <span class="ms">→ 三角形 ／ 小学生〜</span>
+    </span>
+  </button>
+  <button class="method" id="mSector" aria-pressed="false">
+    <svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true">
+      <path d="M19 12 L19 2.5 A9.5 9.5 0 0 1 27.7 8.2 Z" fill="#EAD9B0" stroke="#7E5E3E" stroke-width=".8"/>
+      <path d="M19 12 L27.7 8.2 A9.5 9.5 0 0 1 24.5 20.3 Z" fill="#CFA36B" stroke="#7E5E3E" stroke-width=".8"/>
+      <path d="M19 12 L24.5 20.3 A9.5 9.5 0 0 1 11.6 19.4 Z" fill="#DDBE8C" stroke="#7E5E3E" stroke-width=".8"/>
+      <path d="M19 12 L11.6 19.4 A9.5 9.5 0 0 1 19 2.5 Z" fill="#BC8451" stroke="#7E5E3E" stroke-width=".8"/>
+      <path d="M10 34 L30 34 L34 25 L14 25 Z" fill="#DDBE8C" stroke="#CE3A2A" stroke-width="1" stroke-dasharray="2.5 2"/>
+    </svg>
+    <span>
+      <span class="mt">扇形でわける</span>
+      <span class="ms">→ 平行四辺形 ／ 中学生〜</span>
+    </span>
+  </button>
+</nav>
+
+<section class="card stage-card">
+  <canvas id="stage" aria-label="円を分割して並べかえ、面積の公式を導くアニメーション"></canvas>
+  <p class="caption" id="caption"></p>
+</section>
+
+<section class="card controls">
+  <div class="ctl-slider">
+    <label for="nRange" id="nLabel">年輪の数</label>
+    <input type="range" id="nRange" min="4" max="96" step="1" value="8" aria-label="分ける数">
+    <output id="nOut">8本</output>
+  </div>
+  <div class="btn-row">
+    <button class="btn-primary" id="btnPlay">▶ ならべかえる</button>
+    <button class="btn-ghost" id="btnReset">↺ もどす</button>
+    <button class="btn-fine" id="btnFine">もっと細かく ×2</button>
+  </div>
+  <div class="seg" role="group" aria-label="再生スピード">
+    <button class="spd" data-spd="1.7">ゆっくり</button>
+    <button class="spd on" data-spd="1">ふつう</button>
+    <button class="spd" data-spd="0.55">はやい</button>
+  </div>
+  <div class="seg" role="group" aria-label="式の表示モード">
+    <button id="modeEs" class="on">小学生</button>
+    <button id="modeJh">中学生</button>
+  </div>
+</section>
+
+<section class="card formula">
+  <h2 id="fxTitle">三角形とみなして計算</h2>
+  <p class="waiting" id="fxWaiting">「▶ ならべかえる」を押すと、ここに式があらわれるよ。</p>
+
+  <!-- 年輪 × 小学生 -->
+  <div class="fx" id="fx-ring-es">
+    <div class="fline"><span class="lhs">円の面積</span><span class="eq">=</span><span>三角形の面積</span></div>
+    <div class="fline"><span class="lhs"></span><span class="eq">=</span>
+      <span><span class="w-shu">底辺</span> × <span class="w-mid">高さ</span> ÷ 2</span></div>
+    <div class="fline"><span class="lhs"></span><span class="eq">=</span>
+      <span><span class="w-shu">円周</span> × <span class="w-mid">半径</span> ÷ 2</span></div>
+    <div class="fline"><span class="lhs"></span><span class="eq">=</span>
+      <span><span class="w-shu">直径 × 3.14</span> × <span class="w-mid">半径</span> ÷ 2</span></div>
+    <div class="fline"><span class="lhs"></span><span class="eq">=</span>
+      <span>半径 × <span class="cancel">2</span> × 3.14 × <span class="w-mid">半径</span> <span class="cancel">÷ 2</span></span>
+      <span class="fnote">← ×2 と ÷2 が打ち消し合う</span></div>
+    <div class="fline"><span class="lhs"></span><span class="eq">=</span>
+      <span class="fgoal">半径 × 半径 × 3.14</span></div>
+    <p class="fexample">たしかめ：半径 10cm の円なら 10 × 10 × 3.14 = <b>314 cm²</b></p>
+  </div>
+
+  <!-- 年輪 × 中学生 -->
+  <div class="fx" id="fx-ring-jh">
+    <div class="fline"><span class="lhs">円の面積 <i class="mvar">S</i></span><span class="eq">=</span>
+      <span><span class="frac"><span class="num">1</span><span>2</span></span> × <span class="w-shu">底辺</span> × <span class="w-mid">高さ</span></span></div>
+    <div class="fline"><span class="lhs"></span><span class="eq">=</span>
+      <span><span class="frac"><span class="num">1</span><span>2</span></span> × <span class="w-shu">2π<i class="mvar">r</i></span> × <span class="w-mid"><i class="mvar">r</i></span></span>
+      <span class="fnote">底辺 = 円周 2π<i class="mvar">r</i>、高さ = 半径 <i class="mvar">r</i></span></div>
+    <div class="fline"><span class="lhs"></span><span class="eq">=</span>
+      <span class="fgoal">π<i class="mvar">r</i><sup>2</sup></span></div>
+    <p class="fexample">たしかめ：<i class="mvar">r</i> = 10cm なら <i class="mvar">S</i> = 100π cm² ( = 314.15… cm² )</p>
+  </div>
+
+  <!-- 扇形 × 小学生 -->
+  <div class="fx" id="fx-sector-es">
+    <div class="fline"><span class="lhs">円の面積</span><span class="eq">=</span><span>平行四辺形の面積</span></div>
+    <div class="fline"><span class="lhs"></span><span class="eq">=</span>
+      <span><span class="w-shu">底辺</span> × <span class="w-mid">高さ</span></span></div>
+    <div class="fline"><span class="lhs"></span><span class="eq">=</span>
+      <span><span class="w-shu">円周の半分</span> × <span class="w-mid">半径</span></span>
+      <span class="fnote">← 上と下に弧が半分ずつ</span></div>
+    <div class="fline"><span class="lhs"></span><span class="eq">=</span>
+      <span><span class="w-shu">直径 × 3.14 ÷ 2</span> × <span class="w-mid">半径</span></span></div>
+    <div class="fline"><span class="lhs"></span><span class="eq">=</span>
+      <span><span class="w-shu">半径 × 3.14</span> × <span class="w-mid">半径</span></span>
+      <span class="fnote">← 直径 ÷ 2 = 半径</span></div>
+    <div class="fline"><span class="lhs"></span><span class="eq">=</span>
+      <span class="fgoal">半径 × 半径 × 3.14</span></div>
+    <p class="fexample">たしかめ：半径 10cm の円なら 10 × 10 × 3.14 = <b>314 cm²</b></p>
+  </div>
+
+  <!-- 扇形 × 中学生 -->
+  <div class="fx" id="fx-sector-jh">
+    <div class="fline"><span class="lhs">円の面積 <i class="mvar">S</i></span><span class="eq">=</span>
+      <span><span class="w-shu">底辺</span> × <span class="w-mid">高さ</span></span></div>
+    <div class="fline"><span class="lhs"></span><span class="eq">=</span>
+      <span><span class="w-shu"><span class="frac"><span class="num">1</span><span>2</span></span> × 2π<i class="mvar">r</i></span> × <span class="w-mid"><i class="mvar">r</i></span></span>
+      <span class="fnote">底辺 = 円周の半分、高さ = 半径 <i class="mvar">r</i></span></div>
+    <div class="fline"><span class="lhs"></span><span class="eq">=</span>
+      <span><span class="w-shu">π<i class="mvar">r</i></span> × <span class="w-mid"><i class="mvar">r</i></span></span></div>
+    <div class="fline"><span class="lhs"></span><span class="eq">=</span>
+      <span class="fgoal">π<i class="mvar">r</i><sup>2</sup></span></div>
+    <p class="fexample" id="exSectorJh">たしかめ：<i class="mvar">r</i> = 10cm なら <i class="mvar">S</i> = 100π cm² ( = 314.15… cm² )</p>
+  </div>
+</section>
+
+<footer><span class="foot-mark"></span>中京個別指導学院｜divp-suite</footer>
+
+<script>
+(function(){
+"use strict";
+
+/* ===== 要素 ===== */
+var cv = document.getElementById('stage');
+var ctx = cv.getContext('2d');
+var caption = document.getElementById('caption');
+var nRange = document.getElementById('nRange');
+var nOut = document.getElementById('nOut');
+var nLabel = document.getElementById('nLabel');
+var btnPlay = document.getElementById('btnPlay');
+var btnReset = document.getElementById('btnReset');
+var btnFine = document.getElementById('btnFine');
+var modeEs = document.getElementById('modeEs');
+var modeJh = document.getElementById('modeJh');
+var mRing = document.getElementById('mRing');
+var mSector = document.getElementById('mSector');
+var fxWaiting = document.getElementById('fxWaiting');
+var fxTitle = document.getElementById('fxTitle');
+var h1 = document.getElementById('h1');
+var subtitle = document.getElementById('subtitle');
+
+var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ===== 状態 ===== */
+var method = 'ring';       // 'ring' | 'sector'
+var n = 8;
+var mode = 'es';           // 'es' | 'jh'
+var speed = 1;
+var state = 'idle';        // 'idle' | 'animating' | 'done'
+var t0 = 0, triP = 0, triT0 = 0, rafId = null;
+var revealTimers = [];
+
+var PALETTE = ['#EAD9B0','#DDBE8C','#CFA36B','#BC8451'];
+var WOODLINE = 'rgba(126,94,62,.55)';
+var SHU = '#CE3A2A';
+var MIDORI = '#3E7A55';
+var TAU = Math.PI*2;
+
+var L = {};
+var dpr = 1;
+
+/* ===== 共通ユーティリティ ===== */
+function easeIO(x){ return x<0.5 ? 4*x*x*x : 1 - Math.pow(-2*x+2,3)/2; }
+function dist(a,b){ return Math.hypot(b.x-a.x, b.y-a.y); }
+
+function haloText(txt, x, y, color, font, align){
+  ctx.font = font;
+  ctx.textAlign = align || 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = 'rgba(255,253,247,.9)';
+  ctx.strokeText(txt, x, y);
+  ctx.fillStyle = color;
+  ctx.fillText(txt, x, y);
+}
+function bracketH(x1, x2, y, color, label){
+  ctx.strokeStyle = color; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x1, y - 6); ctx.lineTo(x1, y);
+  ctx.lineTo(x2, y);     ctx.lineTo(x2, y - 6);
+  ctx.stroke();
+  haloText(label, (x1+x2)/2, y + 14, color, '700 13.5px sans-serif');
+}
+function heightLine(x, yTop, yBottom, color, label){
+  ctx.strokeStyle = color; ctx.lineWidth = 2;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(x, yTop); ctx.lineTo(x, yBottom); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(x-5, yTop); ctx.lineTo(x+5, yTop);
+  ctx.moveTo(x-5, yBottom); ctx.lineTo(x+5, yBottom);
+  ctx.stroke();
+  haloText(label, x + 9, (yTop+yBottom)/2, color, '700 13.5px sans-serif', 'left');
+}
+function pathAlong(pts, len){
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for(var i=1;i<pts.length;i++){
+    var d = dist(pts[i-1], pts[i]);
+    if(len >= d){ ctx.lineTo(pts[i].x, pts[i].y); len -= d; }
+    else{
+      var t = len/d;
+      ctx.lineTo(pts[i-1].x + (pts[i].x-pts[i-1].x)*t,
+                 pts[i-1].y + (pts[i].y-pts[i-1].y)*t);
+      return;
+    }
+  }
+}
+function outlinePath(pts, p){
+  var per = [], total = 0, i;
+  for(i=1;i<pts.length;i++){ per.push(dist(pts[i-1],pts[i])); total += per[i-1]; }
+  ctx.save();
+  ctx.strokeStyle = SHU; ctx.lineWidth = 1.2; ctx.lineJoin = 'round';
+  ctx.setLineDash([6,5]);
+  ctx.beginPath();
+  pathAlong(pts, total * p);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+/* ===== レイアウト ===== */
+function layout(){
+  var cw = cv.clientWidth || (cv.parentElement.clientWidth - 20);
+  var R, topPad, gap = 26, figH;
+
+  if(method === 'ring'){
+    R = Math.floor((cw - 36) / TAU);          // 底辺 2πR
+    R = Math.max(44, Math.min(130, R));
+    topPad = 22;
+    figH = R;
+  }else{
+    R = Math.floor((cw - 40) / 3.54);         // 外接幅 (n+1)R sin(π/n) の最大 3.536R
+    R = Math.max(44, Math.min(130, R));
+    topPad = Math.max(22, Math.ceil(R * 0.36)); // 扇形が外へ開くぶん
+    figH = R;
+  }
+  L.R = R;
+  L.circle  = { x: cw/2, y: topPad + R };
+  L.stackCX = cw/2;
+  L.baseY   = topPad + 2*R + gap + figH;
+  L.cw = cw;
+  L.ch = L.baseY + 76;
+
+  dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  cv.width = Math.round(cw * dpr);
+  cv.height = Math.round(L.ch * dpr);
+  cv.style.height = L.ch + 'px';
+}
+
+/* ===== 共通ガイド ===== */
+function drawCircleGuides(){
+  ctx.setLineDash([5,5]);
+  ctx.strokeStyle = 'rgba(107,91,72,.5)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.arc(L.circle.x, L.circle.y, L.R, 0, TAU);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.strokeStyle = MIDORI; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(L.circle.x, L.circle.y);
+  ctx.lineTo(L.circle.x + L.R, L.circle.y);
+  ctx.stroke();
+  ctx.fillStyle = MIDORI;
+  ctx.beginPath(); ctx.arc(L.circle.x, L.circle.y, 2.6, 0, TAU); ctx.fill();
+  haloText(mode === 'jh' ? '半径 r' : '半径',
+    L.circle.x + L.R/2, L.circle.y - 12, MIDORI, '700 13px sans-serif');
+}
+
+/* ===================================================================
+   方法1：年輪 → 三角形
+   =================================================================== */
+function ringGeom(k){
+  var th = L.R / n;
+  return { rho:(k+0.5)*th, th:th, len:TAU*(k+0.5)*th };
+}
+function rowY(k){
+  var th = L.R / n;
+  return L.baseY - (((n-1)-k) + 0.5)*th;
+}
+function drawAnnulus(k){
+  var g = ringGeom(k);
+  ctx.beginPath();
+  ctx.arc(L.circle.x, L.circle.y, g.rho + g.th/2, 0, TAU);
+  ctx.arc(L.circle.x, L.circle.y, Math.max(0.1, g.rho - g.th/2), TAU, 0, true);
+  ctx.closePath();
+  ctx.fillStyle = PALETTE[k % PALETTE.length];
+  ctx.fill();
+  ctx.strokeStyle = WOODLINE;
+  ctx.lineWidth = Math.min(1, g.th*0.12);
+  ctx.stroke();
+}
+/* 上で切れ、めくれながら真下に落ちる */
+function drawPeel(k, u){
+  var g = ringGeom(k);
+  var e = easeIO(u), s = 1 - e;
+  var ax = L.stackCX;
+  var ayStart = L.circle.y + g.rho;
+  var ay = ayStart + (rowY(k) - ayStart) * e;
+
+  ctx.fillStyle = PALETTE[k % PALETTE.length];
+  ctx.strokeStyle = WOODLINE;
+  ctx.lineWidth = Math.min(1, g.th*0.12);
+
+  if(s < 0.004){
+    ctx.beginPath();
+    ctx.rect(ax - g.len/2, ay - g.th/2, g.len, g.th);
+    ctx.fill(); ctx.stroke();
+    return;
+  }
+  var A = g.rho / s, theta = TAU * s, oy = ay - A;
+  var a0 = Math.PI/2 - theta/2, a1 = Math.PI/2 + theta/2;
+  ctx.beginPath();
+  ctx.arc(ax, oy, A + g.th/2, a0, a1);
+  ctx.arc(ax, oy, Math.max(0.1, A - g.th/2), a1, a0, true);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  if(u > 0.02 && s > 0.03){
+    ctx.strokeStyle = SHU; ctx.lineWidth = 1.6;
+    [a0, a1].forEach(function(a){
+      ctx.beginPath();
+      ctx.moveTo(ax + (A - g.th/2)*Math.cos(a), oy + (A - g.th/2)*Math.sin(a));
+      ctx.lineTo(ax + (A + g.th/2)*Math.cos(a), oy + (A + g.th/2)*Math.sin(a));
+      ctx.stroke();
+    });
+  }
+}
+function drawTriangle(p){
+  if(p <= 0) return;
+  var apex = { x: L.stackCX, y: L.baseY - L.R };
+  var bl = { x: L.stackCX - Math.PI*L.R, y: L.baseY };
+  var br = { x: L.stackCX + Math.PI*L.R, y: L.baseY };
+  outlinePath([apex, bl, br, apex], p);
+  if(p >= 1){
+    bracketH(bl.x, br.x, L.baseY + 10, SHU,
+      mode === 'jh' ? '底辺 = 円周 2πr' : '底辺 = 円周（直径 × 3.14）');
+    heightLine(L.stackCX, L.baseY - L.R, L.baseY, MIDORI,
+      mode === 'jh' ? '高さ = 半径 r' : '高さ = 半径');
+  }
+}
+
+/* ===================================================================
+   方法2：扇形 → 平行四辺形
+   =================================================================== */
+function sectorGeom(){
+  var a = TAU / n;
+  var d = L.R * Math.sin(a/2);
+  var h = L.R * Math.cos(a/2);
+  var x0 = L.stackCX - (n-1)*d/2;
+  return { a:a, d:d, h:h, x0:x0, yT:L.baseY - h, yB:L.baseY };
+}
+function sectorColor(i){
+  return (i % 2 === 0)
+    ? PALETTE[(i/2) % 2]                 // 上向き頂点：明るい木目
+    : PALETTE[2 + (((i-1)/2) % 2)];      // 下向き頂点：濃い木目
+}
+/* C=頂点, phi=二等分線の向き, half=半角 */
+function sectorPath(cx, cy, phi, half, i){
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, L.R, phi - half, phi + half);
+  ctx.closePath();
+  ctx.fillStyle = sectorColor(i);
+  ctx.fill();
+  ctx.strokeStyle = WOODLINE;
+  ctx.lineWidth = 0.9;
+  ctx.stroke();
+}
+function normAng(x){
+  while(x >  Math.PI) x -= TAU;
+  while(x <= -Math.PI) x += TAU;
+  return x;
+}
+var FAN = 0.30;   // 外へ開くフェーズの割合
+function drawSector(i, u){
+  var g = sectorGeom();
+  var half = g.a/2;
+  var phi0 = (i + 0.5) * g.a;                       // 円の中のときの向き
+  var phiEnd = (i % 2 === 0) ? Math.PI/2 : -Math.PI/2;
+  var target = { x: g.x0 + i*g.d, y: (i % 2 === 0) ? g.yT : g.yB };
+
+  var cx, cy, phi;
+  if(u <= 0){
+    sectorPath(L.circle.x, L.circle.y, phi0, half, i);
+    return;
+  }
+  if(u < FAN){                                       // 放射状に開く
+    var t = easeIO(u / FAN) * L.R * 0.26;
+    cx = L.circle.x + Math.cos(phi0)*t;
+    cy = L.circle.y + Math.sin(phi0)*t;
+    phi = phi0;
+  }else{                                             // 並びながら回る
+    var q = easeIO((u - FAN) / (1 - FAN));
+    var sx = L.circle.x + Math.cos(phi0)*L.R*0.26;
+    var sy = L.circle.y + Math.sin(phi0)*L.R*0.26;
+    cx = sx + (target.x - sx) * q;
+    cy = sy + (target.y - sy) * q;
+    phi = phi0 + normAng(phiEnd - phi0) * q;
+  }
+  sectorPath(cx, cy, phi, half, i);
+}
+function drawParallelogram(p){
+  if(p <= 0) return;
+  var g = sectorGeom();
+  var pts = [
+    { x: g.x0,             y: g.yT },
+    { x: g.x0 + n*g.d,     y: g.yT },
+    { x: g.x0 + (n-1)*g.d, y: g.yB },
+    { x: g.x0 - g.d,       y: g.yB },
+    { x: g.x0,             y: g.yT }
+  ];
+  outlinePath(pts, p);
+  if(p >= 1){
+    bracketH(g.x0 - g.d, g.x0 + (n-1)*g.d, g.yB + 10, SHU,
+      mode === 'jh' ? '底辺 = 円周の半分 = πr' : '底辺 = 円周の半分（直径×3.14÷2）');
+    heightLine(L.stackCX, g.yT, g.yB, MIDORI,
+      mode === 'jh' ? '高さ ≒ 半径 r' : '高さ ≒ 半径');
+  }
+}
+
+/* ===== タイミング ===== */
+function timing(){
+  var per, stagger;
+  if(method === 'ring'){
+    per = 780 * speed;
+    stagger = Math.min(260, Math.max(26, 2600/n)) * speed;
+  }else{
+    per = 900 * speed;
+    stagger = Math.min(200, Math.max(20, 2200/n)) * speed;
+  }
+  return { per: per, stagger: stagger, total: stagger*(n-1) + per };
+}
+function progressOf(k, elapsed, tm){
+  if(state === 'idle') return 0;
+  if(state === 'done') return 1;
+  var j = (method === 'ring') ? ((n-1) - k) : k;   // 年輪は外側から、扇形は左から
+  return Math.max(0, Math.min(1, (elapsed - j*tm.stagger) / tm.per));
+}
+
+/* ===== 描画ループ ===== */
+function render(now){
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,L.cw,L.ch);
+
+  var tm = timing();
+  var elapsed = (state === 'animating') ? (now - t0) : 0;
+  var k, p, allDone = true;
+
+  if(method === 'ring'){
+    for(k=0;k<n;k++){ if(progressOf(k, elapsed, tm) <= 0) drawAnnulus(k); }
+    drawCircleGuides();
+    for(k=0;k<n;k++){ if(progressOf(k, elapsed, tm) >= 1) drawPeel(k, 1); }
+    for(k=0;k<n;k++){
+      p = progressOf(k, elapsed, tm);
+      if(p > 0 && p < 1) drawPeel(k, p);
+      if(p < 1) allDone = false;
+    }
+  }else{
+    for(k=0;k<n;k++){ if(progressOf(k, elapsed, tm) <= 0) drawSector(k, 0); }
+    drawCircleGuides();
+    for(k=0;k<n;k++){ if(progressOf(k, elapsed, tm) >= 1) drawSector(k, 1); }
+    for(k=0;k<n;k++){
+      p = progressOf(k, elapsed, tm);
+      if(p > 0 && p < 1) drawSector(k, p);
+      if(p < 1) allDone = false;
+    }
+  }
+
+  if(state === 'animating' && allDone){
+    state = 'done'; triT0 = now; onDone();
+  }
+  if(state === 'done'){
+    if(triP < 1) triP = Math.min(1, (now - triT0) / 700);
+    if(method === 'ring') drawTriangle(triP); else drawParallelogram(triP);
+  }
+
+  if(state === 'animating' || (state === 'done' && triP < 1)){
+    rafId = requestAnimationFrame(render);
+  }else{
+    rafId = null;
+  }
+}
+function kick(){ if(rafId === null) rafId = requestAnimationFrame(render); }
+
+/* ===== 進行制御 ===== */
+function setCaption(html){ caption.innerHTML = html; }
+function unitWord(){ return method === 'ring' ? '本' : '個'; }
+
+function play(){
+  if(state === 'animating') return;
+  resetFormula();
+  state = 'animating';
+  triP = 0;
+  t0 = performance.now();
+  btnPlay.disabled = true;
+  btnFine.disabled = (n >= MAXN);
+  setCaption(method === 'ring'
+    ? '<b>外側の輪</b>から上で切れて、めくれながら真下に落ちていくよ…'
+    : '扇形を1つずつ取り出して、<b>上下交互</b>にかみ合わせていくよ…');
+  kick();
+}
+function reset(){
+  state = 'idle'; triP = 0;
+  btnPlay.disabled = false;
+  btnFine.disabled = (n >= MAXN);
+  resetFormula();
+  layout();
+  setCaption(method === 'ring'
+    ? '円を年輪のように <b>' + n + '本</b> の輪に切りました。ボタンを押してみよう。'
+    : '円を <b>' + n + '個</b> の扇形に切りました。ボタンを押してみよう。');
+  kick();
+}
+function onDone(){
+  btnPlay.disabled = false;
+  btnFine.disabled = (n >= MAXN);
+  var msg;
+  if(method === 'ring'){
+    msg = (n < 20)
+      ? '積み上がると<b>三角形</b>に！ まだギザギザ…「もっと細かく」でふやしてみよう。'
+      : '細かくするほど、ギザギザは<b>三角形</b>にどんどん近づく！';
+  }else{
+    var pct = (n/2) * Math.sin(TAU/n) / Math.PI * 100;
+    var shape = (n < 20)
+      ? 'かみ合わせると<b>平行四辺形</b>に！ まだ辺が波打っている…'
+      : '波はほとんど消えて、<b>平行四辺形</b>そのもの！';
+    msg = shape + '<br><span class="ratio">いまの平行四辺形の面積は、円の <b>'
+        + pct.toFixed(pct > 99 ? 3 : 1) + '%</b>（' + n + '個に分割）</span>';
+  }
+  setCaption(msg);
+  revealFormula();
+}
+
+/* ===== 式パネル ===== */
+function currentFx(){ return document.getElementById('fx-' + method + '-' + mode); }
+function syncFx(){
+  ['ring','sector'].forEach(function(me){
+    ['es','jh'].forEach(function(mo){
+      document.getElementById('fx-'+me+'-'+mo).classList.toggle('on', me===method && mo===mode);
+    });
+  });
+  fxTitle.textContent = (method === 'ring') ? '三角形とみなして計算' : '平行四辺形とみなして計算';
+}
+function resetFormula(){
+  revealTimers.forEach(clearTimeout); revealTimers = [];
+  Array.prototype.forEach.call(document.querySelectorAll('.fx'), function(box){
+    Array.prototype.forEach.call(box.querySelectorAll('.fline'), function(el){ el.classList.remove('show'); });
+    var ex = box.querySelector('.fexample');
+    if(ex) ex.classList.remove('show');
+  });
+  fxWaiting.classList.remove('hide');
+}
+function revealFormula(){
+  fxWaiting.classList.add('hide');
+  var box = currentFx();
+  var lines = box.querySelectorAll('.fline');
+  Array.prototype.forEach.call(lines, function(el, i){
+    revealTimers.push(setTimeout(function(){ el.classList.add('show'); }, REDUCED ? 0 : 380*i));
+  });
+  var ex = box.querySelector('.fexample');
+  if(ex){
+    revealTimers.push(setTimeout(function(){ ex.classList.add('show'); }, REDUCED ? 0 : 380*lines.length));
+  }
+}
+
+/* ===== n の正規化（扇形は偶数のみ） ===== */
+var MAXN = 96;
+function minN(){ return (method === 'sector') ? 8 : 4; }
+function normalizeN(v){
+  var lo = minN();
+  v = Math.max(lo, Math.min(MAXN, Math.round(v)));
+  if(method === 'sector' && v % 2 !== 0) v = v - 1;
+  return Math.max(lo, v);
+}
+function applyN(v){
+  n = normalizeN(v);
+  nRange.value = n;
+  nOut.textContent = n + unitWord();
+}
+
+/* ===== 方法切替 ===== */
+function setMethod(m){
+  method = m;
+  mRing.classList.toggle('on', m === 'ring');
+  mSector.classList.toggle('on', m === 'sector');
+  mRing.setAttribute('aria-pressed', m === 'ring');
+  mSector.setAttribute('aria-pressed', m === 'sector');
+  nRange.min = minN();
+  nRange.step = (m === 'sector') ? 2 : 1;
+  nLabel.textContent = (m === 'ring') ? '年輪の数' : '扇形の数';
+  h1.innerHTML = (m === 'ring')
+    ? '年輪で知る <span class="accent">円の面積</span>'
+    : '扇形で知る <span class="accent">円の面積</span>';
+  subtitle.textContent = (m === 'ring')
+    ? '細い輪に切って開くと、三角形が見えてくる。'
+    : '交互にかみ合わせると、平行四辺形が見えてくる。';
+  applyN(n);
+  syncFx();
+  reset();
+}
+function setMode(m){
+  mode = m;
+  modeEs.classList.toggle('on', m === 'es');
+  modeJh.classList.toggle('on', m === 'jh');
+  syncFx();
+  if(state === 'done'){ resetFormula(); revealFormula(); }
+  kick();
+}
+
+/* ===== イベント ===== */
+nRange.addEventListener('input', function(){ applyN(+nRange.value); reset(); });
+btnPlay.addEventListener('click', play);
+btnReset.addEventListener('click', reset);
+btnFine.addEventListener('click', function(){
+  applyN(n * 2);
+  state = 'idle';
+  layout();
+  play();
+});
+mRing.addEventListener('click', function(){ setMethod('ring'); });
+mSector.addEventListener('click', function(){ setMethod('sector'); });
+modeEs.addEventListener('click', function(){ setMode('es'); });
+modeJh.addEventListener('click', function(){ setMode('jh'); });
+Array.prototype.forEach.call(document.querySelectorAll('.spd'), function(b){
+  b.addEventListener('click', function(){
+    Array.prototype.forEach.call(document.querySelectorAll('.spd'), function(o){ o.classList.remove('on'); });
+    b.classList.add('on');
+    speed = parseFloat(b.dataset.spd);
+    if(state === 'animating'){ state = 'idle'; play(); }
+  });
+});
+var resizeTimer = null;
+window.addEventListener('resize', function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){ layout(); kick(); }, 120);
+});
+
+/* ===== 初期化 ===== */
+layout();
+setMethod('ring');
+setMode('es');
+})();
+</script>
+</body>
+</html>
