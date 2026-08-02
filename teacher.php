@@ -1084,25 +1084,46 @@ function sp_select(string $label, array $options): string
 <?php else: ?>
 <?php
     // 種類フィルタのキー。モードが多いツールは単元単位にまとめる
-    // （計算どぅする？は15モードあるが、講師の誤答印刷は「計算どぅする？」単位で絞れれば十分）。
+    // （計算どぅする？は15モードあるが、講師の誤答印刷は「計算どぅする？」単位で絞れれば十分。
+    // 　小2算数まるごとパックも同じく15単元あるが「小2算数すべて」で絞れれば十分）。
     // 単元ごとにまとめたいツールは $collapseUnits に足す。
-    $collapseUnits = ['math_es6_keisan_dousuru' => true];
-    $wrongFilterKey = function ($w) use ($unitMeta, $collapseUnits) {
-        if (isset($collapseUnits[$w['unit_key']])) {
-            return ($unitMeta[$w['unit_key']] ?? null)['title'] ?? $w['unit_key'];
-        }
-        return $w['label'];
-    };
+    $collapseUnits = [
+        'math_es6_keisan_dousuru' => true,
+        'math_es2_all'            => true,
+        'math_es3_all'            => true,
+    ];
+    $wrongUnitTitle = fn($w) => ($unitMeta[$w['unit_key']] ?? null)['title'] ?? $w['unit_key'];
+    $wrongFilterLabel = fn($w) => isset($collapseUnits[$w['unit_key']])
+        ? $wrongUnitTitle($w) : $w['label'];
+    // 種類フィルタのキーは unit_key で名前空間を分ける。単元をまたぐと同名モードが衝突するため
+    // （例: 理科の「計算特集」は中1「身のまわりの物質」と中2「生物の体のつくり」の両方にある）。
+    $wrongFilterKey = fn($w) => $w['unit_key'] . '|' . $wrongFilterLabel($w);
+    // 単元でしぼる行（理科の物質／生物のように、単元まるごとで印刷したい時用）
+    $wrongUnits = [];
     $wrongModes = [];
-    foreach ($dWrongs as $w) { $wrongModes[$wrongFilterKey($w)] = true; }
-    $wrongModes = array_keys($wrongModes);
+    foreach ($dWrongs as $w) {
+        $wrongUnits[$w['unit_key']] = $wrongUnitTitle($w);
+        // 単元単位にまとめるツールは単元ボタンで足りるので種類ボタンは作らない
+        if (!isset($collapseUnits[$w['unit_key']])) {
+            $wrongModes[$wrongFilterKey($w)] = ['label' => $wrongFilterLabel($w), 'unit' => $w['unit_key']];
+        }
+    }
 ?>
+<?php if (count($wrongUnits) > 1): ?>
+    <div class="bar-row" id="wrong-unit-filter" style="margin:6px 0 2px;">
+      <span style="font-size:12px;color:var(--ink-soft);font-weight:700;align-self:center;">単元でしぼる</span>
+      <button class="ptab active" type="button" data-unit="">すべて</button>
+<?php foreach ($wrongUnits as $uk => $ut): ?>
+      <button class="ptab" type="button" data-unit="<?= h($uk) ?>"><?= h($ut) ?></button>
+<?php endforeach; ?>
+    </div>
+<?php endif; ?>
 <?php if (count($wrongModes) > 1): ?>
     <div class="bar-row" id="wrong-mode-filter" style="margin:6px 0 2px;">
       <span style="font-size:12px;color:var(--ink-soft);font-weight:700;align-self:center;">種類でしぼる</span>
       <button class="ptab active" type="button" data-mode="">すべて</button>
-<?php foreach ($wrongModes as $m): ?>
-      <button class="ptab" type="button" data-mode="<?= h($m) ?>"><?= h($m) ?></button>
+<?php foreach ($wrongModes as $mk => $mi): ?>
+      <button class="ptab" type="button" data-mode="<?= h($mk) ?>" data-unit="<?= h($mi['unit']) ?>"><?= h($mi['label']) ?></button>
 <?php endforeach; ?>
     </div>
 <?php endif; ?>
@@ -1112,7 +1133,7 @@ function sp_select(string $label, array $options): string
 <?php foreach ($dWrongs as $wr):
     $wUnitTitle = ($unitMeta[$wr['unit_key']] ?? null)['title'] ?? $wr['unit_key'];
 ?>
-      <tr data-mode="<?= h($wrongFilterKey($wr)) ?>">
+      <tr data-mode="<?= h($wrongFilterKey($wr)) ?>" data-unit="<?= h($wr['unit_key']) ?>">
         <td data-label="日時" style="white-space:nowrap;"><?= h(substr($wr['answered_at'], 5, 11)) ?></td>
         <td data-label="単元" style="white-space:nowrap;font-size:12px;"><?= h($wUnitTitle) ?></td>
         <td data-label="種類"><span class="chip"><?= h($wr['label']) ?></span></td>
@@ -1130,15 +1151,24 @@ function sp_select(string $label, array $options): string
     foreach ($dWrongs as $w) {
         if ($w['unit_key'] === 'social_es4_todofuken' && $w['question_key'] === 'pref_from_map') { $hasTodofukenMap = true; break; }
     }
+    // 円の面積マスターの「工夫して求める」は図が無いと解けない。
+    // 図はツールと共通の assets/menseki-fig.js で描くので、該当誤答がある時だけ読み込む。
+    $hasMensekiFig = false;
+    foreach ($dWrongs as $w) {
+        if ($w['unit_key'] === 'math_es6_en_menseki' && $w['question_key'] === 'kufu') { $hasMensekiFig = true; break; }
+    }
 ?>
 <?php if ($hasTodofukenMap): ?>
     <template id="jp-map-tpl"><?= todofuken_map_svg(0) ?></template>
+<?php endif; ?>
+<?php if ($hasMensekiFig): ?>
+    <script src="/assets/menseki-fig.js"></script>
 <?php endif; ?>
     <script type="application/json" id="print-wrongs-data"><?= json_encode([
       'student' => $detail['student_name'],
       'meta'    => $detail['classroom_name'] . '教室' . ($detail['grade'] ? '・' . grade_label($detail['grade']) : ''),
       'period'  => $periodLabels[$period] . ($filterSubject !== '' ? '・' . subject_label($filterSubject) : ''),
-      'items'   => array_map(function ($w) use ($unitMeta, $wrongFilterKey) {
+      'items'   => array_map(function ($w) use ($unitMeta, $wrongFilterKey, $wrongUnitTitle) {
           // 地図モードの1問目(pref_from_map)は問題文だけでは解けない。
           // question_params の code を渡し、印刷側で日本地図に光らせる。
           $mapCode = 0;
@@ -1152,15 +1182,24 @@ function sp_select(string $label, array $options): string
           if (is_array($qpG) && isset($qpG['gen']) && strpos($qpG['gen'], 'densGraph') === 0 && !empty($qpG['subs'])) {
               $graph = ['subs' => $qpG['subs']];
           }
+          // 円の面積の工夫問題: question_params({m,s,d})をそのまま渡し、
+          // 印刷側で MensekiFig.fromParams() に図を描かせる（PHPでは図を組み立てない）
+          $fig = null;
+          if ($w['unit_key'] === 'math_es6_en_menseki' && $w['question_key'] === 'kufu'
+              && is_array($qpG) && isset($qpG['m'], $qpG['s'], $qpG['d'])) {
+              $fig = ['m' => $qpG['m'], 's' => $qpG['s'], 'd' => $qpG['d']];
+          }
           return [
-              'unit'  => (($unitMeta[$w['unit_key']] ?? null)['title'] ?? $w['unit_key']),
+              'unit'  => $wrongUnitTitle($w),
               'label' => $w['label'],
+              'ukey'  => $w['unit_key'],        // 単元フィルタの絞り込みキー（=data-unit）
               'fkey'  => $wrongFilterKey($w),   // 種類フィルタの絞り込みキー（=data-mode）
               'q'     => $w['question_text'],
               'a'     => $w['correct_answer'],
               'sa'    => $w['student_answer'],
               'code'  => ($mapCode >= 1 && $mapCode <= 47) ? $mapCode : 0,  // 地図問題なら県コード
               'graph' => $graph,   // 座標グラフ問題なら {subs:[{L,v,m}...]}
+              'fig'   => $fig,     // 円の面積の工夫問題なら {m,s,d}
           ];
       }, $dWrongs),
     ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
@@ -1759,6 +1798,14 @@ document.querySelectorAll('.math').forEach(function (el) {
     return '<div class="q-graph">' + s + '</svg></div>';
   }
 
+  // 円の面積「工夫して求める」用: ツールと同じ assets/menseki-fig.js に描かせる。
+  // 図の実装をここに複製しないこと（画面と印刷で図がずれる原因になる）。
+  function mensekiSvg(fig) {
+    if (!fig || !window.MensekiFig) return '';
+    var svg = MensekiFig.fromParams(fig);
+    return svg ? '<div class="q-fig">' + svg + '</div>' : '';
+  }
+
   function esc(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -1773,17 +1820,24 @@ document.querySelectorAll('.math').forEach(function (el) {
     var data;
     try { data = JSON.parse(dataEl.textContent || '{}'); } catch (e) { return; }
     var items = data.items || [];
-    // 種類(モード)で絞り込み中なら、その種類だけ印刷する
+    // 単元・種類(モード)で絞り込み中なら、その分だけ印刷する
+    var unitFilter = window.__wrongUnitFilter || '';
     var modeFilter = window.__wrongModeFilter || '';
+    if (unitFilter) items = items.filter(function (it) { return it.ukey === unitFilter; });
     if (modeFilter) items = items.filter(function (it) { return (it.fkey != null ? it.fkey : it.label) === modeFilter; });
     if (!items.length) { alert('印刷できる誤答がありません'); return; }
+    // 用紙の見出しに絞り込み名を添える（何のプリントか紙だけで分かるように）
+    var subHead = data.period || '';
+    var fLabel = window.__wrongFilterLabel ? window.__wrongFilterLabel() : '';
+    if (fLabel) subHead = subHead ? subHead + '・' + fLabel : fLabel;
 
-    // ページ割りは重み方式（地図問題は縦に大きいので重く数える）。
-    // テキスト=1 / 地図=2.5、1ページ上限5。→ テキスト5問 or 地図2枚+テキスト、等。
+    // ページ割りは重み方式（図がある問題は縦に大きいので重く数える）。
+    // テキスト=1 / 地図・グラフ=2.5 / 円の面積の図=2、1ページ上限5。
+    // → テキスト5問 or 地図2枚 or 図2つ+テキスト1問、等。
     var PAGE_BUDGET = 5;
     var pages = [], cur = [], load = 0;
     items.forEach(function (it) {
-      var wt = (it.code || it.graph) ? 2.5 : 1;
+      var wt = it.fig ? 2 : ((it.code || it.graph) ? 2.5 : 1);
       if (cur.length && load + wt > PAGE_BUDGET) { pages.push(cur); cur = []; load = 0; }
       cur.push(it); load += wt;
     });
@@ -1797,7 +1851,9 @@ document.querySelectorAll('.math').forEach(function (el) {
         // 日本地図（該当県が光る）＋書き取り指示に差し替える。
         var qbody = it.code
           ? mapSvg(it.code) + '<div class="q-note">黒くぬられた都道府県の <b>名前</b> と <b>県庁所在地</b> を書きましょう</div>'
-          : (it.graph ? fmt(it.q) + graphSvg(it.graph.subs) : fmt(it.q));
+          : (it.graph ? fmt(it.q) + graphSvg(it.graph.subs)
+          : (it.fig   ? fmt(it.q) + mensekiSvg(it.fig)
+          : fmt(it.q)));
         return '<div class="q">'
           + '<div class="q-head"><span class="q-no">' + n + '</span>'
           + '<span class="q-meta">' + esc(it.unit) + '　<span class="q-tag">' + esc(it.label) + '</span></span></div>'
@@ -1807,7 +1863,7 @@ document.querySelectorAll('.math').forEach(function (el) {
       }).join('');
       return '<div class="page"><div class="sheet-head">'
         + '<div><div class="sh-title">解き直しプリント</div>'
-        + '<div class="sh-sub">' + esc(data.period || '') + '</div></div>'
+        + '<div class="sh-sub">' + esc(subHead) + '</div></div>'
         + '<div class="sh-name"><span class="sh-label">なまえ</span>' + esc(data.student) + '</div>'
         + '</div>' + qs + '</div>';
     }).join('');
@@ -1874,7 +1930,9 @@ document.querySelectorAll('.math').forEach(function (el) {
       + '.jp-mini .boundary-line{stroke:#999;stroke-width:2px;}'
       + '.q-note{font-size:14px;color:#555;margin-top:6px;}'
       /* 密度の座標グラフ（白黒印刷向け・点＋記号のみ） */
-      + '.q-graph{display:inline-block;background:#fff;border:1px solid #999;border-radius:8px;padding:6px;margin-top:6px;}'
+      /* 図と同じく block。問題文の下の行に置く（inline-block だと文中に挟まる） */
+      + '.q-graph{display:block;width:-webkit-max-content;width:max-content;max-width:100%;'
+        + 'background:#fff;border:1px solid #999;border-radius:8px;padding:6px;margin:7px 0 0;}'
       + '.q-graph-svg{display:block;height:58mm;width:auto;max-width:110mm;}'
       + '.q-graph-svg line{stroke:#d8d8d8;stroke-width:1px;}'
       + '.q-graph-svg .g-axis{stroke:#000;stroke-width:1.4px;}'
@@ -1882,6 +1940,11 @@ document.querySelectorAll('.math').forEach(function (el) {
       + '.q-graph-svg .g-lbl{font-size:12px;font-weight:700;fill:#000;}'
       + '.q-graph-svg .g-num{font-size:9px;fill:#555;}'
       + '.q-graph-svg .g-ttl{font-size:10px;fill:#000;}'
+      /* 円の面積「工夫して求める」の図（assets/menseki-fig.js。画面と同じ図をそのまま出す）
+         block にして必ず問題文の下の行に置く（inline-block だと文中に図が挟まって文が分断される） */
+      + '.q-fig{display:block;width:-webkit-max-content;width:max-content;max-width:100%;'
+        + 'background:#fff;border:1px solid #999;border-radius:8px;padding:4px 6px;margin:7px 0 0;}'
+      + '.q-fig svg{display:block;height:44mm;width:auto;max-width:110mm;}'
       + '.q-space{height:2.2cm;margin:5px 0 0 34px;border:1px dashed #cbcbcb;border-radius:8px;}'
       + '.key-page{page-break-before:always;}'
       + '.key{width:100%;border-collapse:collapse;font-size:13px;}'
@@ -1904,20 +1967,56 @@ document.querySelectorAll('.math').forEach(function (el) {
   });
 })();
 
-// ===== 誤答一覧の種類(モード)フィルタ：一覧表示と印刷対象の両方を絞る =====
+// ===== 誤答一覧の単元・種類(モード)フィルタ：一覧表示と印刷対象の両方を絞る =====
+// 単元でしぼると、その単元に属さない種類ボタンは隠す（理科の物質／生物のように
+// 単元をまたいで同じ名前の種類があるため、種類だけでは絞りきれない）。
 (function () {
-  var wrap = document.getElementById('wrong-mode-filter');
+  var uWrap = document.getElementById('wrong-unit-filter');
+  var mWrap = document.getElementById('wrong-mode-filter');
   var table = document.getElementById('wrongs-table');
-  if (!wrap || !table) return;
-  var btns = wrap.querySelectorAll('button[data-mode]');
-  btns.forEach(function (b) {
-    b.addEventListener('click', function () {
-      var mode = b.dataset.mode || '';
-      window.__wrongModeFilter = mode;   // 解き直しプリントもこの値を見る
-      btns.forEach(function (o) { o.classList.toggle('active', o === b); });
-      table.querySelectorAll('tr[data-mode]').forEach(function (tr) {
-        tr.style.display = (!mode || tr.dataset.mode === mode) ? '' : 'none';
+  if (!table || (!uWrap && !mWrap)) return;
+  var uBtns = uWrap ? [].slice.call(uWrap.querySelectorAll('button[data-unit]')) : [];
+  var mBtns = mWrap ? [].slice.call(mWrap.querySelectorAll('button[data-mode]')) : [];
+
+  function apply() {
+    var unit = window.__wrongUnitFilter || '';
+    var mode = window.__wrongModeFilter || '';
+    // 種類ボタンは選択中の単元のものだけ表示（「すべて」= data-unit なし は常に表示）
+    mBtns.forEach(function (b) {
+      var bu = b.dataset.unit || '';
+      b.style.display = (!unit || !bu || bu === unit) ? '' : 'none';
+    });
+    table.querySelectorAll('tr[data-mode]').forEach(function (tr) {
+      var ok = (!unit || tr.dataset.unit === unit) && (!mode || tr.dataset.mode === mode);
+      tr.style.display = ok ? '' : 'none';
+    });
+  }
+  // 印刷ボタンが見出しに出す絞り込み名（例「身のまわりの物質マスター・気体」）
+  window.__wrongFilterLabel = function () {
+    var names = [];
+    [uBtns, mBtns].forEach(function (set) {
+      set.forEach(function (b) {
+        if (b.classList.contains('active') && (b.dataset.unit || b.dataset.mode)) names.push(b.textContent.trim());
       });
+    });
+    return names.join('・');
+  };
+
+  uBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      window.__wrongUnitFilter = b.dataset.unit || '';
+      uBtns.forEach(function (o) { o.classList.toggle('active', o === b); });
+      // 単元を変えたら種類の選択は解除（他単元の種類が選ばれたままにならないように）
+      window.__wrongModeFilter = '';
+      mBtns.forEach(function (o) { o.classList.toggle('active', !o.dataset.mode); });
+      apply();
+    });
+  });
+  mBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      window.__wrongModeFilter = b.dataset.mode || '';
+      mBtns.forEach(function (o) { o.classList.toggle('active', o === b); });
+      apply();
     });
   });
 })();

@@ -8,8 +8,22 @@
 assets/                共通モジュール（全ツールがscriptタグで読み込む）
   divp-header.js        共通ヘッダー（ロゴ・校名・Zen Maru Gothic）
   divp-correct.js        小学生用 正解エフェクト（星＋「正解！」演出）
+  divp-correct-firework.js  小学生用 正解エフェクト「花火」（絵文字が360度に弾けて落下＋
+                         「せいかい！」が1文字ずつ散って戻る＋落ちた記号が画面下に積もる）。
+                         divp-correct.js とは排他で、<body data-effect="firework"> の
+                         ときだけ Divp.correct を差し替える。単体でも
+                         window.DivpFirework() で呼べる（既定値は読み込み前に
+                         window.DIVP_FIREWORK_OPTS で上書き）。divp-core.js より後ろに置くこと。
+                         ⚠️積もる山(pile)は z-index:5 の固定レイヤーで、pileRaiseUI が
+                         :where(button,h1,…) を z-index:10 に持ち上げて埋没を防ぐ。
+                         この :where() は詳細度0なので**セレクタから漏れた要素は
+                         ツール側CSSで前面に出すこと**（div/span だけで組んだ
+                         ふきだし・ヘッダーが埋もれる。DivpFirework.clearPile() で消せる）
   divp-correct-jh.js     中学・高校用 正解スタンプエフェクト（es用Divp.correctとは別物）
   print-watermark.js     印刷シート用透かしモジュール
+  menseki-fig.js         円の面積(math_es6_en_menseki)の問題図SVG。単元専用だが
+                         ツール本体と teacher.php の解き直しプリントの両方が読むため
+                         assets に置く（図の実装を1箇所に保ち、画面と印刷を一致させる）
   .htaccess              ETagベースのキャッシュ制御（URL固定で更新を届ける）
 learning/
   index.php              学習ツール目次ページ（配下の*.htmlを毎リクエスト自動スキャン。
@@ -57,6 +71,14 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
   （植田・志段味はSEO用地名。表記は「神丘」が正、「神岡」は誤り）
 - 正解エフェクトは es（小学生）ツールのみ `divp-correct.js`、jh は
   `divp-correct-jh.js`（スタンプ）。js/jh に星エフェクトは付けない
+- **正解エフェクトのファイルは「エフェクト名」で分ける**（`divp-correct-〇〇.js`）。
+  学年や連番で分けない（`divp-correct-es2.js` は「es向け2番目」の意味だったが
+  ファイル名規則の `es2`＝小2 と読めたため `divp-correct-firework.js` に改名した）。
+  新エフェクトは自分を `window.DivpEffects.〇〇` に登録し、`<body data-effect="〇〇">`
+  のときだけ `Divp.correct` を差し替える。**1ファイルに詰め込まない**
+  （divp-correct.js は9ツール・divp-correct-jh.js は22ツールが読んでいるので、
+  統合すると1回の上書きミスの巻き添えがそのままツール数になる。
+  「窓口が1つ」は DivpEffects レジストリ側で担保する）
 
 ## スキーマ（db/schema_full.sql / 16テーブル）
 
@@ -172,7 +194,14 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    教科は unit_key の先頭要素（math/english/…）で判定。
    ランキングビュー（?view=ranking）: 解答数/正答率/XPの3表、教室チェックボックスで
    教室別・複数教室混合のどちらも可。権限: super_admin=全教室 / それ以外=teacher_classroomsの担当教室のみ。
-   基調色は藍(#2C5F8A)。誤答詳細・端末情報はこのページのみ（マイページには出さない）
+   基調色は藍(#2C5F8A)。誤答詳細・端末情報はこのページのみ（マイページには出さない）。
+   テスト生（名前に「テスト」を含む生徒）は**生徒一覧・ランキングとも既定で非表示**、
+   「テスト生を表示」タブ（?showtest=1）で表示する（api/ranking.php / api/time_ranking.php の
+   $includeTest も既定 false）。テスト生の解答自体は普通に記録されているので、
+   「一覧に出ない＝記録されていない」と誤読しないこと。
+   誤答一覧のフィルタは「単元でしぼる」＋「種類でしぼる」の2段で、
+   種類キーは `unit_key|ラベル` と単元で名前空間を分ける
+   （理科の「計算特集」のように単元をまたぐ同名モードがあるため）。解き直しプリントも両方の絞り込みに従う
 5c. **ランキング → 完了**: 共通集計は api/ranking.php（正答率はRANK_MIN_SOLVED=10問の足切り、
    同値同順位、実績0は非掲載）。マイページには教室内の自分の順位のみ表示。
    教室混合の順位は api/ranking_events.php の期間台帳（例: 夏休み）に載っている間だけ

@@ -72,6 +72,16 @@ return [
         'sub'   => '数学・中1',
         'url'   => '/learning/math/math_js1_hyomenseki_taiseki.html',
     ],
+    'math_es2_all' => [
+        'title' => '小2算数まるごとパック',
+        'sub'   => '算数・小2',
+        'url'   => '/learning/math/math_es2_all.html',
+    ],
+    'math_es3_all' => [
+        'title' => '小3算数まるごとパック',
+        'sub'   => '算数・小3',
+        'url'   => '/learning/math/math_es3_all.html',
+    ],
     'math_es3_warizanwakete' => [
         'title' => 'わり算れんしゅう（分けて計算）',
         'sub'   => '算数・小3',

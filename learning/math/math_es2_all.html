@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>小2算数まるごとパック｜中京個別指導学院</title>
+<meta name="description" content="小学2年生の算数を15単元まるごと練習。ひょうとグラフ・たし算のひっ算・ひき算のひっ算・長さ・100より大きい数・かさ・時こくと時間・計算のくふう・三角形と四角形・かけ算九九・かけ算のきまり・大きい数・図をつかって・分数・はこの形。中京個別指導学院。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --washi:#FBF6EC; --washi2:#F3EADA; --ink:#3A342C; --ink-l:#6E6558;
+  --orange:#FEB342; --sakura:#E39AA4; --sakura-d:#C86D7C;
+  --green:#6FA383; --line:#DED2BE;
+  --shadow:0 2px 0 rgba(58,52,44,.12), 0 6px 18px rgba(58,52,44,.08);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  min-height:calc(100svh + 1px);
+  /* できるだけ 1画面に おさまるように 全体を コンパクトに */
+  background:
+    radial-gradient(circle at 12% 8%, rgba(227,154,164,.10) 0 32%, transparent 33%),
+    radial-gradient(circle at 88% 94%, rgba(254,179,66,.12) 0 30%, transparent 31%),
+    repeating-linear-gradient(115deg, rgba(255,255,255,.5) 0 2px, transparent 2px 7px),
+    var(--washi);
+  color:var(--ink);
+  font-family:"Zen Maru Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  font-weight:700;
+  padding:0 0 20px;
+  overscroll-behavior-y:contain;
+}
+button{font-family:inherit}
+.wrap{max-width:720px;margin:0 auto;padding:0 14px}
+
+/* header */
+/* 共通ヘッダー(divp-header)が position:sticky;top:0 で入るので、
+   ツール側のヘッダーは sticky にしない（2段のバーで画面をつぶさない） */
+.hd{display:flex;align-items:center;gap:8px;padding:7px 14px;margin-bottom:7px;
+  border-bottom:3px solid var(--orange);
+  background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.35));
+  backdrop-filter:blur(6px)}
+.logo{width:32px;height:32px;border-radius:10px;background:var(--orange);color:#fff;
+  display:grid;place-items:center;font-size:20px;font-weight:900;box-shadow:var(--shadow)}
+.hdmain{flex:1;min-width:0}
+.hd h1{margin:0;font-size:15px;font-weight:900;letter-spacing:.02em}
+.school{font-size:11px;color:var(--ink-l);margin-top:1px}
+.bcount{display:flex;align-items:center;gap:5px;font-size:13px;background:#fff;
+  border:2px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap}
+.bcount .bmark{color:var(--sakura-d);font-size:15px}
+
+/* menu */
+.lead{font-size:14px;color:var(--ink-l);margin:4px 2px 10px}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:10px}
+.chip{position:relative;overflow:hidden;background:#fff;border:2px solid var(--line);
+  border-radius:16px;padding:12px 12px 10px;text-align:left;font-weight:700;color:var(--ink);
+  cursor:pointer;box-shadow:var(--shadow)}
+.chip .no{font-size:11px;color:var(--ink-l)}
+.chip .nm{font-size:15px;font-weight:900;margin-top:2px;line-height:1.25}
+.chip .deco{position:absolute;right:9px;top:9px;font-size:20px;display:inline-block}
+.chip .dots{display:flex;gap:3px;margin-top:9px}
+.chip .dot{width:11px;height:11px;border-radius:50%;background:var(--washi2);border:1.5px solid var(--line)}
+.chip .dot.on{background:var(--sakura);border-color:var(--sakura-d)}
+.chip.mix{grid-column:1/-1;background:linear-gradient(135deg,#fff 40%,#FFF3DF);border-color:var(--orange)}
+@keyframes pop{0%{transform:scale(1)}38%{transform:scale(.94)}100%{transform:scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chip.tap{animation:pop .32s}
+.chip.tap .deco{animation:spin .5s}
+
+/* quiz */
+.qhead{display:flex;align-items:center;gap:8px;margin:2px 0 5px}
+.back{background:#fff;border:2px solid var(--line);border-radius:999px;padding:6px 13px;
+  font-weight:700;font-size:12px;color:var(--ink-l);cursor:pointer}
+.qtitle{flex:1;font-size:15px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qnum{font-size:13px;color:var(--ink-l);white-space:nowrap}
+.prog{height:6px;background:var(--washi2);border-radius:999px;overflow:hidden;margin-bottom:7px}
+.prog i{display:block;height:100%;width:0;border-radius:999px;
+  background:linear-gradient(90deg,var(--orange),var(--sakura));transition:width .25s}
+.card{background:#fff;border:2px solid var(--line);border-radius:16px;padding:11px;box-shadow:var(--shadow)}
+.qtext{font-size:18px;font-weight:900;line-height:1.4;text-align:center;min-height:22px}
+.qtext span.fit{display:inline-block;transform-origin:center center}
+.fig{margin:6px 0 2px;text-align:center}
+.fig svg{max-width:100%;height:auto;max-height:min(180px,24vh)}
+.fig svg.fig-graph{max-height:min(280px,38vh)}
+.retrytag{display:inline-block;font-size:11px;background:var(--sakura);color:#fff;
+  border-radius:999px;padding:2px 9px;margin-bottom:6px}
+
+/* answers */
+.boxes{display:flex;justify-content:center;align-items:flex-end;gap:5px;flex-wrap:wrap;margin-top:9px}
+.bx{min-width:56px;height:48px;border:3px solid var(--line);border-radius:11px;background:var(--washi);
+  display:grid;place-items:center;font-size:24px;font-weight:900;padding:0 6px}
+.bx.on{border-color:var(--orange);background:#FFF8EC;box-shadow:0 0 0 4px rgba(254,179,66,.18)}
+.suf{font-size:17px;margin:0 3px 10px 1px}
+.hgrid{display:grid;gap:2px;justify-content:center;margin-top:10px}
+.hc{width:40px;height:36px;display:grid;place-items:center;font-size:23px;font-weight:900}
+.hline{height:3px;background:var(--ink);border-radius:2px;margin:4px 0}
+.hcell{width:40px;height:42px;border:3px solid var(--line);border-radius:9px;background:var(--washi);
+  display:grid;place-items:center;font-size:22px;font-weight:900}
+.hcell.on{border-color:var(--orange);background:#FFF8EC;box-shadow:0 0 0 3px rgba(254,179,66,.18)}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:9px}
+.choices.wide{grid-template-columns:1fr}
+.ch{background:var(--washi);border:3px solid var(--line);border-radius:13px;padding:10px 8px;
+  font-weight:900;font-size:16px;color:var(--ink);cursor:pointer;min-height:46px}
+.ch span.fit{display:inline-block;transform-origin:center center}
+.ch.sel{border-color:var(--orange);background:#FFF3DF;box-shadow:0 0 0 3px rgba(254,179,66,.18)}
+
+/* keypad */
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:8px auto 0;max-width:330px}
+
+/* グラフ作成（タップして棒グラフ） */
+.gwrap{overflow-x:auto;display:flex;justify-content:center}
+.ggrid{border-collapse:collapse;margin:8px auto 0}
+.ggrid td{padding:2px;text-align:center}
+.gcell{width:32px;height:26px;border:2px solid var(--line);border-radius:7px;background:var(--washi);margin:0 auto}
+.gcell.on{background:var(--sakura);border-color:var(--sakura-d)}
+.glabel{padding-top:4px;font-size:10px;font-weight:900;color:var(--ink-l);line-height:1.2}
+.gicon{font-size:18px;line-height:1}
+.fbag{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;background:#fff;
+  border:2px solid var(--line);border-radius:12px;padding:8px;font-size:21px;line-height:1}
+
+/* 分数タップ（指定の分数だけ ぬる） */
+.fracbar{display:grid;gap:4px;margin:6px auto 0;max-width:330px}
+.fcell{height:60px;border:2.5px solid var(--line);border-radius:9px;background:var(--washi);cursor:pointer}
+.fcell.on{background:var(--sakura);border-color:var(--sakura-d)}
+.fracpie{width:100%;max-width:230px;height:auto}
+.fracpie .fcell{fill:var(--washi);stroke:#3A342C;stroke-width:2px;cursor:pointer}
+.fracpie .fcell.on{fill:var(--sakura);stroke:var(--sakura-d)}
+.key{height:42px;border:2px solid var(--line);border-radius:11px;background:#fff;
+  font-size:24px;font-weight:900;color:var(--ink);cursor:pointer;box-shadow:0 2px 0 rgba(58,52,44,.1)}
+.key:active{transform:translateY(2px);box-shadow:none}
+.key.fn{background:var(--washi2);font-size:20px;color:var(--ink-l)}
+.submit{display:block;width:100%;max-width:330px;margin:7px auto 0;height:44px;border:none;
+  border-radius:14px;background:var(--sakura-d);color:#fff;font-size:19px;font-weight:900;
+  box-shadow:0 3px 0 rgba(58,52,44,.2);cursor:pointer}
+.submit:active{transform:translateY(3px);box-shadow:none}
+.submit.next{background:var(--green)}
+
+/* judge */
+.judge{margin-top:9px;border-radius:14px;padding:10px 13px;border:3px solid;font-size:14px;line-height:1.55}
+.judge.ok{border-color:var(--green);background:#F0F7F2}
+.judge.ng{border-color:var(--sakura-d);background:#FDF1F3}
+.judge .hl{font-size:17px;font-weight:900;display:block;margin-bottom:3px}
+.judge .next{display:block;width:100%;margin-top:9px;height:46px;border:none;border-radius:12px;
+  background:var(--ink);color:#fff;font-size:17px;font-weight:900;cursor:pointer}
+
+/* result */
+.rcard{background:#fff;border:2px solid var(--line);border-radius:18px;padding:22px 16px;
+  text-align:center;box-shadow:var(--shadow)}
+.rtitle{font-size:21px;font-weight:900}
+.score{font-size:46px;font-weight:900;color:var(--orange);margin:6px 0 2px}
+.score small{font-size:20px;color:var(--ink-l)}
+.rmsg{font-size:15px;color:var(--ink-l)}
+.rbadge{margin-top:14px;font-size:15px;font-weight:900}
+.rdots{display:flex;justify-content:center;gap:6px;margin-top:8px}
+.rdots .dot{width:20px;height:20px;border-radius:50%;background:var(--washi2);border:2px solid var(--line)}
+.rdots .dot.on{background:var(--sakura);border-color:var(--sakura-d)}
+.rdots .dot.new{animation:pop .5s}
+.ract{display:flex;gap:8px;margin-top:18px}
+.ract button{flex:1;height:52px;border:none;border-radius:14px;font-size:16px;font-weight:900;
+  color:#fff;background:var(--green);cursor:pointer}
+.ract button.sub{background:var(--ink-l)}
+
+/* sparkle layer (menu chip tap) — 正解エフェクト本体は共通の divp-correct-firework.js */
+.fxlayer{position:fixed;inset:0;pointer-events:none;z-index:90;overflow:hidden}
+.fxp{position:absolute;left:0;top:0;line-height:1;will-change:transform}
+
+/* 積もった記号(divp-correct-firework の pile, z-index:5)にうもれないように。
+   モジュール側の :where(…) は詳細度0なので、ここの指定が必ず勝つ。
+   白い .card の面には わざと 積もらせる（中身は :where(…) が前に出す）が、
+   ヘッダーと 丸つけの ふきだしは 読めなくなると こまるので 丸ごと 前に出す。 */
+.hd,.judge{position:relative;z-index:10}
+
+.ft{text-align:center;font-size:10px;color:var(--ink-l);margin-top:12px;line-height:1.5}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body data-unit-key="math_es2_all" data-theme="es" data-effect="firework">
+
+<!-- ===== サイトヘッダー（共通モジュール。ログイン窓もここに出る） ===== -->
+<script src="/assets/divp-header.js"></script>
+
+<header class="hd">
+  <div class="logo">算</div>
+  <div class="hdmain">
+    <h1>小2算数まるごとパック</h1>
+    <div class="school">中京個別指導学院</div>
+  </div>
+  <div class="bcount"><span class="bmark">✿</span><b id="bnum">0</b><span>/75</span></div>
+</header>
+
+<div class="wrap">
+
+  <section id="menu">
+    <p class="lead">やりたい たんげんを えらんでね（1セット10問・8わり できると ✿ が1こ ふえるよ）</p>
+    <div class="chips" id="chips"></div>
+  </section>
+
+  <section id="quiz" hidden>
+    <div class="qhead">
+      <button class="back" id="back">← もどる</button>
+      <div class="qtitle" id="qtitle"></div>
+      <div class="qnum" id="qnum"></div>
+    </div>
+    <div class="prog"><i id="progbar"></i></div>
+    <div class="card">
+      <div id="rtag"></div>
+      <div class="qtext" id="qtext"></div>
+      <div class="fig" id="fig"></div>
+      <div id="ansarea"></div>
+    </div>
+    <div id="ctrl"></div>
+    <div class="judge" id="judge" hidden></div>
+  </section>
+
+  <section id="result" hidden></section>
+
+  <p class="ft">小2算数まるごとパック<br>中京個別指導学院</p>
+</div>
+
+<!-- ===== 学習記録の共通クライアント（ログイン判定・解答ログ・学習時間） ===== -->
+<script src="/assets/divp-core.js"></script>
+<!-- ===== 小学生用 正解エフェクト「花火」 =====
+     data-effect="firework" なので読み込むだけで Divp.correct に結線される。
+     色は このツールの さくら色に、z-index は共通ヘッダー(100)より前に上げる。
+     降った記号は画面下に積もる(pile)。単元を変えても消さず、ページを閉じる
+     (リロードする)まで ためつづける＝その日の がんばりが 目に見えて残る。
+     いっぱいになったら モジュール側で それ以上 積まなくなる -->
+<script>window.DIVP_FIREWORK_OPTS={textColor:"#C86D7C",zIndex:200};</script>
+<script src="/assets/divp-correct-firework.js"></script>
+
+<script>
+"use strict";
+/* ============ utils ============ */
+var $=function(id){return document.getElementById(id)};
+function R(a,b){return a+Math.floor(Math.random()*(b-a+1))}
+function pick(a){return a[R(0,a.length-1)]}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=R(0,i);var t=a[i];a[i]=a[j];a[j]=t}return a}
+function uniqPick(a,n){return shuffle(a).slice(0,n)}
+
+var UNIT_KEY="math_es2_all";
+
+/* ============ 問題の再生成（seedつき乱数） ============
+   すべての生成関数は Math.random() 経由でしか乱数を使わないので、生成中だけ
+   Math.random を seed つきの ものに 差し替えれば「関数名 + seed」から
+   図まで含めて 全く同じ問題を 作り直せる。
+   これを question_params {g:関数名, s:seed} として保存しておくと、
+   ?retry=1 で mypage から来たときに 同一問題を 再出題できる
+   （params_hash が一致するので retry_queue の2連続正解マスター判定が成立する）。
+   ※JSON形式を変えると 既存pending行の ハッシュと 合わなくなる点に注意 */
+var GENMAP={}, GEN2UNIT={};
+function buildGenMap(){
+  UNITS.forEach(function(u){
+    u.gens.forEach(function(g){ GENMAP[g.name]=g; GEN2UNIT[g.name]=u.k; });
+  });
+}
+function newSeed(){ return Math.floor(Math.random()*2147483646)+1 }
+function makeQ(fn,seed){
+  var st=seed>>>0, orig=Math.random, q;
+  Math.random=function(){ st=(st*1664525+1013904223)>>>0; return st/4294967296; };
+  try{ q=fn(); } finally { Math.random=orig; }
+  q.gen=fn.name; q.seed=seed; q.unit=GEN2UNIT[fn.name]||"mix";
+  return q;
+}
+
+/* ============ badge store ============ */
+var BKEY="divp_es2_all_badge_v1", BADGE={};
+function loadSave(){
+  try{ var s=localStorage.getItem(BKEY); if(s){ var o=JSON.parse(s); if(o&&o.badge) BADGE=o.badge; } }catch(e){}
+}
+function persist(){
+  try{ localStorage.setItem(BKEY,JSON.stringify({badge:BADGE,v:1})); }catch(e){}
+}
+function badgeOf(k){ return BADGE[k]||0 }
+function totalBadge(){ var t=0; for(var k in BADGE) t+=BADGE[k]; return t }
+
+/* ============ correct effect ============
+   正解演出は共通モジュール assets/divp-correct-firework.js（花火）に一本化。
+   file:// で開いたときなど モジュールが無い環境では 何も出さずに 先へ進む。
+   下の2つの配列は メニューのチップを タップしたときの 小さな きらめき用。 */
+var FXMARK=["★","✦","✧","❀","✿","❁","♪"];
+var FXHUE=["#FFD447","#FFB01F","#FF7EB6","#FF5FA2","#5FD8F0",
+           "#39C0E8","#8CE05B","#57C93E","#C79BFF","#A46BFF"];
+function fx(){
+  try{ if(typeof window.DivpFirework==="function") window.DivpFirework(); }catch(e){}
+}
+
+/* ============ fit ============ */
+function fitAll(root){
+  var els=root.querySelectorAll("span.fit");
+  for(var i=0;i<els.length;i++){
+    var e=els[i]; e.style.transform="scale(1)";
+    var pw=e.parentNode.clientWidth-6, w=e.scrollWidth;
+    if(w>pw&&pw>0){ var s=Math.max(.4,pw/w); e.style.transform="scale("+s.toFixed(3)+")"; }
+  }
+}
+
+/* ============ question builders ============ */
+function Qnum(key,q,ans,opt){ var o=opt||{}; o.key=key; o.type="num"; o.q=q; o.ans=String(ans); return o }
+function Qmulti(key,q,slots,ans,opt){ var o=opt||{}; o.key=key; o.type="multi"; o.q=q; o.slots=slots; o.ans=ans.map(String); return o }
+function Qchoice(key,q,choices,idx,opt){ var o=opt||{}; o.key=key; o.type="choice"; o.q=q; o.choices=choices; o.ans=idx; return o }
+function Qgraph(key,q,items,counts,opt){
+  var o=opt||{}; o.key=key; o.type="graph"; o.q=q;
+  o.items=items; o.counts=counts.map(Number); o.ans=o.counts.map(String);
+  if(!o.max) o.max=Math.max.apply(null,o.counts);
+  return o;
+}
+function Qfrac(key,q,den,num,opt){
+  var o=opt||{}; o.key=key; o.type="frac"; o.q=q; o.den=den; o.num=num; o.ans=String(num);
+  o.shape=o.shape||"bar";
+  return o;
+}
+function Qhissan(key,a,b,op,opt){
+  var o=opt||{}; o.key=key; o.type="hissan"; o.q=o.q||"ひっ算で けいさんしよう";
+  o.hissan={a:a,b:b,op:op}; o.ans=String(op==="+"?a+b:a-b);
+  // 画面では 数字を ひっ算の マスに 描くので q には 入れないが、
+  // 記録用の 問題文には 式を 入れる（講師画面・解き直しプリントが 読めるように）
+  o.log=o.q+"　"+a+" "+op+" "+b;
+  if(!o.exp) o.exp=a+" "+op+" "+b+" = "+o.ans+"　せいかい！";
+  return o;
+}
+
+/* ============ state ============ */
+var S=null;
+var PENDING=[];   // 解き直し待ち（list_retries.php の pending）
+
+function startSet(uk){
+  var u=null,n=10,name="ぜんぶミックス";
+  if(uk!=="mix"){ u=UNITS.filter(function(x){return x.k===uk})[0]; name=u.name; }
+  else n=20;
+  var gens;
+  if(u) gens=shuffle(u.gens);
+  else { gens=[]; UNITS.forEach(function(x){ x.gens.forEach(function(g){gens.push(g)}) }); gens=shuffle(gens); }
+  var qs=[],seen={};
+  for(var i=0,guard=0;qs.length<n&&guard<n*14;guard++){
+    var q=makeQ(gens[i%gens.length],newSeed()); i++;
+    var sig=q.key+"|"+JSON.stringify(q.ans)+"|"+q.q;
+    if(seen[sig]&&guard<n*8) continue;
+    seen[sig]=1; qs.push(q);
+  }
+  runSet(uk,name,qs);
+}
+
+/* 解き直し（マイページ → retry.php → ?retry=1 でこのツールを開いたとき）。
+   question_params の {g,s} から 保存時と まったく同じ問題を 作り直す。
+   ツール内に解き直しメニューは置かない（入口はマイページに一本化） */
+function startRetrySet(){
+  var qs=[];
+  PENDING.forEach(function(it){
+    if(qs.length>=10) return;
+    var p=it.question_params;
+    if(!p||!p.g||!p.s) return;
+    var fn=GENMAP[p.g]; if(!fn) return;
+    try{ qs.push(makeQ(fn,p.s)); }catch(e){}
+  });
+  if(!qs.length) return false;
+  runSet("__retry","まちがえた もんだい",qs);
+  return true;
+}
+
+function runSet(uk,name,qs){
+  S={uk:uk,name:name,qs:qs,i:0,ok:0,total:qs.length,retry:[],phase:"main",t0:0,val:null,cur:0,sel:-1,locked:false};
+  $("menu").hidden=true; $("result").hidden=true; $("quiz").hidden=false;
+  $("qtitle").textContent=name;
+  window.scrollTo(0,0);
+  showQ();
+}
+
+function curQ(){ return S.phase==="main"?S.qs[S.i]:S.retry[S.i] }
+
+function showQ(){
+  var q=curQ(), n=(S.phase==="main"?S.qs:S.retry).length;
+  S.locked=false; S.sel=-1; S.t0=Date.now();
+  $("judge").hidden=true; $("judge").innerHTML="";
+  $("qnum").textContent=(S.i+1)+" / "+n;
+  $("progbar").style.width=(S.i/n*100)+"%";
+  $("rtag").innerHTML=(S.phase==="retry"||S.uk==="__retry")?'<div class="retrytag">もういちど チャレンジ</div>':"";
+  $("qtext").innerHTML='<span class="fit">'+q.q+"</span>";
+  $("fig").innerHTML=q.fig||"";
+  buildAns(q);
+  fitAll($("quiz"));
+  window.scrollTo(0,0);
+}
+
+/* ---- answer area ---- */
+function buildAns(q){
+  var a=$("ansarea"), c=$("ctrl");
+  a.innerHTML=""; c.innerHTML="";
+  if(q.type==="frac"){
+    S.fracSel=new Array(q.den).fill(false);
+    a.appendChild(fracDom(q));
+    c.appendChild(mkSubmit());
+    return;
+  }
+  if(q.type==="graph"){
+    S.val=q.items.map(function(){return 0});
+    S.gRows=q.max;
+    a.appendChild(graphDom(q));
+    c.appendChild(mkSubmit());
+    return;
+  }
+  if(q.type==="choice"){
+    var wide=q.choices.some(function(x){return String(x).length>7});
+    var box=document.createElement("div"); box.className="choices"+(wide?" wide":"");
+    q.choices.forEach(function(t,i){
+      var b=document.createElement("button"); b.className="ch"; b.innerHTML='<span class="fit">'+t+"</span>";
+      b.onclick=function(){ if(S.locked)return; S.sel=i;
+        box.querySelectorAll(".ch").forEach(function(x){x.classList.remove("sel")}); b.classList.add("sel"); };
+      box.appendChild(b);
+    });
+    a.appendChild(box);
+    c.appendChild(mkSubmit());
+    return;
+  }
+  if(q.type==="hissan"){
+    S.val=[]; var L=q.ans.length;
+    for(var i=0;i<L;i++) S.val.push("");
+    S.cur=0;
+    a.appendChild(hissanDom(q,L));
+    c.appendChild(mkPad(false));
+    c.appendChild(mkSubmit());
+    return;
+  }
+  var slots = q.type==="multi" ? q.slots : [{max:5,suf:q.suf||""}];
+  S.slotDef=slots; S.val=slots.map(function(){return ""}); S.cur=0;
+  var box2=document.createElement("div"); box2.className="boxes";
+  slots.forEach(function(sl,i){
+    var b=document.createElement("span"); b.className="bx"+(i===0?" on":""); b.dataset.i=i;
+    b.onclick=function(){ if(S.locked)return; S.cur=i; paintBoxes(); };
+    box2.appendChild(b);
+    if(sl.suf){ var s=document.createElement("span"); s.className="suf"; s.textContent=sl.suf; box2.appendChild(s); }
+  });
+  a.appendChild(box2);
+  c.appendChild(mkPad(slots.length>1));
+  c.appendChild(mkSubmit());
+  paintBoxes();
+}
+
+function fracDom(q){
+  var holder=document.createElement("div");
+  holder.appendChild(q.shape==="circle" ? fracCircleDom(q) : fracBarDom(q));
+  var hint=document.createElement("div");
+  hint.style.cssText="font-size:12px;color:var(--ink-l);text-align:center;margin-top:6px";
+  hint.textContent=(q.shape==="circle"?"おうぎを":"マスを")+" タップして 色を ぬろう（もう一回 タップで もどるよ）";
+  holder.appendChild(hint);
+  return holder;
+}
+function fracBarDom(q){
+  var wrap=document.createElement("div"); wrap.className="fracbar";
+  wrap.style.gridTemplateColumns="repeat("+q.den+",1fr)";
+  for(var i=0;i<q.den;i++){
+    var cell=document.createElement("div"); cell.className="fcell"; cell.dataset.i=i;
+    (function(idx){ cell.onclick=function(){ if(S.locked)return; S.fracSel[idx]=!S.fracSel[idx]; paintFrac(); }; })(i);
+    wrap.appendChild(cell);
+  }
+  return wrap;
+}
+function fracCircleDom(q){
+  var den=q.den, cx=110, cy=110, r=98, NS="http://www.w3.org/2000/svg";
+  var svgEl=document.createElementNS(NS,"svg");
+  svgEl.setAttribute("viewBox","0 0 220 220");
+  svgEl.setAttribute("class","fracpie");
+  for(var i=0;i<den;i++){
+    var a1=(i*360/den-90)*Math.PI/180, a2=((i+1)*360/den-90)*Math.PI/180;
+    var big=(360/den)>180?1:0;
+    var x1=(cx+Math.cos(a1)*r).toFixed(1), y1=(cy+Math.sin(a1)*r).toFixed(1);
+    var x2=(cx+Math.cos(a2)*r).toFixed(1), y2=(cy+Math.sin(a2)*r).toFixed(1);
+    var d="M"+cx+" "+cy+" L"+x1+" "+y1+" A"+r+" "+r+" 0 "+big+" 1 "+x2+" "+y2+" Z";
+    var path=document.createElementNS(NS,"path");
+    path.setAttribute("d",d); path.setAttribute("class","fcell"); path.dataset.i=i;
+    (function(idx,el){ el.onclick=function(){ if(S.locked)return; S.fracSel[idx]=!S.fracSel[idx]; paintFrac(); }; })(i,path);
+    svgEl.appendChild(path);
+  }
+  var wrap=document.createElement("div"); wrap.style.cssText="text-align:center;max-width:230px;margin:0 auto";
+  wrap.appendChild(svgEl);
+  return wrap;
+}
+function paintFrac(){
+  var cells=$("ansarea").querySelectorAll(".fcell");
+  for(var i=0;i<cells.length;i++){
+    var on=!!S.fracSel[i];
+    cells[i].classList.toggle("on",on);
+  }
+}
+function graphDom(q){
+  var rows=q.max, cols=q.items.length;
+  var tbl=document.createElement("table"); tbl.className="ggrid";
+  for(var r=0;r<rows;r++){
+    var tr=document.createElement("tr");
+    for(var c=0;c<cols;c++){
+      var td=document.createElement("td");
+      var cell=document.createElement("div"); cell.className="gcell"; cell.dataset.col=c; cell.dataset.row=r;
+      (function(ci,ri){ cell.onclick=function(){ if(S.locked)return; graphTap(ci,ri); }; })(c,r);
+      td.appendChild(cell); tr.appendChild(td);
+    }
+    tbl.appendChild(tr);
+  }
+  var tr2=document.createElement("tr");
+  q.items.forEach(function(nm){
+    var td=document.createElement("td"); td.className="glabel";
+    td.innerHTML='<div class="gicon">'+(FRUIT_ICON[nm]||"")+'</div><div>'+nm+'</div>';
+    tr2.appendChild(td);
+  });
+  tbl.appendChild(tr2);
+  var holder=document.createElement("div"); holder.className="gwrap"; holder.appendChild(tbl);
+  var hint=document.createElement("div");
+  hint.style.cssText="font-size:12px;color:var(--ink-l);text-align:center;margin-top:6px";
+  hint.textContent="マスを タップして グラフを つくろう（もう一回 タップで けせるよ）";
+  holder.appendChild(hint);
+  return holder;
+}
+function graphTap(ci,ri){
+  var rows=S.gRows, newCount=rows-ri;
+  if(S.val[ci]===newCount) S.val[ci]=newCount-1;
+  else S.val[ci]=newCount;
+  paintGraph();
+}
+function paintGraph(){
+  var rows=S.gRows;
+  var cells=$("ansarea").querySelectorAll(".gcell");
+  for(var i=0;i<cells.length;i++){
+    var c=+cells[i].dataset.col, r=+cells[i].dataset.row;
+    cells[i].classList.toggle("on", r>=rows-S.val[c]);
+  }
+}
+
+function hissanDom(q,L){
+  var h=q.hissan;
+  // 表示のけた数は 上の数・下の数・答え のうち いちばん多いものに合わせる
+  var D=Math.max(String(h.a).length,String(h.b).length,L);
+  var cols=D+1;
+  var wrap=document.createElement("div"); wrap.className="hgrid";
+  wrap.style.gridTemplateColumns="repeat("+cols+",40px)";
+  function padArr(n){ var s=String(n), out=[]; for(var i=0;i<D;i++) out.push("");
+    for(var j=0;j<s.length;j++) out[D-s.length+j]=s[j]; return out; }
+  var A=padArr(h.a), B=padArr(h.b);
+  var cell=function(t,cls){ var d=document.createElement("div"); d.className=cls||"hc"; d.textContent=t; return d };
+  wrap.appendChild(cell(""));
+  A.forEach(function(t){ wrap.appendChild(cell(t)) });
+  wrap.appendChild(cell(h.op));
+  B.forEach(function(t){ wrap.appendChild(cell(t)) });
+  var line=document.createElement("div"); line.className="hline"; line.style.gridColumn="1 / -1"; wrap.appendChild(line);
+  wrap.appendChild(cell(""));
+  for(var b0=0;b0<D-L;b0++) wrap.appendChild(cell(""));
+  for(var i=L-1;i>=0;i--){
+    var d=document.createElement("div"); d.className="hcell"; d.dataset.i=i;
+    (function(idx,node){ node.onclick=function(){ if(S.locked)return; S.cur=idx; paintBoxes(); } })(i,d);
+    wrap.appendChild(d);
+  }
+  var holder=document.createElement("div"); holder.style.textAlign="center"; holder.appendChild(wrap);
+  var hint=document.createElement("div");
+  hint.style.cssText="font-size:12px;color:var(--ink-l);text-align:center;margin-top:6px";
+  hint.textContent="一のくらいから じゅんに 入れてね";
+  holder.appendChild(hint);
+  return holder;
+}
+
+function paintBoxes(){
+  var q=curQ();
+  if(q.type==="frac"){ paintFrac(); return; }
+  if(q.type==="graph"){ paintGraph(); return; }
+  if(q.type==="hissan"){
+    var cs=$("ansarea").querySelectorAll(".hcell");
+    for(var i=0;i<cs.length;i++){
+      var idx=+cs[i].dataset.i;
+      cs[i].textContent=S.val[idx]; cs[i].classList.toggle("on",idx===S.cur);
+    }
+    return;
+  }
+  var bs=$("ansarea").querySelectorAll(".bx");
+  for(var j=0;j<bs.length;j++){
+    var k=+bs[j].dataset.i;
+    bs[j].textContent=S.val[k]; bs[j].classList.toggle("on",k===S.cur);
+  }
+}
+
+function mkPad(multi){
+  var p=document.createElement("div"); p.className="pad";
+  var keys=["7","8","9","4","5","6","1","2","3", multi?"next":"clr","0","del"];
+  keys.forEach(function(k){
+    var b=document.createElement("button");
+    if(k==="del"){ b.className="key fn"; b.textContent="⌫"; b.setAttribute("aria-label","1文字けす"); }
+    else if(k==="clr"){ b.className="key fn"; b.textContent="C"; b.setAttribute("aria-label","ぜんぶけす"); }
+    else if(k==="next"){ b.className="key fn"; b.textContent="→"; b.setAttribute("aria-label","つぎのわく"); }
+    else { b.className="key"; b.textContent=k; }
+    b.onclick=function(){ tap(k) };
+    p.appendChild(b);
+  });
+  return p;
+}
+function mkSubmit(){
+  var b=document.createElement("button"); b.id="submitb"; b.className="submit"; b.textContent="こたえあわせ";
+  b.onclick=grade; return b;
+}
+/* 答え合わせのあとは 同じボタンが「つぎへ」に変わる */
+function submitToNext(){
+  var b=$("submitb"); if(!b) return;
+  b.className="submit next"; b.textContent="つぎの問題 →"; b.onclick=nextQ;
+}
+
+function tap(k){
+  if(S.locked) return;
+  var q=curQ();
+  if(k==="del"){
+    if(q.type==="hissan"){ if(S.val[S.cur]==="" && S.cur>0) S.cur--; S.val[S.cur]=""; }
+    else{
+      if(S.val[S.cur]===""&&S.cur>0) S.cur--;
+      S.val[S.cur]=S.val[S.cur].slice(0,-1);
+    }
+  } else if(k==="clr"){ S.val=S.val.map(function(){return ""}); S.cur=0; }
+  else if(k==="next"){ S.cur=(S.cur+1)%S.val.length; }
+  else {
+    if(q.type==="hissan"){ S.val[S.cur]=k; if(S.cur<S.val.length-1) S.cur++; }
+    else{
+      var max=(S.slotDef&&S.slotDef[S.cur]?S.slotDef[S.cur].max:5);
+      if(S.val[S.cur].length>=max){ if(S.cur<S.val.length-1){ S.cur++; S.val[S.cur]=k; } }
+      else S.val[S.cur]+=k;
+    }
+  }
+  paintBoxes();
+}
+
+/* ---- grading ---- */
+function grade(){
+  if(S.locked) return;
+  var q=curQ(), ok=false, mine="";
+  if(q.type==="frac"){
+    var cnt=S.fracSel.filter(Boolean).length;
+    ok=(cnt===q.num);
+    mine=cnt+"こ ぬった";
+  } else if(q.type==="graph"){
+    ok=q.items.every(function(nm,i){ return Number(S.val[i])===Number(q.counts[i]); });
+    mine=q.items.map(function(nm,i){ return nm+":"+S.val[i]; }).join("、");
+  } else if(q.type==="choice"){
+    if(S.sel<0){ flash("答えを えらんでね"); return; }
+    mine=q.choices[S.sel]; ok=(S.sel===q.ans);
+  } else if(q.type==="hissan"){
+    for(var i=0;i<S.val.length;i++) if(S.val[i]===""){ flash("すべての ますに 数を 入れてね"); return; }
+    var d=S.val.slice().reverse().join("");
+    mine=String(Number(d)); ok=(Number(d)===Number(q.ans));
+  } else if(q.type==="multi"){
+    for(var j=0;j<S.val.length;j++) if(S.val[j]===""){ flash("すべての わくに 数を 入れてね"); return; }
+    ok=S.val.every(function(v,k){ return Number(v)===Number(q.ans[k]) });
+    mine=S.val.map(function(v,k){ return v+(q.slots[k].suf||"") }).join("");
+  } else {
+    if(S.val[0]===""){ flash("数を 入れてね"); return; }
+    mine=S.val[0]; ok=(Number(S.val[0])===Number(q.ans));
+  }
+  S.locked=true;
+  var ms=Date.now()-S.t0;
+  logAnswer(q,ok,mine,ms);
+  if(ok){
+    if(S.phase==="main") S.ok++;
+    fx();
+    showJudge(true,q);
+  } else {
+    if(S.phase==="main") S.retry.push(q);
+    showJudge(false,q);
+  }
+}
+/* ---- 学習記録（divp-core連携） ----
+   question_key は 単元キー（カルテが 15単元の 行に なるように）。
+   どの生成関数から 出た問題かは question_params の g に 残るので、
+   細かい種類は そこから たどれる。
+   セット内の「もういちど チャレンジ」は 答えを 見たあとの 再挑戦なので
+   記録しない（それで マスター判定が 進んでしまわないように）。 */
+function logAnswer(q,ok,mine,ms){
+  if(S.phase==="retry") return;
+  try{
+    var D=window.Divp;
+    if(!D||typeof D.answer!=="function") return;
+    D.answer(ok,{
+      question_key: q.unit||"mix",
+      question_params: {g:q.gen,s:q.seed},
+      question_text: String(q.log||q.q).replace(/<[^>]*>/g,""),
+      correct_answer: ansText(q),
+      wrong_answer: mine,
+      time_taken_sec: Math.round(ms/1000)
+    });
+  }catch(e){ /* オフラインでも 演習は つづける */ }
+}
+function ansText(q){
+  if(q.type==="frac") return q.num+"こ（"+q.den+"分の"+q.num+"）";
+  if(q.type==="graph") return q.items.map(function(nm,i){ return nm+" "+q.counts[i]+"こ"; }).join("、");
+  if(q.type==="choice") return String(q.choices[q.ans]);
+  if(q.type==="multi") return q.ans.map(function(v,k){ return v+(q.slots[k].suf||"") }).join("");
+  return String(q.ans)+(q.suf||"");
+}
+function flash(msg){
+  var j=$("judge"); j.hidden=false; j.className="judge ng";
+  j.innerHTML='<span class="hl">'+msg+"</span>";
+  setTimeout(function(){ if(!S.locked){ j.hidden=true; } },1400);
+}
+function showJudge(ok,q){
+  var j=$("judge"); j.hidden=false; j.className="judge "+(ok?"ok":"ng");
+  var html='<span class="hl">'+(ok?"せいかい！":"おしい！ こたえは "+ansText(q))+"</span>";
+  if(q.exp) html+='<div class="expl">'+q.exp+"</div>";
+  j.innerHTML=html;
+  submitToNext();
+  j.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function nextQ(){
+  var list=(S.phase==="main"?S.qs:S.retry);
+  S.i++;
+  if(S.i<list.length){ showQ(); return; }
+  if(S.phase==="main"&&S.retry.length){ S.phase="retry"; S.i=0; showQ(); return; }
+  finish();
+}
+
+/* ---- result ---- */
+function finish(){
+  var rate=S.ok/S.total, got=false;
+  var isSet=(S.uk!=="mix"&&S.uk!=="__retry");
+  if(isSet&&rate>=0.8){
+    var b=badgeOf(S.uk);
+    if(b<5){ BADGE[S.uk]=b+1; got=true; persist(); }
+  }
+  var msg = rate===1?"パーフェクト！ すごい！" : rate>=0.8?"よく できました！" : rate>=0.5?"あと ひといき！" : "もういちど やってみよう";
+  var bk=isSet?S.uk:null;
+  var dots="";
+  if(bk){
+    var have=badgeOf(bk);
+    for(var i=0;i<5;i++) dots+='<span class="dot'+(i<have?" on":"")+(got&&i===have-1?" new":"")+'"></span>';
+  }
+  var html='<div class="rcard"><div class="rtitle">'+S.name+'</div>'
+    +'<div class="score">'+S.ok+'<small> / '+S.total+'</small></div>'
+    +'<div class="rmsg">'+msg+'</div>';
+  if(bk) html+='<div class="rbadge">'+(got?"✿ が 1こ ふえた！":"8わい じょうで ✿ が ふえるよ")+'</div><div class="rdots">'+dots+'</div>';
+  else if(S.uk==="mix") html+='<div class="rbadge" style="color:var(--ink-l);font-weight:700;font-size:13px">ミックスでは ✿ は ふえません（単元ごとに ためよう）</div>';
+  else html+='<div class="rbadge" style="color:var(--ink-l);font-weight:700;font-size:13px">2回 つづけて できたら マスター！ また ちょうせんしてね</div>';
+  html+='<div class="ract">'+(S.uk==="__retry"?"":'<button id="again">もういちど</button>')
+    +'<button class="sub" id="tomenu">メニューへ</button></div></div>';
+  $("quiz").hidden=true; $("result").hidden=false; $("result").innerHTML=html;
+  if($("again")) $("again").onclick=function(){ startSet(S.uk) };
+  $("tomenu").onclick=toMenu;
+  paintBadges();
+  if(rate>=0.8) fx();
+  window.scrollTo(0,0);
+}
+
+function toMenu(){
+  $("quiz").hidden=true; $("result").hidden=true; $("menu").hidden=false;
+  renderMenu(); window.scrollTo(0,0);
+}
+
+/* ---- menu ---- */
+function renderMenu(){
+  var c=$("chips"); c.innerHTML="";
+  UNITS.forEach(function(u,i){
+    var b=document.createElement("button"); b.className="chip";
+    var dots="";
+    for(var d=0;d<5;d++) dots+='<span class="dot'+(d<badgeOf(u.k)?" on":"")+'"></span>';
+    b.innerHTML='<span class="deco" style="color:'+u.col+'">'+u.mark+'</span>'
+      +'<div class="no">'+(i+1)+'</div><div class="nm">'+u.name+'</div><div class="dots">'+dots+'</div>';
+    b.onclick=function(){ chipTap(b,u.k) };
+    c.appendChild(b);
+  });
+  var m=document.createElement("button"); m.className="chip mix";
+  m.innerHTML='<span class="deco" style="color:#FEB342">✦</span>'
+    +'<div class="no">ちょうせん</div><div class="nm">ぜんぶミックス（20問）</div>'
+    +'<div class="dots" style="opacity:.55">'+"ぜんたいから 出るよ"+'</div>';
+  m.onclick=function(){ chipTap(m,"mix") };
+  c.appendChild(m);
+  // 解き直しの入口はマイページ（→ retry.php → ?retry=1）に一本化。
+  // ここにチップは置かない
+  paintBadges();
+}
+function chipTap(el,k){
+  el.classList.add("tap"); sparkle(el);
+  setTimeout(function(){ el.classList.remove("tap"); startSet(k); },230);
+}
+function sparkle(el){
+  if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches) return;
+  var r=el.getBoundingClientRect(), layer=document.createElement("div"); layer.className="fxlayer";
+  document.body.appendChild(layer);
+  var cx=r.right-16, cy=r.top+16, ps=[];
+  for(var i=0;i<9;i++){
+    var s=document.createElement("span"); s.className="fxp";
+    s.textContent=pick(FXMARK);
+    s.style.color=pick(FXHUE); s.style.fontSize=(9+Math.random()*9).toFixed(0)+"px";
+    layer.appendChild(s);
+    var a=Math.random()*Math.PI*2, sp=180+Math.random()*220;
+    ps.push({el:s,x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp});
+  }
+  var last=performance.now(), t=0;
+  (function step(now){
+    var dt=Math.min(.05,(now-last)/1000); last=now; t+=dt;
+    ps.forEach(function(p){ p.vy+=900*dt; p.x+=p.vx*dt; p.y+=p.vy*dt;
+      p.el.style.transform="translate("+p.x.toFixed(0)+"px,"+p.y.toFixed(0)+"px)";
+      p.el.style.opacity=String(Math.max(0,1-t/.6)); });
+    if(t<.62) requestAnimationFrame(step); else layer.remove();
+  })(last);
+}
+function paintBadges(){
+  $("bnum").textContent=totalBadge();
+  if($("menu").hidden===false) {
+    var c=$("chips").children;
+    for(var i=0;i<UNITS.length&&i<c.length;i++){
+      var dots=c[i].querySelectorAll(".dot");
+      for(var d=0;d<dots.length;d++) dots[d].classList.toggle("on",d<badgeOf(UNITS[i].k));
+    }
+  }
+}
+$("back").onclick=toMenu;
+window.addEventListener("resize",function(){ if(!$("quiz").hidden) fitAll($("quiz")) });
+document.addEventListener("keydown",function(e){
+  if($("quiz").hidden||S===null) return;
+  if(/^[0-9]$/.test(e.key)) tap(e.key);
+  else if(e.key==="Backspace"){ e.preventDefault(); tap("del"); }
+  else if(e.key==="Enter"){ e.preventDefault(); var b=$("submitb"); if(b) b.click(); }
+});
+
+/* ============ SVG helpers ============ */
+function svg(vb,inner,w,cls){
+  return '<svg viewBox="'+vb+'" '+(w?'width="'+w+'" ':'')+(cls?'class="'+cls+'" ':'')+'xmlns="http://www.w3.org/2000/svg" font-family="Zen Maru Gothic,sans-serif" fill="#3A342C">'+inner+'</svg>';
+}
+function figClock(h,m){
+  var s='<circle cx="110" cy="110" r="100" fill="#fff" stroke="#3A342C" stroke-width="4"/>';
+  for(var i=0;i<60;i++){
+    var a=(i*6-90)*Math.PI/180, r1=i%5===0?80:88, r2=95;
+    s+='<line x1="'+(110+Math.cos(a)*r1).toFixed(1)+'" y1="'+(110+Math.sin(a)*r1).toFixed(1)
+      +'" x2="'+(110+Math.cos(a)*r2).toFixed(1)+'" y2="'+(110+Math.sin(a)*r2).toFixed(1)
+      +'" stroke="#3A342C" stroke-width="'+(i%5===0?3:1.2)+'"/>';
+  }
+  for(var n=1;n<=12;n++){
+    var b=(n*30-90)*Math.PI/180;
+    s+='<text x="'+(110+Math.cos(b)*64).toFixed(1)+'" y="'+(110+Math.sin(b)*64+7).toFixed(1)
+      +'" font-size="20" font-weight="900" text-anchor="middle">'+n+'</text>';
+  }
+  var ha=((h%12)*30+m*0.5-90)*Math.PI/180, ma=(m*6-90)*Math.PI/180;
+  s+='<line x1="110" y1="110" x2="'+(110+Math.cos(ha)*47).toFixed(1)+'" y2="'+(110+Math.sin(ha)*47).toFixed(1)+'" stroke="#3A342C" stroke-width="9" stroke-linecap="round"/>';
+  s+='<line x1="110" y1="110" x2="'+(110+Math.cos(ma)*76).toFixed(1)+'" y2="'+(110+Math.sin(ma)*76).toFixed(1)+'" stroke="#C86D7C" stroke-width="5" stroke-linecap="round"/>';
+  s+='<circle cx="110" cy="110" r="6" fill="#3A342C"/>';
+  return svg("0 0 220 220",s,220);
+}
+function figRuler(mm){
+  var px=3,x0=20,y=64,s="";
+  s+='<rect x="'+x0+'" y="'+y+'" width="'+(150*px)+'" height="42" fill="#fff" stroke="#3A342C" stroke-width="2"/>';
+  for(var i=0;i<=150;i++){
+    var x=x0+i*px, len=(i%10===0)?20:(i%5===0?13:7);
+    s+='<line x1="'+x+'" y1="'+y+'" x2="'+x+'" y2="'+(y+len)+'" stroke="#3A342C" stroke-width="'+(i%10===0?1.7:1)+'"/>';
+    if(i%10===0) s+='<text x="'+x+'" y="'+(y+36)+'" font-size="11" text-anchor="middle">'+(i/10)+'</text>';
+  }
+  s+='<rect x="'+x0+'" y="'+(y-34)+'" width="'+(mm*px)+'" height="26" rx="4" fill="#FEB342" stroke="#C08A2A" stroke-width="1.5"/>';
+  s+='<line x1="'+x0+'" y1="'+(y-40)+'" x2="'+x0+'" y2="'+y+'" stroke="#C86D7C" stroke-width="1.5" stroke-dasharray="3 3"/>';
+  s+='<line x1="'+(x0+mm*px)+'" y1="'+(y-40)+'" x2="'+(x0+mm*px)+'" y2="'+y+'" stroke="#C86D7C" stroke-width="1.5" stroke-dasharray="3 3"/>';
+  return svg("0 0 490 112",s);
+}
+function figNumline(lo,hi,step,mark,label){
+  /* 見づらいので 0〜max 全部は 出さず、答えを ふくむ 1くぎり分(lo〜hi)だけを 大きく 表示する */
+  var W=440,x0=26,s="";
+  var X=function(v){ return x0+(v-lo)/(hi-lo)*W };
+  s+='<line x1="'+x0+'" y1="58" x2="'+(x0+W)+'" y2="58" stroke="#3A342C" stroke-width="2.5"/>';
+  for(var v=lo;v<=hi+1e-6;v+=step){
+    var isEnd=(Math.abs(v-lo)<1e-6)||(Math.abs(v-hi)<1e-6);
+    s+='<line x1="'+X(v).toFixed(1)+'" y1="'+(isEnd?40:50)+'" x2="'+X(v).toFixed(1)+'" y2="58" stroke="#3A342C" stroke-width="'+(isEnd?2.6:1.6)+'"/>';
+    if(isEnd) s+='<text x="'+X(v).toFixed(1)+'" y="82" font-size="18" font-weight="900" text-anchor="middle">'+v+'</text>';
+  }
+  if(mark!==null&&mark!==undefined){
+    s+='<polygon points="'+X(mark).toFixed(1)+',34 '+(X(mark)-10).toFixed(1)+',14 '+(X(mark)+10).toFixed(1)+',14" fill="#C86D7C"/>';
+    s+='<text x="'+X(mark).toFixed(1)+'" y="9" font-size="18" font-weight="900" text-anchor="middle" fill="#C86D7C">'+(label||"?")+'</text>';
+  }
+  return svg("0 -16 492 112",s);
+}
+function figGraph(items,cnt,title){
+  var max=9,s="",colw=80,x0=60,base=246,axisY=256,labelY=278;
+  s+='<text x="16" y="18" font-size="16" font-weight="900">'+title+'</text>';
+  for(var j=1;j<=max;j++){
+    var y=base-(j-1)*26;
+    s+='<text x="44" y="'+(y+6)+'" font-size="17" font-weight="900" text-anchor="end" fill="#6E6558">'+j+'</text>';
+    s+='<line x1="52" y1="'+y+'" x2="'+(x0+items.length*colw)+'" y2="'+y+'" stroke="#EDE2CE" stroke-width="1.4"/>';
+  }
+  items.forEach(function(it,i){
+    var cx=x0+i*colw+colw/2-8;
+    for(var j=0;j<cnt[i];j++){
+      s+='<circle cx="'+cx+'" cy="'+(base-j*26)+'" r="11" fill="#FEB342" stroke="#C08A2A" stroke-width="1.6"/>';
+    }
+    s+='<text x="'+cx+'" y="'+labelY+'" font-size="15" font-weight="900" text-anchor="middle">'+it+'</text>';
+  });
+  s+='<line x1="52" y1="'+axisY+'" x2="'+(x0+items.length*colw)+'" y2="'+axisY+'" stroke="#3A342C" stroke-width="2.4"/>';
+  return svg("0 0 "+(x0+items.length*colw+18)+" 290",s,null,"fig-graph");
+}
+function figTape(segs,topLabel){
+  var W=360,x0=30,total=segs.reduce(function(a,b){return a+b.w},0),s="",x=x0;
+  segs.forEach(function(g){
+    var w=g.w/total*W;
+    s+='<rect x="'+x.toFixed(1)+'" y="52" width="'+w.toFixed(1)+'" height="42" fill="'+(g.c||"#FBF6EC")+'" stroke="#3A342C" stroke-width="2"/>';
+    s+='<text x="'+(x+w/2).toFixed(1)+'" y="79" font-size="16" font-weight="900" text-anchor="middle">'+g.t+'</text>';
+    x+=w;
+  });
+  if(topLabel){
+    s+='<path d="M'+x0+' 40 L'+x0+' 32 L'+(x0+W)+' 32 L'+(x0+W)+' 40" fill="none" stroke="#C86D7C" stroke-width="2"/>';
+    s+='<text x="'+(x0+W/2)+'" y="24" font-size="15" font-weight="900" text-anchor="middle" fill="#C86D7C">'+topLabel+'</text>';
+  }
+  return svg("0 0 420 110",s);
+}
+function figPoly(pts,rights,labels){
+  var s='<polygon points="'+pts.map(function(p){return p[0]+","+p[1]}).join(" ")+'" fill="#FFF8EC" stroke="#3A342C" stroke-width="3" stroke-linejoin="round"/>';
+  (rights||[]).forEach(function(i){
+    var n=pts.length,p=pts[i],a=pts[(i-1+n)%n],b=pts[(i+1)%n];
+    var u=norm(a,p),v=norm(b,p),k=15;
+    var p1=[p[0]+u[0]*k,p[1]+u[1]*k], p2=[p[0]+(u[0]+v[0])*k,p[1]+(u[1]+v[1])*k], p3=[p[0]+v[0]*k,p[1]+v[1]*k];
+    s+='<polyline points="'+p1+" "+p2+" "+p3+'" fill="none" stroke="#C86D7C" stroke-width="2.4"/>';
+  });
+  // 長さの数字。L.a で そろえ方を 変えられる（たての辺は 図の 左に "end" で置く）
+  (labels||[]).forEach(function(L){
+    s+='<text x="'+L.x+'" y="'+L.y+'" font-size="30" font-weight="900" text-anchor="'+(L.a||"middle")+'" fill="#C86D7C">'+L.t+'</text>';
+  });
+  return svg("0 0 270 210",s);
+}
+function norm(a,p){ var dx=a[0]-p[0],dy=a[1]-p[1],d=Math.hypot(dx,dy)||1; return [dx/d,dy/d] }
+function figBox(){
+  var A=[60,170], B=[190,170], C=[190,70], D=[60,70], d=34;
+  var Dp=[D[0]+d,D[1]-d], Cp=[C[0]+d,C[1]-d], Bp=[B[0]+d,B[1]-d], Ap=[A[0]+d,A[1]-d];
+  function pt(p){ return p[0]+","+p[1]; }
+  var s="";
+  /* 面 — ぬりのみ（線は あとで まとめて 1本の path で かく） */
+  s+='<polygon points="'+[D,C,Cp,Dp].map(pt).join(" ")+'" fill="#FDEFD6"/>';
+  s+='<polygon points="'+[C,B,Bp,Cp].map(pt).join(" ")+'" fill="#F6E7CC"/>';
+  s+='<rect x="'+D[0]+'" y="'+D[1]+'" width="'+(B[0]-D[0])+'" height="'+(A[1]-D[1])+'" fill="#FFF8EC"/>';
+  /* かくれた線（点線）— まとめて1本の pathに して、切れ目の とがりを なくす */
+  s+='<path d="M'+pt(Ap)+'L'+pt(Dp)+'M'+pt(Ap)+'L'+pt(Bp)+'M'+pt(Ap)+'L'+pt(A)+'" '
+    +'fill="none" stroke="#3A342C" stroke-width="1.6" stroke-dasharray="4 4" stroke-linecap="round"/>';
+  /* 見える線（実線）— 外わくの6辺＋内側の分かれ目3辺を 1本の pathに まとめて、頂点の はみだしを なくす */
+  s+='<path d="M'+pt(Dp)+'L'+pt(Cp)+'L'+pt(Bp)+'L'+pt(B)+'L'+pt(A)+'L'+pt(D)+'Z '
+    +'M'+pt(D)+'L'+pt(C)+'L'+pt(B)+' M'+pt(C)+'L'+pt(Cp)+'" '
+    +'fill="none" stroke="#3A342C" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>';
+  return svg("0 0 270 210",s);
+}
+function figFracRect(den,num){
+  var W=280,H=70,x0=16,s="",w=W/den;
+  for(var i=0;i<den;i++){
+    s+='<rect x="'+(x0+i*w).toFixed(1)+'" y="24" width="'+w.toFixed(1)+'" height="'+H+'" fill="'+(i<num?"#E39AA4":"#fff")+'" stroke="#3A342C" stroke-width="2"/>';
+  }
+  s+='<text x="'+(x0+W/2)+'" y="115" font-size="13" text-anchor="middle" fill="#6E6558">もとの 大きさ（1）</text>';
+  s+='<path d="M'+x0+' 14 L'+x0+' 8 L'+(x0+W)+' 8 L'+(x0+W)+' 14" fill="none" stroke="#6E6558" stroke-width="1.6"/>';
+  return svg("0 0 312 126",s);
+}
+function figFracCircle(den,num){
+  var cx=110,cy=100,r=80,s="";
+  for(var i=0;i<den;i++){
+    var a1=(i*360/den-90)*Math.PI/180, a2=((i+1)*360/den-90)*Math.PI/180;
+    var big=(360/den)>180?1:0;
+    var p="M"+cx+" "+cy+" L"+(cx+Math.cos(a1)*r).toFixed(1)+" "+(cy+Math.sin(a1)*r).toFixed(1)
+      +" A"+r+" "+r+" 0 "+big+" 1 "+(cx+Math.cos(a2)*r).toFixed(1)+" "+(cy+Math.sin(a2)*r).toFixed(1)+" Z";
+    s+='<path d="'+p+'" fill="'+(i<num?"#E39AA4":"#fff")+'" stroke="#3A342C" stroke-width="2"/>';
+  }
+  return svg("0 0 220 200",s,200);
+}
+function figMasu(dl){
+  var n=Math.max(1,Math.ceil(dl/10)),s="",bw=76,gap=16;
+  for(var c=0;c<n;c++){
+    var x=14+c*(bw+gap), rest=Math.min(10,dl-c*10);
+    s+='<rect x="'+x+'" y="20" width="'+bw+'" height="130" fill="#fff" stroke="#3A342C" stroke-width="2.5"/>';
+    if(rest>0) s+='<rect x="'+(x+2)+'" y="'+(150-rest*13).toFixed(1)+'" width="'+(bw-4)+'" height="'+(rest*13).toFixed(1)+'" fill="#9CC7E8" opacity=".85"/>';
+    for(var i=1;i<10;i++) s+='<line x1="'+x+'" y1="'+(150-i*13)+'" x2="'+(x+(i%5===0?26:16))+'" y2="'+(150-i*13)+'" stroke="#3A342C" stroke-width="1.2"/>';
+    s+='<text x="'+(x+bw/2)+'" y="168" font-size="12" text-anchor="middle" fill="#6E6558">1Lます</text>';
+  }
+  return svg("0 0 "+(14+n*(bw+gap))+" 178",s);
+}
+function figHako(){ return figBox(); }
+/* ================= 1 ひょうとグラフ ================= */
+var HSETS=[
+ {a:["りんご","みかん","バナナ","いちご","ぶどう","もも","なし","かき"],u:"こ",t:"すきな くだもの しらべ"},
+ {a:["やきゅう","サッカー","すいえい","なわとび","ドッジ","おにごっこ"],u:"人",t:"すきな あそび しらべ"},
+ {a:["赤","青","黄","みどり","水色","ピンク"],u:"人",t:"すきな 色 しらべ"},
+ {a:["犬","ねこ","うさぎ","ハムスター","金魚","インコ"],u:"ひき",t:"かって いる 生きもの しらべ"}
+];
+function hyouBase(){
+  var st=pick(HSETS), items=uniqPick(st.a,4), c, tries=0;
+  do{ c=items.map(function(){return R(2,9)}); tries++; }while(new Set(c).size<4&&tries<40);
+  return {st:st,items:items,c:c,fig:figGraph(items,c,st.t)};
+}
+function hyouMax(){ var B=hyouBase(),m=Math.max.apply(null,B.c),i=B.c.indexOf(m);
+  return Qchoice("hyou_max","いちばん おおいのは どれ？",B.items,i,{fig:B.fig,exp:B.items[i]+"が "+m+B.st.u+"で いちばん おおいね！"}); }
+function hyouMin(){ var B=hyouBase(),m=Math.min.apply(null,B.c),i=B.c.indexOf(m);
+  return Qchoice("hyou_min","いちばん すくないのは どれ？",B.items,i,{fig:B.fig,exp:B.items[i]+"が "+m+B.st.u+"で いちばん すくないね！"}); }
+function hyouCount(){ var B=hyouBase(),i=R(0,3);
+  return Qnum("hyou_count",B.items[i]+"は なん"+B.st.u+"？",B.c[i],{fig:B.fig,suf:B.st.u}); }
+function hyouDiff(){ var B=hyouBase(),i=R(0,3),j=R(0,3); while(j===i)j=R(0,3);
+  var a=Math.max(B.c[i],B.c[j]),b=Math.min(B.c[i],B.c[j]);
+  return Qnum("hyou_diff",B.items[i]+"と "+B.items[j]+"の ちがいは なん"+B.st.u+"？",a-b,{fig:B.fig,suf:B.st.u,exp:a+"−"+b+"＝"+(a-b)+" だね！"}); }
+function hyouTotal(){ var B=hyouBase(),t=B.c.reduce(function(x,y){return x+y},0);
+  return Qnum("hyou_total","ぜんぶで なん"+B.st.u+"？",t,{fig:B.fig,suf:B.st.u,exp:B.c.join("＋")+"＝"+t+" だね！"}); }
+
+/* グラフを つくろう（マスを タップして 棒グラフを つくる） */
+var FRUIT_ICON={"りんご":"🍎","もも":"🍑","いちご":"🍓","ぶどう":"🍇","みかん":"🍊"};
+function figFruitBag(bag){
+  return '<div class="fbag">'+bag.map(function(e){return '<span>'+e+'</span>'}).join('')+'</div>';
+}
+function hyouGraph(){
+  var names=["りんご","もも","いちご","ぶどう","みかん"];
+  var n=pick([3,4]);
+  var items=uniqPick(names,n);
+  var counts=items.map(function(){return R(2,7)});
+  var bag=[];
+  items.forEach(function(nm,i){ for(var k=0;k<counts[i];k++) bag.push(FRUIT_ICON[nm]); });
+  bag=shuffle(bag);
+  return Qgraph("hyou_graph","くだものの 数を かぞえて、下の グラフに あらわそう",items,counts,
+    {fig:figFruitBag(bag),max:Math.max.apply(null,counts)+1,exp:"かぞえた 数と 同じ 高さに なったかな？"});
+}
+
+/* ================= 2 たし算のひっ算 ================= */
+function tashi1(){ var a=R(21,89),b=R(2,9); return Qhissan("tashi_2ke1",a,b,"+") }
+function tashiNashi(){ var x=R(1,8),y=R(1,9-x),p=R(1,8),q=R(1,9-p); return Qhissan("tashi_nashi",p*10+x,q*10+y,"+") }
+function tashiAri(){ var x=R(2,9),y=R(10-x,9),p=R(1,7),q=R(1,8-p);
+  return Qhissan("tashi_ari",p*10+x,q*10+y,"+",{exp:"一のくらいが 10を こえたら 十のくらいへ 1 くり上げよう！"}) }
+function tashi3(){ var a,b,g=0; do{a=R(25,99);b=R(25,99);g++}while(a+b<100&&g<60);
+  return Qhissan("tashi_3keta",a,b,"+",{exp:"十のくらいから 百のくらいへ ジャンプ！ くり上がったね"}) }
+function tashi3ke2(){ var a=R(105,899),b=R(11,89); return Qhissan("tashi_3ke2",a,b,"+") }
+
+/* ================= 3 ひき算のひっ算 ================= */
+function hikiNashi(){ var a,b,g=0;
+  do{ var x=R(1,9),y=R(0,x),p=R(2,9),q=R(1,p); a=p*10+x; b=q*10+y; g++; }while(a===b&&g<60);
+  return Qhissan("hiki_nashi",a,b,"-") }
+function hikiAri(){ var x=R(0,8),y=R(x+1,9),p=R(2,9),q=R(1,p-1);
+  return Qhissan("hiki_ari",p*10+x,q*10+y,"-",{exp:"一のくらいが ひけない ときは 十のくらいから 1 かりてこよう！"}) }
+function hiki3(){ var a=R(101,999),b=R(23,99); return Qhissan("hiki_3keta",a,b,"-",{exp:"くらいを そろえて 一のくらいから じゅんに けいさんしよう！"}) }
+function hiki3x3(){ var a=R(320,999),b=R(112,300); return Qhissan("hiki_3x3",a,b,"-") }
+function hiki100(){ var b=R(12,89); return Qhissan("hiki_100",100,b,"-",{exp:"100から ひくときは 十のくらいを くふうすると すいすい とけるよ！"}) }
+
+/* ================= 4 長さ ================= */
+function nagasaYomu(){ var mm=R(23,148); if(mm%10===0) mm+=R(1,9);
+  return Qmulti("nagasa_yomu","テープの 長さは どれだけ？",[{max:2,suf:"cm"},{max:1,suf:"mm"}],
+    [Math.floor(mm/10),mm%10],{fig:figRuler(mm),exp:mm+"mm ＝ "+Math.floor(mm/10)+"cm"+(mm%10)+"mm"+" だね！"}); }
+function nagasaKansan(){
+  if(Math.random()<.5){ var c=R(2,14),m=R(1,9);
+    return Qnum("nagasa_kansan",c+"cm"+m+"mm は なんmm？",c*10+m,{suf:"mm",exp:"1cm＝10mm だね！ "+c+"cm＝"+(c*10)+"mm"}); }
+  var t=R(21,148); if(t%10===0) t++;
+  return Qmulti("nagasa_kansan",t+"mm は なんcmなんmm？",[{max:2,suf:"cm"},{max:1,suf:"mm"}],
+    [Math.floor(t/10),t%10],{exp:"10mm あつまると 1cm に へんしん！"}); }
+function nagasaKeisan(){
+  if(Math.random()<.5){ var a=R(2,9),am=R(1,8),b=R(1,6),bm=R(1,9-am);
+    return Qmulti("nagasa_keisan",a+"cm"+am+"mm ＋ "+b+"cm"+bm+"mm は？",[{max:2,suf:"cm"},{max:1,suf:"mm"}],
+      [a+b,am+bm],{exp:"cmは cmどうし、mmは mmどうしで けいさんしよう！"}); }
+  var A=R(5,15),Am=R(3,9),B=R(1,A-1),Bm=R(0,Am);
+  return Qmulti("nagasa_keisan",A+"cm"+Am+"mm − "+B+"cm"+Bm+"mm は？",[{max:2,suf:"cm"},{max:1,suf:"mm"}],[A-B,Am-Bm]); }
+function nagasaHikaku(){
+  var a=R(30,140),b,g=0; do{ b=R(30,140); g++ }while(Math.abs(a-b)<5&&g<60);
+  var ta=Math.floor(a/10)+"cm"+(a%10)+"mm", tb=b+"mm";
+  return Qchoice("nagasa_hikaku","長いのは どっち？",[ta,tb],a>b?0:1,{exp:ta+" ＝ "+a+"mm　mmに そろえると くらべやすいね！"}); }
+function nagasaM(){
+  var m=R(1,5),c=R(1,99);
+  if(Math.random()<.5) return Qnum("nagasa_m",m+"m"+c+"cm は なんcm？",m*100+c,{suf:"cm",exp:"1m＝100cm だよ！"});
+  return Qmulti("nagasa_m",(m*100+c)+"cm は なんmなんcm？",[{max:1,suf:"m"},{max:2,suf:"cm"}],[m,c],{exp:"100cm あつまると 1m に へんしん！"}); }
+
+/* ================= 5 100より大きい数 ================= */
+function kazu3Kurai(){ var h=R(1,9),t=R(0,9),o=R(0,9);
+  return Qnum("kazu3_kurai","百のくらいが "+h+"、十のくらいが "+t+"、一のくらいが "+o+" の 数は？",h*100+t*10+o); }
+function kazu3Ju(){ var n=R(11,99);
+  if(Math.random()<.5) return Qnum("kazu3_ju","10を "+n+"こ あつめた 数は？",n*10,{exp:"10が "+n+"こ で "+(n*10)+"だね！"});
+  return Qnum("kazu3_ju",(n*10)+" は 10を なんこ あつめた 数？",n,{suf:"こ"}); }
+function kazu3Line(){
+  var lo=R(0,3)*100, v=lo+R(1,9)*10;
+  return Qnum("kazu3_line","↓の めもりは いくつ？",v,{fig:figNumline(lo,lo+100,10,v,"?"),exp:"大きい めもりは 100、小さい めもりは 10だよ。よく見てみよう！"}); }
+function kazu3Daisho(){ var a=R(101,999),b,g=0; do{ b=R(101,999); g++ }while(a===b&&g<40);
+  return Qchoice("kazu3_daisho","大きいのは どっち？",[String(a),String(b)],a>b?0:1,{exp:"百のくらいから じゅんに くらべると わかりやすいよ！"}); }
+function kazu3Nanju(){ var a=R(2,9)*10,b=R(2,9)*10;
+  if(Math.random()<.5) return Qnum("kazu3_nanju",a+" ＋ "+b+" は？",a+b,{exp:"10が "+(a/10)+"こと "+(b/10)+"こ で "+((a+b)/10)+"こに なるね！"});
+  var A=R(11,19)*10,B=R(2,9)*10; return Qnum("kazu3_nanju",A+" − "+B+" は？",A-B,{exp:"10が いくつ分かで 考えると らくらく とけるよ！"}); }
+
+/* ================= 6 水のかさ ================= */
+function kasaYomu(){ var dl=R(3,29);
+  // ちょうど 10dL・20dL は 答えが「1L 0dL」に なってしまうので ずらす（0dL は 出さない）
+  if(dl%10===0) dl+=R(1,9);
+  if(dl<10) return Qnum("kasa_yomu","水の かさは なんdL？",dl,{fig:figMasu(dl),suf:"dL"});
+  return Qmulti("kasa_yomu","水の かさは どれだけ？",[{max:1,suf:"L"},{max:1,suf:"dL"}],
+    [Math.floor(dl/10),dl%10],{fig:figMasu(dl),exp:"1Lます 1つ分で 10dL だよ！"}); }
+function kasaKansan(){ var t=R(1,4);
+  if(t===1){ var L=R(2,9); return Qnum("kasa_kansan",L+"L は なんdL？",L*10,{suf:"dL",exp:"1L＝10dL だね！"}); }
+  if(t===2){ var L2=R(1,4),d=R(1,9); return Qnum("kasa_kansan",L2+"L"+d+"dL は なんdL？",L2*10+d,{suf:"dL"}); }
+  if(t===3){ var L3=R(1,3); return Qnum("kasa_kansan",L3+"L は なんmL？",L3*1000,{suf:"mL",exp:"1L＝1000mL だよ！"}); }
+  return Qnum("kasa_kansan","1dL は なんmL？",100,{suf:"mL",exp:"1L＝10dL＝1000mL だから、1dL＝100mL に なるんだね！"}); }
+function kasaKeisan(){
+  if(Math.random()<.5){ var a=R(1,4),ad=R(1,8),b=R(1,3),bd=R(1,9-ad);
+    return Qmulti("kasa_keisan",a+"L"+ad+"dL ＋ "+b+"L"+bd+"dL は？",[{max:1,suf:"L"},{max:1,suf:"dL"}],[a+b,ad+bd]); }
+  // Bd は 1〜Ad-1。ひく数の「3L0dL」も 答えの 0dL も 出さない
+  var A=R(3,9),Ad=R(3,9),B=R(1,A-1),Bd=R(1,Ad-1);
+  return Qmulti("kasa_keisan",A+"L"+Ad+"dL − "+B+"L"+Bd+"dL は？",[{max:1,suf:"L"},{max:1,suf:"dL"}],[A-B,Ad-Bd]); }
+function kasaHikaku(){ var a=R(11,29);
+  if(a%10===0) a+=R(1,9);   // せんたくしに「2L0dL」を 出さない
+  var b,g=0; do{ b=R(11,29); g++ }while(a===b&&g<40);
+  return Qchoice("kasa_hikaku","おおいのは どっち？",[Math.floor(a/10)+"L"+(a%10)+"dL",b+"dL"],a>b?0:1,{exp:"dLに そろえて くらべると すぐ わかるよ！"}); }
+
+/* ================= 7 時こくと時間 ================= */
+function tokeiYomu(){ var h=R(1,12), m=Math.random()<.55?R(0,11)*5:R(0,59);
+  return Qmulti("tokei_yomu","なん時 なん分？",[{max:2,suf:"時"},{max:2,suf:"分"}],[h,m],{fig:figClock(h,m)}); }
+function tokeiAto(){
+  var h=R(1,11), m=R(0,11)*5, d=pick([10,15,20,25,30,40,45,50]);
+  var t=h*60+m, sign=Math.random()<.5?1:-1, t2=t+sign*d;
+  if(t2<60){ sign=1; t2=t+d; }
+  var hh=Math.floor(t2/60)%12; if(hh===0) hh=12;
+  return Qmulti("tokei_ato",h+"時"+m+"分 の "+d+"分"+(sign>0?"後":"前")+"の 時こくは？",
+    [{max:2,suf:"時"},{max:2,suf:"分"}],[hh,t2%60],{fig:figClock(h,m),exp:"1時間＝60分！ 60分を こえたら つぎの 1時間に すすむよ"}); }
+function tokeiAida(){
+  var h=R(1,10), m=R(0,11)*5, d=pick([15,20,25,30,35,40,45,50,55]);
+  var t2=h*60+m+d, hh=Math.floor(t2/60)%12; if(hh===0) hh=12;
+  return Qnum("tokei_aida",h+"時"+m+"分 から "+hh+"時"+(t2%60)+"分 までの 時間は？",d,{suf:"分",fig:figClock(h,m)}); }
+function tokeiTani(){ var t=R(1,4);
+  if(t===1){ var x=R(1,3),y=R(5,55); return Qnum("tokei_tani",x+"時間"+y+"分 は なん分？",x*60+y,{suf:"分",exp:"1時間＝60分 だよ！"}); }
+  if(t===2){ var mm=R(61,180); return Qmulti("tokei_tani",mm+"分 は なん時間なん分？",[{max:1,suf:"時間"},{max:2,suf:"分"}],
+    [Math.floor(mm/60),mm%60],{exp:"60分 あつまると 1時間 に へんしん！"}); }
+  if(t===3) return Qnum("tokei_tani","1日は なん時間？",24,{suf:"時間",exp:"午前12時間＋午後12時間で 1日だね！"});
+  return Qchoice("tokei_tani","午前は なん時間 ありますか？",["12時間","24時間","10時間","6時間"],0,{exp:"午前0時から 正午までが ちょうど 12時間だよ！"}); }
+
+/* ================= 8 計算のくふう ================= */
+function kufuuTen(){ var x=R(13,68),y=R(3,9),z=10-y;
+  return Qnum("kufuu_ten","くふうして けいさんしよう　"+x+" ＋ "+y+" ＋ "+z+" は？",x+y+z,
+    {exp:y+"＋"+z+"＝10 を 先に けいさんすると あっという間！"}); }
+function kufuuKiri(){ var x=R(23,68); var y=10-(x%10); if(y===10) y=R(2,9); var z=R(11,39);
+  return Qnum("kufuu_kiri","くふうして けいさんしよう　"+x+" ＋ "+y+" ＋ "+z+" は？",x+y+z,
+    {exp:x+"＋"+y+"＝"+(x+y)+" と きりの いい 数に なって らくちん！"}); }
+function kufuuKimari(){ var a=R(12,79),b=R(12,79);
+  return Qnum("kufuu_kimari",a+" ＋ "+b+" ＝ "+b+" ＋ □　　□に 入る 数は？",a,{exp:"たす じゅんばんを かえても 答えは 同じ！ おもしろいね"}); }
+function kufuuHyaku(){ var b=R(12,89); return Qnum("kufuu_hyaku","100 − "+b+" は？",100-b,{exp:"100は 10が 10こ だね！"}); }
+function kufuu3(){ var b=R(11,25),c=R(11,25),a=b+c+R(3,38);
+  return Qnum("kufuu_3",a+" − "+b+" − "+c+" は？",a-b-c,{exp:"前から じゅんに けいさんすれば だいじょうぶ！"}); }
+
+/* ================= 9 三角形と四角形 ================= */
+var SHAPES=[
+ {n:"正方形",   pts:[[80,45],[200,45],[200,165],[80,165]], r:[0,1,2,3], kado:4,hen:4,cho:4},
+ {n:"長方形",   pts:[[50,60],[240,60],[240,150],[50,150]], r:[0,1,2,3], kado:4,hen:4,cho:4},
+ {n:"直角三角形",pts:[[60,168],[60,48],[215,168]],          r:[0],       kado:1,hen:3,cho:3},
+ {n:"三角形",   pts:[[45,170],[140,44],[228,170]],          r:[],        kado:0,hen:3,cho:3},
+ {n:"四角形",   pts:[[50,158],[92,50],[212,62],[248,160]],  r:[],        kado:0,hen:4,cho:4}
+];
+function zukeiNamae(){ var sp=pick(SHAPES);
+  var others=uniqPick(SHAPES.filter(function(x){return x.n!==sp.n}).map(function(x){return x.n}),3);
+  var ch=shuffle([sp.n].concat(others));
+  return Qchoice("zukei_namae","この 形の 名前は？",ch,ch.indexOf(sp.n),{fig:figPoly(sp.pts,sp.r)}); }
+function zukeiKado(){ var sp=pick(SHAPES);
+  return Qnum("zukei_kado","この 形に 直角は いくつ ありますか？",sp.kado,{fig:figPoly(sp.pts,[]),suf:"こ",
+    exp:sp.n+"の 直角は "+sp.kado+"こ だよ！"}); }
+function zukeiHen(){ var sp=pick(SHAPES), t=Math.random()<.5;
+  return Qnum("zukei_hen",t?"この 形の へんは なん本？":"この 形の ちょう点は いくつ？",t?sp.hen:sp.cho,
+    {fig:figPoly(sp.pts,sp.r),suf:t?"本":"こ"}); }
+function zukeiChoho(){ var a=R(3,12),b=R(3,12); while(b===a) b=R(3,12);
+  // よこ a cm・たて b cm を 数字どおりの ひりつで 描く。
+  // 図を 固定サイズに すると「よこ3cm・たて7cm なのに よこの方が長い」ような
+  // 見た目と数の くいちがいが 起きる（実際に そうなっていた）
+  var sc=Math.min(150/a,105/b), w=a*sc, h=b*sc;
+  var cx=158, cy=100, x0=cx-w/2, y0=cy-h/2;
+  var pts=[[x0,y0],[x0+w,y0],[x0+w,y0+h],[x0,y0+h]];
+  var lab=[{x:cx,y:y0-13,t:a+"cm"},
+           {x:x0-10,y:y0+h/2+11,t:b+"cm",a:"end"},
+           {x:cx,y:y0+h+36,t:"?"}];
+  return Qnum("zukei_choho","長方形です。下の へんの 長さは？",a,{fig:figPoly(pts,[0,1,2,3],lab),suf:"cm",
+    exp:"長方形は むかい合う へんの 長さが ぴったり 同じ！"}); }
+function zukeiSei(){ var a=R(3,12);
+  var pts=[[80,45],[200,45],[200,165],[80,165]];
+  var lab=[{x:140,y:36,t:a+"cm"},{x:140,y:190,t:"?"}];
+  return Qnum("zukei_sei","正方形です。下の へんの 長さは？",a,{fig:figPoly(pts,[0,1,2,3],lab),suf:"cm",
+    exp:"正方形は 4つの へんの 長さが みんな 同じ！ きれいだね"}); }
+
+/* ================= 10 かけ算九九 ================= */
+function figDots(groups,per){
+  var gw=Math.min(74,300/groups), s="";
+  for(var g=0;g<groups;g++){
+    var x0=12+g*(gw+8);
+    s+='<rect x="'+x0.toFixed(1)+'" y="16" width="'+gw.toFixed(1)+'" height="'+(per*22+14)+'" rx="10" fill="#FFF8EC" stroke="#DED2BE" stroke-width="2"/>';
+    for(var i=0;i<per;i++) s+='<circle cx="'+(x0+gw/2).toFixed(1)+'" cy="'+(32+i*22)+'" r="8" fill="#FEB342" stroke="#C08A2A" stroke-width="1.2"/>';
+  }
+  return svg("0 0 "+(12+groups*(gw+8)+6).toFixed(0)+" "+(per*22+38),s);
+}
+function kukuKeisan(){ var a=R(1,9),b=R(1,9);
+  return Qnum("kuku_keisan",a+" × "+b+" は？",a*b,{exp:a+"の だん　"+a+"×"+b+"＝"+a*b+" せいかい！"}); }
+function kukuBox(){ var a=R(2,9),b=R(2,9);
+  if(Math.random()<.5) return Qnum("kuku_box","□ × "+b+" ＝ "+(a*b)+"　　□に 入る 数は？",a,{exp:b+"の だんで "+(a*b)+"に なるのは "+b+"×"+a+" だね！"});
+  return Qnum("kuku_box",a+" × □ ＝ "+(a*b)+"　　□に 入る 数は？",b,{exp:a+"の だんを となえて さがそう！ きっと 見つかるよ"}); }
+function kukuImi(){ var per=R(2,6),groups=R(2,6);
+  return Qnum("kuku_imi",per+"こずつ "+groups+"つの ふくろに 入って います。ぜんぶで なんこ？",per*groups,
+    {fig:figDots(groups,per),suf:"こ",exp:per+"×"+groups+"＝"+per*groups+" せいかい！"}); }
+function kukuBunsho(){
+  var it=pick([["あめ","はこ","こ"],["えんぴつ","ふくろ","本"],["いちご","さら","こ"],["ジュース","はこ","本"],["シール","まい"]]);
+  if(it.length<3) it=["シール","ふくろ","まい"];
+  var a=R(2,9),b=R(2,9);
+  return Qnum("kuku_bunsho","1"+it[1]+"に "+it[0]+"が "+a+it[2]+"ずつ 入って います。"+b+it[1]+"では ぜんぶで なん"+it[2]+"？",
+    a*b,{suf:it[2],exp:a+"×"+b+"＝"+a*b+" だね！"}); }
+
+/* ================= 11 かけ算のきまり ================= */
+function kimariKokan(){ var a=R(2,9),b=R(2,9);
+  return Qnum("kimari_kokan",a+" × "+b+" ＝ "+b+" × □　　□に 入る 数は？",a,{exp:"かける じゅんばんを かえても 答えは 同じ！ すごい きまりだね"}); }
+function kimariBai(){ var a=R(2,9),b=R(2,9);
+  return Qnum("kimari_bai",a+"の "+b+"ばい は いくつ？",a*b,{exp:a+"×"+b+"＝"+a*b+" だね！"}); }
+function kimariZoka(){ var a=R(2,9),b=R(2,8);
+  return Qnum("kimari_zoka",a+"×"+b+"＝"+(a*b)+" です。"+a+"×"+(b+1)+" は "+(a*b)+" より いくつ 大きい？",a,
+    {exp:"かける数が 1 ふえると 答えは "+a+" ふえる。おもしろい きまりだね！"}); }
+function kimariOver(){ var b=R(2,9),a=R(2,8);
+  return Qnum("kimari_over",a+"×"+b+"＝"+(a*b)+" です。"+(a+1)+"×"+b+" は いくつ？",(a+1)*b,
+    {exp:"かけられる数が 1 ふえると、答えは "+b+" ふえるよ！"}); }
+function kimariGyaku(){ var a=R(2,9),b=R(2,9);
+  return Qnum("kimari_gyaku",a+"の だんで 答えが "+(a*b)+" に なるのは "+a+"に なにを かけた とき？",b,{exp:a+"×"+b+"＝"+a*b+" せいかい！"}); }
+
+/* ================= 12 大きい数（10000まで） ================= */
+function kazu4Kurai(){ var th=R(1,9),h=R(0,9),t=R(0,9),o=R(0,9);
+  return Qnum("kazu4_kurai","千のくらいが "+th+"、百のくらいが "+h+"、十のくらいが "+t+"、一のくらいが "+o+" の 数は？",
+    th*1000+h*100+t*10+o); }
+function kazu4Line(){
+  var lo=R(0,9)*1000, v=lo+R(1,9)*100;
+  return Qnum("kazu4_line","↓の めもりは いくつ？",v,{fig:figNumline(lo,lo+1000,100,v,"?"),exp:"大きい めもりは 1000、小さい めもりは 100だよ。じっくり 数えてみよう！"}); }
+function kazu4Sen(){ var n=R(11,99);
+  if(Math.random()<.5) return Qnum("kazu4_sen","100を "+n+"こ あつめた 数は？",n*100,{exp:"100が "+n+"こ だね！"});
+  return Qnum("kazu4_sen",(n*100)+" は 100を なんこ あつめた 数？",n,{suf:"こ"}); }
+function kazu4Daisho(){ var a=R(1001,9999),b,g=0; do{ b=R(1001,9999); g++ }while(a===b&&g<40);
+  return Qchoice("kazu4_daisho","大きいのは どっち？",[String(a),String(b)],a>b?0:1,{exp:"千のくらいから じゅんに くらべれば ばっちり！"}); }
+function kazu4Nanbyaku(){
+  if(Math.random()<.5){ var a=R(2,8)*100,b=R(2,8)*100;
+    return Qnum("kazu4_nanbyaku",a+" ＋ "+b+" は？",a+b,{exp:"100が "+(a/100)+"こと "+(b/100)+"こ で "+((a+b)/100)+"こに なるね！"}); }
+  var A=R(5,12)*100,B=R(1,4)*100; return Qnum("kazu4_nanbyaku",A+" − "+B+" は？",A-B,{exp:"100が いくつ分かで 考えると すぐ とけるよ！"}); }
+
+/* ================= 13 図をつかって考えよう ================= */
+function zuZenbu(){ var a=R(12,48),b=R(11,39);
+  return Qnum("zu_zenbu","赤い 花が "+a+"本、白い 花が "+b+"本 あります。ぜんぶで なん本？",a+b,
+    {fig:figTape([{w:a,t:a+"本",c:"#FADDE1"},{w:b,t:b+"本",c:"#fff"}],"ぜんぶで □本"),suf:"本",exp:a+"＋"+b+"＝"+(a+b)+" だね！"}); }
+function zuNokori(){ var t=R(40,95),u=R(11,35);
+  return Qnum("zu_nokori","おり紙が "+t+"まい あります。"+u+"まい つかうと のこりは なんまい？",t-u,
+    {fig:figTape([{w:u,t:u+"まい",c:"#FADDE1"},{w:t-u,t:"□まい",c:"#fff"}],t+"まい"),suf:"まい",exp:t+"−"+u+"＝"+(t-u)+" だね！"}); }
+function zuChigai(){ var a=R(25,80),b=R(8,24);
+  return Qnum("zu_chigai","男の子が "+a+"人、女の子が "+(a-b)+"人 います。ちがいは なん人？",b,
+    {fig:figTape([{w:a-b,t:(a-b)+"人",c:"#DCEBE0"},{w:b,t:"□人",c:"#FADDE1"}],a+"人"),suf:"人",exp:a+"−"+(a-b)+"＝"+b+" だね！"}); }
+function zuHajime(){ var u=R(11,38),n=R(12,45);
+  return Qnum("zu_hajime","あめを "+u+"こ 食べたら "+n+"こ のこりました。はじめは なんこ あった？",u+n,
+    {fig:figTape([{w:u,t:u+"こ",c:"#FADDE1"},{w:n,t:n+"こ",c:"#fff"}],"はじめ □こ"),suf:"こ",exp:"食べた 数＋のこり＝はじめの 数！ もとに もどして 考えよう"}); }
+function zuFueta(){ var a=R(20,60),d=R(8,25);
+  return Qnum("zu_fueta","カードが なんまいか ありました。"+d+"まい もらったので "+(a+d)+"まいに なりました。はじめは なんまい？",a,
+    {fig:figTape([{w:a,t:"□まい",c:"#fff"},{w:d,t:d+"まい",c:"#FADDE1"}],(a+d)+"まい"),suf:"まい",exp:(a+d)+"−"+d+"＝"+a+" だね！"}); }
+
+/* ================= 14 分数 ================= */
+function figFracSmall(d){
+  var W=132,s="",w=W/d;
+  for(var i=0;i<d;i++) s+='<rect x="'+(8+i*w).toFixed(1)+'" y="26" width="'+w.toFixed(1)+'" height="46" fill="'+(i<1?"#E39AA4":"#fff")+'" stroke="#3A342C" stroke-width="1.8"/>';
+  s+='<text x="'+(8+W/2)+'" y="18" font-size="13" font-weight="900" text-anchor="middle">'+d+'分の1</text>';
+  return svg("0 0 148 82",s,150);
+}
+function bunsuYomu(){
+  var den=pick([2,3,4,6,8]);
+  var fig=Math.random()<.5?figFracCircle(den,1):figFracRect(den,1);
+  var opts=uniqPick([2,3,4,6,8],4);
+  if(opts.indexOf(den)<0) opts[0]=den;
+  opts=shuffle(opts);
+  var ch=opts.map(function(d){ return d+"分の1" });
+  return Qchoice("bunsu_yomu","色を ぬった ところは もとの 大きさの どれだけ？",ch,opts.indexOf(den),
+    {fig:fig,exp:"同じ 大きさに "+den+"つに 分けた 1つ分だよ！"}); }
+function bunsuToubun(){ var den=pick([2,3,4,6,8]);
+  return Qnum("bunsu_toubun",den+"分の1 は、もとの 大きさを なんこに 分けた 1つ分？",den,{suf:"こ",
+    exp:"同じ 大きさに "+den+"つに 分けた うちの 1つ分だよ！"}); }
+function bunsuDaisho(){
+  var pr=pick([[2,4],[2,8],[4,8],[2,3],[3,6],[2,6],[3,4],[4,6]]);
+  var arr=shuffle(pr);
+  var ch=arr.map(function(d){ return d+"分の1" });
+  var idx=arr[0]<arr[1]?0:1;
+  return Qchoice("bunsu_daisho","大きいのは どっち？",ch,idx,
+    {fig:'<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">'+figFracSmall(arr[0])+figFracSmall(arr[1])+'</div>',
+     exp:"分ける 数が 少ない ほうが 1つ分は 大きく なるよ！"}); }
+function bunsuNuru(){ var den=pick([2,4,6,8]);
+  return Qnum("bunsu_nuru","同じ 大きさに "+den+"つに 分けました。もとの 大きさの 半分に するには なんこ ぬる？",den/2,
+    {fig:figFracRect(den,0),suf:"こ",exp:"半分（2分の1）は "+(den/2)+"こ分だよ！"}); }
+
+function bunsuTap(){
+  var den=pick([2,3,4,6,8]), num=R(1,den-1);
+  return Qfrac("bunsu_tap",den+"分の"+num+" を タップして 色を ぬろう",den,num,
+    {exp:den+"つに 分けた "+num+"つ分を ぬれば せいかい！"}); }
+
+function bunsuTapCircle(){
+  var den=pick([2,3,4,6,8]), num=R(1,den-1);
+  return Qfrac("bunsu_tap_circle",den+"分の"+num+" を タップして 色を ぬろう",den,num,
+    {shape:"circle",exp:den+"つに 分けた "+num+"つ分を ぬれば せいかい！"}); }
+
+/* ================= 15 はこの形 ================= */
+function hakoMen(){ return Qnum("hako_men","はこの形（直方体）の 面は いくつ ありますか？",6,{fig:figHako(),suf:"こ",
+  exp:"上下・前後・左右で ぜんぶ 6こ！ かぞえてみよう"}) }
+function hakoHen(){ var t=Math.random()<.5;
+  return Qnum("hako_hen",t?"はこの形の へんは なん本 ありますか？":"はこの形の ちょう点は いくつ ありますか？",t?12:8,
+    {fig:figHako(),suf:t?"本":"こ",exp:t?"たて・よこ・高さが 4本ずつ で 12本！ 元気に かぞえよう":"角は ぜんぶで 8こ だよ！"}) }
+function hakoHigo(){ var t=pick([["ひご（へん）","本",12],["ねん土玉（ちょう点）","こ",8]]);
+  return Qnum("hako_higo","ひごと ねん土玉で はこの形を 作ります。"+t[0]+"は いくつ いりますか？",t[2],{suf:t[1],fig:figHako()}) }
+function hakoSaikoro(){ var a=R(1,6);
+  return Qnum("hako_saikoro","さいころは むかい合う 面の 目の 和が 7 です。"+a+"の むかいの 面は いくつ？",7-a,{exp:a+"＋"+(7-a)+"＝7 だね！"}) }
+function hakoOnaji(){
+  return Qnum("hako_onaji","はこの形で、同じ 長さの へんは なん本ずつ ありますか？",4,{fig:figHako(),suf:"本",
+    exp:"たて・よこ・高さ が それぞれ 4本ずつ！ そろっていて すてきだね"}) }
+
+/* ================= units ================= */
+var UNITS=[
+ {k:"hyou", name:"ひょうと グラフ",   mark:"●",col:"#FEB342",gens:[hyouMax,hyouMin,hyouCount,hyouDiff,hyouTotal,hyouGraph]},
+ {k:"tashi",name:"たし算の ひっ算",   mark:"★",col:"#E39AA4",gens:[tashi1,tashiNashi,tashiAri,tashi3,tashi3ke2]},
+ {k:"hiki", name:"ひき算の ひっ算",   mark:"◆",col:"#6FA383",gens:[hikiNashi,hikiAri,hiki3,hiki3x3,hiki100]},
+ {k:"nagasa",name:"長さ（cm・mm・m）",mark:"✦",col:"#FEB342",gens:[nagasaYomu,nagasaKansan,nagasaKeisan,nagasaHikaku,nagasaM]},
+ {k:"kazu3",name:"100より 大きい数",  mark:"✿",col:"#E39AA4",gens:[kazu3Kurai,kazu3Ju,kazu3Line,kazu3Daisho,kazu3Nanju]},
+ {k:"kasa", name:"水の かさ",         mark:"●",col:"#6FA383",gens:[kasaYomu,kasaKansan,kasaKeisan,kasaHikaku]},
+ {k:"tokei",name:"時こくと 時間",     mark:"★",col:"#FEB342",gens:[tokeiYomu,tokeiAto,tokeiAida,tokeiTani]},
+ {k:"kufuu",name:"計算の くふう",     mark:"◆",col:"#E39AA4",gens:[kufuuTen,kufuuKiri,kufuuKimari,kufuuHyaku,kufuu3]},
+ {k:"zukei",name:"三角形と 四角形",   mark:"✦",col:"#6FA383",gens:[zukeiNamae,zukeiKado,zukeiHen,zukeiChoho,zukeiSei]},
+ {k:"kuku", name:"かけ算 九九",       mark:"✿",col:"#FEB342",gens:[kukuKeisan,kukuBox,kukuImi,kukuBunsho]},
+ {k:"kimari",name:"かけ算の きまり",  mark:"●",col:"#E39AA4",gens:[kimariKokan,kimariBai,kimariZoka,kimariOver,kimariGyaku]},
+ {k:"kazu4",name:"大きい数（10000）", mark:"★",col:"#6FA383",gens:[kazu4Kurai,kazu4Line,kazu4Sen,kazu4Daisho,kazu4Nanbyaku]},
+ {k:"zu",   name:"図を つかって",     mark:"◆",col:"#FEB342",gens:[zuZenbu,zuNokori,zuChigai,zuHajime,zuFueta]},
+ {k:"bunsu",name:"分数",              mark:"✦",col:"#E39AA4",gens:[bunsuYomu,bunsuToubun,bunsuDaisho,bunsuNuru,bunsuTap,bunsuTapCircle]},
+ {k:"hako", name:"はこの 形",         mark:"✿",col:"#6FA383",gens:[hakoMen,hakoHen,hakoHigo,hakoSaikoro,hakoOnaji]}
+];
+
+/* ================= init ================= */
+buildGenMap();
+loadSave();
+renderMenu();
+
+/* 学習記録（ログイン・学習時間・解答ログ）。未ログイン/file:// では黙って何もしない */
+try{ if(window.Divp&&Divp.init) Divp.init(UNIT_KEY); }catch(e){}
+
+/* 解き直しは ?retry=1（マイページ → retry.php から来たとき）だけ。
+   ふつうに 開いたときは pending を 取りに行かない */
+function startDbRetry(){
+  if(!/[?&]retry=1/.test(location.search)) return;
+  var D=window.Divp;
+  if(!D||typeof D.getRetries!=="function") return;
+  D.getRetries().then(function(items){
+    PENDING=(items||[]).filter(function(it){
+      var p=it&&it.question_params;
+      return p&&p.g&&p.s&&GENMAP[p.g];   // 古い記録・作り直せない記録は のぞく
+    });
+    if(PENDING.length) startRetrySet();
+  }).catch(function(){});
+}
+startDbRetry();
+</script>
+</body>
+</html>
