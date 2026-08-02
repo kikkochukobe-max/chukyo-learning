@@ -3,8 +3,11 @@
  *   1) 中心から絵文字が360度に弾け、空気ていこうで失速したあと重力で落下しながらフェードアウト
  *   2) 同時に「せいかい！」が1文字ずつ外へ散り、集まって元の並びに戻ってから消える
  *   3) 画面内で消えた記号は 画面下に積もっていく(pile)。ページを閉じるまで残る
- *      （jumboChance でまれに出る特大の記号だけは、画面外へ飛んでも 山がいっぱいでも
- *        かならず積もる。当たりとして 必ず手元に残るようにするため）
+ *   4) 当たりが 2段階。jumboChance(既定 1/25)で特大の記号、
+ *      superChance(既定 1/100)で さらに大きい「スペシャル」(絵文字)が 1つだけ降る。
+ *      どちらも 画面外へ飛んでも 山がいっぱいでも かならず積もる（手元に残るごほうび）。
+ *      その大きさぶん まわりの列の高さを 予約するので、あとの記号は
+ *      当たりに かぶらず その上に 積もっていく
  *
  * 依存なし。単体で読み込めば動きます(divp-core.js より後ろに置くこと)。
  * 学年ではなく「エフェクト名」でファイルを分ける規約（旧 divp-correct-es2.js。
@@ -60,9 +63,15 @@
     slowSizeMin: 11,    // ふわっと粒の文字サイズ(小さめ)
     slowSizeMax: 20,
     slowGravity: 0.38,  // ふわっと粒への重力のきき方(1=ふつう)
-    jumboChance: 1 / 30, // 特大の記号が1つまざる確率(1回の演出につき)
+    jumboChance: 1 / 25, // 特大の記号が1つまざる確率(1回の演出につき)
     jumboSizeMin: 64,   // 特大の記号の大きさ
     jumboSizeMax: 104,
+    // さらにレアな「スペシャル」。特大より大きく、ゆっくり落ちてくる。
+    // superChance が先に判定され、当たると その演出に jumbo は出ない
+    superChance: 1 / 100,
+    superSizeMin: 150,  // 画面はばの半分を こえない範囲で 使われる
+    superSizeMax: 230,
+    superMarks: ["👑", "🏆", "💎", "🌈", "🎉"],
     originY: 0.40,      // 画面の高さに対する発生位置(0=上, 1=下)
     sizeMin: 16,        // 粒の文字サイズ px
     sizeMax: 34,
@@ -82,6 +91,10 @@
     pileStep: 8,        // 1段の高さ px(記号より小さくして重ねる)
     pileWin: 6,         // ならす範囲(左右何列まで見るか)
     pileMax: 2600,
+    // 山の高さの上限(画面の高さに対する割合)。1 にすると 画面いっぱいまで積もるが、
+    // ①ツールの表示に かぶって 読みにくい ②当たりの置き場所が 画面の上に
+    // はみ出して かさなる ので、下の帯だけに おさめる
+    pileMaxRatio: 0.4,
     // 山より前面に出す要素。白い面(カード)は背面のまま、その中身とボタンだけ前に出す。
     // :where() を使っているので詳細度は0。ツール側のCSSで自由に上書きできる。
     pileRaiseUI: true,
@@ -177,7 +190,9 @@
     return el;
   }
   function pileCols(cfg) { return Math.max(1, Math.ceil(w.innerWidth / cfg.pileCol)); }
-  function pileStack(cfg) { return Math.max(4, Math.floor((w.innerHeight - 6) / cfg.pileStep)); }
+  function pileStack(cfg) {
+    return Math.max(4, Math.floor((w.innerHeight * cfg.pileMaxRatio - 6) / cfg.pileStep));
+  }
   function pileCol(xr, cfg) {
     var n = pileCols(cfg), st = pileStack(cfg), i, h, ad, t2;
     var c = Math.min(n - 1, Math.max(0, Math.round(xr * w.innerWidth / cfg.pileCol)));
@@ -195,19 +210,65 @@
     }
     return -1;                                        // どの列もいっぱい
   }
-  function pilePlace(it, el, cfg) {
-    var c = pileCol(it.xr, cfg), h;
-    if (c >= 0) { h = pileH[c] || 0; pileH[c] = h + 1; }
-    else {
-      // どの列もいっぱい。ふつうの粒はあきらめるが、特大の記号(it.force)だけは
-      // 落ちたあたりの いちばん下に かさねてでも 置く（必ず残るごほうびにする）
-      if (!it.force) return false;
-      c = Math.min(pileCols(cfg) - 1, Math.max(0, Math.round(it.xr * w.innerWidth / cfg.pileCol)));
-      h = 0;
+  /* 当たり(特大・スペシャル)は 1段(pileStep)には おさまらないので、その高さまで
+     まわりの列を 予約する。あとから降ってくる粒は この高さから 積みはじめるので、
+     当たりに かぶらず その上に たまっていく。topSteps = 予約する高さ(段数)。 */
+  function pileReserve(c, topSteps, it, cfg) {
+    // 記号の 大きさぶん + 1列。となりの列の 粒が はしだけ かすめるのを ふせぐ
+    var span = Math.max(1, Math.round(it.size / cfg.pileCol)),  // よこの 列数
+        n = pileCols(cfg), half = Math.floor(span / 2) + 1, i, t;
+    for (i = -half; i <= half; i++) {
+      t = c + i; if (t < 0 || t >= n) continue;
+      if ((pileH[t] || 0) < topSteps) pileH[t] = topSteps;
     }
-    var x = c * cfg.pileCol + cfg.pileCol / 2 + ((h % 2) ? cfg.pileCol / 2 : 0) + it.jx;
+  }
+  /* 当たりの置き場所。落ちたあたりの 山の上に置き、すでに置いた 当たりと
+     かさなるときは かさならなくなるまで 上へ ずらす。
+     列モデル(1段8px)では 当たりは 何段ぶんもの 大きさがあり、山がいっぱいに
+     なると 全部が 底に置かれて 前の当たりを 上書きしてしまうため、
+     当たりだけは 列の高さではなく 実際の座標で 場所をさがす。 */
+  function bigSpot(it, cfg) {
+    var n = pileCols(cfg),
+        c = Math.min(n - 1, Math.max(0, Math.round(it.xr * w.innerWidth / cfg.pileCol))),
+        x = Math.min(w.innerWidth - it.size / 2 - 2,
+            Math.max(it.size / 2 + 2, c * cfg.pileCol + cfg.pileCol / 2 + it.jx)),
+        b = 4 + (pileH[c] || 0) * cfg.pileStep + it.dy,
+        ceil = Math.max(4, w.innerHeight - it.size - 4),
+        guard = 0, k, a, hit;
+    do {
+      hit = false;
+      for (k = 0; k < PILE.length; k++) {
+        a = PILE[k];
+        if (!a.big || a.px == null) continue;
+        // 四角どうしの あたり判定。よこは 中心きょり、たては 下ばし＋大きさで見る
+        // （下ばしどうしを 中心きょりの しきい値で くらべると すきまが たりない）
+        if (Math.abs(a.px - x) < (a.size + it.size) / 2 &&
+            b < a.pb + a.size && a.pb < b + it.size) {
+          b = a.pb + a.size + 2;   // ぶつかった当たりの すぐ上へ 逃がす
+          hit = true; break;
+        }
+      }
+    } while (hit && b < ceil && guard++ < 60);
+    if (b > ceil) b = ceil;      // 画面の上まで いっぱい → いちばん上に そろえる
+    return { c: c, x: x, b: b };
+  }
+  function pilePlace(it, el, cfg) {
+    var c, h, x, bottom;
+    if (it.big) {
+      var spot = bigSpot(it, cfg);
+      c = spot.c; x = spot.x; bottom = spot.b;
+      it.px = x; it.pb = bottom;   // ほかの当たりとの あたり判定に つかう
+      pileReserve(c, Math.ceil((bottom + it.size) / cfg.pileStep), it, cfg);
+    } else {
+      c = pileCol(it.xr, cfg);
+      if (c < 0) return false;     // どの列もいっぱい。ふつうの粒は あきらめる
+      h = pileH[c] || 0; pileH[c] = h + 1;
+      x = c * cfg.pileCol + cfg.pileCol / 2 + ((h % 2) ? cfg.pileCol / 2 : 0) + it.jx;
+      bottom = 4 + h * cfg.pileStep + it.dy;
+    }
+    it.col = c;
     el.style.left = Math.min(w.innerWidth - 5, Math.max(5, x)) + "px";
-    el.style.bottom = (4 + h * cfg.pileStep + it.dy) + "px";
+    el.style.bottom = bottom + "px";
     el.style.color = it.color;
     el.style.fontSize = it.size + "px";
     el.style.transform = "translate(-50%,0) rotate(" + it.rot + "deg)";
@@ -220,7 +281,7 @@
     return true;
   }
   function pileAdd(it, cfg) {
-    if (!it.force && (PILE.length >= cfg.pileMax || pileFull(cfg))) return;
+    if (!it.big && (PILE.length >= cfg.pileMax || pileFull(cfg))) return;
     var el = d.createElement("span");
     if (!pilePlace(it, el, cfg)) return;
     PILE.push(it); pileBox().appendChild(el);
@@ -228,6 +289,9 @@
   function pileRender() {
     var cfg = pileCfg, box = pileBox(), keep = [], frag = d.createDocumentFragment();
     box.innerHTML = ""; pileH = [];
+    // 置きなおす前に 当たりの座標を 消す。残っていると 自分自身や 古い位置と
+    // ぶつかったと 判定されて、当たりが どんどん 上へ 追いやられてしまう
+    PILE.forEach(function (it) { it.px = null; it.pb = null; });
     PILE.forEach(function (it) {
       var el = d.createElement("span");
       if (pilePlace(it, el, cfg)) { frag.appendChild(el); keep.push(it); }
@@ -283,32 +347,44 @@
 
     var cx = w.innerWidth / 2, cy = w.innerHeight * cfg.originY,
         N = cfg.count, ps = [], i;
-    // たまに 特大の記号を1つだけ まぜる
-    var jumbo = (Math.random() < cfg.jumboChance) ? R(0, N - 1) : -1;
+    // 当たりを1つだけ まぜる。superChance(いちばんレア) を先に引き、
+    // はずれたら jumboChance を引く（同じ演出に 2つは 出さない）
+    var sup = -1, jumbo = -1;
+    if (Math.random() < cfg.superChance) sup = R(0, N - 1);
+    else if (Math.random() < cfg.jumboChance) jumbo = R(0, N - 1);
+    // スペシャルは 画面はばの半分を こえない大きさにする(小さい端末で はみ出さないように)
+    var supSize = Math.min(R(cfg.superSizeMin, cfg.superSizeMax),
+                           Math.round(w.innerWidth * 0.5));
     for (i = 0; i < N; i++) {
       // 360度どの向きにも同じ勢いで飛ばす(=真円に弾ける)
       // slowRatio のぶんは あまり弾けず、ふわっと ゆれながら落ちる粒にする(小さめ)
-      var big = (i === jumbo);
+      var sp2 = (i === sup);              // スペシャル(1/100)
+      var big = sp2 || (i === jumbo);     // 特大。どちらも かならず 山に残る
       var slow = big || Math.random() < cfg.slowRatio;
       var el = d.createElement("span");
-      el.textContent = pick(cfg.marks);
-      el.style.color = pick(cfg.hues);
-      el.style.fontSize = (big ? R(cfg.jumboSizeMin, cfg.jumboSizeMax)
+      el.textContent = sp2 ? pick(cfg.superMarks) : pick(cfg.marks);
+      // スペシャルは 絵文字そのものの色で 出す（色を指定すると 単色になる書体がある）
+      if (!sp2) el.style.color = pick(cfg.hues);
+      el.style.fontSize = (sp2 ? supSize
+                          : big ? R(cfg.jumboSizeMin, cfg.jumboSizeMax)
                           : slow ? R(cfg.slowSizeMin, cfg.slowSizeMax)
                                  : R(cfg.sizeMin, cfg.sizeMax)) + "px";
       box.appendChild(el);
       var ang = ((i / N) * 360 + R(-10, 10)) * Math.PI / 180,
-          sp = big ? R(240, 460)
+          sp = sp2 ? R(140, 300)
+             : big ? R(240, 460)
              : slow ? R(cfg.slowSpeedMin, cfg.slowSpeedMax)
                     : R(cfg.speedMin, cfg.speedMax);
       ps.push({
         el: el, x: cx, y: cy, big: big,
         vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp,
-        gm: big ? 0.5 : slow ? cfg.slowGravity : 1,
-        sway: big ? R(10, 25) : slow ? R(25, 70) : 0, ph: R(0, 628) / 100,
-        rot: R(0, 359), vr: big ? R(-90, 90) : slow ? R(-150, 150) : R(-600, 600),
+        gm: sp2 ? 0.3 : big ? 0.5 : slow ? cfg.slowGravity : 1,
+        sway: sp2 ? R(6, 16) : big ? R(10, 25) : slow ? R(25, 70) : 0, ph: R(0, 628) / 100,
+        rot: R(0, 359),
+        vr: sp2 ? R(-45, 45) : big ? R(-90, 90) : slow ? R(-150, 150) : R(-600, 600),
         sc: big ? 1 : R(80, 150) / 100,
-        life: big ? R(cfg.lifeMax * 110, cfg.lifeMax * 155) / 100
+        life: sp2 ? R(cfg.lifeMax * 130, cfg.lifeMax * 185) / 100
+            : big ? R(cfg.lifeMax * 110, cfg.lifeMax * 155) / 100
             : slow ? R(cfg.lifeMax * 100, cfg.lifeMax * 145) / 100
                    : R(cfg.lifeMin * 100, cfg.lifeMax * 100) / 100, t: 0
       });
@@ -333,7 +409,7 @@
                         dy: R(-3, 3), jx: R(-5, 5), rot: R(-40, 40),
                         mark: p.el.textContent, color: p.el.style.color,
                         size: parseInt(p.el.style.fontSize, 10),
-                        force: p.big }, cfg);
+                        big: p.big }, cfg);
           }
           continue;
         }
