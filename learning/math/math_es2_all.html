@@ -225,11 +225,14 @@ button{font-family:inherit}
 <script src="/assets/divp-core.js"></script>
 <!-- ===== 小学生用 正解エフェクト「花火」 =====
      data-effect="firework" なので読み込むだけで Divp.correct に結線される。
-     色は このツールの さくら色に、z-index は共通ヘッダー(100)より前に上げる。
+     小3(math_es3_all)と 見た目を そろえるため、ここでは 何も 上書きしない。
+     ・「せいかい！」の色 = モジュール既定の 明るい赤(#FF3B4E)
+       （以前は このツールだけ さくら色 #C86D7C にしていた）
+     ・z-index = 既定の60 ＝ 共通ヘッダー(100)の 裏に まわる
+       （以前は このツールだけ 200 にして ヘッダーの 前に 出していた）
+     変えるときは モジュール側を 1か所 直せば 小2にも 小3にも とどく。
      降った記号は画面下に積もる(pile)。単元を変えても消さず、ページを閉じる
-     (リロードする)まで ためつづける＝その日の がんばりが 目に見えて残る。
-     いっぱいになったら モジュール側で それ以上 積まなくなる -->
-<script>window.DIVP_FIREWORK_OPTS={textColor:"#C86D7C",zIndex:200};</script>
+     (リロードする)まで ためつづける＝その日の がんばりが 目に見えて残る -->
 <script src="/assets/divp-correct-firework.js"></script>
 
 <script>
@@ -1040,10 +1043,11 @@ function nagasaKeisan(){
   if(Math.random()<.5){ var a=R(2,9),am=R(1,8),b=R(1,6),bm=R(1,9-am);
     return Qmulti("nagasa_keisan",a+"cm"+am+"mm ＋ "+b+"cm"+bm+"mm は？",[{max:2,suf:"cm"},{max:1,suf:"mm"}],
       [a+b,am+bm],{exp:"cmは cmどうし、mmは mmどうしで けいさんしよう！"}); }
-  var A=R(5,15),Am=R(3,9),B=R(1,A-1),Bm=R(0,Am);
+  var A=R(5,15),Am=R(3,9),B=R(1,A-1),Bm=R(0,Am-1);
   return Qmulti("nagasa_keisan",A+"cm"+Am+"mm − "+B+"cm"+Bm+"mm は？",[{max:2,suf:"cm"},{max:1,suf:"mm"}],[A-B,Am-Bm]); }
 function nagasaHikaku(){
-  var a=R(30,140),b,g=0; do{ b=R(30,140); g++ }while(Math.abs(a-b)<5&&g<60);
+  var a=R(30,140); if(a%10===0) a+=R(1,9);
+  var b,g=0; do{ b=R(30,140); g++ }while(Math.abs(a-b)<5&&g<60);
   var ta=Math.floor(a/10)+"cm"+(a%10)+"mm", tb=b+"mm";
   return Qchoice("nagasa_hikaku","長いのは どっち？",[ta,tb],a>b?0:1,{exp:ta+" ＝ "+a+"mm　mmに そろえると くらべやすいね！"}); }
 function nagasaM(){
