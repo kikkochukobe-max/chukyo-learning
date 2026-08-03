@@ -1213,7 +1213,12 @@ body{
   ['gesturestart','gesturechange','gestureend','dblclick'].forEach(function(ev){
     $('tenkey').addEventListener(ev,function(e){ e.preventDefault(); },{passive:false});
   });
+  // 物理キーボード。capture では登録しないこと（divp-header がログイン欄のキーを
+  // バブル段階の stopPropagation でツールから守っているため、capture だと横取りしてしまう）。
+  // IME変換中(日本語入力ON)のキーは無視する。変換確定のキーや keyCode 229 の
+  // 「未確定入力」通知を数字として拾うと、打っていない数字が答え欄に入る。
   document.addEventListener('keydown',function(e){
+    if(e.isComposing || e.keyCode===229) return;
     if(/^[0-9]$/.test(e.key))press(e.key);
     else if(e.key==='Backspace')press('B');
     else if(e.key==='Escape')press('C');
