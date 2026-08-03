@@ -750,8 +750,16 @@ function toMenu(){
 /* ---- menu ---- */
 function renderMenu(){
   var c=$("chips"); c.innerHTML="";
+  // ミックスは 小3パックと同じく いちばん上（単元の前）に置く
+  var m=document.createElement("button"); m.className="chip mix";
+  m.innerHTML='<span class="deco" style="color:#FEB342">✦</span>'
+    +'<div class="no">ちょうせん</div><div class="nm">ぜんぶミックス（20問）</div>'
+    +'<div class="dots" style="opacity:.55">'+"ぜんたいから 出るよ"+'</div>';
+  m.onclick=function(){ chipTap(m,"mix") };
+  c.appendChild(m);
   UNITS.forEach(function(u,i){
     var b=document.createElement("button"); b.className="chip";
+    b.dataset.unit=u.k;          // ✿の塗りなおし(paintBadges)で 使う
     var dots="";
     for(var d=0;d<5;d++) dots+='<span class="dot'+(d<badgeOf(u.k)?" on":"")+'"></span>';
     b.innerHTML='<span class="deco" style="color:'+u.col+'">'+u.mark+'</span>'
@@ -759,12 +767,6 @@ function renderMenu(){
     b.onclick=function(){ chipTap(b,u.k) };
     c.appendChild(b);
   });
-  var m=document.createElement("button"); m.className="chip mix";
-  m.innerHTML='<span class="deco" style="color:#FEB342">✦</span>'
-    +'<div class="no">ちょうせん</div><div class="nm">ぜんぶミックス（20問）</div>'
-    +'<div class="dots" style="opacity:.55">'+"ぜんたいから 出るよ"+'</div>';
-  m.onclick=function(){ chipTap(m,"mix") };
-  c.appendChild(m);
   // 解き直しの入口はマイページ（→ retry.php → ?retry=1）に一本化。
   // ここにチップは置かない
   paintBadges();
@@ -798,10 +800,11 @@ function sparkle(el){
 function paintBadges(){
   $("bnum").textContent=totalBadge();
   if($("menu").hidden===false) {
-    var c=$("chips").children;
-    for(var i=0;i<UNITS.length&&i<c.length;i++){
-      var dots=c[i].querySelectorAll(".dot");
-      for(var d=0;d<dots.length;d++) dots[d].classList.toggle("on",d<badgeOf(UNITS[i].k));
+    // 並び順に たよらず data-unit で 引く（ミックスを 先頭に 置いたため）
+    var chips=$("chips").querySelectorAll(".chip[data-unit]");
+    for(var i=0;i<chips.length;i++){
+      var k=chips[i].dataset.unit, dots=chips[i].querySelectorAll(".dot");
+      for(var d=0;d<dots.length;d++) dots[d].classList.toggle("on",d<badgeOf(k));
     }
   }
 }
@@ -1183,6 +1186,8 @@ function kukuBunsho(){
 
 /* ================= 11 かけ算のきまり ================= */
 function kimariKokan(){ var a=R(2,9),b=R(2,9);
+  // a と b が 同じだと「6×6＝6×□」に なって 入れかえの きまりに ならないので ずらす
+  while(b===a) b=R(2,9);
   return Qnum("kimari_kokan",a+" × "+b+" ＝ "+b+" × □　　□に 入る 数は？",a,{exp:"かける じゅんばんを かえても 答えは 同じ！ すごい きまりだね"}); }
 function kimariBai(){ var a=R(2,9),b=R(2,9);
   return Qnum("kimari_bai",a+"の "+b+"ばい は いくつ？",a*b,{exp:a+"×"+b+"＝"+a*b+" だね！"}); }
