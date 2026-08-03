@@ -2,12 +2,19 @@
  * divp-correct-firework.js — 小学生(es)向け 正解エフェクト「花火」
  *   1) 中心から絵文字が360度に弾け、空気ていこうで失速したあと重力で落下しながらフェードアウト
  *   2) 同時に「せいかい！」が1文字ずつ外へ散り、集まって元の並びに戻ってから消える
- *   3) 画面内で消えた記号は 画面下に積もっていく(pile)。ページを閉じるまで残る
+ *   3) 記号は 画面下から 積もっていき(pile)、pileFull(既定100)回の正解で
+ *      画面ぜんぶが うまる。1回に 何個 積もるかは 画面の広さから 自動で決まるので、
+ *      端末が ちがっても 同じ回数で 同じ見た目になる。
+ *      積もるのは 弾けてから pileDelay(既定0.75秒)たった あとで、pileSpread
+ *      (既定1.0秒)かけて 少しずつ＝「はじける → 降る → つもる」の 流れになる。
+ *      積もったものは ページ(ブラウザ)を 閉じるまで 残る
  *   4) 当たりが 2段階。記号は どれも 同じで 大きさだけが ちがう。
- *      jumboChance(既定 1/25)で特大、superChance(既定 1/100)で 超特大が 1つだけ降る。
- *      どちらも 画面外へ飛んでも 山がいっぱいでも かならず積もる（手元に残るごほうび）。
- *      その大きさぶん まわりの列の高さを 予約するので、あとの記号は
- *      当たりの上に 積もっていく（すきまが できないよう まるみにそって 予約する）
+ *      特大は jumboEvery(既定25)回に1回 かならず 出る（運まかせにしない）。
+ *      超特大は superFrom(既定30)回を こえてから superChance(既定1/40)の
+ *      確率で 出る（回数ぴったりに すると 山が 満タンに なってから 出てきて、
+ *      上に 積もらせる 余地が なくなるため）。
+ *      当たりは 山の前面に 出して 埋もれないようにし、ふちに 小さい記号を
+ *      すこし かけて 山に なじませる。解けば解くほど 当たりが たまっていく
  *
  * 依存なし。単体で読み込めば動きます(divp-core.js より後ろに置くこと)。
  * 学年ではなく「エフェクト名」でファイルを分ける規約（旧 divp-correct-es2.js。
@@ -30,9 +37,20 @@
  *   DivpFirework({hold:true});            // 文字を消さずに出したまま
  *   DivpFirework.hide();                  // hold:true で出した文字を消す
  *   DivpFirework.clearPile();             // 積もった記号を消す
+ *   DivpFirework.flushPile();             // 積み残しを その場で 積む(「次へ」用)
+ *                                         // ※画面をさわると 自動で呼ばれるので
+ *                                         //   ふつうは ツール側で 書かなくてよい
  *
  * 積もる山について
+ *   ペースの つまみは pileFull(画面が うまるまでの正解数、既定100)だけです。
+ *   1回に積もる数は「画面の広さ ÷ pileFull」で自動計算されます
+ *   (1280×800なら1回76個・全7524個。1920×1080なら1回152個)。
+ *   描画は canvas 2枚(下=山 / 上=当たり)。DOMには積まないので個数が増えても軽いままです。
  *   pileZIndex:5 で「白い面(カード)より前面・ボタンより背面」に積もります。
+ *   白地の上は 記号が 目立ちすぎるので、pileVeilSelector(既定 [class*='card'])に
+ *   あたる面には うすい白を1枚かぶせて pileVeil(既定0.55)ぶん 薄く見せます。
+ *   すきとおった入れものに かけると そこだけ 白い四角が浮くので、既定の対象は
+ *   "card" を ふくむクラスだけです(不透明な白い面という 慣習にのっています)。
  *   問題文・解説・ボタンなどが埋もれないよう、pileRaiseUI:true のとき
  *   それらを z-index:10 に持ち上げるCSSを自動で入れます(詳細度0の :where() なので
  *   ツール側のCSSでいくらでも上書きできます)。
@@ -63,12 +81,16 @@
     slowSizeMin: 11,    // ふわっと粒の文字サイズ(小さめ)
     slowSizeMax: 20,
     slowGravity: 0.38,  // ふわっと粒への重力のきき方(1=ふつう)
-    jumboChance: 1 / 25, // 特大の記号が1つまざる確率(1回の演出につき)
+    jumboEvery: 25,     // 正解◯回に1回、特大の記号が かならず1つ 降って積もる
     jumboSizeMin: 64,   // 特大の記号の大きさ
     jumboSizeMax: 104,
     // さらにレアな「スペシャル」。記号は ふつうのものと同じで、大きさだけ 超特大。
-    // superChance が先に判定され、当たると その演出に jumbo は出ない
-    superChance: 1 / 100,
+    // 超特大だけは 回数ぴったりでは 決めない。pileFull(100)回ちょうどに すると
+    // 山が 満タンに なってから 出てきて、上に 積もらせる 余地が なくなるため、
+    // superFrom 回を こえてから superChance の 確率で ランダムに 出す。
+    // 先に こちらを 判定し、当たった演出には jumbo は 出さない
+    superFrom: 30,      // この回数を こえてから 出はじめる
+    superChance: 1 / 40, // 1回の正解あたりの 出る確率
     superSizeMin: 150,  // 画面はばの半分を こえない範囲で 使われる
     superSizeMax: 230,
     originY: 0.40,      // 画面の高さに対する発生位置(0=上, 1=下)
@@ -82,31 +104,36 @@
            "#39C0E8", "#8CE05B", "#57C93E", "#C79BFF", "#A46BFF"],
     textColor: "#FF3B4E",
     pile: true,         // 消えた記号を 下に積もらせる
-    // 1回の演出で 積もる 粒の割合。1 にすると 降った粒が ほぼ全部 積もる。
-    // 当たり(特大・スペシャル)は この間引きの 対象外で かならず 積もる
-    pileRatio: 0.25,
+    // 積もるペースの つまみは これ1つ。pileFull 回の正解で 画面が うまる。
+    // 1回に 何個 積もるかは「画面の広さ ÷ pileFull」で その場で 計算するので、
+    // 画面が 広い端末ほど 1回に たくさん 降る＝どの端末でも 同じ回数で 同じ見た目になる。
+    // 当たり(特大・超特大)は この数とは べつに かならず 積もる
+    pileFull: 100,      // 画面が うまるまでの 正解回数
+    // 「弾ける → 降る → 積もる」の 流れに 見えるよう、積もるのを 後ろへ ずらす。
+    // 弾けきるのが 0.4秒くらい、粒が 落ちきるのが 1.2〜1.9秒あたり
+    pileDelay: 0.75,    // 弾けてから 積もりはじめるまでの ま(秒)
+    pileSpread: 1.0,    // 積もりきるまでに かける 時間(秒)
     pileZIndex: 5,      // 5=カードより前面/ボタンより背面, -1=いちばん後ろ
     // 山は うすく。積もるほど 記号が かさなって 濃く見えるので、
     // ここを上げると 上にのった 文字や図が 読みにくくなる
     pileOpacity: 0.3,
     pileCol: 17,        // 列のはば px
     pileStep: 8,        // 1段の高さ px(記号より小さくして重ねる)
-    pileWin: 6,         // ならす範囲(左右何列まで見るか)
-    pileMax: 2600,
-    // 山の高さの上限(画面の高さに対する割合)。1 = 画面いっぱいまで 積もる。
-    // ここを下げると その高さで 頭打ちになり、あとは 同じところで 重なりつづける
-    // ように 見えるので、既定では 上限を つけない。
-    // (ツールの表示は pileRaiseUI が z-index で 山より前に 出すので うもれない)
-    pileMaxRatio: 1,
-    // 当たりのまわりに 粒を どれだけ 食いこませるか(1=記号の高さぶん あける)。
-    // 小さいほど すきまは できにくいが、記号が かくれる。
-    // 0.88 あたりが 分かれ目で、これより下げると すきまは ほぼ変わらないまま
-    // 記号の かくれる割合だけが 急に 増える(0.86→5.8% / 0.82→13.4%)
-    pileBite: 0.88,
-    // 当たりを 置きはじめる 高さの上限(画面の高さに対する割合)。
-    // 山が 画面いっぱいまで 育っても、当たりは この高さより 上から 始めない
+    // 満タンのときの 高さ(画面の高さに対する割合)。1=画面いちばん上まで
+    pileHeightMax: 1,
+    // 当たりが 山の表面に どれだけ しずむか(1=しずまない / 0.9=大きさの1割)
+    pileBite: 0.9,
+    // 当たりを 置く高さの上限(画面の高さに対する割合)。
+    // 山が 画面いっぱいまで 育っても、当たりは この高さより 上には 出さない
     // (そのままだと 画面の外に はみ出して 見えなくなる)
-    bigStartMax: 0.55,
+    bigStartMax: 0.75,
+    // 問題の 白い面(カード)の 中だけ 山を うすくする。0=そのまま / 1=まっ白。
+    // 白地の 上だと 記号が よく目立ち、問題文が 読みにくくなるため、
+    // カードの上に うすい 白を 1枚 かぶせる(山より前・中身より背面)。
+    // 対象は 中身が 不透明な 白い面だけ。すきとおった 入れものに かけると
+    // そこだけ 白い四角が 浮くので、"box"や"panel"は 既定では 入れない
+    pileVeil: 0.55,
+    pileVeilSelector: "[class*='card']",
     // 山より前面に出す要素。白い面(カード)は背面のまま、その中身とボタンだけ前に出す。
     // :where() を使っているので詳細度は0。ツール側のCSSで自由に上書きできる。
     pileRaiseUI: true,
@@ -118,10 +145,14 @@
   var CFG = merge(DEF, w.DIVP_FIREWORK_OPTS || {});
 
   var CSS_ID = "divp-fw-style", LAYER_ID = "divp-fw-layer", TEXT_ID = "divp-fw-text";
-  var PILE_ID = "divp-fw-pile";
+  var PILE_ID = "divp-fw-pile", BIG_ID = "divp-fw-pile-big";
   var raf = null, hideTimer = null;
   var live = null;      // いま飛んでいる粒 {ps, cfg}。次の演出で 打ち切るとき 山へ落とす
   var PILE = [], pileH = [], pileCfg = CFG;
+  var BIGS = [];        // 積もった当たりだけの ひかえ(小さい記号を どちらの面に描くか 見る)
+  var pend = [];        // これから 積もる記号の 待ち行列(演出のあいだに 少しずつ 出す)
+  var pileReflow = null, pileVW = 0;   // 置きなおしの まとめ / 前回 描いたときの 画面はば
+  var fireCount = 0;    // 何回目の正解か。当たりの周期(25回/100回)に つかう
 
   function merge(a, b) { var o = {}, k; for (k in a) o[k] = a[k]; for (k in b) o[k] = b[k]; return o; }
   function R(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
@@ -146,10 +177,25 @@
         "font-size:clamp(64px,22vw,150px);color:" + cfg.textColor + ";" +
         "text-shadow:0 0 12px rgba(255,255,255,.9),0 5px 0 #fff,0 8px 16px rgba(58,52,44,.22)}" +
       "#" + TEXT_ID + ".on{display:block}" +
-      "#" + PILE_ID + "{position:fixed;inset:0;pointer-events:none;overflow:hidden;" +
-        "z-index:" + cfg.pileZIndex + ";opacity:" + cfg.pileOpacity + ";" +
-        "transform:translateZ(0);contain:layout paint}" +
-      "#" + PILE_ID + " span{position:absolute;line-height:1;display:block}" +
+      "#" + PILE_ID + ",#" + BIG_ID + "{position:fixed;left:0;top:0;width:100%;height:100%;" +
+        "pointer-events:none;opacity:" + cfg.pileOpacity + "}" +
+      // 当たりは うすい白(veil)より 前。veilは カードと いっしょに スクロールし、
+      // 山は 画面に 固定なので、当たりを veilの 下に 置くと カードの ふちが
+      // 通るたび 暗くなって「沈む/浮く」ように 見えてしまう
+      "#" + PILE_ID + "{z-index:" + cfg.pileZIndex + "}" +
+      "#" + BIG_ID + "{z-index:" + (cfg.pileZIndex + 2) + "}" +
+      // 白い面の 中だけ 山を うすく。::before は ツール側で 使われていることが
+      // あるので ::after を つかう(math_es3_all の .card::before など)
+      (cfg.pileVeil > 0
+        ? ":where(" + cfg.pileVeilSelector + "){position:relative}" +
+          ":where(" + cfg.pileVeilSelector + ")::after{content:'';position:absolute;" +
+            "inset:0;border-radius:inherit;pointer-events:none;" +
+            "z-index:" + (cfg.pileZIndex + 1) + ";" +
+            "background:rgba(255,255,255," + cfg.pileVeil + ")}" +
+          // カードの ::before は 見出しの帯などの かざりに つかわれている。
+          // そのままだと うすい白の 下に 入って ぼやけるので 上に出す
+          ":where(" + cfg.pileVeilSelector + ")::before{z-index:" + (cfg.pileZIndex + 3) + "}"
+        : "") +
       (cfg.pileRaiseUI
         ? ":where(" + cfg.pileRaiseSelector + "){position:relative;z-index:10}"
         : "") +
@@ -193,44 +239,123 @@
   }
 
   /* ---------- 降った記号がたまる山 ----------
-     落ちた場所の近くで いちばん低い列に置く。自分の列だけに積むと
-     棒グラフのように細い柱が立つので、まわり ±pileWin 列を見てならす。
-     さらに1段ごとに半列ずらし(れんが積み)、左右にもばらけさせて すき間をうめる。 */
-  function pileBox() {
-    var el = d.getElementById(PILE_ID);
-    if (!el) { el = d.createElement("div"); el.id = PILE_ID; el.setAttribute("aria-hidden", "true");
-               d.body.appendChild(el); }
+     置きかた: つねに「いちばん低い列」に置く（同じ高さの列が いくつもあれば
+     落ちたところに いちばん近い列）。こうすると 山は 1段ずつ 水平に 上がるので、
+     どこかの列だけ のびる＝棒グラフのようには ならない。
+     さらに1段ごとに半列ずらし(れんが積み)、±数pxの ゆらぎで すき間をうめる。
+
+     満タン = 画面いっぱい(pileHeightMax)。そこまでを pileFull 回の正解で 埋めるので、
+     1回で積もる数は「画面の広さ ÷ pileFull」から その場で 計算する
+     （画面が 広いほど 1回に たくさん 降る。どの端末でも 同じ回数で 同じ見た目になる）。
+
+     描くのは spanではなく canvas。画面いっぱいまで積もると 記号は
+     1万個をこえるので、DOMに積むと 教室のタブレットで 目に見えて重くなる。
+     canvasなら 何個 積もっても 要素は1つ、1個ぶんの 追加は fillText 1回で すむ。
+     そのかわり 個々の記号は あとから 消せないので、満タン後は 消さずに
+     上から かさねつづける（もう 画面は うまっているので 見た目は 変わらない）。
+
+     canvasは 2枚。下=ふつうの記号の山 / 上=当たり。山は 最後には 画面ぜんぶを
+     おおうので、1枚だと 当たりが 埋もれて 見えなくなってしまう。
+     ただし 当たりを ただ 前に出すだけだと 山から 切りぬいたように うくので、
+     当たりの ふちには 小さい記号を すこし かけて おく(bigTrim)。 */
+  var pileCv = null, pileCtx = null, bigCv = null, bigCtx = null, PILE_FONT = "";
+  function pileCanvas() {
+    if (pileCv) return;
+    pileCv = mkCanvas(PILE_ID); bigCv = mkCanvas(BIG_ID);
+    pileSize();
+  }
+  function mkCanvas(id) {
+    var el = d.getElementById(id);
+    if (!el) {
+      el = d.createElement("canvas"); el.id = id;
+      el.setAttribute("aria-hidden", "true");
+      d.body.appendChild(el);
+    }
     return el;
   }
+  /* canvasの 実ピクセルを 画面に合わせる(ぼやけ防止)。中身は 消えるので
+     呼んだあとは 描きなおすこと */
+  function sizeCanvas(cv) {
+    var dpr = Math.min(2, w.devicePixelRatio || 1), ctx;
+    cv.width = Math.max(1, Math.round(w.innerWidth * dpr));
+    cv.height = Math.max(1, Math.round(w.innerHeight * dpr));
+    ctx = cv.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+    return ctx;
+  }
+  function pileSize() {
+    pileCtx = sizeCanvas(pileCv); bigCtx = sizeCanvas(bigCv);
+    pileVW = w.innerWidth;        // 置きなおしが いるのは はばが 変わったときだけ
+    if (!PILE_FONT) PILE_FONT =
+      (w.getComputedStyle && d.body ? w.getComputedStyle(d.body).fontFamily : "") || "sans-serif";
+  }
+  function drawMark(ctx, x, bottom, size, rot, color, mark) {
+    if (!ctx) return;
+    ctx.save();
+    ctx.translate(x, w.innerHeight - bottom);   // 下ばし基準 → canvas座標
+    ctx.rotate(rot * Math.PI / 180);
+    ctx.font = "900 " + size + "px " + PILE_FONT;
+    ctx.fillStyle = color;
+    ctx.fillText(mark, 0, 0);
+    ctx.restore();
+  }
+  /* 当たりの 下がわの ふちに 小さい記号を ちらして かける。
+     これで 当たりの輪郭に 小さいものが すこし かさなり、山に なじむ */
+  function bigTrim(it, cfg) {
+    var r = it.size * 0.42, i, n, ph, t;
+    if (!it.trim) {
+      it.trim = []; n = Math.max(7, Math.round(it.size / 8));
+      for (i = 0; i < n; i++) {
+        ph = (-105 + 210 * (i + R(0, 80) / 100) / n) * Math.PI / 180;   // 下がわの弧
+        it.trim.push({ mark: pick(cfg.marks), color: pick(cfg.hues),
+                       size: R(cfg.slowSizeMin, cfg.slowSizeMax), rot: R(-40, 40),
+                       dx: Math.sin(ph), dy: -Math.cos(ph) });
+      }
+    }
+    for (i = 0; i < it.trim.length; i++) {
+      t = it.trim[i];
+      drawMark(bigCtx, it.x + t.dx * r,
+               it.bottom + it.size / 2 + t.dy * r - t.size / 2,
+               t.size, t.rot, t.color, t.mark);
+    }
+  }
   function pileCols(cfg) { return Math.max(1, Math.ceil(w.innerWidth / cfg.pileCol)); }
-  function pileStack(cfg) {
-    return Math.max(4, Math.floor((w.innerHeight * cfg.pileMaxRatio - 6) / cfg.pileStep));
+  /* 満タンのときの 段数＝画面の高さぶん */
+  function pileRows(cfg) {
+    return Math.max(2, Math.floor((w.innerHeight * cfg.pileHeightMax - 6) / cfg.pileStep));
   }
+  function pileCap(cfg) { return pileCols(cfg) * pileRows(cfg); }
+  /* 1回の正解で 積もる数。画面ぜんぶを pileFull 回で 埋めきる ペース */
+  function pilePer(cfg) { return Math.max(1, Math.ceil(pileCap(cfg) / cfg.pileFull)); }
   function pileCol(xr, cfg) {
-    var n = pileCols(cfg), st = pileStack(cfg), i, h, ad, t2;
-    var c = Math.min(n - 1, Math.max(0, Math.round(xr * w.innerWidth / cfg.pileCol)));
-    var best = -1, bh = Infinity, bd = Infinity;
-    for (i = -cfg.pileWin; i <= cfg.pileWin; i++) {
-      t2 = c + i; if (t2 < 0 || t2 >= n) continue;
-      h = pileH[t2] || 0; if (h >= st) continue;
-      ad = Math.abs(i);
-      if (h < bh || (h === bh && ad < bd)) { bh = h; bd = ad; best = t2; }
+    var n = pileCols(cfg),
+        c0 = Math.min(n - 1, Math.max(0, Math.round(xr * w.innerWidth / cfg.pileCol))),
+        best = c0, bh = Infinity, bd = Infinity, i, h, dd;
+    for (i = 0; i < n; i++) {
+      h = pileH[i] || 0; dd = Math.abs(i - c0);
+      if (h < bh || (h === bh && dd < bd)) { bh = h; bd = dd; best = i; }
     }
-    if (best >= 0) return best;
-    for (i = cfg.pileWin + 1; i < n; i++) {          // 近くが満杯なら さらに外側へ
-      if (c - i >= 0 && (pileH[c - i] || 0) < st) return c - i;
-      if (c + i < n && (pileH[c + i] || 0) < st) return c + i;
-    }
-    return -1;                                        // どの列もいっぱい
+    return best;
   }
-  /* 当たり(特大・スペシャル)は 1段(pileStep)には おさまらないので、その高さまで
-     まわりの列を 予約する。あとから降ってくる粒は この高さから 積みはじめる。
-     baseSteps = 当たりの 下ばしの段。
-
-     予約する高さは 四角ではなく まるい形にそって はしほど 低くする。
-     四角のまま 予約すると、記号の 左右ななめ上に 何もない すきまが できて
-     不自然に見えるため。さらに pileBite ぶん 食いこませて、粒が 記号の
-     ふちに 少し かさなりながら つもるようにする（すきま より 自然さ を優先）。 */
+  /* すでに置いた 当たりと ぶつかるか。四角どうしの あたり判定
+     （よこは すこし かさなってよい。ぴったり あけると すぐ 場所が なくなる） */
+  function bigHits(x, b, it) {
+    for (var k = 0; k < PILE.length; k++) {
+      var a = PILE[k];
+      if (!a.big || a.px == null) continue;
+      if (Math.abs(a.px - x) < (a.size + it.size) / 2 * 0.92 &&
+          b < a.pb + a.size && a.pb < b + it.size) return true;
+    }
+    return false;
+  }
+  /* 当たり(特大・超特大)を 1段(pileStep)ぶんでは 表せないので、その大きさぶん
+     まわりの列の高さを 予約する。あとから 降ってくる 記号は この高さから
+     積みはじめる＝当たりの 上に 積もっていく。
+     予約は 四角ではなく まるい形に そって はしほど 低くする（四角のまま だと
+     記号の 左右ななめ上に 何もない すきまが できて 不自然に見える）。
+     さらに pileBite ぶん 内がわで 止めるので、上に 積もる記号は
+     当たりの ふちに 少し かさなる。 */
   function pileReserve(c, baseSteps, it, cfg) {
     var r = it.size / 2,
         cols = Math.floor(r / cfg.pileCol),   // 中心から 左右 何列ぶん 見るか
@@ -244,111 +369,117 @@
       if ((pileH[t] || 0) < top) pileH[t] = top;
     }
   }
-  /* 当たりの置き場所。落ちたあたりの 山の上に置き、すでに置いた 当たりと
-     かさなるときは かさならなくなるまで 上へ ずらす。
-     列モデル(1段8px)では 当たりは 何段ぶんもの 大きさがあり、山がいっぱいに
-     なると 全部が 底に置かれて 前の当たりを 上書きしてしまうため、
-     当たりだけは 列の高さではなく 実際の座標で 場所をさがす。 */
+  /* 当たりの置き場所。落ちたあたりの 山の表面に、pileBite ぶん しずめて 置く。
+     山が 育つほど 高いところに 出るので、解きつづけると ごほうびが 上へ 広がる。
+     場所が うまっていたら まず よこに ずらして さがす。上へ にがすのは 最後の手段
+     （当たりを 上へ 積むと 山から はなれて 空中に うかんで 見えるため）。 */
   function bigSpot(it, cfg) {
-    var n = pileCols(cfg),
-        c = Math.min(n - 1, Math.max(0, Math.round(it.xr * w.innerWidth / cfg.pileCol))),
-        x = Math.min(w.innerWidth - it.size / 2 - 2,
-            Math.max(it.size / 2 + 2, c * cfg.pileCol + cfg.pileCol / 2 + it.jx)),
-        // 山の上に のせる。ただし 山が 高く 育っていても、当たりは
-        // 画面の 見やすい ところ(bigStartMax)より 上からは 始めない
-        b = Math.min(4 + (pileH[c] || 0) * cfg.pileStep + it.dy,
-                     Math.round(w.innerHeight * cfg.bigStartMax)),
-        ceil = Math.max(4, w.innerHeight - it.size - 4),
-        guard = 0, k, a, hit;
-    do {
-      hit = false;
-      for (k = 0; k < PILE.length; k++) {
-        a = PILE[k];
-        if (!a.big || a.px == null) continue;
-        // 四角どうしの あたり判定。よこは 中心きょり、たては 下ばし＋大きさで見る
-        // （下ばしどうしを 中心きょりの しきい値で くらべると すきまが たりない）
-        if (Math.abs(a.px - x) < (a.size + it.size) / 2 &&
-            b < a.pb + a.size && a.pb < b + it.size) {
-          b = a.pb + a.size + 2;   // ぶつかった当たりの すぐ上へ 逃がす
-          hit = true; break;
-        }
+    var x0 = Math.min(w.innerWidth - it.size / 2 - 2,
+             Math.max(it.size / 2 + 2, it.xr * w.innerWidth + it.jx)),
+        c0 = Math.min(pileCols(cfg) - 1, Math.max(0, Math.round(x0 / cfg.pileCol))),
+        // 画面の 上まで 行かないよう 頭打ち(そこから先は かさねる＝塔にしない)
+        top = Math.max(4, Math.min(Math.round(w.innerHeight * cfg.bigStartMax),
+                                   Math.round(w.innerHeight * 0.9) - it.size)),
+        // 山の表面。pileBite ぶん しずめて 山に 食いこませる
+        face = Math.max(4, Math.min(top, 4 + (pileH[c0] || 0) * cfg.pileStep
+                                         - Math.round(it.size * (1 - cfg.pileBite)))),
+        lo = it.size / 2 + 2, hi = w.innerWidth - it.size / 2 - 2,
+        b = face, i, x;
+    while (b <= top) {
+      for (i = 0; i * 24 < w.innerWidth * 2; i++) {   // x0 から 左右へ こうごに はなれる
+        x = x0 + ((i % 2) ? 1 : -1) * Math.ceil(i / 2) * 24;
+        if (x < lo || x > hi) continue;
+        if (!bigHits(x, b, it)) return { x: x, b: b };
       }
-    } while (hit && b < ceil && guard++ < 60);
-    if (b > ceil) b = ceil;      // 画面の上まで いっぱい → いちばん上に そろえる
-    return { c: c, x: x, b: b };
+      b += Math.round(it.size * 0.7) + 2;             // どこも うまっていた → 一段 上へ
+    }
+    return { x: x0, b: top };
   }
-  function pilePlace(it, el, cfg) {
+  function pilePlace(it, cfg) {
     var c, h, x, bottom;
     if (it.big) {
       var spot = bigSpot(it, cfg);
-      c = spot.c; x = spot.x; bottom = spot.b;
+      x = spot.x; bottom = spot.b;
+      c = Math.min(pileCols(cfg) - 1, Math.max(0, Math.round(x / cfg.pileCol)));
       it.px = x; it.pb = bottom;   // ほかの当たりとの あたり判定に つかう
+      // 大きさぶん まわりの列を 予約する＝あとの記号は この上に 積もる
       pileReserve(c, Math.floor(bottom / cfg.pileStep), it, cfg);
     } else {
       c = pileCol(it.xr, cfg);
-      var st = pileStack(cfg);
-      if (c < 0) c = pileLowestCol(it.xr, cfg);   // どの列も 上限まできた
-      h = pileH[c] || 0; pileH[c] = h + 1;
-      // 画面の上まで 積もりきったら、山ぜんたいの どこかに かさねて 置く。
-      // 上端にだけ ためると「そこで 止まった」ように 見えるので ばらけさせる
-      if (h >= st) h = R(0, Math.max(0, st - 1));
+      h = pileH[c] || 0;
+      // 画面の上まで 積もりきった列には かさねて置く(高さは のばさない)。
+      // いちばん上にだけ ためると「そこで 止まった」ように 見えるので ばらけさせる
+      var rows = pileRows(cfg);
+      if (h >= rows) h = R(0, rows - 1);
+      else pileH[c] = h + 1;
       x = c * cfg.pileCol + cfg.pileCol / 2 + ((h % 2) ? cfg.pileCol / 2 : 0) + it.jx;
       bottom = 4 + h * cfg.pileStep + it.dy;
     }
-    it.col = c;
-    el.style.left = Math.min(w.innerWidth - 5, Math.max(5, x)) + "px";
-    el.style.bottom = bottom + "px";
-    el.style.color = it.color;
-    el.style.fontSize = it.size + "px";
-    el.style.transform = "translate(-50%,0) rotate(" + it.rot + "deg)";
-    el.textContent = it.mark;
-    return true;
+    it.x = Math.min(w.innerWidth - 5, Math.max(5, x));
+    it.bottom = bottom;
   }
-  /* どの列も 上限まで きたときに つかう。落ちたところに 近くて いちばん低い列。 */
-  function pileLowestCol(xr, cfg) {
-    var n = pileCols(cfg),
-        c0 = Math.min(n - 1, Math.max(0, Math.round(xr * w.innerWidth / cfg.pileCol))),
-        best = c0, bh = Infinity, i, t, h;
-    for (i = 0; i < n; i++) {
-      t = (i % 2) ? c0 + Math.ceil(i / 2) : c0 - i / 2;
-      if (t < 0 || t >= n) continue;
-      h = pileH[t] || 0;
-      if (h < bh) { bh = h; best = t; }
+  /* すでに置いた 当たりに かかるか。かかるものは 当たりと同じ面に 描く */
+  function onBig(it) {
+    for (var k = 0; k < BIGS.length; k++) {
+      var a = BIGS[k];
+      if (Math.abs(a.x - it.x) < (a.size + it.size) / 2 &&
+          Math.abs((a.bottom + a.size / 2) - (it.bottom + it.size / 2))
+            < (a.size + it.size) / 2) return true;
     }
-    return best;
+    return false;
+  }
+  /* 当たりは 前面の面(bigCtx)に描く。うしろの面に描くと 山に うもれて
+     見えなくなり、また スクロールで うすい白(veil)が 通るたび 暗くなる。
+     ただし そのままだと 当たりの上に 積もった記号まで 当たりの うしろに
+     まわってしまう＝「大きいものが 無いかのように」見える。
+     そこで 当たりに かかる記号だけは 同じ 前面の面に、あとから 描く
+     （同じ面なら 描いた順に かさなるので、そのまま 上に 積もって 見える）。 */
+  function pileShow(it, cfg) {
+    if (it.big) {
+      drawMark(bigCtx, it.x, it.bottom, it.size, it.rot, it.color, it.mark);
+      bigTrim(it, cfg);
+      BIGS.push(it);
+      return;
+    }
+    drawMark(onBig(it) ? bigCtx : pileCtx,
+             it.x, it.bottom, it.size, it.rot, it.color, it.mark);
   }
   function pileAdd(it, cfg) {
-    // 数が 上限に とどいたら、いちばん古い ふつうの粒を 1つ 消して 場所をあける。
-    // 当たりは 消さない（ごほうびとして 残しつづける）。
-    // ここで 追加をやめてしまうと、ある時点から ぱたりと 積もらなくなる
-    if (PILE.length >= cfg.pileMax) {
-      for (var k = 0; k < PILE.length; k++) {
-        if (PILE[k].big) continue;
-        if (PILE[k].el && PILE[k].el.parentNode) PILE[k].el.parentNode.removeChild(PILE[k].el);
-        PILE.splice(k, 1);
-        break;
-      }
-      if (PILE.length >= cfg.pileMax) return;   // 全部 当たり（まず起きない）
-    }
-    var el = d.createElement("span");
-    if (!pilePlace(it, el, cfg)) return;
-    it.el = el;
-    PILE.push(it); pileBox().appendChild(el);
+    pileCanvas();
+    pilePlace(it, cfg);
+    pileShow(it, cfg);
+    // 置きなおし(画面サイズ変更)用に おぼえておく。満タンをこえたぶんは
+    // 記録しない＝もう 画面は うまっているので 置きなおしても 見た目は 同じ
+    if (it.big || PILE.length < pileCap(cfg)) PILE.push(it);
   }
+  /* 画面のはばが 変わったら 列の数も 変わるので、全部 置きなおして 描きなおす */
   function pileRender() {
-    var cfg = pileCfg, box = pileBox(), keep = [], frag = d.createDocumentFragment();
-    box.innerHTML = ""; pileH = [];
+    var cfg = pileCfg;
+    pileCanvas(); pileSize(); pileH = []; BIGS.length = 0;
     // 置きなおす前に 当たりの座標を 消す。残っていると 自分自身や 古い位置と
     // ぶつかったと 判定されて、当たりが どんどん 上へ 追いやられてしまう
     PILE.forEach(function (it) { it.px = null; it.pb = null; });
-    PILE.forEach(function (it) {
-      var el = d.createElement("span");
-      if (pilePlace(it, el, cfg)) { it.el = el; frag.appendChild(el); keep.push(it); }
-    });
-    PILE.length = 0; keep.forEach(function (x) { PILE.push(x); });
-    box.appendChild(frag);
+    PILE.forEach(function (it) { pilePlace(it, cfg); pileShow(it, cfg); });
   }
-  w.addEventListener("resize", function () { if (PILE.length) pileRender(); });
+  /* 置きなおさず 描きなおすだけ。canvasは 大きさを変えると 中身が 消えるので、
+     高さだけ 変わったときも 描きなおしは いる */
+  function pileRedraw() {
+    pileCanvas(); pileSize(); BIGS.length = 0;
+    PILE.forEach(function (it) { pileShow(it, pileCfg); });
+  }
+  /* スマホは スクロールで アドレスバーが 出入りするだけでも resize が とぶ。
+     山は どれも 画面の下からの きょりで 置いてあるので、高さが 変わっても
+     置きなおす 必要はない（置きなおすと 当たりの 場所が 変わって
+     スクロールのたびに 沈んだり 浮いたりして 見える）。
+     列の数が 変わる = はばが 変わったときだけ 置きなおす。 */
+  w.addEventListener("resize", function () {          // 連続で来るので まとめる
+    if (!PILE.length) return;
+    clearTimeout(pileReflow);
+    pileReflow = setTimeout(function () {
+      if (w.innerWidth !== pileVW) pileRender();
+      else pileRedraw();
+    }, 200);
+  });
 
   /* ---------- 「せいかい！」を1文字ずつ弾けさせて元に戻す ---------- */
   function showText(cfg) {
@@ -373,35 +504,43 @@
     m.classList.add("on");
   }
 
-  /* 粒を1つ 山に落とす。寿命がきたときと、次の演出で 打ち切られるときの 両方から呼ぶ。 */
+  /* 当たり(特大・超特大)を 山に置く。寿命がきたときと、次の演出で 打ち切られる
+     ときの 両方から呼ぶ。ふつうの記号は 粒とは 切りはなして pend で 数を決めるので
+     ここでは あつかわない（1回に 100個ちかく 積もるため、飛んでいる粒の数や
+     飛んだ向きに 数を 左右されると ペースが 決まらない）。 */
   function dropToPile(p, cfg) {
     if (!cfg.pile || p.piled) return;
     p.piled = true;
-    // 降った粒の 一部だけを 積もらせる（当たりは 間引かない）
-    if (!p.big && Math.random() >= cfg.pileRatio) return;
-    // 弾ける勢いが 画面はばより 大きいので、そのままだと 8割の粒が
-    // 横に はみ出して 消え、ほとんど 積もらない。よこに 出たものは
-    // 画面のはしへ 寄せて 積む（山ならしが 内側へ 広げてくれる）。
-    // 上に 飛んでいったものだけは 落ちてきていないので 積まない。
-    if (p.big || p.y >= -40)
-      pileAdd({ xr: (p.x < 0 ? R(0, 40) / 100            // 左へ出た → 左がわに ちらす
-                   : p.x > w.innerWidth ? R(60, 100) / 100 // 右へ出た → 右がわに ちらす
-                   : p.x / w.innerWidth),                  // 画面内 → そのまま
-
-                dy: R(-3, 3), jx: R(-5, 5), rot: R(-40, 40),
-                mark: p.el.textContent, color: p.el.style.color,
-                size: parseInt(p.el.style.fontSize, 10),
-                big: p.big }, cfg);
+    if (!p.big) return;
+    pileAdd({ xr: Math.min(1, Math.max(0, p.x / w.innerWidth)),
+              dy: R(-3, 3), jx: R(-5, 5), rot: R(-40, 40),
+              mark: p.el.textContent, color: p.el.style.color,
+              size: parseInt(p.el.style.fontSize, 10),
+              big: true }, cfg);
   }
-  /* 次の演出が始まるとき、まだ飛んでいる粒を 先に 山へ落とす。
-     これをしないと、子どもが 速く 解くほど 粒が 空中で 消えてしまい
-     「半分も積もらない」「当たりが出ない」ことになる
+  /* この演出で 積もる ふつうの記号を 待ち行列に入れる。
+     数は「画面の広さ ÷ pileFull」＝ pileFull 回で 画面が うまるペース */
+  function pendPush(cfg) {
+    for (var i = 0, n = pilePer(cfg); i < n; i++)
+      pend.push({ xr: Math.random(), dy: R(-3, 3), jx: R(-5, 5), rot: R(-40, 40),
+                  mark: pick(cfg.marks), color: pick(cfg.hues),
+                  size: R(cfg.slowSizeMin, cfg.slowSizeMax), big: false });
+  }
+  /* 待ち行列から n 個ぶん 積む。演出のあいだ 毎フレーム 少しずつ 呼ぶので
+     「降ったぶんが たまっていく」ように 見える */
+  function pendDrain(n, cfg) {
+    while (n-- > 0 && pend.length) pileAdd(pend.shift(), cfg);
+  }
+  /* 次の演出が始まるとき、まだ飛んでいる当たりと 出しきれていない記号を
+     先に 山へ入れる。これをしないと 子どもが 速く 解くほど 積もらなくなる
      （当たりは いちばん 寿命が長いので いちばん 打ち切られやすい）。 */
   function flushLive() {
-    if (!live) return;
-    var ps = live.ps, c = live.cfg, i;
-    for (i = 0; i < ps.length; i++) dropToPile(ps[i], c);
-    live = null;
+    if (live) {
+      var ps = live.ps, c = live.cfg, i;
+      for (i = 0; i < ps.length; i++) dropToPile(ps[i], c);
+      live = null;
+    }
+    pendDrain(pend.length, pileCfg);
   }
 
   /* ---------- 本体 ---------- */
@@ -428,18 +567,19 @@
 
     var cx = w.innerWidth / 2, cy = w.innerHeight * cfg.originY,
         N = cfg.count, ps = [], i;
-    // 当たりを1つだけ まぜる。superChance(いちばんレア) を先に引き、
-    // はずれたら jumboChance を引く（同じ演出に 2つは 出さない）
+    // 当たりを1つだけ まぜる。特大は 回数ぴったり(25回に1回)、
+    // 超特大は superFrom 回を こえてから 確率で。先に 超特大を 判定する
+    fireCount++;
     var sup = -1, jumbo = -1;
-    if (Math.random() < cfg.superChance) sup = R(0, N - 1);
-    else if (Math.random() < cfg.jumboChance) jumbo = R(0, N - 1);
+    if (fireCount > cfg.superFrom && Math.random() < cfg.superChance) sup = R(0, N - 1);
+    else if (cfg.jumboEvery > 0 && fireCount % cfg.jumboEvery === 0) jumbo = R(0, N - 1);
     // スペシャルは 画面はばの半分を こえない大きさにする(小さい端末で はみ出さないように)
     var supSize = Math.min(R(cfg.superSizeMin, cfg.superSizeMax),
                            Math.round(w.innerWidth * 0.5));
     for (i = 0; i < N; i++) {
       // 360度どの向きにも同じ勢いで飛ばす(=真円に弾ける)
       // slowRatio のぶんは あまり弾けず、ふわっと ゆれながら落ちる粒にする(小さめ)
-      var sp2 = (i === sup);              // スペシャル(1/100)
+      var sp2 = (i === sup);              // スペシャル(100回に1回)
       var big = sp2 || (i === jumbo);     // 特大。どちらも かならず 山に残る
       var slow = big || Math.random() < cfg.slowRatio;
       var el = d.createElement("span");
@@ -470,6 +610,11 @@
       });
     }
 
+    // この演出のぶんを 待ち行列に入れる。出すのは pileDelay 秒 たってから、
+    // pileSpread 秒 かけて 少しずつ（弾けている あいだは 積もらせない）
+    if (cfg.pile) pendPush(cfg);
+    var queued = pend.length, placed = 0, T = 0;
+
     live = { ps: ps, cfg: cfg };   // 打ち切られたときに 山へ落とせるように 覚えておく
 
     var last = performance.now();
@@ -495,7 +640,13 @@
           "translate(" + p.x.toFixed(1) + "px," + p.y.toFixed(1) + "px) " +
           "translate(-50%,-50%) rotate(" + p.rot.toFixed(0) + "deg) scale(" + p.sc + ")";
       }
-      if (alive) { raf = requestAnimationFrame(step); }
+      T += dt;                                  // 降ってきたぶんから 順に 積もらせる
+      if (queued) {
+        var want = Math.round(queued *
+          Math.min(1, Math.max(0, (T - cfg.pileDelay) / cfg.pileSpread)));
+        if (want > placed) { pendDrain(want - placed, cfg); placed = want; }
+      }
+      if (alive || pend.length) { raf = requestAnimationFrame(step); }
       else {
         box.classList.remove("on"); box.innerHTML = ""; raf = null;
         if (live && live.ps === ps) live = null;   // 全部 落ちきった
@@ -509,10 +660,19 @@
 
   /* ---------- 公開 / Divpへの結線 ---------- */
   fire.clearPile = function () {              // 積もった記号を消す
-    var m = d.getElementById(PILE_ID);
-    PILE.length = 0; pileH = [];
-    if (m) m.innerHTML = "";
+    PILE.length = 0; pileH = []; pend.length = 0; BIGS.length = 0;
+    if (pileCtx) pileCtx.clearRect(0, 0, w.innerWidth, w.innerHeight);
+    if (bigCtx) bigCtx.clearRect(0, 0, w.innerWidth, w.innerHeight);
   };
+  /* 「次へ」などで 先に すすむとき、まだ 出しきっていない ぶんを その場で 積む。
+     ほうっておいても 描画ループが 出しきる（ループは 待ち行列が 空になるまで
+     止まらない）が、次の問題に 移ったあとで ぱらぱら 増えるのは 落ちつかないので、
+     画面を さわられたら そこで 出しきる。飛んでいる当たりは そのまま
+     （まだ 見えているので、着地を 待つ）。 */
+  fire.flushPile = function () { if (pend.length) pendDrain(pend.length, pileCfg); };
+  d.addEventListener("pointerdown", fire.flushPile, true);
+  d.addEventListener("keydown", fire.flushPile, true);
+
   fire.hide = function () {                    // hold:true のとき 文字を消す
     var m = d.getElementById(TEXT_ID);
     if (m) { m.classList.remove("on"); m.innerHTML = ""; }
