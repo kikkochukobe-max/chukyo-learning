@@ -141,6 +141,15 @@
     btn.addEventListener('click', function () {
       pop.style.display = (pop.style.display === 'none') ? 'block' : 'none';
     });
+    // ツール側の document レベルの keydown（数字キー入力・Backspace で1文字消す等）に
+    // ヘッダーのログイン入力欄のキーを奪われないようにする。多くのツールが
+    // document.addEventListener('keydown', …) で e.preventDefault() まで行うため、
+    // 入力欄で Backspace/Delete が効かない・数字が二重入力される事故が起きる。
+    // 各ツールに target 判定を入れて回るのではなく、ここで伝播を止めて一括で防ぐ。
+    ['keydown', 'keyup', 'keypress'].forEach(function (type) {
+      pop.addEventListener(type, function (e) { e.stopPropagation(); });
+    });
+
     document.getElementById('divp-login-submit').addEventListener('click', function () {
       var loginId = document.getElementById('divp-login-id').value.trim();
       var pin = document.getElementById('divp-login-pin').value.trim();
