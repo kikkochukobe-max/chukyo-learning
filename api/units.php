@@ -152,6 +152,11 @@ return [
         'sub'   => '理科・中1',
         'url'   => '/learning/science/science_js1_busshitsu.html',
     ],
+    'science_js1_daichi' => [
+        'title' => '大地の変化マスター',
+        'sub'   => '理科・中1',
+        'url'   => '/learning/science/science_js1_daichi.html',
+    ],
     'science_js2_seibutsu' => [
         'title' => '生物の体のつくりとはたらきマスター',
         'sub'   => '理科・中2',
