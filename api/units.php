@@ -157,6 +157,11 @@ return [
         'sub'   => '理科・中1',
         'url'   => '/learning/science/science_js1_daichi.html',
     ],
+    'science_js1_seibutsu' => [
+        'title' => '生物の観察と分類マスター',
+        'sub'   => '理科・中1',
+        'url'   => '/learning/science/science_js1_seibutsu.html',
+    ],
     'science_js2_seibutsu' => [
         'title' => '生物の体のつくりとはたらきマスター',
         'sub'   => '理科・中2',
