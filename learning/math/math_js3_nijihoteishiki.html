@@ -1532,7 +1532,10 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
       aWrap.appendChild(ai);
       tex(ai.querySelector('.pr-tex'), C.solTex(q.correct), false);
     });
-    window.print();
+    // 透かし画像のデコードを待ってから印刷する。
+    // 直後に window.print() を呼ぶと初回だけロゴが抜けることがある（旧実装のバグ）
+    if (window.ChukyoPrint && ChukyoPrint.print) ChukyoPrint.print($('print-area'));
+    else window.print();
   }
 
   /* ---------- キーボード ---------- */

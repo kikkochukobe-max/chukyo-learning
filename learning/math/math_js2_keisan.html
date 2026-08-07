@@ -2146,7 +2146,10 @@ function buildPrint(){
   });
   h+='</ol></div></div>';
   $('printArea').innerHTML=h;
-  window.print();
+  // 透かし画像は毎回作り直すので、デコードを待ってから印刷する。
+  // 直後に window.print() を呼ぶとロゴが間に合わず抜けることがある（旧実装のバグ）
+  if(window.ChukyoPrint&&ChukyoPrint.print) ChukyoPrint.print($('printArea'));
+  else window.print();
 }
 
 /* =====================================================

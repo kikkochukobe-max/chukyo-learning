@@ -2169,7 +2169,11 @@ function printQuiz() {
   const w = window.open('', '_blank', 'width=794,height=1123');
   w.document.write(html);
   w.document.close();
-  setTimeout(function(){ w.focus(); w.print(); }, 600);
+  // 透かし画像のデコードも待つ（待たずに print するとロゴが出たり出なかったりする）
+  setTimeout(function(){
+    if(window.ChukyoPrint&&ChukyoPrint.print) ChukyoPrint.print(w.document,w);
+    else { w.focus(); w.print(); }
+  }, 600);
 }
 
 (function setupTitlePrint(){
@@ -2313,7 +2317,11 @@ function printCalc(mode, terms=2, frac=false) {
   const w = window.open('', '_blank', 'width=794,height=1123');
   w.document.write(html);
   w.document.close();
-  setTimeout(() => { w.focus(); w.print(); }, 600);
+  // 透かし画像のデコードも待つ（待たずに print するとロゴが出たり出なかったりする）
+  setTimeout(() => {
+    if(window.ChukyoPrint&&ChukyoPrint.print) ChukyoPrint.print(w.document,w);
+    else { w.focus(); w.print(); }
+  }, 600);
 }
 
 // ====== 汎用プリント（問題＋解答の2ページ） ======
@@ -2373,7 +2381,11 @@ function _printSheet(title, label, instr, items){
 <\/body><\/html>`;
   const w=window.open('','_blank','width=794,height=1123');
   w.document.write(html); w.document.close();
-  setTimeout(()=>{ w.focus(); w.print(); }, 600);
+  // 透かし画像のデコードも待つ（待たずに print するとロゴが出たり出なかったりする）
+  setTimeout(()=>{
+    if(window.ChukyoPrint&&ChukyoPrint.print) ChukyoPrint.print(w.document,w);
+    else { w.focus(); w.print(); }
+  }, 600);
 }
 
 function mixAnsLatex(p){
@@ -5089,7 +5101,11 @@ function printApprox(){
   const w = window.open('', '_blank', 'width=794,height=1123');
   w.document.write(html);
   w.document.close();
-  setTimeout(function(){ w.focus(); w.print(); }, 600);
+  // 透かし画像のデコードも待つ（待たずに print するとロゴが出たり出なかったりする）
+  setTimeout(function(){
+    if(window.ChukyoPrint&&ChukyoPrint.print) ChukyoPrint.print(w.document,w);
+    else { w.focus(); w.print(); }
+  }, 600);
 }
 
 // Start

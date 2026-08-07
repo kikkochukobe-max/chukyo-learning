@@ -999,7 +999,10 @@ function buildPrint(){
 document.getElementById('btnPrint').addEventListener('click',()=>{
   const wmCss=window.ChukyoPrint?'<style>'+ChukyoPrint.css({zIndex:0})+'.wm{position:fixed;}</style>':'';
   document.getElementById('printArea').innerHTML=wmCss+buildPrint();
-  window.print();
+  // 透かし画像は毎回作り直すので、デコードを待ってから印刷する。
+  // 直後に window.print() を呼ぶとロゴが間に合わず抜けることがある（旧実装のバグ）
+  if(window.ChukyoPrint&&ChukyoPrint.print) ChukyoPrint.print(document.getElementById('printArea'));
+  else window.print();
 });
 
 /* ===== 起動 ===== */

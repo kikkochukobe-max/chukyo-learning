@@ -467,8 +467,12 @@ function printSheet(){
   const w=window.open('','_blank');
   if(!w){alert('ポップアップがブロックされました。印刷を許可してください');return;}
   w.document.write(html);w.document.close();w.focus();
-  // フォント読み込み後に印刷ダイアログ
-  setTimeout(function(){try{w.print();}catch(e){}},400);
+  // フォント読み込み後に印刷ダイアログ。透かし画像のデコードも待つ
+  // （待たずに print するとロゴが出たり出なかったりする）
+  setTimeout(function(){
+    if(window.ChukyoPrint&&ChukyoPrint.print) ChukyoPrint.print(w.document,w);
+    else{try{w.print();}catch(e){}}
+  },400);
 }
 
 // ── 起動 ──────────────────────────────────────────────────────

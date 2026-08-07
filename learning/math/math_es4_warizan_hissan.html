@@ -1119,8 +1119,12 @@ function makePrint(){
   a+='</div></div>';
 
   area.innerHTML=wmCss+wmImg+q+a;
-  // 直後に印刷すると描画が間に合わず白紙になる端末があるため、描画確定を待つ
-  requestAnimationFrame(function(){ requestAnimationFrame(function(){ window.print(); }); });
+  // 直後に印刷すると描画が間に合わず白紙になる端末があるため、描画確定を待つ。
+  // さらに透かし画像のデコードも待つ（待たないとロゴだけ抜けることがある）
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){
+    if(window.ChukyoPrint&&ChukyoPrint.print) ChukyoPrint.print(area);
+    else window.print();
+  }); });
   }catch(err){
     try{ console.error('print error',err); }catch(e){}
     alert('印刷の作成でエラーが発生しました:\n'+(err&&err.message?err.message:err));

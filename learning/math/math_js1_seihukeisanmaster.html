@@ -328,6 +328,7 @@
   /* ===== 印刷（A4・10問＋解答） ===== */
   #print-area { display: none; }
   @media print {
+    body { background: #fff; }   /* 紺の画面背景を印刷面に持ち込まない（透かしが沈む） */
     body * { visibility: hidden; }
     #print-area, #print-area * { visibility: visible; }
     #print-area { display: block !important; position: absolute; left: 0; top: 0; width: 100%; }
@@ -342,11 +343,11 @@
   .p-sheet .ph-meta span { border-bottom: 1px solid #999; min-width: 130px; display: inline-block; padding-bottom: 2px; }
   .p-sheet .ph-meta .ph-name { min-width: 260px; height: 42px; border: 1px solid #999; border-radius: 5px; display: inline-flex; align-items: center; justify-content: flex-start; padding: 0 14px; }
   .p-grid { display: flex; flex-direction: column; justify-content: space-between; margin-top: 12mm; min-height: 216mm; }
-  .p-item { display: flex; align-items: baseline; gap: 12px; font-size: 17px; padding-bottom: 3mm; font-family: 'Fira Mono', monospace; }
+  .p-item { display: flex; align-items: baseline; gap: 12px; font-size: 11px; padding-bottom: 3mm; font-family: 'Fira Mono', monospace; }
   .p-item .no { font-weight: 800; width: 30px; flex: 0 0 auto; }
   .p-ex { display: inline-flex; flex-wrap: wrap; align-items: center; column-gap: 0.3em; row-gap: 0.1em; }
   .p-keypage { page-break-before: always; }
-  .p-kgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 26px; font-size: 14px; font-family: 'Fira Mono', monospace; }
+  .p-kgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 26px; font-size: 11px; font-family: 'Fira Mono', monospace; }
   .p-kgrid div { padding: 5px 0; border-bottom: 1px dotted #ccc; }
   .p-kgrid .no { font-weight: 800; }
 </style>
@@ -1401,6 +1402,18 @@ document.addEventListener('keydown', function (e) {
 window.addEventListener('resize', fitExpr);
 
 // ===== 印刷（A4・現在モード10問＋解答） =====
+// 透かし：共通モジュール print-watermark.js（未読込でも透かし無しで印刷できる）。
+// position:fixed 上書きで用紙センターに固定・全ページへ繰り返し印字。
+// zIndex:0 は body の紺背景に隠れないため（問題面 .p-sheet を z-index:1 で上に置く）
+function ensureWatermarkStyle() {
+  if (!window.ChukyoPrint || document.getElementById('pr-wm-style')) return;
+  var st = document.createElement('style');
+  st.id = 'pr-wm-style';
+  st.textContent = ChukyoPrint.css({ zIndex: 0 }) + '.wm{position:fixed;}'
+    + '#print-area .p-sheet{position:relative;z-index:1;}';
+  document.head.appendChild(st);
+}
+
 function openPrint() {
   var items = '', keys = '';
   for (var i = 1; i <= 10; i++) {
@@ -1415,7 +1428,12 @@ function openPrint() {
     + '<div class="p-grid">' + items + '</div>'
     + '<div class="p-keypage p-sheet"><div class="ph-head"><div class="ph-title">解答</div><div class="ph-school">中京個別指導学院</div></div>'
     + '<div class="p-kgrid">' + keys + '</div></div></div>';
-  window.print();
+  ensureWatermarkStyle();
+  if (window.ChukyoPrint) $('print-area').insertAdjacentHTML('afterbegin', ChukyoPrint.img());
+  // 透かし画像は毎回作り直すので、デコードを待ってから印刷する。
+  // 直後に window.print() を呼ぶとロゴが間に合わず抜けることがある（旧実装のバグ）
+  if (window.ChukyoPrint && ChukyoPrint.print) ChukyoPrint.print($('print-area'));
+  else window.print();
 }
 $('title-print-btn').addEventListener('click', openPrint);
 

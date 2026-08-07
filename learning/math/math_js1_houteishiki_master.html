@@ -1504,7 +1504,10 @@ function openPrint(){
     +'<div class="p-grid">'+items+'</div>'
     +'<div class="p-keypage p-sheet"><div class="ph-head"><div class="ph-title">解答　方程式マスター　'+escHtml(modeLabel)+'</div><div class="ph-school">中京個別指導学院</div></div>'
     +'<div class="p-kgrid">'+keys+'</div></div></div>';
-  window.print();
+  // 透かし画像は毎回作り直すので、デコードを待ってから印刷する。
+  // 直後に window.print() を呼ぶとロゴが間に合わず抜けることがある（旧実装のバグ）
+  if(window.ChukyoPrint&&ChukyoPrint.print) ChukyoPrint.print($("print-area"));
+  else window.print();
 }
 $("divpPrintBtn").addEventListener("click",openPrint);
 

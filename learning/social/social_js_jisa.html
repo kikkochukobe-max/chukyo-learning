@@ -985,7 +985,11 @@ function printTest(){
   const w=window.open('','_blank','width=794,height=1123');
   if(!w){ alert('ポップアップがブロックされました。印刷を許可してください。'); return; }
   w.document.write(html); w.document.close();
-  setTimeout(()=>{ w.focus(); w.print(); },500);
+  // 透かし画像のデコードも待つ（待たずに print するとロゴが出たり出なかったりする）
+  setTimeout(()=>{
+    if(window.ChukyoPrint&&ChukyoPrint.print) ChukyoPrint.print(w.document,w);
+    else { w.focus(); w.print(); }
+  },500);
 }
 
 function tGenerate(){
