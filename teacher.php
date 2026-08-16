@@ -719,7 +719,10 @@ function sp_select(string $label, array $options): string
   .num{text-align:right;white-space:nowrap;
     font-family:system-ui,'Segoe UI','Helvetica Neue',Arial,'Zen Kaku Gothic New',sans-serif;
     font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
-  a.sname{color:var(--ai);font-weight:700;text-decoration:none}
+  /* 生徒名は一覧・ランキングとも丸ゴで統一する。ランキングの担当外教室の生徒は
+     リンクにならない生テキストなので、a ではなくセル(.c-name)側にも同じ指定を置く */
+  a.sname{color:var(--ai);font-weight:700;text-decoration:none;font-family:'Zen Maru Gothic',sans-serif}
+  td.c-name{font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
   /* 生徒一覧は列幅を固定比率にし、教室を切り替えても幅がブレないようにする。
      table-layout:fixed + width:100% で、余った幅は colgroup の比率どおりに全列へ配分
      （1列だけが膨らまない）。長い氏名は…で省略 */
@@ -905,7 +908,9 @@ function sp_select(string $label, array $options): string
     table.rankt td::before{display:none!important}
     table.rankt td:nth-child(1){order:1;flex:0 0 2.6em;text-align:right;font-weight:700}      /* 順位 */
     table.rankt td:nth-child(4){order:2;flex:0 0 2.7em;color:var(--ink-soft);font-size:13px}  /* 学年 */
-    table.rankt td:nth-child(2){order:3;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:700}/* 氏名 */
+    /* 氏名: 生徒一覧(.sp-list .r-name)と同じ丸ゴ16pxに揃える */
+    table.rankt td:nth-child(2){order:3;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;
+      font-weight:700;font-size:16px}
     table.rankt td:nth-child(2) a.sname{font-weight:700}
     table.rankt td:nth-child(3){display:none}                                                /* 教室(非表示) */
     table.rankt td:nth-child(5){order:4;flex:0 0 auto;font-weight:700;text-align:right;
@@ -1448,9 +1453,9 @@ function sp_select(string $label, array $options): string
         <td class="num" data-label="順位" style="font-weight:700;<?= $r['rank'] <= 3 ? 'color:var(--kin);' : '' ?>"><?= $r['rank'] ?>位</td>
         <?php // 担当外教室の生徒は詳細を開けないのでリンクにしない（イベントランキングで載りうる） ?>
 <?php if (in_array((int)$r['classroom_id'], $allowedClassroomIds, true)): ?>
-        <td data-label="生徒"><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'usub' => null, 'grade' => null, 'school' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
+        <td class="c-name" data-label="生徒"><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'usub' => null, 'grade' => null, 'school' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
 <?php else: ?>
-        <td data-label="生徒"><?= h($r['student_name']) ?></td>
+        <td class="c-name" data-label="生徒"><?= h($r['student_name']) ?></td>
 <?php endif; ?>
         <td data-label="教室"><?= h($r['classroom_name']) ?></td>
         <td data-label="学年"><?= h(grade_label($r['grade'])) ?></td>
@@ -1484,9 +1489,9 @@ function sp_select(string $label, array $options): string
       <tr>
         <td class="num" data-label="順位" style="font-weight:700;<?= $r['rank'] <= 3 ? 'color:var(--kin);' : '' ?>"><?= $r['rank'] ?>位</td>
 <?php if (in_array((int)$r['classroom_id'], $allowedClassroomIds, true)): ?>
-        <td data-label="生徒"><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'usub' => null, 'grade' => null, 'school' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
+        <td class="c-name" data-label="生徒"><a class="sname" href="<?= h(qtab(['view' => null, 'cids' => null, 'ev' => null, 'unit' => null, 'usub' => null, 'grade' => null, 'school' => null, 'student_id' => $r['student_id']])) ?>"><?= h($r['student_name']) ?></a></td>
 <?php else: ?>
-        <td data-label="生徒"><?= h($r['student_name']) ?></td>
+        <td class="c-name" data-label="生徒"><?= h($r['student_name']) ?></td>
 <?php endif; ?>
         <td data-label="教室"><?= h($r['classroom_name']) ?></td>
         <td data-label="学年"><?= h(grade_label($r['grade'])) ?></td>
