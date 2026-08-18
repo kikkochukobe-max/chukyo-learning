@@ -18,6 +18,8 @@ return [
         'title' => '愛知県公立入試 大問1 マーク演習',
         'sub'   => '数学・中3',
         'url'   => '/learning/math/math_js3_aichi_daimon1.html',
+        // 解き直しに replay_json が必須の単元（retry.php がボタンの出し分けに使う）
+        'replay' => true,
     ],
     'math_es5_yakubun' => [
         'title' => '約分練習ドリル',
@@ -73,6 +75,11 @@ return [
         'title' => '方程式マスター',
         'sub'   => '数学・中1',
         'url'   => '/learning/math/math_js1_houteishiki_master.html',
+    ],
+    'math_js1_houteishiki_riyou' => [
+        'title' => '方程式マスター 文章題編',
+        'sub'   => '数学・中1',
+        'url'   => '/learning/math/math_js1_houteishiki_riyou.html',
     ],
     'math_js1_hyomenseki_taiseki' => [
         'title' => '立体マスター（表面積・体積）',

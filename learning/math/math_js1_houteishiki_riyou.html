@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方程式マスター 文章題編｜中1数学 一次方程式の利用ドリル｜中京個別指導学院</title>
+<meta name="description" content="中1数学「一次方程式の利用」の文章題ドリル。数の問題・個数と代金・過不足・速さ・年齢と平均・割合と食塩水・比例式の7種類をSTEP式で練習。焼山・植田・長久手・神丘・一社・高針台・吉根・志段味・有松の中京個別指導学院。">
+<!-- 本番デプロイ時: KaTeXは自前ホスティング(サブセット済woff2)に差し替えること -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBFAF6;
+  --grid:#ECE9E0;
+  --sumi:#33312B;
+  --usuzumi:#8B877C;
+  --shu:#C73E2E;
+  --ai:#2C5F8A;
+  --kin:#C9A227;
+  --orange:#D89A45;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  font-family:'Zen Kaku Gothic New',sans-serif;
+  color:var(--sumi);
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:24px 24px;
+  min-height:100vh;
+}
+h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
+.wrap{max-width:720px;margin:0 auto;padding:16px 16px 64px;}
+
+/* ---------- header ---------- */
+.site-head{
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  padding:14px 4px 10px;
+  border-bottom:3px double var(--shu);
+  margin-bottom:18px;
+}
+.site-head h1{font-size:clamp(19px,5vw,25px);letter-spacing:.05em;}
+.site-head h1 .accent{color:var(--shu);}
+.site-head .sub{font-size:12px;color:var(--usuzumi);letter-spacing:.1em;}
+
+/* ---------- category / step select ---------- */
+.intro{font-size:13.5px;color:var(--usuzumi);margin:0 4px 16px;line-height:1.7;}
+.lv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.lv-card{
+  position:relative;background:#fff;
+  border:1.5px solid var(--grid);border-radius:12px;
+  padding:12px 11px 10px;cursor:pointer;text-align:left;
+  font-family:inherit;
+  transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  box-shadow:0 1px 2px rgba(51,49,43,.05);
+}
+.lv-card:hover,.lv-card:focus-visible{
+  transform:translateY(-2px);border-color:var(--ai);
+  box-shadow:0 4px 10px rgba(44,95,138,.12);outline:none;
+}
+.lv-card .lv-no{font-family:'Zen Maru Gothic',sans-serif;font-size:10.5px;font-weight:700;color:var(--ai);letter-spacing:.12em;}
+.lv-card .lv-name{font-family:'Zen Maru Gothic',sans-serif;font-size:15px;font-weight:700;margin:2px 0 4px;}
+.lv-card .lv-desc{font-size:11.5px;color:var(--usuzumi);line-height:1.55;}
+.lv-card .lv-prog{
+  margin-top:7px;font-size:11px;color:var(--usuzumi);
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+}
+.step-dots{display:flex;gap:4px;}
+.sdot{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--usuzumi);background:#fff;}
+.sdot.done{background:var(--shu);border-color:var(--shu);}
+.lv-card .cleared{
+  position:absolute;top:6px;right:6px;width:40px;height:40px;
+  border:2.5px solid var(--shu);border-radius:50%;color:var(--shu);
+  font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:11.5px;
+  display:flex;align-items:center;justify-content:center;
+  transform:rotate(-12deg);opacity:.9;background:rgba(255,255,255,.7);
+}
+.lv-card.mix{border-style:dashed;border-color:var(--kin);}
+.lv-card.mix .lv-no{color:var(--kin);}
+
+.cat-head{
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px;
+}
+.cat-head h2{font-size:19px;}
+.cat-head .cat-desc{font-size:12.5px;color:var(--usuzumi);}
+
+/* ---------- practice ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.btn-back{background:none;border:none;color:var(--ai);font-size:13.5px;cursor:pointer;font-family:inherit;padding:6px 4px;}
+.progress-dots{display:flex;gap:7px;}
+.dot{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--usuzumi);background:#fff;}
+.dot.now{border-color:var(--ai);box-shadow:0 0 0 3px rgba(44,95,138,.15);}
+.dot.ok{background:var(--shu);border-color:var(--shu);}
+.dot.ng{background:var(--grid);border-color:var(--usuzumi);}
+
+.q-card{
+  position:relative;background:#fff;
+  border:1.5px solid var(--grid);border-radius:14px;
+  padding:22px 18px 20px;
+  box-shadow:0 2px 6px rgba(51,49,43,.06);
+}
+.q-label{font-family:'Zen Maru Gothic',sans-serif;font-size:13px;font-weight:700;color:var(--ai);margin-bottom:12px;letter-spacing:.08em;}
+.q-text{
+  font-size:15px;line-height:2.0;margin-bottom:16px;
+  background:linear-gradient(transparent calc(2.0em - 1px), var(--grid) calc(2.0em - 1px), var(--grid) 2.0em, transparent 2.0em);
+  background-size:100% 2.0em;
+}
+.q-text b{color:var(--sumi);font-weight:700;border-bottom:2px solid rgba(199,62,46,.35);}
+
+/* hint */
+.hint-area{margin:0 0 18px;}
+.btn-hint{
+  font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;
+  color:var(--orange);background:#fff;
+  border:1.5px dashed var(--orange);border-radius:999px;
+  padding:7px 18px;cursor:pointer;
+}
+.btn-hint:disabled{opacity:.4;cursor:default;}
+.hint-item{
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  margin-top:10px;padding:9px 12px;
+  background:rgba(216,154,69,.08);
+  border-left:3px solid var(--orange);border-radius:0 8px 8px 0;
+  font-size:14px;
+}
+.hint-item .h-tag{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:12px;color:var(--orange);min-width:66px;}
+.hint-item .h-tex{font-size:16px;}
+.hint-item .h-note{font-size:12.5px;color:var(--usuzumi);}
+
+/* choices (6択) */
+.choice-legend{font-size:12.5px;color:var(--usuzumi);text-align:center;margin-bottom:8px;}
+.choice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:18px;}
+.choice{
+  font-family:inherit;font-size:15px;line-height:1.5;
+  padding:12px 8px;background:#fff;color:var(--sumi);
+  border:1.5px solid var(--ai);border-radius:10px;cursor:pointer;
+  transition:transform .08s ease;
+}
+.choice:active{transform:scale(.97);}
+.choice:disabled{cursor:default;}
+.choice.sel-ok{border-color:var(--shu);border-width:2.5px;background:rgba(199,62,46,.07);font-weight:700;}
+.choice.sel-ng{border-color:var(--usuzumi);background:var(--grid);}
+.choice.dim{opacity:.4;}
+
+.btn-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center;}
+.btn{
+  font-family:'Zen Maru Gothic',sans-serif;font-weight:700;
+  font-size:15.5px;letter-spacing:.06em;
+  border:none;border-radius:999px;cursor:pointer;
+  padding:12px 34px;transition:transform .1s ease, opacity .15s;
+}
+.btn:active{transform:scale(.97);}
+.btn-main{background:var(--shu);color:#fff;box-shadow:0 3px 0 #9c2f22;}
+.btn-sub{background:#fff;color:var(--ai);border:1.5px solid var(--ai);}
+.btn-gold{background:var(--kin);color:#fff;box-shadow:0 3px 0 #a3831c;}
+.btn:disabled{opacity:.4;cursor:default;}
+.link-steps{
+  background:none;border:none;color:var(--ai);cursor:pointer;
+  font-size:13px;font-family:inherit;text-decoration:underline;padding:6px;
+}
+
+/* 正誤エフェクトは共通の divp-correct-jh（Divp.correct/incorrect）に一本化 */
+@media (prefers-reduced-motion:reduce){
+  .lv-card,.btn{transition:none;}
+}
+
+/* explanation */
+.kaisetsu{margin-top:18px;border-top:1.5px dashed var(--grid);padding-top:14px;}
+.kaisetsu h3{font-size:14px;color:var(--shu);margin-bottom:10px;letter-spacing:.08em;}
+.step{display:flex;align-items:baseline;gap:12px;margin-bottom:9px;flex-wrap:wrap;}
+.step .slabel{font-size:12.5px;color:var(--ai);min-width:120px;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;}
+.step .stex{font-size:16.5px;}
+.step .stext{font-size:14px;line-height:1.8;}
+.step.final .stex,.step.final .stext{color:var(--shu);font-weight:700;}
+
+/* ---------- print sheet ---------- */
+#printSheet{display:none;}
+@media print{
+  @page{size:A4;margin:14mm 14mm 12mm;}
+  body{background:#fff !important;background-image:none !important;}
+  .wrap{display:none !important;}
+  #printSheet{display:block;color:#222;font-family:'Zen Kaku Gothic New',sans-serif;}
+  .ps-head{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:2.5px double #C73E2E;padding-bottom:2mm;margin-bottom:4mm;
+  }
+  .ps-title{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13pt;}
+  .ps-sub{font-size:9pt;color:#666;margin-top:1mm;}
+  .ps-name{font-size:9.5pt;}
+  .ps-name .line{display:inline-block;width:38mm;border-bottom:1px solid #333;margin-left:2mm;}
+  .p-item{break-inside:avoid;margin-bottom:4mm;}
+  .p-row{display:flex;gap:3mm;}
+  .p-no{
+    flex:none;width:6mm;height:6mm;border:1.2px solid #333;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:9.5pt;font-weight:700;
+  }
+  .p-body{flex:1;}
+  .p-text{font-size:10pt;line-height:1.65;}
+  .p-text b{font-weight:700;}
+  .p-space{
+    height:26mm;border:1px dashed #bbb;border-radius:2mm;margin-top:1.5mm;
+    position:relative;
+  }
+  .p-space::before{
+    content:'(計算)';position:absolute;top:1mm;left:2mm;
+    font-size:7pt;color:#aaa;
+  }
+  .p-ansline{font-size:10pt;margin-top:1.5mm;text-align:right;}
+  .p-ansline .blank{display:inline-block;width:18mm;border-bottom:1.2px solid #333;}
+  .p-key{
+    margin-top:4mm;border-top:1.5px solid #C73E2E;padding-top:2mm;
+    font-size:8.5pt;color:#C73E2E;line-height:1.7;
+  }
+  .p-key .k-title{font-weight:700;margin-right:2mm;}
+}
+
+/* 解き直しモード（?retry=1 でマイページから来たとき） */
+.retry-banner{
+  background:#fff;border:1.5px solid var(--ai);border-left:5px solid var(--ai);
+  border-radius:0 10px 10px 0;padding:11px 14px;margin-bottom:14px;
+  font-size:13px;line-height:1.75;
+}
+.retry-banner b{font-family:'Zen Maru Gothic',sans-serif;color:var(--ai);}
+.retry-banner .rb-sub{color:var(--usuzumi);font-size:12px;}
+
+/* result */
+.result-card{
+  background:#fff;border:1.5px solid var(--grid);border-radius:14px;
+  padding:34px 20px 28px;text-align:center;position:relative;overflow:hidden;
+  box-shadow:0 2px 6px rgba(51,49,43,.06);
+}
+.result-card h2{font-size:20px;margin-bottom:8px;}
+.result-score{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:44px;margin:8px 0 2px;}
+.result-score .of{font-size:20px;color:var(--usuzumi);}
+.result-msg{font-size:14px;color:var(--usuzumi);margin-bottom:22px;line-height:1.7;}
+.clear-stamp{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:110px;height:110px;border-radius:50%;
+  border:4.5px solid var(--kin);color:var(--kin);
+  font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:24px;
+  transform:rotate(-12deg);margin-bottom:14px;letter-spacing:.08em;
+}
+</style>
+<body>
+<!-- 共通モジュール（ヘッダー＋ログイン / 中高用 正解ハンコ / 学習記録コア）。ローカル・未ログイン時は各モジュールが黙ってスキップする。unit_key = math_js1_houteishiki_riyou -->
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script>if(window.Divp&&Divp.init)Divp.init('math_js1_houteishiki_riyou');</script>
+<div class="wrap">
+
+  <header class="site-head">
+    <h1>方程式マスター <span class="accent">文章題編</span></h1>
+    <span class="sub">中1数学 ｜ 方程式の利用</span>
+  </header>
+
+  <!-- ===== category select ===== -->
+  <section id="view-select">
+    <p class="intro">文章題は「何を x にするか」→「等しい関係をさがして式を1本立てる」の順で考えれば必ず解ける。種類ごとに STEP1 から少しずつレベルアップしよう。1セット5問、全問正解でクリア!(ヒントは使ってOK)</p>
+    <div id="retryNotice"></div>
+    <div class="lv-grid" id="catGrid"></div>
+  </section>
+
+  <!-- ===== step select ===== -->
+  <section id="view-steps" hidden>
+    <div class="topbar">
+      <button class="btn-back" id="btnBackToCats" type="button">← 種類の一覧にもどる</button>
+    </div>
+    <div class="cat-head">
+      <h2 id="catTitle"></h2>
+      <span class="cat-desc" id="catDesc"></span>
+    </div>
+    <div class="lv-grid" id="stepGrid"></div>
+  </section>
+
+  <!-- ===== practice ===== -->
+  <section id="view-practice" hidden>
+    <div class="topbar">
+      <span>
+        <button class="btn-back" id="btnBack" type="button">← STEP一覧にもどる</button>
+        <button class="btn-back" id="btnPrint" type="button">🖨 プリント</button>
+      </span>
+      <div class="progress-dots" id="dots"></div>
+    </div>
+    <div id="retryBanner"></div>
+    <div class="q-card">
+      <div class="q-label" id="qLabel"></div>
+      <p class="q-text" id="qText"></p>
+      <div class="hint-area">
+        <button class="btn-hint" id="btnHint" type="button">ヒントを見る (1/3)</button>
+        <div id="hintList"></div>
+      </div>
+      <div class="choice-legend" id="choiceLegend"></div>
+      <div class="choice-grid" id="choiceGrid"></div>
+      <div class="btn-row">
+        <button class="btn btn-sub" id="btnNext" type="button" hidden>次の問題へ →</button>
+        <button class="link-steps" id="btnShowSteps" type="button" hidden>解き方を見る</button>
+      </div>
+      <div class="kaisetsu" id="kaisetsu" hidden>
+        <h3>▼ 解き方</h3>
+        <div id="stepsArea"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== result ===== -->
+  <section id="view-result" hidden>
+    <div class="result-card">
+      <div id="clearStampWrap"></div>
+      <h2 id="resultTitle"></h2>
+      <div class="result-score"><span id="scoreNum"></span><span class="of"> / <span id="scoreTotal">5</span> 問</span></div>
+      <p class="result-msg" id="resultMsg"></p>
+      <div class="btn-row">
+        <button class="btn btn-gold" id="btnNextStep" type="button" hidden>つぎのSTEPへ →</button>
+        <button class="btn btn-main" id="btnRetry" type="button">もう一度このSTEP</button>
+        <button class="btn btn-sub" id="btnToSteps" type="button">一覧へ</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div id="printSheet"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+ * 方程式マスター 文章題編 (math_js1_houteishiki_riyou)
+ * 中1「一次方程式の利用」の文章題。連立版(math_js2_renritsu_riyou)と同じ
+ * 「種類(カテゴリ) × STEP」の2階層構成・6択・ヒント3段・解き方表示・プリント。
+ *
+ * ■ 生成の作り（連立版との違い / ここが解き直しの土台）
+ *   各タイプは rand() と build(p) の2つを持つ。
+ *     rand()  … 乱数でパラメータだけを作る（ここだけが乱数を使う）
+ *     build(p)… p だけから決定的に問題を組む（乱数を一切使わない）
+ *   question_params には {_type:タイプキー, ...p} をそのまま保存するので、
+ *   ?retry=1 では TYPES[p._type].build(p) で「まったく同じ問題」を再出題できる。
+ *   （型キーの名前は _type。t は「時間」「十の位」でタイプ側が使うので衝突させない）
+ *   → params_hash が一致し、2連続正解で mastered になる。
+ *   ⚠ build() の中で pick()/rnd() を呼ぶと解き直しで別の問題になるので禁止。
+ *   ⚠ 場面のことば(ITEM_SETS等)は index を params に入れている。並びを
+ *      入れかえると既存の解き直しキューの問題文が変わるので、足すときは末尾へ。
+ *
+ * question_key = STEPのキー（mix モードで解いたときだけ 'mix'）
+ * ===================================================================== */
+
+/* ---------- utils ---------- */
+function rnd(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ const t=a%b; a=b; b=t; } return a; }
+function lcm(a,b){ return Math.abs(a*b)/gcd(a,b); }
+function jn(v){ return String(v).replace(/-/g,'\u2212'); }   /* 日本語ラベル内のマイナス */
+function xt(a){ if(a===1) return 'x'; if(a===-1) return '-x'; return a+'x'; }
+function lin(a,b){                                            /* ax+b のLaTeX */
+  let s = a===0 ? '' : xt(a);
+  if(b!==0){ s += (b<0?'-':(s?'+':'')) + Math.abs(b); }
+  return s===''?'0':s;
+}
+function fr(n,d){ return '\dfrac{'+n+'}{'+d+'}'; }
+function conLin(b,a){                                         /* b+ax のLaTeX（定数を先に書く） */
+  let s=String(b);
+  if(a!==0) s += (a<0?'-':'+') + (Math.abs(a)===1?'':Math.abs(a)) + 'x';
+  return s;
+}
+function tex(el, latex, display){
+  if(window.katex){
+    try{ katex.render(latex, el, {displayMode:!!display, throwOnError:false}); return; }catch(e){}
+  }
+  el.textContent = latex
+    .replace(/\dfrac\{([^}]*)\}\{([^}]*)\}/g,'($1)/($2)')
+    .replace(/\times/g,'×');
+}
+
+/* ---------- 一次方程式を解く手順 ----------
+ * pre を済ませたあとの形 La x + Lb = Ra x + Rb を解く。
+ * 移項 →（係数が1でなければ）両辺をわる、の2段で出す。 */
+function solveSteps(La,Lb,Ra,Rb,sol,pre){
+  const steps=(pre||[]).slice();
+  const A=La-Ra, B=Rb-Lb;
+  if(Ra!==0||Lb!==0) steps.push({label:'文字を左辺、数を右辺へ移項', latex:xt(A)+'='+B});
+  if(A!==1) steps.push({label:'両辺を '+jn(A)+' でわる', latex:'x='+sol});
+  return steps;
+}
+
+/* ---------- 問題オブジェクトの組み立て ----------
+ * o = { text, setup, eq, pre, L:{a,b}, R:{a,b}, sol, answers,
+ *       distractors, hintNote, tailSteps, legend }
+ * L,R は pre（かっこを外す・分母をはらう等）を済ませた後の係数を渡す。 */
+function asm(o){
+  const steps=[{label:'x を決める', text:o.setup}];
+  steps.push({label:'方程式を立てる', latex:o.eq});
+  solveSteps(o.L.a,o.L.b,o.R.a,o.R.b,o.sol,o.pre).forEach(s=>steps.push(s));
+  (o.tailSteps||[]).forEach(s=>steps.push(s));
+  steps.push({label:'答え', text:o.answers.map(a=>a.label+' '+a.value+(a.unit||'')).join('、'), final:true});
+  const hints=[{tag:'ヒント1', text:o.setup},{tag:'方程式', latex:o.eq}];
+  if(o.hintNote) hints.push({tag:'ヒント3', text:o.hintNote});
+  return {
+    text:o.text, answers:o.answers, distractors:o.distractors||[],
+    hints, steps, legend:o.legend||null,
+    check:{L:o.L, R:o.R, sol:o.sol}          /* ?debug=1 の自己点検用 */
+  };
+}
+
+/* ---------- 場面のことば（paramsにはindexだけ入れる。足すときは末尾へ） ---------- */
+const ITEM_SETS=[
+  ['りんご','みかん','個'],
+  ['えんぴつ','ボールペン','本'],
+  ['パン','おにぎり','個'],
+  ['ドーナツ','クッキー','個'],
+  ['プリン','シュークリーム','個']
+];
+const SINGLE_SETS=[                      /* [まとめ買いする物, 単位, 1つだけ買う物] */
+  ['えんぴつ','本','ノート'],
+  ['ジュース','本','おにぎり'],
+  ['シュークリーム','個','ホールケーキ'],
+  ['ボールペン','本','ふでばこ'],
+  ['チョコ','個','クッキーのつめ合わせ']
+];
+const PRICE_ITEMS=[['ノート','冊'],['ボールペン','本'],['シュークリーム','個'],['マンガ','冊']];
+const DIST_ITEMS=[['あめ','個'],['えんぴつ','本'],['画用紙','枚'],['クッキー','個'],['シール','枚']];
+const WHOS=['子ども','生徒'];
+const RUNNERS=[['弟','兄'],['妹','姉'],['Aさん','Bさん']];
+const FAMILY=[['父','子ども'],['母','子ども'],['おじ','私']];
+const GOALS=[['家','駅'],['家','学校'],['家','図書館'],['家','公園']];
+const WARIAI_UP=[                        /* 増加の場面 [主語, 単位, 呼び名] */
+  ['ある中学校の全校生徒の数','人','生徒数'],
+  ['あるイベントの入場者数','人','入場者数'],
+  ['ある工場の製品の生産数','個','生産数']
+];
+const RATIOS=[[2,3],[3,4],[3,5],[4,5],[5,7],[2,5],[3,7],[1,2],[4,7],[5,8]];
+const SALE_ITEMS=['シャツ','くつ','かばん','うで時計','ゲームソフト'];
+
+/* 定価の◯%引き・原価の◯%増しを「小数の式」で書くための係数
+ *   pctLeft=80 → 0.8x（両辺×10で 8x） / 75 → 0.75x（両辺×100で 75x） */
+function pctFactor(pctLeft){
+  const mult = pctLeft%10===0 ? 10 : 100;
+  return { mult:mult, coef:pctLeft*mult/100, dec:String(pctLeft/100) };
+}
+
+/* =====================================================================
+ * 問題タイプ（rand: パラメータ生成 / build: パラメータから決定的に組み立て）
+ * ===================================================================== */
+const TYPES={
+
+/* ===== 数の問題 ===== */
+
+/* suu1: ある数 */
+suu1:{
+  rand(){
+    const v=rnd(0,3);
+    if(v===0) return {v:v, x:rnd(3,20), a:rnd(2,12), b:rnd(2,5)};
+    if(v===1){
+      const x=rnd(3,20), b=rnd(2,6);
+      return {v:v, x:x, b:b, a:rnd(2, Math.min(15, b*x-2))};
+    }
+    if(v===2) return {v:v, a:rnd(2,15), b:rnd(2,6), c:rnd(2,9)};
+    const x=rnd(3,15), k=rnd(2,5);
+    return {v:v, x:x, k:k, m:rnd(1,(k-1)*x-1)};
+  },
+  build(p){
+    if(p.v===0){
+      const x=p.x, c=p.b*(x+p.a);
+      return asm({
+        text:'ある数に <b>'+p.a+'</b> をたして <b>'+p.b+'倍</b>すると <b>'+c+'</b> になりました。ある数を求めなさい。',
+        setup:'ある数を x とする',
+        eq:p.b+'(x+'+p.a+')='+c,
+        pre:[{label:'かっこを外す', latex:lin(p.b,p.b*p.a)+'='+c}],
+        L:{a:p.b,b:p.b*p.a}, R:{a:0,b:c}, sol:x,
+        answers:[{label:'ある数', unit:'', value:x}],
+        hintNote:'かっこの外の '+p.b+' は、かっこの中の x と '+p.a+' の両方にかける'
+      });
+    }
+    if(p.v===1){
+      const x=p.x, c=p.b*x-p.a;
+      return asm({
+        text:'ある数を <b>'+p.b+'倍</b>して <b>'+p.a+'</b> をひくと <b>'+c+'</b> になりました。ある数を求めなさい。',
+        setup:'ある数を x とする',
+        eq:lin(p.b,-p.a)+'='+c,
+        L:{a:p.b,b:-p.a}, R:{a:0,b:c}, sol:x,
+        answers:[{label:'ある数', unit:'', value:x}],
+        hintNote:'「◯倍して△をひく」は '+p.b+'x'+jn('-')+p.a+' と書ける'
+      });
+    }
+    if(p.v===2){
+      const x=p.b*p.c+p.a;
+      return asm({
+        text:'ある数から <b>'+p.a+'</b> をひいて <b>'+p.b+'</b> でわると <b>'+p.c+'</b> になりました。ある数を求めなさい。',
+        setup:'ある数を x とする',
+        eq:fr('x-'+p.a,p.b)+'='+p.c,
+        pre:[{label:'両辺に '+p.b+' をかける（分母をはらう）', latex:lin(1,-p.a)+'='+(p.b*p.c)}],
+        L:{a:1,b:-p.a}, R:{a:0,b:p.b*p.c}, sol:x,
+        answers:[{label:'ある数', unit:'', value:x}],
+        hintNote:'「'+p.b+'でわる」は分母が '+p.b+' の分数で書く'
+      });
+    }
+    const x=p.x, n=(p.k-1)*x-p.m;
+    return asm({
+      text:'ある数の <b>'+p.k+'倍</b>から <b>'+p.m+'</b> をひいた数は、ある数に <b>'+n+'</b> をたした数と等しくなります。ある数を求めなさい。',
+      setup:'ある数を x とする',
+      eq:lin(p.k,-p.m)+'='+lin(1,n),
+      L:{a:p.k,b:-p.m}, R:{a:1,b:n}, sol:x,
+      answers:[{label:'ある数', unit:'', value:x}],
+      hintNote:'「等しくなります」が = になる。x が両辺にあるので移項する'
+    });
+  }
+},
+
+/* suu2: 連続する整数 */
+suu2:{
+  rand(){
+    const v=rnd(0,3);
+    if(v===1) return {v:v, n:2*rnd(4,20)};       /* 偶数 */
+    if(v===2) return {v:v, n:2*rnd(4,20)+1};     /* 奇数 */
+    if(v===3) return {v:v, n:rnd(4,30)};         /* 4つの整数 */
+    return {v:v, n:rnd(4,40)};
+  },
+  build(p){
+    let cnt=3, gap=1, word='整数';
+    if(p.v===1){ gap=2; word='偶数'; }
+    if(p.v===2){ gap=2; word='奇数'; }
+    if(p.v===3){ cnt=4; }
+    const vals=[]; for(let i=0;i<cnt;i++) vals.push(p.n+i*gap);
+    const S=vals.reduce((a,b)=>a+b,0);
+    const sumB=gap*cnt*(cnt-1)/2;
+    const listTex=vals.map((v,i)=> i===0?'x':'(x+'+(i*gap)+')').join('+');
+    const names=[];
+    for(let i=0;i<cnt;i++){
+      names.push(i===0 ? 'いちばん小さい'+word
+        : (i===cnt-1 ? 'いちばん大きい'+word
+        : (cnt===3 ? 'まん中の'+word : (i+1)+'番目の'+word)));
+    }
+    return asm({
+      text:'連続する <b>'+cnt+'つ</b>の'+word+'があります。その和は <b>'+S+'</b> です。この'+cnt+'つの'+word+'を求めなさい。',
+      setup:'いちばん小さい'+word+'を x とする（'+cnt+'つは '+vals.map((v,i)=>i===0?'x':'x+'+(i*gap)).join('、')+'）',
+      eq:listTex+'='+S,
+      pre:[{label:'左辺を整理する', latex:lin(cnt,sumB)+'='+S}],
+      L:{a:cnt,b:sumB}, R:{a:0,b:S}, sol:p.n,
+      answers:vals.map((v,i)=>({label:names[i], unit:'', value:v})),
+      distractors:[-3,-2,-1,1,2,3].map(d=>vals.map(v=>v+d*gap)),
+      legend:'（小さい順に '+cnt+'つ）',
+      hintNote:'連続する'+word+'は '+gap+' ずつ大きくなる'
+    });
+  }
+},
+
+/* suu3: 2けたの整数 */
+suu3:{
+  rand(){
+    const v=rnd(0,2);
+    if(v===2){ const k=rnd(2,4); return {v:v, k:k, o:rnd(1,Math.floor(9/k))}; }
+    let t,o;
+    do{ t=rnd(1,9); o=rnd(1,9); }while(t===o);
+    return {v:v, t:t, o:o};
+  },
+  build(p){
+    if(p.v===2){
+      const o=p.o, t=p.k*o, N=10*t+o, Rv=10*o+t, D=N-Rv;
+      return asm({
+        text:'2けたの自然数があります。十の位の数は一の位の数の <b>'+p.k+'倍</b>です。十の位の数と一の位の数を入れかえてできる数は、もとの数より <b>'+D+'</b> 小さくなります。もとの自然数を求めなさい。',
+        setup:'一の位の数を x とすると、十の位の数は '+p.k+'x（もとの数は 10×'+p.k+'x+x）',
+        eq:'10\\times '+p.k+'x+x=(10x+'+p.k+'x)+'+D,
+        pre:[{label:'両辺を整理する', latex:xt(10*p.k+1)+'='+lin(10+p.k,D)}],
+        L:{a:10*p.k+1,b:0}, R:{a:10+p.k,b:D}, sol:o,
+        answers:[{label:'もとの自然数', unit:'', value:N}],
+        distractors:[[Rv]],
+        tailSteps:[{label:'もとの数を求める', text:'一の位が '+o+'、十の位が '+t+' なので '+N}],
+        hintNote:'入れかえた数は 10x+'+p.k+'x と表せる'
+      });
+    }
+    const t=p.t, o=p.o, N=10*t+o, Rv=10*o+t;
+    const s=(t>o)?1:-1, D=Math.abs(9*(t-o)), dir=(t>o)?'小さく':'大きく';
+    if(p.v===0){
+      return asm({
+        text:'一の位の数が <b>'+o+'</b> である2けたの自然数があります。十の位の数と一の位の数を入れかえてできる数は、もとの数より <b>'+D+'</b> '+dir+'なります。もとの自然数を求めなさい。',
+        setup:'十の位の数を x とする（もとの数は 10x+'+o+'、入れかえた数は '+(10*o)+'+x）',
+        eq:'10x+'+o+'=('+(10*o)+'+x)'+(s>0?'+':'-')+D,
+        pre:[{label:'右辺を整理する', latex:lin(10,o)+'='+lin(1,10*o+s*D)}],
+        L:{a:10,b:o}, R:{a:1,b:10*o+s*D}, sol:t,
+        answers:[{label:'もとの自然数', unit:'', value:N}],
+        distractors:[[Rv]],
+        tailSteps:[{label:'もとの数を求める', text:'十の位が '+t+'、一の位が '+o+' なので '+N}],
+        hintNote:'2けたの数は「10×(十の位)+(一の位)」で表す'
+      });
+    }
+    const S=t+o;
+    return asm({
+      text:'2けたの自然数があります。各位の数の和は <b>'+S+'</b> で、十の位の数と一の位の数を入れかえてできる数は、もとの数より <b>'+D+'</b> '+dir+'なります。もとの自然数を求めなさい。',
+      setup:'十の位の数を x とすると、一の位の数は ('+S+'-x)（もとの数は 10x+('+S+'-x)）',
+      eq:'10x+('+S+'-x)=\\{10('+S+'-x)+x\\}'+(s>0?'+':'-')+D,
+      pre:[{label:'両辺のかっこを外して整理する', latex:lin(9,S)+'='+lin(-9,10*S+s*D)}],
+      L:{a:9,b:S}, R:{a:-9,b:10*S+s*D}, sol:t,
+      answers:[{label:'もとの自然数', unit:'', value:N}],
+      distractors:[[Rv]],
+      tailSteps:[{label:'もとの数を求める', text:'十の位が '+t+'、一の位が '+S+'-'+t+'='+o+' なので '+N}],
+      hintNote:'一の位を ('+S+'-x) とおけば、文字は x だけで表せる'
+    });
+  }
+},
+
+/* ===== 個数と代金 ===== */
+
+/* kaimono1: 合わせて◯個買う */
+kaimono1:{
+  rand(){
+    const pa=rnd(9,18)*10, pb=rnd(6,(pa/10)-1)*10;   /* pa>pb: x の係数を正にする */
+    return {s:rnd(0,ITEM_SETS.length-1), pa:pa, pb:pb, nx:rnd(2,9), ny:rnd(2,9)};
+  },
+  build(p){
+    const set=ITEM_SETS[p.s], A=set[0], B=set[1], u=set[2];
+    const N=p.nx+p.ny, T=p.pa*p.nx+p.pb*p.ny;
+    return asm({
+      text:'1'+u+' <b>'+p.pa+'円</b>の'+A+'と、1'+u+' <b>'+p.pb+'円</b>の'+B+'を、合わせて <b>'+N+u+'</b> 買ったところ、代金の合計は <b>'+T+'円</b>でした。'+A+'と'+B+'をそれぞれ何'+u+'買いましたか。',
+      setup:A+'を x '+u+' とすると、'+B+'は ('+N+'-x) '+u,
+      eq:p.pa+'x+'+p.pb+'('+N+'-x)='+T,
+      pre:[{label:'かっこを外す', latex:p.pa+'x+'+(p.pb*N)+'-'+p.pb+'x='+T},
+           {label:'左辺を整理する', latex:lin(p.pa-p.pb,p.pb*N)+'='+T}],
+      L:{a:p.pa-p.pb,b:p.pb*N}, R:{a:0,b:T}, sol:p.nx,
+      answers:[{label:A, unit:u, value:p.nx},{label:B, unit:u, value:p.ny}],
+      tailSteps:[{label:B+'の数', text:N+'−'+p.nx+'='+p.ny+u}],
+      hintNote:'合わせて '+N+u+' なので、一方が x なら他方は ('+N+'-x)'
+    });
+  }
+},
+
+/* kaimono2: おつり・所持金 */
+kaimono2:{
+  rand(){
+    const v=rnd(0,1);
+    if(v===0){
+      for(let i=0;i<300;i++){
+        const p1=rnd(5,15)*10, q=rnd(15,60)*10, nx=rnd(2,8);
+        const T=p1*nx+q;
+        const pay=[1000,2000,3000].filter(function(x){ return x>=T+50; })[0];
+        if(!pay) continue;
+        return {v:v, s:rnd(0,SINGLE_SETS.length-1), p1:p1, q:q, nx:nx, pay:pay};
+      }
+      return {v:0, s:0, p1:80, q:200, nx:5, pay:1000};
+    }
+    for(let i=0;i<300;i++){
+      const n1=rnd(4,8), n2=rnd(2,n1-1), price=rnd(8,25)*10, a=rnd(1,15)*10;
+      const b=(n1-n2)*price-a;
+      if(b<10||b>1200) continue;
+      if(n1*price-a<=0) continue;
+      return {v:v, it:rnd(0,PRICE_ITEMS.length-1), n1:n1, n2:n2, price:price, a:a};
+    }
+    return {v:1, it:0, n1:5, n2:3, price:150, a:100};
+  },
+  build(p){
+    if(p.v===0){
+      const set=SINGLE_SETS[p.s], A=set[0], u=set[1], B=set[2];
+      const T=p.p1*p.nx+p.q, c=p.pay-T;
+      return asm({
+        text:'1'+u+' <b>'+p.p1+'円</b>の'+A+'を何'+u+'かと、<b>'+p.q+'円</b>の'+B+'を1つ買って、<b>'+p.pay+'円</b>を出したところ、おつりは <b>'+c+'円</b>でした。'+A+'を何'+u+'買いましたか。',
+        setup:A+'を x '+u+' 買ったとする（代金 = '+p.pay+'-'+c+'='+T+'円）',
+        eq:lin(p.p1,p.q)+'='+p.pay+'-'+c,
+        pre:[{label:'右辺を計算する', latex:lin(p.p1,p.q)+'='+T}],
+        L:{a:p.p1,b:p.q}, R:{a:0,b:T}, sol:p.nx,
+        answers:[{label:A, unit:u, value:p.nx}],
+        hintNote:'おつりがあるので、まず代金を求める: '+p.pay+'−'+c+'='+T+'円'
+      });
+    }
+    const it=PRICE_ITEMS[p.it], item=it[0], u=it[1];
+    const b=(p.n1-p.n2)*p.price-p.a, money=p.n1*p.price-p.a;
+    return asm({
+      text:'同じ値段の'+item+'を <b>'+p.n1+u+'</b> 買うには、持っているお金では <b>'+p.a+'円</b> 足りません。<b>'+p.n2+u+'</b> 買うと <b>'+b+'円</b> 余ります。'+item+'1'+u+'の値段と、持っているお金をそれぞれ求めなさい。',
+      setup:item+'1'+u+'の値段を x 円とする（持っているお金を2通りの式で表す）',
+      eq:lin(p.n1,-p.a)+'='+lin(p.n2,b),
+      L:{a:p.n1,b:-p.a}, R:{a:p.n2,b:b}, sol:p.price,
+      answers:[{label:item+'1'+u, unit:'円', value:p.price},{label:'持っているお金', unit:'円', value:money}],
+      tailSteps:[{label:'持っているお金', text:p.n1+'×'+p.price+'−'+p.a+'='+money+'円'}],
+      hintNote:'持っているお金はどちらの式でも同じ →「'+p.n1+u+'分−'+p.a+'円」と「'+p.n2+u+'分+'+b+'円」を = で結ぶ'
+    });
+  }
+},
+
+/* kaimono3: ひねり問題 */
+kaimono3:{
+  rand(){
+    const v=rnd(0,2);
+    if(v===0){
+      let pa=rnd(6,18)*10, pb=rnd(6,18)*10;
+      while(pb===pa) pb=rnd(6,18)*10;
+      return {v:v, s:rnd(0,ITEM_SETS.length-1), pa:pa, pb:pb, nx:rnd(2,8), d:rnd(1,5)};
+    }
+    if(v===1){
+      let nx=rnd(2,8), ny=rnd(2,8);
+      while(ny===nx) ny=rnd(2,8);
+      return {v:v, s:rnd(0,ITEM_SETS.length-1), nx:nx, ny:ny, j:rnd(1,3)};
+    }
+    let pa=rnd(6,15)*10, pb=rnd(6,15)*10;
+    while(pb===pa) pb=rnd(6,15)*10;
+    return {v:v, s:rnd(0,ITEM_SETS.length-1), pa:pa, pb:pb, k:rnd(2,4), ny:rnd(2,6)};
+  },
+  build(p){
+    const set=ITEM_SETS[p.s], A=set[0], B=set[1], u=set[2];
+    if(p.v===0){
+      const nb=p.nx+p.d, T=p.pa*p.nx+p.pb*nb;
+      return asm({
+        text:'1'+u+' <b>'+p.pa+'円</b>の'+A+'と、1'+u+' <b>'+p.pb+'円</b>の'+B+'を買いました。'+B+'の数は'+A+'の数より <b>'+p.d+u+'</b> 多く、代金の合計は <b>'+T+'円</b>でした。'+A+'と'+B+'をそれぞれ何'+u+'買いましたか。',
+        setup:A+'を x '+u+' とすると、'+B+'は (x+'+p.d+') '+u,
+        eq:p.pa+'x+'+p.pb+'(x+'+p.d+')='+T,
+        pre:[{label:'かっこを外す', latex:p.pa+'x+'+p.pb+'x+'+(p.pb*p.d)+'='+T},
+             {label:'左辺を整理する', latex:lin(p.pa+p.pb,p.pb*p.d)+'='+T}],
+        L:{a:p.pa+p.pb,b:p.pb*p.d}, R:{a:0,b:T}, sol:p.nx,
+        answers:[{label:A, unit:u, value:p.nx},{label:B, unit:u, value:nb}],
+        tailSteps:[{label:B+'の数', text:p.nx+'+'+p.d+'='+nb+u}],
+        hintNote:'「'+p.d+u+'多い」は (x+'+p.d+') と書く'
+      });
+    }
+    if(p.v===1){
+      const pa=10*p.ny*p.j, pb=10*p.nx*p.j, N=p.nx+p.ny;
+      return asm({
+        text:'1'+u+' <b>'+pa+'円</b>の'+A+'と、1'+u+' <b>'+pb+'円</b>の'+B+'を、合わせて <b>'+N+u+'</b> 買ったところ、'+A+'の代金と'+B+'の代金がちょうど等しくなりました。'+A+'と'+B+'をそれぞれ何'+u+'買いましたか。',
+        setup:A+'を x '+u+' とすると、'+B+'は ('+N+'-x) '+u+'（2つの代金が等しい）',
+        eq:pa+'x='+pb+'('+N+'-x)',
+        pre:[{label:'かっこを外す', latex:xt(pa)+'='+lin(-pb,pb*N)}],
+        L:{a:pa,b:0}, R:{a:-pb,b:pb*N}, sol:p.nx,
+        answers:[{label:A, unit:u, value:p.nx},{label:B, unit:u, value:p.ny}],
+        tailSteps:[{label:B+'の数', text:N+'−'+p.nx+'='+p.ny+u}],
+        hintNote:'「代金が等しい」＝ '+A+'の代金 = '+B+'の代金 を = で結ぶ'
+      });
+    }
+    const na=p.k*p.ny, T=p.pa*na+p.pb*p.ny;
+    return asm({
+      text:'1'+u+' <b>'+p.pa+'円</b>の'+A+'と、1'+u+' <b>'+p.pb+'円</b>の'+B+'を買いました。'+A+'の数は'+B+'の数の <b>'+p.k+'倍</b>で、代金の合計は <b>'+T+'円</b>でした。'+A+'と'+B+'をそれぞれ何'+u+'買いましたか。',
+      setup:B+'を x '+u+' とすると、'+A+'は '+p.k+'x '+u,
+      eq:p.pa+'\\times '+p.k+'x+'+p.pb+'x='+T,
+      pre:[{label:'左辺を整理する', latex:xt(p.pa*p.k+p.pb)+'='+T}],
+      L:{a:p.pa*p.k+p.pb,b:0}, R:{a:0,b:T}, sol:p.ny,
+      answers:[{label:A, unit:u, value:na},{label:B, unit:u, value:p.ny}],
+      tailSteps:[{label:A+'の数', text:p.k+'×'+p.ny+'='+na+u}],
+      hintNote:'倍になっている方ではなく、もとになる方（'+B+'）を x にする'
+    });
+  }
+},
+
+/* ===== 過不足 ===== */
+
+/* kafusoku1: 余りと不足 */
+kafusoku1:{
+  rand(){
+    const n=rnd(5,15), a=rnd(2,5), c=a+rnd(1,3);
+    const maxB=(c-a)*n-1;
+    return {it:rnd(0,DIST_ITEMS.length-1), w:rnd(0,WHOS.length-1),
+            n:n, a:a, c:c, b:rnd(1,Math.min(12,maxB))};
+  },
+  build(p){
+    const di=DIST_ITEMS[p.it], item=di[0], u=di[1], who=WHOS[p.w];
+    const d=(p.c-p.a)*p.n-p.b, total=p.a*p.n+p.b;
+    return asm({
+      text:who+'に'+item+'を配ります。1人に <b>'+p.a+u+'</b>ずつ配ると <b>'+p.b+u+'</b> 余り、1人に <b>'+p.c+u+'</b>ずつ配ると <b>'+d+u+'</b> 足りません。'+who+'の人数と'+item+'の数をそれぞれ求めなさい。',
+      setup:who+'の人数を x 人とする（'+item+'の数を2通りの式で表す）',
+      eq:lin(p.a,p.b)+'='+lin(p.c,-d),
+      L:{a:p.a,b:p.b}, R:{a:p.c,b:-d}, sol:p.n,
+      answers:[{label:who+'の人数', unit:'人', value:p.n},{label:item+'の数', unit:u, value:total}],
+      tailSteps:[{label:item+'の数', text:p.a+'×'+p.n+'+'+p.b+'='+total+u}],
+      hintNote:item+'の数はどちらの配り方でも同じ →「余る式」と「足りない式」を = で結ぶ'
+    });
+  }
+},
+
+/* kafusoku2: 余りどうし・不足どうし */
+kafusoku2:{
+  rand(){
+    const mode=rnd(0,1), n=rnd(6,15), a=rnd(2,4), g=rnd(1,2);
+    if(mode===0) return {it:rnd(0,DIST_ITEMS.length-1), w:rnd(0,WHOS.length-1),
+                         mode:mode, n:n, a:a, g:g, b2:rnd(1,8)};
+    return {it:rnd(0,DIST_ITEMS.length-1), w:rnd(0,WHOS.length-1),
+            mode:mode, n:n, a:a, g:g, d1:rnd(1,8)};
+  },
+  build(p){
+    const di=DIST_ITEMS[p.it], item=di[0], u=di[1], who=WHOS[p.w];
+    const c=p.a+p.g;
+    if(p.mode===0){
+      const b1=p.b2+p.g*p.n, total=p.a*p.n+b1;
+      return asm({
+        text:who+'に'+item+'を配ります。1人に <b>'+p.a+u+'</b>ずつ配ると <b>'+b1+u+'</b> 余り、1人に <b>'+c+u+'</b>ずつ配ると <b>'+p.b2+u+'</b> 余ります。'+who+'の人数と'+item+'の数をそれぞれ求めなさい。',
+        setup:who+'の人数を x 人とする（'+item+'の数を2通りの式で表す）',
+        eq:lin(p.a,b1)+'='+lin(c,p.b2),
+        L:{a:p.a,b:b1}, R:{a:c,b:p.b2}, sol:p.n,
+        answers:[{label:who+'の人数', unit:'人', value:p.n},{label:item+'の数', unit:u, value:total}],
+        tailSteps:[{label:item+'の数', text:p.a+'×'+p.n+'+'+b1+'='+total+u}],
+        hintNote:'どちらも「余り」なので、どちらの式も +（余り）で書く'
+      });
+    }
+    const d2=p.d1+p.g*p.n, total=p.a*p.n-p.d1;
+    return asm({
+      text:who+'に'+item+'を配ります。1人に <b>'+p.a+u+'</b>ずつ配ると <b>'+p.d1+u+'</b> 足りず、1人に <b>'+c+u+'</b>ずつ配ると <b>'+d2+u+'</b> 足りません。'+who+'の人数と'+item+'の数をそれぞれ求めなさい。',
+      setup:who+'の人数を x 人とする（'+item+'の数を2通りの式で表す）',
+      eq:lin(p.a,-p.d1)+'='+lin(c,-d2),
+      L:{a:p.a,b:-p.d1}, R:{a:c,b:-d2}, sol:p.n,
+      answers:[{label:who+'の人数', unit:'人', value:p.n},{label:item+'の数', unit:u, value:total}],
+      tailSteps:[{label:item+'の数', text:p.a+'×'+p.n+'−'+p.d1+'='+total+u}],
+      hintNote:'どちらも「足りない」なので、どちらの式も −（不足）で書く'
+    });
+  }
+},
+
+/* kafusoku3: 長いす・人数が増える */
+kafusoku3:{
+  rand(){
+    const v=rnd(0,1);
+    if(v===0){
+      for(let i=0;i<400;i++){
+        const n=rnd(5,15), a=rnd(3,5), c=a+rnd(1,2), e=rnd(1,3);
+        if(n-e<2) continue;
+        const b=c*(n-e)-a*n;
+        if(b<1||b>15) continue;
+        return {v:v, n:n, a:a, c:c, e:e};
+      }
+      return {v:0, n:8, a:4, c:5, e:1};
+    }
+    for(let i=0;i<400;i++){
+      const a=rnd(3,5), c=a-1, n=rnd(4,12), d=rnd(2,8);
+      const b=c*d-n;
+      if(b<1||b>15) continue;
+      return {v:v, it:rnd(0,DIST_ITEMS.length-1), w:rnd(0,WHOS.length-1),
+              n:n, a:a, d:d};
+    }
+    return {v:1, it:0, w:0, n:4, a:3, d:3};
+  },
+  build(p){
+    if(p.v===0){
+      const b=p.c*(p.n-p.e)-p.a*p.n, y=p.a*p.n+b;
+      return asm({
+        text:'生徒が長いすに座ります。1脚に <b>'+p.a+'人</b>ずつ座ると <b>'+b+'人</b>が座れません。1脚に <b>'+p.c+'人</b>ずつ座ると、長いすはちょうど <b>'+p.e+'脚</b>余ります。長いすの数と生徒の人数をそれぞれ求めなさい。',
+        setup:'長いすの数を x 脚とする（生徒の人数を2通りの式で表す。'+p.e+'脚余るので、使ったいすは (x-'+p.e+') 脚）',
+        eq:lin(p.a,b)+'='+p.c+'(x-'+p.e+')',
+        pre:[{label:'かっこを外す', latex:lin(p.a,b)+'='+lin(p.c,-p.c*p.e)}],
+        L:{a:p.a,b:b}, R:{a:p.c,b:-p.c*p.e}, sol:p.n,
+        answers:[{label:'長いすの数', unit:'脚', value:p.n},{label:'生徒の人数', unit:'人', value:y}],
+        tailSteps:[{label:'生徒の人数', text:p.a+'×'+p.n+'+'+b+'='+y+'人'}],
+        hintNote:'「'+p.e+'脚余る」＝ 使ったいすは (x-'+p.e+') 脚。そこに '+p.c+'人ずつ座る'
+      });
+    }
+    const di=DIST_ITEMS[p.it], item=di[0], u=di[1], who=WHOS[p.w];
+    const c=p.a-1, b=c*p.d-p.n, y=p.a*p.n+b;
+    return asm({
+      text:who+'に'+item+'を配ります。1人に <b>'+p.a+u+'</b>ずつ配ると <b>'+b+u+'</b> 余る予定でした。ところが'+who+'が予定より <b>'+p.d+'人</b> 多く来たので、1人に <b>'+c+u+'</b>ずつ配ったところ、ちょうど配りきれました。予定していた'+who+'の人数と'+item+'の数をそれぞれ求めなさい。',
+      setup:'予定していた'+who+'の人数を x 人とする（実際の人数は (x+'+p.d+') 人）',
+      eq:lin(p.a,b)+'='+c+'(x+'+p.d+')',
+      pre:[{label:'かっこを外す', latex:lin(p.a,b)+'='+lin(c,c*p.d)}],
+      L:{a:p.a,b:b}, R:{a:c,b:c*p.d}, sol:p.n,
+      answers:[{label:'予定の人数', unit:'人', value:p.n},{label:item+'の数', unit:u, value:y}],
+      tailSteps:[{label:item+'の数', text:p.a+'×'+p.n+'+'+b+'='+y+u}],
+      hintNote:'「ちょうど配りきれた」＝ 余りも不足もないので '+c+'(x+'+p.d+') とだけ書く'
+    });
+  }
+},
+
+/* ===== 速さ ===== */
+
+/* hayasa1: 追いつく */
+hayasa1:{
+  rand(){
+    for(let i=0;i<600;i++){
+      const va=pick([50,60,70,80,90]), dv=pick([20,30,40,50,60,90]);
+      const vb=va+dv;
+      if(vb>240) continue;
+      const t=rnd(3,15);
+      if((va*t)%dv!==0) continue;
+      const x=va*t/dv;
+      if(x<2||x>20) continue;
+      if(vb*x>2400) continue;          /* 追いつく地点が遠すぎる問題を捨てる */
+      return {r:rnd(0,RUNNERS.length-1), g:rnd(0,GOALS.length-1), va:va, vb:vb, t:t};
+    }
+    return {r:0, g:0, va:60, vb:90, t:6};
+  },
+  build(p){
+    const ru=RUNNERS[p.r], younger=ru[0], older=ru[1];
+    const gl=GOALS[p.g], from=gl[0], to=gl[1];
+    const x=p.va*p.t/(p.vb-p.va), dist=p.vb*x;
+    return asm({
+      text:younger+'が'+from+'を出発して、分速 <b>'+p.va+'m</b> で'+to+'に向かいました。その <b>'+p.t+'分後</b>に'+older+'が'+from+'を出発し、分速 <b>'+p.vb+'m</b> で同じ道を追いかけました。'+older+'は出発してから何分後に'+younger+'に追いつきますか。また、それは'+from+'から何mの地点ですか。',
+      setup:older+'が出発してから x 分後に追いつくとする（2人が進んだ道のりが等しい）',
+      eq:xt(p.vb)+'='+p.va+'(x+'+p.t+')',
+      pre:[{label:'かっこを外す', latex:xt(p.vb)+'='+lin(p.va,p.va*p.t)}],
+      L:{a:p.vb,b:0}, R:{a:p.va,b:p.va*p.t}, sol:x,
+      answers:[{label:'追いつくまでの時間', unit:'分', value:x},{label:from+'からの道のり', unit:'m', value:dist}],
+      tailSteps:[{label:'道のりを求める', text:'分速'+p.vb+'m × '+x+'分 = '+dist+'m'}],
+      hintNote:younger+'は'+older+'より '+p.t+'分 長く歩いているので (x+'+p.t+') 分'
+    });
+  }
+},
+
+/* hayasa2: 出会う */
+hayasa2:{
+  rand(){
+    const v=rnd(0,1);
+    const va=pick([50,60,70,80]);
+    let vb=pick([50,60,70,80,90]);
+    while(vb===va) vb=pick([50,60,70,80,90]);
+    if(v===0) return {v:v, va:va, vb:vb, x:rnd(4,15)};
+    return {v:v, va:va, vb:vb, x:rnd(3,12), t:rnd(2,8)};
+  },
+  build(p){
+    if(p.v===0){
+      const L=(p.va+p.vb)*p.x;
+      return asm({
+        text:'<b>'+L+'m</b> はなれた2地点から、AさんとBさんが同時に向かい合って出発しました。Aさんは分速 <b>'+p.va+'m</b>、Bさんは分速 <b>'+p.vb+'m</b> で進みます。2人が出会うのは出発してから何分後ですか。また、それはAさんが出発した地点から何mの地点ですか。',
+        setup:'出発してから x 分後に出会うとする（2人が進んだ道のりの和が '+L+'m）',
+        eq:xt(p.va)+'+'+xt(p.vb)+'='+L,
+        pre:[{label:'左辺を整理する', latex:xt(p.va+p.vb)+'='+L}],
+        L:{a:p.va+p.vb,b:0}, R:{a:0,b:L}, sol:p.x,
+        answers:[{label:'出会うまでの時間', unit:'分', value:p.x},{label:'Aさんが進んだ道のり', unit:'m', value:p.va*p.x}],
+        tailSteps:[{label:'道のりを求める', text:'分速'+p.va+'m × '+p.x+'分 = '+(p.va*p.x)+'m'}],
+        hintNote:'向かい合って進むときは、2人の進んだ道のりの和が2地点の間の道のりになる'
+      });
+    }
+    const L=p.va*(p.x+p.t)+p.vb*p.x;
+    return asm({
+      text:'AさんはP地点を出発して、分速 <b>'+p.va+'m</b> でQ地点に向かいました。その <b>'+p.t+'分後</b>に、BさんがQ地点を出発して分速 <b>'+p.vb+'m</b> でP地点に向かいました。PQ間の道のりは <b>'+L+'m</b> です。BさんはQ地点を出発してから何分後にAさんと出会いますか。',
+      setup:'Bさんが出発してから x 分後に出会うとする（Aさんは (x+'+p.t+') 分歩いている）',
+      eq:p.va+'(x+'+p.t+')+'+xt(p.vb)+'='+L,
+      pre:[{label:'かっこを外す', latex:xt(p.va)+'+'+(p.va*p.t)+'+'+xt(p.vb)+'='+L},
+           {label:'左辺を整理する', latex:lin(p.va+p.vb,p.va*p.t)+'='+L}],
+      L:{a:p.va+p.vb,b:p.va*p.t}, R:{a:0,b:L}, sol:p.x,
+      answers:[{label:'Bが出発してから', unit:'分後', value:p.x}],
+      hintNote:'先に出発したAさんの歩いた時間は (x+'+p.t+') 分。2人の道のりの和が '+L+'m'
+    });
+  }
+},
+
+/* hayasa3: 往復・分数の式 */
+hayasa3:{
+  rand(){
+    const v=rnd(0,2);
+    if(v===1){
+      /* 時速km版。往復の時間が10時間以内・道のりが40km以内になる範囲で倍率を決める */
+      const pr=pick([[3,6],[4,6],[4,12],[5,10],[3,5],[6,10],[10,15]]);
+      const Lm=lcm(pr[0],pr[1]), per=Lm/pr[0]+Lm/pr[1];
+      const kmax=Math.max(1,Math.min(Math.floor(10/per),Math.floor(40/Lm)));
+      return {v:v, a:pr[0], b:pr[1], k:rnd(1,kmax)};
+    }
+    /* 分速m版。道のりが2000m以内・時間(または時間差)が現実的な範囲に収まる倍率 */
+    const pr=pick([[60,90],[50,100],[60,120],[40,60],[50,150],[80,120],[60,80]]);
+    const Lm=lcm(pr[0],pr[1]), per=Lm/pr[0]+Lm/pr[1];
+    const kmax=Math.max(2,Math.min(Math.floor(60/per),Math.floor(2000/Lm)));
+    return {v:v, va:pr[0], vb:pr[1], k:rnd(2,kmax)};
+  },
+  build(p){
+    if(p.v===1){
+      const Lm=lcm(p.a,p.b), dist=Lm*p.k, T=dist/p.a+dist/p.b;
+      return asm({
+        text:'A町からB町までを往復しました。行きは時速 <b>'+p.a+'km</b>、帰りは時速 <b>'+p.b+'km</b> で進んだところ、往復で <b>'+T+'時間</b>かかりました。A町からB町までの道のりは何kmですか。',
+        setup:'A町からB町までの道のりを x km とする（行きの時間 + 帰りの時間 = '+T+'時間）',
+        eq:fr('x',p.a)+'+'+fr('x',p.b)+'='+T,
+        pre:[{label:'両辺に '+Lm+' をかける（分母をはらう）', latex:xt(Lm/p.a)+'+'+xt(Lm/p.b)+'='+(T*Lm)},
+             {label:'左辺を整理する', latex:xt(Lm/p.a+Lm/p.b)+'='+(T*Lm)}],
+        L:{a:Lm/p.a+Lm/p.b,b:0}, R:{a:0,b:T*Lm}, sol:dist,
+        answers:[{label:'A町からB町までの道のり', unit:'km', value:dist}],
+        hintNote:'時間 = 道のり ÷ 速さ。行きは x÷'+p.a+'、帰りは x÷'+p.b
+      });
+    }
+    const Lm=lcm(p.va,p.vb), dist=Lm*p.k;
+    if(p.v===0){
+      const T=dist/p.va+dist/p.vb;
+      return asm({
+        text:'家から駅までを往復しました。行きは分速 <b>'+p.va+'m</b>、帰りは分速 <b>'+p.vb+'m</b> で進んだところ、往復で <b>'+T+'分</b>かかりました。家から駅までの道のりは何mですか。',
+        setup:'家から駅までの道のりを x m とする（行きの時間 + 帰りの時間 = '+T+'分）',
+        eq:fr('x',p.va)+'+'+fr('x',p.vb)+'='+T,
+        pre:[{label:'両辺に '+Lm+' をかける（分母をはらう）', latex:xt(Lm/p.va)+'+'+xt(Lm/p.vb)+'='+(T*Lm)},
+             {label:'左辺を整理する', latex:xt(Lm/p.va+Lm/p.vb)+'='+(T*Lm)}],
+        L:{a:Lm/p.va+Lm/p.vb,b:0}, R:{a:0,b:T*Lm}, sol:dist,
+        answers:[{label:'家から駅までの道のり', unit:'m', value:dist}],
+        hintNote:'時間 = 道のり ÷ 速さ。行きは x÷'+p.va+'、帰りは x÷'+p.vb
+      });
+    }
+    const slow=Math.min(p.va,p.vb), fast=Math.max(p.va,p.vb);
+    const d=dist/slow-dist/fast;
+    return asm({
+      text:'家から図書館まで行くのに、分速 <b>'+slow+'m</b> で歩くと、分速 <b>'+fast+'m</b> で歩くよりも <b>'+d+'分</b> 多くかかります。家から図書館までの道のりは何mですか。',
+      setup:'家から図書館までの道のりを x m とする（おそいときの時間 = 速いときの時間 + '+d+'分）',
+      eq:fr('x',slow)+'='+fr('x',fast)+'+'+d,
+      pre:[{label:'両辺に '+Lm+' をかける（分母をはらう）', latex:xt(Lm/slow)+'='+lin(Lm/fast,d*Lm)}],
+      L:{a:Lm/slow,b:0}, R:{a:Lm/fast,b:d*Lm}, sol:dist,
+      answers:[{label:'家から図書館までの道のり', unit:'m', value:dist}],
+      hintNote:'おそいほうが時間が長い → おそい時間 = 速い時間 + '+d+'分'
+    });
+  }
+},
+
+/* ===== 年齢と平均 ===== */
+
+/* nenrei1: 年齢 */
+nenrei1:{
+  rand(){
+    const v=rnd(0,2), f=rnd(0,FAMILY.length-1);
+    if(v===0){
+      for(let i=0;i<400;i++){
+        const k=rnd(2,4), C=rnd(6,14), x=rnd(2,20), F=k*(C+x)-x;
+        if(F<28||F>58||F<=C) continue;
+        return {v:v, f:f, k:k, C:C, x:x};
+      }
+      return {v:0, f:f, k:2, C:10, x:8};
+    }
+    if(v===1){
+      for(let i=0;i<400;i++){
+        const k=rnd(2,5), x=rnd(2,10), Cm=rnd(2,12), C=Cm+x, F=k*Cm+x;
+        if(F<28||F>60||F<=C) continue;
+        return {v:v, f:f, k:k, x:x, C:C};
+      }
+      return {v:1, f:f, k:3, x:4, C:12};
+    }
+    for(let i=0;i<400;i++){
+      const k=rnd(2,4), t=rnd(2,12), C=rnd(5,15), F=k*(C+t)-t;
+      if(F<28||F>58||F<=C) continue;
+      return {v:v, f:f, k:k, t:t, C:C};
+    }
+    return {v:2, f:f, k:2, t:4, C:12};
+  },
+  build(p){
+    const fm=FAMILY[p.f], dad=fm[0], kid=fm[1];
+    if(p.v===0){
+      const F=p.k*(p.C+p.x)-p.x;
+      return asm({
+        text:'いま、'+dad+'は <b>'+F+'歳</b>、'+kid+'は <b>'+p.C+'歳</b>です。'+dad+'の年齢が'+kid+'の年齢の <b>'+p.k+'倍</b>になるのは、いまから何年後ですか。',
+        setup:'いまから x 年後とする（x 年後は'+dad+'が ('+F+'+x) 歳、'+kid+'が ('+p.C+'+x) 歳）',
+        eq:conLin(F,1)+'='+p.k+'('+p.C+'+x)',
+        pre:[{label:'かっこを外す', latex:conLin(F,1)+'='+conLin(p.k*p.C,p.k)}],
+        L:{a:1,b:F}, R:{a:p.k,b:p.k*p.C}, sol:p.x,
+        answers:[{label:'いまから', unit:'年後', value:p.x}],
+        hintNote:'2人とも同じだけ年をとる。x 年後の年齢を両方 x で表す'
+      });
+    }
+    if(p.v===1){
+      const F=p.k*(p.C-p.x)+p.x;
+      return asm({
+        text:'いま、'+dad+'は <b>'+F+'歳</b>、'+kid+'は <b>'+p.C+'歳</b>です。'+dad+'の年齢が'+kid+'の年齢の <b>'+p.k+'倍</b>だったのは、いまから何年前ですか。',
+        setup:'いまから x 年前とする（x 年前は'+dad+'が ('+F+'-x) 歳、'+kid+'が ('+p.C+'-x) 歳）',
+        eq:conLin(F,-1)+'='+p.k+'('+p.C+'-x)',
+        pre:[{label:'かっこを外す', latex:conLin(F,-1)+'='+conLin(p.k*p.C,-p.k)}],
+        L:{a:-1,b:F}, R:{a:-p.k,b:p.k*p.C}, sol:p.x,
+        answers:[{label:'いまから', unit:'年前', value:p.x}],
+        hintNote:'「何年前」なので、年齢は x をひいて表す'
+      });
+    }
+    const F=p.k*(p.C+p.t)-p.t;
+    return asm({
+      text:'いま、'+dad+'は <b>'+F+'歳</b>です。<b>'+p.t+'年後</b>に、'+dad+'の年齢が'+kid+'の年齢の <b>'+p.k+'倍</b>になります。いまの'+kid+'の年齢を求めなさい。',
+      setup:'いまの'+kid+'の年齢を x 歳とする（'+p.t+'年後は'+dad+'が '+(F+p.t)+' 歳、'+kid+'が (x+'+p.t+') 歳）',
+      eq:p.k+'(x+'+p.t+')='+(F+p.t),
+      pre:[{label:'かっこを外す', latex:lin(p.k,p.k*p.t)+'='+(F+p.t)}],
+      L:{a:p.k,b:p.k*p.t}, R:{a:0,b:F+p.t}, sol:p.C,
+      answers:[{label:'いまの'+kid+'の年齢', unit:'歳', value:p.C}],
+      hintNote:p.t+'年後の'+dad+'の年齢は '+F+'+'+p.t+'='+(F+p.t)+' 歳'
+    });
+  }
+},
+
+/* nenrei2: 平均 */
+nenrei2:{
+  rand(){
+    const v=rnd(0,1);
+    if(v===0){
+      for(let i=0;i<400;i++){
+        const n=rnd(3,5), a=rnd(60,85), b=a+rnd(1,5);
+        const x=b*(n+1)-a*n;
+        if(x<=0||x>100) continue;
+        return {v:v, n:n, a:a, b:b};
+      }
+      return {v:0, n:4, a:72, b:75};
+    }
+    for(let i=0;i<600;i++){
+      const n=rnd(20,40), m=rnd(8,n-8), pv=rnd(50,95), x=rnd(50,95);
+      if(Math.abs(pv-x)>20||pv===x) continue;      /* 男女の平均が離れすぎ／同じは捨てる */
+      const tot=m*pv+(n-m)*x;
+      if(tot%n!==0) continue;
+      const avg=tot/n;
+      if(avg<40||avg>95) continue;
+      return {v:v, n:n, m:m, p:pv, x:x};
+    }
+    return {v:1, n:30, m:12, p:70, x:80};
+  },
+  build(p){
+    if(p.v===0){
+      const x=p.b*(p.n+1)-p.a*p.n;
+      return asm({
+        text:'これまでに <b>'+p.n+'回</b>のテストを受け、平均点は <b>'+p.a+'点</b>でした。次のテストで平均点を <b>'+p.b+'点</b>にするには、次のテストで何点をとればよいですか。',
+        setup:'次のテストの点数を x 点とする（(これまでの合計 + x) ÷ '+(p.n+1)+' = '+p.b+'）',
+        eq:fr(p.a+'\\times '+p.n+'+x',p.n+1)+'='+p.b,
+        pre:[{label:'両辺に '+(p.n+1)+' をかける（分母をはらう）', latex:conLin(p.a*p.n,1)+'='+(p.b*(p.n+1))}],
+        L:{a:1,b:p.a*p.n}, R:{a:0,b:p.b*(p.n+1)}, sol:x,
+        answers:[{label:'次のテストの点数', unit:'点', value:x}],
+        hintNote:'平均点 = 合計点 ÷ 回数。これまでの合計は '+p.a+'×'+p.n+'='+(p.a*p.n)+'点'
+      });
+    }
+    const w=p.n-p.m, avg=(p.m*p.p+w*p.x)/p.n;
+    return asm({
+      text:'ある学級の <b>'+p.n+'人</b>のテストの平均点は <b>'+avg+'点</b>でした。このうち男子 <b>'+p.m+'人</b>の平均点は <b>'+p.p+'点</b>です。女子 <b>'+w+'人</b>の平均点は何点ですか。',
+      setup:'女子の平均点を x 点とする（男子の合計 + 女子の合計 = 学級全体の合計）',
+      eq:p.m+'\\times '+p.p+'+'+xt(w)+'='+p.n+'\\times '+avg,
+      pre:[{label:'両辺を計算する', latex:conLin(p.m*p.p,w)+'='+(p.n*avg)}],
+      L:{a:w,b:p.m*p.p}, R:{a:0,b:p.n*avg}, sol:p.x,
+      answers:[{label:'女子の平均点', unit:'点', value:p.x}],
+      hintNote:'合計点で式を立てる。全体の合計は '+p.n+'×'+avg+'='+(p.n*avg)+'点'
+    });
+  }
+},
+
+/* ===== 割合と食塩水 ===== */
+
+/* wariai1: 定価と割引 */
+wariai1:{
+  rand(){
+    const v=rnd(0,2), s=rnd(0,SALE_ITEMS.length-1);
+    if(v===0) return {v:v, s:s, teika:rnd(4,20)*100, p:pick([10,20,25,30,40])};
+    if(v===1) return {v:v, s:s, genka:rnd(4,20)*100, p:pick([10,20,25,30,50])};
+    for(let i=0;i<200;i++){
+      const teika=rnd(6,20)*100, pp=pick([10,20,25,30]);
+      const uri=teika*(100-pp)/100, b=rnd(1,8)*50;
+      if(b>=uri) continue;
+      return {v:v, s:s, teika:teika, p:pp, b:b};
+    }
+    return {v:2, s:s, teika:1000, p:20, b:200};
+  },
+  build(p){
+    const item=SALE_ITEMS[p.s];
+    if(p.v===0){
+      const f=pctFactor(100-p.p), Q=p.teika*(100-p.p)/100;
+      return asm({
+        text:'ある店で'+item+'を、定価の <b>'+p.p+'%引き</b>で売っていました。売り値は <b>'+Q+'円</b>です。この'+item+'の定価を求めなさい。',
+        setup:'定価を x 円とする（'+p.p+'%引き → 売り値は定価の '+f.dec+' 倍）',
+        eq:f.dec+'x='+Q,
+        pre:[{label:'両辺に '+f.mult+' をかける（小数をなくす）', latex:xt(f.coef)+'='+(Q*f.mult)}],
+        L:{a:f.coef,b:0}, R:{a:0,b:Q*f.mult}, sol:p.teika,
+        answers:[{label:'定価', unit:'円', value:p.teika}],
+        hintNote:p.p+'%引き = 定価の ('+(100-p.p)+'%) で売ること → '+f.dec+'x'
+      });
+    }
+    if(p.v===1){
+      const f=pctFactor(100+p.p), Q=p.genka*(100+p.p)/100;
+      return asm({
+        text:'ある'+item+'に、原価の <b>'+p.p+'%</b>の利益を見こんで定価をつけたところ、定価は <b>'+Q+'円</b>になりました。この'+item+'の原価を求めなさい。',
+        setup:'原価を x 円とする（定価は原価の '+f.dec+' 倍）',
+        eq:f.dec+'x='+Q,
+        pre:[{label:'両辺に '+f.mult+' をかける（小数をなくす）', latex:xt(f.coef)+'='+(Q*f.mult)}],
+        L:{a:f.coef,b:0}, R:{a:0,b:Q*f.mult}, sol:p.genka,
+        answers:[{label:'原価', unit:'円', value:p.genka}],
+        hintNote:'原価の '+p.p+'%の利益 → 定価 = 原価 ×(1+'+(p.p/100)+') = '+f.dec+'x'
+      });
+    }
+    const f=pctFactor(100-p.p);
+    const uri=p.teika*(100-p.p)/100, A=uri-p.b;
+    return asm({
+      text:'原価が <b>'+A+'円</b>の'+item+'に定価をつけ、定価の <b>'+p.p+'%引き</b>で売ったところ、<b>'+p.b+'円</b>の利益がありました。この'+item+'の定価を求めなさい。',
+      setup:'定価を x 円とする（売り値 − 原価 = 利益）',
+      eq:f.dec+'x-'+A+'='+p.b,
+      pre:[{label:'両辺に '+f.mult+' をかける（小数をなくす）', latex:lin(f.coef,-A*f.mult)+'='+(p.b*f.mult)}],
+      L:{a:f.coef,b:-A*f.mult}, R:{a:0,b:p.b*f.mult}, sol:p.teika,
+      answers:[{label:'定価', unit:'円', value:p.teika}],
+      hintNote:'売り値は '+f.dec+'x 円。そこから原価 '+A+'円 をひくと利益 '+p.b+'円'
+    });
+  }
+},
+
+/* wariai2: ◯%増・◯%減 */
+wariai2:{
+  rand(){
+    return {v:rnd(0,1), c:rnd(0,WARIAI_UP.length-1), p:pick([5,10,15,20,25]), last:rnd(10,40)*20};
+  },
+  build(p){
+    const ctx=WARIAI_UP[p.c], subj=ctx[0], u=ctx[1], nm=ctx[2];
+    const pctLeft=(p.v===0)?100+p.p:100-p.p;
+    const f=pctFactor(pctLeft), N=p.last*pctLeft/100;
+    const word=(p.v===0)?'増えて':'減って';
+    return asm({
+      text:subj+'は、今年は昨年より <b>'+p.p+'%</b> '+word+'、<b>'+N+u+'</b> になりました。昨年の'+nm+'を求めなさい。',
+      setup:'昨年の'+nm+'を x '+u+' とする（今年 = 昨年 × '+f.dec+'）',
+      eq:f.dec+'x='+N,
+      pre:[{label:'両辺に '+f.mult+' をかける（小数をなくす）', latex:xt(f.coef)+'='+(N*f.mult)}],
+      L:{a:f.coef,b:0}, R:{a:0,b:N*f.mult}, sol:p.last,
+      answers:[{label:'昨年の'+nm, unit:u, value:p.last}],
+      hintNote:(p.v===0)
+        ? p.p+'%増 → 昨年の (100+'+p.p+')% = '+f.dec+' 倍'
+        : p.p+'%減 → 昨年の (100−'+p.p+')% = '+f.dec+' 倍'
+    });
+  }
+},
+
+/* wariai3: 食塩水 */
+wariai3:{
+  rand(){
+    const v=rnd(0,2);
+    if(v===0){
+      const b=pick([2,4,5,10,20]);
+      const a=rnd(b+1, Math.min(25, 4*b));
+      return {v:v, a:a, b:b, W:100*rnd(2,6)};
+    }
+    if(v===1){
+      for(let i=0;i<800;i++){
+        const b=pick([12,15,20,25,30,40,50]);
+        const a=rnd(2,b-2), W=50*rnd(2,12);
+        const x=W*(b-a)/(100-b);
+        if(!Number.isInteger(x)||x<5||x>200) continue;
+        return {v:v, a:a, b:b, W:W};
+      }
+      return {v:1, a:8, b:20, W:100};
+    }
+    for(let i=0;i<800;i++){
+      const a=rnd(2,10), b=a+rnd(2,10), x1=50*rnd(1,8), x2=50*rnd(1,8);
+      const W=x1+x2, salt=a*x1+b*x2;
+      if(salt%W!==0) continue;
+      return {v:v, a:a, b:b, x1:x1, x2:x2};
+    }
+    return {v:2, a:4, b:10, x1:100, x2:200};
+  },
+  build(p){
+    if(p.v===0){
+      const x=p.W*(p.a-p.b)/p.b;
+      return asm({
+        text:'<b>'+p.a+'%</b>の食塩水が <b>'+p.W+'g</b> あります。これに水を何g加えると <b>'+p.b+'%</b>の食塩水になりますか。',
+        setup:'加える水を x g とする（水を加えても食塩の重さは変わらない）',
+        eq:fr(p.b,100)+'('+p.W+'+x)='+fr(p.a,100)+'\\times '+p.W,
+        pre:[{label:'両辺に 100 をかける', latex:p.b+'('+p.W+'+x)='+(p.a*p.W)},
+             {label:'かっこを外す', latex:lin(p.b,p.b*p.W)+'='+(p.a*p.W)}],
+        L:{a:p.b,b:p.b*p.W}, R:{a:0,b:p.a*p.W}, sol:x,
+        answers:[{label:'加える水', unit:'g', value:x}],
+        hintNote:'食塩の重さ = 食塩水の重さ × 濃度。もとの食塩は '+p.W+'×'+p.a+'÷100 で '+(p.a*p.W/100)+'g'
+      });
+    }
+    if(p.v===1){
+      const x=p.W*(p.b-p.a)/(100-p.b);
+      return asm({
+        text:'<b>'+p.a+'%</b>の食塩水が <b>'+p.W+'g</b> あります。これに食塩を何g加えると <b>'+p.b+'%</b>の食塩水になりますか。',
+        setup:'加える食塩を x g とする（食塩の重さ: もとの分 + x、全体の重さ: '+p.W+'+x）',
+        eq:fr(p.a,100)+'\\times '+p.W+'+x='+fr(p.b,100)+'('+p.W+'+x)',
+        pre:[{label:'両辺に 100 をかける', latex:conLin(p.a*p.W,100)+'='+p.b+'('+p.W+'+x)'},
+             {label:'かっこを外す', latex:conLin(p.a*p.W,100)+'='+conLin(p.b*p.W,p.b)}],
+        L:{a:100,b:p.a*p.W}, R:{a:p.b,b:p.b*p.W}, sol:x,
+        answers:[{label:'加える食塩', unit:'g', value:x}],
+        hintNote:'食塩を加えると、食塩の重さも全体の重さも増える（両方に x が入る）'
+      });
+    }
+    const W=p.x1+p.x2, c=(p.a*p.x1+p.b*p.x2)/W;
+    return asm({
+      text:'<b>'+p.a+'%</b>の食塩水と <b>'+p.b+'%</b>の食塩水を混ぜて、<b>'+c+'%</b>の食塩水を <b>'+W+'g</b> つくります。それぞれ何gずつ混ぜればよいですか。',
+      setup:p.a+'%の食塩水を x g とすると、'+p.b+'%の食塩水は ('+W+'-x) g（食塩の重さの和で式をつくる）',
+      eq:fr(p.a,100)+'x+'+fr(p.b,100)+'('+W+'-x)='+fr(c,100)+'\\times '+W,
+      pre:[{label:'両辺に 100 をかける', latex:p.a+'x+'+p.b+'('+W+'-x)='+(c*W)},
+           {label:'かっこを外して整理する', latex:lin(p.a-p.b,p.b*W)+'='+(c*W)}],
+      L:{a:p.a-p.b,b:p.b*W}, R:{a:0,b:c*W}, sol:p.x1,
+      answers:[{label:p.a+'%の食塩水', unit:'g', value:p.x1},{label:p.b+'%の食塩水', unit:'g', value:p.x2}],
+      tailSteps:[{label:p.b+'%の食塩水', text:W+'−'+p.x1+'='+p.x2+'g'}],
+      hintNote:'できあがる食塩水にふくまれる食塩の重さは '+W+'×'+c+'÷100 で求められる'
+    });
+  }
+},
+
+/* ===== 比例式 ===== */
+
+/* hirei1: 比例式で解く */
+hirei1:{
+  rand(){
+    const v=rnd(0,2);
+    if(v===0){
+      const a=rnd(2,6);
+      let c=rnd(3,15);
+      while(c===a) c=rnd(3,15);
+      return {v:v, a:a, up:rnd(12,60)*10, c:c};
+    }
+    if(v===1) return {v:v, n:rnd(3,10), up:rnd(3,12)*10, k:rnd(5,30)};
+    return {v:v, ri:rnd(0,RATIOS.length-1), k:rnd(3,6)};
+  },
+  build(p){
+    if(p.v===0){
+      const b=p.a*p.up, x=p.c*p.up;
+      return asm({
+        text:'<b>'+p.a+'kg</b> で <b>'+b+'円</b>のお米があります。このお米を <b>'+p.c+'kg</b> 買うと、代金はいくらになりますか。比例式をつくって求めなさい。',
+        setup:'代金を x 円とする（(重さ):(代金) の比が等しい）',
+        eq:p.a+':'+b+'='+p.c+':x',
+        pre:[{label:'外側の積と内側の積は等しい', latex:xt(p.a)+'='+(b*p.c)}],
+        L:{a:p.a,b:0}, R:{a:0,b:b*p.c}, sol:x,
+        answers:[{label:'代金', unit:'円', value:x}],
+        hintNote:'a:b=c:d のとき ad=bc（外側どうし・内側どうしの積が等しい）'
+      });
+    }
+    if(p.v===1){
+      const m=p.n*p.up, P=p.up*p.k;
+      return asm({
+        text:'<b>'+p.n+'本</b>で <b>'+m+'円</b>のえんぴつがあります。このえんぴつを <b>'+P+'円</b>分買うと、何本買えますか。比例式をつくって求めなさい。',
+        setup:'買える本数を x 本とする（(本数):(代金) の比が等しい）',
+        eq:p.n+':'+m+'=x:'+P,
+        pre:[{label:'外側の積と内側の積は等しい', latex:xt(m)+'='+(p.n*P)}],
+        L:{a:m,b:0}, R:{a:0,b:p.n*P}, sol:p.k,
+        answers:[{label:'買える本数', unit:'本', value:p.k}],
+        hintNote:'a:b=c:d のとき ad=bc。'+p.n+'×'+P+' と '+m+'×x が等しい'
+      });
+    }
+    const pr=RATIOS[p.ri];
+    const tate=Math.min(pr[0],pr[1]), yoko=Math.max(pr[0],pr[1]);
+    const c=tate*p.k, x=yoko*p.k;
+    return asm({
+      text:'縦 <b>'+tate+'cm</b>、横 <b>'+yoko+'cm</b> の写真があります。縦と横の長さの比を変えずに、縦が <b>'+c+'cm</b> になるように拡大します。横の長さは何cmになりますか。',
+      setup:'拡大した写真の横の長さを x cm とする（縦:横 の比が等しい）',
+      eq:tate+':'+yoko+'='+c+':x',
+      pre:[{label:'外側の積と内側の積は等しい', latex:xt(tate)+'='+(yoko*c)}],
+      L:{a:tate,b:0}, R:{a:0,b:yoko*c}, sol:x,
+      answers:[{label:'横の長さ', unit:'cm', value:x}],
+      hintNote:'もとの写真の 縦:横 = '+tate+':'+yoko+' は拡大しても変わらない'
+    });
+  }
+},
+
+/* hirei2: 比で分ける */
+hirei2:{
+  rand(){
+    return {v:rnd(0,1), ri:rnd(0,RATIOS.length-1), u:rnd(2,10)*100};
+  },
+  build(p){
+    const pr=RATIOS[p.ri];
+    if(p.v===0){
+      const a=pr[0], b=pr[1], T=(a+b)*p.u, xa=a*p.u, xb=b*p.u;
+      return asm({
+        text:'<b>'+T+'円</b>のお金を、AさんとBさんで <b>'+a+':'+b+'</b> に分けます。AさんとBさんの分は、それぞれいくらになりますか。',
+        setup:'Aさんの分を x 円とすると、Bさんの分は ('+T+'-x) 円',
+        eq:'x:('+T+'-x)='+a+':'+b,
+        pre:[{label:'外側の積と内側の積は等しい', latex:xt(b)+'='+a+'('+T+'-x)'},
+             {label:'かっこを外す', latex:xt(b)+'='+conLin(a*T,-a)}],
+        L:{a:b,b:0}, R:{a:-a,b:a*T}, sol:xa,
+        answers:[{label:'Aさん', unit:'円', value:xa},{label:'Bさん', unit:'円', value:xb}],
+        tailSteps:[{label:'Bさんの分', text:T+'−'+xa+'='+xb+'円'}],
+        hintNote:'Aさんの分が x なら、Bさんの分は ('+T+'-x)。この2つの比が '+a+':'+b
+      });
+    }
+    const a=Math.max(pr[0],pr[1]), b=Math.min(pr[0],pr[1]);
+    const A=a*p.u, B=b*p.u, d=(a-b)*p.u;
+    return asm({
+      text:'AさんとBさんの持っているお金の比は <b>'+a+':'+b+'</b> です。AさんはBさんより <b>'+d+'円</b> 多く持っています。2人の持っているお金は、それぞれいくらですか。',
+      setup:'Bさんの持っているお金を x 円とすると、Aさんは (x+'+d+') 円',
+      eq:'(x+'+d+'):x='+a+':'+b,
+      pre:[{label:'外側の積と内側の積は等しい', latex:b+'(x+'+d+')='+xt(a)},
+           {label:'かっこを外す', latex:lin(b,b*d)+'='+xt(a)}],
+      L:{a:b,b:b*d}, R:{a:a,b:0}, sol:B,
+      answers:[{label:'Aさん', unit:'円', value:A},{label:'Bさん', unit:'円', value:B}],
+      tailSteps:[{label:'Aさんの持っているお金', text:B+'+'+d+'='+A+'円'}],
+      hintNote:'少ないほう（Bさん）を x にすると、Aさんは (x+'+d+') と書ける'
+    });
+  }
+}
+
+};  /* ← TYPES ここまで */
+
+/* =====================================================================
+ * カテゴリ × STEP 定義（step.key = TYPES のキー = question_key）
+ * ===================================================================== */
+const CATS=[
+  {key:'suu', name:'数の問題', desc:'ある数・連続する整数', steps:[
+    {key:'suu1', name:'ある数', desc:'「ある数に3をたして2倍すると」型'},
+    {key:'suu2', name:'連続する整数', desc:'連続する3つ・4つの整数の和'},
+    {key:'suu3', name:'2けたの整数', desc:'十の位と一の位を入れかえる'}
+  ]},
+  {key:'kaimono', name:'個数と代金', desc:'買い物の問題', steps:[
+    {key:'kaimono1', name:'合わせて◯個', desc:'一方を x、他方を (N−x) で表す'},
+    {key:'kaimono2', name:'おつり・所持金', desc:'おつり／◯円足りない・余る'},
+    {key:'kaimono3', name:'ひねり問題', desc:'個数の差・代金が等しい・◯倍'}
+  ]},
+  {key:'kafusoku', name:'過不足', desc:'配ると余る・足りない', steps:[
+    {key:'kafusoku1', name:'余りと不足', desc:'◯個ずつだと余り、△個ずつだと足りない'},
+    {key:'kafusoku2', name:'余りどうし・不足どうし', desc:'どちらも余る／どちらも足りない'},
+    {key:'kafusoku3', name:'ひねり問題', desc:'長いす・人数が増える'}
+  ]},
+  {key:'hayasa', name:'速さ', desc:'追いつく・出会う・往復', steps:[
+    {key:'hayasa1', name:'追いつく', desc:'あとから出発して追いかける'},
+    {key:'hayasa2', name:'出会う', desc:'向かい合って進んで出会う'},
+    {key:'hayasa3', name:'往復（分数の式）', desc:'行きと帰りで速さがちがう'}
+  ]},
+  {key:'nenrei', name:'年齢と平均', desc:'何年後・平均点', steps:[
+    {key:'nenrei1', name:'年齢', desc:'何年後に◯倍になるか'},
+    {key:'nenrei2', name:'平均', desc:'平均点から合計点を考える'}
+  ]},
+  {key:'wariai', name:'割合と食塩水', desc:'%の問題', steps:[
+    {key:'wariai1', name:'定価と割引', desc:'◯%引き・◯%の利益'},
+    {key:'wariai2', name:'◯%増・◯%減', desc:'昨年と今年をくらべる'},
+    {key:'wariai3', name:'食塩水', desc:'水を加える・食塩を加える・混ぜる'}
+  ]},
+  {key:'hirei', name:'比例式', desc:'比を使って解く', steps:[
+    {key:'hirei1', name:'比例式で解く', desc:'a:b=c:x をつくって解く'},
+    {key:'hirei2', name:'比で分ける', desc:'合計を比に分ける・差から求める'}
+  ]},
+  {key:'mixcat', name:'総合ミックス', desc:'ぜんぶのパターンからランダム出題!', mix:true, steps:[
+    {key:'mix', name:'総合ミックス', desc:''}
+  ]}
+];
+const TYPE_ORDER=[];
+CATS.forEach(function(c){ if(!c.mix) c.steps.forEach(function(s){ TYPE_ORDER.push(s.key); }); });
+const QS_PER_SET=5;
+const MAX_RETRY=10;                 /* 解き直し1セットの上限 */
+
+/* key の問題を1問つくる（mix は実際のタイプを抽選する） */
+function genByKey(key){
+  const t = (key==='mix') ? pick(TYPE_ORDER) : key;
+  return makeQ(t, TYPES[t].rand());
+}
+/* パラメータから問題を組み、解き直し用に params を持たせる */
+function makeQ(typeKey, p){
+  const q=TYPES[typeKey].build(p);
+  q.key=typeKey;
+  q.qkey=typeKey;                                    /* question_key（mix時は後で上書き） */
+  q.params=Object.assign({_type:typeKey}, p);
+  return q;
+}
+
+/* ---------- 6択の選択肢生成 ---------- */
+function niceDelta(v){
+  if(v%100===0&&v>=300) return pick([50,100,100,200]);
+  if(v%50===0&&v>=100) return pick([50,50,100]);
+  if(v%10===0&&v>=30) return pick([10,10,20,30]);
+  return pick([1,1,2,2,3]);
+}
+function makeChoices(answers, extra){
+  const correct=answers.map(function(a){ return a.value; });
+  const n=correct.length;
+  const set=new Set([correct.join(',')]);
+  const wrongs=[];
+  function tryAdd(vals){
+    if(vals.length!==n) return false;
+    if(vals.some(function(v){ return !Number.isInteger(v)||v<=0; })) return false;
+    const k=vals.join(',');
+    if(set.has(k)) return false;
+    set.add(k); wrongs.push(vals); return true;
+  }
+  /* 問題固有の誤答肢（位の逆転・1つずらした連続整数など）を最優先で入れる */
+  (extra||[]).forEach(function(vals){ if(wrongs.length<5) tryAdd(vals); });
+  /* 入れ替え（典型ミス） */
+  if(n===2&&correct[0]!==correct[1]&&wrongs.length<5) tryAdd([correct[1],correct[0]]);
+  let guard=0;
+  while(wrongs.length<5&&guard++<300){
+    const mode=rnd(0,2);
+    let vals=correct.slice();
+    if(mode===0&&n===2){
+      const d=niceDelta(Math.min(correct[0],correct[1]));
+      const s=pick([1,-1]);
+      vals=[correct[0]+s*d, correct[1]-s*d];
+    }else if(mode===1){
+      const i=rnd(0,n-1);
+      vals[i]=vals[i]+pick([1,-1])*niceDelta(vals[i]);
+    }else{
+      vals=vals.map(function(v){ return v+pick([1,-1])*niceDelta(v); });
+    }
+    tryAdd(vals);
+  }
+  let k=0;
+  while(wrongs.length<5){ k++; tryAdd(correct.map(function(v,i){ return i===0 ? v+k : v; })); }
+  const choices=[{vals:correct, correct:true}]
+    .concat(wrongs.slice(0,5).map(function(v){ return {vals:v, correct:false}; }));
+  for(let i=choices.length-1;i>0;i--){
+    const j=rnd(0,i);
+    const tmp=choices[i]; choices[i]=choices[j]; choices[j]=tmp;
+  }
+  return choices;
+}
+
+/* ===== UI（ここから下はDOM操作。self-check はこの行より上だけを評価する） ===== */
+
+/* ---------- state / views ---------- */
+const RETRY_CAT={ key:'retrycat', name:'解き直し', desc:'まちがえた問題', retry:true, mix:true,
+                  steps:[{key:'retry', name:'解き直し', desc:''}] };
+let state={ cat:null, stepIdx:0, qIndex:0, results:[], cur:null, choices:[], judged:false, hintOpen:0, queue:null };
+const $=function(id){ return document.getElementById(id); };
+const views={ select:$('view-select'), steps:$('view-steps'), practice:$('view-practice'), result:$('view-result') };
+function show(name){
+  Object.keys(views).forEach(function(k){ views[k].hidden=(k!==name); });
+  window.scrollTo(0,0);
+}
+function stepObj(){ return state.cat.steps[state.stepIdx]; }
+function total(){ return state.queue ? state.queue.length : QS_PER_SET; }
+
+/* ---------- category select ---------- */
+function renderCats(){
+  const grid=$('catGrid'); grid.innerHTML='';
+  CATS.forEach(function(cat){
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='lv-card'+(cat.mix?' mix':'');
+    btn.innerHTML=
+      '<div class="lv-no">'+(cat.mix?'SPECIAL':'STEP 1〜'+cat.steps.length)+'</div>'+
+      '<div class="lv-name">'+cat.name+'</div>'+
+      '<div class="lv-desc">'+cat.desc+'</div>';
+    btn.addEventListener('click', function(){
+      if(cat.mix){ startStep(cat,0); } else { openCat(cat); }
+    });
+    grid.appendChild(btn);
+  });
+}
+
+/* ---------- step select ---------- */
+function openCat(cat){
+  state.cat=cat;
+  $('catTitle').textContent=cat.name;
+  $('catDesc').textContent=cat.desc;
+  const grid=$('stepGrid'); grid.innerHTML='';
+  cat.steps.forEach(function(s,i){
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='lv-card';
+    btn.innerHTML=
+      '<div class="lv-no">STEP '+(i+1)+'</div>'+
+      '<div class="lv-name">'+s.name+'</div>'+
+      '<div class="lv-desc">'+s.desc+'</div>';
+    btn.addEventListener('click', function(){ startStep(cat,i); });
+    grid.appendChild(btn);
+  });
+  show('steps');
+}
+
+/* ---------- practice ---------- */
+function startStep(cat,idx){
+  state={ cat:cat, stepIdx:idx, qIndex:0, results:[], cur:null, choices:[], judged:false, hintOpen:0, queue:null };
+  show('practice');
+  renderRetryBanner();
+  nextQuestion();
+}
+/* 解き直し（?retry=1）。pending の問題をそのまま1セットにして出す */
+function startRetrySet(queue){
+  state={ cat:RETRY_CAT, stepIdx:0, qIndex:0, results:[], cur:null, choices:[], judged:false, hintOpen:0, queue:queue };
+  show('practice');
+  renderRetryBanner();
+  nextQuestion();
+}
+function renderRetryBanner(){
+  const el=$('retryBanner');
+  if(!el) return;
+  el.innerHTML = state.queue
+    ? '<div class="retry-banner"><b>解き直しモード</b>　まちがえた問題を、そのまま出しています（'+state.queue.length+'問）。'
+      +'<span class="rb-sub">同じ問題を2回続けて正解すると、解き直しリストから消えます。</span></div>'
+    : '';
+}
+function renderDots(){
+  const box=$('dots'); box.innerHTML='';
+  const n=total();
+  for(let i=0;i<n;i++){
+    const d=document.createElement('div');
+    d.className='dot'+(i===state.qIndex?' now':'')+
+      (state.results[i]===true?' ok':'')+(state.results[i]===false?' ng':'');
+    box.appendChild(d);
+  }
+}
+function nextQuestion(){
+  if(state.queue){
+    state.cur=state.queue[state.qIndex];
+    $('qLabel').textContent='解き直し  ─  第'+(state.qIndex+1)+'問';
+  }else{
+    const st0=stepObj();
+    state.cur=genByKey(st0.key);
+    if(state.cat.mix) state.cur.qkey='mix';
+    const stepTag = state.cat.mix ? '' : ' STEP'+(state.stepIdx+1)+' '+st0.name;
+    $('qLabel').textContent=state.cat.name+stepTag+'  ─  第'+(state.qIndex+1)+'問';
+  }
+  state.judged=false;
+  state.hintOpen=0;
+  $('qText').innerHTML=state.cur.text;
+  $('hintList').innerHTML='';
+  const bh=$('btnHint');
+  bh.disabled=false;
+  bh.textContent='ヒントを見る (1/'+state.cur.hints.length+')';
+
+  const answers=state.cur.answers;
+  $('choiceLegend').textContent = state.cur.legend
+    || (answers.length>1 ? '（'+answers.map(function(a){ return a.label; }).join('、')+'）' : answers[0].label);
+  state.choices=makeChoices(answers, state.cur.distractors);
+  const grid=$('choiceGrid'); grid.innerHTML='';
+  state.choices.forEach(function(ch,i){
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='choice';
+    btn.textContent=ch.vals.map(function(v,j){ return v+(answers[j].unit||''); }).join('、');
+    btn.addEventListener('click', function(){ judge(i); });
+    grid.appendChild(btn);
+  });
+
+  $('btnNext').hidden=true;
+  $('btnShowSteps').hidden=true;
+  $('kaisetsu').hidden=true;
+  $('stepsArea').innerHTML='';
+  /* 前問の共通ハンコ（正解は自動で消えない）を次の問題の前に片づける */
+  document.querySelectorAll('.q-card .divp-hanko, .q-card .divp-nice').forEach(function(el){ el.remove(); });
+  renderDots();
+}
+
+function openHint(){
+  const hs=state.cur.hints;
+  if(state.hintOpen>=hs.length) return;
+  const h=hs[state.hintOpen];
+  const div=document.createElement('div'); div.className='hint-item';
+  const tag=document.createElement('span'); tag.className='h-tag';
+  tag.textContent=h.tag;
+  div.appendChild(tag);
+  if(h.latex){
+    const t=document.createElement('span'); t.className='h-tex';
+    div.appendChild(t);
+    $('hintList').appendChild(div);
+    tex(t, h.latex, false);
+  }else{
+    const t=document.createElement('span');
+    t.textContent=h.text;
+    div.appendChild(t);
+    $('hintList').appendChild(div);
+  }
+  state.hintOpen++;
+  const bh=$('btnHint');
+  if(state.hintOpen>=hs.length){
+    bh.disabled=true;
+    bh.textContent='ヒントはここまで';
+  }else{
+    bh.textContent='つぎのヒントを見る ('+(state.hintOpen+1)+'/'+hs.length+')';
+  }
+}
+
+function judge(idx){
+  if(state.judged) return;
+  state.judged=true;
+  const ok=state.choices[idx].correct;
+  state.results[state.qIndex]=ok;
+
+  /* ==== 学習記録（divp-core）。未ログイン・ローカル時は内部で黙ってスキップ ====
+   * question_params は {t:タイプキー,...} をそのまま送る。解き直しで再出題した
+   * 問題は保存時と同一の params を送り返すので params_hash が一致し、
+   * 2連続正解で mastered になる。 */
+  try{
+    if(window.Divp&&typeof window.Divp.answer==='function'){
+      window.Divp.answer(!!ok,{
+        question_key: state.cur.qkey || state.cur.key,
+        question_params: state.cur.params,
+        question_text: $('qText').textContent,
+        correct_answer: state.cur.answers.map(function(a){ return a.label+'='+a.value+(a.unit||''); }).join(', '),
+        wrong_answer: ok ? null : state.choices[idx].vals.join(', ')
+      });
+    }
+  }catch(e){}
+
+  const btns=$('choiceGrid').querySelectorAll('.choice');
+  btns.forEach(function(b,i){
+    b.disabled=true;
+    if(state.choices[i].correct) b.classList.add('sel-ok');
+    else if(i===idx) b.classList.add('sel-ng');
+    else b.classList.add('dim');
+  });
+
+  if(ok){
+    safeDivpCorrect('.q-card');
+    $('btnShowSteps').hidden=false;
+  }else{
+    safeDivpIncorrect('.q-card');
+    showSteps();
+  }
+  $('btnHint').disabled=true;
+  const last=state.qIndex===total()-1;
+  $('btnNext').textContent=last?'結果を見る →':'次の問題へ →';
+  $('btnNext').hidden=false;
+  $('btnNext').focus();
+  renderDots();
+}
+
+function showSteps(){
+  const area=$('stepsArea'); area.innerHTML='';
+  state.cur.steps.forEach(function(sp){
+    const row=document.createElement('div');
+    row.className='step'+(sp.final?' final':'');
+    const lab=document.createElement('span'); lab.className='slabel';
+    lab.textContent=sp.label||'';
+    row.appendChild(lab);
+    if(sp.latex){
+      const t=document.createElement('span'); t.className='stex';
+      row.appendChild(t);
+      area.appendChild(row);
+      tex(t, sp.latex, false);
+    }else{
+      const t=document.createElement('span'); t.className='stext';
+      t.textContent=sp.text;
+      row.appendChild(t);
+      area.appendChild(row);
+    }
+  });
+  $('kaisetsu').hidden=false;
+  $('btnShowSteps').hidden=true;
+}
+
+function next(){
+  if(state.qIndex===total()-1){ finishSet(); return; }
+  state.qIndex++;
+  nextQuestion();
+}
+
+/* ---------- result ---------- */
+function finishSet(){
+  const n=total();
+  const score=state.results.filter(function(v){ return v; }).length;
+  const perfect=score===n;
+  $('clearStampWrap').innerHTML=perfect?'<div class="clear-stamp">クリア!</div>':'';
+  $('scoreNum').textContent=score;
+  $('scoreTotal').textContent=n;
+  if(state.queue){
+    $('resultTitle').textContent='解き直し';
+    $('btnNextStep').hidden=true;
+    $('btnRetry').textContent='同じ問題をもう一度';
+    $('btnToSteps').textContent='種類の一覧へ';
+    $('resultMsg').textContent=perfect
+      ? '全問正解! 同じ問題をもう1回正解すると、解き直しリストから消えるよ。'
+      : 'まちがえた問題は「解き方」を見てから、もう一度チャレンジしよう。';
+    show('result');
+    return;
+  }
+  const st0=stepObj();
+  const stepTag = state.cat.mix ? '' : ' STEP'+(state.stepIdx+1)+' '+st0.name;
+  $('resultTitle').textContent=state.cat.name+stepTag;
+  const hasNext = !state.cat.mix && state.stepIdx < state.cat.steps.length-1;
+  $('btnNextStep').hidden = !(perfect && hasNext);
+  $('btnRetry').textContent='もう一度このSTEP';
+  $('btnToSteps').textContent = state.cat.mix ? '種類の一覧へ' : 'STEP一覧へ';
+  $('resultMsg').textContent=perfect
+    ? (hasNext ? '全問正解! つぎのSTEPにすすもう!' : '全問正解! この種類はぜんぶマスターしたね!')
+    : 'まちがえた問題は「x の決め方」と「方程式の立て方」からふり返って、もう一度チャレンジしよう。';
+  show('result');
+}
+
+/* ---------- 共通 正誤ハンコ（divp-correct-jh）。未読込・ローカル時は黙ってスキップ ---------- */
+function safeDivpCorrect(selector){
+  if(window.Divp&&typeof Divp.correct==='function'){
+    try{ Divp.correct(selector); }catch(e){}
+  }
+}
+function safeDivpIncorrect(selector){
+  if(window.Divp&&typeof Divp.incorrect==='function'){
+    try{ Divp.incorrect(selector); }catch(e){}
+  }
+}
+
+/* ---------- events ---------- */
+$('btnNext').addEventListener('click', next);
+$('btnHint').addEventListener('click', openHint);
+$('btnShowSteps').addEventListener('click', showSteps);
+$('btnBackToCats').addEventListener('click', function(){ renderCats(); show('select'); });
+$('btnBack').addEventListener('click', function(){
+  if(state.queue||!state.cat||state.cat.mix){ renderCats(); show('select'); }
+  else{ openCat(state.cat); }
+});
+$('btnRetry').addEventListener('click', function(){
+  if(state.queue){ startRetrySet(state.queue); }
+  else{ startStep(state.cat,state.stepIdx); }
+});
+$('btnNextStep').addEventListener('click', function(){ startStep(state.cat,state.stepIdx+1); });
+$('btnToSteps').addEventListener('click', function(){
+  if(!state.queue&&state.cat&&!state.cat.mix){ openCat(state.cat); }
+  else{ renderCats(); show('select'); }
+});
+
+/* ---------- print（選択中のSTEPからランダム5問／解き直し中はその問題） ---------- */
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function buildPrint(){
+  let stepTag, qs;
+  if(state.queue){
+    stepTag='解き直し';
+    qs=state.queue.slice();
+  }else{
+    const st0=stepObj();
+    stepTag = state.cat.mix ? '総合ミックス' : state.cat.name+' STEP'+(state.stepIdx+1)+' '+st0.name;
+    qs=[];
+    for(let i=0;i<QS_PER_SET;i++) qs.push(genByKey(st0.key));
+  }
+  const today=new Date();
+  const dateStr=today.getFullYear()+'年'+(today.getMonth()+1)+'月'+today.getDate()+'日';
+
+  let html='';
+  html+='<div class="ps-head">'
+    +'<div><div class="ps-title">方程式マスター 文章題編</div>'
+    +'<div class="ps-sub">'+esc(stepTag)+' ｜ '+dateStr+'</div></div>'
+    +'<div class="ps-name">名前<span class="line"></span></div>'
+    +'</div>';
+
+  qs.forEach(function(q,i){
+    const ansline=q.answers.map(function(a){
+      return esc(a.label)+' <span class="blank"></span> '+esc(a.unit||'');
+    }).join('　');
+    html+='<div class="p-item"><div class="p-row">'
+      +'<div class="p-no">'+(i+1)+'</div>'
+      +'<div class="p-body">'
+      +'<div class="p-text">'+q.text+'</div>'   /* q.textは自前生成の安全なHTML(<b>のみ) */
+      +'<div class="p-space"></div>'
+      +'<div class="p-ansline">答え: '+ansline+'</div>'
+      +'</div></div></div>';
+  });
+
+  html+='<div class="p-key"><span class="k-title">【答え】</span>'
+    +qs.map(function(q,i){
+      return (i+1)+'. '+esc(q.answers.map(function(a){ return a.label+' '+a.value+(a.unit||''); }).join('、'));
+    }).join('　 ')
+    +'</div>';
+
+  $('printSheet').innerHTML=html;
+  window.print();
+}
+$('btnPrint').addEventListener('click', buildPrint);
+
+/* ---------- 解き直しキュー（?retry=1 でマイページから遷移） ----------
+ * list_retries.php の pending から question_params を取り出し、
+ * TYPES[params._type].build(params) で保存時とまったく同じ問題を組み直す。
+ * question_key はサーバーの値をそのまま使う（mixで解いた問題は 'mix' のまま）。 */
+function setRetryNotice(html){
+  const el=$('retryNotice');
+  if(el) el.innerHTML=html;
+}
+function initRetry(){
+  if(!/[?&]retry=1/.test(location.search)) return;
+  const D=window.Divp;
+  if(!D||typeof D.getRetries!=='function') return;
+  setRetryNotice('<div class="retry-banner"><b>解き直し</b>　まちがえた問題を読み込んでいます…</div>');
+  D.getRetries().then(function(items){
+    const queue=[];
+    (items||[]).forEach(function(it){
+      const p=it.question_params;
+      const tk=p&&p._type;
+      if(!tk||!TYPES[tk]) return;                        /* 未知・旧形式は再出題できない */
+      try{
+        const q=TYPES[tk].build(p);
+        q.key=tk;
+        q.qkey=it.question_key;
+        q.params=p;                                     /* 保存時と同一のparamsを送り返す */
+        queue.push(q);
+      }catch(e){}
+    });
+    if(!queue.length){
+      setRetryNotice('<div class="retry-banner"><b>解き直し</b>　いま解き直せる問題はありません。'
+        +'<span class="rb-sub">下の種類から、ふつうに練習をはじめられます。</span></div>');
+      return;
+    }
+    setRetryNotice('');
+    startRetrySet(queue.slice(0,MAX_RETRY));
+  }).catch(function(){ setRetryNotice(''); });
+}
+
+/* ---------- 自己点検（?debug=1）----------
+ * 全タイプを何回も生成して「立てた方程式の解が答えと一致するか」を検算する。
+ * 問題を足したときは ?debug=1 を開いてコンソールにエラーが出ないことを確認する。 */
+function selfCheck(){
+  const errs=[];
+  TYPE_ORDER.forEach(function(key){
+    for(let i=0;i<300;i++){
+      let q;
+      try{ q=makeQ(key, TYPES[key].rand()); }
+      catch(e){ errs.push(key+': 生成で例外 '+e.message); break; }
+      const c=q.check, A=c.L.a-c.R.a, B=c.R.b-c.L.b;
+      if(A===0||B/A!==c.sol) errs.push(key+': 方程式の解が答えと不一致 A='+A+' B='+B+' sol='+c.sol);
+      if(q.answers.some(function(a){ return !Number.isInteger(a.value)||a.value<=0; })) errs.push(key+': 答えが正の整数でない');
+      if(/undefined|NaN/.test(q.text+JSON.stringify(q.steps))) errs.push(key+': 文中にundefined/NaN');
+      /* 同じparamsから2回組んで同じ問題になるか（解き直しの前提） */
+      const again=TYPES[key].build(q.params);
+      if(again.text!==q.text) errs.push(key+': buildが決定的でない');
+      if(errs.length>8) break;
+    }
+  });
+  if(errs.length){ console.error('[selfCheck] NG\n'+errs.slice(0,20).join('\n')); }
+  else{ console.log('[selfCheck] OK  全'+TYPE_ORDER.length+'タイプ × 300回'); }
+}
+
+/* ---------- init ---------- */
+renderCats();
+show('select');
+initRetry();
+if(/[?&]debug=1/.test(location.search)) selfCheck();
+</script>
+</body>
+</html>
