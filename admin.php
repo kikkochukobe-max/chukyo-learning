@@ -120,7 +120,7 @@ if ($role === 'super_admin') {
 <style>
   :root{
     --paper:#FBFAF6;--grid:#ECE9E0;--ink:#33312B;--ink-soft:#8B877C;
-    --shu:#C73E2E;--ai:#2C5F8A;--ai-soft:#E3ECF4;--kin:#C9A227;--kin-soft:#FBF3D9;--white:#fff;
+    --shu:#C73E2E;--ai:#2C5F8A;--ai-soft:#E3ECF4;--kin:#C9A227;--dai:#D89A45;--kin-soft:#FBF3D9;--white:#fff;
     --radius:14px;--shadow:0 1px 3px rgba(51,49,43,.08),0 6px 16px rgba(51,49,43,.06);
   }
   *{margin:0;padding:0;box-sizing:border-box}
@@ -186,6 +186,8 @@ if ($role === 'super_admin') {
     border-radius:999px;padding:2px 12px;cursor:pointer;white-space:nowrap;background:var(--white)}
   button.mini.off{color:var(--shu);border:1.5px solid var(--shu)}
   button.mini.on{color:var(--ai);border:1.5px solid var(--ai)}
+  /* 記録リセット: 「無効にする」(朱枠)と「完全削除」(朱ベタ)の中間の危険度を橙で示す */
+  button.mini.warn{color:var(--dai);border:1.5px solid var(--dai)}
   button.mini.del{color:#fff;background:var(--shu);border:1.5px solid var(--shu);margin-left:6px}
   .scroll{overflow-x:auto}
   .list-count{margin:6px 0;font-size:13px;font-weight:700;color:var(--ink-soft)}
@@ -455,6 +457,7 @@ if ($role === 'super_admin') {
     <h2>登録一覧</h2>
     <p class="note">このページを開いている間に登録・変更した行は<span style="background:var(--kin-soft);padding:0 8px;border-radius:4px;">この色</span>で表示されます（再読み込みすると消えます）。<br>
       退塾などは「無効にする」を使ってください（ログイン不可になるだけで学習記録は残り、いつでも「有効に戻す」で復活できます）。<br>
+      生徒の「記録リセット」はアカウントを残して学習記録だけを空にします（統括のみ・元に戻せません。テストデータの掃除用）。<br>
       「完全削除」は登録間違い・テストデータ専用です（統括のみ・学習記録ごと消え、元に戻せません）。</p>
     <!-- 講師のPW初期化で発行した仮パスワードの案内メールをここに表示（既存講師への送付用） -->
     <div id="list-mail" style="display:none;margin:12px 0;padding:12px;border:1.5px solid var(--ai);border-radius:8px;background:#fff;">
@@ -888,7 +891,17 @@ function actionCell(tr, kind, loginId, name, isActive, row) {
     btn.addEventListener('click', () => toggleActive(kind, loginId, name, !isActive));
     td.appendChild(btn);
   }
-  // 完全削除は統括のみ（登録間違い・テストデータの掃除用）
+  // 記録リセットは統括のみ（テストデータの掃除用。アカウントは残して記録だけ空にする）
+  if (kind === 'students' && IS_SUPER) {
+    const rst = document.createElement('button');
+    rst.type = 'button';
+    rst.className = 'mini warn';
+    rst.style.marginLeft = '6px';
+    rst.textContent = '記録リセット';
+    rst.addEventListener('click', () => resetStudentRecords(loginId, name));
+    td.appendChild(rst);
+  }
+  // 完全削除は統括のみ（登録間違い・テストデータの掃除用。記録ごとアカウントを消す）
   if (kind === 'students' && IS_SUPER) {
     const del = document.createElement('button');
     del.type = 'button';
@@ -1000,6 +1013,37 @@ async function deleteGuardian(loginId, name) {
     if (res.ok && data && data.ok) {
       alert('削除しました: ' + data.guardian_name + '（' + data.login_id + '）');
       loadList('guardians');
+    } else {
+      alert(errText(data, res.status));
+    }
+  } catch (err) {
+    alert('通信エラー: ' + err);
+  }
+}
+
+// 学習記録だけを全消去（アカウント・PIN・保護者ひもづけは残る）。テストデータの掃除用
+async function resetStudentRecords(loginId, name) {
+  const message = '生徒「' + name + '（' + loginId + '）」の学習記録をすべて消しますか？\n\n'
+    + '・解答（正解も誤答も）・学習時間・XP（レベル）・タイム記録が消えます\n'
+    + '・マイページの「過去のまちがい」「今日の1問」も消えます（解き直しキューも空にします）\n'
+    + '・アカウント（生徒コード・PIN・保護者のひもづけ・志望校）は残ります\n'
+    + '・この操作は元に戻せません\n\n'
+    + '※テストデータの掃除用です。アカウントごと消す場合は「完全削除」を使ってください';
+  if (!confirm(message)) return;
+  const typed = prompt('確認のため、記録を消す生徒コードを入力してください（' + loginId + '）');
+  if (typed === null) return;
+  if (typed.trim() !== loginId) {
+    alert('生徒コードが一致しないため、リセットを中止しました');
+    return;
+  }
+  try {
+    const { res, data } = await post('/api/reset_student_records.php', { login_id: loginId });
+    if (res.ok && data && data.ok) {
+      recent.students.add(loginId);
+      alert('学習記録を消しました。\n生徒: ' + data.student_name + '（' + data.login_id + '）\n'
+        + '解答: ' + data.deleted_answers + '件 / 過去のまちがい: ' + data.deleted_retries + '問\n'
+        + '（記録の合計 ' + data.deleted_total + '行）');
+      loadList('students');
     } else {
       alert(errText(data, res.status));
     }

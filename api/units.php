@@ -12,6 +12,13 @@ return [
         'sub'   => '数学・中3',
         'url'   => '/learning/math/math_js3_nijihoteishiki.html',
     ],
+    // 生成関数からの復元ではなく retry_queue.replay_json の再表示で解き直す
+    // （migrate_retry_replay.sql / 詳細はツール内の initRetry のコメント）
+    'math_js3_aichi_daimon1' => [
+        'title' => '愛知県公立入試 大問1 マーク演習',
+        'sub'   => '数学・中3',
+        'url'   => '/learning/math/math_js3_aichi_daimon1.html',
+    ],
     'math_es5_yakubun' => [
         'title' => '約分練習ドリル',
         'sub'   => '算数・小5',

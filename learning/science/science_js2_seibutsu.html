@@ -1120,7 +1120,10 @@ function gradeCurrent(){
   var exp=byId('explain');
   exp.innerHTML='<span class="lbl">'+(ok?'正解！':'正解は「'+q.a+'」')+'</span>'+q.exp;
   exp.className='show';
-  safeDivpAnswer(ok,{question_key:CAT_MODE[q.cat],question_params:q.params||{id:q.id},question_text:q.q,correct_answer:q.a,wrong_answer:chosen});
+  /* 図・表つきの問題は、図が無いと講師ページの解き直しプリントで成立しない。
+     画面に出したものをそのまま渡す（誤答のときだけ保存される）。 */
+  safeDivpAnswer(ok,{question_key:CAT_MODE[q.cat],question_params:q.params||{id:q.id},question_text:q.q,
+    question_figure:q.tbl||null,correct_answer:q.a,wrong_answer:chosen});
   byId('grade').classList.remove('show');
   byId('next').classList.add('show');
   byId('progBar').style.width=((state.idx+1)/state.queue.length*100)+'%';

@@ -629,50 +629,10 @@
     }
 
     /* =====================================================================
-       B4 プレビュー / 印刷
+       B4 印刷（画面には出さない隠しエリア。円の面積 math_es6_en_menseki と同方式）
        ===================================================================== */
-    #sheetOverlay {
-      position: fixed;
-      inset: 0;
-      z-index: 60;
-      background: rgba(28, 38, 48, .55);
-      backdrop-filter: blur(2px);
-      display: flex;
-      flex-direction: column;
-    }
-
-    #sheetOverlay[hidden] {
+    .print-area {
       display: none;
-    }
-
-    .sheet-toolbar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
-      background: #1F2A36;
-      color: #fff;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, .2);
-    }
-
-    .sheet-toolbar .st-title {
-      font-family: var(--round);
-      font-weight: 800;
-      font-size: 15px;
-    }
-
-    .sheet-toolbar .hint {
-      font-size: 12px;
-      color: #AEBCC8;
-    }
-
-    .sheet-scroll {
-      flex: 1 1 auto;
-      overflow: auto;
-      padding: 20px 12px 40px;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
     }
 
     #worksheet {
@@ -815,9 +775,13 @@
       margin-bottom: 3mm;
     }
 
+    /* 丸つけ用に、問題面（.ws-grid）とまったく同じ3列・同じ流れ方にする。
+       column-count は縦に流れるので、答えの位置が問題とずれる（使わないこと） */
     .ak-list {
-      column-count: 4;
-      column-gap: 6mm;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      column-gap: 9mm;
+      row-gap: 2mm;
       font-size: 13px;
       line-height: 1.85;
     }
@@ -825,7 +789,8 @@
     .ak-item {
       display: block;
       break-inside: avoid;
-      margin-bottom: 1.4mm;
+      border-left: 4px solid var(--c);   /* 問題面と同じ種別カラー。目で対応を追える */
+      padding-left: 3mm;
       font-variant-numeric: tabular-nums;
     }
 
@@ -1329,31 +1294,18 @@
         background: #fff;
       }
 
+      /* 共通ヘッダー（divp-header.js が body 先頭に注入）も紙には出さない */
+      .divp-header,
       .wrap {
         display: none !important;
       }
 
-      #sheetOverlay {
-        display: block !important;
-        position: static !important;
-        inset: auto !important;
-        background: none !important;
-        backdrop-filter: none !important;
-      }
-
-      .sheet-toolbar {
-        display: none !important;
-      }
-
-      .sheet-scroll {
-        overflow: visible !important;
-        padding: 0 !important;
+      .print-area {
         display: block !important;
       }
 
       #worksheet {
         width: auto !important;
-        zoom: 1 !important;
         padding: 0 !important;
         box-shadow: none !important;
       }
@@ -1362,7 +1314,8 @@
 </head>
 
 <body>
-  <!-- 共通モジュール（ヘッダー／小学生用 正解エフェクト／学習記録コア） -->
+  <!-- 共通モジュール（ヘッダー／小学生用 正解エフェクト／学習記録コア／印刷） -->
+  <script src="/assets/print-watermark.js"></script>
   <script src="/assets/divp-header.js"></script>
   <script src="/assets/divp-correct.js"></script>
   <script src="/assets/divp-core.js"></script>
@@ -1394,19 +1347,9 @@
     <p class="footer-note">分数は <b>3/4</b>（仮分数）や <b>1 1/2</b> のように入力できます。</p>
   </div>
 
-  <!-- B4 プレビュー -->
-  <div id="sheetOverlay" hidden>
-    <div class="sheet-toolbar">
-      <span class="st-title">B4よこ プリント プレビュー</span>
-      <button id="btn-sheet-print" class="btn pop">印刷する</button>
-      <button id="btn-sheet-new" class="btn">問題を作り直す</button>
-      <span class="spacer" style="flex:1"></span>
-      <span class="hint">1枚目＝問題　2枚目＝こたえ</span>
-      <button id="btn-sheet-close" class="btn">とじる</button>
-    </div>
-    <div class="sheet-scroll">
-      <div id="worksheet"></div>
-    </div>
+  <!-- B4プリント：画面には出さず、印刷のときだけ出る領域（1枚目＝問題／2枚目＝こたえ） -->
+  <div class="print-area" id="printArea">
+    <div id="worksheet"></div>
   </div>
 
   <script>/* =========================================================================
@@ -2979,9 +2922,11 @@
          </div>`;
     });
 
+    // 問題と同じ順（①→②→③…／左から右へ）・同じ3列に並べる。番号と色で位置が一致する
     const ans = answers.map(a => {
       const memo = a.p.memo ? `<span class="ak-memo">${esc(a.p.memo)}</span>` : '';
-      return `<span class="ak-item"><b>${a.no}.</b> ${answerHTML(a.p, a.tid)}${memo}</span>`;
+      return `<span class="ak-item" style="--c:${COLOR[a.tid]}">`
+        + `<b>${NUM_CIRCLE[a.no - 1]} (${a.no})</b> ${answerHTML(a.p, a.tid)}${memo}</span>`;
     }).join('');
 
     ws.innerHTML =
@@ -2998,7 +2943,6 @@
          <div class="ak-title">こたえ（計算どぅする？）</div>
          <div class="ak-list">${ans}</div>
        </div>`;
-    fitWorksheet();
   }
 
   function renderSheetProblem(p) {
@@ -3014,31 +2958,28 @@
     return html;
   }
 
-  // プレビューを画面幅に合わせて縮小（印刷時はCSSで zoom:1 に戻す）
-  function fitWorksheet() {
-    const ws = $('#worksheet');
-    const scroll = $('.sheet-scroll');
-    if (!ws || !scroll) return;
-    ws.style.zoom = '1';
-    const natural = ws.offsetWidth;             // 348mm をpxで
-    const avail = scroll.clientWidth - 24;
-    const z = Math.max(0.16, Math.min(1, avail / natural));
-    ws.style.zoom = String(z);
+  // プリントを作って印刷ダイアログを出す（円の面積 math_es6_en_menseki と同じ手順）。
+  // 組み立て → 描画確定を2フレーム待つ → 透かしのデコードを待ってから print。
+  function makePrint() {
+    try {
+      buildWorksheet();
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const area = $('#printArea');
+        if (window.ChukyoPrint && ChukyoPrint.print) ChukyoPrint.print(area);
+        else window.print();
+      }));
+    } catch (err) {
+      console.error('print error', err);
+      alert('プリントの作成でエラーが発生しました:\n' + (err && err.message ? err.message : err));
+    }
   }
 
   /* =====================================================================
      画面の組み立て
      ===================================================================== */
   function wireButtons() {
-    $('#btn-print').addEventListener('click', () => {
-      buildWorksheet();
-      $('#sheetOverlay').hidden = false;
-      requestAnimationFrame(fitWorksheet);
-    });
-    $('#btn-sheet-print').addEventListener('click', () => window.print());
-    $('#btn-sheet-new').addEventListener('click', buildWorksheet);
-    $('#btn-sheet-close').addEventListener('click', () => { $('#sheetOverlay').hidden = true; });
-    window.addEventListener('resize', () => { if (!$('#sheetOverlay').hidden) fitWorksheet(); const c = $('#stage .card'); if (c) fitQ(c); });
+    $('#btn-print').addEventListener('click', makePrint);
+    window.addEventListener('resize', () => { const c = $('#stage .card'); if (c) fitQ(c); });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -3047,11 +2988,9 @@
     buildMenu();
     wireButtons();
     loadProblem();
-    buildWorksheet();   // Ctrl+P 用に初期生成
-    document.addEventListener('keydown', (e) => {
-      if ($('#sheetOverlay') && !$('#sheetOverlay').hidden) return; // 印刷プレビュー中は無効
-      if (keyRouter) keyRouter(e);
-    });
+    // Ctrl+P でも刷れるよう初期生成しておく（ここで落ちても画面と印刷ボタンは死なせない）
+    try { buildWorksheet(); } catch (err) { console.error('worksheet build error', err); }
+    document.addEventListener('keydown', (e) => { if (keyRouter) keyRouter(e); });
   });
 })();
 </script>

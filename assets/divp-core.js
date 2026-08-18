@@ -9,6 +9,21 @@
  *     question_key: 'truefalse',
  *     question_params: { ... },     // 再生成用（JSONにできるオブジェクト）
  *     question_text: '...',         // 講師・保護者画面向けの問題文
+ *     question_figure: '<svg…>',    // 任意。図が無いと解けない問題だけ、画面に出したSVG/表を
+ *                                   //       そのまま渡す（誤答時のみ保存され、解き直しプリントに出る）
+ *     question_choices: [{t:'tex',v:'…'},…],  // 任意。選択肢そのものが問題の中身になる型だけ
+ *                                   //       （t は 'tex' か 'svg'。誤答時のみ保存）
+ *     question_replay: { … },       // 任意。question_params から同じ問題を作り直せない
+ *                                   //       ツール用。「画面に出した問題そのもの」を渡すと
+ *                                   //       誤答時だけ retry_queue.replay_json に入り、
+ *                                   //       ?retry=1 で Divp.getRetries() の item.replay として
+ *                                   //       返ってくる（復元ではなく再表示で解き直す）。
+ *                                   //       形は save_answer.php の replay_is_safe() が検証する:
+ *                                   //         { key, typeId, multi:1|2, correct:[番号],
+ *                                   //           parts:[{t:'tex'|'txt',v:'…'}],
+ *                                   //           choices:['tex' | {svg:'<svg…>'}],
+ *                                   //           expl:['…'], tableHtml:'<svg…>' }
+ *                                   //       想定外の形・危険なHTMLは丸ごと捨てられる（図と同じ方針）
  *     correct_answer: '...',
  *     wrong_answer: '...',          // 生徒が実際に選んだ/入力した答え
  *   });
@@ -136,6 +151,16 @@
         question_key: info.question_key,
         question_params: info.question_params || null,
         question_text: info.question_text != null ? String(info.question_text) : null,
+        // 図が無いと紙で解き直せない問題用（講師ページの解き直しプリントが使う）。
+        // 画面に出したSVG/表のHTMLをそのまま渡す。誤答のときだけサーバーが保存する。
+        question_figure: (!ok && info.question_figure != null) ? String(info.question_figure) : null,
+        // 選択肢そのものが問題の中身になる型（「正しく述べたものを選ぶ」等）用。
+        // [{t:'tex'|'svg', v:'…'}, …] を渡すと解き直しプリントに選択肢ごと出る
+        question_choices: (!ok && info.question_choices) ? info.question_choices : null,
+        // question_params から同じ問題を作り直せないツール用の「再表示用データ」。
+        // 誤答のときだけ retry_queue.replay_json に入り、?retry=1 で
+        // getRetries() の item.replay として返る（生成関数の復元は不要になる）
+        question_replay: (!ok && info.question_replay) ? info.question_replay : null,
         correct_answer: info.correct_answer != null ? String(info.correct_answer) : null,
         student_answer: info.wrong_answer != null ? String(info.wrong_answer) : null,
         is_correct: !!ok,

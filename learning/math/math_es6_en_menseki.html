@@ -47,6 +47,15 @@ body{
 h1{font-family:var(--round);font-size:clamp(19px,4.6vw,27px);font-weight:900;letter-spacing:.04em;margin:0}
 h1 .ac{color:var(--shu)}
 .subtitle{font-size:clamp(11.5px,2.7vw,13.5px);color:var(--ink-soft);margin-top:1px}
+/* プリントボタン（見出しの右はし） */
+.wrap > header .printbtn{margin-left:auto;flex:0 0 auto;white-space:nowrap;
+  background:#fff;color:var(--ai);border:1.5px solid #C4D5E4;border-radius:999px;
+  padding:8px 14px;font-size:12.5px;box-shadow:0 2px 0 #DDE6EE;transition:.12s}
+.wrap > header .printbtn:hover{background:var(--ai-pale)}
+.wrap > header .printbtn:active{transform:translateY(1px);box-shadow:0 1px 0 #DDE6EE}
+@media (max-width:420px){
+  .wrap > header .printbtn{padding:7px 11px;font-size:11.5px}
+}
 
 /* ---------- カード共通 ---------- */
 .card{background:var(--card);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow)}
@@ -199,7 +208,65 @@ footer .dot{display:inline-block;width:7px;height:7px;border-radius:50%;backgrou
   .qcard{padding:11px 10px 12px}
   .modes{gap:7px;padding:7px}
 }
+
+/* ---------- 印刷（練習プリント） ---------- */
+/* 画面ではずっと非表示。印刷ボタンを押したときだけ中身を組み立てて印刷する。 */
+.print-area{display:none}
+@media print{
+  @page{size:A4 portrait;margin:10mm 9mm}
+  .divp-header,.wrap{display:none !important}
+  html,body{background:#fff !important;min-height:0 !important}
+  .print-area{display:block !important}
+  .sheet{position:relative;page-break-after:always;color:#222;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sheet:last-child{page-break-after:auto}
+  /* 透かし(.wm)のCSSは共通モジュール ChukyoPrint.css() を印刷エリアに注入して使う */
+  .p-head{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:2px solid var(--shu);padding-bottom:4px;margin-bottom:5px}
+  .p-school{font-size:11px;font-weight:700;color:var(--shu)}
+  .p-title{font-weight:900;font-size:20px;color:var(--shu);margin-top:1px}
+  .p-sub{font-size:10.5px;color:#666;margin-top:1px}
+  .p-name{font-size:11.5px;white-space:nowrap}
+  .p-name span{display:inline-block;border-bottom:1px solid #000;min-width:46mm;margin-left:5px}
+  .p-inst{position:relative;z-index:1;font-size:11px;color:#222;margin:0 0 4mm}
+  .p-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:4mm 7mm}
+  /* 図の高さは縦横比しだいでばらつくので、縦フレックスにして
+     「しき」「答え」の行だけは左右で高さをそろえる */
+  .p-item{position:relative;z-index:1;box-sizing:border-box;break-inside:avoid;overflow:hidden;
+    display:flex;flex-direction:column}
+  /* .p-item が縦フレックスなので align-self がないと番号が列幅いっぱいの帯になる */
+  .p-no{font-weight:900;font-size:12px;background:var(--shu);color:#fff;border-radius:5px;
+    padding:1px 8px;display:inline-block;align-self:flex-start;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  /* 図と問題文は横並び。図を縦に積むと 工夫モードの長い文章で3行目がページからあふれる。
+     図の幅を 50mm 固定にすると、中の寸法ラベル（menseki-fig.js の font-size 14 ／
+     viewBox 幅は約 265〜347）が紙の上でだいたい 6〜7pt になり読める大きさになる。
+     SVG側のフォントは大きくしない（長いラベルが viewBox からはみ出て切れるため）。
+     これ以上大きくすると、正方形に近い図（円・ドーナツ）が3行そろったときに
+     6問目が用紙の下からあふれる */
+  .p-body{flex:1;display:flex;align-items:flex-start;gap:2.5mm;margin:1mm 0 1.5mm}
+  .p-fig{flex:0 0 50mm}
+  /* 縦長の図（4分の1の輪など）は幅で決めると背が高くなりすぎて6問目が次ページへ落ちる。
+     max-height を効かせると viewBox が枠内に収まるよう縮んで中央に置かれる（比率は保たれる） */
+  .p-fig svg{width:100%;height:auto;max-height:50mm;display:block}
+  .p-q{flex:1;min-width:0;font-size:9.5px;line-height:1.6}
+  .p-q em{font-style:normal;font-weight:900;color:var(--shu)}
+  .p-work{border:1px dashed #BBB;border-radius:2mm;height:10mm;padding:1mm 2mm;
+    font-size:9px;color:#888}
+  .p-ansrow{display:flex;align-items:flex-end;gap:2mm;font-size:10.5px;margin-top:1.5mm}
+  .p-ansrow .ln{flex:1;border-bottom:1px solid #333;height:5mm}
+  /* 2枚目（こたえ）は図を出さず、とき方の式をならべる */
+  .ans .p-grid{gap:4mm 7mm}
+  .a-q{font-size:9.5px;color:#666;margin:1mm 0 1mm;line-height:1.45}
+  .a-steps{margin:0;padding-left:1.2em;font-size:10px;line-height:1.5}
+  .a-steps li{padding:.3mm 0}
+  .a-steps b{color:var(--shu)}
+  .a-ans{font-size:11.5px;font-weight:900;margin-top:1mm}
+  .a-ans b{color:var(--shu)}
+}
 </style>
+<!-- 印刷シートのロゴ透かし（共通モジュール。未読込でも透かし無しで印刷できる） -->
+<script src="/assets/print-watermark.js"></script>
 </head>
 <body>
 
@@ -220,6 +287,7 @@ footer .dot{display:inline-block;width:7px;height:7px;border-radius:50%;backgrou
     <h1>円の面積 <span class="ac">マスター</span></h1>
     <p class="subtitle">半径・直径・円周から。そして、くふうして求める。（小6算数）</p>
   </div>
+  <button class="printbtn" id="btnPrint" type="button" title="いま選んでいる種類で練習プリントを作る">🖨 プリント</button>
 </header>
 
 <nav class="card modes" id="modes" aria-label="練習する種類"></nav>
@@ -293,6 +361,9 @@ footer .dot{display:inline-block;width:7px;height:7px;border-radius:50%;backgrou
 
 <footer><span class="dot"></span>中京個別指導学院｜divp-suite</footer>
 </div>
+
+<!-- 印刷シート（画面には出さない。プリントボタンを押したときに組み立てる） -->
+<div class="print-area" id="printArea"></div>
 
 <script src="/assets/divp-correct.js"></script>
 <script src="/assets/divp-core.js"></script>
@@ -967,12 +1038,120 @@ function initRetry(){
   }).catch(function(){});
 }
 
+/* ===================== 印刷（練習プリント） ===================== */
+/* いま画面でえらんでいる種類のまま、1枚目＝問題6問／2枚目＝こたえ（とき方つき）を作る。
+   問題は画面と同じ build() でつくり、図も同じ menseki-fig.js で描くので、
+   画面・印刷・解き直しプリント（teacher.php）の3つで図と数字が必ず一致する。 */
+/* A4 1枚に2列×3行。図の寸法ラベルが紙で読める大きさ（図の幅50mm）を保てる上限。
+   全モードで実測して、問題ページの中身は最大 988px / 用紙 1047px に収まっている */
+var PRINT_N = 6;
+
+/* 出す種類をえらぶ。かたよらないよう、まず全種類を1回ずつ並べてから足りない分を継ぎ足す */
+function printPairs(n){
+  var ui = MODES.filter(function(m){ return m.id === S.mode; })[0] || MODES[0];
+  var pairs = [], seen = {};
+  ui.picks.forEach(function(m){
+    SUBS[m].forEach(function(s){
+      var k = m + ':' + s;
+      if(!seen[k]){ seen[k] = 1; pairs.push({ m:m, s:s }); }
+    });
+  });
+  var order = [];
+  while(order.length < n){ order = order.concat(shuffle(pairs.slice())); }
+  return { name: ui.name, list: order.slice(0, n) };
+}
+function buildPrintQs(n){
+  var got = printPairs(n), qs = [], used = {};
+  got.list.forEach(function(p){
+    var d, k;
+    /* 同じ種類が続くときに寸法まで同じにならないよう、使った組み合わせは引き直す */
+    for(var t=0; t<20; t++){
+      d = DIMS[p.m][p.s]();
+      k = p.m + ':' + p.s + ':' + JSON.stringify(d);
+      if(!used[k]) break;
+    }
+    used[k] = 1;
+    qs.push(build(p.m, p.s, d));
+  });
+  return { name: got.name, qs: qs };
+}
+function printHead(title, sub, withName){
+  return '<div class="p-head"><div>'
+    + '<div class="p-school">中京個別指導学院</div>'
+    + '<div class="p-title">' + esc(title) + '</div>'
+    + '<div class="p-sub">' + esc(sub) + '</div></div>'
+    + (withName ? '<div class="p-name">名前：<span></span></div>' : '<div class="p-name">　</div>')
+    + '</div>';
+}
+function makePrint(){
+  var area = $('printArea');
+  try{
+    var r = buildPrintQs(PRINT_N), qs = r.qs;
+    var sub = '種類：' + r.name + '　／　円周率は 3.14 を使います';
+
+    /* 透かしは共通モジュール。上書き2点:
+       zIndex:0（印刷時に html/body へ白背景を敷くので、既定の -1 だと隠れる。
+       中身は z-index:1 なので文字の上には出ない）、
+       position:fixed（用紙センターに固定して問題ページ・答えページの両方へ印字。画像は1枚だけ置く） */
+    var wmCss = window.ChukyoPrint ? '<style>' + ChukyoPrint.css({ zIndex:0 }) + '.wm{position:fixed;}</style>' : '';
+    var wmImg = window.ChukyoPrint ? ChukyoPrint.img() : '';
+
+    /* --- 1枚目：問題 --- */
+    var q = '<div class="sheet">' + printHead('円の面積　練習プリント', sub, true)
+      + '<p class="p-inst">つぎの面積を求めましょう。「しき」のらんに式を書いてから答えを出しましょう。</p>'
+      + '<div class="p-grid">';
+    qs.forEach(function(x, i){
+      q += '<div class="p-item"><span class="p-no">' + (i+1) + '</span>'
+        + '<div class="p-body">'
+        +   '<div class="p-fig">' + figSVG(x.fig) + '</div>'
+        /* 画面では凡例を別行に出しているが、紙では問題文が
+           「色のついた部分の…」と言っていないときだけ添える（言っていれば重複するだけ） */
+        +   '<div class="p-q">' + x.text
+        +     (x.legend && x.text.indexOf('色のついた') < 0 ? '<br>（色のついた部分の面積です）' : '')
+        +   '</div>'
+        + '</div>'
+        + '<div class="p-work">しき</div>'
+        + '<div class="p-ansrow">答え<span class="ln"></span>cm²</div>'
+        + '</div>';
+    });
+    q += '</div></div>';
+
+    /* --- 2枚目：こたえ（とき方つき） --- */
+    var a = '<div class="sheet ans">' + printHead('円の面積　こたえ', sub, false)
+      + '<div class="p-grid">';
+    qs.forEach(function(x, i){
+      var steps = '';
+      x.steps.forEach(function(s){ steps += '<li>' + s + '</li>'; });
+      a += '<div class="p-item"><span class="p-no">' + (i+1) + '</span>'
+        + '<div class="a-q">' + esc(x.plain) + '</div>'
+        + '<ol class="a-steps">' + steps + '</ol>'
+        + '<div class="a-ans">答え　<b>' + esc(x.correct) + '</b></div>'
+        + '</div>';
+    });
+    a += '</div></div>';
+
+    area.innerHTML = wmCss + wmImg + q + a;
+    /* 直後に印刷すると描画が間に合わず白紙になる端末があるので、描画確定を待つ。
+       さらに ChukyoPrint.print() が透かし画像のデコードも待つ（待たないとロゴだけ抜ける） */
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
+      if(window.ChukyoPrint && ChukyoPrint.print) ChukyoPrint.print(area);
+      else window.print();
+    }); });
+  }catch(err){
+    try{ console.error('print error', err); }catch(e){}
+    alert('プリントの作成でエラーが発生しました:\n' + (err && err.message ? err.message : err));
+  }
+}
+
 /* ===================== イベント ===================== */
+$('btnPrint').addEventListener('click', makePrint);
 $('checkbtn').addEventListener('click', onCheck);
 $('nextbtn').addEventListener('click', newQuestion);
 /* パソコンでは 1〜4 キーで選択、Enter/スペースで答え合わせ→次の問題へ */
 document.addEventListener('keydown', function(e){
   if(e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+  /* プリントボタンにフォーカスがあるときは、Enter/スペースをボタンに渡す */
+  if(e.target && e.target.id === 'btnPrint') return;
   if(!S.answered && e.key >= '1' && e.key <= '4'){
     var i = +e.key - 1;
     if(S.q && S.q.choices[i]){ e.preventDefault(); onPick(i); }

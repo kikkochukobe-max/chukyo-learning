@@ -499,7 +499,8 @@ if ($detailStudentId > 0) {
     $stmt = $pdo->prepare(
         "SELECT al.answered_at, al.unit_key, al.params_hash, al.question_key, al.question_params,
                 COALESCE(qc.label, al.question_key) AS label,
-                al.question_text, al.correct_answer, al.student_answer
+                al.question_text, al.question_figure, al.question_choices,
+                al.correct_answer, al.student_answer
          FROM answer_logs al
          LEFT JOIN question_catalog qc ON qc.unit_key = al.unit_key AND qc.question_key = al.question_key
          WHERE al.student_id = :id AND al.is_correct = 0{$w}
@@ -1205,6 +1206,13 @@ function sp_select(string $label, array $options): string
               'code'  => ($mapCode >= 1 && $mapCode <= 47) ? $mapCode : 0,  // 地図問題なら県コード
               'graph' => $graph,   // 座標グラフ問題なら {subs:[{L,v,m}...]}
               'fig'   => $fig,     // 円の面積の工夫問題なら {m,s,d}
+              // ツールが出題時に描いた図をそのまま保存したもの（save_answer.php で
+              // タグ・属性をホワイトリスト検証済み。図形・グラフ問題はこれが無いと紙で解けない）
+              'figsvg' => $w['question_figure'] ?: null,
+              // 選択肢そのものが問題の中身になる型だけ入っている（[{t,v},…]）。
+              // これがある問題は選択式のまま刷る＝「選びなさい」の文言も残す
+              'chs' => $w['question_choices']
+                  ? (json_decode((string)$w['question_choices'], true) ?: null) : null,
           ];
       }, $dWrongs),
     ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
@@ -1816,6 +1824,40 @@ document.querySelectorAll('.math').forEach(function (el) {
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   }
+
+  /* 選択式ツールの問題文から「次のアからエまでの中から一つ選びなさい」を落として
+     記述式の言い回しに直す。解き直しプリントには選択肢を刷らないので、
+     そのままだと存在しない選択肢を選ばせる指示文になってしまう。
+     「〜として正しいものを、次の…選びなさい。」→「〜を求めなさい。」が自然なので
+     その形を先に拾い、拾えなかった分は指示文だけを落として語尾を整える。 */
+  // 「ア〜エまでの中から…選びなさい」は文末とは限らず、文頭(関数の判別)や
+  // 文中(式が後ろに来る展開・因数分解、「ただし〜」が続く割合)にも出るので
+  // 位置を固定せず、出現形ごとに順番に潰す。
+  var PICK = '(?:一つ|二つ|１つ|２つ|1つ|2つ)?選びなさい。?';
+  var FROM = '(?:次の)?[ア-ン]から[ア-ン]までの中から';
+  function toWritten(src) {
+    var s = String(src == null ? '' : src);
+    if (s.indexOf('選びなさい') < 0) return s;      // 選択式でない問題文はそのまま
+    var endedWithPick = /選びなさい。?\s*$/.test(s);
+    // (a)「〜の大きさとして正しいものを、次のア〜エまでの中から一つ選びなさい。」→「〜の大きさを求めなさい。」
+    s = s.replace(new RegExp('として(?:正しいもの|最も適当なもの|最も適切なもの|適切なもの)を?[、,]?\\s*' + FROM + PICK, 'g'), 'を求めなさい。');
+    // (b)「〜およそ何個と推定されるか、正しいものを次のア〜エまでの中から一つ選びなさい。」→「〜推定されるか。」
+    s = s.replace(new RegExp('[、,]?\\s*(?:正しいもの|最も適当なもの|適切なもの)を?[、,]?\\s*' + FROM + PICK, 'g'), '。');
+    // (c) 文頭の「次のアからエまでの中から、」を落とす（末尾の「二つ選びなさい」は(e)で処理）
+    s = s.replace(new RegExp(FROM + '[、,]\\s*', 'g'), '');
+    // (d) 残った指示文をまるごと落とす
+    s = s.replace(new RegExp('[、,]?\\s*' + FROM + PICK, 'g'), '。');
+    // (e) 選択肢が無いので「選ぶ」ではなく「答える」
+    s = s.replace(/選びなさい/g, '答えなさい');
+    // 語尾の整形（指示文が末尾にあった時だけ。式が後ろに来る問題文を壊さない）
+    if (endedWithPick) {
+      s = s.replace(/[、,]\s*。/g, '。').replace(/。{2,}/g, '。').trim();
+      if (/を\s*。\s*$/.test(s)) s = s.replace(/を\s*。\s*$/, 'を答えなさい。');
+      else if (/を\s*$/.test(s)) s += '答えなさい。';
+      else if (!/[。？?]\s*$/.test(s)) s += '。';
+    }
+    return s;
+  }
   // 全体LaTeX / Unicode√混じり日本語文 のどちらもKaTeX整形（共通処理に委譲）
   function fmt(src) {
     return renderMathToHTML(src);
@@ -1842,11 +1884,39 @@ document.querySelectorAll('.math').forEach(function (el) {
     var PAGE_BUDGET = 5;
     var pages = [], cur = [], load = 0;
     items.forEach(function (it) {
-      var wt = it.fig ? 2 : ((it.code || it.graph) ? 2.5 : 1);
+      var wt = (it.fig || it.figsvg) ? 2 : ((it.code || it.graph) ? 2.5 : 1);
+      // 選択肢つきはその分だけ縦に伸びる（図の選択肢=箱ひげ図は特に大きい）
+      if (it.chs && it.chs.length) wt += (it.chs[0] && it.chs[0].t === 'svg') ? 2 : 1;
       if (cur.length && load + wt > PAGE_BUDGET) { pages.push(cur); cur = []; load = 0; }
       cur.push(it); load += wt;
     });
     if (cur.length) pages.push(cur);
+
+    /* 保存図（answer_logs.question_figure）の中の id と url(#id) を問題ごとに別名にする。
+       同じ図が2問ぶん並ぶと id が重複し、先に出たほうの定義が両方に効いてしまう
+       （理科「マツのりん片」のグラデーション rpA/rpB がこれに当たる）。
+       ついでにシート側の要素と id がぶつかるのも防げる。 */
+    function scopeFigIds(html, n) {
+      var pre = 'f' + n + '-';
+      return String(html)
+        .replace(/(\sid=")([A-Za-z][A-Za-z0-9_.:-]*)(")/g, '$1' + pre + '$2$3')
+        .replace(/(url\(#)([A-Za-z][A-Za-z0-9_.:-]*)(\))/g, '$1' + pre + '$2$3');
+    }
+
+    /* 選択肢そのものが問題の中身になる型（正しく述べたものを選ぶ／4つの図から選ぶ 等）。
+       [{t:'tex'|'svg', v}] を ア・イ・ウ・エ 付きで並べる。
+       tex は問題文と同じ renderMathToHTML、svg は id を問題ごとに名前空間化して素で出す。 */
+    var KANA_CH = ['ア','イ','ウ','エ','オ','カ','キ','ク'];
+    function choiceList(chs, n) {
+      var svgMode = false, items = chs.map(function (c, i) {
+        var body;
+        if (c && c.t === 'svg') { svgMode = true; body = scopeFigIds(c.v, n + 'c' + i); }
+        else { body = fmt(c ? c.v : ''); }
+        return '<li class="ch"><span class="ch-mk">' + KANA_CH[i] + '</span>'
+             + '<span class="ch-bd">' + body + '</span></li>';
+      }).join('');
+      return '<ul class="q-choices' + (svgMode ? ' ch-fig' : '') + '">' + items + '</ul>';
+    }
 
     var n = 0;
     var body = pages.map(function (page) {
@@ -1854,11 +1924,18 @@ document.querySelectorAll('.math').forEach(function (el) {
         n++;
         // 地図問題は問題文が「地図で光っている都道府県の名前」で紙では解けないため、
         // 日本地図（該当県が光る）＋書き取り指示に差し替える。
+        // 選択肢を保存してある問題は選択式のまま刷るので、問題文も原文のまま
+        //（「アからエまでの中から選びなさい」を残す）。それ以外は記述式に直す。
+        var hasChoices = !!(it.chs && it.chs.length);
+        var qt = hasChoices ? it.q : toWritten(it.q);
         var qbody = it.code
           ? mapSvg(it.code) + '<div class="q-note">黒くぬられた都道府県の <b>名前</b> と <b>県庁所在地</b> を書きましょう</div>'
-          : (it.graph ? fmt(it.q) + graphSvg(it.graph.subs)
-          : (it.fig   ? fmt(it.q) + mensekiSvg(it.fig)
-          : fmt(it.q)));
+          : (it.graph ? fmt(qt) + graphSvg(it.graph.subs)
+          : (it.fig   ? fmt(qt) + mensekiSvg(it.fig)
+          // 出題時の図をそのまま保存してある問題（図形の角度・相似・ヒストグラム・理科の観察図等）
+          : (it.figsvg ? fmt(qt) + '<div class="q-fig2">' + scopeFigIds(it.figsvg, n) + '</div>'
+          : fmt(qt))));
+        if (hasChoices) qbody += choiceList(it.chs, n);
         return '<div class="q">'
           + '<div class="q-head"><span class="q-no">' + n + '</span>'
           + '<span class="q-meta">' + esc(it.unit) + '　<span class="q-tag">' + esc(it.label) + '</span></span></div>'
@@ -1950,6 +2027,33 @@ document.querySelectorAll('.math').forEach(function (el) {
       + '.q-fig{display:block;width:-webkit-max-content;width:max-content;max-width:100%;'
         + 'background:#fff;border:1px solid #999;border-radius:8px;padding:4px 6px;margin:7px 0 0;}'
       + '.q-fig svg{display:block;height:44mm;width:auto;max-width:110mm;}'
+      /* 出題時の図をそのまま保存したもの（answer_logs.question_figure）。
+         ツール側SVGは width属性 と inline style を持っているので、紙のサイズに
+         そろえるには !important で上書きする必要がある。度数分布表は table で来る。 */
+      + '.q-fig2{display:block;width:-webkit-max-content;width:max-content;max-width:100%;'
+        + 'background:#fff;border:1px solid #999;border-radius:8px;padding:4px 6px;margin:7px 0 0;}'
+      /* 54mm は「角度ラベル(10px)が縮まず原寸で出る」高さ。これ以下だと図中の数字が読みにくい */
+      + '.q-fig2 svg{display:block!important;height:54mm!important;width:auto!important;'
+        + 'max-width:110mm!important;margin:0!important;}'
+      + '.q-fig2 table{border-collapse:collapse;font-size:13px;margin:2px;}'
+      + '.q-fig2 th,.q-fig2 td{border:1px solid #666;padding:2px 9px;text-align:center;white-space:nowrap;}'
+      /* nowrap は数字だけの度数分布表むけ。文章がセルに入る表（理科のセキツイ動物分類表
+         table.sek。「卵生（弾力のある殻の卵を陸上に産む）」のような長文セル）は
+         そのままだと紙幅をはみ出すので、ツール側の #qtbl table.sek と同じ扱いに戻す */
+      + '.q-fig2 table.sek{font-size:10.5px;}'
+      + '.q-fig2 table.sek th,.q-fig2 table.sek td{white-space:normal;padding:2px 4px;line-height:1.35;}'
+      /* 図の下の説明（CAP()。「タンポポの小さな花1つ」など） */
+      + '.q-fig2 .fig-cap{font-size:11px;color:#555;text-align:center;margin-top:2px;}'
+      /* 選択肢（選択肢そのものが問題の中身になる型だけ刷る）。
+         文の選択肢は1列、図の選択肢(箱ひげ図)は2列に並べて縦を詰める。 */
+      + '.q-choices{list-style:none;margin:6px 0 0;padding:0;font-size:15px;line-height:1.5;}'
+      + '.q-choices .ch{display:flex;align-items:flex-start;gap:6px;margin:3px 0;break-inside:avoid;}'
+      + '.ch-mk{flex:0 0 auto;width:19px;height:19px;line-height:17px;text-align:center;'
+        + 'border:1px solid #555;border-radius:50%;font-size:11px;margin-top:2px;}'
+      + '.ch-bd{flex:1;min-width:0;}'
+      + '.q-choices.ch-fig{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;}'
+      + '.q-choices.ch-fig .ch-bd svg{display:block!important;height:26mm!important;'
+        + 'width:auto!important;max-width:100%!important;margin:0!important;}'
       + '.q-space{height:2.2cm;margin:5px 0 0 34px;border:1px dashed #cbcbcb;border-radius:8px;}'
       + '.key-page{page-break-before:always;}'
       + '.key{width:100%;border-collapse:collapse;font-size:13px;}'

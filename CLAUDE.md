@@ -38,6 +38,7 @@ db/                    DB用SQL（phpMyAdminで手動実行。本番へは配信
   schema_full.sql       マスタ定義（16テーブル・検証済み）
   migrations/           適用済みスキーマ変更の履歴
   seeds/                question_catalog等のシード（ミラー環境の再構築で再利用）
+  maintenance/          運用SQL（生徒1人の記録だけ消す等。テストデータ掃除用）
 ```
 
 ファイル名規則: `教科_校種学年_単元(_製作者コード).html`
@@ -67,6 +68,13 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
 - `unit_key` = コンテンツの論理ID（例 `math_js3_heihokon`）。ファイルパスや
   製作者コードから自動生成してはならない（進捗が分断されるため）
 - `question_key` = ツール内の問題タイプ（モード名をそのまま使う）
+- **ツールを組み込むときの「共通処理」は4点セット**。①学習記録が飛ぶ
+  ②正解エフェクトが出る（**共通モジュールを読む**。ツール自前の演出で代替しない）
+  ③**解き直しができる**（`?retry=1` で同一問題が再出題され、2連続正解でリストから消える。
+  `api/units.php` に `url` を載せる）④**図が表示される**（図が無いと解けない問題は
+  誤答時に図を保存し、解き直し画面と解き直しプリントの両方に出る）。
+  ③④も共通処理であり、欠けていたら組み込みは未完了とみなす
+  （「記録は入っているが解き直せない」状態だと、生徒のリストが永久に減らずに溜まり続ける）
 - 物理教室は8つ: 焼山・吉根・長久手・神丘・高針台・一社・貴船・有松
   （植田・志段味はSEO用地名。表記は「神丘」が正、「神岡」は誤り）
 - 正解エフェクトは es（小学生）ツールのみ `divp-correct.js`、jh は
@@ -130,6 +138,38 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    `.sysbrace`/`.sysrows` 等のCSSは**ページ用と印刷シート用の2箇所**にある。
    ツール側で question_text の表記を変えたら、**3ファイルすべて**を更新すること
    （1つ漏らすとその画面だけマーカーが生文字で出る。実際に3回やらかしている）
+2b. **図が無いと解けない問題は question_figure で図そのものを保存する**。
+   `Divp.answer(ok,{… question_figure:<画面に出したSVG/表のHTML>})` と渡すと、
+   **誤答のときだけ** answer_logs.question_figure に入り、teacher.php の解き直し
+   プリントに出る（正解分は保存しない＝容量の無駄）。question_text と同じ「人間用の
+   表現」で、**question_params から図を復元する実装をPHPに持たせない**という
+   2. の原則をそのまま守る形。組み込み済み: math_js3_aichi_daimon1（`q.tableHtml`）/
+   理科4本（`q.tbl`）。列の追加は db/migrations/migrate_question_figure.sql。
+   ⚠ 講師画面に生HTMLとして描くので、save_answer.php の `figure_is_safe()` が
+   タグ・属性のホワイトリストで検証し、**想定外なら図を丸ごと捨てる**（掃除はしない）。
+   新しい図でタグ・属性を増やしたら FIG_TAGS / FIG_ATTRS にも足すこと。
+   足し忘れても記録自体は普通に残り、図だけが落ちる（＝気づきにくい）。
+   `fill="url(#…)"` は同じ図の中の defs 参照だけ許可。id は印刷シート側の
+   `scopeFigIds()` が問題番号で名前空間化する（同じ図が2問並ぶと id が衝突するため）
+2c. **params から問題を復元できないツールは question_replay で「問題そのもの」を保存する**。
+   `Divp.answer(ok,{… question_replay:{key,typeId,multi,correct,parts,choices,expl,tableHtml}})`
+   と渡すと、**誤答のときだけ** retry_queue.replay_json に入り、`?retry=1` で
+   `Divp.getRetries()` の `item.replay` として返る。ツールはそれを描画関数へ
+   そのまま渡す＝**復元ではなく再表示**で同一問題を出す（列の追加は
+   db/migrations/migrate_retry_replay.sql）。
+   平方根マスターのように params（例 `{n:72}`）から生成関数が作り直せる単元は
+   従来どおりでよく、こちらは**生成関数が多すぎて復元経路を持てないツール用**
+   （math_js3_aichi_daimon1 = 生成関数20種類以上。これが無いと params_hash が
+   一致せず「2連続正解でmastered」が永久に成立せず、解き直しリストが減らない）。
+   ⚠ 置き場所は answer_logs ではなく retry_queue（誤答1問=1行なので、
+   同じ問題を何回まちがえても1行。answer_logs だと1解答ごとに図が複製される）。
+   ⚠ **params_hash は変わらない**。再表示した問題で `Divp.answer` を呼ぶとき
+   同じハッシュになるよう、ツール側で question_params 由来の値（typeId・_meta）を
+   問題オブジェクトに戻すこと（ここがずれると永久に mastered にならない）。
+   ⚠ tableHtml と svg 選択肢はツール側で innerHTML に入るので
+   `figure_is_safe()`、tex/text は長さとタグらしさだけ見る `replay_text_ok()` で検証し、
+   **想定外なら replay を丸ごと捨てる**（記録自体は残るので気づきにくい。
+   数式の生の `<`「3a+2b<1200」「x<y」は通す作りにしてある）
 3. **question_key はツールのモード変数をそのまま使う**。命名ブレ防止のため
    question_catalog が台帳を兼ね、カタログに無い question_key が飛んできたら
    save_answer.php が警告ログを出す
@@ -182,6 +222,9 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    モード別の既存リトライキュー(_xxRetryQueue)に流し込み全く同じ問題を再出題。
    同じparams_hashに2連続正解でmastered。
    ※question_params のJSON形式を変えると既存pending行のハッシュと合わなくなる点に注意
+   復元経路を持てないツール（愛知県公立入試 大問1）は question_replay の再表示方式（2c参照）。
+   retry.php は units.php に `url` の無い単元では「同じ問題をもう一度出す機能に未対応」と
+   その場に書く（ボタンが無いだけだと壊れて見えるため）
 5a. **学習時間は活動ベースの積算方式**: 壁時計(開始〜終了)ではなく、
    解答(save_answer)・1分ごとのハートビート(api/heartbeat.php、タブ表示中のみ)・
    終了(end_session)のたびに「前回活動からの経過(上限5分)」をduration_secに加算。
@@ -236,6 +279,14 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    CASCADE+login_logs/auth_tokens明示削除。子がいなくなった保護者のみ道連れ、兄弟がいれば保護者は残る）。
    保護者の完全物理削除も統括のみ（api/delete_guardian.php。生徒・学習記録は残る。
    無効化と違いIDが空くので同じ代表の子で登録し直せる＝テスト掃除用）
+   生徒の「記録リセット」も統括のみ（api/reset_student_records.php、生徒コード打ち直し確認つき）。
+   アカウント（生徒コード・PIN・保護者ひもづけ・志望校）は残し、
+   answer_logs / study_sessions / retry_queue / xp_logs / time_records / paper_test_results の
+   その生徒の行だけを消す＝テストデータの掃除用。**xp_logs も一緒に消す**
+   （レベルは累計XPから算出するので残すと「解答0なのにレベルだけ高い」状態になる）。
+   login_logs / auth_tokens は残す（生徒がログインし直さずに済むように）。
+   question_catalog の stat_total/stat_correct は update_xp.php が全件再集計するので手当て不要。
+   phpMyAdmin から直接やる同内容のSQLが db/maintenance/reset_student_records.sql にある。
 5e. **講師パスワード → 完了**: password.php + api/change_password.php（現PW照合必須・**講師専用**）。
    must_change_password=1 の講師は teacher.php/admin.php から password.php へ強制リダイレクト。
    統括は登録一覧の「PW初期化」で仮PWを自動生成発行（api/reset_teacher_password.php、自分自身は不可）。

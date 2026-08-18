@@ -12,9 +12,6 @@
 <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
-<!-- divp-core (Heteml配置時に有効化・file://では自動フォールバック) -->
-<script src="../../assets/js/divp-core.js" defer></script>
-<script src="../../assets/js/divp-print.js" defer></script>
 <style>
 :root{
   --paper:#F6F1E5;
@@ -59,11 +56,8 @@ header.cover{
 h1{font-family:"Shippori Mincho",serif;font-weight:800;font-size:1.34rem;letter-spacing:.04em;line-height:1.3}
 h1 .box{display:inline-block;border:2px solid var(--ink);padding:0 .3em;margin-right:.15em;line-height:1.25}
 .cover-note{font-size:.72rem;color:var(--usuzumi);margin-top:2px}
-.lv-chip{
-  flex:0 0 auto;text-align:center;border:1.5px solid var(--shu);color:var(--shu-deep);
-  border-radius:999px;padding:5px 12px;font-weight:700;font-size:.8rem;background:#fff8;
-}
-.lv-chip small{display:block;font-size:.6rem;letter-spacing:.15em;color:var(--usuzumi)}
+/* LEVELチップ(.lv-chip)はツール独自のlocalStorage XPと一緒に廃止。
+   XP・レベルは学習記録システム側(xp_logs / マイページ)に一本化する */
 
 .screen{display:none}
 .screen.active{display:block;animation:fadein .25s ease}
@@ -135,6 +129,7 @@ h1 .box{display:inline-block;border:2px solid var(--ink);padding:0 .3em;margin-r
   body{background:#fff!important;min-height:0}
   .wrap{max-width:none;padding:0}
   header.cover,footer,.no-print,.stamp-layer{display:none!important}
+  .divp-header{display:none!important}   /* 共通ヘッダー(JS注入)は紙に出さない */
   .screen{display:none!important}
   #scr-print{display:block!important}
   .p-sheet{border:none;border-radius:0;padding:0}
@@ -155,6 +150,7 @@ h1 .box{display:inline-block;border:2px solid var(--ink);padding:0 .3em;margin-r
 
 .q-card{
   background:#fffdf7;border:1px solid var(--line);border-radius:var(--radius);
+  position:relative;   /* 共通はんこ(.divp-hanko/.divp-nice)の位置の基準 */
   padding:16px 14px;
   box-shadow:0 1px 4px rgba(60,50,20,.08);
   font-size:1rem;
@@ -256,12 +252,20 @@ table.freq th{background:var(--paper-deep);font-weight:700}
 .mb b{font-size:1.2rem;line-height:1.2}
 .mb b.o{color:var(--shu)} .mb b.x{color:var(--ai-light)}
 .result-msg{font-weight:700;margin:8px 0 4px}
-.xp-note{font-size:.8rem;color:var(--shu-deep);font-weight:700}
 .result-actions{display:flex;gap:10px;margin-top:16px}
 footer{margin-top:34px;text-align:center;font-size:.68rem;color:var(--usuzumi);letter-spacing:.1em}
 </style>
 </head>
-<body data-unit-key="math_js3_aichi_daimon1" data-theme="washi" data-effect="hanko">
+<body data-unit-key="math_js3_aichi_daimon1" data-theme="washi">
+
+<!-- 共通モジュール（Heteml配置時に有効・file://では divp-core が自動で黙る）
+     正誤エフェクトは jh 共通の divp-correct-jh.js（Divp.correct/incorrect）を使う。
+     読み込めない環境だけ本ツール自前の和紙はんこ(.stamp-layer / stamp())に落ちる -->
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script>if(window.Divp&&Divp.init)Divp.init('math_js3_aichi_daimon1');</script>
+
 <div class="wrap">
 
 <header class="cover">
@@ -271,7 +275,6 @@ footer{margin-top:34px;text-align:center;font-size:.68rem;color:var(--usuzumi);l
     <h1><span class="box">大問 1</span>マーク演習</h1>
     <div class="cover-note">本番形式・全問選択式の10問セット</div>
   </div>
-  <div class="lv-chip"><small>LEVEL</small><span id="lvNum">1</span></div>
 </header>
 
 <section class="screen active" id="scr-home">
@@ -354,7 +357,6 @@ footer{margin-top:34px;text-align:center;font-size:.68rem;color:var(--usuzumi);l
     <div class="result-time" id="rTime"></div>
     <div class="marubatsu" id="rMarks"></div>
     <div class="result-msg" id="rMsg"></div>
-    <div class="xp-note" id="rXp"></div>
     <div class="result-actions">
       <button class="btn btn-next" style="display:block" id="btnRetrySet">もう一回</button>
       <button class="btn btn-check" id="btnHome">ホームへ</button>
@@ -480,10 +482,10 @@ function gen1(){
    String(num)]);
   if(!ch2)return gen1();
   const ex2=['=\\dfrac{'+p+'}{'+den+'}+\\dfrac{'+(c*q0)+'}{'+den+'}','=\\dfrac{'+num+'}{'+den+'}'+(f.d===1?'='+f.n:'')];
-  return q_('t1','a1:seifu',[texPart(tex),SEL_TXT],ch2,ex2)}
+  return q_('t1','a1_seifu',[texPart(tex),SEL_TXT],ch2,ex2)}
  const ch=mkChoices(String(v),w.map(String));
  if(!ch)return gen1();
- return q_('t1','a1:seifu',[texPart(tex),SEL_TXT],ch,ex)}
+ return q_('t1','a1_seifu',[texPart(tex),SEL_TXT],ch,ex)}
 function texFracF(f){if(f.d===1)return String(f.n);
  return (f.n<0?'-':'')+'\\dfrac{'+Math.abs(f.n)+'}{'+f.d+'}'}
 
@@ -511,7 +513,7 @@ function gen2(){
  const ex=['\\text{通分して分子を計算}',
   '=\\dfrac{'+(L/m)+'('+linTex(a1,b1)+')-'+(L/n)+'('+linTex(a2,b2)+')}{'+L+'}',
   '='+correct];
- return q_('t2','a1:mojibunsuu',[texPart(tex),SEL_TXT],ch,ex)}
+ return q_('t2','a1_mojibunsuu',[texPart(tex),SEL_TXT],ch,ex)}
 
 /* ── (3) 単項式の乗除 ── */
 function monoTex(c,ex,ey){let s;
@@ -541,7 +543,7 @@ function gen3(){
   const ch=mkChoices(correct,w);
   if(!ch)continue;
   const ex=['\\text{係数どうし・文字どうしで計算}','='+correct];
-  return q_('t3','a1:tanko',[texPart(tex),SEL_TXT],ch,ex)}
+  return q_('t3','a1_tanko',[texPart(tex),SEL_TXT],ch,ex)}
  return gen1()}
 
 /* ── (4) 平方根 ── */
@@ -569,7 +571,7 @@ function gen4(){
   const ex=['\\sqrt{'+pr[0]+'}\\times\\sqrt{'+pr[1]+'}=\\sqrt{'+P+'}='+k1+'\\sqrt{'+m+'}',
    '\\sqrt{'+c+'}='+(k2===1?'':k2)+'\\sqrt{'+m+'}',
    '='+k1+'\\sqrt{'+m+'}-'+(k2===1?'':k2)+'\\sqrt{'+m+'}='+correct];
-  return q_('t4','a1:heihokon',[texPart(tex),SEL_TXT],ch,ex)}
+  return q_('t4','a1_heihokon',[texPart(tex),SEL_TXT],ch,ex)}
  if(pat==='yuri'){ // km/√m + √(s²m) (or √x×√y) 型
   const m=rc([2,3,5,7]);const t=ri(1,3);const s=ri(2,4);
   const P=s*s*m;
@@ -596,7 +598,7 @@ function gen4(){
   if(!ch)return gen4();
   const ex=['\\dfrac{'+(t*m)+'}{\\sqrt{'+m+'}}='+(t===1?'':t)+'\\sqrt{'+m+'}\\ \\text{(有理化)}',
    '\\text{もう一方も }'+(s===1?'':s)+'\\sqrt{'+m+'}\\ \\text{にそろえて }'+correct];
-  return q_('t4','a1:heihokon',[texPart(tex),SEL_TXT],ch,ex)}
+  return q_('t4','a1_heihokon',[texPart(tex),SEL_TXT],ch,ex)}
  /* (√m+√n)²+(√m−√n)² 型 / (√m+√n)(√m−√n)+k 型 */
  const m=rc([2,3,5,6]);let n=rc([2,3,5,7]);while(n===m)n=rc([2,3,5,7]);
  const mn=sqfree(m*n);
@@ -611,7 +613,7 @@ function gen4(){
   if(!ch)return gen4();
   const ex=['\\text{それぞれ展開すると }\\pm 2\\sqrt{'+(m*n)+'}\\ \\text{が打ち消し合う}',
    '=('+m+'+'+n+')\\times 2='+v];
-  return q_('t4','a1:heihokon',[texPart(tex),SEL_TXT],ch,ex)}
+  return q_('t4','a1_heihokon',[texPart(tex),SEL_TXT],ch,ex)}
  const k=nz(-6,6);
  const tex='(\\sqrt{'+m+'}+\\sqrt{'+n+'})(\\sqrt{'+m+'}-\\sqrt{'+n+'})'+sn(k);
  const v=m-n+k;
@@ -621,7 +623,7 @@ function gen4(){
  if(!ch)return gen4();
  const ex=['(\\sqrt{'+m+'}+\\sqrt{'+n+'})(\\sqrt{'+m+'}-\\sqrt{'+n+'})='+m+'-'+n+'='+(m-n),
   '='+(m-n)+sn(k)+'='+v];
- return q_('t4','a1:heihokon',[texPart(tex),SEL_TXT],ch,ex)}
+ return q_('t4','a1_heihokon',[texPart(tex),SEL_TXT],ch,ex)}
 
 /* ── (5) 二次方程式 ── */
 function pairTex(r1,r2){return'x='+Math.min(r1,r2)+',\\ '+Math.max(r1,r2)}
@@ -641,7 +643,7 @@ function gen5(){
    const p=-(r1+r2),q=r1*r2;
    const ex=['\\text{展開して整理}','x^{2}'+snTex(p,'x')+snTex(q,'')+'=0',
     '(x'+sn(-r1)+')(x'+sn(-r2)+')=0','x='+r1+',\\ '+r2];
-   return q_('t5','a1:niji',[txtPart('方程式 '),texPart(tex),txtPart(' の解として正しいものを、次のアからエまでの中から一つ選びなさい。')],ch,ex)}
+   return q_('t5','a1_niji',[txtPart('方程式 '),texPart(tex),txtPart(' の解として正しいものを、次のアからエまでの中から一つ選びなさい。')],ch,ex)}
   return gen5()}
  /* 無理数解: x(x+a)=−b(x+c) */
  for(let t=0;t<200;t++){
@@ -662,7 +664,7 @@ function gen5(){
   const ex=['\\text{展開して整理: }x^{2}'+snTex(p,'x')+snTex(q,'')+'=0',
    '\\text{解の公式 }x=\\dfrac{-b\\pm\\sqrt{b^{2}-4ac}}{2a}',
    'x=\\dfrac{'+(-p)+'\\pm\\sqrt{'+(p*p)+'-'+(4*q<0?'('+(4*q)+')':(4*q))+'}}{2}='+correct.slice(2)];
-  return q_('t5','a1:niji',[txtPart('方程式 '),texPart(tex),txtPart(' の解として正しいものを、次のアからエまでの中から一つ選びなさい。')],ch,ex)}
+  return q_('t5','a1_niji',[txtPart('方程式 '),texPart(tex),txtPart(' の解として正しいものを、次のアからエまでの中から一つ選びなさい。')],ch,ex)}
  return gen5()}
 function snTex(n,mono){if(n===0)return'';
  if(!mono)return sn(n);
@@ -693,7 +695,7 @@ function gen6(){
  const correctTex=lhs+rel[1]+W;
  const correct=[all.indexOf(correctTex)];
  const ex=[jt('「'+relWord+'」')+'\\ \\Rightarrow\\ '+rel[1],lhs+rel[1]+W];
- return{typeId:'t6',key:'a1:risshiki',
+ return{typeId:'t6',key:'a1_risshiki',
   parts:[txtPart(lead+'という関係を表している不等式を、次のアからエまでの中から一つ選びなさい。')],
   choices:all,correct:correct,expl:ex,multi:1,tableHtml:null}}
 
@@ -742,7 +744,7 @@ function gen7(){
  const all=shuffle(trues.map(s=>({s:s,t:true})).concat(falses.map(s=>({s:s,t:false}))));
  const correct=[];all.forEach((e,i)=>{if(e.t)correct.push(i)});
  const ex=[jt('正しいのは次の2つ:')].concat(trues);
- return{typeId:'t7',key:'a1:seigo',
+ return{typeId:'t7',key:'a1_seigo',
   parts:[txtPart(theme+'について正しく述べたものを、次のアからカまでの中から二つ選びなさい。')],
   choices:all.map(e=>e.s),correct:correct,expl:ex,multi:2,tableHtml:null}}
 
@@ -781,7 +783,7 @@ function gen8(){
   const ch2={choices:ch.choices,correct:ch.correct};
   const ex=[jt('標本での割合 ')+'\\dfrac{'+f+'}{50}'+jt(' を母集団にあてはめる'),
    M+'\\times\\dfrac{'+f+'}{50}='+v+jt(' ('+th.unit+')')];
-  return q_('t8','a1:hyohon',parts,ch2,ex,1,tbl)}
+  return q_('t8','a1_hyohon',parts,ch2,ex,1,tbl)}
  return gen8()}
 
 /* ── (9) 確率 ── */
@@ -823,7 +825,7 @@ function gen9(){
   const ex=[jt('2'+th.count+'の'+th.verb+'方は全部で ')+'{}_{'+N+'}\\mathrm{C}_{2}='+total+jt(' 通り'),
    jt((askDiff?'異なる':'同じになる')+'のは ')+cnt+jt(' 通り'),
    fracTex(cnt,total)];
-  return q_('t9','a1:kakuritsu',parts,ch,ex)}
+  return q_('t9','a1_kakuritsu',parts,ch,ex)}
  return gen9()}
 
 /* ── (10) 関数・数のミックス ── */
@@ -851,7 +853,7 @@ function gen10(){
     txtPart(' について、x の値が '+p+' から '+q+' まで増加するときの変化の割合として正しいものを、次のアからエまでの中から一つ選びなさい。')];
    const ex=['\\text{変化の割合}=\\dfrac{y\\text{の増加量}}{x\\text{の増加量}}',
     '=\\dfrac{'+k+'\\times'+q+'^{2}-'+k+'\\times('+p+')^{2}}{'+q+'-('+p+')}='+m];
-   return q_('t10','a1:henka',parts,ch,ex)}
+   return q_('t10','a1_henka',parts,ch,ex)}
   const wm=shuffle([k,2*k===m?3*k:2*k,m+nz(-2,2)]).filter(x=>x!==m&&x!==0);
   const ms=[m].concat(wm);
   const uniq=[];ms.forEach(x=>{if(uniq.indexOf(x)<0)uniq.push(x)});
@@ -865,7 +867,7 @@ function gen10(){
    texPart('y='+kTex),txtPart(' と同じ関数を、次のアからエまでの中から一つ選びなさい。')];
   const ex=['y='+kTex+jt(' の変化の割合は ')+'\\dfrac{'+k+'\\times('+q+')^{2}-'+k+'\\times('+p+')^{2}}{'+q+'-('+p+')}='+m,
    jt('傾き '+m+' の一次関数を選ぶ')];
-  return{typeId:'t10',key:'a1:henka',parts:parts,choices:all,correct:correct,expl:ex,multi:1,tableHtml:null}}
+  return{typeId:'t10',key:'a1_henka',parts:parts,choices:all,correct:correct,expl:ex,multi:1,tableHtml:null}}
  if(pat==='shizen'){
   for(let t=0;t<80;t++){
    const c=ri(2,4);const n=rc([2,3,5,6,7,10,11,13]);
@@ -878,7 +880,7 @@ function gen10(){
    const parts=[texPart(c+'\\sqrt{'+n+'}'),txtPart(' より小さい自然数の個数として正しいものを、次のアからエまでの中から一つ選びなさい。')];
    const ex=[c+'\\sqrt{'+n+'}=\\sqrt{'+c2n+'}',
     '\\sqrt{'+(v*v)+'}<\\sqrt{'+c2n+'}<\\sqrt{'+((v+1)*(v+1))+'}'+jt(' だから ')+v+jt(' 個')];
-   return q_('t10','a1:shizen',parts,ch,ex)}
+   return q_('t10','a1_shizen',parts,ch,ex)}
   return gen10()}
  /* 反比例の格子点 */
  for(let t=0;t<50;t++){
@@ -895,7 +897,7 @@ function gen10(){
   const parts=[txtPart('y が x に反比例し、x = '+x0+' のとき y = '+y0+' である関数のグラフ上の点で、x 座標と y 座標がともに整数であり、x 座標が y 座標よりも小さい点は何個あるか、次のアからエまでの中から一つ選びなさい。')];
   const ex=['xy='+x0+'\\times '+y0+'='+k+jt(' なので ')+'y=\\dfrac{'+k+'}{x}',
    jt('約数の組を正・負の両方で数えて x<y のものは ')+cnt+jt(' 個')];
-  return q_('t10','a1:hanpirei',parts,ch,ex)}
+  return q_('t10','a1_hanpirei',parts,ch,ex)}
  return gen10()}
 
 /* ── 関数: 2直線の交点の座標 ── */
@@ -917,7 +919,7 @@ function genKoten(){
   const parts=[txtPart('2直線 '),texPart(tex1+',\\ '+tex2),txtPart(' の交点の座標として正しいものを、次のアからエまでの中から一つ選びなさい。')];
   const ex=[jt('2式を連立して解く'),coefTex(a1,'x')+snz(b1)+'='+coefTex(a2,'x')+snz(b2)+jt(' より x=')+x0,
    jt('x='+x0+' を代入して y=')+y0+jt(' → 交点 ')+ptTex(x0,y0)];
-  const qq=q_('t10','a1:koten',parts,ch,ex);
+  const qq=q_('t10','a1_koten',parts,ch,ex);
   qq._meta={koten:[a1,b1,a2,b2,x0,y0]};return qq}
  return genKoten()}
 
@@ -944,7 +946,7 @@ function genHeikou(){
   const ex=[jt('交点は ')+ptTex(x0,y0)+jt('(連立して求める)'),
    jt('平行 → 傾き '+m+'。y='+coefTex(m,'x')+'+b に交点を代入'),
    y0+'='+m+'\\times'+pn(x0)+'+b'+jt(' より b=')+c];
-  const qq=q_('t10','a1:heikou',parts,ch,ex);
+  const qq=q_('t10','a1_heikou',parts,ch,ex);
   qq._meta={heikou:[a1,b1,a2,b2,m,x0,y0,c]};return qq}
  return genHeikou()}
 
@@ -952,7 +954,8 @@ function genHeikou(){
 const KANSU_BANK=[
  {t:true, mk:()=>{const a=nz(2,6);return'\\text{1辺が }x\\text{ cm の正三角形の周の長さ }y\\text{ cm}'}},
  {t:true, mk:()=>'\\text{水そうに毎分 }a\\text{ L ずつ水を入れるときの }x\\text{ 分後の水量 }y\\text{ L}'},
- {t:true, mk:()=>{const p=nz(2,8);return'\\text{'+p+'% の食塩水 }x\\text{ g にふくまれる食塩の量 }y\\text{ g}'}},
+ /* %はKaTeXのコメント開始文字なので必ず \% にする（生の%だと以降が丸ごと消える） */
+ {t:true, mk:()=>{const p=nz(2,8);return'\\text{'+p+'\\% の食塩水 }x\\text{ g にふくまれる食塩の量 }y\\text{ g}'}},
  {t:true, mk:()=>'\\text{底辺 }x\\text{ cm、高さ 6 cm の三角形の面積 }y\\text{ cm}^{2}'},
  {t:true, mk:()=>'\\text{時速 4 km で }x\\text{ 時間歩いたときの道のり }y\\text{ km}'},
  {t:false,mk:()=>'\\text{1辺が }x\\text{ cm の立方体の体積 }y\\text{ cm}^{3}'},
@@ -987,7 +990,7 @@ function genKansuHan(){
   const correct=[];chosen.forEach((c,i)=>{if(c.t)correct.push(i)});
   const parts=[txtPart('次のアからエまでの中から、'+lead+'を二つ選びなさい。')];
   const ex=[jt(exWord+'になるものを選ぶ')];
-  return{typeId:'t10',key:'a1:kansuhan',parts:parts,choices:texs,correct:correct,
+  return{typeId:'t10',key:'a1_kansuhan',parts:parts,choices:texs,correct:correct,
    expl:ex,multi:2,tableHtml:null,choiceN:4}}
  return genKansuHan()}
 
@@ -1082,7 +1085,7 @@ function genKakudoKakure(){
    jt('三角形CDEで ∠CDE=180°-'+(180-aed)+'°-'+w+'°=')+qv+'^{\\circ}',
    jt('∠BAE=∠BDC='+qv+'° → 4点A,B,C,Dは同一円周上(円周角の定理の逆)'),
    jt('よって ∠DAE=∠DBC(弧DCの円周角)=')+r+'^{\\circ}'];
-  const qq=q_('t13','a1:kakudo',parts,ch,ex,1,kakudoSvg(qv,r,w));
+  const qq=q_('t13','a1_kakudo',parts,ch,ex,1,kakudoSvg(qv,r,w));
   qq._meta={p:p,q:qv,r:r,w:w};
   return qq}
  return genKakudoKakure()}
@@ -1141,7 +1144,7 @@ function genKakudoEn(){
   const wrongs=[];pool.forEach(v=>{if(v>0&&v<180&&v!==ans)wrongs.push(v+'^{\\circ}')});
   const ch=mkChoices(ans+'^{\\circ}',wrongs);
   if(!ch)return genKakudoEn();
-  const qq={typeId:'t13',key:'a1:enshukaku',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
+  const qq={typeId:'t13',key:'a1_enshukaku',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
   qq._meta={pts:{A:thA,B:270-a,C:270+a},given:given,ask:ask,ans:ans};
   return qq}
  if(pat==='kouten'){
@@ -1168,7 +1171,7 @@ function genKakudoEn(){
    const parts=[txtPart('図で、4点A、B、C、Dは同じ円の周上の点であり、Pは線分ACとBDの交点である。∠BAC = '+beta+'°、∠APD = '+e+'° のとき、∠ACDの大きさとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
    const ex=[jt('三角形ABPで、∠APDは外角だから ∠ABD='+e+'°-'+beta+'°=')+(e-beta)+'^{\\circ}',
     jt('弧ADに対する円周角は等しい: ∠ACD=∠ABD=')+ans+'^{\\circ}'];
-   const qq={typeId:'t13',key:'a1:enshukaku',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
+   const qq={typeId:'t13',key:'a1_enshukaku',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
    qq._meta={pts:{A:thA,B:thB,C:thC,D:thD},inter:['A','C','B','D'],
     given:[{at:'A',rays:['B','C'],val:beta},{at:'P',rays:['A','D'],val:e}],
     ask:{at:'C',rays:['A','D']},ans:ans};
@@ -1191,7 +1194,7 @@ function genKakudoEn(){
  const parts=[txtPart('図で、線分BCは円Oの直径であり、Aは円Oの周上の点である。∠ABC = '+b+'° のとき、∠ACBの大きさとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
  const ex=[jt('BCは直径だから ∠BAC=90°(半円の弧に対する円周角)'),
   jt('∠ACB=180°-90°-'+b+'°=')+ans+'^{\\circ}'];
- const qq={typeId:'t13',key:'a1:enshukaku',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
+ const qq={typeId:'t13',key:'a1_enshukaku',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
  qq._meta={pts:{A:thA,B:180,C:0},given:[{at:'B',rays:['A','C'],val:b}],ask:{at:'C',rays:['A','B']},ans:ans};
  return qq}
 
@@ -1218,7 +1221,7 @@ function genKakEnDiam(){
  const ex=[jt('弧ABに対する円周角は等しいから ∠ACB=∠ADB=')+th+'^{\\circ}',
   jt('ACは直径だから ∠ABC=90°(半円の弧に対する円周角)'),
   jt('△ABCで ∠CAB=180°-90°-'+th+'°=')+ans+'^{\\circ}'];
- return{typeId:'t13',key:'a1:enshukaku',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s}}
+ return{typeId:'t13',key:'a1_enshukaku',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s}}
 
 /* ── 図形(角度)D: 二等辺三角形と外角 実物R3A(3)型 ── */
 function genKakNitohen(){
@@ -1244,7 +1247,7 @@ function genKakNitohen(){
    jt('A,D,Bは一直線だから ∠ADC=180°-(180°-2×'+b+'°)=')+(2*b)+'^{\\circ}',
    jt('△ADFで ∠AFD=180°-'+a+'°-'+(2*b)+'°=')+ans+'^{\\circ}',
    jt('∠EFC=∠AFD(対頂角)=')+ans+'^{\\circ}'];
-  return{typeId:'t13',key:'a1:kakudo',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s}}
+  return{typeId:'t13',key:'a1_kakudo',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s}}
  return genKakNitohen()}
 
 /* ── 図形(角度)E: 接線と円周角 実物R3B(3)型 ── */
@@ -1273,7 +1276,7 @@ function genKakTangent(){
  const ex=[jt('接線は接点を通る半径に垂直だから ∠OCE=90°。△OCEで ∠BOC=90°-'+th+'°=')+(90-th)+'^{\\circ}',
   jt('∠AOC=180°-'+(90-th)+'°=')+(90+th)+'^{\\circ}',
   jt('円周角は中心角の半分: ∠CDA=')+(90+th)+'°÷2='+ans+'^{\\circ}'];
- return{typeId:'t13',key:'a1:enshukaku',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s}}
+ return{typeId:'t13',key:'a1_enshukaku',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s}}
 
 /* genKakudoKakure(抽象図・過去問らしくない)はローテーションから外し、
    過去問の構図を再現した円周角(直径)・二等辺・接線を出題する */
@@ -1340,7 +1343,7 @@ function genSouji(){
     wrongs=[ab*oa/oc,cd+2,cd-2,ab+oc]}
    const ch=mkChoices(correct+jt(' cm'),wrongs.filter(x=>x>0&&x!==correct&&x%1===0).map(x=>x+jt(' cm')));
    if(!ch)continue;
-   const qq={typeId:'t16',key:'a1:souji',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
+   const qq={typeId:'t16',key:'a1_souji',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
    qq._meta={souji:{type:'sunadokei',ab:ab,k:k,cd:cd}};return qq}
   return genSouji()}
  /* daikei: 台形で中点連結/線分比 → ピラミッド型 △ADE∽△ABC */
@@ -1365,7 +1368,7 @@ function genSouji(){
   const parts=[txtPart('図で、DE∥BC、AD:DB='+k[0]+':'+(k[1]-k[0])+'、BC='+bc+' cm である。線分DEの長さとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
   const ex=[jt('△ADE∽△ABC、相似比 AD:AB='+k[0]+':'+k[1]),
    'DE=BC\\times\\dfrac{'+k[0]+'}{'+k[1]+'}='+bc+'\\times\\dfrac{'+k[0]+'}{'+k[1]+'}='+de+jt(' cm')];
-  const qq={typeId:'t16',key:'a1:souji',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
+  const qq={typeId:'t16',key:'a1_souji',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
   qq._meta={souji:{type:'daikei',bc:bc,k:k,de:de}};return qq}
  return genSouji()}
 
@@ -1400,11 +1403,11 @@ function genSanpei(){
    wrongs=[c-b,a+1,a-1,c+b];
    const ch2=mkChoices(correct+jt(' cm'),wrongs.filter(x=>x>0&&x!==a&&x%1===0).map(x=>x+jt(' cm')));
    if(!ch2)return genSanpei();
-   const qq2={typeId:'t16',key:'a1:sanpei',parts:parts,choices:ch2.choices,correct:ch2.correct,expl:ex,multi:1,tableHtml:s2};
+   const qq2={typeId:'t16',key:'a1_sanpei',parts:parts,choices:ch2.choices,correct:ch2.correct,expl:ex,multi:1,tableHtml:s2};
    qq2._meta={sanpei:{a:a,b:b,c:c,ask:'leg'}};return qq2}
   const ch=mkChoices(correct+jt(' cm'),wrongs.filter(x=>x>0&&x!==correct&&x%1===0).map(x=>x+jt(' cm')));
   if(!ch)return genSanpei();
-  const qq={typeId:'t16',key:'a1:sanpei',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
+  const qq={typeId:'t16',key:'a1_sanpei',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
   qq._meta={sanpei:{a:a,b:b,c:c,ask:'hyp'}};return qq}
  /* muri: 脚2つが整数で斜辺が無理数 or 正方形の対角線 */
  const sub=rc(['legs','seihoukei','choho']);
@@ -1422,7 +1425,7 @@ function genSanpei(){
   if(!ch)return genSanpei();
   const parts=[txtPart('図で、四角形ABCDは1辺 '+a+' cm の正方形である。対角線ACの長さとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
   const ex=['AC^{2}='+a+'^{2}+'+a+'^{2}='+inner,'AC=\\sqrt{'+inner+'}='+rootTex(inner)+jt(' cm')];
-  const qq={typeId:'t16',key:'a1:sanpei',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
+  const qq={typeId:'t16',key:'a1_sanpei',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
   qq._meta={sanpei:{sq:a,inner:inner,ask:'diag'}};return qq}
  if(sub==='choho'){
   const p=rc([[1,2],[2,3],[1,3],[3,4],[2,5]]);const u=rc([2,3,4]);
@@ -1439,7 +1442,7 @@ function genSanpei(){
   if(!ch)return genSanpei();
   const parts=[txtPart('図で、四角形ABCDは縦 '+h+' cm、横 '+w+' cm の長方形である。対角線ACの長さとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
   const ex=['AC^{2}='+w+'^{2}+'+h+'^{2}='+inner,'AC=\\sqrt{'+inner+'}='+rootTex(inner)+jt(' cm')];
-  const qq={typeId:'t16',key:'a1:sanpei',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
+  const qq={typeId:'t16',key:'a1_sanpei',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
   qq._meta={sanpei:{w:w,h:h,inner:inner,ask:'diag'}};return qq}
  /* legs: 直角二等辺 or 30-60-90 の代表 */
  const a=rc([2,3,4,5]);const inner=2*a*a;
@@ -1453,7 +1456,7 @@ function genSanpei(){
  if(!ch)return genSanpei();
  const parts=[txtPart('図で、∠A=90°、AB=AC='+a+' cm である。線分BCの長さとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
  const ex=['BC^{2}='+a+'^{2}+'+a+'^{2}='+inner,'BC=\\sqrt{'+inner+'}='+rootTex(inner)+jt(' cm')];
- const qq={typeId:'t16',key:'a1:sanpei',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
+ const qq={typeId:'t16',key:'a1_sanpei',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
  qq._meta={sanpei:{a:a,inner:inner,ask:'iso'}};return qq}
 
 /* ── 円と三平方: 弦の長さ ── */
@@ -1485,7 +1488,7 @@ function genEnpei(){
   if(cfg.deg===90)ex=[jt('△OBCは直角二等辺三角形(OB=OC='+r+'、∠BOC=90°)'),'BC^{2}='+r+'^{2}+'+r+'^{2}='+inner,'BC='+rootTex(inner)+jt(' cm')];
   else if(cfg.deg===60)ex=[jt('△OBCは正三角形(OB=OC='+r+'、∠BOC=60°)'),'BC=OB='+r+jt(' cm')];
   else ex=[jt('Oから弦BCに垂線OH。∠BOH=60°、OB='+r),'BH=OB\\sin60°='+r+'\\times\\dfrac{\\sqrt{3}}{2}','BC=2BH='+rootTex(inner)+jt(' cm')];
-  const qq={typeId:'t16',key:'a1:enpei',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
+  const qq={typeId:'t16',key:'a1_enpei',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
   qq._meta={enpei:{deg:cfg.deg,r:r,inner:inner}};return qq}
  /* genchusin: 円周角∠BAC=30°→中心角60°、弦BC(実物と同型) */
  const r=rc([4,6,8,10]);const inner=r*r; // ∠BAC=30°→∠BOC=60°→弦=r
@@ -1505,7 +1508,7 @@ function genEnpei(){
  if(!ch)return genEnpei();
  const parts=[txtPart('図で、3点A、B、Cは円Oの周上の点である。円Oの半径が '+r+' cm、∠BAC=30° のとき、線分BCの長さとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
  const ex=[jt('円周角の定理: ∠BOC=2×30°=60°'),jt('△OBCは正三角形(OB=OC='+r+'、∠BOC=60°)'),'BC='+r+jt(' cm')];
- const qq={typeId:'t16',key:'a1:enpei',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
+ const qq={typeId:'t16',key:'a1_enpei',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
  qq._meta={enpei:{deg:60,r:r,inner:inner,circ:true}};return qq}
 
 /* ── 面積比・体積比 ── */
@@ -1521,7 +1524,7 @@ function genHiritsu(){
    if(!ch)return genHiritsu();
    const parts=[txtPart('相似な2つの三角形があり、相似比が '+k[0]+':'+k[1]+' である。この2つの三角形の面積の比として正しいものを、次のアからエまでの中から一つ選びなさい。')];
    const ex=[jt('相似比 m:n の面積比は m²:n²'),k[0]+'^{2}:'+k[1]+'^{2}='+correct];
-   return q_('t16','a1:hiritsu',parts,ch,ex)}
+   return q_('t16','a1_hiritsu',parts,ch,ex)}
   // fromArea: 小さい方の面積→大きい方
   const base=k[0]*k[0]*rc([2,3]);const S=base*(k[1]*k[1])/(k[0]*k[0]);
   if(S%1!==0)return genHiritsu();
@@ -1532,7 +1535,7 @@ function genHiritsu(){
   const parts=[txtPart('相似な2つの三角形A、Bがあり、相似比は '+k[0]+':'+k[1]+' である。Aの面積が '+base+' cm² のとき、Bの面積として正しいものを、次のアからエまでの中から一つ選びなさい。')];
   const ex=[jt('面積比は '+k[0]+'²:'+k[1]+'²='+(k[0]*k[0])+':'+(k[1]*k[1])),
    'B='+base+'\\times\\dfrac{'+(k[1]*k[1])+'}{'+(k[0]*k[0])+'}='+S+jt(' cm')+'^{2}'];
-  return q_('t16','a1:hiritsu',parts,ch,ex)}
+  return q_('t16','a1_hiritsu',parts,ch,ex)}
  /* taiseki */
  const ask=rc(['fromRatio','fromVol']);
  if(ask==='fromRatio'){
@@ -1542,7 +1545,7 @@ function genHiritsu(){
   if(!ch)return genHiritsu();
   const parts=[txtPart('相似な2つの立体があり、相似比が '+k[0]+':'+k[1]+' である。この2つの立体の体積の比として正しいものを、次のアからエまでの中から一つ選びなさい。')];
   const ex=[jt('相似比 m:n の体積比は m³:n³'),k[0]+'^{3}:'+k[1]+'^{3}='+correct];
-  return q_('t16','a1:hiritsu',parts,ch,ex)}
+  return q_('t16','a1_hiritsu',parts,ch,ex)}
  const base=k[0]*k[0]*k[0]*rc([2,3]);const V=base*(k[1]*k[1]*k[1])/(k[0]*k[0]*k[0]);
  if(V%1!==0)return genHiritsu();
  const correct=V+jt(' cm')+'^{3}';
@@ -1553,7 +1556,7 @@ function genHiritsu(){
  const parts=[txtPart('相似な2つの立体P、Qがあり、相似比は '+k[0]+':'+k[1]+' である。Pの体積が '+base+' cm³ のとき、Qの体積として正しいものを、次のアからエまでの中から一つ選びなさい。')];
  const ex=[jt('体積比は '+k[0]+'³:'+k[1]+'³='+(k[0]*k[0]*k[0])+':'+(k[1]*k[1]*k[1])),
   'Q='+base+'\\times\\dfrac{'+(k[1]*k[1]*k[1])+'}{'+(k[0]*k[0]*k[0])+'}='+V+jt(' cm')+'^{3}'];
- return q_('t16','a1:hiritsu',parts,ch,ex)}
+ return q_('t16','a1_hiritsu',parts,ch,ex)}
 
 /* ── 二等辺三角形+垂線(相似と三平方の複合、実物(10)同型) ── */
 function genNitohen(){
@@ -1608,7 +1611,7 @@ function genNitohen(){
   const ex=[jt('Eは中点だから AE⊥BC。△ABEで AE=\\sqrt{'+L+'^{2}-'+half+'^{2}}='+AE),
    jt('面積を2通りに: ½·BC·AE=½·AC·DB より DB=\\dfrac{'+bc+'×'+AE+'}{'+L+'}='+dbTex),
    jt('△ABDで三平方: AD=\\sqrt{AB^{2}-DB^{2}}=')+adTex+jt(' cm')];
-  const qq={typeId:'t16',key:'a1:nitohen',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
+  const qq={typeId:'t16',key:'a1_nitohen',parts:parts,choices:ch.choices,correct:ch.correct,expl:ex,multi:1,tableHtml:s};
   qq._meta={nitohen:{L:L,bc:bc,AE:AE,adNum:nn,adDen:dd}};return qq}
  return genNitohen()}
 
@@ -1676,7 +1679,7 @@ function genHako(){
   const parts=[txtPart('図は、中学生40人のハンドボール投げの記録を整理し、ヒストグラムで表したものである。この記録を箱ひげ図で表したとき、最も適当な図を、次のアからエまでの中から選びなさい。')];
   const ex=[jt('40人 → 中央値は20・21番目の平均、第1四分位数は10・11番目、第3四分位数は30・31番目の平均'),
    jt('度数を小さい方から数えて、最小値・四分位数・最大値の入る階級を確かめる')];
-  const qq={typeId:'t11',key:'a1:hakohige',parts:parts,choices:choices,correct:correct,expl:ex,multi:1,tableHtml:figure};
+  const qq={typeId:'t11',key:'a1_hakohige',parts:parts,choices:choices,correct:correct,expl:ex,multi:1,tableHtml:figure};
   qq._meta={fs:fs,data:data,five:five,plots:plots.map(pl=>pl.f)};
   return qq}
  return genHako()}
@@ -1750,7 +1753,7 @@ function genHisto(){
   const figure=histoSvg(fs,{x0:0,w:5,unit:'分'});
   const parts=[txtPart('ある中学校の生徒30人の通学時間を調べたところ、通学時間の平均値は '+mean+' 分であった。また、図は、その結果をヒストグラムで表したものである。ただし、ヒストグラムの各階級の区間は、左側の数値を含み、右側の数値を含まないものとする。これらからわかることについて正しく述べたものを、次のアからエまでの中から一つ選びなさい。')];
   const ex=[jt('度数を左から順に足して、15番目・16番目の入る階級や相対度数(度数÷30)を確かめる')];
-  const qq={typeId:'t12',key:'a1:histo',parts:parts,choices:all.map(s=>s.tex),correct:correct,expl:ex,multi:1,tableHtml:figure};
+  const qq={typeId:'t12',key:'a1_histo',parts:parts,choices:all.map(s=>s.tex),correct:correct,expl:ex,multi:1,tableHtml:figure};
   qq._meta={fs:fs,mean:mean,modeMid:modeMid,sts:all};
   return qq}
  return genHisto()}
@@ -1779,7 +1782,7 @@ function gen14(){
    const ch=mkChoices(correct,w);
    if(!ch)continue;
    const ex=['\\text{それぞれ展開すると }x^{2}\\text{ の項が消える}','='+correct];
-   const qq=q_('t14','a1:tenkai',[texPart(tex),SEL_TXT],ch,ex);
+   const qq=q_('t14','a1_tenkai',[texPart(tex),SEL_TXT],ch,ex);
    qq._meta={chk:chk};return qq}
   return gen14()}
  if(pat==='heihou'){
@@ -1790,7 +1793,7 @@ function gen14(){
   const ch=mkChoices(correct,w);
   if(!ch)return gen14();
   const ex=['(x+a)^{2}=x^{2}+2ax+a^{2}','='+correct];
-  return q_('t14','a1:tenkai',[txtPart('次の式を展開した結果として正しいものを、次のアからエまでの中から一つ選びなさい。　'),texPart(tex)],ch,ex)}
+  return q_('t14','a1_tenkai',[txtPart('次の式を展開した結果として正しいものを、次のアからエまでの中から一つ選びなさい。　'),texPart(tex)],ch,ex)}
  if(pat==='wasa'){
   const a=ri(2,9);
   const tex='(x+'+a+')(x-'+a+')';
@@ -1799,7 +1802,7 @@ function gen14(){
   const ch=mkChoices(correct,w);
   if(!ch)return gen14();
   const ex=['(x+a)(x-a)=x^{2}-a^{2}','='+correct];
-  return q_('t14','a1:tenkai',[txtPart('次の式を展開した結果として正しいものを、次のアからエまでの中から一つ選びなさい。　'),texPart(tex)],ch,ex)}
+  return q_('t14','a1_tenkai',[txtPart('次の式を展開した結果として正しいものを、次のアからエまでの中から一つ選びなさい。　'),texPart(tex)],ch,ex)}
  let a=nz(-8,8),b=nz(-8,8);
  while(b===a||a+b===0)b=nz(-8,8);
  const S=a+b,P=a*b;
@@ -1810,7 +1813,7 @@ function gen14(){
  if(!ch)return gen14();
  const ex=['(x+a)(x+b)=x^{2}+(a+b)x+ab',
   '\\text{和 }'+S+'\\text{、積 }'+P+'\\text{ → }'+correct];
- return q_('t14','a1:tenkai',[txtPart('次の式を展開した結果として正しいものを、次のアからエまでの中から一つ選びなさい。　'),texPart(tex)],ch,ex)}
+ return q_('t14','a1_tenkai',[txtPart('次の式を展開した結果として正しいものを、次のアからエまでの中から一つ選びなさい。　'),texPart(tex)],ch,ex)}
 
 /* ── (3'') 因数分解 ── */
 function gen15(){
@@ -1837,7 +1840,7 @@ function gen15(){
    const ch=mkChoices(correct,w);
    if(!ch)continue;
    const ex=['\\text{まず展開して整理: }'+quadTex(S,Q),'='+correct];
-   const qq=q_('t15','a1:insu',INSTR.concat([texPart(tex)]),ch,ex);
+   const qq=q_('t15','a1_insu',INSTR.concat([texPart(tex)]),ch,ex);
    qq._meta={chk:chk};return qq}
   return gen15()}
  if(pat==='heihou'){
@@ -1848,7 +1851,7 @@ function gen15(){
   const ch=mkChoices(correct,w);
   if(!ch)return gen15();
   const ex=['x^{2}+2ax+a^{2}=(x+a)^{2}\\text{ の形}','='+correct];
-  return q_('t15','a1:insu',INSTR.concat([texPart(texQ)]),ch,ex)}
+  return q_('t15','a1_insu',INSTR.concat([texPart(texQ)]),ch,ex)}
  if(pat==='wasa'){
   const a=ri(2,9);
   const texQ='x^{2}-'+(a*a);
@@ -1857,7 +1860,7 @@ function gen15(){
   const ch=mkChoices(correct,w);
   if(!ch)return gen15();
   const ex=['x^{2}-a^{2}=(x+a)(x-a)','='+correct];
-  return q_('t15','a1:insu',INSTR.concat([texPart(texQ)]),ch,ex)}
+  return q_('t15','a1_insu',INSTR.concat([texPart(texQ)]),ch,ex)}
  if(pat==='kyotsu'){
   const k=rc([2,3]),a=ri(2,4);
   const texQ=k+'x^{2}-'+(k*a*a);
@@ -1866,7 +1869,7 @@ function gen15(){
   const ch=mkChoices(correct,w);
   if(!ch)return gen15();
   const ex=['\\text{まず共通因数 }'+k+'\\text{ をくくり出す: }'+k+'(x^{2}-'+(a*a)+')','='+correct];
-  return q_('t15','a1:insu',INSTR.concat([texPart(texQ)]),ch,ex)}
+  return q_('t15','a1_insu',INSTR.concat([texPart(texQ)]),ch,ex)}
  let a=nz(-7,7),b=nz(-7,7);
  while(b===a||a+b===0)b=nz(-7,7);
  const texQ=quadTex(a+b,a*b);
@@ -1875,7 +1878,7 @@ function gen15(){
  const ch=mkChoices(correct,w);
  if(!ch)return gen15();
  const ex=['\\text{積が }'+(a*b)+'\\text{、和が }'+(a+b)+'\\text{ の2数 → }'+a+'\\text{ と }'+b,'='+correct];
- return q_('t15','a1:insu',INSTR.concat([texPart(texQ)]),ch,ex)}
+ return q_('t15','a1_insu',INSTR.concat([texPart(texQ)]),ch,ex)}
 
 /* ── 連立方程式(解を選ぶ) 実物29A(7)型 ── */
 function gen17(){
@@ -1894,7 +1897,7 @@ function gen17(){
   if(!ch)continue;
   const ex=[jt('加減法または代入法で解く'),
    'x='+x0+jt('、')+'y='+y0+jt(' を両式に代入すると成り立つ')];
-  return q_('t17','a1:renritsu',
+  return q_('t17','a1_renritsu',
    [txtPart('連立方程式 '),texPart(sysTex),txtPart(' の解として正しいものを、次のアからエまでの中から一つ選びなさい。')],ch,ex)}
  return gen17()}
 
@@ -1923,7 +1926,7 @@ function gen18(){
  const correct=String(v);
  const ch=mkChoices(correct,w.map(String).filter(s2=>s2!==correct));
  if(!ch)return gen18();
- return q_('t18','a1:shikinoatai',
+ return q_('t18','a1_shikinoatai',
   [txtPart('x='+x+'、y='+y+' のとき、'),texPart(tex),txtPart(' の値として正しいものを、次のアからエまでの中から一つ選びなさい。')],ch,expl)}
 
 /* ── 度数分布表の平均値 実物29B(7)型 ── */
@@ -1958,7 +1961,7 @@ function gen19(){
   const parts=[txtPart('表は、'+th.who+' '+total+' '+th.n+'の'+th.what+'を調べ、度数分布表にまとめたものである。'+th.what+'の平均値として正しいものを、次のアからエまでの中から一つ選びなさい。')];
   const ex=[jt('平均値 = (階級値×度数)の合計 ÷ 度数の合計'),
    '\\dfrac{'+num+'}{'+total+'}=\\dfrac{'+sum+'}{'+total+'}='+mean];
-  return q_('t19','a1:heikin',parts,ch,ex,1,tbl)}
+  return q_('t19','a1_heikin',parts,ch,ex,1,tbl)}
  return gen19()}
 
 /* ── 割合の文章題 実物29B(8)型 ── */
@@ -1975,7 +1978,7 @@ function gen20(){
   const parts=[txtPart('ある店で、定価の'+p+'%引きで商品を買ったところ、代金は定価より '+D+' 円安くなった。この商品の定価として正しいものを、次のアからエまでの中から一つ選びなさい。ただし、消費税は考えないものとする。')];
   const ex=[jt('定価を x 円とすると ')+'x\\times\\dfrac{'+p+'}{100}='+D,
    'x='+D+'\\times\\dfrac{100}{'+p+'}='+teika+jt(' 円')];
-  return q_('t20','a1:wariai',parts,ch,ex)}
+  return q_('t20','a1_wariai',parts,ch,ex)}
  const p=rc([5,10,15,20,25,30]);         // 定価a円のp%引きの代金
  const a=rc([800,1000,1200,1500,1800,2000,2400,3000]);
  const pay=a*(100-p)/100;
@@ -1986,7 +1989,7 @@ function gen20(){
  const parts=[txtPart('定価 '+a+' 円の品物を、定価の'+p+'%引きで買った。このときの代金として正しいものを、次のアからエまでの中から一つ選びなさい。ただし、消費税は考えないものとする。')];
  const ex=[jt(p+'%引き → 定価の ')+'\\dfrac{'+(100-p)+'}{100}',
   a+'\\times\\dfrac{'+(100-p)+'}{100}='+pay+jt(' 円')];
- return q_('t20','a1:wariai',parts,ch,ex)}
+ return q_('t20','a1_wariai',parts,ch,ex)}
 
 /* ── 平行線と角(錯角の和) 実物29B(9)型 ── */
 function heikouSvg(a,b){
@@ -2001,18 +2004,318 @@ function heikouSvg(a,b){
   +svgT([Qx+17,yL+13],a+'°',10)+svgT([Rx+17,yM-9],b+'°',10)
   +svgT([px-15,py+3],'x',12);
  return s+'</svg>'}
-function gen21(){
+function gen21Sakkaku(){
  const a=ri(28,66),b=ri(28,66);
- if(a+b<55||a+b>140)return gen21();
+ if(a+b<55||a+b>140)return gen21Sakkaku();
  const ans=a+b;
  const pool=[Math.abs(a-b),180-ans,a,b,ans+10];
  const wrongs=[];pool.forEach(v=>{if(v>0&&v<180&&v!==ans&&wrongs.indexOf(v+'^{\\circ}')<0)wrongs.push(v+'^{\\circ}')});
  const ch=mkChoices(ans+'^{\\circ}',wrongs);
- if(!ch)return gen21();
+ if(!ch)return gen21Sakkaku();
  const parts=[txtPart('図で、ℓ∥m である。図の2つの角の大きさがそれぞれ '+a+'°、'+b+'° のとき、∠xの大きさとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
  const ex=[jt('xの頂点を通り ℓ に平行な直線をひくと、平行線の錯角は等しい'),
   '\\angle x='+a+'^{\\circ}+'+b+'^{\\circ}='+ans+'^{\\circ}'];
- return q_('t21','a1:heikousen',parts,ch,ex,1,heikouSvg(a,b))}
+ return q_('t21','a1_heikousen',parts,ch,ex,1,heikouSvg(a,b))}
+
+/* ═══ 中2図形の角度(二等辺三角形・正三角形・平行四辺形・ひし形・正方形) ═══
+   実物大問1(1)の構図。座標は与えた角度から実際に計算し、fitPts で viewBox に
+   収めてから描く(図と数値が必ず一致する)。生成後に angDeg で検算し、
+   ずれたパターンは捨てて引き直す。 */
+/* 点群 {名前:[x,y]} を viewBox(W,H) に収めるよう相似変換 */
+function fitPts(o,W,H,pad){
+ pad=(pad==null)?26:pad;
+ const ks=Object.keys(o);let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+ ks.forEach(k=>{const p=o[k];
+  if(p[0]<x0)x0=p[0];if(p[0]>x1)x1=p[0];
+  if(p[1]<y0)y0=p[1];if(p[1]>y1)y1=p[1]});
+ const sc=Math.min((W-2*pad)/Math.max(x1-x0,1e-6),(H-2*pad)/Math.max(y1-y0,1e-6));
+ const ox=(W-(x1-x0)*sc)/2-x0*sc,oy=(H-(y1-y0)*sc)/2-y0*sc;
+ const r={};ks.forEach(k=>{r[k]=[o[k][0]*sc+ox,o[k][1]*sc+oy]});return r}
+/* ∠P1VP2 の大きさ(度) 図と数値の検算用 */
+function angDeg(V,P1,P2){
+ let d=Math.abs(Math.atan2(P1[1]-V[1],P1[0]-V[0])-Math.atan2(P2[1]-V[1],P2[0]-V[0]))*180/Math.PI;
+ if(d>180)d=360-d;return d}
+/* 角の弧マーク(短い方の弧) */
+function angArc(V,P1,P2,r){
+ r=r||15;
+ function u(P){const dx=P[0]-V[0],dy=P[1]-V[1];const L=Math.hypot(dx,dy)||1;return[dx/L,dy/L]}
+ const u1=u(P1),u2=u(P2);
+ const a=[V[0]+u1[0]*r,V[1]+u1[1]*r],b=[V[0]+u2[0]*r,V[1]+u2[1]*r];
+ const sw=(u1[0]*u2[1]-u1[1]*u2[0])>0?1:0;
+ return'<path d="M'+a[0].toFixed(1)+' '+a[1].toFixed(1)+' A'+r+' '+r+' 0 0 '+sw+' '+b[0].toFixed(1)+' '+b[1].toFixed(1)+'" fill="none" stroke="#1E2D4A" stroke-width="1"/>'}
+/* 弧+数値をまとめて */
+function angMark(V,P1,P2,val,r,d){
+ r=r||15;
+ return angArc(V,P1,P2,r)+svgT(bisLbl(V,P1,P2,d||(r+13)),val+'°',10)}
+/* ['A','B','C','A'] の並びで折れ線 */
+function figLine(o,seq){let s='';for(let i=0;i+1<seq.length;i++)s+=svgL(o[seq[i]],o[seq[i+1]]);return s}
+/* 頂点名を図の外側(重心の反対側)に置く */
+function figLbl(o,ks,ctr,d){let s='';
+ for(let i=0;i<ks.length;i++){const P=o[ks[i]];
+  const dx=P[0]-ctr[0],dy=P[1]-ctr[1],L=Math.hypot(dx,dy)||1;
+  s+=svgT([P[0]+dx/L*(d||14),P[1]+dy/L*(d||14)],ks[i],12)}
+ return s}
+function ctrOf(o,ks){let x=0,y=0;for(let i=0;i<ks.length;i++){x+=o[ks[i]][0];y+=o[ks[i]][1]}
+ return[x/ks.length,y/ks.length]}
+function unitV(P,Q){const dx=Q[0]-P[0],dy=Q[1]-P[1],l=Math.hypot(dx,dy)||1;return[dx/l,dy/l]}
+/* 度の4択(重複・範囲外は自動で除外) */
+function degChoices(ans,pool){
+ const w=[];pool.forEach(v=>{v=Math.round(v);
+  if(v>0&&v<180&&v!==ans&&w.indexOf(v+'^{\\circ}')<0)w.push(v+'^{\\circ}')});
+ return mkChoices(ans+'^{\\circ}',w)}
+
+/* ── 中2A: 平行四辺形 + ∠BEDの二等分線 ── */
+function genPgBisect(){
+ const D2R=Math.PI/180;
+ for(let t=0;t<300;t++){
+  const p=ri(48,60)*2;                      // ∠BAE (96〜120)
+  const q=ri(15,25)*2;                      // ∠EBC (30〜50)
+  const ans=p-90+q/2;                       // ∠EFD
+  if(ans<20||ans>58)continue;
+  const A=[0,0],B=[150*Math.cos(p*D2R),150*Math.sin(p*D2R)];
+  const sE=B[1]/Math.sin(q*D2R);
+  const E=[B[0]+sE*Math.cos(q*D2R),0];      // AD上(錯角∠AEB=∠EBC)
+  if(E[0]<60)continue;
+  const L=E[0]*1.22,D=[L,0],C=[B[0]+L,B[1]];
+  const u1=unitV(E,B),u2=unitV(E,D);
+  const bis=[E[0]+(u1[0]+u2[0])*150,E[1]+(u1[1]+u2[1])*150];
+  const F=segX(E,bis,C,D);
+  if(!isFinite(F[0])||!isFinite(F[1]))continue;
+  if(Math.abs(angDeg(F,E,D)-ans)>0.5)continue;
+  const ch=degChoices(ans,[180-q,90-q/2,180-p,p-90,q,ans+6,ans-6]);
+  if(!ch)continue;
+  const P=fitPts({A:A,B:B,C:C,D:D,E:E,F:F},240,208,30);
+  const ctr=ctrOf(P,['A','B','C','D']);
+  const s=svgOpen(240,208)
+   +figLine(P,['A','B','C','D','A'])+svgL(P.B,P.E)+svgL(P.E,P.F)
+   +figLbl(P,['A','B','C','D'],ctr,15)
+   +svgT([P.E[0]-4,P.E[1]-13],'E',12)+svgT([P.F[0]+12,P.F[1]+3],'F',12)
+   +angMark(P.A,P.B,P.D,p,17,31)+angMark(P.B,P.E,P.C,q,20,36)
+   +angArc(P.F,P.E,P.D,13)+'</svg>';
+  const parts=[txtPart('図で、四角形ABCDは平行四辺形、Eは辺AD上の点、Fは∠BEDの二等分線と辺CDとの交点である。∠BAE = '+p+'°、∠EBC = '+q+'° のとき、∠EFDの大きさとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
+  const ex=[jt('AD∥BCで錯角は等しいから ∠AEB=∠EBC='+q+'°'),
+   jt('∠BED=180°-'+q+'°='+(180-q)+'°。EFはその二等分線だから ∠FED='+(90-q/2)+'°'),
+   jt('平行四辺形の向かい合う角は等しいから ∠ADC=180°-'+p+'°='+(180-p)+'°'),
+   jt('△EFDで ∠EFD=180°-'+(90-q/2)+'°-'+(180-p)+'°=')+ans+'^{\\circ}'];
+  return q_('t21','a1_chu2kakudo',parts,ch,ex,1,s)}
+ return genPgBisect()}
+
+/* ── 中2B: 平行四辺形 + AB=AEの二等辺三角形 ── */
+function genPgIso(){
+ const D2R=Math.PI/180;
+ for(let t=0;t<300;t++){
+  const d=ri(76,96),e=ri(12,28);            // ∠DAF, ∠EBF
+  const x=180-2*d+2*e;                      // ∠BAF
+  if(x<28||x>72)continue;
+  const bad=x+d;                            // ∠BAD
+  if(bad<110||bad>148)continue;
+  const sd=150;
+  const A=[0,0],B=[sd*Math.cos(bad*D2R),sd*Math.sin(bad*D2R)];
+  const E=[sd*Math.cos(d*D2R),sd*Math.sin(d*D2R)];   // AE=AB
+  if(E[1]<B[1]+30)continue;                 // EはBCより下
+  const tF=B[1]/Math.sin(d*D2R);
+  const F=[tF*Math.cos(d*D2R),B[1]];        // AEとBCの交点
+  const w=F[0]-B[0];
+  if(w<25)continue;
+  const L=w/0.62,D=[L,0],C=[B[0]+L,B[1]];
+  if(Math.abs(angDeg(A,D,F)-d)>0.5)continue;
+  if(Math.abs(angDeg(B,E,C)-e)>0.5)continue;
+  const ch=degChoices(x,[d-e,180-d,90-x/2,180-bad,2*e,x+6,x-6]);
+  if(!ch)continue;
+  /* 平べったい図なので縦は詰める(fitPtsは幅で決まる) */
+  const P=fitPts({A:A,B:B,C:C,D:D,E:E,F:F},240,172,30);
+  const ctr=ctrOf(P,['A','B','C','D']);
+  const s=svgOpen(240,172)
+   +figLine(P,['A','B','C','D','A'])+svgL(P.A,P.E)+svgL(P.B,P.E)
+   +figLbl(P,['A','B','C','D'],ctr,15)
+   +svgT([P.E[0]+3,P.E[1]+14],'E',12)+svgT([P.F[0]-11,P.F[1]-8],'F',12)
+   +angMark(P.A,P.D,P.F,d,18,32)+angMark(P.B,P.E,P.C,e,20,40)
+   +angArc(P.A,P.B,P.F,11)+'</svg>';
+  const parts=[txtPart('図で、四角形ABCDは平行四辺形、△ABEはAB=AEの二等辺三角形で、Fは辺BCと辺AEとの交点である。∠DAF = '+d+'°、∠EBF = '+e+'° のとき、∠BAFの大きさとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
+  const ex=[jt('∠BAF=x°とおくと ∠BAD=(x+'+d+')°'),
+   jt('平行四辺形の隣り合う角の和は180°だから ∠ABC=180°-(x+'+d+')°'),
+   jt('AB=AEより ∠ABE=∠AEB=(180°-x°)÷2=90°-x÷2'),
+   jt('∠ABE=∠ABC+∠EBF より 90°-x÷2=180°-x°-'+d+'°+'+e+'°'),
+   jt('x÷2=90°-'+d+'°+'+e+'°='+(90-d+e)+'° より x=')+x+'^{\\circ}'];
+  return q_('t21','a1_chu2kakudo',parts,ch,ex,1,s)}
+ return genPgIso()}
+
+/* ── 中2C: 二等辺三角形 + DB=DEの二等辺三角形 ── */
+function genIsoDE(){
+ const D2R=Math.PI/180;
+ for(let t=0;t<300;t++){
+  const d=ri(43,53)*2,e=ri(12,26);          // ∠ADB(偶数), ∠CBE
+  const a=180-d-2*e;                        // ∠BAD
+  if(a<30||a>60)continue;
+  if(d/2-e<8)continue;                      // ∠DBC
+  if(2*e>90-a/2-8)continue;                 // ∠ABD<∠ABC
+  const L=175,h=a/2;
+  const A=[0,0],B=[-L*Math.sin(h*D2R),L*Math.cos(h*D2R)],C=[L*Math.sin(h*D2R),L*Math.cos(h*D2R)];
+  const uAC=[Math.sin(h*D2R),Math.cos(h*D2R)];
+  const ad=L*Math.sin(2*e*D2R)/Math.sin(d*D2R);   // ∠ABD=2e°
+  if(ad>L*0.88||ad<L*0.3)continue;
+  const D=[ad*uAC[0],ad*uAC[1]];
+  const db=Math.hypot(D[0]-B[0],D[1]-B[1]);
+  const E=[D[0]+db*uAC[0],D[1]+db*uAC[1]];
+  if(Math.hypot(E[0],E[1])<L*1.08)continue;       // EはCより外側
+  if(Math.abs(angDeg(D,A,B)-d)>0.5)continue;
+  if(Math.abs(angDeg(B,C,E)-e)>0.5)continue;
+  const ch=degChoices(a,[d/2,d/2-e,2*e,180-d,90-a/2,a+6,a-6]);
+  if(!ch)continue;
+  const P=fitPts({A:A,B:B,C:C,D:D,E:E},240,214,30);
+  const ctr=ctrOf(P,['A','B','C']);
+  const s=svgOpen(240,214)
+   +figLine(P,['A','B','C'])+svgL(P.A,P.E)+svgL(P.B,P.D)+svgL(P.B,P.E)
+   +figLbl(P,['A','B','C','D','E'],ctr,15)
+   +angMark(P.D,P.A,P.B,d,14,27)+angMark(P.B,P.C,P.E,e,20,42)
+   +angArc(P.A,P.B,P.C,16)+'</svg>';
+  const parts=[txtPart('図で、△ABCはAB=ACの二等辺三角形、Dは辺AC上の点、Eは直線AC上の点で、DB=DEである。∠ADB = '+d+'°、∠CBE = '+e+'° のとき、∠BADの大きさとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
+  const ex=[jt('∠BAD=x°とおくと、AB=ACより ∠ABC=∠ACB=(180°-x°)÷2'),
+   jt('A、D、C、Eは一直線だから ∠BDE=180°-'+d+'°='+(180-d)+'°'),
+   jt('DB=DEより ∠DBE=∠DEB=(180°-'+(180-d)+'°)÷2='+(d/2)+'°'),
+   jt('∠DBC='+(d/2)+'°-'+e+'°='+(d/2-e)+'°。△ABDで ∠ABD=180°-x°-'+d+'°'),
+   jt('∠ABC=∠ABD+∠DBC より (180°-x°)÷2=180°-x°-'+d+'°+'+(d/2-e)+'° を解いて x=')+a+'^{\\circ}'];
+  return q_('t21','a1_chu2kakudo',parts,ch,ex,1,s)}
+ return genIsoDE()}
+
+/* ── 中2D: 二等辺三角形 + 正三角形DCE ── */
+function genIsoEqui(){
+ const D2R=Math.PI/180;
+ for(let t=0;t<300;t++){
+  const c=ri(30,42),f=ri(88,100);           // ∠DCB, ∠AFD
+  const a=300-2*c-2*f;                      // ∠DAF
+  if(a<26||a>50)continue;
+  const acb=90-a/2;
+  if(acb-c<12)continue;                     // ∠ACD
+  const L=195,h=a/2;
+  const A=[0,0],B=[-L*Math.sin(h*D2R),L*Math.cos(h*D2R)],C=[L*Math.sin(h*D2R),L*Math.cos(h*D2R)];
+  const bc=2*L*Math.sin(h*D2R),bdc=180-acb-c;
+  const bd=bc*Math.sin(c*D2R)/Math.sin(bdc*D2R);
+  if(bd>L*0.85||bd<L*0.25)continue;
+  const uBA=unitV(B,A);
+  const D=[B[0]+bd*uBA[0],B[1]+bd*uBA[1]];
+  const v=[D[0]-C[0],D[1]-C[1]],co=Math.cos(60*D2R),si=Math.sin(60*D2R);
+  const E1=[C[0]+v[0]*co-v[1]*si,C[1]+v[0]*si+v[1]*co];
+  const E2=[C[0]+v[0]*co+v[1]*si,C[1]-v[0]*si+v[1]*co];
+  const E=(Math.hypot(E1[0]-B[0],E1[1]-B[1])>Math.hypot(E2[0]-B[0],E2[1]-B[1]))?E1:E2;
+  const F=segX(A,C,D,E);
+  if(!isFinite(F[0])||!isFinite(F[1]))continue;
+  const tAC=(F[0]*C[0]+F[1]*C[1])/(L*L);
+  if(tAC<0.25||tAC>0.85)continue;
+  if(Math.abs(angDeg(F,A,D)-f)>0.5)continue;
+  if(Math.abs(angDeg(C,D,B)-c)>0.5)continue;
+  const ch=degChoices(a,[f-60,f-60+c,90-a/2,180-f,2*c,a+6,a-6]);
+  if(!ch)continue;
+  const P=fitPts({A:A,B:B,C:C,D:D,E:E,F:F},240,216,30);
+  const ctr=ctrOf(P,['A','B','C']);
+  const s=svgOpen(240,216)
+   +figLine(P,['A','B','C','A'])+svgL(P.D,P.E)+svgL(P.D,P.C)+svgL(P.C,P.E)
+   +figLbl(P,['A','B','C','D','E'],ctr,15)
+   +svgT([P.F[0]+12,P.F[1]-2],'F',12)
+   +angMark(P.F,P.A,P.D,f,14,28)+angMark(P.C,P.D,P.B,c,22,38)
+   +angArc(P.A,P.B,P.C,15)+'</svg>';
+  const parts=[txtPart('図で、△ABCはAB=ACの二等辺三角形、Dは辺AB上の点で、△DCEは正三角形、Fは辺ACと辺DEとの交点である。∠DCB = '+c+'°、∠AFD = '+f+'° のとき、∠DAFの大きさとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
+  const ex=[jt('△DCEは正三角形だから ∠FDC=∠EDC=60°'),
+   jt('A、F、Cは一直線だから ∠DFC=180°-'+f+'°='+(180-f)+'°'),
+   jt('△DFCで ∠DCF=180°-60°-'+(180-f)+'°='+(f-60)+'°'),
+   jt('∠ACB=∠ACD+∠DCB='+(f-60)+'°+'+c+'°='+(f-60+c)+'°'),
+   jt('AB=ACより ∠ABC=∠ACB。△ABCで ∠DAF=180°-2×'+(f-60+c)+'°=')+a+'^{\\circ}'];
+  return q_('t21','a1_chu2kakudo',parts,ch,ex,1,s)}
+ return genIsoEqui()}
+
+/* ── 中2E: 平行四辺形 + AB=AE、BC=BF の二段構え ── */
+function genPgIso2(){
+ const D2R=Math.PI/180;
+ for(let t=0;t<200;t++){
+  const a=ri(25,34)*4;                      // ∠BAE (100〜136、4の倍数)
+  const th=(540-a)/4;                       // ∠EFC
+  const sd=145,k=1.3;
+  if(k>2*Math.sin(a/2*D2R)-0.1)continue;    // BC<BE(F が線分BE上)
+  const A=[0,0],B=[sd*Math.cos(a*D2R),sd*Math.sin(a*D2R)],E=[sd,0];
+  const L=k*sd,D=[L,0],C=[B[0]+L,B[1]];
+  const be=Math.hypot(E[0]-B[0],E[1]-B[1]);
+  const F=[B[0]+(E[0]-B[0])*L/be,B[1]+(E[1]-B[1])*L/be];
+  if(Math.abs(angDeg(F,E,C)-th)>0.5)continue;
+  const ch=degChoices(a,[180-th,2*(180-th),3*(180-th),90-a/2,a+8,a-8]);
+  if(!ch)continue;
+  const P=fitPts({A:A,B:B,C:C,D:D,E:E,F:F},240,206,30);
+  const ctr=ctrOf(P,['A','B','C','D']);
+  const s=svgOpen(240,206)
+   +figLine(P,['A','B','C','D','A'])+svgL(P.B,P.E)+svgL(P.F,P.C)
+   +figLbl(P,['A','B','C','D'],ctr,15)
+   +svgT([P.E[0]-5,P.E[1]-13],'E',12)+svgT([P.F[0]-11,P.F[1]-9],'F',12)
+   +angMark(P.F,P.E,P.C,th,15,30)
+   +angArc(P.A,P.B,P.D,15)+'</svg>';
+  const parts=[txtPart('図で、四角形ABCDは平行四辺形、Eは辺AD上の点で、AB=AE、Fは線分BE上の点で、BC=BFである。∠EFC = '+th+'° のとき、∠BAEの大きさとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
+  const ex=[jt('∠BAE=x°とおくと、AB=AEより ∠AEB=(180°-x°)÷2=90°-x÷2'),
+   jt('AD∥BCで錯角は等しいから ∠FBC=∠EBC=∠AEB=90°-x÷2'),
+   jt('BC=BFより ∠BFC=(180°-(90°-x÷2))÷2=45°+x÷4'),
+   jt('B、F、Eは一直線だから ∠EFC=180°-(45°+x÷4)=135°-x÷4'),
+   jt('135°-x÷4='+th+'° より x÷4='+(135-th)+'°、x=')+a+'^{\\circ}'];
+  return q_('t21','a1_chu2kakudo',parts,ch,ex,1,s)}
+ return genPgIso2()}
+
+/* ── 中2F: ひし形 + AB=AEの二等辺三角形(対角線は角を2等分) ── */
+function genRhombus(){
+ const D2R=Math.PI/180;
+ for(let t=0;t<200;t++){
+  const p=ri(52,56)*2;                      // ∠BAD (104〜112)
+  const ans=p*3/2-90;                       // ∠BFE
+  const sd=150;
+  const A=[0,0],D=[sd,0],B=[sd*Math.cos(p*D2R),sd*Math.sin(p*D2R)];
+  const C=[B[0]+sd,B[1]];
+  const be=2*sd*Math.cos((180-p)*D2R);      // AB=AE の底辺
+  if(be<sd*0.3||be>sd*0.78)continue;        // Eの位置がCに寄りすぎない
+  const E=[B[0]+be,B[1]];
+  const F=segX(A,E,B,D);
+  if(!isFinite(F[0])||!isFinite(F[1]))continue;
+  if(Math.abs(angDeg(F,B,E)-ans)>0.5)continue;
+  const ch=degChoices(ans,[180-p,(180-p)/2,2*p-180,p/2,90-p/2,ans+7,ans-7]);
+  if(!ch)continue;
+  const P=fitPts({A:A,B:B,C:C,D:D,E:E,F:F},240,204,30);
+  const ctr=ctrOf(P,['A','B','C','D']);
+  const s=svgOpen(240,204)
+   +figLine(P,['A','B','C','D','A'])+svgL(P.A,P.E)+svgL(P.B,P.D)
+   +figLbl(P,['A','B','C','D'],ctr,15)
+   +svgT([P.E[0]+2,P.E[1]+14],'E',12)+svgT([P.F[0]+12,P.F[1]-5],'F',12)
+   +angMark(P.A,P.B,P.D,p,17,31)
+   +angArc(P.F,P.B,P.E,13)+'</svg>';
+  const parts=[txtPart('図で、四角形ABCDはひし形、Eは辺BC上の点で、AB=AE、Fは線分AEと対角線BDとの交点である。∠BAD = '+p+'° のとき、∠BFEの大きさとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
+  const ex=[jt('ひし形の隣り合う角の和は180°だから ∠ABC=180°-'+p+'°='+(180-p)+'°'),
+   jt('AB=AEより ∠AEB=∠ABE='+(180-p)+'° → ∠BAE=180°-2×'+(180-p)+'°='+(2*p-180)+'°'),
+   jt('ひし形の対角線は角を2等分するから ∠ABF='+(180-p)+'°÷2='+(90-p/2)+'°'),
+   jt('∠BFEは△ABFの外角だから ∠BFE='+(2*p-180)+'°+'+(90-p/2)+'°=')+ans+'^{\\circ}'];
+  return q_('t21','a1_chu2kakudo',parts,ch,ex,1,s)}
+ return genRhombus()}
+
+/* ── 中2G: 正方形 + DC=DEの二等辺三角形 ── */
+function genSquare(){
+ const D2R=Math.PI/180;
+ const tt=ri(16,34)*2;                      // ∠EDC (32〜68)
+ const ans=45+tt/2;                         // ∠AED
+ const sd=155;
+ const A=[0,0],B=[0,sd],C=[sd,sd],D=[sd,0];
+ const E=[sd-sd*Math.sin(tt*D2R),sd*Math.cos(tt*D2R)];
+ if(Math.abs(angDeg(E,A,D)-ans)>0.5)return genSquare();
+ const ch=degChoices(ans,[90-tt/2,180-tt,tt,45+tt,90-tt,ans+6,ans-6]);
+ if(!ch)return genSquare();
+ const P=fitPts({A:A,B:B,C:C,D:D,E:E},228,206,28);
+ const ctr=ctrOf(P,['A','B','C','D']);
+ const s=svgOpen(228,206)
+  +figLine(P,['A','B','C','D','A'])+svgL(P.D,P.E)+svgL(P.E,P.A)+svgL(P.E,P.C)
+  +figLbl(P,['A','B','C','D'],ctr,15)
+  +figLbl(P,['E'],ctr,13)
+  +angMark(P.D,P.E,P.C,tt,20,34)
+  +angArc(P.E,P.A,P.D,14)+'</svg>';
+ const parts=[txtPart('図で、四角形ABCDは正方形、Eは正方形の内部の点で、DC=DEである。∠EDC = '+tt+'° のとき、∠AEDの大きさとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
+ const ex=[jt('正方形の4つの辺は等しいから AD=DC=DE。∠ADC=90°'),
+  jt('∠ADE=90°-'+tt+'°='+(90-tt)+'°'),
+  jt('AD=DEより△ADEは二等辺三角形だから ∠AED=(180°-'+(90-tt)+'°)÷2=')+ans+'^{\\circ}'];
+ return q_('t21','a1_chu2kakudo',parts,ch,ex,1,s)}
+
+/* 平行線と角(錯角)は愛知の定番なので2枠、残りは中2図形の角度を7パターン */
+function gen21(){return rc([gen21Sakkaku,gen21Sakkaku,
+ genPgBisect,genPgIso,genIsoDE,genIsoEqui,genPgIso2,genRhombus,genSquare])()}
 
 const TYPES=[
  {no:1, id:'t1', label:'正負の数の計算', gen:gen1},
@@ -2035,7 +2338,7 @@ const TYPES=[
  {no:10,id:'t10',label:'関数・数の性質', gen:gen10},
  {no:10,id:'t13',label:'図形(角度)', gen:genKakudo},
  {no:10,id:'t16',label:'図形(長さ・相似・三平方)', gen:genZukei},
- {no:10,id:'t21',label:'平行線と角', gen:gen21}
+ {no:10,id:'t21',label:'平行線と角・中2図形の角', gen:gen21}
 ];
 function pickT(id){return TYPES.filter(t2=>t2.id===id)[0]}
 /* 直前と見た目が近い問題が連続しないよう署名で最大10回リトライ。
@@ -2088,6 +2391,84 @@ const KANA=['ア','イ','ウ','エ','オ','カ'];
 const $=id=>document.getElementById(id);
 function safeDivp(fn){try{if(window.Divp&&typeof window.Divp[fn]==='function')
  return window.Divp[fn].apply(window.Divp,Array.prototype.slice.call(arguments,1))}catch(e){}}
+
+/* ═══ 学習記録(divp-core)へ渡すデータの組み立て ═══
+   CLAUDE.md「問題は機械用と人間用の二重表現で保存する」に従い、
+   question_params(再生成/同一問題判定用) と question_text/correct_answer(閲覧用)を作る。 */
+/* texを講師・保護者画面用のプレーンテキストへ。
+   分数は F(分子/分母)、連立方程式は SYS(式1|式2) のマーカー規約に合わせる
+   (mypage.php / retry.php / teacher.php の renderMathToHTML が解釈する) */
+function texToPlain(tex){
+ let s=String(tex);
+ // \begin{cases}A\\B\end{cases} → SYS(A|B)
+ s=s.replace(/\\begin\{cases\}([\s\S]*?)\\end\{cases\}/g,(m,in1)=>'SYS('+in1.split(/\\\\/).map(x=>x.trim()).join('|')+')');
+ // 上付きは波かっこを消しておく（\sqrt{(-5)^{2}} の入れ子をほどくため）
+ s=s.replace(/\^\{2\}/g,'²').replace(/\^\{3\}/g,'³').replace(/\^\{\\circ\}/g,'°');
+ /* \text{} / \sqrt{} / \dfrac{}{} を「内側から」まとめて畳む。
+    3つを1つのループで回すのが要点で、種類ごとに順番に処理すると
+    \dfrac{-7\pm\sqrt{61}}{2} のように分子が別の波かっこを含む式で
+    [^{}] が一致せず、\dfrac が生のまま残って「\dfrac-7±√612」になる。 */
+ for(let i=0;i<8;i++){
+  const t2=s
+   .replace(/\\text\{([^{}]*)\}/g,'$1')
+   .replace(/\\sqrt\{([^{}]*)\}/g,'√($1)')
+   .replace(/\\(?:dfrac|frac)\{([^{}]*)\}\{([^{}]*)\}/g,'F($1/$2)');
+  if(t2===s)break;s=t2}
+ return s
+  .replace(/√\(([0-9A-Za-z]+)\)/g,'√$1')   // √(6) のような単項は かっこ不要
+  // 循環小数 1.\dot{2}\dot{3} → 1.2̇3̇（合成用の上点U+0307を後ろに付ける）
+  .replace(/\\dot\{([^{}]*)\}/g,'$1̇').replace(/\\dot([0-9A-Za-z])/g,'$1̇')
+  .replace(/\\times/g,'×').replace(/\\div/g,'÷').replace(/\\pm/g,'±')
+  .replace(/\\leqq/g,'≦').replace(/\\geqq/g,'≧').replace(/\\%/g,'%')
+  .replace(/\\\\|\\,|\\ |\\!/g,' ').replace(/[{}]/g,'')
+  .replace(/\s+/g,' ').trim()}
+/* 問題文(tex混じりのparts)を1本のプレーンテキストに */
+function qTextOf(q2){
+ return q2.parts.map(p=>p.t==='tex'?texToPlain(p.v):String(p.v)).join('').replace(/\s+/g,' ').trim()}
+/* 選択肢1つの表示用文字列。箱ひげ図のようなSVG選択肢は記号だけにする */
+function choiceText(c){return(typeof c==='object')?'':texToPlain(c)}
+/* 解答は「記号(中身)」の形。中身が無い(図の選択肢)ときは記号のみ */
+function ansText(idxs,choices){
+ return idxs.map(i=>{const b=choiceText(choices[i]);return KANA[i]+(b?'（'+b+'）':'')}).join('、')}
+/* 同一問題の判定キー(params_hash)になる再生成用パラメータ。
+   genが _meta を持つタイプはそれを、無いタイプは問題文の数値列を同一性の軸にする。
+   ※?retry=1 の再出題は question_params からの復元ではなく qReplayOf() の
+     再表示で行う（下を参照）。ただし params_hash はこの関数が作るので、
+     再表示した問題でも同じ値になるよう typeId/_meta を戻している。
+     形式を変えると既存 pending 行のハッシュと合わなくなるので不用意に変えないこと */
+/* 選択肢そのものが問題の中身になる種類。
+   「正しく述べたものを選ぶ」「4つの図から選ぶ」「4つの式から選ぶ」型は、
+   問題文と図だけ刷っても解けないので選択肢も保存し、解き直しプリントでは
+   選択式のまま（「アからエまでの中から選びなさい」を残して）出す。
+   ここに載せない種類は記述式に直して刷る（選択肢は保存しない）。 */
+const KEEP_CHOICES={'a1_seigo':1,'a1_histo':1,'a1_hakohige':1,'a1_kansuhan':1};
+function qChoicesOf(q2){
+ if(!KEEP_CHOICES[q2.key])return null;
+ return q2.choices.map(c=>(c&&typeof c==='object'&&c.svg)
+  ?{t:'svg',v:String(c.svg)}:{t:'tex',v:String(c)})}
+function qParamsOf(q2){
+ const p={t:q2.typeId};
+ if(q2._meta&&Object.keys(q2._meta).length)p.m=q2._meta;
+ const nums=qTextOf(q2).match(/-?\d+(?:\.\d+)?/g);
+ if(nums)p.n=nums.map(Number);
+ return p}
+/* 解き直し用の「画面に出した問題そのもの」。retry_queue.replay_json に入り、
+   ?retry=1 で loadQ() にそのまま渡して同一問題を再表示する（生成関数で
+   復元しない＝20種類以上ある gen に手を入れずに解き直しを成立させる）。
+   loadQ/buildChoices/採点が読むのは下の7つだけなので、これで完全に足りる。
+   ※_meta はここに入れない。再出題時は list_retries が返す question_params.m を
+     そのまま q._meta に戻す。そうしないと qParamsOf() が作る params_hash が
+     元の問題とずれて「2連続正解でmastered」が成立しない。
+   ※形を変えたら save_answer.php の replay_is_safe() も直すこと（想定外の形は捨てられる） */
+function qReplayOf(q2){
+ return{
+  key:q2.key,typeId:q2.typeId,multi:q2.multi||1,
+  correct:(q2.correct||[]).map(Number),
+  parts:(q2.parts||[]).map(p=>({t:p.t==='tex'?'tex':'txt',v:String(p.v)})),
+  choices:(q2.choices||[]).map(c=>(c&&typeof c==='object'&&c.svg)?{svg:String(c.svg)}:String(c)),
+  expl:(q2.expl||[]).map(String),
+  tableHtml:q2.tableHtml||''}}
+
 function ktx(el,tex){if(window.katex){try{katex.render(tex,el,{throwOnError:false,strict:false});return}catch(e){}}
  texFallback(el,tex)}
 /* KaTeX不在時の簡易整形: 記号をUnicode化し変数はイタリック */
@@ -2109,12 +2490,14 @@ function setVarText(el,text){
    const i=document.createElement('span');i.className='mvar';i.textContent=tk;el.appendChild(i)}
   else if(tk)el.appendChild(document.createTextNode(tk))})}
 
-const XP_KEY='divp_xp_'+UNIT_KEY;
-function getXp(){try{return parseInt(localStorage.getItem(XP_KEY)||'0',10)||0}catch(e){return 0}}
-function addXp(n){try{localStorage.setItem(XP_KEY,String(getXp()+n))}catch(e){}updateLv()}
-function updateLv(){$('lvNum').textContent=Math.floor(Math.sqrt(getXp()/100))+1}
+/* XPはこのツールでは持たない（localStorageの divp_xp_* は廃止）。
+   付与は save_answer.php が question_catalog.base_xp × イベント倍率で確定し、
+   レベルは累計XPからマイページが算出する。端末ローカルの数字と二重に出さない */
 
 let mode='free',curType=null,q=null,setQs=[],setIdx=0,setMarks=[],streak=0;
+/* 解き直しモード(?retry=1): list_retries.php の pending を再表示で消化するキュー。
+   null = 解き直しモードではない（mode==='retry' と対で使う） */
+let retryQ=null,retryTotal=0,retryDone=0;
 let tSetStart=0,tQStart=0,timerId=null,graded=false,selected=[];
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');window.scrollTo(0,0)}
@@ -2153,20 +2536,23 @@ function buildHome(){
   box.appendChild(b)})}
 $('btnSet').addEventListener('click',startSet);
 
-function startFree(t){mode='free';curType=t;streak=0;
+function startFree(t){mode='free';curType=t;streak=0;retryQ=null;
  $('streak').innerHTML='連続 <b>0</b>';
  $('timer').style.display='none';$('streak').style.display='inline';
- safeDivp('log','start',UNIT_KEY,t.id);
+ /* 学習セッションは Divp.init() が start_session/heartbeat/end_session まで面倒を見る */
  loadQ(E.genFresh(t.id));show('scr-drill')}
-function startSet(){mode='set';setQs=E.genAichiSet();setIdx=0;setMarks=[];
+function startSet(){mode='set';setQs=E.genAichiSet();setIdx=0;setMarks=[];retryQ=null;
  $('streak').style.display='none';$('timer').style.display='inline';
  tSetStart=Date.now();
  if(timerId)clearInterval(timerId);
  timerId=setInterval(()=>{const s=Math.floor((Date.now()-tSetStart)/1000);
   $('timer').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')},500);
- safeDivp('log','start',UNIT_KEY,'set');
  loadQ(setQs[0]);show('scr-drill')}
 function nextQ(){
+ if(mode==='retry'){
+  retryDone++;
+  if(!retryQ||!retryQ.length){finishRetry();return}
+  loadQ(retryQ.shift());return}
  if(mode==='free'){loadQ(E.genFresh(curType.id))}
  else{setIdx++;
   if(setIdx>=setQs.length){finishSet();return}
@@ -2174,7 +2560,8 @@ function nextQ(){
 
 function loadQ(newQ){q=newQ;graded=false;selected=[];tQStart=Date.now();
  const tp=E.TYPES.filter(t=>t.id===q.typeId)[0];
- $('qNo').textContent=mode==='set'?'('+(setIdx+1)+')':'(問)';
+ $('qNo').textContent=mode==='set'?'('+(setIdx+1)+')'
+  :mode==='retry'?'解き直し '+(retryDone+1)+'/'+retryTotal:'(問)';
  $('catTag').textContent=tp?tp.label:'';
  const parts=$('qParts');parts.innerHTML='';
  q.parts.forEach(pt=>{
@@ -2182,11 +2569,15 @@ function loadQ(newQ){q=newQ;graded=false;selected=[];tQStart=Date.now();
   if(pt.t==='tex')ktx(sp,pt.v);else setVarText(sp,pt.v);
   parts.appendChild(sp)});
  $('qTable').innerHTML=q.tableHtml||'';
+ /* 前問の共通はんこ／バッジを消す（Divp.correct は自動では消えないため。
+    自前フォールバックの .stamp-layer は自分で900msで消える） */
+ try{document.querySelectorAll('.divp-hanko,.divp-nice').forEach(e=>e.remove())}catch(e){}
  $('multiNote').style.display=q.multi===2?'block':'none';
  buildChoices();
  $('fb').classList.remove('show');$('toast').classList.remove('show');
  $('btnCheck').style.display='block';$('btnNext').style.display='none';
- $('btnQuit').textContent=mode==='set'?'セットを中断する':'タイプをえらび直す'}
+ $('btnQuit').textContent=mode==='set'?'セットを中断する'
+  :mode==='retry'?'解き直しをやめる':'タイプをえらび直す'}
 
 function buildChoices(){
  const box=$('choices');box.innerHTML='';
@@ -2221,16 +2612,29 @@ $('btnCheck').addEventListener('click',()=>{
  graded=true;
  const ok=selected.length===q.correct.length&&
   q.correct.every(c=>selected.indexOf(c)>=0);
- const ms=Date.now()-tQStart;
- safeDivp('answer',q.key,ok,selected.map(i=>KANA[i]).join(''),q.correct.map(i=>KANA[i]).join(''),ms);
+ /* 学習記録: 判定直後に1行。未ログイン/file://ではdivp-core側が黙ってスキップする */
+ safeDivp('answer',ok,{
+  question_key:q.key,
+  question_params:qParamsOf(q),
+  question_text:qTextOf(q),
+  /* 図(角度・相似・ヒストグラム等)は問題文だけでは解き直せないので、
+     画面に出したSVG/表をそのまま渡す(誤答時のみ保存され、解き直しプリントに出る) */
+  question_figure:q.tableHtml||null,
+  /* 選択肢が無いと解けない種類だけ選択肢も渡す（KEEP_CHOICES参照） */
+  question_choices:qChoicesOf(q),
+  /* 誤答時だけ保存される「同じ問題をもう一度出すためのデータ」。
+     ?retry=1 のときは list_retries.php から返ってきたこれを loadQ に渡す */
+  question_replay:qReplayOf(q),
+  correct_answer:ansText(q.correct,q.choices),
+  wrong_answer:ansText(selected,q.choices)});
  document.querySelectorAll('.mchoice').forEach(b=>{
   const i=+b.dataset.i;
   const isC=q.correct.indexOf(i)>=0,isS=selected.indexOf(i)>=0;
   if(isC)b.classList.add('judge-ok');
   else if(isS)b.classList.add('judge-wrongpick');
   else b.classList.add('judge-miss')});
- if(ok){stamp(true);safeDivp('correct');addXp(10);streak++;
-  $('fbMsg').textContent='正解！ +10 XP  (答え: '+q.correct.map(i=>KANA[i]).join('・')+')';
+ if(ok){stamp(true);streak++;   /* はんこは自前 stamp()。Divp.correct は使わない */
+  $('fbMsg').textContent='正解！ (答え: '+q.correct.map(i=>KANA[i]).join('・')+')';
   $('fbMsg').className='fb-msg ok';
   $('expl').style.display='none'}
  else{stamp(false);streak=0;
@@ -2246,13 +2650,22 @@ $('btnCheck').addEventListener('click',()=>{
  if(mode==='set')setMarks.push(ok);
  $('fb').classList.add('show');
  $('btnCheck').style.display='none';$('btnNext').style.display='block';
- $('btnNext').textContent=(mode==='set'&&setIdx===setQs.length-1)?'採点結果へ':'次の問題へ'});
+ $('btnNext').textContent=(mode==='set'&&setIdx===setQs.length-1)?'採点結果へ'
+  :(mode==='retry'&&(!retryQ||!retryQ.length))?'解き直しを終わる':'次の問題へ'});
 $('btnNext').addEventListener('click',nextQ);
 $('btnQuit').addEventListener('click',()=>{if(timerId)clearInterval(timerId);show('scr-home')});
 
 function toast(msg){const t=$('toast');t.textContent=msg;
  t.classList.remove('show');void t.offsetWidth;t.classList.add('show')}
+/* 正誤エフェクト。jh共通モジュール(divp-correct-jh.js)の
+   Divp.correct（「正解」はんこ）/ Divp.incorrect（「ナイスチャレンジ！」バッジ）を使う。
+   ⚠ 共通はんこは fadeMs 未指定だと消えないので、次の問題で loadQ() が消している。
+   共通モジュールが読めない環境（file://・CDN/キャッシュ事故）では、
+   下の自前の和紙はんこ(.stamp-layer)にフォールバックする＝必ず何か出る。 */
 function stamp(ok){
+ const card=document.querySelector('#scr-drill .q-card');
+ if(card&&window.Divp&&typeof Divp.correct==='function'&&typeof Divp.incorrect==='function'){
+  safeDivp(ok?'correct':'incorrect',card);return}
  const layer=$('stampLayer');layer.innerHTML='';
  const d=document.createElement('div');d.className='stamp'+(ok?'':' ng');
  d.textContent=ok?'正解':'✕';layer.appendChild(d);
@@ -2269,18 +2682,66 @@ function finishSet(){
   const d=document.createElement('div');d.className='mb';
   d.innerHTML='<b class="'+(ok?'o':'x')+'">'+(ok?'○':'✕')+'</b>('+(i+1)+')';
   marks.appendChild(d)});
- let msg='',bonus=0;
- if(score===10){msg='満点！本番もこの調子でいこう。';bonus=30}
+ let msg='';
+ if(score===10){msg='満点！本番もこの調子でいこう。'}
  else if(score>=8){msg='合格ライン。まちがえた問題を復習しよう。'}
  else if(score>=5){msg='大問1は得点源。タイプ別で弱点をつぶそう。'}
  else{msg='まずはタイプ別トレーニングで基礎がためを。'}
- if(bonus)addXp(bonus);
  $('rMsg').textContent=msg;
- $('rXp').textContent=bonus>0?('全問正解ボーナス +'+bonus+' XP!'):'';
- safeDivp('save',UNIT_KEY,{score:score,sec:sec});
+ /* 本番セットのタイムを記録(question_key='set'。10問中の誤答数をmiss_countに) */
+ safeDivp('saveTime',{question_key:'set',time_ms:sec*1000,miss_count:setMarks.length-score});
  show('scr-result')}
 $('btnRetrySet').addEventListener('click',startSet);
 $('btnHome').addEventListener('click',()=>show('scr-home'));
+
+/* ═══ 解き直しモード（?retry=1 / mypageの「今日の1問」は &focus=<params_hash> 付き）═══
+   このツールは生成関数が20種類以上あり question_params から問題を復元できないので、
+   誤答時に保存した retry_queue.replay_json（画面に出した問題そのもの）を
+   loadQ() にそのまま渡して再表示する。判定後は通常どおり Divp.answer が飛ぶので、
+   同じ問題に2回連続で正解すれば save_answer.php 側で mastered になり、
+   マイページの「過去のまちがい」から消える。 */
+function initRetry(){
+ if(!(window.Divp&&typeof Divp.getRetries==='function'))return;
+ const m=location.search.match(/[?&]focus=([a-f0-9]{64})/i);
+ const focus=m?m[1]:'';
+ Divp.getRetries().then(items=>{
+  let use=(items||[]).filter(it=>it&&it.replay&&it.replay.parts&&it.replay.parts.length
+   &&it.replay.choices&&it.replay.choices.length>=2);
+  if(focus)use=use.filter(it=>it.params_hash===focus);
+  if(!use.length){
+   /* 列を足す前にたまった pending は replay が無いので出せない。
+      その問題を次にまちがえた時点で保存されるようになる */
+   retryBanner('解き直せる問題は まだありません。これからまちがえた問題が ここに入ります');
+   return}
+  startRetry(use)}).catch(()=>{})}
+function startRetry(items){
+ mode='retry';curType=null;streak=0;retryDone=0;
+ retryQ=items.map(it=>{
+  const q2=Object.assign({},it.replay);
+  /* typeId と _meta は question_params 側を正にする。qParamsOf() が作る
+     params_hash を元の問題と一致させるため（ずれると2連続正解が積まれない） */
+  if(it.question_params){
+   if(it.question_params.t)q2.typeId=it.question_params.t;
+   if(it.question_params.m)q2._meta=it.question_params.m}
+  return q2});
+ retryTotal=retryQ.length;
+ $('timer').style.display='none';$('streak').style.display='inline';
+ $('streak').innerHTML='解き直し <b>'+retryTotal+'</b>問';
+ loadQ(retryQ.shift());show('scr-drill')}
+function finishRetry(){
+ retryQ=null;mode='free';
+ retryBanner('解き直し おつかれさま！ 同じ問題に2回連続で正解すると リストから消えるよ');
+ show('scr-home')}
+/* 画面上部に数秒だけ出す帯（HTMLを増やさずJSだけで完結させる） */
+function retryBanner(msg){
+ const old=document.getElementById('retryBanner');if(old)old.remove();
+ const d=document.createElement('div');d.id='retryBanner';d.textContent=msg;
+ d.style.cssText='position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:9999;'
+  +'max-width:min(560px,92vw);background:#C73E2E;color:#fff;border-radius:12px;'
+  +'padding:12px 16px;font-size:13px;font-weight:700;line-height:1.6;text-align:center;'
+  +'box-shadow:0 6px 20px rgba(0,0,0,.25);transition:opacity .4s';
+ document.body.appendChild(d);
+ setTimeout(()=>{d.style.opacity='0';setTimeout(()=>d.remove(),500)},6000)}
 
 function fitEl(el){
  el.style.transform='';
@@ -2345,7 +2806,6 @@ function buildPrint(){
 function toggleAns(){const a=$('pAns');if(a)a.style.display=$('pIncAns').checked?'block':'none'}
 $('btnPrintMode').addEventListener('click',()=>{
  printQs=E.genAichiSet();buildPrint();
- safeDivp('log','print',UNIT_KEY);
  show('scr-print')});
 $('btnRegenPrint').addEventListener('click',()=>{printQs=E.genAichiSet();buildPrint()});
 $('btnDoPrint').addEventListener('click',()=>window.print());
@@ -2372,43 +2832,50 @@ $('btnPrintBack').addEventListener('click',()=>show('scr-home'));
  if(document.readyState==='complete')setTimeout(check,300);
  else window.addEventListener('load',()=>setTimeout(check,300))})();
 
-E.setScope(scope);syncScopeUI();updateLv();buildHome();
+E.setScope(scope);syncScopeUI();buildHome();
+/* ?retry=1 で開かれたら解き直しモードへ（未ログイン/ローカルでは getRetries が
+   空を返すので、通常のホーム画面のまま何も起きない） */
+if(/[?&]retry=1/.test(location.search)){try{initRetry()}catch(e){}}
 })();
 </script>
 <!--
 ═══ 提出チェックリスト: question_catalog INSERT ═══
-INSERT INTO question_catalog (unit_key, question_key, label) VALUES
-('math_js3_aichi_daimon1','a1:seifu','(1)正負の数の計算'),
-('math_js3_aichi_daimon1','a1:mojibunsuu','(2)文字式(分数)'),
-('math_js3_aichi_daimon1','a1:tanko','(3)単項式の乗除'),
-('math_js3_aichi_daimon1','a1:heihokon','(4)平方根の計算'),
-('math_js3_aichi_daimon1','a1:niji','(5)二次方程式'),
-('math_js3_aichi_daimon1','a1:risshiki','(6)不等式の立式'),
-('math_js3_aichi_daimon1','a1:seigo','(7)正誤・二つ選ぶ'),
-('math_js3_aichi_daimon1','a1:hyohon','(8)標本調査'),
-('math_js3_aichi_daimon1','a1:kakuritsu','(9)確率'),
-('math_js3_aichi_daimon1','a1:henka','(10)変化の割合'),
-('math_js3_aichi_daimon1','a1:shizen','(10)平方根と自然数'),
-('math_js3_aichi_daimon1','a1:hanpirei','(10)反比例の格子点'),
-('math_js3_aichi_daimon1','a1:koten','(10)2直線の交点の座標'),
-('math_js3_aichi_daimon1','a1:heikou','(10)交点を通り平行な直線の切片'),
-('math_js3_aichi_daimon1','a1:kansuhan','(10)一次関数・比例・反比例の判別'),
-('math_js3_aichi_daimon1','a1:histo','(8)ヒストグラム読み取り'),
-('math_js3_aichi_daimon1','a1:hakohige','(9)箱ひげ図'),
-('math_js3_aichi_daimon1','a1:kakudo','(10)図形(角度)'),
-('math_js3_aichi_daimon1','a1:enshukaku','(10)図形(円周角)'),
-('math_js3_aichi_daimon1','a1:tenkai','(3)式の展開'),
-('math_js3_aichi_daimon1','a1:insu','(3)因数分解'),
-('math_js3_aichi_daimon1','a1:souji','(10)相似(平行線と線分比)'),
-('math_js3_aichi_daimon1','a1:sanpei','(10)三平方(直角三角形・対角線)'),
-('math_js3_aichi_daimon1','a1:enpei','(10)円と三平方(弦の長さ)'),
-('math_js3_aichi_daimon1','a1:hiritsu','(10)面積比・体積比'),
-('math_js3_aichi_daimon1','a1:nitohen','(10)二等辺三角形+垂線(相似と三平方)'),
-('math_js3_aichi_daimon1','a1:renritsu','(5)連立方程式'),
-('math_js3_aichi_daimon1','a1:shikinoatai','(2)式の値(代入)'),
-('math_js3_aichi_daimon1','a1:heikin','(8)平均値(度数分布表)'),
-('math_js3_aichi_daimon1','a1:wariai','(6)割合の文章題'),
-('math_js3_aichi_daimon1','a1:heikousen','(10)平行線と角');
+★ 実行するSQLの正は db/seeds/seed_math_js3_aichi_daimon1.sql（32行・base_xp付き）。
+   question_key を増やしたら、そちらのファイルに追記すること。
+   以下は対応表としての控え（base_xpが無いのでこのままは実行しない）。
+
+('math_js3_aichi_daimon1','a1_seifu','(1)正負の数の計算'),
+('math_js3_aichi_daimon1','a1_mojibunsuu','(2)文字式(分数)'),
+('math_js3_aichi_daimon1','a1_tanko','(3)単項式の乗除'),
+('math_js3_aichi_daimon1','a1_heihokon','(4)平方根の計算'),
+('math_js3_aichi_daimon1','a1_niji','(5)二次方程式'),
+('math_js3_aichi_daimon1','a1_risshiki','(6)不等式の立式'),
+('math_js3_aichi_daimon1','a1_seigo','(7)正誤・二つ選ぶ'),
+('math_js3_aichi_daimon1','a1_hyohon','(8)標本調査'),
+('math_js3_aichi_daimon1','a1_kakuritsu','(9)確率'),
+('math_js3_aichi_daimon1','a1_henka','(10)変化の割合'),
+('math_js3_aichi_daimon1','a1_shizen','(10)平方根と自然数'),
+('math_js3_aichi_daimon1','a1_hanpirei','(10)反比例の格子点'),
+('math_js3_aichi_daimon1','a1_koten','(10)2直線の交点の座標'),
+('math_js3_aichi_daimon1','a1_heikou','(10)交点を通り平行な直線の切片'),
+('math_js3_aichi_daimon1','a1_kansuhan','(10)一次関数・比例・反比例の判別'),
+('math_js3_aichi_daimon1','a1_histo','(8)ヒストグラム読み取り'),
+('math_js3_aichi_daimon1','a1_hakohige','(9)箱ひげ図'),
+('math_js3_aichi_daimon1','a1_kakudo','(10)図形(角度)'),
+('math_js3_aichi_daimon1','a1_enshukaku','(10)図形(円周角)'),
+('math_js3_aichi_daimon1','a1_tenkai','(3)式の展開'),
+('math_js3_aichi_daimon1','a1_insu','(3)因数分解'),
+('math_js3_aichi_daimon1','a1_souji','(10)相似(平行線と線分比)'),
+('math_js3_aichi_daimon1','a1_sanpei','(10)三平方(直角三角形・対角線)'),
+('math_js3_aichi_daimon1','a1_enpei','(10)円と三平方(弦の長さ)'),
+('math_js3_aichi_daimon1','a1_hiritsu','(10)面積比・体積比'),
+('math_js3_aichi_daimon1','a1_nitohen','(10)二等辺三角形+垂線(相似と三平方)'),
+('math_js3_aichi_daimon1','a1_renritsu','(5)連立方程式'),
+('math_js3_aichi_daimon1','a1_shikinoatai','(2)式の値(代入)'),
+('math_js3_aichi_daimon1','a1_heikin','(8)平均値(度数分布表)'),
+('math_js3_aichi_daimon1','a1_wariai','(6)割合の文章題'),
+('math_js3_aichi_daimon1','a1_heikousen','(10)平行線と角'),
+('math_js3_aichi_daimon1','a1_chu2kakudo','(10)中2図形の角度(二等辺・平行四辺形など)');
 -->
 </body>
 </html>

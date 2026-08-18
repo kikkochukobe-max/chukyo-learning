@@ -237,7 +237,7 @@ footer a:hover{text-decoration:underline}
 
     <div class="card-panel">
       <h2><span class="dot"></span>モードをえらぶ</h2>
-      <p class="lead">まずモードをタップ。分野をしぼって集中れんしゅうもできます。顕微鏡・花・葉と根は<b>図を見て答える問題</b>つき。</p>
+      <p class="lead">まずモードをタップ。分野をしぼって集中練習もできます。顕微鏡・花・葉と根は<b>図を見て答える問題</b>つき。</p>
       <div class="mode-grid" id="modeGrid"></div>
       <div class="mode-panel" id="modePanel" hidden></div>
     </div>
@@ -756,12 +756,70 @@ function tanpopoSVG(){
 }
 
 /* ── 葉脈（A 網状脈 / B 平行脈）── */
+/* 網状脈の葉を1枚描く。主脈 → 側脈 → 側脈どうしをつなぐ細脈 → 中間脈 の順に
+   重ねて、教科書どおり「網の目」に見える葉脈をつくる。
+   u = 葉の先端(0)から根もと(1)までの位置。HW(u) はその高さでの葉身の半幅で、
+   輪郭も葉脈も同じ HW を使うので、細脈が葉からはみ出さない。
+
+   ⚠ 同じ見た目の線は1本の <path> にまとめている（M〜 を連結したサブパス）。
+     100本を個別の <path> で出すと属性のくり返しだけで10KB近くになり、
+     誤答時に answer_logs.question_figure へ丸ごと保存されるので効いてくる。 */
+function amimyakuLeaf(cx,yTop,yBot,W){
+  var H=yBot-yTop, i, k, sg, u, w, d,
+      dVein='', dTip='', dFine='';   /* 側脈 / 先端の短い側脈 / 細脈・中間脈 */
+  function Y(u){ return yTop+H*u; }
+  function HW(u){ return (u<=0||u>=1)?0:W*Math.pow(u,0.85)*Math.pow(1-u,0.62)/0.3676; }
+  function P(x,y){ return x.toFixed(1)+' '+y.toFixed(1); }
+  function QP(a,b,c,t){ var m=1-t;
+    return [m*m*a[0]+2*m*t*b[0]+t*t*c[0], m*m*a[1]+2*m*t*b[1]+t*t*c[1]]; }
+  /* 葉身の輪郭（先端と根もとを細かくサンプリングしてなめらかに） */
+  var N=56, R=[], L=[];
+  for(k=0;k<=N;k++){
+    u=0.5*(1-Math.cos(Math.PI*k/N)); w=HW(u);
+    R.push([cx+w,Y(u)]); L.push([cx-w,Y(u)]);
+  }
+  d='M'+P(R[0][0],R[0][1]);
+  for(k=1;k<=N;k++) d+='L'+P(R[k][0],R[k][1]);
+  for(k=N;k>=0;k--) d+='L'+P(L[k][0],L[k][1]);
+  var UU=[0.15,0.27,0.39,0.51,0.63,0.75,0.85,0.94], FS=[0.30,0.56,0.81], FL=[0.25,0.45,0.65,0.85];
+  for(sg=-1;sg<=1;sg+=2){
+    /* 側脈（主脈から左右に出て、先端へ向かってゆるく曲がる） */
+    var V=[];
+    for(i=0;i<UU.length;i++){
+      var u0=UU[i], u1=u0-Math.min(0.14,u0*0.55);
+      var A0=[cx,Y(u0)], A1=[cx+sg*0.52*HW(u0),Y(u0-0.042)], A2=[cx+sg*0.89*HW(u1),Y(u1)];
+      V.push([A0,A1,A2]);
+      dVein+='M'+P(A0[0],A0[1])+'Q'+P(A1[0],A1[1])+' '+P(A2[0],A2[1]);
+    }
+    /* 先端近くの短い側脈 */
+    dTip+='M'+P(cx,Y(0.105))+'Q'+P(cx+sg*0.32*HW(0.09),Y(0.086))+' '+P(cx+sg*0.74*HW(0.062),Y(0.055));
+    /* となり合う側脈をつなぐ細脈（はしご状）＋その中央を通る中間脈で網目にする。
+       葉の下半分は側脈が長いので、細脈を1本ずつ増やして網目の数をそろえる */
+    for(i=0;i<V.length-1;i++){
+      var up=V[i], lo=V[i+1], F=(i>=2&&i<=5)?FL:FS, mids=[[cx,(Y(UU[i])+Y(UU[i+1]))/2]];
+      for(k=0;k<F.length;k++){
+        var a=QP(lo[0],lo[1],lo[2],F[k]), b=QP(up[0],up[1],up[2],F[k]*0.88);
+        var mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2;
+        dFine+='M'+P(a[0],a[1])+'Q'+P(mx+sg*2.4,my)+' '+P(b[0],b[1]);
+        mids.push([mx,my]);
+      }
+      dFine+='M'+P(mids[0][0],mids[0][1]);
+      for(k=1;k<mids.length-1;k++)
+        dFine+='Q'+P(mids[k][0],mids[k][1])+' '+P((mids[k][0]+mids[k+1][0])/2,(mids[k][1]+mids[k+1][1])/2);
+      dFine+='L'+P(mids[mids.length-1][0],mids[mids.length-1][1]);
+    }
+  }
+  /* 葉身 → 細脈 → 側脈 → 主脈 の順に重ねる（太い脈ほど手前） */
+  return '<path d="'+d+'Z" fill="#DCEBD5" stroke="#4A7C59" stroke-width="2.4" stroke-linejoin="round"/>'
+    +'<path d="'+dFine+'" fill="none" stroke="#6E9A78" stroke-width="1" stroke-linecap="round"/>'
+    +'<path d="'+dTip+'" fill="none" stroke="#4A7C59" stroke-width="1.3" stroke-linecap="round"/>'
+    +'<path d="'+dVein+'" fill="none" stroke="#4A7C59" stroke-width="1.7" stroke-linecap="round"/>'
+    +'<line x1="'+cx+'" y1="'+Y(0.03).toFixed(1)+'" x2="'+cx+'" y2="'+Y(0.985).toFixed(1)+
+      '" stroke="#4A7C59" stroke-width="2.6" stroke-linecap="round"/>';
+}
 function youmyakuSVG(){
   var s='<svg viewBox="0 0 420 224" width="420" height="224" font-family="sans-serif" role="img" aria-label="2種類の葉脈">';
-  s+='<path d="M110 26 C168 62 168 152 110 190 C52 152 52 62 110 26 Z" fill="#DCEBD5" stroke="#4A7C59" stroke-width="2.4"/>';
-  s+='<line x1="110" y1="30" x2="110" y2="186" stroke="#4A7C59" stroke-width="2.4"/>';
-  s+='<path d="M110 62 Q88 70 72 92 M110 62 Q132 70 148 92 M110 102 Q84 110 66 130 M110 102 Q136 110 154 130 M110 140 Q90 148 78 164 M110 140 Q130 148 142 164" fill="none" stroke="#4A7C59" stroke-width="1.6"/>';
-  s+='<path d="M86 78 Q96 94 82 106 M134 78 Q124 94 138 106 M80 118 Q92 132 78 144 M140 118 Q128 132 142 144" fill="none" stroke="#4A7C59" stroke-width="1.2"/>';
+  s+=amimyakuLeaf(112,20,196,52);
   s+='<text x="110" y="214" text-anchor="middle" font-size="17" font-weight="700" fill="#33312B">A</text>';
   s+='<path d="M310 22 C334 80 334 140 310 194 C286 140 286 80 310 22 Z" fill="#DCEBD5" stroke="#4A7C59" stroke-width="2.4"/>';
   s+='<path d="M310 28 C310 80 310 140 310 188 M310 30 C321 82 321 136 310 186 M310 30 C299 82 299 136 310 186 M310 28 C328 82 328 138 310 190 M310 28 C292 82 292 138 310 190" fill="none" stroke="#4A7C59" stroke-width="1.6"/>';
@@ -1518,7 +1576,11 @@ function gradeCurrent(){
   var exp=byId('explain');
   exp.innerHTML='<span class="lbl">'+(ok?'正解！':'正解は「'+q.a+'」')+'</span>'+q.exp;
   exp.className='show';
-  safeDivpAnswer(ok,{question_key:CAT_MODE[q.cat],question_params:q.params||{id:q.id},question_text:q.q,correct_answer:q.a,wrong_answer:chosen});
+  /* 図（顕微鏡・花・葉と根・マツ・分類表）は「図のAは何か」の形で出しているので、
+     図が無いと講師ページの解き直しプリントで問題が成立しない。画面に出したものを
+     そのまま渡す（誤答のときだけ保存される）。 */
+  safeDivpAnswer(ok,{question_key:CAT_MODE[q.cat],question_params:q.params||{id:q.id},question_text:q.q,
+    question_figure:q.tbl||null,correct_answer:q.a,wrong_answer:chosen});
   byId('grade').classList.remove('show');   /* 採点したら「答え合わせ」を隠して「次へ」を出す */
   byId('next').classList.add('show');
   byId('progBar').style.width=((state.idx+1)/state.queue.length*100)+'%';

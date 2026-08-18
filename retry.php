@@ -169,6 +169,12 @@ function h(?string $s): string
     border-radius:10px;padding:12px;text-decoration:none;
     font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:14px;
   }
+  /* url を持たない単元（?retry=1 の同一問題再出題に未対応）の説明。
+     ボタンが出ないと「壊れている」と読めるので、理由をその場に書く */
+  .nogo{
+    margin-top:14px;background:var(--paper);border:1.5px dashed var(--grid);
+    border-radius:10px;padding:12px;font-size:12px;color:var(--ink-soft);line-height:1.7;
+  }
   .empty{
     background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
     padding:32px 20px;text-align:center;margin-top:16px;
@@ -237,6 +243,9 @@ function h(?string $s): string
 <?php endforeach; ?>
 <?php if (!empty($meta['url'])): ?>
     <a class="golink" href="<?= h($meta['url']) ?>?retry=1">同じ問題に再チャレンジする →</a>
+<?php else: ?>
+    <p class="nogo">この単元は、同じ問題をもう一度出す機能に まだ 対応していません。<br>
+      いまはリストを見て、まちがえた問題を 確認するだけになります（先生も同じリストを見ています）。</p>
 <?php endif; ?>
   </section>
   </div>
