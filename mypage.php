@@ -132,11 +132,25 @@ $stmt = $pdo->prepare("SELECT COUNT(*) FROM retry_queue WHERE student_id = :id A
 $stmt->execute(['id' => $studentId]);
 $retryCount = (int)$stmt->fetchColumn();
 
+// 単元名・ツールURLの台帳（下の「今日の1問」の選定と、単元カルテの表示で使う）
+$unitMeta = require __DIR__ . '/api/units.php';
+
 // ---- 今日の1問（pending の中でいちばん多くまちがえた問題を1つ）----
 // 問題文は最後に間違えた時の answer_logs から取る（retry.php と同じ引き方）。
+// replay_json は migrate_retry_replay.sql を当てた環境にしか無いので先に確認する。
+$hasReplayCol = false;
+try {
+    $hasReplayCol = (bool)$pdo->query("SHOW COLUMNS FROM retry_queue LIKE 'replay_json'")->fetchColumn();
+} catch (Throwable $e) {
+    $hasReplayCol = false;
+}
+// 上位10問を取り、その中から「実際に解き直せる問題」を1つ選ぶ（下の foreach）。
+// 愛知大問1のような再表示方式の単元は replay_json が無い問題を出題できないため、
+// いちばん多くまちがえた問題がそれだと「押しても空振りするカード」になってしまう。
 $stmt = $pdo->prepare(
     "SELECT rq.unit_key, rq.question_key, rq.params_hash, rq.wrong_count,
             COALESCE(qc.label, rq.question_key) AS label,
+            " . ($hasReplayCol ? 'rq.replay_json IS NOT NULL' : '0') . " AS has_replay,
             al.question_text
      FROM retry_queue rq
      LEFT JOIN question_catalog qc
@@ -149,10 +163,20 @@ $stmt = $pdo->prepare(
      )
      WHERE rq.student_id = :id AND rq.status = 'pending'
      ORDER BY rq.wrong_count DESC, rq.updated_at DESC
-     LIMIT 1"
+     LIMIT 10"
 );
 $stmt->execute(['id' => $studentId]);
-$todaysProblem = $stmt->fetch();
+$tpCandidates = $stmt->fetchAll();
+
+// 解き直せる問題を優先して選ぶ。1つも無ければ先頭を出す（カードは出すがボタンは出さない）
+$todaysProblem = $tpCandidates[0] ?? null;
+foreach ($tpCandidates as $cand) {
+    $needsReplay = !empty($unitMeta[$cand['unit_key']]['replay']);
+    if (!$needsReplay || !empty($cand['has_replay'])) {
+        $todaysProblem = $cand;
+        break;
+    }
+}
 
 // ---- 教室内ランキング(自分の順位だけ表示。他の生徒の名前は出さない) ----
 require_once __DIR__ . '/api/ranking.php';
@@ -237,7 +261,7 @@ $stmt = $pdo->prepare(
 $stmt->execute($params);
 $karteRows = $stmt->fetchAll();
 
-$unitMeta = require __DIR__ . '/api/units.php';
+// $unitMeta は「今日の1問」の選定でも使うので上（135行付近）で読み込んでいる
 $units = [];
 foreach ($karteRows as $row) {
     $units[$row['unit_key']][] = $row;
@@ -590,7 +614,14 @@ function h(?string $s): string
 <?php if (!empty($todaysProblem['question_text'])): ?>
     <div class="today-q" data-math="<?= h($todaysProblem['question_text']) ?>"><?= h($todaysProblem['question_text']) ?></div>
 <?php endif; ?>
-<?php if (!empty($tpMeta['url'])):
+<?php
+    /* 再表示方式の単元（units.php の 'replay' => true）で replay が保存されていない問題は、
+       ツール側が出題できず「解き直せる問題は まだありません」で終わる＝押しても空振りする。
+       その場合はボタンを出さない（カード自体は「まちがえた問題」の確認として残す）。 */
+    $tpCanGo = !empty($tpMeta['url'])
+        && (empty($tpMeta['replay']) || !empty($todaysProblem['has_replay']));
+?>
+<?php if ($tpCanGo):
     // focus に params_hash を渡すと、ツールがモード選択画面を飛ばしてこの1問だけを直接出題する
     $tpFocus = !empty($todaysProblem['params_hash']) ? '&focus=' . rawurlencode($todaysProblem['params_hash']) : '';
 ?>

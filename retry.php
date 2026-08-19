@@ -19,10 +19,20 @@ if (!$actor || $actor['type'] !== 'student') {
 $studentId = $actor['id'];
 $pdo = db();
 
+// replay_json は migrate_retry_replay.sql を当てた環境にしか無い。
+// 未適用の環境で列名を書くと一覧ごと落ちるので、先に確認する（list_retries.php と同じ方式）。
+$hasReplayCol = false;
+try {
+    $hasReplayCol = (bool)$pdo->query("SHOW COLUMNS FROM retry_queue LIKE 'replay_json'")->fetchColumn();
+} catch (Throwable $e) {
+    $hasReplayCol = false;
+}
+
 // pending の解き直し一覧（問題文は最後に間違えた時の answer_logs から取る）
 $stmt = $pdo->prepare(
     "SELECT rq.unit_key, rq.question_key, rq.wrong_count, rq.correct_streak, rq.last_answered_at,
             COALESCE(qc.label, rq.question_key) AS label,
+            " . ($hasReplayCol ? 'rq.replay_json IS NOT NULL' : '0') . " AS has_replay,
             al.question_text, rq.question_params AS retry_params
      FROM retry_queue rq
      LEFT JOIN question_catalog qc
@@ -41,8 +51,14 @@ $rows = $stmt->fetchAll();
 
 $unitMeta = require __DIR__ . '/api/units.php';
 $units = [];
+// 単元ごとに「replay がある問題が1問でもあるか」。愛知大問1のような再表示方式の単元は
+// replay_json が無い行を再出題できないので、ボタンの出し分けに使う（下の $canGo）
+$unitHasReplay = [];
 foreach ($rows as $row) {
     $units[$row['unit_key']][] = $row;
+    if (!empty($row['has_replay'])) {
+        $unitHasReplay[$row['unit_key']] = true;
+    }
 }
 
 // ---- 教科（unit_key の先頭要素）でのフィルタ用ラベル ----
@@ -241,8 +257,21 @@ function h(?string $s): string
       <div class="meta">まちがえた回数: <?= (int)$item['wrong_count'] ?>回 ・ <?= (int)$item['correct_streak'] === 1 ? 'あと1回連続で正解すると消えるよ' : '2回連続で正解すると消えるよ' ?></div>
     </div>
 <?php endforeach; ?>
-<?php if (!empty($meta['url'])): ?>
+<?php
+    /* ボタンの出し分け。units.php に 'replay' => true が付いた単元（愛知大問1のように
+       question_params から問題を復元できず retry_queue.replay_json の再表示で解き直す単元）は、
+       replay が保存されている問題が1問も無いとツール側が
+       「解き直せる問題は まだありません」で終わる＝ボタンが空振りする。
+       その状態では押させずに理由を書く（replay 無しの pending は
+       db/maintenance/purge_replayless_retries.sql で掃除できる）。 */
+    $needsReplay = !empty($meta['replay']);
+    $canGo = !empty($meta['url']) && (!$needsReplay || !empty($unitHasReplay[$unitKey]));
+?>
+<?php if ($canGo): ?>
     <a class="golink" href="<?= h($meta['url']) ?>?retry=1">同じ問題に再チャレンジする →</a>
+<?php elseif (!empty($meta['url'])): ?>
+    <p class="nogo">この単元の これらの問題は、記録のしかたが 古いままなので 同じ問題を出せません。<br>
+      いまはリストを見て 確認するだけになります。<strong>次に まちがえた問題からは 解き直せます。</strong></p>
 <?php else: ?>
     <p class="nogo">この単元は、同じ問題をもう一度出す機能に まだ 対応していません。<br>
       いまはリストを見て、まちがえた問題を 確認するだけになります（先生も同じリストを見ています）。</p>
