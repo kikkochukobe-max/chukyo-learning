@@ -96,6 +96,9 @@ h1 .sub{font-size:.72rem;color:var(--ink-soft);letter-spacing:.2em;display:block
 #ansArea{margin-top:10px;}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 @media(max-width:480px){.choices{grid-template-columns:1fr;}}
+/* 数値だけの短い選択肢は3列(6択でも縦に伸びすぎないように) */
+.choices.short{grid-template-columns:repeat(3,1fr);}
+@media(max-width:480px){.choices.short{grid-template-columns:1fr 1fr;}}
 .choiceBtn{
   border:1.5px solid var(--line);background:var(--washi);border-radius:10px;padding:12px 8px;
   font-size:1rem;cursor:pointer;font-family:inherit;color:var(--ink);overflow:hidden;position:relative;
@@ -104,6 +107,17 @@ h1 .sub{font-size:.72rem;color:var(--ink-soft);letter-spacing:.2em;display:block
 .choiceBtn.sel{background:var(--sakura-mist);border-color:var(--sakura);box-shadow:inset 0 0 0 1.5px var(--sakura);}
 .choiceBtn.hit{background:#E8F1E4;border-color:var(--moss);}
 .choiceBtn.miss{background:#FBE7EA;border-color:var(--sakura-deep);}
+/* 選ばなかった正解 ─ 緑ではっきり示す(どれが正解だったか一目でわかるように) */
+.choiceBtn.hit.unsel{
+  background:#DCEBD3;border-color:var(--moss);box-shadow:inset 0 0 0 2px var(--moss);
+  color:var(--moss);font-weight:700;
+}
+.choiceBtn.hit.unsel .katex{color:var(--moss);}
+.choiceBtn.hit.unsel::after{
+  content:"正解";position:absolute;right:0;top:0;
+  background:var(--moss);color:#fff;font-size:.58rem;font-weight:700;letter-spacing:.08em;
+  padding:2px 6px;border-bottom-left-radius:8px;
+}
 /* 2段解答(式を選ぶ → ○×) */
 .eqStep+.eqStep{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;}
 .stepLab{
@@ -126,6 +140,7 @@ h1 .sub{font-size:.72rem;color:var(--ink-soft);letter-spacing:.2em;display:block
 .oxBtn.sel{background:var(--sakura-mist);border-color:var(--sakura);box-shadow:inset 0 0 0 1.5px var(--sakura);}
 .oxBtn.hit{background:#E8F1E4;border-color:var(--moss);}
 .oxBtn.miss{background:#FBE7EA;border-color:var(--sakura-deep);}
+.oxBtn.hit.unsel{background:#DCEBD3;box-shadow:inset 0 0 0 2px var(--moss);color:var(--moss);}
 .oxBtn:active{transform:scale(.96);}
 /* ①→②→③ の順にタップする解答 */
 .ordLab b{margin-left:auto;font-size:.8rem;color:var(--sakura-deep);font-family:'Hiragino Mincho ProN',serif;}
@@ -258,6 +273,8 @@ footer{max-width:860px;margin:16px auto 0;text-align:center;font-size:.68rem;col
    ================================================================ */
 
 /*GEN-START*/
+/* 選択肢の数。グラフをかくモード以外はすべてこの数の選択式で答える */
+const N_CHOICES=6;
 /* ---------- rational utils ---------- */
 function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;}
 function rmk(n,d){
@@ -461,8 +478,10 @@ function genTokucho(){
     const correct=lineTex(a,b);
     const set=new Set([correct]);
     const cands=[lineTex(rneg(a),b),lineTex(a,rneg(b)),lineTex(rneg(a),rneg(b)),
-                 lineTex(a,radd(b,rmk(pick([-2,2,1,-1])))),lineTex(rdiv(rmk(1),rEq(a,rmk(1))||rEq(a,rmk(-1))?rmk(2*a.n):a),b)];
-    for(const c of cands){if(set.size<4)set.add(c);}
+                 lineTex(a,radd(b,rmk(pick([-2,2,1,-1])))),lineTex(rdiv(rmk(1),rEq(a,rmk(1))||rEq(a,rmk(-1))?rmk(2*a.n):a),b),
+                 lineTex(a,radd(b,rmk(3))),lineTex(rneg(a),rsub(b,rmk(1))),
+                 lineTex(rmul(a,rmk(2)),b),lineTex(a,rsub(b,rmk(3)))];
+    for(const c of cands){if(set.size<N_CHOICES)set.add(c);}
     const choices=shuffle([...set]);
     return {
       qkey:"tokucho_v5",
@@ -483,7 +502,7 @@ function genTokucho(){
     const good={a:pickSlope(false),b:rmk(nzi(-6,6))};
     while((good.a.n>0)!==up)good.a=pickSlope(false);
     const bads=[];
-    while(bads.length<3){
+    while(bads.length<N_CHOICES-1){
       const l=mk();
       if((l.a.n>0)!==up && !bads.some(x=>rEq(x.a,l.a)&&rEq(x.b,l.b)))bads.push(l);
     }
@@ -505,7 +524,7 @@ function genTokucho(){
     const px=nzi(-4,4);
     const py=radd(rmul(good.a,rmk(px)),good.b);
     const bads=[];
-    while(bads.length<3){
+    while(bads.length<N_CHOICES-1){
       const l=mk();
       const y2=radd(rmul(l.a,rmk(px)),l.b);
       if(!rEq(y2,py) && !bads.some(x=>rEq(x.a,l.a)&&rEq(x.b,l.b)))bads.push(l);
@@ -528,7 +547,7 @@ function genTokucho(){
     let gb=rmk(nzi(-5,5));while(rEq(gb,base.b))gb=rmk(nzi(-5,5));
     const good={a:base.a,b:gb};
     const bads=[];
-    while(bads.length<3){
+    while(bads.length<N_CHOICES-1){
       const l=mk();
       if(!rEq(l.a,base.a) && !bads.some(x=>rEq(x.a,l.a)&&rEq(x.b,l.b)))bads.push(l);
     }
@@ -548,7 +567,7 @@ function genTokucho(){
   const b=rmk(nzi(-6,6));
   const good={a:pickSlope(false),b};
   const bads=[];
-  while(bads.length<3){
+  while(bads.length<N_CHOICES-1){
     const l=mk();
     if(!rEq(l.b,b) && !bads.some(x=>rEq(x.a,l.a)&&rEq(x.b,l.b)))bads.push(l);
   }
@@ -571,20 +590,24 @@ function genTokucho(){
      bySlope=false … 傾きが共通で切片だけ違う(平行な3本)
    ①②③ は必ずシャッフルして割り当てる。順番と急さが一致していると
    グラフを読まずに「急な順」で並べられてしまうため。
-   ダミーの式を1つ混ぜる(3択だと2本わかれば残りが自動で決まる)。
+   ダミーの式を3つ混ぜて全部で6択にする(選択肢が少ないと2本わかった時点で
+   残りが自動で決まってしまう)。図にかくのは3本だけなので，ダミーは
+   「見分けにくい傾き」でもよい(かえって式をきちんと読む練習になる)。
    ================================================================ */
 const ORDNUM=["①","②","③"];
 function genTokuchoCompare(bySlope){
   const R=8;
   const COLORS=["var(--indigo)","var(--sakura-deep)","var(--moss)"];
-  let lines,extra,head,exHead;
+  let lines,extras,head,exHead;
   if(bySlope){
     const b=rmk(nzi(-3,3));
     const up=ri(0,1)===0;
-    const mags=shuffle([rmk(1,2),rmk(1),rmk(3,2),rmk(2),rmk(3)]).slice(0,4);
-    const sl=mags.map(m=>up?m:rneg(m));
-    lines=sl.slice(0,3).map(a=>({a,b}));
-    extra={a:sl[3],b};
+    /* 図にかく3本は「急さがはっきり違う」ものから選ぶ(グラフが読めるように) */
+    const base=shuffle([rmk(1,2),rmk(1),rmk(3,2),rmk(2),rmk(3)]);
+    const dummy=shuffle([rmk(1,3),rmk(2,3),rmk(5,2),rmk(4),rmk(1,4)].concat(base.slice(3)));
+    const sg=m=>up?m:rneg(m);
+    lines=base.slice(0,3).map(m=>({a:sg(m),b}));
+    extras=dummy.slice(0,3).map(m=>({a:sg(m),b}));
     head=`(3本とも切片は同じです)`;
     exHead=[
       `3本とも切片が ${T(rTexInline(b))} なので，${T("y")} 軸上の同じ点 ${T("(0,\\,"+rTexInline(b)+")")} を通る。`,
@@ -592,12 +615,14 @@ function genTokuchoCompare(bySlope){
     ];
   }else{
     const a=pick([rmk(1),rmk(-1),rmk(2),rmk(-2),rmk(1,2),rmk(-1,2),rmk(3,2),rmk(-3,2)]);
+    const ALLB=[-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6];
     let bs;
     do{
-      bs=shuffle([-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6]).slice(0,4);
+      bs=shuffle(ALLB).slice(0,3);            /* 図にかく3本は2以上はなす */
     }while(!bs.every((x,i)=>bs.every((y,j)=>i===j||Math.abs(x-y)>=2)));
-    lines=bs.slice(0,3).map(v=>({a,b:rmk(v)}));
-    extra={a,b:rmk(bs[3])};
+    const rest=shuffle(ALLB.filter(v=>!bs.includes(v))).slice(0,3);
+    lines=bs.map(v=>({a,b:rmk(v)}));
+    extras=rest.map(v=>({a,b:rmk(v)}));
     head=`(3本とも傾きは同じです)`;
     exHead=[
       `3本とも傾きが ${T(rTexInline(a))} で等しいので，たがいに平行。`,
@@ -605,13 +630,16 @@ function genTokuchoCompare(bySlope){
     ];
   }
   const texOf=l=>lineTex(l.a,l.b);
-  const choices=shuffle([...lines,extra]).map(texOf);
+  const all=shuffle([...lines,...extras]);
+  const choices=all.map(texOf);
   const seq=lines.map(l=>choices.indexOf(texOf(l)));
   return {
     qkey:bySlope?"tokucho_v6":"tokucho_v7",
     qHtml:`次の図の ${T("\\text{①}\\sim\\text{③}")} は，下の式のどれかのグラフです。${T("\\text{①}\\to\\text{②}\\to\\text{③}")} の順に選びなさい。<br><span style="font-size:.8em;color:var(--ink-soft)">${head}</span>`,
     fig:{kind:"line",lines:lines.map((l,i)=>({a:l.a,b:l.b,color:COLORS[i],label:ORDNUM[i]})),range:R},
-    ans:{kind:"order",choices:choices.map(T),seq},
+    /* plain は記録用なので TeX ではなく F() マーカー表記で持つ
+       (①②③ と式を1本につないだ文字列は KaTeX に通せないため) */
+    ans:{kind:"order",choices:choices.map(T),plain:all.map(l=>lineTexPlain(l.a,l.b)),seq},
     exLines:exHead.concat(lines.map((l,i)=>`${ORDNUM[i]} ${T(texOf(l))}`))
   };
 }
@@ -1045,7 +1073,7 @@ function genMenseki(){
 /* ================================================================
    式をつくる（文章 → 式を選ぶ → 一次関数かどうかを ○× で判定）
    HANTEI_POOL の各要素: {lin, f:()=>({txt,eq,bad[],why[],note?,reason?})}
-     eq   … 正しい式(TeX)      bad … ダミーの式(TeX)3つ
+     eq   … 正しい式(TeX)      bad … ダミーの式(TeX)5つ(6択にするため)
      why  … 式の立て方の解説    note … y=ax(比例)型なので補足を出す
      reason … 一次関数でない理由(lin:false のとき必須)
    ================================================================ */
@@ -1056,7 +1084,7 @@ const HANTEI_POOL=[
     return{
       txt:`1本 ${p} 円の鉛筆を ${T("x")} 本と，1冊 ${n} 円のノートを1冊買います。代金を ${T("y")} 円とします。`,
       eq:`y=${p}x+${n}`,
-      bad:[`y=${p}x-${n}`,`y=${n}x+${p}`,`y=${p+n}x`],
+      bad:[`y=${p}x-${n}`,`y=${n}x+${p}`,`y=${p+n}x`,`y=${p}x`,`y=${p}x+${p+n}`],
       why:[`鉛筆の代金は ${T(p+"x")} 円，ノートは ${T(String(n))} 円。`,
            `その合計だから ${T("y="+p+"x+"+n)}`]
     };
@@ -1066,7 +1094,7 @@ const HANTEI_POOL=[
     return{
       txt:`${a} L の水が入っている水そうに，毎分 ${b} L ずつ水を入れます。入れ始めてから ${T("x")} 分後の水の量を ${T("y")} L とします。`,
       eq:`y=${b}x+${a}`,
-      bad:[`y=${a}x+${b}`,`y=${b}x-${a}`,`y=${a*b}x`],
+      bad:[`y=${a}x+${b}`,`y=${b}x-${a}`,`y=${a*b}x`,`y=${b}x`,`y=-${b}x+${a}`],
       why:[`${T("x")} 分間で入る水は ${T(b+"x")} L。`,
            `はじめの ${T(String(a))} L をたして ${T("y="+b+"x+"+a)}`]
     };
@@ -1076,7 +1104,7 @@ const HANTEI_POOL=[
     return{
       txt:`${a} L の水が入った水そうから，毎分 ${b} L ずつ水をぬきます。ぬき始めてから ${T("x")} 分後の残りの水の量を ${T("y")} L とします。`,
       eq:`y=-${b}x+${a}`,
-      bad:[`y=${b}x+${a}`,`y=${b}x-${a}`,`y=-${a}x+${b}`],
+      bad:[`y=${b}x+${a}`,`y=${b}x-${a}`,`y=-${a}x+${b}`,`y=-${b}x-${a}`,`y=${a}x-${b}`],
       why:[`${T("x")} 分間でぬける水は ${T(b+"x")} L。`,
            `はじめの ${T(String(a))} L からひいて ${T("y="+a+"-"+b+"x=-"+b+"x+"+a)}`]
     };
@@ -1086,7 +1114,7 @@ const HANTEI_POOL=[
     return{
       txt:`時速 ${a} km で ${T("x")} 時間歩いたときに進む道のりを ${T("y")} km とします。`,
       eq:`y=${a}x`,
-      bad:[`y=\\dfrac{${a}}{x}`,`y=\\dfrac{x}{${a}}`,`y=${a}x+${a}`],
+      bad:[`y=\\dfrac{${a}}{x}`,`y=\\dfrac{x}{${a}}`,`y=${a}x+${a}`,`y=x+${a}`,`y=${a}x-${a}`],
       why:[`道のり ${T("=")} 速さ ${T("\\times")} 時間 だから ${T("y="+a+"x")}`],
       note:true
     };
@@ -1096,7 +1124,7 @@ const HANTEI_POOL=[
     return{
       txt:`全体で ${a} km の道のりを，時速 ${b} km で ${T("x")} 時間歩きました。残りの道のりを ${T("y")} km とします。`,
       eq:`y=-${b}x+${a}`,
-      bad:[`y=${b}x+${a}`,`y=-${a}x+${b}`,`y=${a}x-${b}`],
+      bad:[`y=${b}x+${a}`,`y=-${a}x+${b}`,`y=${a}x-${b}`,`y=-${b}x-${a}`,`y=${b}x-${a}`],
       why:[`歩いた道のりは ${T(b+"x")} km。`,
            `全体からひいて ${T("y="+a+"-"+b+"x=-"+b+"x+"+a)}`]
     };
@@ -1106,7 +1134,7 @@ const HANTEI_POOL=[
     return{
       txt:`1個 ${a} 円の品物を ${T("x")} 個買って ${n} 円を出したときのおつりを ${T("y")} 円とします。`,
       eq:`y=-${a}x+${n}`,
-      bad:[`y=${a}x+${n}`,`y=${a}x-${n}`,`y=-${n}x+${a}`],
+      bad:[`y=${a}x+${n}`,`y=${a}x-${n}`,`y=-${n}x+${a}`,`y=-${a}x-${n}`,`y=${n}x-${a}`],
       why:[`代金は ${T(a+"x")} 円。`,
            `おつり ${T("=")} 出したお金 ${T("-")} 代金 だから ${T("y="+n+"-"+a+"x=-"+a+"x+"+n)}`]
     };
@@ -1117,7 +1145,7 @@ const HANTEI_POOL=[
     return{
       txt:`1辺の長さが ${T("x")} cm の${nm}の周の長さを ${T("y")} cm とします。`,
       eq:`y=${k}x`,
-      bad:[`y=${k}x+${k}`,`y=x^2`,`y=\\dfrac{${k}}{x}`],
+      bad:[`y=${k}x+${k}`,`y=x^2`,`y=\\dfrac{${k}}{x}`,`y=${k}x^2`,`y=x+${k}`],
       why:[`${nm}の辺は ${k} 本あり，どれも ${T("x")} cm。`,
            `周の長さは ${T("y="+k+"x")}`],
       note:true
@@ -1128,7 +1156,7 @@ const HANTEI_POOL=[
     return{
       txt:`いま ${a} 円の貯金があり，毎月 ${b} 円ずつ貯めていきます。${T("x")} か月後の貯金額を ${T("y")} 円とします。`,
       eq:`y=${b}x+${a}`,
-      bad:[`y=${a}x+${b}`,`y=${b}x-${a}`,`y=${a+b}x`],
+      bad:[`y=${a}x+${b}`,`y=${b}x-${a}`,`y=${a+b}x`,`y=${b}x`,`y=-${b}x+${a}`],
       why:[`${T("x")} か月で貯まるお金は ${T(b+"x")} 円。`,
            `いまの ${T(String(a))} 円をたして ${T("y="+b+"x+"+a)}`]
     };
@@ -1138,7 +1166,7 @@ const HANTEI_POOL=[
     return{
       txt:`1 m の重さが ${a} g の針金があります。この針金 ${T("x")} m の重さを ${T("y")} g とします。`,
       eq:`y=${a}x`,
-      bad:[`y=\\dfrac{${a}}{x}`,`y=x+${a}`,`y=\\dfrac{x}{${a}}`],
+      bad:[`y=\\dfrac{${a}}{x}`,`y=x+${a}`,`y=\\dfrac{x}{${a}}`,`y=${a}x+${a}`,`y=${a}x^2`],
       why:[`1 m で ${T(String(a))} g だから，${T("x")} m では ${T("y="+a+"x")}`],
       note:true
     };
@@ -1146,7 +1174,7 @@ const HANTEI_POOL=[
   {lin:true,f:()=>({
     txt:`半径 ${T("x")} cm の円の周の長さを ${T("y")} cm とします。`,
     eq:`y=2\\pi x`,
-    bad:[`y=\\pi x^2`,`y=\\pi x`,`y=4\\pi x`],
+    bad:[`y=\\pi x^2`,`y=\\pi x`,`y=4\\pi x`,`y=\\dfrac{2\\pi}{x}`,`y=2\\pi x^2`],
     why:[`円周 ${T("=")} 直径 ${T("\\times\\pi")} だから ${T("y=2\\pi x")}`,
          `${T("2\\pi")} は決まった数（定数）なので，${T("y=ax")} の ${T("a")} にあたる。`],
     note:true
@@ -1156,7 +1184,7 @@ const HANTEI_POOL=[
     return{
       txt:`底辺が ${T("x")} cm，高さが ${h} cm の三角形の面積を ${T("y")} cm² とします。`,
       eq:`y=${h/2}x`,
-      bad:[`y=${h}x`,`y=\\dfrac{${h}}{x}`,`y=x^2`],
+      bad:[`y=${h}x`,`y=\\dfrac{${h}}{x}`,`y=x^2`,`y=\\dfrac{1}{2}x`,`y=${2*h}x`],
       why:[`三角形の面積 ${T("=\\dfrac{1}{2}\\times\\text{底辺}\\times\\text{高さ}")}`,
            T("y=\\dfrac{1}{2}\\times x\\times "+h+"="+(h/2)+"x")],
       note:true
@@ -1168,7 +1196,7 @@ const HANTEI_POOL=[
     return{
       txt:`${a} km の道のりを，時速 ${T("x")} km で進むときにかかる時間を ${T("y")} 時間とします。`,
       eq:`y=\\dfrac{${a}}{x}`,
-      bad:[`y=${a}x`,`y=\\dfrac{x}{${a}}`,`y=${a}x+${a}`],
+      bad:[`y=${a}x`,`y=\\dfrac{x}{${a}}`,`y=${a}x+${a}`,`y=${a}-x`,`y=-${a}x`],
       why:[`時間 ${T("=")} 道のり ${T("\\div")} 速さ だから ${T("y=\\dfrac{"+a+"}{x}")}`],
       reason:`${T("y")} が ${T("x")} に反比例する式`
     };
@@ -1178,7 +1206,7 @@ const HANTEI_POOL=[
     return{
       txt:`面積が ${a} cm² の長方形の，縦の長さを ${T("x")} cm，横の長さを ${T("y")} cm とします。`,
       eq:`y=\\dfrac{${a}}{x}`,
-      bad:[`y=${a}x`,`y=-x+${a}`,`y=\\dfrac{x}{${a}}`],
+      bad:[`y=${a}x`,`y=-x+${a}`,`y=\\dfrac{x}{${a}}`,`y=\\dfrac{${a}}{2x}`,`y=${a}+x`],
       why:[`縦 ${T("\\times")} 横 ${T("=")} 面積 だから ${T(a+"=x\\times y")}`,
            `よって ${T("y=\\dfrac{"+a+"}{x}")}`],
       reason:`${T("y")} が ${T("x")} に反比例する式`
@@ -1187,21 +1215,21 @@ const HANTEI_POOL=[
   {lin:false,f:()=>({
     txt:`1辺の長さが ${T("x")} cm の正方形の面積を ${T("y")} cm² とします。`,
     eq:`y=x^2`,
-    bad:[`y=4x`,`y=2x`,`y=\\dfrac{4}{x}`],
+    bad:[`y=4x`,`y=2x`,`y=\\dfrac{4}{x}`,`y=x^3`,`y=2x^2`],
     why:[`正方形の面積 ${T("=")} 1辺 ${T("\\times")} 1辺 だから ${T("y=x\\times x=x^2")}`],
     reason:`${T("x")} の2乗をふくむ式`
   })},
   {lin:false,f:()=>({
     txt:`半径 ${T("x")} cm の円の面積を ${T("y")} cm² とします。`,
     eq:`y=\\pi x^2`,
-    bad:[`y=2\\pi x`,`y=\\pi x`,`y=\\dfrac{\\pi}{x}`],
+    bad:[`y=2\\pi x`,`y=\\pi x`,`y=\\dfrac{\\pi}{x}`,`y=4\\pi x^2`,`y=\\pi x^3`],
     why:[`円の面積 ${T("=")} 半径 ${T("\\times")} 半径 ${T("\\times\\pi")} だから ${T("y=\\pi x^2")}`],
     reason:`${T("x")} の2乗をふくむ式`
   })},
   {lin:false,f:()=>({
     txt:`1辺の長さが ${T("x")} cm の立方体の体積を ${T("y")} cm³ とします。`,
     eq:`y=x^3`,
-    bad:[`y=6x^2`,`y=x^2`,`y=3x`],
+    bad:[`y=6x^2`,`y=x^2`,`y=3x`,`y=12x`,`y=3x^2`],
     why:[`立方体の体積 ${T("=")} 1辺 ${T("\\times")} 1辺 ${T("\\times")} 1辺 だから ${T("y=x^3")}`],
     reason:`${T("x")} の3乗をふくむ式`
   })},
@@ -1210,7 +1238,7 @@ const HANTEI_POOL=[
     return{
       txt:`面積が ${a} cm² の三角形の，底辺を ${T("x")} cm，高さを ${T("y")} cm とします。`,
       eq:`y=\\dfrac{${2*a}}{x}`,
-      bad:[`y=\\dfrac{${a}}{x}`,`y=${a}x`,`y=\\dfrac{x}{${2*a}}`],
+      bad:[`y=\\dfrac{${a}}{x}`,`y=${a}x`,`y=\\dfrac{x}{${2*a}}`,`y=\\dfrac{x}{${a}}`,`y=${2*a}x`],
       why:[T("\\dfrac{1}{2}\\times x\\times y="+a),
            `両辺を ${T("2")} 倍して ${T("xy="+(2*a))}，よって ${T("y=\\dfrac{"+(2*a)+"}{x}")}`],
       reason:`${T("y")} が ${T("x")} に反比例する式`
@@ -1221,7 +1249,7 @@ const HANTEI_POOL=[
     return{
       txt:`底面が1辺 ${T("x")} cm の正方形で，高さが ${h} cm の直方体の体積を ${T("y")} cm³ とします。`,
       eq:`y=${h}x^2`,
-      bad:[`y=${h}x`,`y=x^3`,`y=\\dfrac{${h}}{x}`],
+      bad:[`y=${h}x`,`y=x^3`,`y=\\dfrac{${h}}{x}`,`y=${h}x^3`,`y=${2*h}x^2`],
       why:[`体積 ${T("=")} 底面積 ${T("\\times")} 高さ で，底面積は ${T("x^2")} cm²。`,
            `よって ${T("y="+h+"x^2")}`],
       reason:`${T("x")} の2乗をふくむ式`
@@ -1236,7 +1264,7 @@ function genHantei(){
   const idx=pick(idxs);
   const t=HANTEI_POOL[idx].f();
   const set=new Set([t.eq]);
-  t.bad.forEach(b=>{if(set.size<4)set.add(b);});
+  t.bad.forEach(b=>{if(set.size<N_CHOICES)set.add(b);});
   const choices=shuffle([...set]);
   const ex=t.why.slice();
   if(wantLin){
@@ -1249,7 +1277,7 @@ function genHantei(){
     qkey:"hantei_v"+(idx+1),
     qHtml:`${t.txt}<br><span style="font-size:.88em;color:var(--ink-soft)">${T("y")} を ${T("x")} の式で表し，${T("y")} が ${T("x")} の一次関数といえるかどうかを答えなさい。</span>`,
     fig:null,
-    ans:{kind:"eqox",choices:choices.map(T),correct:choices.indexOf(t.eq),lin:wantLin},
+    ans:{kind:"eqox",choices:choices.map(T),plain:choices,correct:choices.indexOf(t.eq),lin:wantLin},
     exLines:ex
   };
 }
@@ -1516,6 +1544,189 @@ function parseRat(s){
     return rdiv(num,den);
   }catch(e){return null;}
 }
+
+/* ================================================================
+   解答方式の統一 ─ 6択
+   グラフをかくモード(kind:"draw" / "drawseg")以外は，すべて6択で答える。
+   各ジェネレータは今までどおり kind:"input" で「答えの値」を返してよく，
+   ここで値をゆらしたダミー5つとまぜて選択肢に組み直す。
+   （ジェネレータ側に選択肢づくりを書き足さなくて済むようにするため）
+
+   組み直した ans に持たせるもの
+     plain  … 選択肢の中身を文字にしたもの。講師画面の記録に
+              「choice:3」ではなく実際の答え(例 y=2x-3)を残すために使う。
+              分数は講師画面の規約どおり F(分子/分母) で書く
+              (生の "3/2" だと除算と区別できないため。CLAUDE.md 2a 参照)
+     prompt … 値だけを選ばせるとき，何を答えるのかを選択肢の上に出す
+     short  … 選択肢が短い(数値だけ)ので3列で並べてよい印
+   ================================================================ */
+function rkey(x){return x.n+"/"+x.d;}
+/* 符号は F() の外に出す(そうしないと "y=-6x"+"F(-2/3)" のように
+   マイナスが区切りにならず，くっついて読めなくなる) */
+function ratPlain(x){
+  if(x.d===1)return String(x.n);
+  return (x.n<0?"-":"")+"F("+Math.abs(x.n)+"/"+x.d+")";
+}
+function uniqBy(list,key){
+  const seen=new Set(),out=[];
+  list.forEach(v=>{const k=key(v);if(!seen.has(k)){seen.add(k);out.push(v);}});
+  return out;
+}
+/* 選択肢をシャッフルして ans を組み立てる(texs[0] が正解) */
+function buildChoice(texs,plains,prompt,short){
+  const idx=shuffle(texs.map((_,i)=>i));
+  return {
+    kind:"choice",
+    choices:idx.map(i=>T(texs[i])),
+    plain:idx.map(i=>plains[i]),
+    correct:idx.indexOf(0),
+    prompt:prompt||null,
+    short:!!short
+  };
+}
+
+/* --- 1つの数のダミー --------------------------------------------
+   opt.positive … 面積など負にならない答え(負のダミーを出さない)
+   答えが整数なら整数のダミーを優先する(整数の答えに 1/7 が並ぶと不自然) */
+function ratVariants(t,opt){
+  opt=opt||{};
+  const out=[];
+  const add=x=>{
+    if(!x||!isFinite(x.n)||!isFinite(x.d))return;
+    if(x.d>12||Math.abs(x.n)>999)return;
+    if(opt.positive&&x.n<=0)return;
+    if(rEq(x,t))return;
+    if(out.some(y=>rEq(y,x)))return;
+    out.push(x);
+  };
+  const shift=[rneg(t),
+    radd(t,rmk(1)),rsub(t,rmk(1)),radd(t,rmk(2)),rsub(t,rmk(2)),
+    rmul(t,rmk(2)),radd(t,rmk(3)),rsub(t,rmk(3)),radd(t,rmk(4)),rsub(t,rmk(4)),
+    radd(t,rmk(5)),rsub(t,rmk(5))];
+  const other=[];
+  if(t.n!==0){
+    other.push(rmk(t.d,t.n));               /* 逆数(分母と分子を逆にする典型ミス) */
+    other.push(rneg(rmk(t.d,t.n)));
+    other.push(rdiv(t,rmk(2)));
+  }
+  if(rIsInt(t)){
+    shift.filter(rIsInt).forEach(add);
+    other.filter(rIsInt).forEach(add);
+  }else{
+    add(rneg(t));
+    if(t.n!==0)add(rmk(t.d,t.n));
+    shift.filter(x=>!rIsInt(x)).forEach(add);
+  }
+  shift.forEach(add);other.forEach(add);
+  return out;
+}
+/* --- y=ax+b のダミー --- */
+function lineVariants(a,b){
+  const L=[];
+  const add=(x,y)=>{
+    if(!x||!y||x.n===0)return;              /* 傾き0は一次関数でないので出さない */
+    if(x.d>12||y.d>12||Math.abs(x.n)>99||Math.abs(y.n)>99)return;
+    L.push([x,y]);
+  };
+  add(rneg(a),b);                            /* 傾きの符号ミス */
+  add(a,rneg(b));                            /* 切片の符号ミス */
+  add(rneg(a),rneg(b));
+  add(b,a);                                  /* 傾きと切片を入れちがえる */
+  if(a.n!==0)add(rmk(a.d,a.n),b);            /* 傾きを逆数にしてしまう */
+  add(a,radd(b,rmk(1)));
+  add(a,rsub(b,rmk(1)));
+  add(radd(a,rmk(1)),b);
+  add(rsub(a,rmk(1)),b);
+  add(a,radd(b,rmk(2)));
+  add(a,rsub(b,rmk(2)));
+  add(rmul(a,rmk(2)),b);
+  add(rneg(a),radd(b,rmk(1)));
+  add(a,radd(b,rmk(3)));
+  return L;
+}
+/* --- 座標 (x,y) のダミー --- */
+function pointVariants(x,y){
+  const L=[];
+  const add=(p,q)=>{
+    if(!p||!q)return;
+    if(p.d>12||q.d>12||Math.abs(p.n)>99||Math.abs(q.n)>99)return;
+    L.push([p,q]);
+  };
+  add(rneg(x),y);add(x,rneg(y));add(rneg(x),rneg(y));
+  add(y,x);                                  /* x座標とy座標を入れちがえる */
+  add(radd(x,rmk(1)),y);add(x,radd(y,rmk(1)));
+  add(rsub(x,rmk(1)),y);add(x,rsub(y,rmk(1)));
+  add(radd(x,rmk(1)),radd(y,rmk(1)));
+  add(rsub(x,rmk(1)),rsub(y,rmk(1)));
+  add(rneg(y),rneg(x));
+  add(radd(x,rmk(2)),y);add(x,radd(y,rmk(2)));
+  return L;
+}
+/* --- 変域 lo≦□≦hi のダミー(lo<hi をくずさない) --- */
+function rangeVariants(lo,hi){
+  const L=[];
+  const add=(p,q)=>{
+    if(!p||!q)return;
+    if(rVal(p)>=rVal(q))return;
+    if(p.d>12||q.d>12||Math.abs(p.n)>99||Math.abs(q.n)>99)return;
+    L.push([p,q]);
+  };
+  add(rneg(hi),rneg(lo));                    /* 符号だけ逆にしてしまう */
+  add(lo,radd(hi,rmk(1)));
+  add(rsub(lo,rmk(1)),hi);
+  add(radd(lo,rmk(1)),radd(hi,rmk(1)));
+  add(rsub(lo,rmk(1)),rsub(hi,rmk(1)));
+  if(lo.n!==0&&hi.n!==0)add(rmk(hi.d,hi.n),rmk(lo.d,lo.n));   /* 逆数 */
+  add(lo,radd(hi,rmk(2)));
+  add(rsub(lo,rmk(2)),hi);
+  add(radd(lo,rmk(2)),radd(hi,rmk(2)));
+  add(rsub(lo,rmk(2)),rsub(hi,rmk(2)));
+  add(rmul(lo,rmk(2)),rmul(hi,rmk(2)));
+  add(lo,radd(hi,rmk(3)));
+  add(rsub(lo,rmk(3)),hi);
+  return L;
+}
+
+/* 数値入力の答え(kind:"input") → 6択(kind:"choice") */
+function inputToChoice(ans){
+  const F=ans.fields;
+  /* ① y=ax+b (a と b の2つを答える) → 直線の式を6つ並べる */
+  if(ans.pre==="y=ax+b"&&F.length===2){
+    const a=F[0].val,b=F[1].val;
+    const list=uniqBy([[a,b]].concat(lineVariants(a,b)),
+                      p=>rkey(p[0])+","+rkey(p[1])).slice(0,N_CHOICES);
+    return buildChoice(list.map(p=>lineTex(p[0],p[1])),
+                       list.map(p=>lineTexPlain(p[0],p[1])),null,false);
+  }
+  /* ② 交点の座標 */
+  if(ans.pre==="(x,y)"&&F.length===2){
+    const x=F[0].val,y=F[1].val;
+    const list=uniqBy([[x,y]].concat(pointVariants(x,y)),
+                      p=>rkey(p[0])+","+rkey(p[1])).slice(0,N_CHOICES);
+    return buildChoice(list.map(p=>"("+rTexInline(p[0])+",\\,"+rTexInline(p[1])+")"),
+                       list.map(p=>"("+ratPlain(p[0])+", "+ratPlain(p[1])+")"),null,true);
+  }
+  /* ③ 変域・範囲 (lo≦□≦hi) */
+  if(F.length===2&&/\\leqq/.test(F[1].label||"")){
+    const lo=F[0].val,hi=F[1].val;
+    const mid=F[1].label;                                    /* 例 "\leqq y\leqq" */
+    const midPlain=mid.replace(/\\leqq/g,"≦").replace(/\s+/g,"");
+    const list=uniqBy([[lo,hi]].concat(rangeVariants(lo,hi)),
+                      p=>rkey(p[0])+","+rkey(p[1])).slice(0,N_CHOICES);
+    return buildChoice(list.map(p=>rTexInline(p[0])+mid+" "+rTexInline(p[1])),
+                       list.map(p=>ratPlain(p[0])+midPlain+ratPlain(p[1])),null,true);
+  }
+  /* ④ 数を1つ答える */
+  if(F.length===1){
+    const t=F[0].val;
+    const lab=F[0].label||"";
+    const list=uniqBy([t].concat(ratVariants(t,{positive:/面積/.test(lab)&&t.n>0})),
+                      rkey).slice(0,N_CHOICES);
+    const prompt=lab?lab.replace(/=\s*$/,""):null;
+    return buildChoice(list.map(rTexInline),list.map(ratPlain),prompt,true);
+  }
+  return ans;                                /* 想定外の形はそのまま(入力のまま出す) */
+}
 /*GEN-END*/
 
 /* ---------- KaTeX span helper ---------- */
@@ -1767,6 +1978,33 @@ function redrawUserLine(){
 }
 
 /* ---------- render answer UI ---------- */
+/* 6択のボタン群。choice モード / 式をつくる①/ 変域モードの② で共用する */
+function makeChoiceGroup(ch){
+  const g=document.createElement("div");
+  g.className="choices"+(ch.short?" short":"");
+  ch.choices.forEach((c,i)=>{
+    const b=document.createElement("button");
+    b.className="choiceBtn";
+    b.innerHTML=`<span class="inner">${c}</span>`;
+    b.addEventListener("click",()=>{
+      if(graded)return;
+      selChoice=i;
+      g.querySelectorAll(".choiceBtn").forEach((x,j)=>x.classList.toggle("sel",j===i));
+    });
+    g.appendChild(b);
+  });
+  return g;
+}
+/* 採点後の色づけ: 正解=緑 / 選んだ誤答=朱 / 選ばなかった正解=緑＋「正解」 */
+function markChoices(correct){
+  document.querySelectorAll("#ansArea .choiceBtn").forEach((b,i)=>{
+    if(i===correct){
+      b.classList.add("hit");
+      if(i!==selChoice)b.classList.add("unsel");
+    }
+    else if(i===selChoice)b.classList.add("miss");
+  });
+}
 function renderAns(ans){
   const area=document.getElementById("ansArea");
   area.innerHTML="";
@@ -1797,21 +2035,10 @@ function renderAns(ans){
     document.getElementById("clearPtsBtn").style.display="inline-block";
   }
   if(ans.kind==="eqox"){
-    /* ① 式を4択で選ぶ */
+    /* ① 式を6択で選ぶ */
     const s1=document.createElement("div");s1.className="eqStep";
     s1.innerHTML=`<div class="stepLab"><i>1</i>${T("y")} を ${T("x")} の式で表すと？</div>`;
-    const g=document.createElement("div");g.className="choices";
-    ans.choices.forEach((c,i)=>{
-      const b=document.createElement("button");
-      b.className="choiceBtn";
-      b.innerHTML=`<span class="inner">${c}</span>`;
-      b.addEventListener("click",()=>{
-        if(graded)return;
-        selChoice=i;
-        g.querySelectorAll(".choiceBtn").forEach((x,j)=>x.classList.toggle("sel",j===i));
-      });
-      g.appendChild(b);
-    });
+    const g=makeChoiceGroup(ans);
     s1.appendChild(g);
     area.appendChild(s1);
     renderTexIn(s1);
@@ -1836,21 +2063,31 @@ function renderAns(ans){
     renderTexIn(s2);
   }
   if(ans.kind==="choice"){
-    const g=document.createElement("div");g.className="choices";
-    ans.choices.forEach((c,i)=>{
-      const b=document.createElement("button");
-      b.className="choiceBtn";
-      b.innerHTML=`<span class="inner">${c}</span>`;
-      b.addEventListener("click",()=>{
-        if(graded)return;
-        selChoice=i;
-        g.querySelectorAll(".choiceBtn").forEach((x,j)=>x.classList.toggle("sel",j===i));
-      });
-      g.appendChild(b);
-    });
+    /* 値だけを選ばせるときは「何を答えるのか」を上に出す(例: 変化の割合) */
+    if(ans.prompt){
+      const lab=document.createElement("div");
+      lab.className="stepLab";
+      lab.innerHTML=`<i>答</i><span>${T(ans.prompt)}は？</span>`;
+      area.appendChild(lab);
+      renderTexIn(lab);
+    }
+    const g=makeChoiceGroup(ans);
     area.appendChild(g);
     renderTexIn(g);
     g.querySelectorAll(".choiceBtn .inner").forEach(el=>fitEl(el,el.parentElement.clientWidth-16));
+  }
+  /* 変域モード: ① グラフをかく(上のSVG) → ② y の変域を6択で選ぶ */
+  if(ans.kind==="drawseg"&&ans.rc){
+    const lab=document.createElement("div");
+    lab.className="stepLab";
+    lab.innerHTML=`<i>2</i>${T("y")} の変域は？`;
+    area.appendChild(lab);
+    renderTexIn(lab);
+    const g=makeChoiceGroup(ans.rc);
+    area.appendChild(g);
+    renderTexIn(g);
+    g.querySelectorAll(".choiceBtn .inner").forEach(el=>fitEl(el,el.parentElement.clientWidth-16));
+    return;
   }
   if(ans.kind==="input"||ans.kind==="drawseg"){
     const f=document.createElement("div");f.className="fields";
@@ -1943,6 +2180,10 @@ function fitQuestion(){
 function newQuestion(){
   graded=false;
   cur=GENS[mode]();
+  /* グラフをかく以外の解答は6択に組み直す(ジェネレータは値を返すだけでよい) */
+  if(cur.ans.kind==="input")cur.ans=inputToChoice(cur.ans);
+  /* 変域モードは①グラフをかく＋②変域を答える。②だけを6択にする */
+  if(cur.ans.kind==="drawseg")cur.ans.rc=inputToChoice({fields:cur.ans.fields});
   document.getElementById("toast").textContent="";
   document.getElementById("explain").style.display="none";
   document.getElementById("nextBtn").style.display="none";
@@ -1964,13 +2205,14 @@ function check(){
   if(ans.kind==="order"){
     if(orderSeq.length<3){toast("①→②→③ の順に3つえらんでね（残り"+(3-orderSeq.length)+"つ）");return;}
     ok=orderSeq.every((v,i)=>v===ans.seq[i]);
-    userStr=orderSeq.join("-");
+    userStr=ordPlain(ans,orderSeq);
     /* 採点後は「正しい番号」をバッジに出す(ダミーの式はバッジなし) */
     document.querySelectorAll(".choiceBtn").forEach((b,i)=>{
       const cp=ans.seq.indexOf(i), sp=orderSeq.indexOf(i);
       b.classList.remove("ord");
       b.querySelector(".ordNum").textContent=cp>=0?ORDNUM[cp]:"";
       if(cp>=0&&cp===sp)b.classList.add("hit");
+      else if(cp>=0&&sp<0)b.classList.add("hit","unsel");  /* 選ばなかった正解は緑 */
       else if(cp>=0||sp>=0)b.classList.add("miss");
     });
     const nHit=orderSeq.filter((v,i)=>v===ans.seq[i]).length;
@@ -1981,13 +2223,13 @@ function check(){
     if(selOx<0){toast("② ○ か × をえらんでね");return;}
     const okEq=(selChoice===ans.correct), okOx=((selOx===0)===ans.lin);
     ok=okEq&&okOx;
-    userStr="式:"+selChoice+" / "+(selOx===0?"○":"×");
-    document.querySelectorAll(".choiceBtn").forEach((b,i)=>{
-      if(i===ans.correct)b.classList.add("hit");
-      else if(i===selChoice)b.classList.add("miss");
-    });
+    userStr=(ans.plain?ans.plain[selChoice]:"式:"+selChoice)+" / "+(selOx===0?"○":"×");
+    markChoices(ans.correct);
     document.querySelectorAll(".oxBtn").forEach((b,i)=>{
-      if((i===0)===ans.lin)b.classList.add("hit");
+      if((i===0)===ans.lin){
+        b.classList.add("hit");
+        if(i!==selOx)b.classList.add("unsel");
+      }
       else if(i===selOx)b.classList.add("miss");
     });
     if(okEq&&!okOx)missMsg="式は合っているよ！ 一次関数かどうかをもう一度考えよう";
@@ -1996,11 +2238,8 @@ function check(){
   else if(ans.kind==="choice"){
     if(selChoice<0){toast("答えを選んでね");return;}
     ok=(selChoice===ans.correct);
-    userStr="choice:"+selChoice;
-    document.querySelectorAll(".choiceBtn").forEach((b,i)=>{
-      if(i===ans.correct)b.classList.add("hit");
-      else if(i===selChoice)b.classList.add("miss");
-    });
+    userStr=ans.plain?ans.plain[selChoice]:"choice:"+selChoice;
+    markChoices(ans.correct);
   }
   else if(ans.kind==="input"){
     const boxes=[...document.querySelectorAll(".fbox")];
@@ -2017,11 +2256,7 @@ function check(){
   }
   else if(ans.kind==="drawseg"){
     if(drawPts.length<2){toast("① グラフが通る点を2つタップしてね");return;}
-    const boxes=[...document.querySelectorAll(".fbox")];
-    const vals=boxes.map(b=>b.textContent.trim());
-    if(vals.some(v=>v===""))     {toast("② y の変域を入れてね");return;}
-    const rats=vals.map(parseRat);
-    if(rats.some(r=>r===null))   {toast("数の形を確かめてね(例: -3, 1/2)");return;}
+    if(selChoice<0){toast("② y の変域をえらんでね");return;}
     /* かいた直線そのものが合っているかで判定する(タップする2点はグラフ上ならどこでもよい) */
     const [P,Q]=drawPts;
     let okDraw=false;
@@ -2030,14 +2265,10 @@ function check(){
       const ub=rsub(rmk(P.y),rmul(ua,rmk(P.x)));
       okDraw=rEq(ua,ans.a)&&rEq(ub,ans.b);
     }
-    const okRange=rats.every((r,i)=>rEq(r,ans.fields[i].val));
+    const okRange=(selChoice===ans.rc.correct);
     ok=okDraw&&okRange;
-    userStr=drawPts.map(p=>`(${p.x},${p.y})`).join(" ")+" / "+vals.join("〜");
-    boxes.forEach((b,i)=>{
-      const good=rEq(rats[i],ans.fields[i].val);
-      b.style.borderColor=good?"var(--moss)":"var(--sakura-deep)";
-      b.style.background=good?"#E8F1E4":"#FBE7EA";
-    });
+    userStr=drawPts.map(p=>`(${p.x},${p.y})`).join(" ")+" / "+ans.rc.plain[selChoice];
+    markChoices(ans.rc.correct);
     /* 正しい直線と，変域にあたる部分を重ねて見せる */
     const svg=document.getElementById("drawSvg");
     if(svg){
@@ -2095,18 +2326,26 @@ function check(){
   showExplain();
   safeDivp("answer",UNIT_KEY,cur.qkey,ok,userStr,correctStr);
 }
+/* ①②③ の並びを記録用の平文にする(選んでいない枠は「?」) */
+function ordPlain(ans,seq){
+  if(!ans.plain)return seq.join("-");
+  return ORDNUM.map((n,i)=>n+(seq[i]>=0&&seq[i]!==undefined?ans.plain[seq[i]]:"?")).join(" ");
+}
 function describeAnswer(ans){
-  if(ans.kind==="order")return ans.seq.join("-");
+  if(ans.kind==="order")return ordPlain(ans,ans.seq);
   if(ans.kind==="drawseg")return ans.pts.map(p=>"("+p.x+","+p.y+")").join(" ")
-    +" / "+ans.fields.map(f=>f.val.n+(f.val.d>1?"/"+f.val.d:"")).join("〜");
-  if(ans.kind==="eqox")return "式:"+ans.correct+" / "+(ans.lin?"○":"×");
-  if(ans.kind==="choice")return "choice:"+ans.correct;
+    +" / "+(ans.rc?ans.rc.plain[ans.rc.correct]:ans.fields.map(f=>ratPlain(f.val)).join("〜"));
+  if(ans.kind==="eqox")return (ans.plain?ans.plain[ans.correct]:"式:"+ans.correct)+" / "+(ans.lin?"○":"×");
+  if(ans.kind==="choice")return ans.plain?ans.plain[ans.correct]:"choice:"+ans.correct;
   if(ans.kind==="input")return ans.fields.map(f=>f.val.n+(f.val.d>1?"/"+f.val.d:"")).join(",");
   if(ans.kind==="draw")return lineTexPlain(ans.a,ans.b);
   return "";
 }
+/* 記録用の平文。分数は講師画面の規約どおり F(分子/分母) で書く */
 function lineTexPlain(a,b){
-  return "y="+(a.d>1?a.n+"/"+a.d:a.n)+"x"+(b.n>=0?"+":"")+(b.d>1?b.n+"/"+b.d:b.n);
+  const ax=rEq(a,rmk(1))?"x":(rEq(a,rmk(-1))?"-x":ratPlain(a)+"x");
+  if(b.n===0)return "y="+ax;
+  return "y="+ax+(b.n>0?"+":"")+ratPlain(b);
 }
 function showExplain(){
   const ex=document.getElementById("explain");
