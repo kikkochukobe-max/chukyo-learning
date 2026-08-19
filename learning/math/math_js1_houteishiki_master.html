@@ -68,6 +68,8 @@ body{
 .divp-chip.on{
   background:var(--sakura-deep);border-color:var(--sakura-deep);color:#fff;font-weight:bold;
 }
+/* ランダム出題（基礎の確認用）は種類チップの中で見分けがつくようにする */
+.divp-chip.mix:not(.on){border-style:dashed;border-color:var(--shu);color:var(--shu);font-weight:bold;}
 
 /* ---- 進捗 ---- */
 .divp-progress{display:flex;align-items:center;gap:8px;margin:2px 4px 8px;}
@@ -303,6 +305,7 @@ body{
     <div class="divp-rbtns">
       <button class="divp-rbtn primary" id="divpAgain" type="button">もう一度（10問）</button>
       <button class="divp-rbtn" id="divpRetry" type="button">まちがい直し</button>
+      <button class="divp-rbtn" id="divpMix" type="button">ランダム10問（応用以外）</button>
     </div>
   </div>
 
@@ -518,7 +521,7 @@ function genKakko(){
 }
 
 function genBunsuu(){
-  var t=pick([0,1,2,3]);
+  var t=pick([0,1,2,3,4,4,5,5,6,6,7,7]);
   if(t===0){                        /* x/a = b */
     var a=ri(2,9), b=rnz(-9,9);
     var x=a*b;
@@ -544,22 +547,96 @@ function genBunsuu(){
     return {latex:"\\dfrac{x"+(a2<0?" - "+(-a2):" + "+a2)+"}{"+b2+"} = "+c2,
       ans:rmk(x2), steps:steps2, params:{f:"bn3",a:a2,b:b2,c:c2,x:x2}};
   }
-  /* t===3: x/a + x/b = c  （x = k·ab, c = k(a+b)） */
-  var p=pick([[2,3],[2,5],[3,4],[2,4],[3,5],[4,5],[2,6]]);
-  var A=p[0],B=p[1];
-  var k3=rnz(-3,3);
-  var x3=k3*A*B, c3=k3*(A+B);
-  var L=Math.random()<0.5
-    ? "\\dfrac{x}{"+A+"} + \\dfrac{x}{"+B+"}"
-    : "\\dfrac{x}{"+B+"} + \\dfrac{x}{"+A+"}";
-  var lcm=A*B/gcd(A,B);
-  var ca=lcm/A, cb=lcm/B; /* 両辺×lcm 後の係数 */
-  var steps3=[joinT(coefX(ca),coefX(cb))+" = "+(c3*lcm/1),
-              coefX(ca+cb)+" = "+(c3*lcm)];
-  /* 注意: 上の2行は lcm 倍後。x係数 = lcm/A + lcm/B */
-  var ansR=rmk(x3);
-  steps3.push("x = "+fmtR(ansR));
-  return {latex:L+" = "+c3, ans:ansR, steps:steps3, params:{f:"bn4",a:A,b:B,c:c3,x:x3}};
+  if(t===3){                        /* x/a + x/b = c  （x = k·ab, c = k(a+b)） */
+    var p=pick([[2,3],[2,5],[3,4],[2,4],[3,5],[4,5],[2,6]]);
+    var A=p[0],B=p[1];
+    var k3=rnz(-3,3);
+    var x3=k3*A*B, c3=k3*(A+B);
+    var L=Math.random()<0.5
+      ? "\\dfrac{x}{"+A+"} + \\dfrac{x}{"+B+"}"
+      : "\\dfrac{x}{"+B+"} + \\dfrac{x}{"+A+"}";
+    var lcm=A*B/gcd(A,B);
+    var ca=lcm/A, cb=lcm/B; /* 両辺×lcm 後の係数 */
+    var steps3=[joinT(coefX(ca),coefX(cb))+" = "+(c3*lcm/1),
+                coefX(ca+cb)+" = "+(c3*lcm)];
+    /* 注意: 上の2行は lcm 倍後。x係数 = lcm/A + lcm/B */
+    var ansR=rmk(x3);
+    steps3.push("x = "+fmtR(ansR));
+    return {latex:L+" = "+c3, ans:ansR, steps:steps3, params:{f:"bn4",a:A,b:B,c:c3,x:x3}};
+  }
+  if(t===4){                        /* x/a = b/c（右辺が分数。答えも分数になる） */
+    var tr4=0;
+    while(tr4++<300){
+      var a4=ri(2,8), d4=ri(2,9), n4=rnz(-9,9);
+      if(a4===d4)continue;            /* 分母が同じだと x = n が見えてしまう */
+      if(gcd(n4,d4)!==1)continue;     /* 約分できる分数は出さない */
+      var L4=lcm2(a4,d4), ca4=L4/a4, cn4=L4/d4;
+      if(ca4===1)continue;            /* 倍した行がそのまま答えになる組み合わせは避ける */
+      var num4=n4*cn4;
+      var chk4=rmk(num4,ca4);
+      if(Math.abs(chk4[0])>60||chk4[1]>12)continue;
+      var st4=[L4+"\\text{倍して } "+coefX(ca4)+" = "+num4];
+      var ans4=closeSteps(st4,ca4,rmk(num4));
+      if(st4.length===3)st4.splice(1,1);   /* closeSteps が同じ行を出すので重複除去 */
+      return {latex:"\\dfrac{x}{"+a4+"} = "+fmtR(rmk(n4,d4)), ans:ans4, steps:st4,
+        params:{f:"bn5",a:a4,n:n4,d:d4}};
+    }
+    return genBunsuu();
+  }
+  if(t===5){                        /* x/a + b = c/d（右辺が分数） */
+    var a5=ri(2,7), b5=rnz(-8,8), x5=rnz(-9,9), tr5=0;
+    while(x5%a5===0&&tr5++<80){x5=rnz(-9,9);}   /* 左辺が分数のまま残る解にする */
+    if(x5%a5===0)return genBunsuu();
+    var t5=x5+a5*b5;                /* a 倍したあとの右辺（整数） */
+    var st5=[a5+"\\text{倍して } "+joinN("x",a5*b5)+" = "+t5,
+             "x = "+t5+(a5*b5<0?" + "+(-a5*b5):" - "+(a5*b5)),
+             "x = "+x5];
+    return {latex:joinN("\\dfrac{x}{"+a5+"}",b5)+" = "+fmtR(rmk(t5,a5)),
+      ans:rmk(x5), steps:st5, params:{f:"bn6",a:a5,b:b5,x:x5}};
+  }
+  if(t===6){                        /* x/a = x/b + c ／ x/a + b = x/c（右辺に文字） */
+    var q6=pick([[2,3],[2,5],[3,4],[2,4],[3,5],[4,5],[2,6],[3,6],[4,6]]);
+    var A6=q6[0], B6=q6[1];
+    if(Math.random()<0.5){var sw6=A6;A6=B6;B6=sw6;}
+    var L6=lcm2(A6,B6), ca6=L6/A6, cb6=L6/B6;
+    var m6=rnz(-3,3);
+    if(pick([0,1])===0){            /* x/A = x/B + c */
+      var c6=(ca6-cb6)*m6;
+      var st6=[L6+"\\text{倍して } "+coefX(ca6)+" = "+joinN(coefX(cb6),c6*L6),
+               joinT(coefX(ca6),coefX(-cb6))+" = "+(c6*L6)];
+      var ans6=closeSteps(st6,ca6-cb6,rmk(c6*L6));
+      return {latex:"\\dfrac{x}{"+A6+"} = "+joinN("\\dfrac{x}{"+B6+"}",c6),
+        ans:ans6, steps:st6, params:{f:"bn7",a:A6,b:B6,c:c6,x:L6*m6}};
+    }
+    /* x/A + b = x/B */
+    var b6=(cb6-ca6)*m6;
+    var st6b=[L6+"\\text{倍して } "+joinN(coefX(ca6),b6*L6)+" = "+coefX(cb6),
+              joinT(coefX(ca6),coefX(-cb6))+" = "+(-b6*L6)];
+    var ans6b=closeSteps(st6b,ca6-cb6,rmk(-b6*L6));
+    return {latex:joinN("\\dfrac{x}{"+A6+"}",b6)+" = \\dfrac{x}{"+B6+"}",
+      ans:ans6b, steps:st6b, params:{f:"bn8",a:A6,b:B6,c:b6,x:L6*m6}};
+  }
+  /* t===7: x/a = (x+b)/c（右辺が文字式の分数） */
+  var tr7=0;
+  while(tr7++<400){
+    var A7=pick([2,3,4,5]), C7=pick([2,3,4,5,6]);
+    if(A7===C7)continue;
+    var L7=lcm2(A7,C7), ca7=L7/A7, cc7=L7/C7;
+    var x7=rnz(-12,12);
+    var nb7=(ca7-cc7)*x7;           /* (ca−cc)x = cc·b なので b はこれを cc で割った値 */
+    if(nb7%cc7!==0)continue;
+    var b7=nb7/cc7;
+    if(b7===0||Math.abs(b7)>15)continue;
+    var in7="x"+(b7<0?" - "+(-b7):" + "+b7);
+    var rhs7=(cc7===1)?in7:(cc7+"\\left("+in7+"\\right)");
+    var st7=[L7+"\\text{倍して } "+coefX(ca7)+" = "+rhs7];
+    /* cc7===1 のときは上の行がすでにかっこの無い形なので展開行を足さない */
+    if(cc7!==1)st7.push(coefX(ca7)+" = "+joinN(coefX(cc7),cc7*b7));
+    var ans7=closeSteps(st7,ca7-cc7,rmk(cc7*b7));
+    return {latex:"\\dfrac{x}{"+A7+"} = \\dfrac{"+in7+"}{"+C7+"}",
+      ans:ans7, steps:st7, params:{f:"bn9",a:A7,b:b7,c:C7,x:x7}};
+  }
+  return genBunsuu();
 }
 
 function genShousuu(){
@@ -1000,6 +1077,17 @@ function genToushiki(){
     params:{f:"tsp",form:form,a:a,x:x,op:correctOp}};
 }
 
+/* 基礎の確認用ランダム出題。応用以外の全モードから1問ずつ引く。
+ * question_key は「引いたモード」を qkey に載せて渡すので、記録・解き直しは
+ * そのモードで普通に解いたときと同じ扱いになる（"mix" では飛ばさない）。*/
+var MIX_KEYS=["kai","toushiki","keisu_nashi","keisu_ari","doruikou","kakko","bunsuu","shousuu","hireishiki"];
+function genMix(){
+  var k=pick(MIX_KEYS);
+  var q=GENS[k]();
+  q.qkey=k;
+  return q;
+}
+
 var GENS={
   toushiki:genToushiki,
   kai:genKai,
@@ -1010,7 +1098,8 @@ var GENS={
   bunsuu:genBunsuu,
   shousuu:genShousuu,
   hireishiki:genHireishiki,
-  ouyou:genOuyou
+  ouyou:genOuyou,
+  mix:genMix
 };
 /*GEN-END*/
 
@@ -1027,8 +1116,13 @@ var MODES=[
   {key:"bunsuu",label:"分数"},
   {key:"shousuu",label:"小数"},
   {key:"hireishiki",label:"比例式"},
-  {key:"ouyou",label:"応用"}
+  {key:"ouyou",label:"応用"},
+  {key:"mix",label:"ランダム（応用以外）"}
 ];
+function modeLabel(key){
+  var m=MODES.filter(function(x){return x.key===key;})[0];
+  return m?m.label:"";
+}
 var SET_SIZE=10;
 var UNIT_KEY="math_js1_houteishiki_master";
 
@@ -1213,7 +1307,10 @@ function toast(msg){
 /* --- 進捗 --- */
 function renderProgress(){
   var total=state.retrying?state.probs.length:SET_SIZE;
-  $("divpQnum").textContent=(state.retrying?"直し ":"第")+(state.qIndex+1)+"問 / "+total;
+  /* ランダム出題・解き直しは1問ずつ種類が違うので、どの種類かを添える */
+  var cur=state.probs[state.qIndex];
+  var sub=(cur&&cur.qkey&&cur.qkey!==state.mode)?("　"+modeLabel(cur.qkey)):"";
+  $("divpQnum").textContent=(state.retrying?"直し ":"第")+(state.qIndex+1)+"問 / "+total+sub;
   var dots=$("divpDots");dots.innerHTML="";
   for(var i=0;i<total;i++){
     var d=document.createElement("span");d.className="divp-dot";
@@ -1395,6 +1492,8 @@ function showResult(){
       : "10問連続正解で S ランク";
   }
   $("divpRetry").style.display=state.wrongs.length?"":"none";
+  /* ランダム出題中は「もう一度」がそのままランダム10問なので出さない */
+  $("divpMix").style.display=(state.mode==="mix")?"none":"";
   $("divpResult").classList.add("show");
 }
 
@@ -1403,18 +1502,23 @@ function buildChips(){
   var wrap=$("divpChips");
   MODES.forEach(function(m){
     var b=document.createElement("button");
-    b.type="button";b.className="divp-chip"+(m.key===state.mode?" on":"");
+    b.type="button";
+    b.className="divp-chip"+(m.key==="mix"?" mix":"")+(m.key===state.mode?" on":"");
+    b.setAttribute("data-mode",m.key);
     b.textContent=m.label;
-    b.addEventListener("click",function(){
-      state.mode=m.key;
-      wrap.querySelectorAll(".divp-chip").forEach(function(c){c.classList.remove("on");});
-      b.classList.add("on");
-      $("divpCurrentMode").textContent=m.label;
-      $("divpSetting").classList.remove("open");
-      startSet(false);
-    });
+    b.addEventListener("click",function(){selectMode(m.key);});
     wrap.appendChild(b);
   });
+}
+/* 種類の切り替え（チップと結果画面のボタンで共用） */
+function selectMode(key){
+  state.mode=key;
+  $("divpChips").querySelectorAll(".divp-chip").forEach(function(c){
+    c.classList.toggle("on", c.getAttribute("data-mode")===key);
+  });
+  $("divpCurrentMode").textContent=modeLabel(key);
+  $("divpSetting").classList.remove("open");
+  startSet(false);
 }
 
 /* --- テンキー --- */
@@ -1451,6 +1555,7 @@ $("divpNext").addEventListener("click",function(){
 });
 $("divpAgain").addEventListener("click",function(){startSet(false);});
 $("divpRetry").addEventListener("click",function(){startSet(true);});
+$("divpMix").addEventListener("click",function(){selectMode("mix");});
 window.addEventListener("resize",function(){
   var q=$("divpQtext");
   if(q.firstChild)fitText(q,q.parentNode,"center center");
@@ -1480,7 +1585,7 @@ function openPrint(){
     document.head.appendChild(wmst);
   }
   var mode=state.mode;
-  var modeLabel=(MODES.filter(function(m){return m.key===mode;})[0]||{}).label||"";
+  var sheetLabel=modeLabel(mode);
   var items="",keys="";
   for(var i=0;i<SET_SIZE;i++){
     var p=GENS[mode]();
@@ -1498,11 +1603,11 @@ function openPrint(){
   }
   $("print-area").innerHTML=
     (window.ChukyoPrint?ChukyoPrint.img():"")
-    +'<div class="p-sheet"><div class="ph-head"><div class="ph-title">方程式マスター　'+escHtml(modeLabel)+'</div>'
+    +'<div class="p-sheet"><div class="ph-head"><div class="ph-title">方程式マスター　'+escHtml(sheetLabel)+'</div>'
     +'<div class="ph-school">中京個別指導学院　www.chukyokobetsu.com</div></div>'
     +'<div class="ph-meta"><span class="ph-name">名前：</span><span class="ph-score">得点：　　／10</span></div>'
     +'<div class="p-grid">'+items+'</div>'
-    +'<div class="p-keypage p-sheet"><div class="ph-head"><div class="ph-title">解答　方程式マスター　'+escHtml(modeLabel)+'</div><div class="ph-school">中京個別指導学院</div></div>'
+    +'<div class="p-keypage p-sheet"><div class="ph-head"><div class="ph-title">解答　方程式マスター　'+escHtml(sheetLabel)+'</div><div class="ph-school">中京個別指導学院</div></div>'
     +'<div class="p-kgrid">'+keys+'</div></div></div>';
   // 透かし画像は毎回作り直すので、デコードを待ってから印刷する。
   // 直後に window.print() を呼ぶとロゴが間に合わず抜けることがある（旧実装のバグ）
