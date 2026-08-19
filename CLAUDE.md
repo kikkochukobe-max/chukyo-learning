@@ -29,6 +29,10 @@ assets/                共通モジュール（全ツールがscriptタグで読
                          クラス名ではなく data-divp-mark 属性で状態を持つので、
                          ツール側の既存クラス(.hit/.sel-ok/.judge-ok/.is-correct と
                          5流派に分裂している)を消さずに1本ずつ移行できる。
+                         **正解の緑は #3E8E5A に統一**（既定値）。以前はツールごとに
+                         #3E8E5A/#3E7A4E/#2e7d4f/#5E7B4E と4種類に散っていて
+                         「大問1以外が暗い」状態になったので、原則そろえる。
+                         例外は暗背景の science_js3_ionlab のみ(#7ee0a0)。
                          色は var() のフォールバックで既定値を持つ＝ツールが :root で
                          --divp-mark-ok / -ok-bg / -ok-bg-soft / -ng / -ng-bg /
                          -dim-opacity を差せば読み込み順に関係なく勝つ。

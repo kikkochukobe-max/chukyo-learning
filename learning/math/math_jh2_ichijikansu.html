@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>一次関数マスター | 中京個別指導学院</title>
-<meta name="description" content="中学2年生向け 一次関数の練習ツール。式をつくる(一次関数の判定)・増加量・グラフをかく(応用は切片が分数)・グラフを読む・変域(応用は変域から逆算)・式の特徴・式を求める(応用は一直線・変域・傾きの範囲)・交点・三角形の面積の12モード。中京個別指導学院。">
+<meta name="description" content="中学2年生向け 一次関数の練習ツール。式をつくる(一次関数の判定)・増加量・グラフをかく(応用は切片が分数・ax+by=cの変形)・グラフを読む・変域(応用は変域から逆算)・式の特徴・式を求める(応用は一直線・変域・傾きの範囲)・交点・三角形の面積の12モード。中京個別指導学院。">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <!-- ⚠ 製作途中。共通処理(学習記録・解き直し)は未組み込みで、この2本も
@@ -24,7 +24,7 @@
   --sakura-deep:#A83A55;
   --sakura-mist:#F3DEE3;
   --indigo:#2E5077;
-  --moss:#5E7B4E;
+  --moss:#3E8E5A;      /* 正解の緑。共通モジュール divp-choice-mark.js の既定色にそろえてある */
   --line:#D8CDBA;
   --gold:#B08D3E;
 }
@@ -112,7 +112,7 @@ h1 .sub{font-size:.72rem;color:var(--ink-soft);letter-spacing:.2em;display:block
 .choiceBtn.sel{background:var(--sakura-mist);border-color:var(--sakura);box-shadow:inset 0 0 0 1.5px var(--sakura);}
 /* 採点後の色づけ(正解=緑 / 選んだ誤答=朱 / 選ばなかった正解=緑＋「正解」バッジ)は
    共通モジュール divp-choice-mark.js が data-divp-mark 属性を見て描く。
-   緑は既定値がこのツールと同じ苔色なので、朱だけパレットに合わせて差し替える。 */
+   緑はモジュールの既定色(#3E8E5A)をそのまま使い、朱だけパレットに合わせて差し替える。 */
 :root{--divp-mark-ng:var(--sakura-deep);}
 /* 2段解答(式を選ぶ → ○×) */
 .eqStep+.eqStep{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;}
@@ -232,7 +232,7 @@ footer{max-width:860px;margin:16px auto 0;text-align:center;font-size:.68rem;col
   <button class="chip on" data-mode="hantei">式をつくる<small>一次関数？○×</small></button>
   <button class="chip" data-mode="zoukaryo">増加量<small>変化の割合</small></button>
   <button class="chip" data-mode="graph">グラフをかく<small>点をうって作図</small></button>
-  <button class="chip" data-mode="graphadv">グラフをかく 応用<small>切片が分数</small></button>
+  <button class="chip" data-mode="graphadv">グラフをかく 応用<small>分数の切片・式の変形</small></button>
   <button class="chip" data-mode="yomitori">グラフを読む<small>グラフ→式</small></button>
   <button class="chip" data-mode="hendomain">変域<small>線分をかいて読む</small></button>
   <button class="chip" data-mode="hendomainadv">変域 応用<small>変域から逆算</small></button>
@@ -311,6 +311,12 @@ function lineTex(a,b){
     s+=rTexInline(b);
   }
   return s;
+}
+/* Ax+By=C のTeX(A,B,C は整数。2x+6y=12 のような形) */
+function stdFormTex(A,B,C){
+  const ax=(A===1?"x":(A===-1?"-x":A+"x"));
+  const by=(B===1?"+y":(B===-1?"-y":(B>0?"+"+B+"y":B+"y")));
+  return ax+by+"="+C;
 }
 /* ---------- RNG ---------- */
 function ri(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
@@ -948,13 +954,19 @@ function genGraph(){
 }
 
 /* ================================================================
-   グラフをかく(応用): 切片が分数の直線。
-   y軸との交点が格子点にならないので，y が整数になる x を自分で
-   さがして格子点を2つ見つける。
-   -8〜8 の範囲に格子点が必ず3つ以上あるものだけを出題する
+   グラフをかく(応用): 2種類を交互に出題する。
+   v1 = 切片が分数の直線 / v2 = 2x+6y=12 の形の式
+   どちらも -8〜8 の範囲に格子点が必ず3つ以上あるものだけを出題する
    (2つでは片方を選び損ねたときに詰むので1つ余裕を持たせる)。
    ================================================================ */
 function genGraphAdv(){
+  return ri(1,2)===1?genGraphAdvFrac():genGraphAdvStd();
+}
+
+/* v1: 切片が分数の直線。
+   y軸との交点が格子点にならないので，y が整数になる x を自分で
+   さがして格子点を2つ見つける。 */
+function genGraphAdvFrac(){
   const R=8;
   /* 傾きは必ず分数。a=p/q(既約)で x が q の倍数でないとき切片が分数になる */
   const CAND=[rmk(1,2),rmk(-1,2),rmk(3,2),rmk(-3,2),rmk(5,2),rmk(-5,2),
@@ -985,6 +997,54 @@ function genGraphAdv(){
       `${T("("+P.x+",\\,"+P.y+")")} と ${T("("+Q.x+",\\,"+Q.y+")")} を通る直線をひけばよい。`,
       `※ ${T("x")} が ${T(String(a.d))} 増えるごとに ${T("y")} が ${T(rTexInline(rmk(a.n)))} 変わるので，格子点は ${T(String(a.d))} おきに現れる。`
     ]
+  };
+}
+
+/* v2: 2x+6y=12 のような ax+by=c の形。
+   y= の形に直してから作図する(切片は整数にして，変形そのものを山場にする)。
+   x の係数は必ず正にそろえ，係数が約せる形(2x+6y=12)も約せない形(x+3y=6)も出す。 */
+function genGraphAdvStd(){
+  const R=8;
+  const CAND=[rmk(1),rmk(-1),rmk(2),rmk(-2),rmk(3),rmk(-3),
+              rmk(1,2),rmk(-1,2),rmk(3,2),rmk(-3,2),
+              rmk(1,3),rmk(-1,3),rmk(2,3),rmk(-2,3),
+              rmk(1,4),rmk(-1,4),rmk(3,4),rmk(-3,4)];
+  let a,b,pts,A,B,C;
+  for(;;){
+    a=pick(CAND);
+    b=rmk(ri(-6,6));
+    pts=latticeOn(a,b,R);
+    if(pts.length<3 || pts[pts.length-1].x-pts[0].x<4)continue;
+    /* y=(p/q)x+b の両辺を k 倍して整数係数の Ax+By=C にする
+       (k=q なら既約形，k=2q なら 2x+6y=12 のように約せる形) */
+    const k=a.d*pick([1,1,2]);
+    A=-a.n*k/a.d; B=k; C=b.n*k;
+    if(A<0){A=-A;B=-B;C=-C;}                       /* x の係数を正に */
+    if(Math.abs(A)>9 || Math.abs(B)>9 || Math.abs(C)>36)continue;
+    break;
+  }
+  const axT=(A===1?"x":A+"x");                      /* A>0 なので -1 の場合はない */
+  const yT=(B===1?"y":(B===-1?"-y":B+"y"));
+  const mAx=(A===1?"-x":(-A)+"x");                  /* 移項すると必ず負になる */
+  const cT=(C>0?"+"+C:(C<0?String(C):""));
+  const ex=[
+    `まず ${T("y=")} の形に直す。`,
+    `${T(axT)} を右辺へ移項して ${T(yT+"="+mAx+cT)}`
+  ];
+  /* B=1 なら移項した式がもう y= の形。B=-1 は「わる」より「かける」が自然 */
+  if(B===-1)ex.push(`両辺に ${T("-1")} をかけて ${T(lineTex(a,b))}`);
+  else if(B!==1)ex.push(`両辺を ${T(String(B))} でわって ${T(lineTex(a,b))}`);
+  ex.push(
+    `切片 ${T("b="+rTexInline(b))} ${T("\\Rightarrow")} 点 ${T("(0,\\,"+rTexInline(b)+")")} を通る。`,
+    `傾き ${T(rTexInline(a))} ${T("\\Rightarrow")} 右へ ${T(String(a.d))} 進むと ${T("y")} は ${T(rTexInline(rmk(a.n)))} 変化する。`,
+    `2点が決まれば直線が引ける。`
+  );
+  return {
+    qkey:"graphadv_v2",
+    qHtml:`次の式のグラフをかきなさい。 ${T(stdFormTex(A,B,C))}<br><span style="font-size:.8em;color:var(--ink-soft)">(まず ${T("y=ax+b")} の形に直して，グラフが通る格子点を <b>2つ</b> タップしましょう)</span>`,
+    fig:{kind:"draw",range:R},
+    ans:{kind:"draw",a,b,range:R},
+    exLines:ex
   };
 }
 

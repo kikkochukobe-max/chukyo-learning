@@ -37,7 +37,8 @@
  *   消さずに上に乗せられるので、1本ずつ移行でき、途中で混在しても壊れない。
  *
  * 色の上書き：ツール側CSSで変数を差すだけでパレットを合わせられる。
- *   :root{ --divp-mark-ok:#3E8E5A; --divp-mark-ok-bg:#EDF6F0; }
+ *   :root{ --divp-mark-ok:#7ee0a0; --divp-mark-ok-bg:rgba(126,224,160,.16); }
+ *   ただし緑は原則そろえる(ツールごとに散らすと「大問1より暗い」が起きる)。
  *   既定色は var() のフォールバックで持っているので、defer で後から読み込まれても
  *   ツール側の指定が勝つ(読み込み順に依存しない)。
  *   変数一覧 → --divp-mark-ok / --divp-mark-ok-bg / --divp-mark-ok-bg-soft
@@ -58,22 +59,24 @@
   if (window.__divpChoiceMarkLoaded) return;
   window.__divpChoiceMarkLoaded = true;
 
-  // 既定色は一次関数マスター（この表示の元になったツール）の実値。
-  // 緑は既存トークンに無かったので苔色 #5E7B4E を採用、朱はCLAUDE.mdの #C73E2E。
+  // 既定色は愛知県大問1の実値にそろえてある(緑 #3E8E5A)。
+  // もともと一次関数の苔色 #5E7B4E を既定にしていたが、色相99度・彩度22%の
+  // オリーブ系でくすんで見え、ツールごとに緑が4種類に散っていたため統一した。
+  // 朱はCLAUDE.mdのトークン #C73E2E。
   var CSS = ''
     // 属性セレクタを2重にして詳細度を 0,2,0 に上げている。
     // ツール側CSSの読み込み順に関係なく、単一クラスの既存ルールには勝てるようにするため。
     + '[data-divp-mark][data-divp-mark]{position:relative;}'
     // 選んで正解
     + '[data-divp-mark="correct"][data-divp-mark]{'
-    + 'background:var(--divp-mark-ok-bg-soft,#E8F1E4);'
-    + 'border-color:var(--divp-mark-ok,#5E7B4E);}'
+    + 'background:var(--divp-mark-ok-bg-soft,#F0F8F3);'
+    + 'border-color:var(--divp-mark-ok,#3E8E5A);}'
     // 選ばなかった正解 ─ 緑ではっきり示す（どれが正解だったか一目でわかるように）
     + '[data-divp-mark="answer"][data-divp-mark]{'
-    + 'background:var(--divp-mark-ok-bg,#DCEBD3);'
-    + 'border-color:var(--divp-mark-ok,#5E7B4E);'
-    + 'box-shadow:inset 0 0 0 2px var(--divp-mark-ok,#5E7B4E);'
-    + 'color:var(--divp-mark-ok-text,var(--divp-mark-ok,#5E7B4E));font-weight:700;}'
+    + 'background:var(--divp-mark-ok-bg,#E4F1E9);'
+    + 'border-color:var(--divp-mark-ok,#3E8E5A);'
+    + 'box-shadow:inset 0 0 0 2px var(--divp-mark-ok,#3E8E5A);'
+    + 'color:var(--divp-mark-ok-text,var(--divp-mark-ok,#3E8E5A));font-weight:700;}'
     // KaTeX は自前で色を持つので明示的に継がせる
     + '[data-divp-mark="answer"][data-divp-mark] .katex,'
     + '[data-divp-mark="answer"][data-divp-mark] .katex *{color:inherit;}'
@@ -86,7 +89,7 @@
     // 「正解」バッジ。文字は data-divp-label から取るので学年で語を変えられる
     + '[data-divp-mark][data-divp-label]::after{'
     + 'content:attr(data-divp-label);position:absolute;right:0;top:0;'
-    + 'background:var(--divp-mark-ok,#5E7B4E);color:#fff;'
+    + 'background:var(--divp-mark-ok,#3E8E5A);color:#fff;'
     + 'font-size:0.58rem;font-weight:700;letter-spacing:0.08em;line-height:1.5;'
     + 'font-family:"Zen Maru Gothic","Noto Sans JP",sans-serif;'
     + 'padding:2px 6px;border-bottom-left-radius:8px;border-top-right-radius:7px;'

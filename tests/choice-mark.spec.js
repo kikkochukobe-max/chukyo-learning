@@ -95,10 +95,10 @@ test.describe('モジュール単体', () => {
 
   test('色はツール側の :root 指定が勝つ（読み込み順に依存しない）', async ({ page }) => {
     // モジュールを読み込んだ「後」に上書きしても効くこと
-    await page.addStyleTag({ content: ':root{--divp-mark-ok:#3E8E5A;}' });
+    await page.addStyleTag({ content: ':root{--divp-mark-ok:#7ee0a0;}' });
     await page.evaluate(() => Divp.markChoices('.c', { correct: 0, selected: 1 }));
     const r = await page.evaluate(READ, '.c');
-    expect(r[0].borderColor).toBe('rgb(62, 142, 90)');   // #3E8E5A
+    expect(r[0].borderColor).toBe('rgb(126, 224, 160)');   // #7ee0a0（既定の #3E8E5A とは別の色にしてある）
   });
 });
 
