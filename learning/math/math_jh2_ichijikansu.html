@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>一次関数マスター | 中京個別指導学院(神丘)</title>
-<meta name="description" content="中学2年生向け 一次関数の練習ツール。増加量・式の特徴・式を求める・グラフをかく・交点・三角形の面積の6モード。名古屋市名東区神丘の中京個別指導学院。">
+<title>一次関数マスター | 中京個別指導学院</title>
+<meta name="description" content="中学2年生向け 一次関数の練習ツール。式をつくる(一次関数の判定)・増加量・グラフをかく(応用は切片が分数)・グラフを読む・変域(応用は変域から逆算)・式の特徴・式を求める(応用は一直線・変域・傾きの範囲)・交点・三角形の面積の12モード。中京個別指導学院。">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script src="../../assets/js/divp-header.js" onerror="this.remove()"></script>
@@ -54,7 +54,8 @@ h1 .sub{font-size:.72rem;color:var(--ink-soft);letter-spacing:.2em;display:block
 #rankBadge b{color:var(--gold);}
 /* mode chips */
 .modes{max-width:860px;margin:0 auto 12px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-@media(min-width:640px){.modes{grid-template-columns:repeat(6,1fr);}}
+@media(min-width:700px){.modes{grid-template-columns:repeat(4,1fr);}}
+@media(min-width:880px){.modes{grid-template-columns:repeat(6,1fr);}}
 .chip{
   border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:8px 4px;cursor:pointer;
   font-size:.8rem;line-height:1.25;text-align:center;color:var(--ink);
@@ -88,7 +89,7 @@ h1 .sub{font-size:.72rem;color:var(--ink-soft);letter-spacing:.2em;display:block
 }
 .qtable th{background:var(--washi-deep);font-style:italic;font-weight:600;}
 .qtable td{background:#fff;}
-#figWrap{display:flex;justify-content:center;margin:6px 0 4px;}
+#figWrap{display:flex;flex-direction:column;align-items:center;margin:6px 0 4px;}
 #figWrap svg{max-width:100%;height:auto;touch-action:none;}
 .fig-hint{font-size:.72rem;color:var(--ink-soft);text-align:center;margin-top:2px;}
 /* answers */
@@ -97,12 +98,48 @@ h1 .sub{font-size:.72rem;color:var(--ink-soft);letter-spacing:.2em;display:block
 @media(max-width:480px){.choices{grid-template-columns:1fr;}}
 .choiceBtn{
   border:1.5px solid var(--line);background:var(--washi);border-radius:10px;padding:12px 8px;
-  font-size:1rem;cursor:pointer;font-family:inherit;color:var(--ink);overflow:hidden;
+  font-size:1rem;cursor:pointer;font-family:inherit;color:var(--ink);overflow:hidden;position:relative;
 }
 .choiceBtn .inner{display:inline-block;white-space:nowrap;transform-origin:center;}
 .choiceBtn.sel{background:var(--sakura-mist);border-color:var(--sakura);box-shadow:inset 0 0 0 1.5px var(--sakura);}
 .choiceBtn.hit{background:#E8F1E4;border-color:var(--moss);}
 .choiceBtn.miss{background:#FBE7EA;border-color:var(--sakura-deep);}
+/* 2段解答(式を選ぶ → ○×) */
+.eqStep+.eqStep{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;}
+.stepLab{
+  display:flex;align-items:center;gap:7px;margin:0 0 8px;
+  font-size:.82rem;font-weight:700;letter-spacing:.06em;color:var(--ink-soft);
+}
+.stepLab i{
+  font-style:normal;flex:none;width:20px;height:20px;border-radius:50%;
+  background:var(--indigo);color:#fff;font-size:.72rem;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.oxRow{display:flex;gap:16px;justify-content:center;}
+.oxBtn{
+  width:96px;height:66px;border:2px solid var(--line);background:var(--washi);border-radius:12px;
+  cursor:pointer;font-family:'Hiragino Mincho ProN',serif;color:var(--ink);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  font-size:1.9rem;line-height:1;
+}
+.oxBtn small{font-size:.62rem;letter-spacing:.08em;color:var(--ink-soft);font-family:inherit;}
+.oxBtn.sel{background:var(--sakura-mist);border-color:var(--sakura);box-shadow:inset 0 0 0 1.5px var(--sakura);}
+.oxBtn.hit{background:#E8F1E4;border-color:var(--moss);}
+.oxBtn.miss{background:#FBE7EA;border-color:var(--sakura-deep);}
+.oxBtn:active{transform:scale(.96);}
+/* ①→②→③ の順にタップする解答 */
+.ordLab b{margin-left:auto;font-size:.8rem;color:var(--sakura-deep);font-family:'Hiragino Mincho ProN',serif;}
+.choiceBtn.ordable{padding-left:42px;}
+.ordNum{
+  position:absolute;left:9px;top:50%;transform:translateY(-50%);
+  width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);background:#fff;
+  align-items:center;justify-content:center;font-size:.82rem;font-weight:700;line-height:1;
+  color:var(--ink-soft);display:none;
+}
+.choiceBtn.ord .ordNum{display:flex;background:var(--sakura);border-color:var(--sakura-deep);color:#fff;}
+.choiceBtn.hit .ordNum{display:flex;background:var(--moss);border-color:var(--moss);color:#fff;}
+.choiceBtn.miss .ordNum{display:flex;background:var(--sakura-deep);border-color:var(--sakura-deep);color:#fff;}
+.choiceBtn.ordable.hit .ordNum:empty,.choiceBtn.ordable.miss .ordNum:empty{display:none;}
 /* input fields */
 .fields{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:center;}
 .field{display:flex;align-items:center;gap:6px;font-size:1.1rem;}
@@ -182,10 +219,16 @@ footer{max-width:860px;margin:16px auto 0;text-align:center;font-size:.68rem;col
 </header>
 
 <nav class="modes" id="modeNav">
-  <button class="chip on" data-mode="zoukaryo">増加量<small>変化の割合</small></button>
-  <button class="chip" data-mode="tokucho">式の特徴<small>グラフと式</small></button>
-  <button class="chip" data-mode="shiki">式を求める<small>傾きと切片</small></button>
+  <button class="chip on" data-mode="hantei">式をつくる<small>一次関数？○×</small></button>
+  <button class="chip" data-mode="zoukaryo">増加量<small>変化の割合</small></button>
   <button class="chip" data-mode="graph">グラフをかく<small>点をうって作図</small></button>
+  <button class="chip" data-mode="graphadv">グラフをかく 応用<small>切片が分数</small></button>
+  <button class="chip" data-mode="yomitori">グラフを読む<small>グラフ→式</small></button>
+  <button class="chip" data-mode="hendomain">変域<small>線分をかいて読む</small></button>
+  <button class="chip" data-mode="hendomainadv">変域 応用<small>変域から逆算</small></button>
+  <button class="chip" data-mode="tokucho">式の特徴<small>グラフと式</small></button>
+  <button class="chip" data-mode="shiki">式を求める<small>傾き・切片・平行</small></button>
+  <button class="chip" data-mode="shikiadv">式を求める 応用<small>一直線・変域・範囲</small></button>
   <button class="chip" data-mode="koten">交点を求める<small>連立方程式</small></button>
   <button class="chip" data-mode="menseki">三角形の面積<small>軸と交点</small></button>
 </nav>
@@ -205,7 +248,7 @@ footer{max-width:860px;margin:16px auto 0;text-align:center;font-size:.68rem;col
 
 <div id="hanko">正解</div>
 
-<footer>© 中京個別指導学院(名古屋市名東区・神丘) — divp-suite</footer>
+<footer>© 中京個別指導学院 — divp-suite</footer>
 
 <script>
 "use strict";
@@ -409,7 +452,8 @@ function genZoukaryo(){
 }
 
 function genTokucho(){
-  const v=ri(1,5);
+  const v=ri(1,7);
+  if(v===6||v===7)return genTokuchoCompare(v===6);
   if(v===5){
     /* 図→式を選ぶ */
     const a=pick([rmk(1),rmk(-1),rmk(2),rmk(-2),rmk(1,2),rmk(-1,2)]);
@@ -521,8 +565,59 @@ function genTokucho(){
   };
 }
 
+/* ================================================================
+   式の特徴 v6/v7: 3本の直線を1つの図で比べ，①→②→③ の順に式を選ぶ
+     bySlope=true  … 切片が共通で傾きだけ違う(教科書の「xの係数の違い」)
+     bySlope=false … 傾きが共通で切片だけ違う(平行な3本)
+   ①②③ は必ずシャッフルして割り当てる。順番と急さが一致していると
+   グラフを読まずに「急な順」で並べられてしまうため。
+   ダミーの式を1つ混ぜる(3択だと2本わかれば残りが自動で決まる)。
+   ================================================================ */
+const ORDNUM=["①","②","③"];
+function genTokuchoCompare(bySlope){
+  const R=8;
+  const COLORS=["var(--indigo)","var(--sakura-deep)","var(--moss)"];
+  let lines,extra,head,exHead;
+  if(bySlope){
+    const b=rmk(nzi(-3,3));
+    const up=ri(0,1)===0;
+    const mags=shuffle([rmk(1,2),rmk(1),rmk(3,2),rmk(2),rmk(3)]).slice(0,4);
+    const sl=mags.map(m=>up?m:rneg(m));
+    lines=sl.slice(0,3).map(a=>({a,b}));
+    extra={a:sl[3],b};
+    head=`(3本とも切片は同じです)`;
+    exHead=[
+      `3本とも切片が ${T(rTexInline(b))} なので，${T("y")} 軸上の同じ点 ${T("(0,\\,"+rTexInline(b)+")")} を通る。`,
+      `ちがいは ${T("x")} の係数(傾き)。傾きの絶対値が大きいほどグラフは急になる。`
+    ];
+  }else{
+    const a=pick([rmk(1),rmk(-1),rmk(2),rmk(-2),rmk(1,2),rmk(-1,2),rmk(3,2),rmk(-3,2)]);
+    let bs;
+    do{
+      bs=shuffle([-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6]).slice(0,4);
+    }while(!bs.every((x,i)=>bs.every((y,j)=>i===j||Math.abs(x-y)>=2)));
+    lines=bs.slice(0,3).map(v=>({a,b:rmk(v)}));
+    extra={a,b:rmk(bs[3])};
+    head=`(3本とも傾きは同じです)`;
+    exHead=[
+      `3本とも傾きが ${T(rTexInline(a))} で等しいので，たがいに平行。`,
+      `ちがいは切片 ${T("b")}。${T("y")} 軸と交わる点の ${T("y")} 座標がそのまま ${T("b")} になる。`
+    ];
+  }
+  const texOf=l=>lineTex(l.a,l.b);
+  const choices=shuffle([...lines,extra]).map(texOf);
+  const seq=lines.map(l=>choices.indexOf(texOf(l)));
+  return {
+    qkey:bySlope?"tokucho_v6":"tokucho_v7",
+    qHtml:`次の図の ${T("\\text{①}\\sim\\text{③}")} は，下の式のどれかのグラフです。${T("\\text{①}\\to\\text{②}\\to\\text{③}")} の順に選びなさい。<br><span style="font-size:.8em;color:var(--ink-soft)">${head}</span>`,
+    fig:{kind:"line",lines:lines.map((l,i)=>({a:l.a,b:l.b,color:COLORS[i],label:ORDNUM[i]})),range:R},
+    ans:{kind:"order",choices:choices.map(T),seq},
+    exLines:exHead.concat(lines.map((l,i)=>`${ORDNUM[i]} ${T(texOf(l))}`))
+  };
+}
+
 function genShiki(){
-  const v=ri(1,4);
+  const v=ri(1,6);
   const a=pickSlope(false);
   const b=rmk(nzi(-7,7));
   const px=a.d*nzi(-3,3);                    /* q が整数になる x */
@@ -560,6 +655,45 @@ function genShiki(){
       ]
     };
   }
+  /* v5/v6: 「平行」を手がかりに傾きを決める。
+     もとの直線は答えと同じ傾き・ちがう切片にする(同じ式になったら問題にならない) */
+  if(v===5||v===6){
+    if(v===5){
+      let b0=rmk(nzi(-7,7));
+      while(rEq(b0,b))b0=rmk(nzi(-7,7));
+      return {
+        qkey:"shiki_v5",
+        qHtml:`直線 ${T(lineTex(a,b0))} に平行で，点 ${T("("+px+",\\,"+rTexInline(py)+")")} を通る直線の式を求めなさい。`,
+        fig:null,
+        ans:{kind:"input",fields:[{label:"a=",val:a},{label:"b=",val:b}],pre:"y=ax+b"},
+        exLines:[
+          `平行な2直線は傾きが等しい ${T("\\Rightarrow")} ${T("a="+rTexInline(a))}`,
+          `${T("y="+shortRHS(a,rmk(0))+"+b")} に ${T("x="+px+",\\ y="+rTexInline(py))} を代入。`,
+          T(rTexInline(py)+"="+rTexInline(a)+"\\times("+px+")+b"),
+          T("b="+rTexInline(py)+"-("+rTexInline(rmul(a,rmk(px)))+")="+rTexInline(b)),
+          `よって ${T(lineTex(a,b))}`
+        ]
+      };
+    }
+    /* v6: 平行 + x軸との交点。p は a.d の倍数にして切片を整数寄りにする */
+    const p=a.d*nzi(-3,3);
+    const b6=rneg(rmul(a,rmk(p)));            /* y=0 のとき x=p */
+    let b0=rmk(nzi(-7,7));
+    while(rEq(b0,b6))b0=rmk(nzi(-7,7));
+    return {
+      qkey:"shiki_v6",
+      qHtml:`直線 ${T(lineTex(a,b0))} に平行で，${T("x")} 軸と点 ${T("("+p+",\\,0)")} で交わる直線の式を求めなさい。`,
+      fig:null,
+      ans:{kind:"input",fields:[{label:"a=",val:a},{label:"b=",val:b6}],pre:"y=ax+b"},
+      exLines:[
+        `平行な2直線は傾きが等しい ${T("\\Rightarrow")} ${T("a="+rTexInline(a))}`,
+        `${T("x")} 軸との交点は ${T("y=0")} の点なので，${T("y="+shortRHS(a,rmk(0))+"+b")} に ${T("x="+p+",\\ y=0")} を代入。`,
+        T("0="+rTexInline(a)+"\\times("+p+")+b"),
+        T("b=-("+rTexInline(rmul(a,rmk(p)))+")="+rTexInline(b6)),
+        `よって ${T(lineTex(a,b6))}`
+      ]
+    };
+  }
   /* v4: 切片と1点 → 傾き */
   let px4=a.d*nzi(-3,3);
   const py4=radd(rmul(a,rmk(px4)),b);
@@ -573,6 +707,191 @@ function genShiki(){
       T(rTexInline(py4)+"=a\\times("+px4+")"+(b.n>=0?"+":"")+rTexInline(b)),
       T("a="+rTexInline(a)),
       `よって ${T(lineTex(a,b))}`
+    ]
+  };
+}
+
+/* ================================================================
+   式を求める(応用)  shikiadv_v1〜v4
+     v1 3点が一直線上 → 3つ目の座標(x か y)を求める
+     v2 与えられた直線と x軸上/y軸上 で交わり，ある点を通る直線の式
+     v3 x,y の変域から式を求める
+     v4 線分と交わる y=ax の傾きの範囲
+   ================================================================ */
+function genShikiAdv(){
+  const v=ri(1,5);
+  if(v===1)return genAdvCollinear();
+  if(v===2)return genAdvAxisCross();
+  if(v===3)return genAdvRange();
+  return genAdvSlopeRange(v===5);          /* v5 は切片が決まっている版 */
+}
+
+/* --- v1: 3点が一直線上 --- */
+function genAdvCollinear(){
+  const a=pickSlope(false);
+  const b=rmk(nzi(-4,4));
+  const ks=shuffle([-3,-2,-1,0,1,2,3]).slice(0,3).sort((p,q)=>p-q);
+  const xs=ks.map(k=>a.d*k);                       /* y が整数になる x */
+  const ys=xs.map(x=>radd(rmul(a,rmk(x)),b));
+  const hideY=ri(0,1)===0;
+  const P=(i)=>"("+xs[i]+",\\,"+rTexInline(ys[i])+")";
+  const slopeTex="\\dfrac{"+rTexInline(rsub(ys[1],ys[0]))+"}{"+(xs[1]-xs[0])+"}";
+  const head=`3点 ${T("\\text{A}"+P(0))}，${T("\\text{B}"+P(1))}，`;
+  const foot=` が一直線上にあるとき，${T("\\text{ア}")} にあてはまる数を求めなさい。`;
+  const common=[
+    `2点 ${T("\\text{A}")}，${T("\\text{B}")} を通る直線の傾きは ${T(slopeTex+"="+rTexInline(a))}`,
+    `${T("y="+shortRHS(a,rmk(0))+"+b")} に ${T("\\text{A}"+P(0))} を代入して ${T("b="+rTexInline(b))}`,
+    `3点は同じ直線 ${T(lineTex(a,b))} 上にある。`
+  ];
+  if(hideY){
+    return {
+      qkey:"shikiadv_v1",
+      qHtml:head+T("\\text{C}("+xs[2]+",\\,\\text{ア})")+foot,
+      fig:null,
+      ans:{kind:"input",fields:[{label:"\\text{ア}=",val:ys[2]}]},
+      exLines:common.concat([
+        `${T("x="+xs[2])} を代入して ${T("\\text{ア}="+rTexInline(a)+"\\times("+xs[2]+")"+(b.n>=0?"+":"")+rTexInline(b)+"="+rTexInline(ys[2]))}`
+      ])
+    };
+  }
+  return {
+    qkey:"shikiadv_v1",
+    qHtml:head+T("\\text{C}(\\text{ア},\\,"+rTexInline(ys[2])+")")+foot,
+    fig:null,
+    ans:{kind:"input",fields:[{label:"\\text{ア}=",val:rmk(xs[2])}]},
+    exLines:common.concat([
+      `${T("y="+rTexInline(ys[2]))} を代入して ${T(rTexInline(ys[2])+"="+shortRHS(a,b))}`,
+      `これを解いて ${T("\\text{ア}="+xs[2])}`
+    ])
+  };
+}
+
+/* --- v2: x軸上 / y軸上 で交わる --- */
+function genAdvAxisCross(){
+  const onX=ri(0,1)===0;
+  const a=pickSlope(false);
+  let a0=pick([rmk(1),rmk(-1),rmk(2),rmk(-2),rmk(3),rmk(-3)]);
+  while(rEq(a0,a))a0=pick([rmk(1),rmk(-1),rmk(2),rmk(-2),rmk(3),rmk(-3)]);
+  let px=a.d*nzi(-3,3);
+  if(onX){
+    const p=a.d*nzi(-2,2);                 /* x軸との交点(共有点) */
+    const b=rneg(rmul(a,rmk(p)));          /* 答えの切片 */
+    while(px===p)px=a.d*nzi(-3,3);
+    const py=radd(rmul(a,rmk(px)),b);
+    /* もとの直線の切片は -a0*p。|p| が大きいと y=3x+18 のようになるので傾きで抑える */
+    a0=pick([rmk(1),rmk(-1),rmk(2),rmk(-2),rmk(3),rmk(-3)]
+              .filter(s=>!rEq(s,a)&&Math.abs(s.n*p)<=12));
+    const b0=rneg(rmul(a0,rmk(p)));        /* もとの直線も (p,0) を通る */
+    return {
+      qkey:"shikiadv_v2",
+      qHtml:`直線 ${T(lineTex(a0,b0))} と ${T("x")} 軸上で交わり，点 ${T("("+px+",\\,"+rTexInline(py)+")")} を通る直線の式を求めなさい。`,
+      fig:null,
+      ans:{kind:"input",fields:[{label:"a=",val:a},{label:"b=",val:b}],pre:"y=ax+b"},
+      exLines:[
+        `まず ${T(lineTex(a0,b0))} と ${T("x")} 軸との交点を求める。${T("y=0")} を代入して`,
+        T("0="+shortRHS(a0,b0)+"\\ \\Rightarrow\\ x="+p),
+        `交点は ${T("("+p+",\\,0)")}。求める直線はこの点と ${T("("+px+",\\,"+rTexInline(py)+")")} を通る。`,
+        `傾き ${T("a=\\dfrac{"+rTexInline(py)+"-0}{"+px+"-("+p+")}="+rTexInline(a))}`,
+        `${T("("+p+",\\,0)")} を代入して ${T("b=0-"+rTexInline(a)+"\\times("+p+")="+rTexInline(b))}`,
+        `よって ${T(lineTex(a,b))}`
+      ]
+    };
+  }
+  /* y軸上で交わる = 切片が等しい */
+  const b=rmk(nzi(-6,6));
+  const py=radd(rmul(a,rmk(px)),b);
+  return {
+    qkey:"shikiadv_v2",
+    qHtml:`直線 ${T(lineTex(a0,b))} と ${T("y")} 軸上で交わり，点 ${T("("+px+",\\,"+rTexInline(py)+")")} を通る直線の式を求めなさい。`,
+    fig:null,
+    ans:{kind:"input",fields:[{label:"a=",val:a},{label:"b=",val:b}],pre:"y=ax+b"},
+    exLines:[
+      `${T("y")} 軸上で交わる ${T("\\Rightarrow")} ${T("y")} 軸との交点(切片)が等しい。`,
+      `${T(lineTex(a0,b))} の切片は ${T(rTexInline(b))} なので ${T("b="+rTexInline(b))}`,
+      `${T("y=ax"+(b.n>=0?"+":"")+rTexInline(b))} に ${T("x="+px+",\\ y="+rTexInline(py))} を代入。`,
+      T(rTexInline(py)+"=a\\times("+px+")"+(b.n>=0?"+":"")+rTexInline(b)+"\\ \\Rightarrow\\ a="+rTexInline(a)),
+      `よって ${T(lineTex(a,b))}`
+    ]
+  };
+}
+
+/* --- v3: 変域から式を求める --- */
+function genAdvRange(){
+  const a=pickSlope(false);
+  const b=rmk(nzi(-5,5));
+  const p=a.d*ri(-3,1);
+  const q=p+a.d*ri(1,3);                     /* p<q */
+  const yp=radd(rmul(a,rmk(p)),b), yq=radd(rmul(a,rmk(q)),b);
+  const up=a.n>0;
+  const ymin=up?yp:yq, ymax=up?yq:yp;
+  const cond=up?"a>0":"a<0";
+  return {
+    qkey:"shikiadv_v3",
+    qHtml:`一次関数 ${T("y=ax+b")} について，${T("x")} の変域が ${T(p+"\\leqq x\\leqq "+q)} のとき，${T("y")} の変域は ${T(rTexInline(ymin)+"\\leqq y\\leqq "+rTexInline(ymax))} でした。${T(cond)} のとき，この一次関数の式を求めなさい。`,
+    fig:null,
+    ans:{kind:"input",fields:[{label:"a=",val:a},{label:"b=",val:b}],pre:"y=ax+b"},
+    exLines:[
+      up
+        ? `${T("a>0")}(右上がり)なので，${T("x")} が最小のとき ${T("y")} も最小。`
+        : `${T("a<0")}(右下がり)なので，${T("x")} が最小のとき ${T("y")} は最大。`,
+      `${T("x="+p)} のとき ${T("y="+rTexInline(up?ymin:ymax))}，${T("x="+q)} のとき ${T("y="+rTexInline(up?ymax:ymin))}`,
+      `傾き ${T("a=\\dfrac{"+rTexInline(rsub(up?ymax:ymin,up?ymin:ymax))+"}{"+(q-p)+"}="+rTexInline(a))}`,
+      `${T("x="+p+",\\ y="+rTexInline(up?ymin:ymax))} を代入して ${T("b="+rTexInline(b))}`,
+      `よって ${T(lineTex(a,b))}`
+    ]
+  };
+}
+
+/* --- v4/v5: 線分と交わる直線の傾きの範囲 ---
+   withB=false … y=ax   (原点を中心に回転。比例＝中1の復習)
+   withB=true  … y=ax+k (点(0,k)を中心に回転。一次関数版)
+   線分は第1象限(x>0)に置く。x=0 をまたぐと傾きが単調に変化せず
+   範囲がひとつの区間にならないため。
+   さらに 2点とも回転の中心より上(または下)に限り，範囲が a=0 を
+   またがないようにする(a=0 は定数関数で一次関数ではないため)。 */
+function genAdvSlopeRange(withB){
+  const k=withB?nzi(-6,6):0;
+  let x1,y1,x2,y2,s1,s2;
+  for(;;){
+    x1=ri(1,6);y1=ri(1,8);x2=ri(1,6);y2=ri(1,8);
+    if(Math.abs(x1-x2)+Math.abs(y1-y2)<4)continue;   /* 短すぎる線分は図が窮屈 */
+    const d1=y1-k, d2=y2-k;
+    if(d1===0||d2===0)continue;              /* 傾き0を範囲に入れない */
+    if((d1>0)!==(d2>0))continue;             /* 範囲が0をまたがないように */
+    s1=rmk(d1,x1);s2=rmk(d2,x2);
+    if(rEq(s1,s2))continue;
+    if(s1.d>3||s2.d>3)continue;              /* 傾きを見やすい分数に限る */
+    break;
+  }
+  /* 左(または下)にある方を A とする */
+  if(x1>x2||(x1===x2&&y1<y2)){
+    [x1,x2]=[x2,x1];[y1,y2]=[y2,y1];[s1,s2]=[s2,s1];
+  }
+  const lo=rVal(s1)<rVal(s2)?s1:s2, hi=rVal(s1)<rVal(s2)?s2:s1;
+  const R=Math.max(8,x1+2,x2+2,y1+2,y2+2,Math.abs(k)+2);
+  const kt=k>0?"+"+k:(k<0?String(k):"");
+  const lineT="y=ax"+kt;
+  const sub=(x,y,s)=>T(y+"=a\\times "+x+kt+"\\ \\Rightarrow\\ a="+rTexInline(s));
+  const fig={kind:"points",points:[{x:x1,y:y1},{x:x2,y:y2}],
+             seg:[[x1,y1],[x2,y2]],
+             labels:[{x:x1,y:y1,t:"A"},{x:x2,y:y2,t:"B"}],
+             bounds:[lo,hi],boundB:rmk(k),range:R};
+  if(withB)fig.pivot={x:0,y:k};
+  return {
+    qkey:withB?"shikiadv_v5":"shikiadv_v4",
+    qHtml:`次の図の2点 ${T("\\text{A}("+x1+",\\,"+y1+")")}，${T("\\text{B}("+x2+",\\,"+y2+")")} について，`
+         +(withB?`直線 ${T(lineT)}`:`原点を通る直線 ${T(lineT)}`)
+         +` が線分 ${T("\\text{AB}")} と交わるとき，${T("a")} の値の範囲を求めなさい。`,
+    fig:fig,
+    ans:{kind:"input",fields:[{label:"",val:lo},{label:"\\leqq a\\leqq",val:hi}]},
+    exLines:[
+      withB
+        ? `${T(lineT)} は ${T("a")} がどんな値でも点 ${T("(0,\\,"+k+")")} を通る。この点を中心に回転する直線。`
+        : `${T(lineT)} は原点を通り，${T("a")} が大きいほど急になる直線。`,
+      `点 ${T("\\text{A}")} を通るとき ${sub(x1,y1,s1)}`,
+      `点 ${T("\\text{B}")} を通るとき ${sub(x2,y2,s2)}`,
+      `${T("a")} がこの2つの間にあるとき線分 ${T("\\text{AB}")} と交わる(両端もふくむ)。`,
+      `よって ${T(rTexInline(lo)+"\\leqq a\\leqq "+rTexInline(hi))}`
     ]
   };
 }
@@ -601,6 +920,47 @@ function genGraph(){
       `切片 ${T("b="+rTexInline(b))} ${T("\\Rightarrow")} 点 ${T("(0,\\,"+rTexInline(b)+")")} を通る。`,
       `傾き ${T(rTexInline(a))} ${T("\\Rightarrow")} 右へ ${T(String(a.d))} 進むと ${T("y")} は ${T(rTexInline(rmk(a.n)))} 変化する。`,
       `2点が決まれば直線が引ける。`
+    ]
+  };
+}
+
+/* ================================================================
+   グラフをかく(応用): 切片が分数の直線。
+   y軸との交点が格子点にならないので，y が整数になる x を自分で
+   さがして格子点を2つ見つける。
+   -8〜8 の範囲に格子点が必ず3つ以上あるものだけを出題する
+   (2つでは片方を選び損ねたときに詰むので1つ余裕を持たせる)。
+   ================================================================ */
+function genGraphAdv(){
+  const R=8;
+  /* 傾きは必ず分数。a=p/q(既約)で x が q の倍数でないとき切片が分数になる */
+  const CAND=[rmk(1,2),rmk(-1,2),rmk(3,2),rmk(-3,2),rmk(5,2),rmk(-5,2),
+              rmk(1,3),rmk(-1,3),rmk(2,3),rmk(-2,3),rmk(4,3),rmk(-4,3),rmk(5,3),rmk(-5,3)];
+  let a,b,pts;
+  for(;;){
+    a=pick(CAND);
+    const q=a.d;
+    let x1=ri(-5,5);
+    while(((x1%q)+q)%q===0)x1=ri(-5,5);   /* qの倍数を避ける ⇒ 切片が分数 */
+    const y1=ri(-5,5);
+    b=rsub(rmk(y1),rmul(a,rmk(x1)));      /* (x1,y1) を通らせる */
+    pts=latticeOn(a,b,R);
+    if(b.d>1 && pts.length>=3 && pts[pts.length-1].x-pts[0].x>=4)break;
+  }
+  const P=pts[0], Q=pts[pts.length-1];
+  const sgn=b.n>=0?"+":"";
+  return {
+    qkey:"graphadv_v1",
+    qHtml:`次の一次関数のグラフをかきなさい。 ${T(lineTex(a,b))}<br><span style="font-size:.8em;color:var(--ink-soft)">(切片が分数です。${T("y")} が整数になる ${T("x")} をさがして，通る格子点を <b>2つ</b> タップしましょう)</span>`,
+    fig:{kind:"draw",range:R},
+    ans:{kind:"draw",a,b,range:R},
+    exLines:[
+      `切片 ${T("b="+rTexInline(b))} は分数なので，${T("y")} 軸との交点 ${T("(0,\\,"+rTexInline(b)+")")} は格子点ではない。`,
+      `そこで ${T("x")} に整数を代入し，${T("y")} も整数になる点をさがす。`,
+      T("x="+P.x+"\\ \\Rightarrow\\ y="+rTexInline(a)+"\\times("+P.x+")"+sgn+rTexInline(b)+"="+P.y),
+      T("x="+Q.x+"\\ \\Rightarrow\\ y="+rTexInline(a)+"\\times("+Q.x+")"+sgn+rTexInline(b)+"="+Q.y),
+      `${T("("+P.x+",\\,"+P.y+")")} と ${T("("+Q.x+",\\,"+Q.y+")")} を通る直線をひけばよい。`,
+      `※ ${T("x")} が ${T(String(a.d))} 増えるごとに ${T("y")} が ${T(rTexInline(rmk(a.n)))} 変わるので，格子点は ${T(String(a.d))} おきに現れる。`
     ]
   };
 }
@@ -682,7 +1042,457 @@ function genMenseki(){
   };
 }
 
-const GENS={zoukaryo:genZoukaryo,tokucho:genTokucho,shiki:genShiki,graph:genGraph,koten:genKoten,menseki:genMenseki};
+/* ================================================================
+   式をつくる（文章 → 式を選ぶ → 一次関数かどうかを ○× で判定）
+   HANTEI_POOL の各要素: {lin, f:()=>({txt,eq,bad[],why[],note?,reason?})}
+     eq   … 正しい式(TeX)      bad … ダミーの式(TeX)3つ
+     why  … 式の立て方の解説    note … y=ax(比例)型なので補足を出す
+     reason … 一次関数でない理由(lin:false のとき必須)
+   ================================================================ */
+const HANTEI_POOL=[
+  /* ---- 一次関数になるもの ---- */
+  {lin:true,f:()=>{
+    const p=pick([50,60,70,80,90]), n=pick([100,120,150,180,250]);
+    return{
+      txt:`1本 ${p} 円の鉛筆を ${T("x")} 本と，1冊 ${n} 円のノートを1冊買います。代金を ${T("y")} 円とします。`,
+      eq:`y=${p}x+${n}`,
+      bad:[`y=${p}x-${n}`,`y=${n}x+${p}`,`y=${p+n}x`],
+      why:[`鉛筆の代金は ${T(p+"x")} 円，ノートは ${T(String(n))} 円。`,
+           `その合計だから ${T("y="+p+"x+"+n)}`]
+    };
+  }},
+  {lin:true,f:()=>{
+    const a=pick([6,8,10,12,15]), b=pick([2,3,4,5]);
+    return{
+      txt:`${a} L の水が入っている水そうに，毎分 ${b} L ずつ水を入れます。入れ始めてから ${T("x")} 分後の水の量を ${T("y")} L とします。`,
+      eq:`y=${b}x+${a}`,
+      bad:[`y=${a}x+${b}`,`y=${b}x-${a}`,`y=${a*b}x`],
+      why:[`${T("x")} 分間で入る水は ${T(b+"x")} L。`,
+           `はじめの ${T(String(a))} L をたして ${T("y="+b+"x+"+a)}`]
+    };
+  }},
+  {lin:true,f:()=>{
+    const a=pick([30,40,50,60]), b=pick([2,3,4,5]);
+    return{
+      txt:`${a} L の水が入った水そうから，毎分 ${b} L ずつ水をぬきます。ぬき始めてから ${T("x")} 分後の残りの水の量を ${T("y")} L とします。`,
+      eq:`y=-${b}x+${a}`,
+      bad:[`y=${b}x+${a}`,`y=${b}x-${a}`,`y=-${a}x+${b}`],
+      why:[`${T("x")} 分間でぬける水は ${T(b+"x")} L。`,
+           `はじめの ${T(String(a))} L からひいて ${T("y="+a+"-"+b+"x=-"+b+"x+"+a)}`]
+    };
+  }},
+  {lin:true,f:()=>{
+    const a=pick([3,4,5,6]);
+    return{
+      txt:`時速 ${a} km で ${T("x")} 時間歩いたときに進む道のりを ${T("y")} km とします。`,
+      eq:`y=${a}x`,
+      bad:[`y=\\dfrac{${a}}{x}`,`y=\\dfrac{x}{${a}}`,`y=${a}x+${a}`],
+      why:[`道のり ${T("=")} 速さ ${T("\\times")} 時間 だから ${T("y="+a+"x")}`],
+      note:true
+    };
+  }},
+  {lin:true,f:()=>{
+    const a=pick([12,15,18,20,24]), b=pick([3,4,5,6]);
+    return{
+      txt:`全体で ${a} km の道のりを，時速 ${b} km で ${T("x")} 時間歩きました。残りの道のりを ${T("y")} km とします。`,
+      eq:`y=-${b}x+${a}`,
+      bad:[`y=${b}x+${a}`,`y=-${a}x+${b}`,`y=${a}x-${b}`],
+      why:[`歩いた道のりは ${T(b+"x")} km。`,
+           `全体からひいて ${T("y="+a+"-"+b+"x=-"+b+"x+"+a)}`]
+    };
+  }},
+  {lin:true,f:()=>{
+    const a=pick([80,90,120,150]), n=pick([500,1000,2000]);
+    return{
+      txt:`1個 ${a} 円の品物を ${T("x")} 個買って ${n} 円を出したときのおつりを ${T("y")} 円とします。`,
+      eq:`y=-${a}x+${n}`,
+      bad:[`y=${a}x+${n}`,`y=${a}x-${n}`,`y=-${n}x+${a}`],
+      why:[`代金は ${T(a+"x")} 円。`,
+           `おつり ${T("=")} 出したお金 ${T("-")} 代金 だから ${T("y="+n+"-"+a+"x=-"+a+"x+"+n)}`]
+    };
+  }},
+  {lin:true,f:()=>{
+    const k=pick([3,4,5,6]);
+    const nm={3:"正三角形",4:"正方形",5:"正五角形",6:"正六角形"}[k];
+    return{
+      txt:`1辺の長さが ${T("x")} cm の${nm}の周の長さを ${T("y")} cm とします。`,
+      eq:`y=${k}x`,
+      bad:[`y=${k}x+${k}`,`y=x^2`,`y=\\dfrac{${k}}{x}`],
+      why:[`${nm}の辺は ${k} 本あり，どれも ${T("x")} cm。`,
+           `周の長さは ${T("y="+k+"x")}`],
+      note:true
+    };
+  }},
+  {lin:true,f:()=>{
+    const a=pick([3000,5000,8000]), b=pick([500,800,1200]);
+    return{
+      txt:`いま ${a} 円の貯金があり，毎月 ${b} 円ずつ貯めていきます。${T("x")} か月後の貯金額を ${T("y")} 円とします。`,
+      eq:`y=${b}x+${a}`,
+      bad:[`y=${a}x+${b}`,`y=${b}x-${a}`,`y=${a+b}x`],
+      why:[`${T("x")} か月で貯まるお金は ${T(b+"x")} 円。`,
+           `いまの ${T(String(a))} 円をたして ${T("y="+b+"x+"+a)}`]
+    };
+  }},
+  {lin:true,f:()=>{
+    const a=pick([6,8,12,15]);
+    return{
+      txt:`1 m の重さが ${a} g の針金があります。この針金 ${T("x")} m の重さを ${T("y")} g とします。`,
+      eq:`y=${a}x`,
+      bad:[`y=\\dfrac{${a}}{x}`,`y=x+${a}`,`y=\\dfrac{x}{${a}}`],
+      why:[`1 m で ${T(String(a))} g だから，${T("x")} m では ${T("y="+a+"x")}`],
+      note:true
+    };
+  }},
+  {lin:true,f:()=>({
+    txt:`半径 ${T("x")} cm の円の周の長さを ${T("y")} cm とします。`,
+    eq:`y=2\\pi x`,
+    bad:[`y=\\pi x^2`,`y=\\pi x`,`y=4\\pi x`],
+    why:[`円周 ${T("=")} 直径 ${T("\\times\\pi")} だから ${T("y=2\\pi x")}`,
+         `${T("2\\pi")} は決まった数（定数）なので，${T("y=ax")} の ${T("a")} にあたる。`],
+    note:true
+  })},
+  {lin:true,f:()=>{
+    const h=pick([6,8,10,12]);
+    return{
+      txt:`底辺が ${T("x")} cm，高さが ${h} cm の三角形の面積を ${T("y")} cm² とします。`,
+      eq:`y=${h/2}x`,
+      bad:[`y=${h}x`,`y=\\dfrac{${h}}{x}`,`y=x^2`],
+      why:[`三角形の面積 ${T("=\\dfrac{1}{2}\\times\\text{底辺}\\times\\text{高さ}")}`,
+           T("y=\\dfrac{1}{2}\\times x\\times "+h+"="+(h/2)+"x")],
+      note:true
+    };
+  }},
+  /* ---- 一次関数にならないもの ---- */
+  {lin:false,f:()=>{
+    const a=pick([12,18,24,36,60]);
+    return{
+      txt:`${a} km の道のりを，時速 ${T("x")} km で進むときにかかる時間を ${T("y")} 時間とします。`,
+      eq:`y=\\dfrac{${a}}{x}`,
+      bad:[`y=${a}x`,`y=\\dfrac{x}{${a}}`,`y=${a}x+${a}`],
+      why:[`時間 ${T("=")} 道のり ${T("\\div")} 速さ だから ${T("y=\\dfrac{"+a+"}{x}")}`],
+      reason:`${T("y")} が ${T("x")} に反比例する式`
+    };
+  }},
+  {lin:false,f:()=>{
+    const a=pick([12,18,24,36]);
+    return{
+      txt:`面積が ${a} cm² の長方形の，縦の長さを ${T("x")} cm，横の長さを ${T("y")} cm とします。`,
+      eq:`y=\\dfrac{${a}}{x}`,
+      bad:[`y=${a}x`,`y=-x+${a}`,`y=\\dfrac{x}{${a}}`],
+      why:[`縦 ${T("\\times")} 横 ${T("=")} 面積 だから ${T(a+"=x\\times y")}`,
+           `よって ${T("y=\\dfrac{"+a+"}{x}")}`],
+      reason:`${T("y")} が ${T("x")} に反比例する式`
+    };
+  }},
+  {lin:false,f:()=>({
+    txt:`1辺の長さが ${T("x")} cm の正方形の面積を ${T("y")} cm² とします。`,
+    eq:`y=x^2`,
+    bad:[`y=4x`,`y=2x`,`y=\\dfrac{4}{x}`],
+    why:[`正方形の面積 ${T("=")} 1辺 ${T("\\times")} 1辺 だから ${T("y=x\\times x=x^2")}`],
+    reason:`${T("x")} の2乗をふくむ式`
+  })},
+  {lin:false,f:()=>({
+    txt:`半径 ${T("x")} cm の円の面積を ${T("y")} cm² とします。`,
+    eq:`y=\\pi x^2`,
+    bad:[`y=2\\pi x`,`y=\\pi x`,`y=\\dfrac{\\pi}{x}`],
+    why:[`円の面積 ${T("=")} 半径 ${T("\\times")} 半径 ${T("\\times\\pi")} だから ${T("y=\\pi x^2")}`],
+    reason:`${T("x")} の2乗をふくむ式`
+  })},
+  {lin:false,f:()=>({
+    txt:`1辺の長さが ${T("x")} cm の立方体の体積を ${T("y")} cm³ とします。`,
+    eq:`y=x^3`,
+    bad:[`y=6x^2`,`y=x^2`,`y=3x`],
+    why:[`立方体の体積 ${T("=")} 1辺 ${T("\\times")} 1辺 ${T("\\times")} 1辺 だから ${T("y=x^3")}`],
+    reason:`${T("x")} の3乗をふくむ式`
+  })},
+  {lin:false,f:()=>{
+    const a=pick([6,9,12,18]);
+    return{
+      txt:`面積が ${a} cm² の三角形の，底辺を ${T("x")} cm，高さを ${T("y")} cm とします。`,
+      eq:`y=\\dfrac{${2*a}}{x}`,
+      bad:[`y=\\dfrac{${a}}{x}`,`y=${a}x`,`y=\\dfrac{x}{${2*a}}`],
+      why:[T("\\dfrac{1}{2}\\times x\\times y="+a),
+           `両辺を ${T("2")} 倍して ${T("xy="+(2*a))}，よって ${T("y=\\dfrac{"+(2*a)+"}{x}")}`],
+      reason:`${T("y")} が ${T("x")} に反比例する式`
+    };
+  }},
+  {lin:false,f:()=>{
+    const h=pick([3,5,6,8]);
+    return{
+      txt:`底面が1辺 ${T("x")} cm の正方形で，高さが ${h} cm の直方体の体積を ${T("y")} cm³ とします。`,
+      eq:`y=${h}x^2`,
+      bad:[`y=${h}x`,`y=x^3`,`y=\\dfrac{${h}}{x}`],
+      why:[`体積 ${T("=")} 底面積 ${T("\\times")} 高さ で，底面積は ${T("x^2")} cm²。`,
+           `よって ${T("y="+h+"x^2")}`],
+      reason:`${T("x")} の2乗をふくむ式`
+    };
+  }}
+];
+
+function genHantei(){
+  const wantLin=ri(0,1)===0;                 /* ○×がかたよらないよう先に決める */
+  const idxs=[];
+  HANTEI_POOL.forEach((t,i)=>{if(t.lin===wantLin)idxs.push(i);});
+  const idx=pick(idxs);
+  const t=HANTEI_POOL[idx].f();
+  const set=new Set([t.eq]);
+  t.bad.forEach(b=>{if(set.size<4)set.add(b);});
+  const choices=shuffle([...set]);
+  const ex=t.why.slice();
+  if(wantLin){
+    ex.push(`${T(t.eq)} は ${T("y=ax+b")} の形（${T("a\\ne0")}）${T("\\Rightarrow")} <b>一次関数である（○）</b>`);
+    if(t.note)ex.push(`※ ${T("y=ax")}（比例）は ${T("b=0")} の一次関数なので，これも一次関数。`);
+  }else{
+    ex.push(`${T(t.eq)} は ${t.reason}で，${T("y=ax+b")} の形にならない ${T("\\Rightarrow")} <b>一次関数ではない（×）</b>`);
+  }
+  return {
+    qkey:"hantei_v"+(idx+1),
+    qHtml:`${t.txt}<br><span style="font-size:.88em;color:var(--ink-soft)">${T("y")} を ${T("x")} の式で表し，${T("y")} が ${T("x")} の一次関数といえるかどうかを答えなさい。</span>`,
+    fig:null,
+    ans:{kind:"eqox",choices:choices.map(T),correct:choices.indexOf(t.eq),lin:wantLin},
+    exLines:ex
+  };
+}
+
+/* ================================================================
+   グラフを読む（グラフ → 式 y=ax+b の a,b を求める）
+   ================================================================ */
+/* 直線 y=ax+b が -R〜R の範囲で通る格子点。
+   b が分数でも正しく数えられるよう有理数のまま厳密に計算する
+   (浮動小数だと 1/3 の足し算で Number.isInteger が落ちる)。
+   genYomitori と genGraphAdv の両方が使う。 */
+function latticeOn(a,b,R){
+  const out=[];
+  for(let x=-R;x<=R;x++){
+    const y=radd(rmul(a,rmk(x)),b);
+    if(rIsInt(y)&&Math.abs(y.n)<=R)out.push({x,y:y.n});
+  }
+  return out;
+}
+function genYomitori(){
+  const R=8;
+  const v=ri(1,2);
+  if(v===2){
+    /* 2直線のうち指定された方の式を読む */
+    let a1,a2,b1,b2,ok=false;
+    while(!ok){
+      a1=nzi(-3,3);a2=nzi(-3,3);
+      b1=ri(-6,6);b2=ri(-6,6);
+      ok=(a1!==a2)&&(b1!==b2);
+    }
+    const A1=rmk(a1),B1=rmk(b1),A2=rmk(a2),B2=rmk(b2);
+    const first=ri(0,1)===0;
+    const tgt=first?{a:A1,b:B1,tex:"\\ell_1"}:{a:A2,b:B2,tex:"\\ell_2"};
+    return {
+      qkey:"yomitori_v2",
+      qHtml:`次のグラフで，直線 ${T(tgt.tex)} の式を求めなさい。`,
+      fig:{kind:"twolines",lines:[
+        {a:A1,b:B1,color:"var(--indigo)",label:"ℓ₁"},
+        {a:A2,b:B2,color:"var(--sakura-deep)",label:"ℓ₂"}
+      ],range:R},
+      ans:{kind:"input",fields:[{label:"a=",val:tgt.a},{label:"b=",val:tgt.b}],pre:"y=ax+b"},
+      exLines:[
+        `${T(tgt.tex)} が ${T("y")} 軸と交わる点は ${T("(0,\\,"+rTexInline(tgt.b)+")")} ${T("\\Rightarrow")} 切片 ${T("b="+rTexInline(tgt.b))}`,
+        `そこから右へ ${T("1")} 進むと ${T("y")} は ${T(rTexInline(tgt.a))} 変化する ${T("\\Rightarrow")} 傾き ${T("a="+rTexInline(tgt.a))}`,
+        `よって ${T(lineTex(tgt.a,tgt.b))}`
+      ]
+    };
+  }
+  /* v1: 1直線。格子点の印は出さない(自分で読み取らせる) */
+  let a,b,pts;
+  do{
+    a=pickSlope(false);
+    b=rmk(ri(-6,6));
+    pts=latticeOn(a,b,R);
+  }while(pts.length<3);
+  const P=pts[0], Q=pts[pts.length-1];   /* 解説で使う2点 */
+  return {
+    qkey:"yomitori_v1",
+    qHtml:`次のグラフの直線の式を求めなさい。`,
+    fig:{kind:"line",lines:[{a,b,color:"var(--indigo)"}],range:R},
+    ans:{kind:"input",fields:[{label:"a=",val:a},{label:"b=",val:b}],pre:"y=ax+b"},
+    exLines:[
+      `${T("y")} 軸と交わる点は ${T("(0,\\,"+rTexInline(b)+")")} ${T("\\Rightarrow")} 切片 ${T("b="+rTexInline(b))}`,
+      `直線は ${T("("+P.x+",\\,"+P.y+")")} と ${T("("+Q.x+",\\,"+Q.y+")")} を通るので`,
+      `傾き ${T("a=\\dfrac{"+(Q.y-P.y)+"}{"+(Q.x-P.x)+"}="+rTexInline(a))}`,
+      `よって ${T(lineTex(a,b))}`
+    ]
+  };
+}
+
+/* ================================================================
+   変域  hendomain / hendomainadv
+   共通の道具: 変域の TeX を組み立てる。hide=0 なら下端，1 なら上端を
+   「ア」にする(-1 でどちらも数値)。
+   ================================================================ */
+function rngTex(lo,hi,v,hide){
+  const L=hide===0?"\\text{ア}":rTexInline(lo);
+  const H=hide===1?"\\text{ア}":rTexInline(hi);
+  return L+"\\leqq "+v+"\\leqq "+H;
+}
+/* 両端が格子点になる一次関数と x の変域を作る */
+function hendoCore(lim,noZero){
+  lim=lim||14;
+  let a,b,p,q,yp,yq;
+  for(;;){
+    a=pickSlope(false);
+    b=rmk(ri(-5,5));
+    p=a.d*ri(-3,2);
+    q=p+a.d*ri(1,3);                       /* p<q，どちらも a.d の倍数 */
+    if(noZero&&(p===0||q===0))continue;
+    yp=radd(rmul(a,rmk(p)),b);             /* 必ず整数になる */
+    yq=radd(rmul(a,rmk(q)),b);
+    if(Math.abs(yp.n)>lim||Math.abs(yq.n)>lim)continue;
+    if(Math.abs(p)>lim||Math.abs(q)>lim)continue;
+    break;
+  }
+  const up=a.n>0;
+  return {a,b,p,q,yp,yq,up,ymin:up?yp:yq,ymax:up?yq:yp};
+}
+
+/* --- 変域(基本): グラフ(線分)をかいて y の変域を答える --- */
+function genHendomain(){
+  const R=8;
+  let c;
+  do{ c=hendoCore(R-1); }while(c.q-c.p<2);   /* 図の中に両端がおさまるもの */
+  const {a,b,p,q,yp,yq,up,ymin,ymax}=c;
+  return {
+    qkey:"hendomain_v1",
+    qHtml:`一次関数 ${T(lineTex(a,b))} について，${T("x")} の変域が ${T(p+"\\leqq x\\leqq "+q)} のときのグラフをかき，${T("y")} の変域を求めなさい。`
+         +`<br><span style="font-size:.8em;color:var(--ink-soft)">(グラフが通る格子点を2つタップ。変域の部分が<b>実線</b>，その外は<b>点線</b>で表示されます)</span>`,
+    fig:{kind:"draw",range:R},
+    ans:{kind:"drawseg",a,b,p,q,range:R,
+         pts:[{x:p,y:yp.n},{x:q,y:yq.n}],
+         fields:[{label:"",val:ymin},{label:"\\leqq y\\leqq",val:ymax}]},
+    exLines:[
+      `変域の両端を代入する。${T("x="+p)} のとき ${T("y="+rTexInline(yp))}，${T("x="+q)} のとき ${T("y="+rTexInline(yq))}`,
+      `${T("x")} の変域が決まっているので，実際に使うのは2点 ${T("("+p+",\\,"+rTexInline(yp)+")")}，${T("("+q+",\\,"+rTexInline(yq)+")")} を結ぶ<b>線分</b>の部分だけ。`,
+      up ? `${T("a>0")}(右上がり)なので ${T("x")} が最小のとき ${T("y")} も最小。`
+         : `${T("a<0")}(右下がり)なので ${T("x")} が最小のとき ${T("y")} は最大。`,
+      `よって ${T(rngTex(ymin,ymax,"y",-1))}`
+    ]
+  };
+}
+
+/* --- 変域(応用): グラフはかかない --- */
+function genHendomainAdv(){
+  const v=ri(1,5);
+  if(v===4)return genHendoSlope();
+  if(v===5)return genHendoIntercept();
+  const c=hendoCore();
+  const {a,b,p,q,up,ymin,ymax}=c;
+  if(v===1){
+    return {
+      qkey:"hendomainadv_v1",
+      qHtml:`一次関数 ${T(lineTex(a,b))} について，${T("x")} の変域が ${T(p+"\\leqq x\\leqq "+q)} のとき，${T("y")} の変域を求めなさい。`,
+      fig:null,
+      ans:{kind:"input",fields:[{label:"",val:ymin},{label:"\\leqq y\\leqq",val:ymax}]},
+      exLines:[
+        up ? `${T("a="+rTexInline(a))} で正(右上がり)なので，${T("x")} が最小のとき ${T("y")} も最小。`
+           : `${T("a="+rTexInline(a))} で負(右下がり)なので，${T("x")} が最小のとき ${T("y")} は最大。`,
+        `${T("x="+p)} のとき ${T("y="+rTexInline(c.yp))}，${T("x="+q)} のとき ${T("y="+rTexInline(c.yq))}`,
+        `よって ${T(rngTex(ymin,ymax,"y",-1))}`
+      ]
+    };
+  }
+  if(v===2){
+    return {
+      qkey:"hendomainadv_v2",
+      qHtml:`一次関数 ${T(lineTex(a,b))} について，${T("y")} の変域が ${T(rngTex(ymin,ymax,"y",-1))} のとき，${T("x")} の変域を求めなさい。`,
+      fig:null,
+      ans:{kind:"input",fields:[{label:"",val:rmk(p)},{label:"\\leqq x\\leqq",val:rmk(q)}]},
+      exLines:[
+        up ? `右上がりなので，${T("y")} が最小のとき ${T("x")} も最小。`
+           : `右下がりなので，${T("y")} が最小のとき ${T("x")} は最大。`,
+        `${T("y="+rTexInline(up?ymin:ymax))} を代入して ${T(rTexInline(up?ymin:ymax)+"="+shortRHS(a,b))} ${T("\\Rightarrow")} ${T("x="+p)}`,
+        `${T("y="+rTexInline(up?ymax:ymin))} を代入して ${T("x="+q)}`,
+        `よって ${T(p+"\\leqq x\\leqq "+q)}`
+      ]
+    };
+  }
+  /* v3: 式はわかっていて，変域の4つの端のうち1つが「ア」 */
+  const slot=ri(0,3);                       /* 0:xの下 1:xの上 2:yの下 3:yの上 */
+  const xHide=slot<2?slot:-1, yHide=slot<2?-1:slot-2;
+  const ansVal=[rmk(p),rmk(q),ymin,ymax][slot];
+  const xAtY=(y)=>rdiv(rsub(y,b),a);        /* y から x を逆算 */
+  const how=[
+    `${T("x")} の下端は ${T("y")} の${up?"最小":"最大"}値 ${T(rTexInline(up?ymin:ymax))} に対応する。`,
+    `${T("x")} の上端は ${T("y")} の${up?"最大":"最小"}値 ${T(rTexInline(up?ymax:ymin))} に対応する。`,
+    `${T("y")} の最小値は ${T("x="+(up?p:q))} のときの値。`,
+    `${T("y")} の最大値は ${T("x="+(up?q:p))} のときの値。`
+  ][slot];
+  const calc=[
+    T(rTexInline(up?ymin:ymax)+"="+shortRHS(a,b)+"\\ \\Rightarrow\\ x="+p),
+    T(rTexInline(up?ymax:ymin)+"="+shortRHS(a,b)+"\\ \\Rightarrow\\ x="+q),
+    T("y="+rTexInline(a)+"\\times("+(up?p:q)+")"+(b.n>=0?"+":"")+rTexInline(b)+"="+rTexInline(ymin)),
+    T("y="+rTexInline(a)+"\\times("+(up?q:p)+")"+(b.n>=0?"+":"")+rTexInline(b)+"="+rTexInline(ymax))
+  ][slot];
+  return {
+    qkey:"hendomainadv_v3",
+    qHtml:`一次関数 ${T(lineTex(a,b))} について，${T("x")} の変域が ${T(rngTex(rmk(p),rmk(q),"x",xHide))} のとき，${T("y")} の変域は ${T(rngTex(ymin,ymax,"y",yHide))} でした。${T("\\text{ア}")} にあてはまる数を求めなさい。`,
+    fig:null,
+    ans:{kind:"input",fields:[{label:"\\text{ア}=",val:ansVal}]},
+    exLines:[
+      up ? `${T("a="+rTexInline(a))} は正なので，${T("x")} と ${T("y")} の大小の向きは同じ。`
+         : `${T("a="+rTexInline(a))} は負なので，${T("x")} と ${T("y")} の大小の向きは逆になる。`,
+      how, calc,
+      `よって ${T("\\text{ア}="+rTexInline(ansVal))}`
+    ]
+  };
+}
+
+/* --- 応用 v4: 変化の割合だけがわかっている --- */
+function genHendoSlope(){
+  const c=hendoCore();
+  const {a,p,q,up,ymin,ymax}=c;
+  const width=rmul(rAbs(a),rmk(q-p));       /* y の変域の幅(必ず正の整数) */
+  const hideMax=ri(0,1)===0;
+  const ansVal=hideMax?ymax:ymin;
+  return {
+    qkey:"hendomainadv_v4",
+    qHtml:`変化の割合が ${T(rTexInline(a))} の一次関数について，${T("x")} の変域が ${T(p+"\\leqq x\\leqq "+q)} のとき，${T("y")} の変域は ${T(rngTex(ymin,ymax,"y",hideMax?1:0))} でした。${T("\\text{ア}")} にあてはまる数を求めなさい。`,
+    fig:null,
+    ans:{kind:"input",fields:[{label:"\\text{ア}=",val:ansVal}]},
+    exLines:[
+      `${T("x")} の増加量は ${T((q-p)+"")}。`,
+      `${T("y")} の増加量 ${T("=")} 変化の割合 ${T("\\times")} ${T("x")} の増加量 ${T("="+rTexInline(a)+"\\times "+(q-p)+"="+rTexInline(rmul(a,rmk(q-p))))}`,
+      `変域の幅はその絶対値 ${T(rTexInline(width))} なので，切片がわからなくても幅は決まる。`,
+      hideMax
+        ? T("\\text{ア}="+rTexInline(ymin)+"+"+rTexInline(width)+"="+rTexInline(ymax))
+        : T("\\text{ア}="+rTexInline(ymax)+"-"+rTexInline(width)+"="+rTexInline(ymin)),
+      `よって ${T(rngTex(ymin,ymax,"y",-1))}`
+    ]
+  };
+}
+
+/* --- 応用 v5: 切片と向きだけがわかっている --- */
+function genHendoIntercept(){
+  const c=hendoCore(14,true);               /* p,q とも 0 でないもの */
+  const {a,b,p,q,up,ymin,ymax}=c;
+  const hideMax=ri(0,1)===0;
+  const ansVal=hideMax?ymax:ymin;
+  /* わかっている方の端に対応する x */
+  const knownY=hideMax?ymin:ymax;
+  const knownX=hideMax?(up?p:q):(up?q:p);
+  const wantX=hideMax?(up?q:p):(up?p:q);
+  return {
+    qkey:"hendomainadv_v5",
+    qHtml:`切片が ${T(rTexInline(b))} で<b>${up?"右上がり":"右下がり"}</b>の一次関数について，${T("x")} の変域が ${T(p+"\\leqq x\\leqq "+q)} のとき，${T("y")} の変域は ${T(rngTex(ymin,ymax,"y",hideMax?1:0))} でした。${T("\\text{ア}")} にあてはまる数を求めなさい。`,
+    fig:null,
+    ans:{kind:"input",fields:[{label:"\\text{ア}=",val:ansVal}]},
+    exLines:[
+      `切片が ${T(rTexInline(b))} なので ${T("y=ax"+(b.n>=0?"+":"")+rTexInline(b))} とおける。`,
+      up ? `右上がりなので ${T("y")} の${hideMax?"最小":"最大"}値 ${T(rTexInline(knownY))} は ${T("x="+knownX)} のとき。`
+         : `右下がりなので ${T("y")} の${hideMax?"最小":"最大"}値 ${T(rTexInline(knownY))} は ${T("x="+knownX)} のとき。`,
+      T(rTexInline(knownY)+"=a\\times("+knownX+")"+(b.n>=0?"+":"")+rTexInline(b)+"\\ \\Rightarrow\\ a="+rTexInline(a)),
+      `${T("x="+wantX)} を代入して ${T("\\text{ア}="+rTexInline(a)+"\\times("+wantX+")"+(b.n>=0?"+":"")+rTexInline(b)+"="+rTexInline(ansVal))}`,
+      `よって ${T(rngTex(ymin,ymax,"y",-1))}`
+    ]
+  };
+}
+
+/* チップの並び順に合わせてある(表示順=学習順) */
+const GENS={hantei:genHantei,zoukaryo:genZoukaryo,graph:genGraph,graphadv:genGraphAdv,yomitori:genYomitori,hendomain:genHendomain,hendomainadv:genHendomainAdv,tokucho:genTokucho,shiki:genShiki,shikiadv:genShikiAdv,koten:genKoten,menseki:genMenseki};
 
 /* 入力文字列 → rational  (例 "-3", "1/2", "-4.5", "2.25") */
 function parseRat(s){
@@ -734,8 +1544,8 @@ const LS_KEY="divp_"+UNIT_KEY+"_v1";
 let totalXp=0;
 try{const s=JSON.parse(localStorage.getItem(LS_KEY)||"{}");totalXp=s.xp|0;}catch(e){}
 let streak=0, perfectRun=0;
-let mode="zoukaryo", cur=null, graded=false;
-let selChoice=-1, drawPts=[], activeField=0;
+let mode="hantei", cur=null, graded=false;
+let selChoice=-1, selOx=-1, orderSeq=[], drawPts=[], activeField=0;
 
 function level(){return Math.floor(Math.sqrt(totalXp/100))+1;}
 function rank(){
@@ -813,6 +1623,26 @@ function drawPointOn(svg,x,y,color,r){
   c.setAttribute("stroke","#fff");c.setAttribute("stroke-width",1.5);
   svg.appendChild(c);return c;
 }
+/* 線分(端で止まる線)。無限に伸びる drawLineOn とは別物 */
+function drawSegOn(svg,P,Q,color,w){
+  const l=document.createElementNS(SVGNS,"line");
+  l.setAttribute("x1",svg._gx(P[0]));l.setAttribute("y1",svg._gy(P[1]));
+  l.setAttribute("x2",svg._gx(Q[0]));l.setAttribute("y2",svg._gy(Q[1]));
+  l.setAttribute("stroke",color);l.setAttribute("stroke-width",w||3);l.setAttribute("stroke-linecap","round");
+  svg.appendChild(l);
+  return l;
+}
+/* 点のよこに A / B などの名前を出す(右寄りの点は左側に置いて枠外に出さない) */
+function ptLabel(svg,x,y,text,color){
+  const right=x>svg._R*0.55;
+  const e=document.createElementNS(SVGNS,"text");
+  e.textContent=text;
+  e.setAttribute("x",svg._gx(x)+(right?-9:9));
+  e.setAttribute("text-anchor",right?"end":"start");
+  e.setAttribute("y",Math.max(13,svg._gy(y)-8));
+  e.setAttribute("font-size",14);e.setAttribute("fill",color);e.setAttribute("font-weight","bold");
+  svg.appendChild(e);
+}
 function shadeTri(svg,tri){
   const p=document.createElementNS(SVGNS,"polygon");
   p.setAttribute("points",tri.map(v=>svg._gx(v[0])+","+svg._gy(v[1])).join(" "));
@@ -822,11 +1652,18 @@ function shadeTri(svg,tri){
   svg.appendChild(p);
 }
 function lineLabel(svg,ln,text,color){
-  const seg=ln&&ln.p2;if(!seg)return;
+  if(!ln||!ln.p1||!ln.p2)return;
+  /* 線の「上に伸びている側」の端に置く。右下がりの線を右端(＝図の下)に
+     置くと x軸の目盛りと重なって読めないため。
+     p1 は左端・p2 は右端(drawLineOn が x 順に返す)。 */
+  const useP1=ln.p1[1]>=ln.p2[1];
+  const top=useP1?ln.p1:ln.p2;
   const e=document.createElementNS(SVGNS,"text");
   e.textContent=text;
-  e.setAttribute("x",svg._gx(ln.p2[0])-14);
-  e.setAttribute("y",svg._gy(ln.p2[1])-6);
+  e.setAttribute("x",svg._gx(top[0])+(useP1?5:-5));
+  e.setAttribute("text-anchor",useP1?"start":"end");
+  /* 上端から出ていく線はラベルが枠外に切れるので下げる */
+  e.setAttribute("y",Math.max(13,svg._gy(top[1])-6));
   e.setAttribute("font-size",13);e.setAttribute("fill",color);e.setAttribute("font-weight","bold");
   svg.appendChild(e);
 }
@@ -848,7 +1685,10 @@ function renderFig(fig){
     if(fig.kind==="twolines"&&fig.pt&&!graded){/* 交点は答えなので採点前は描かない */}
   }
   if(fig.kind==="points"){
+    if(fig.seg)drawSegOn(svg,fig.seg[0],fig.seg[1],"var(--sakura-deep)");
+    if(fig.pivot)drawPointOn(svg,fig.pivot.x,fig.pivot.y,"var(--gold)",5);  /* 回転の中心 */
     fig.points.forEach(p=>drawPointOn(svg,p.x,p.y,"var(--sakura-deep)"));
+    (fig.labels||[]).forEach(l=>ptLabel(svg,l.x,l.y,l.t,"var(--ink)"));
   }
   if(fig.kind==="tri"){
     (fig.lines||[]).forEach(l=>{
@@ -862,7 +1702,10 @@ function renderFig(fig){
     svg.id="drawSvg";
     document.getElementById("clearPtsBtn").style.display="inline-block";
     const hint=document.createElement("div");
-    hint.className="fig-hint";hint.textContent="格子点をタップ(2点で直線が決まる)";
+    hint.className="fig-hint";
+    hint.textContent=(cur&&cur.ans&&cur.ans.kind==="drawseg")
+      ? "① グラフが通る格子点を2つタップ(実線の部分が変域)"
+      : "格子点をタップ(2点で直線が決まる)";
     wrap.appendChild(hint);
     const handler=ev=>{
       if(graded)return;
@@ -886,14 +1729,28 @@ function renderFig(fig){
 function redrawUserLine(){
   const svg=document.getElementById("drawSvg");
   if(!svg)return;
-  svg.querySelectorAll(".upt,.uln").forEach(e=>e.remove());
+  svg.querySelectorAll(".upt,.uln,.uhi").forEach(e=>e.remove());
   if(drawPts.length===2){
     const [P,Q]=drawPts;
     if(P.x!==Q.x){
       const a=rmk(Q.y-P.y,Q.x-P.x);
       const b=rsub(rmk(P.y),rmul(a,rmk(P.x)));
-      const seg=drawLineOn(svg,a,b,"var(--sakura-deep)");
-      const lastLine=svg.lastChild;lastLine.classList.add("uln");
+      /* 変域モードは「変域の外は点線・変域の中は実線」で表す。
+         点線の直線を先に引き，その上に実線の線分を重ねる。 */
+      if(cur&&cur.ans&&cur.ans.kind==="drawseg"){
+        const p=cur.ans.p, q=cur.ans.q;
+        const yp=rVal(radd(rmul(a,rmk(p)),b)), yq=rVal(radd(rmul(a,rmk(q)),b));
+        drawLineOn(svg,a,b,"rgba(201,85,111,.5)",true);
+        svg.lastChild.classList.add("uln");
+        drawSegOn(svg,[p,yp],[q,yq],"var(--sakura-deep)",3.6).classList.add("uhi");
+        /* 変域の両端は金色。タップした点(朱)と見分けがつくようにする */
+        [[p,yp],[q,yq]].forEach(w=>{
+          drawPointOn(svg,w[0],w[1],"var(--gold)",5).classList.add("uhi");
+        });
+      }else{
+        drawLineOn(svg,a,b,"var(--sakura-deep)");
+        svg.lastChild.classList.add("uln");
+      }
     }else{
       /* 垂直線プレビュー */
       const l=document.createElementNS(SVGNS,"line");
@@ -913,7 +1770,71 @@ function redrawUserLine(){
 function renderAns(ans){
   const area=document.getElementById("ansArea");
   area.innerHTML="";
-  selChoice=-1;drawPts=[];activeField=0;
+  selChoice=-1;selOx=-1;orderSeq=[];drawPts=[];activeField=0;
+  if(ans.kind==="order"){
+    const lab=document.createElement("div");
+    lab.className="stepLab ordLab";
+    lab.innerHTML=`<i>順</i><span>${T("\\text{①}\\to\\text{②}\\to\\text{③}")} の順にタップ</span><b id="ordCnt">0 / 3</b>`;
+    area.appendChild(lab);
+    const g=document.createElement("div");g.className="choices";
+    ans.choices.forEach((c,i)=>{
+      const b=document.createElement("button");
+      b.className="choiceBtn ordable";
+      b.innerHTML=`<span class="ordNum"></span><span class="inner">${c}</span>`;
+      b.addEventListener("click",()=>{
+        if(graded)return;
+        const at=orderSeq.indexOf(i);
+        if(at>=0)orderSeq.splice(at,1);            /* もう一度押したら取り消し */
+        else if(orderSeq.length<3)orderSeq.push(i);
+        else return;                                /* 3つ選んだら「選び直す」で消す */
+        refreshOrder(g);
+      });
+      g.appendChild(b);
+    });
+    area.appendChild(g);
+    renderTexIn(area);
+    g.querySelectorAll(".choiceBtn .inner").forEach(el=>fitEl(el,el.parentElement.clientWidth-56));
+    document.getElementById("clearPtsBtn").style.display="inline-block";
+  }
+  if(ans.kind==="eqox"){
+    /* ① 式を4択で選ぶ */
+    const s1=document.createElement("div");s1.className="eqStep";
+    s1.innerHTML=`<div class="stepLab"><i>1</i>${T("y")} を ${T("x")} の式で表すと？</div>`;
+    const g=document.createElement("div");g.className="choices";
+    ans.choices.forEach((c,i)=>{
+      const b=document.createElement("button");
+      b.className="choiceBtn";
+      b.innerHTML=`<span class="inner">${c}</span>`;
+      b.addEventListener("click",()=>{
+        if(graded)return;
+        selChoice=i;
+        g.querySelectorAll(".choiceBtn").forEach((x,j)=>x.classList.toggle("sel",j===i));
+      });
+      g.appendChild(b);
+    });
+    s1.appendChild(g);
+    area.appendChild(s1);
+    renderTexIn(s1);
+    g.querySelectorAll(".choiceBtn .inner").forEach(el=>fitEl(el,el.parentElement.clientWidth-16));
+    /* ② 一次関数かどうかを ○× で答える */
+    const s2=document.createElement("div");s2.className="eqStep";
+    s2.innerHTML=`<div class="stepLab"><i>2</i>${T("y")} は ${T("x")} の一次関数といえる？</div>`;
+    const row=document.createElement("div");row.className="oxRow";
+    [["○","いえる"],["×","いえない"]].forEach((o,i)=>{
+      const b=document.createElement("button");
+      b.className="oxBtn";
+      b.innerHTML=`${o[0]}<small>${o[1]}</small>`;
+      b.addEventListener("click",()=>{
+        if(graded)return;
+        selOx=i;
+        row.querySelectorAll(".oxBtn").forEach((x,j)=>x.classList.toggle("sel",j===i));
+      });
+      row.appendChild(b);
+    });
+    s2.appendChild(row);
+    area.appendChild(s2);
+    renderTexIn(s2);
+  }
   if(ans.kind==="choice"){
     const g=document.createElement("div");g.className="choices";
     ans.choices.forEach((c,i)=>{
@@ -931,8 +1852,15 @@ function renderAns(ans){
     renderTexIn(g);
     g.querySelectorAll(".choiceBtn .inner").forEach(el=>fitEl(el,el.parentElement.clientWidth-16));
   }
-  if(ans.kind==="input"){
+  if(ans.kind==="input"||ans.kind==="drawseg"){
     const f=document.createElement("div");f.className="fields";
+    if(ans.kind==="drawseg"){
+      const lab=document.createElement("div");
+      lab.className="stepLab";
+      lab.innerHTML=`<i>2</i>${T("y")} の変域は？`;
+      area.appendChild(lab);
+      renderTexIn(lab);
+    }
     if(ans.pre){
       const pre=document.createElement("div");pre.className="field";
       pre.innerHTML=`<span class="flab">${T(ans.pre)}</span><span style="color:var(--ink-soft);margin:0 4px;">→</span>`;
@@ -967,6 +1895,18 @@ function renderAns(ans){
     area.appendChild(tk);
     renderTexIn(f);
   }
+}
+/* 選んだ順に ①②③ のバッジを振り直す */
+function refreshOrder(g){
+  g=g||document.querySelector("#ansArea .choices");
+  if(!g)return;
+  g.querySelectorAll(".choiceBtn").forEach((b,i)=>{
+    const at=orderSeq.indexOf(i);
+    b.classList.toggle("ord",at>=0);
+    b.querySelector(".ordNum").textContent=at>=0?ORDNUM[at]:"";
+  });
+  const c=document.getElementById("ordCnt");
+  if(c)c.textContent=orderSeq.length+" / 3";
 }
 function keyIn(k){
   if(graded)return;
@@ -1020,8 +1960,40 @@ function newQuestion(){
 function check(){
   if(graded)return;
   const ans=cur.ans;
-  let userStr="", ok=false;
-  if(ans.kind==="choice"){
+  let userStr="", ok=false, missMsg="おしい！ 解説を読んでもう一度挑戦しよう";
+  if(ans.kind==="order"){
+    if(orderSeq.length<3){toast("①→②→③ の順に3つえらんでね（残り"+(3-orderSeq.length)+"つ）");return;}
+    ok=orderSeq.every((v,i)=>v===ans.seq[i]);
+    userStr=orderSeq.join("-");
+    /* 採点後は「正しい番号」をバッジに出す(ダミーの式はバッジなし) */
+    document.querySelectorAll(".choiceBtn").forEach((b,i)=>{
+      const cp=ans.seq.indexOf(i), sp=orderSeq.indexOf(i);
+      b.classList.remove("ord");
+      b.querySelector(".ordNum").textContent=cp>=0?ORDNUM[cp]:"";
+      if(cp>=0&&cp===sp)b.classList.add("hit");
+      else if(cp>=0||sp>=0)b.classList.add("miss");
+    });
+    const nHit=orderSeq.filter((v,i)=>v===ans.seq[i]).length;
+    if(!ok&&nHit>0)missMsg=nHit+"つは合っているよ！ 残りをグラフで確かめよう";
+  }
+  else if(ans.kind==="eqox"){
+    if(selChoice<0){toast("① 式をえらんでね");return;}
+    if(selOx<0){toast("② ○ か × をえらんでね");return;}
+    const okEq=(selChoice===ans.correct), okOx=((selOx===0)===ans.lin);
+    ok=okEq&&okOx;
+    userStr="式:"+selChoice+" / "+(selOx===0?"○":"×");
+    document.querySelectorAll(".choiceBtn").forEach((b,i)=>{
+      if(i===ans.correct)b.classList.add("hit");
+      else if(i===selChoice)b.classList.add("miss");
+    });
+    document.querySelectorAll(".oxBtn").forEach((b,i)=>{
+      if((i===0)===ans.lin)b.classList.add("hit");
+      else if(i===selOx)b.classList.add("miss");
+    });
+    if(okEq&&!okOx)missMsg="式は合っているよ！ 一次関数かどうかをもう一度考えよう";
+    else if(!okEq&&okOx)missMsg="○×は合っているよ！ 式の立て方を解説で確かめよう";
+  }
+  else if(ans.kind==="choice"){
     if(selChoice<0){toast("答えを選んでね");return;}
     ok=(selChoice===ans.correct);
     userStr="choice:"+selChoice;
@@ -1042,6 +2014,39 @@ function check(){
       b.style.borderColor=rEq(rats[i],ans.fields[i].val)?"var(--moss)":"var(--sakura-deep)";
       b.style.background=rEq(rats[i],ans.fields[i].val)?"#E8F1E4":"#FBE7EA";
     });
+  }
+  else if(ans.kind==="drawseg"){
+    if(drawPts.length<2){toast("① グラフが通る点を2つタップしてね");return;}
+    const boxes=[...document.querySelectorAll(".fbox")];
+    const vals=boxes.map(b=>b.textContent.trim());
+    if(vals.some(v=>v===""))     {toast("② y の変域を入れてね");return;}
+    const rats=vals.map(parseRat);
+    if(rats.some(r=>r===null))   {toast("数の形を確かめてね(例: -3, 1/2)");return;}
+    /* かいた直線そのものが合っているかで判定する(タップする2点はグラフ上ならどこでもよい) */
+    const [P,Q]=drawPts;
+    let okDraw=false;
+    if(P.x!==Q.x){
+      const ua=rmk(Q.y-P.y,Q.x-P.x);
+      const ub=rsub(rmk(P.y),rmul(ua,rmk(P.x)));
+      okDraw=rEq(ua,ans.a)&&rEq(ub,ans.b);
+    }
+    const okRange=rats.every((r,i)=>rEq(r,ans.fields[i].val));
+    ok=okDraw&&okRange;
+    userStr=drawPts.map(p=>`(${p.x},${p.y})`).join(" ")+" / "+vals.join("〜");
+    boxes.forEach((b,i)=>{
+      const good=rEq(rats[i],ans.fields[i].val);
+      b.style.borderColor=good?"var(--moss)":"var(--sakura-deep)";
+      b.style.background=good?"#E8F1E4":"#FBE7EA";
+    });
+    /* 正しい直線と，変域にあたる部分を重ねて見せる */
+    const svg=document.getElementById("drawSvg");
+    if(svg){
+      if(!okDraw)drawLineOn(svg,ans.a,ans.b,"var(--moss)",true);
+      drawSegOn(svg,[ans.pts[0].x,ans.pts[0].y],[ans.pts[1].x,ans.pts[1].y],"var(--moss)",4);
+      ans.pts.forEach(w=>drawPointOn(svg,w.x,w.y,"var(--moss)",6));
+    }
+    if(okDraw&&!okRange)missMsg="直線は合っているよ！ 変域の両端の y の値をもう一度確かめよう";
+    else if(!okDraw&&okRange)missMsg="y の変域は合っているよ！ 直線が合っているか確かめよう";
   }
   else if(ans.kind==="draw"){
     if(drawPts.length<2){toast("グラフが通る点を2つ選んでね");return;}
@@ -1066,6 +2071,12 @@ function check(){
     const svg=document.querySelector("#figWrap svg");
     if(svg)drawPointOn(svg,cur.fig.pt.x,cur.fig.pt.y,"var(--gold)",6);
   }
+  /* 傾きの範囲: 採点後に境界の2直線を点線で重ねる(切片は問題ごとに固定) */
+  if(cur.fig&&cur.fig.bounds){
+    const svg=document.querySelector("#figWrap svg");
+    const bb=cur.fig.boundB||rmk(0);
+    if(svg)cur.fig.bounds.forEach(s=>drawLineOn(svg,s,bb,"var(--moss)",true));
+  }
 
   const correctStr=describeAnswer(ans);
   if(ok){
@@ -1075,7 +2086,7 @@ function check(){
     correctEffect();
   }else{
     streak=0;perfectRun=0;
-    toast("おしい！ 解説を読んでもう一度挑戦しよう");
+    toast(missMsg);
     document.getElementById("card").classList.remove("shake");
     void document.getElementById("card").offsetWidth;
     document.getElementById("card").classList.add("shake");
@@ -1085,6 +2096,10 @@ function check(){
   safeDivp("answer",UNIT_KEY,cur.qkey,ok,userStr,correctStr);
 }
 function describeAnswer(ans){
+  if(ans.kind==="order")return ans.seq.join("-");
+  if(ans.kind==="drawseg")return ans.pts.map(p=>"("+p.x+","+p.y+")").join(" ")
+    +" / "+ans.fields.map(f=>f.val.n+(f.val.d>1?"/"+f.val.d:"")).join("〜");
+  if(ans.kind==="eqox")return "式:"+ans.correct+" / "+(ans.lin?"○":"×");
   if(ans.kind==="choice")return "choice:"+ans.correct;
   if(ans.kind==="input")return ans.fields.map(f=>f.val.n+(f.val.d>1?"/"+f.val.d:"")).join(",");
   if(ans.kind==="draw")return lineTexPlain(ans.a,ans.b);
@@ -1119,7 +2134,9 @@ document.getElementById("modeNav").addEventListener("click",e=>{
 document.getElementById("checkBtn").addEventListener("click",check);
 document.getElementById("nextBtn").addEventListener("click",newQuestion);
 document.getElementById("clearPtsBtn").addEventListener("click",()=>{
-  if(graded)return;drawPts=[];redrawUserLine();
+  if(graded)return;
+  if(cur&&cur.ans.kind==="order"){orderSeq=[];refreshOrder();return;}
+  drawPts=[];redrawUserLine();
 });
 window.addEventListener("resize",fitQuestion);
 
