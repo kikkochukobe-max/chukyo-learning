@@ -140,9 +140,11 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
 }
 .choice:active{transform:scale(.97);}
 .choice:disabled{cursor:default;}
-.choice.sel-ok{border-color:var(--shu);border-width:2.5px;background:rgba(199,62,46,.07);font-weight:700;}
-.choice.sel-ng{border-color:var(--usuzumi);background:var(--grid);}
-.choice.dim{opacity:.4;}
+/* 答え合わせ表示(選んで正解=緑 / 選ばなかった正解=緑＋「正解」バッジ /
+   選んだ誤答=朱 / 残りは薄く)は共通モジュール divp-choice-mark.js が
+   data-divp-mark を見て描く。緑はモジュール既定の苔色、朱と薄さはこのツールに合わせる。 */
+:root{--divp-mark-ng:var(--shu);--divp-mark-dim-opacity:.4;}
+.choice[data-divp-mark="correct"],.choice[data-divp-mark="answer"]{border-width:2.5px;}
 
 .btn-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center;}
 .btn{
@@ -241,6 +243,7 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
 <script src="/assets/divp-header.js"></script>
 <script src="/assets/divp-correct-jh.js"></script>
 <script src="/assets/divp-core.js"></script>
+<script src="/assets/divp-choice-mark.js"></script>
 <script>if(window.Divp&&Divp.init)Divp.init('math_js2_renritsu_riyou');</script>
 <div class="wrap">
 
@@ -1734,9 +1737,9 @@ function judge(idx){
   const btns=$('choiceGrid').querySelectorAll('.choice');
   btns.forEach((b,i)=>{
     b.disabled=true;
-    if(state.choices[i].correct) b.classList.add('sel-ok');
-    else if(i===idx) b.classList.add('sel-ng');
-    else b.classList.add('dim');
+    /* 答え合わせ表示は共通モジュール divp-choice-mark.js にまかせる */
+    const isC=!!state.choices[i].correct;
+    safeDivpMark(b, isC ? (i===idx?"correct":"answer") : (i===idx?"wrong":"dim"));
   });
 
   if(ok){
@@ -1811,6 +1814,11 @@ function safeDivpCorrect(selector){
 function safeDivpIncorrect(selector){
   if(window.Divp&&typeof Divp.incorrect==='function'){
     try{ Divp.incorrect(selector); }catch(e){}
+  }
+}
+function safeDivpMark(el,kind){
+  if(window.Divp&&typeof Divp.markChoice==='function'){
+    try{ Divp.markChoice(el,kind); }catch(e){}
   }
 }
 
