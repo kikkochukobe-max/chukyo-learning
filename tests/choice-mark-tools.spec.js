@@ -55,9 +55,10 @@ const TOOLS = [
     name: '二次方程式',
     url: '/learning/math/math_js3_nijihoteishiki.html',
     start: async (page) => {
-      // モード一覧は折りたたまれているので開いてから選ぶ(選ぶとセットが始まる)
-      await page.locator("#mode-toggle").click();
-      await page.locator("#mode-list button").first().click();
+      // モード一覧は初期から開いている。閉じているときだけ開く
+      const list = page.locator('#mode-list button').first();
+      if (!(await list.isVisible())) await page.locator('#mode-toggle').click();
+      await list.click();   // モードを選ぶとセットが始まる
     },
     choices: '#choices .choice',
     grade: '#check-btn',

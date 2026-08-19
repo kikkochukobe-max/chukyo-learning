@@ -92,6 +92,9 @@ body {
   cursor: pointer;
 }
 #mode-toggle::after { content: "▾"; color: var(--ink-light); }
+/* 開いている間は矢印を上向きにする(初期表示が開いた状態なので、
+   ▾のままだと閉じているように見えてしまう) */
+.mode-bar:has(#mode-panel.open) #mode-toggle::after { content: "▴"; }
 #mode-panel {
   display: none;
   margin-top: 8px;
@@ -430,7 +433,9 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
 
 <div class="mode-bar">
   <button id="mode-toggle" type="button">モード：<span id="mode-current"></span></button>
-  <div id="mode-panel">
+  <!-- 初期状態で開いておく(どのモードがあるか最初に見えるように)。
+       モードを選ぶと buildModeSwitcher 側で閉じる -->
+  <div id="mode-panel" class="open">
     <div id="mode-list"></div>
   </div>
 </div>
