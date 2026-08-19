@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="color-scheme" content="only light">
 <title>ローマ字マスター｜中京個別指導学院</title>
+<!-- 学習ツール一覧(learning/index.php)で、全学年タブに加えて英語タブにも出す -->
+<meta name="divp-subject" content="english">
 <!-- 本番(Heteml)ではサブセット自己ホストに差し替え -->
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
 <!-- 学習記録システム共通モジュール -->
@@ -492,9 +494,17 @@
   body.sensei-mode .app{ display:none; }
   body.sensei-mode .sensei{
     display:block;
+    width:100%;      /* margin:0 auto だけだと flex項目が max-content(520px)に広がって狭い画面ではみ出す */
     max-width:520px;
     margin:0 auto;
     padding:16px 14px 40px;
+  }
+  /* PCは横幅が使えるので、左=印刷する言葉 / 右=入れかえ候補 の2カラムにする */
+  @media (min-width:860px){
+    body.sensei-mode .sensei{ max-width:1040px; }
+    .s-cols{ grid-template-columns:1fr 1fr; align-items:start; }
+    .s-add, .s-make{ max-width:520px; }
+    .s-list{ max-height:64vh; }
   }
   .s-head{ display:flex; align-items:baseline; gap:8px; border-bottom:2.5px solid var(--ai); padding-bottom:8px; }
   .s-head h1{
@@ -520,11 +530,22 @@
     background:#fff; color:var(--ai);
     cursor:pointer;
   }
+  .s-actions button.s-primary{ background:var(--ai); color:#fff; font-weight:700; }
+  .s-count{ font-size:12px; font-weight:700; color:var(--ai); margin:10px 0 0; }
+  .s-count.over{ color:var(--shu); }
+  .s-cols{ display:grid; gap:12px; margin-top:14px; }
+  .s-col-head{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--ai);
+    margin:0 0 5px 2px;
+  }
+  .s-col-head .n{ font-size:15px; }
   .s-list{
     background:#fff;
     border:1.5px solid var(--grid);
     border-radius:12px;
-    overflow:hidden;
+    overflow-y:auto;
+    max-height:56vh;
   }
   .s-row{
     display:flex; align-items:center; gap:10px;
@@ -668,7 +689,7 @@
   <div class="m-sub">モードを えらんでね</div>
   <button type="button" class="m-card" id="mGojuon">
     <span class="m-emoji">🌱</span>
-    <span class="m-body"><span class="m-name">五十音</span><span class="m-desc">「あいうえお」から じゅんばんに(はじめての人むけ)</span></span>
+    <span class="m-body"><span class="m-name">五十音でローマ字練習</span><span class="m-desc">「あいうえお」から じゅんばんに(はじめての人むけ)</span></span>
   </button>
   <div class="m-cats" id="gCats" hidden>
     <div class="m-note">れんしゅうしたい行を タップしてね</div>
@@ -676,11 +697,11 @@
   </div>
   <button type="button" class="m-card" id="mRomaji">
     <span class="m-emoji">🖋️</span>
-    <span class="m-body"><span class="m-name">ローマ字</span><span class="m-desc">ひらがな → ヘボン式ローマ字</span></span>
+    <span class="m-body"><span class="m-name">単語でローマ字練習</span><span class="m-desc">ひらがな → ヘボン式ローマ字</span></span>
   </button>
   <button type="button" class="m-card" id="mEng">
     <span class="m-emoji">🔤</span>
-    <span class="m-body"><span class="m-name">英単語<span class="m-desc" style="margin-left:4px">（おまけ）</span></span><span class="m-desc">にほんご → えいご</span></span>
+    <span class="m-body"><span class="m-name">英単語練習<span class="m-desc" style="margin-left:4px">（おまけ）</span></span><span class="m-desc">にほんご → えいご</span></span>
   </button>
   <div class="m-cats" id="mCats" hidden>
     <div class="m-note">れんしゅうしたいものを タップしてね</div>
@@ -728,20 +749,32 @@
     <span class="s-app">ローマ字マスター</span>
     <button type="button" class="s-back" id="sBack">← もどる</button>
   </div>
-  <p class="s-desc">チェックした言葉はプリントに<b>必ず</b>入ります(残りはランダムで20問まで補充)。「ださない」にした言葉は出ません。今日だけ使いたい言葉の追加もできます。</p>
+  <p class="s-desc">開くと<b>ランダムで20問</b>が左に入っています。そのまま印刷してOK。入れかえたい言葉は<b>行をタップ</b>(左→右で外す／右→左で入れる)。「ださない」にした言葉は出ません。今日だけ使いたい言葉の追加もできます。</p>
   <div class="s-actions">
+    <button type="button" id="sRandom" class="s-primary">ランダムで20問</button>
     <button type="button" id="sAll">ぜんぶ選ぶ</button>
     <button type="button" id="sClear">クリア</button>
   </div>
-  <div class="s-list" id="sList"></div>
   <div class="s-add">
     <input id="sAddKana" placeholder="ひらがな">
     <input id="sAddRoman" placeholder="ローマ字(正解)">
     <input id="sAddEmoji" placeholder="絵文字" maxlength="4">
     <button type="button" id="sAddBtn">追加</button>
   </div>
-  <p class="s-tip">固有名詞は頭を大文字で入力(例: Aichi)。追加した言葉はチェック済みで必ず入ります。</p>
+  <p class="s-tip">固有名詞は頭を大文字で入力(例: Aichi)。追加した言葉は印刷する側(左)に入ります。</p>
+  <div class="s-count" id="sCount"></div>
   <button type="button" class="s-make" id="sPrint">この内容で印刷する(問題+こたえ)</button>
+
+  <div class="s-cols">
+    <div class="s-col">
+      <div class="s-col-head">印刷する言葉 <span class="n" id="sPickedN">0</span>問</div>
+      <div class="s-list" id="sPicked"></div>
+    </div>
+    <div class="s-col">
+      <div class="s-col-head">入れかえ候補 <span class="n" id="sPoolN">0</span>語</div>
+      <div class="s-list" id="sPool"></div>
+    </div>
+  </div>
 </div>
 
 <div class="print-sheet" id="printSheet">
@@ -1008,7 +1041,229 @@
     { kana:"ほっかいどう", roman:"hokkaido", emoji:"🐻", proper:true, long:true },
     { kana:"きゅうしゅう", roman:"kyushu",  emoji:"🌋", proper:true, long:true },
     { kana:"おきなわ",   roman:"okinawa",   emoji:"🏝️", proper:true },
-    { kana:"あいち",     roman:"aichi",     emoji:"🏙️", proper:true }
+    { kana:"あいち",     roman:"aichi",     emoji:"🏙️", proper:true },
+
+    // ヘボン式のポイント(つづき)
+    { kana:"しゃぼんだま", roman:"shabondama", emoji:"🫧" },
+    { kana:"しんごう",   roman:"shingo",   emoji:"🚦", long:true },
+    { kana:"しょうゆ",   roman:"shoyu",    emoji:"🍶", long:true },
+    { kana:"しょくぶつ", roman:"shokubutsu", emoji:"🌱" },
+    { kana:"じしゃく",   roman:"jishaku",  emoji:"🧲" },
+    { kana:"じゅうどう", roman:"judo",     emoji:"🎽", long:true },
+    { kana:"ちきゅう",   roman:"chikyu",   emoji:"🌏", long:true },
+    { kana:"ちょうちん", roman:"chochin",  emoji:"🏮", long:true },
+    { kana:"ちゃわん",   roman:"chawan",   emoji:"🍚" },
+    { kana:"ちゅうしゃじょう", roman:"chushajo", emoji:"🅿️", long:true },
+    { kana:"つくえ",     roman:"tsukue",   emoji:"🪑" },
+    { kana:"つゆ",       roman:"tsuyu",    emoji:"🌧️" },
+    { kana:"ふでばこ",   roman:"fudebako", emoji:"🖊️" },
+    { kana:"ふうりん",   roman:"furin",    emoji:"🎐", long:true },
+    { kana:"ふろ",       roman:"furo",     emoji:"🛁" },
+    { kana:"きっぷ",     roman:"kippu",    emoji:"🎫" },
+    { kana:"にっき",     roman:"nikki",    emoji:"📔" },
+    { kana:"がっき",     roman:"gakki",    emoji:"🎹" },
+    { kana:"きっさてん", roman:"kissaten", emoji:"☕" },
+    { kana:"しっぽ",     roman:"shippo",   emoji:"🐕" },
+    { kana:"しゅうまい", roman:"shumai",   emoji:"🥟", long:true },
+    { kana:"てんびん",   roman:"tembin",   emoji:"⚖️" },
+    { kana:"かんばん",   roman:"kamban",   emoji:"🪧" },
+    { kana:"たんぽぽ",   roman:"tampopo",  emoji:"🌼" },
+    { kana:"おんぷ",     roman:"ompu",     emoji:"🎵" },
+    { kana:"ぶんぼうぐ", roman:"bumbogu",  emoji:"📎", long:true },
+
+    // どうぶつ(つづき)
+    { kana:"ねずみ",     roman:"nezumi",   emoji:"🐭" },
+    { kana:"らくだ",     roman:"rakuda",   emoji:"🐫" },
+    { kana:"とかげ",     roman:"tokage",   emoji:"🦎" },
+    { kana:"こんちゅう", roman:"konchu",   emoji:"🐛", long:true },
+    { kana:"あさり",     roman:"asari",    emoji:"🐚" },
+    { kana:"つばめ",     roman:"tsubame",  emoji:"🪶" },
+    { kana:"すずめ",     roman:"suzume",   emoji:"🐦" },
+    { kana:"はと",       roman:"hato",     emoji:"🕊️" },
+    { kana:"わし",       roman:"washi",    emoji:"🦅" },
+    { kana:"りゅう",     roman:"ryu",      emoji:"🐉", long:true },
+    { kana:"きょうりゅう", roman:"kyoryu",   emoji:"🦕", long:true },
+    { kana:"かぶとむし", roman:"kabutomushi", emoji:"🪲" },
+    { kana:"くわがた",   roman:"kuwagata", emoji:"🪲" },
+    { kana:"せみ",       roman:"semi",     emoji:"🦗" },
+    { kana:"こおろぎ",   roman:"korogi",   emoji:"🦗", long:true },
+    { kana:"いのしし",   roman:"inoshishi", emoji:"🐗" },
+    { kana:"きつつき",   roman:"kitsutsuki", emoji:"🪵" },
+    { kana:"つる",       roman:"tsuru",    emoji:"🦢" },
+    { kana:"ひょう",     roman:"hyo",      emoji:"🐆", long:true },
+    { kana:"めだか",     roman:"medaka",   emoji:"🐟" },
+    { kana:"まぐろ",     roman:"maguro",   emoji:"🍣" },
+    { kana:"さんま",     roman:"samma",    emoji:"🐟" },
+    { kana:"ひとで",     roman:"hitode",   emoji:"🌟" },
+    { kana:"みみず",     roman:"mimizu",   emoji:"🪱" },
+    { kana:"ろば",       roman:"roba",     emoji:"🐴" },
+    { kana:"くらげ",     roman:"kurage",   emoji:"🪼" },
+    { kana:"らっこ",     roman:"rakko",    emoji:"🦦" },
+    { kana:"みつばち",   roman:"mitsubachi", emoji:"🍯" },
+    { kana:"ちょうちょ", roman:"chocho",   emoji:"🦋", long:true },
+    { kana:"あしか",     roman:"ashika",   emoji:"🦭" },
+
+    // たべもの(つづき)
+    { kana:"とうふ",     roman:"tofu",     emoji:"🍲", long:true },
+    { kana:"なっとう",   roman:"natto",    emoji:"🥢", long:true },
+    { kana:"みそしる",   roman:"misoshiru", emoji:"🥣" },
+    { kana:"やきそば",   roman:"yakisoba", emoji:"🍝" },
+    { kana:"そうめん",   roman:"somen",    emoji:"🍜", long:true },
+    { kana:"たまごやき", roman:"tamagoyaki", emoji:"🍳" },
+    { kana:"からあげ",   roman:"karaage",  emoji:"🍗" },
+    { kana:"ぎゅうにゅう", roman:"gyunyu",   emoji:"🥛", long:true },
+    { kana:"こうちゃ",   roman:"kocha",    emoji:"🫖", long:true },
+    { kana:"うめぼし",   roman:"umeboshi", emoji:"🔴" },
+    { kana:"たくあん",   roman:"takuan",   emoji:"🟡" },
+    { kana:"つけもの",   roman:"tsukemono", emoji:"🥗" },
+    { kana:"のり",       roman:"nori",     emoji:"🍱" },
+    { kana:"こんぶ",     roman:"kombu",    emoji:"🌿" },
+    { kana:"かぼちゃ",   roman:"kabocha",  emoji:"🎃" },
+    { kana:"だいこん",   roman:"daikon",   emoji:"🥬" },
+    { kana:"ほうれんそう", roman:"horenso",  emoji:"🥬", long:true },
+    { kana:"ごぼう",     roman:"gobo",     emoji:"🥕", long:true },
+    { kana:"れんこん",   roman:"renkon",   emoji:"🥔" },
+    { kana:"さつまいも", roman:"satsumaimo", emoji:"🍠" },
+    { kana:"まめ",       roman:"mame",     emoji:"🌱" },
+    { kana:"くるみ",     roman:"kurumi",   emoji:"🌰" },
+    { kana:"かき",       roman:"kaki",     emoji:"🟠" },
+    { kana:"さくらんぼ", roman:"sakurambo", emoji:"🍒" },
+    { kana:"まんじゅう", roman:"manju",    emoji:"🥮", long:true },
+    { kana:"たいやき",   roman:"taiyaki",  emoji:"🍥" },
+
+    // みぢかなもの(つづき)
+    { kana:"ものさし",   roman:"monosashi", emoji:"📏" },
+    { kana:"じょうぎ",   roman:"jogi",     emoji:"📐", long:true },
+    { kana:"かばん",     roman:"kaban",    emoji:"🎒" },
+    { kana:"さいふ",     roman:"saifu",    emoji:"👛" },
+    { kana:"まくら",     roman:"makura",   emoji:"💤" },
+    { kana:"ざぶとん",   roman:"zabuton",  emoji:"🛋️" },
+    { kana:"たんす",     roman:"tansu",    emoji:"🗄️" },
+    { kana:"ほうちょう", roman:"hocho",    emoji:"🔪", long:true },
+    { kana:"なべ",       roman:"nabe",     emoji:"🥘" },
+    { kana:"やかん",     roman:"yakan",    emoji:"♨️" },
+    { kana:"かるた",     roman:"karuta",   emoji:"🎴" },
+    { kana:"けんだま",   roman:"kendama",  emoji:"🪀" },
+    { kana:"なわとび",   roman:"nawatobi", emoji:"🪢" },
+    { kana:"ぬいぐるみ", roman:"nuigurumi", emoji:"🧸" },
+    { kana:"えほん",     roman:"ehon",     emoji:"📕" },
+    { kana:"はがき",     roman:"hagaki",   emoji:"📬" },
+    { kana:"でんち",     roman:"denchi",   emoji:"🔋" },
+    { kana:"かいちゅうでんとう", roman:"kaichudento", emoji:"🔦", long:true },
+    { kana:"はしご",     roman:"hashigo",  emoji:"🪜" },
+    { kana:"ちりとり",   roman:"chiritori", emoji:"🗑️" },
+    { kana:"ぞうきん",   roman:"zokin",    emoji:"🧽", long:true },
+    { kana:"てぶくろ",   roman:"tebukuro", emoji:"🧤" },
+    { kana:"ゆびわ",     roman:"yubiwa",   emoji:"💍" },
+    { kana:"きもの",     roman:"kimono",   emoji:"👘" },
+
+    // しぜん・てんき(つづき)
+    { kana:"ゆうやけ",   roman:"yuyake",   emoji:"🌇", long:true },
+    { kana:"あさひ",     roman:"asahi",    emoji:"🌅" },
+    { kana:"みかづき",   roman:"mikazuki", emoji:"🌒" },
+    { kana:"まんげつ",   roman:"mangetsu", emoji:"🌕" },
+    { kana:"ほしぞら",   roman:"hoshizora", emoji:"🌌" },
+    { kana:"きり",       roman:"kiri",     emoji:"🌫️" },
+    { kana:"しも",       roman:"shimo",    emoji:"🌨️" },
+    { kana:"つらら",     roman:"tsurara",  emoji:"🥶" },
+    { kana:"たいふう",   roman:"taifu",    emoji:"🌀", long:true },
+    { kana:"つなみ",     roman:"tsunami",  emoji:"🌊" },
+    { kana:"かざん",     roman:"kazan",    emoji:"🌋" },
+    { kana:"みずうみ",   roman:"mizuumi",  emoji:"🏞️" },
+    { kana:"はやし",     roman:"hayashi",  emoji:"🌳" },
+    { kana:"たけ",       roman:"take",     emoji:"🎋" },
+    { kana:"まつ",       roman:"matsu",    emoji:"🌲" },
+    { kana:"うめ",       roman:"ume",      emoji:"💮" },
+    { kana:"つばき",     roman:"tsubaki",  emoji:"🌺" },
+    { kana:"ひまわり",   roman:"himawari", emoji:"🌻" },
+    { kana:"すみれ",     roman:"sumire",   emoji:"🌷" },
+    { kana:"きく",       roman:"kiku",     emoji:"🌼" },
+    { kana:"ばら",       roman:"bara",     emoji:"🌹" },
+    { kana:"くさ",       roman:"kusa",     emoji:"🌱" },
+
+    // からだ(つづき)
+    { kana:"あたま",     roman:"atama",    emoji:"🧠" },
+    { kana:"かお",       roman:"kao",      emoji:"😊" },
+    { kana:"うで",       roman:"ude",      emoji:"💪" },
+    { kana:"あし",       roman:"ashi",     emoji:"🦶" },
+    { kana:"ひざ",       roman:"hiza",     emoji:"🦵" },
+    { kana:"つめ",       roman:"tsume",    emoji:"💅" },
+    { kana:"かみのけ",   roman:"kaminoke", emoji:"💇" },
+    { kana:"した",       roman:"shita",    emoji:"👅" },
+    { kana:"のど",       roman:"nodo",     emoji:"🗣️" },
+    { kana:"なみだ",     roman:"namida",   emoji:"😢" },
+
+    // のりもの(つづき)
+    { kana:"ちかてつ",   roman:"chikatetsu", emoji:"🚇" },
+    { kana:"じんりきしゃ", roman:"jinrikisha", emoji:"🛺" },
+    { kana:"いかだ",     roman:"ikada",    emoji:"🛶" },
+    { kana:"ぎょせん",   roman:"gyosen",   emoji:"🚢" },
+    { kana:"せんろ",     roman:"senro",    emoji:"🛤️" },
+    { kana:"ふみきり",   roman:"fumikiri", emoji:"🚧" },
+    { kana:"おうだんほどう", roman:"odanhodo", emoji:"🚸", long:true },
+    { kana:"のりもの",   roman:"norimono", emoji:"🚌" },
+
+    // まち・たてもの(つづき)
+    { kana:"ようちえん", roman:"yochien",  emoji:"🎠", long:true },
+    { kana:"ほいくえん", roman:"hoikuen",  emoji:"🍼" },
+    { kana:"きょうしつ", roman:"kyoshitsu", emoji:"🏫", long:true },
+    { kana:"ろうか",     roman:"roka",     emoji:"🚪", long:true },
+    { kana:"やね",       roman:"yane",     emoji:"🏘️" },
+    { kana:"まど",       roman:"mado",     emoji:"🪟" },
+    { kana:"にわ",       roman:"niwa",     emoji:"🪴" },
+    { kana:"だいどころ", roman:"daidokoro", emoji:"🍳" },
+    { kana:"じんじゃ",   roman:"jinja",    emoji:"⛩️" },
+    { kana:"おてら",     roman:"otera",    emoji:"🛕" },
+    { kana:"すいぞくかん", roman:"suizokukan", emoji:"🐠" },
+    { kana:"どうぶつえん", roman:"dobutsuen", emoji:"🦁", long:true },
+    { kana:"はくぶつかん", roman:"hakubutsukan", emoji:"🏛️" },
+    { kana:"びじゅつかん", roman:"bijutsukan", emoji:"🖼️" },
+    { kana:"えいがかん", roman:"eigakan",  emoji:"🎬" },
+    { kana:"くうこう",   roman:"kuko",     emoji:"🛫", long:true },
+    { kana:"みなと",     roman:"minato",   emoji:"⚓" },
+    { kana:"のうか",     roman:"noka",     emoji:"🏡", long:true },
+    { kana:"たんぼ",     roman:"tambo",    emoji:"🌾" },
+    { kana:"ぼくじょう", roman:"bokujo",   emoji:"🐄", long:true },
+    { kana:"やおや",     roman:"yaoya",    emoji:"🥦" },
+    { kana:"びよういん", roman:"biyoin",   emoji:"💈", long:true },
+
+    // ひと・しごと(つづき)
+    { kana:"おかあさん", roman:"okasan",   emoji:"👩", long:true },
+    { kana:"おとうさん", roman:"otosan",   emoji:"🧔", long:true },
+    { kana:"おじいさん", roman:"ojisan",   emoji:"👴", long:true },
+    { kana:"おばあさん", roman:"obasan",   emoji:"👵", long:true },
+    { kana:"おにいさん", roman:"onisan",   emoji:"👦", long:true },
+    { kana:"おねえさん", roman:"onesan",   emoji:"👧", long:true },
+    { kana:"あかちゃん", roman:"akachan",  emoji:"👶" },
+    { kana:"かぞく",     roman:"kazoku",   emoji:"👪" },
+    { kana:"がくせい",   roman:"gakusei",  emoji:"🎓" },
+    { kana:"うんてんしゅ", roman:"untenshu", emoji:"🚕" },
+    { kana:"りょうし",   roman:"ryoshi",   emoji:"🎣", long:true },
+    { kana:"だいく",     roman:"daiku",    emoji:"🔨" },
+    { kana:"かんごし",   roman:"kangoshi", emoji:"🩺" },
+    { kana:"しょうぼうし", roman:"shoboshi", emoji:"🧯", long:true },
+    { kana:"うちゅうひこうし", roman:"uchuhikoshi", emoji:"🚀", long:true },
+    { kana:"かしゅ",     roman:"kashu",    emoji:"🎤" },
+
+    // スポーツ・あそび(つづき)
+    { kana:"すいえい",   roman:"suiei",    emoji:"🏊" },
+    { kana:"からて",     roman:"karate",   emoji:"👊" },
+    { kana:"きゅうどう", roman:"kyudo",    emoji:"🏹", long:true },
+    { kana:"しょうぎ",   roman:"shogi",    emoji:"♟️", long:true },
+    { kana:"おりがみ",   roman:"origami",  emoji:"📄" },
+    { kana:"おにごっこ", roman:"onigokko", emoji:"👹" },
+    { kana:"かくれんぼ", roman:"kakurembo", emoji:"🙈" },
+    { kana:"たっきゅう", roman:"takkyu",   emoji:"🏓", long:true },
+    { kana:"はなび",     roman:"hanabi",   emoji:"🎆" },
+    { kana:"うんどうかい", roman:"undokai",  emoji:"🏃", long:true },
+
+    // ちめい・こゆうめいし(つづき)
+    { kana:"しずおか",   roman:"shizuoka", emoji:"🍵", proper:true },
+    { kana:"ぎふ",       roman:"gifu",     emoji:"🏔️", proper:true },
+    { kana:"よこはま",   roman:"yokohama", emoji:"🎡", proper:true },
+    { kana:"こうべ",     roman:"kobe",     emoji:"🌉", proper:true, long:true },
+    { kana:"さっぽろ",   roman:"sapporo",  emoji:"⛄", proper:true },
+    { kana:"なごやじょう", roman:"nagoyajo", emoji:"🏯", proper:true, long:true }
   ];
 
   // ---- 英単語モード(カテゴリ別) ----
@@ -1496,6 +1751,8 @@
     enterPanel();
   });
 
+  var PRINT_N = 20; // プリント1枚の問題数(パネルの「ランダムで20問」もこの数)
+
   // 印刷実行：チェック語は必ず含め、残りをランダムで20問まで補充(2枚目に同じ並びで解答)
   function runPrint(must, rest){
     $("psTitle").textContent =
@@ -1507,7 +1764,7 @@
       MODE === "eng" ? "にほんごを えいごで かきましょう。" :
       MODE === "gojuon" ? "つづけて ローマ字で かきましょう。" :
       "ひらがなを ローマ字で かきましょう。";
-    var pool = shuffle(shuffle(must).concat(shuffle(rest)).slice(0, 20));
+    var pool = shuffle(shuffle(must).concat(shuffle(rest)).slice(0, PRINT_N));
     if (MODE === "gojuon") {
       pool.sort(function(a, b){ return ACTIVE.indexOf(a) - ACTIVE.indexOf(b); }); // 行順を維持
     }
@@ -1552,40 +1809,102 @@
   var renderPanelList = null;
 
   function initPanel(){
-    var list = $("sList");
+    // 左=印刷する言葉 / 右=入れかえ候補。行のタップで左右を行き来する
+    var pickedList = $("sPicked");
+    var poolList = $("sPool");
 
-    function addRow(w, checked){
+    function addRow(w, into, atTop){
       var row = document.createElement("div");
       row.className = "s-row";
       row.__word = w;
       row.dataset.roman = w.roman;
       if (w.custom) row.dataset.custom = "1";
       row.innerHTML =
-        '<input type="checkbox" class="s-prio"' + (checked ? ' checked' : '') + '>' +
+        '<input type="checkbox" class="s-prio"' + (into === pickedList ? ' checked' : '') + '>' +
         '<span class="s-kana">' + promptOf(w) + '</span>' +
         '<span class="s-roman">' + answerOf(w) + '</span>' +
         '<span class="s-emoji">' + w.emoji + '</span>' +
         '<button type="button" class="s-del">' + (w.custom ? 'さくじょ' : 'ださない') + '</button>';
-      list.appendChild(row);
+      if (atTop) into.insertBefore(row, into.firstChild);
+      else into.appendChild(row);
+    }
+
+    function allRows(){
+      var a = Array.prototype.slice.call(pickedList.querySelectorAll(".s-row"));
+      return a.concat(Array.prototype.slice.call(poolList.querySelectorAll(".s-row")));
+    }
+
+    // 行を左右に移す(チェックは「左にある＝印刷される」と同じ意味)
+    function moveRow(row, into){
+      row.querySelector(".s-prio").checked = (into === pickedList);
+      if (into === poolList) into.insertBefore(row, into.firstChild); // 外した語はすぐ戻せるよう先頭へ
+      else into.appendChild(row);
+    }
+
+    // 何問えらばれているか(先生が付けかえながら数を見られるように)
+    function updateCount(){
+      var n = pickedList.querySelectorAll(".s-row:not(.off)").length;
+      $("sPickedN").textContent = n;
+      $("sPoolN").textContent = poolList.querySelectorAll(".s-row").length;
+      var el = $("sCount");
+      el.textContent =
+        n === 0       ? "えらんだ 0問 → ぜんぶランダムで" + PRINT_N + "問えらびます" :
+        n > PRINT_N   ? "えらんだ " + n + "問 → 多いので、この中からランダムで" + PRINT_N + "問だけ入ります" :
+        n === PRINT_N ? "えらんだ " + PRINT_N + "問 → このまま印刷できます" :
+                        "えらんだ " + n + "問 → のこり" + (PRINT_N - n) + "問はランダムで入ります";
+      el.className = "s-count" + (n > PRINT_N ? " over" : "");
+    }
+
+    // ランダムに20問えらんで左へ。残りは元の並びで右(候補)に戻す
+    function pickRandom(){
+      var rows = allRows(), able = [];
+      rows.forEach(function(row){
+        if (!row.classList.contains("off")) able.push(row);
+      });
+      var picked = shuffle(able.slice()).slice(0, PRINT_N);
+      var rest = rows.filter(function(row){ return picked.indexOf(row) === -1; });
+      rest.sort(function(a, b){ return ACTIVE.indexOf(a.__word) - ACTIVE.indexOf(b.__word); });
+      picked.forEach(function(row){ moveRow(row, pickedList); });
+      rest.forEach(function(row){
+        row.querySelector(".s-prio").checked = false;
+        poolList.appendChild(row);
+      });
+      updateCount();
     }
 
     renderPanelList = function(){
-      list.innerHTML = "";
-      ACTIVE.forEach(function(w){ addRow(w, false); });
+      pickedList.innerHTML = "";
+      poolList.innerHTML = "";
+      ACTIVE.forEach(function(w){ addRow(w, poolList); });
+      pickRandom(); // 開いた時点で左にランダム20問＝選ばなくても印刷できる
     };
 
-    // ださない/もどす・さくじょ
-    list.addEventListener("click", function(e){
+    $("sRandom").addEventListener("click", pickRandom);
+
+    // ださない/もどす・さくじょ／行タップで左右の入れかえ
+    function onListClick(e){
       var btn = e.target.closest(".s-del");
-      if (!btn) return;
-      var row = btn.closest(".s-row");
-      if (row.dataset.custom) { row.remove(); return; }
-      var off = row.classList.toggle("off");
-      btn.textContent = off ? "もどす" : "ださない";
-      var cb = row.querySelector(".s-prio");
-      cb.disabled = off;
-      if (off) cb.checked = false;
-    });
+      if (btn) {
+        var row = btn.closest(".s-row");
+        if (row.dataset.custom) { row.remove(); updateCount(); return; }
+        var off = row.classList.toggle("off");
+        btn.textContent = off ? "もどす" : "ださない";
+        var cb = row.querySelector(".s-prio");
+        cb.disabled = off;
+        if (off) moveRow(row, poolList); // 出さない語は候補側へ寄せる
+        updateCount();
+        return;
+      }
+      var target = e.target.closest(".s-row");
+      if (!target || target.classList.contains("off")) {
+        if (target) target.querySelector(".s-prio").checked = false; // 直接クリック分を戻す
+        return;
+      }
+      moveRow(target, target.parentNode === pickedList ? poolList : pickedList);
+      updateCount();
+    }
+    pickedList.addEventListener("click", onListClick);
+    poolList.addEventListener("click", onListClick);
 
     // 語の追加(このプリント限り・チェック済みで入る)
     $("sAddBtn").addEventListener("click", function(){
@@ -1597,7 +1916,8 @@
         return;
       }
       var key = roman.toLowerCase();
-      if (list.querySelector('.s-row[data-roman="' + key + '"]')) {
+      if (pickedList.querySelector('.s-row[data-roman="' + key + '"]') ||
+          poolList.querySelector('.s-row[data-roman="' + key + '"]')) {
         alert("同じローマ字の言葉がすでにあります");
         return;
       }
@@ -1607,12 +1927,18 @@
         emoji: emoji || "✏️",
         proper: /^[A-Z]/.test(roman),
         custom: true
-      }, true);
+      }, pickedList);
       $("sAddKana").value = ""; $("sAddRoman").value = ""; $("sAddEmoji").value = "";
+      updateCount();
     });
 
     function setAll(v){
-      list.querySelectorAll(".s-row:not(.off) .s-prio").forEach(function(c){ c.checked = v; });
+      allRows().forEach(function(row){ // 元の並びのまま片側へ寄せる
+        if (row.classList.contains("off")) return;
+        row.querySelector(".s-prio").checked = v;
+        (v ? pickedList : poolList).appendChild(row);
+      });
+      updateCount();
     }
     $("sAll").addEventListener("click", function(){ setAll(true); });
     $("sClear").addEventListener("click", function(){ setAll(false); });
@@ -1620,16 +1946,17 @@
     // 印刷実行
     $("sPrint").addEventListener("click", function(){
       var must = [], rest = [];
-      list.querySelectorAll(".s-row").forEach(function(row){
+      allRows().forEach(function(row){
         if (row.classList.contains("off")) return;
-        (row.querySelector(".s-prio").checked ? must : rest).push(row.__word);
+        (row.parentNode === pickedList ? must : rest).push(row.__word);
       });
       if (must.length + rest.length === 0) {
         alert("印刷できる言葉がありません");
         return;
       }
-      if (must.length > 20) {
-        alert("チェックが20個をこえています(" + must.length + "個)。20問にはランダムで20個入ります");
+      if (must.length > PRINT_N) {
+        alert("チェックが" + PRINT_N + "個をこえています(" + must.length + "個)。"
+              + "プリントにはこの中からランダムで" + PRINT_N + "個入ります");
       }
       runPrint(must, rest);
     });

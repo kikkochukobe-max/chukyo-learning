@@ -106,6 +106,15 @@ foreach ($dirs as $dir) {
         if (preg_match('/<meta\s+name=["\']divp-device["\']\s+content=["\'](.*?)["\']/iu', $head, $m)) {
             $device = trim($m[1]);
         }
+        // 教科の相乗り（ツール側に <meta name="divp-subject" content="english"> があれば、
+        // 置いてあるフォルダに加えてその教科のタブ・セクションにも同じカードを出す。カンマ区切りで複数可。
+        // 例: allgrade のローマ字マスターを英語タブにも出す）
+        $alsoSubjects = [];
+        if (preg_match('/<meta\s+name=["\']divp-subject["\']\s+content=["\'](.*?)["\']/iu', $head, $m)) {
+            foreach (preg_split('/[,\s]+/u', trim($m[1])) ?: [] as $s) {
+                if ($s !== '') $alsoSubjects[] = $s;
+            }
+        }
         $name = basename($file);
         [$title, $sub] = $rawTitle !== '' ? parse_title($rawTitle) : [pathinfo($name, PATHINFO_FILENAME), ''];
         $grade = grade_badge($name);
@@ -115,7 +124,7 @@ foreach ($dirs as $dir) {
         if ($folder === 'math') {
             $group = (mb_substr($grade, 0, 1) === '小') ? 'sansu' : 'math';
         }
-        $tools[] = [
+        $entry = [
             'folder' => $group,
             'href'   => $folder . '/' . $name,
             'title'  => $title,
@@ -124,6 +133,13 @@ foreach ($dirs as $dir) {
             'device' => $device,
             'isNew'  => (time() - (int)filemtime($file)) < 60 * 60 * 24 * 30, // 30日以内は NEW
         ];
+        $tools[] = $entry;
+        // 相乗り先の教科にも同じカードを出す（実体は1本なので href は同じ。
+        // 「◯件のツール」は href の重複を除いて数えるため二重計上にはならない）
+        foreach ($alsoSubjects as $s) {
+            if ($s === $group) continue;
+            $tools[] = ['folder' => $s] + $entry;
+        }
     }
 }
 
@@ -166,6 +182,31 @@ foreach ($tools as $t) {
     if (!isset($tabs[$f])) {
         $tabs[$f] = $subjects[$f]['label'] ?? $f;
     }
+}
+
+// ---- 学年タブ ----
+// ツールが1本でもある校種だけ、その校種の全学年ぶんタブを出す（小1〜小6 / 中1〜中3 / 高1〜高3）。
+// 学年番号なしのツール（「小学」「中学」）はその校種のどの学年タブにも出す。
+$schoolGrades = ['小' => 6, '中' => 3, '高' => 3];
+$gradeTabs = [];
+foreach ($schoolGrades as $school => $max) {
+    foreach ($tools as $t) {
+        if (mb_substr($t['grade'], 0, 1) === $school) {
+            for ($i = 1; $i <= $max; $i++) $gradeTabs[] = $school . $i;
+            break;
+        }
+    }
+}
+
+// カードが「どの学年タブで表示されるか」を空白区切りで返す（'*' = どの学年でも表示）
+function grade_keys(string $grade, array $gradeTabs): string
+{
+    if ($grade === '' || $grade === '全学年') return '*'; // 全学年ツール・学年不明はいつでも出す
+    if (preg_match('/\d/u', $grade)) return $grade;       // 小3 / 中1 など単一学年
+    $school = mb_substr($grade, 0, 1);                    // 小学 / 中学 / 高校 → その校種の全学年
+    return implode(' ', array_filter($gradeTabs, function (string $g) use ($school): bool {
+        return mb_substr($g, 0, 1) === $school;
+    }));
 }
 
 function h(?string $s): string
@@ -253,12 +294,17 @@ function subject_color(array $subjects, string $folder): string
     border-color:var(--shu);box-shadow:0 0 0 3px var(--shu-soft);
   }
   .searchbox input::placeholder{color:#B9B5A9}
-  /* 教科タブ */
+  /* 教科タブ / 学年タブ（2段。どちらも横スクロール可） */
   .tabs{
     max-width:960px;margin:0 auto;padding:0 16px 10px;
-    display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;
+    display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none;
   }
   .tabs::-webkit-scrollbar{display:none}
+  .tabs-label{
+    font-family:'Zen Maru Gothic',sans-serif;font-weight:700;
+    font-size:11px;color:var(--ink-soft);white-space:nowrap;
+    letter-spacing:.08em;flex:none;
+  }
   .tab{
     font-family:'Zen Maru Gothic',sans-serif;font-weight:700;
     font-size:13px;white-space:nowrap;cursor:pointer;
@@ -268,6 +314,10 @@ function subject_color(array $subjects, string $folder): string
   }
   .tab:hover{border-color:var(--ink-soft)}
   .tab.active{background:var(--ink);border-color:var(--ink);color:var(--white)}
+  /* 学年タブは教科タブと役割を区別できるよう藍で選択状態を出す */
+  .tabs-grade{padding-bottom:8px}
+  .tabs-grade .tab{font-size:12px;padding:4px 12px}
+  .tabs-grade .tab.active{background:var(--ai);border-color:var(--ai)}
 
   /* ---------- 本体 ---------- */
   .wrap{max-width:960px;margin:0 auto;padding:22px 16px 80px}
@@ -360,7 +410,20 @@ function subject_color(array $subjects, string $folder): string
     .head-inner img.logo{height:26px}
     .head-title{font-size:14px}
     .searchbox{flex-basis:100%;order:10;margin-left:0}
-    .wrap{padding-top:16px}
+    .tabs{padding:0 14px 7px;gap:6px}
+    .tabs-grade{padding-bottom:7px}
+    .wrap{padding:14px 12px 60px}
+
+    /* スマホは2列。カード幅が半分になるぶん、余白と文字も詰める */
+    .grid-cards{grid-template-columns:repeat(2, minmax(0,1fr));gap:9px}
+    .card{padding:11px 11px 10px;border-radius:12px}
+    .card .badges{gap:4px;margin-bottom:6px}
+    .badge{font-size:10px;padding:3px 7px}
+    .card h3{font-size:13.5px;line-height:1.35}
+    .card .sub{font-size:11px;margin-top:3px;line-height:1.4}
+    .card .go{font-size:11px;margin-top:8px}
+    .subject-group{margin-bottom:22px}
+    .subject-head h2{font-size:16px}
   }
 </style>
 </head>
@@ -379,15 +442,25 @@ function subject_color(array $subjects, string $folder): string
     </div>
   </div>
   <nav class="tabs" id="tabs">
+    <span class="tabs-label">教科</span>
     <button class="tab active" data-subject="">すべて</button>
     <?php foreach ($tabs as $folder => $label): ?>
     <button class="tab" data-subject="<?= h($folder) ?>"><?= h($label) ?></button>
     <?php endforeach; ?>
   </nav>
+  <?php if ($gradeTabs): ?>
+  <nav class="tabs tabs-grade" id="gradeTabs">
+    <span class="tabs-label">学年</span>
+    <button class="tab active" data-grade="">すべて</button>
+    <?php foreach ($gradeTabs as $g): ?>
+    <button class="tab" data-grade="<?= h($g) ?>"><?= h($g) ?></button>
+    <?php endforeach; ?>
+  </nav>
+  <?php endif; ?>
 </header>
 
 <main class="wrap">
-  <p class="count"><b id="shown"><?= count($tools) ?></b> 件のツール</p>
+  <p class="count"><b id="shown"><?= count(array_unique(array_column($tools, 'href'))) ?></b> 件のツール</p>
 
   <?php foreach ($tabs as $folder => $label): ?>
   <section class="subject-group" data-subject="<?= h($folder) ?>">
@@ -404,7 +477,7 @@ function subject_color(array $subjects, string $folder): string
       ?>
       <a class="card<?= $isExt ? ' external' : '' ?>" href="<?= h($t['href']) ?>"
          <?php if ($isExt): ?>target="_blank" rel="noopener"<?php else: ?>style="border-top-color:<?= h($color) ?>"<?php endif; ?>
-         data-search="<?= h($search) ?>">
+         data-search="<?= h($search) ?>" data-grades="<?= h(grade_keys($t['grade'], $gradeTabs)) ?>">
         <div class="badges">
           <?php if ($t['grade'] !== ''): ?><span class="badge grade"><?= h($t['grade']) ?></span><?php endif; ?>
           <?php if ($isExt): ?><span class="badge ext">別サイト ↗</span><?php endif; ?>
@@ -437,11 +510,13 @@ function subject_color(array $subjects, string $folder): string
 (function () {
   'use strict';
   var input = document.getElementById('q');
-  var tabs = document.querySelectorAll('.tab');
+  var subjectTabs = document.querySelectorAll('#tabs .tab');
+  var gradeTabs = document.querySelectorAll('#gradeTabs .tab');
   var groups = document.querySelectorAll('.subject-group');
   var shown = document.getElementById('shown');
   var empty = document.getElementById('empty');
   var currentSubject = '';
+  var currentGrade = '';
 
   // カタカナ→ひらがな + 小文字化（ざっくり表記ゆれ吸収）
   function norm(s) {
@@ -450,34 +525,52 @@ function subject_color(array $subjects, string $folder): string
     });
   }
 
+  // data-grades は空白区切りの学年キー。'*' は全学年ツール（どの学年でも出す）
+  function gradeOk(card) {
+    if (!currentGrade) return true;
+    var keys = card.dataset.grades || '*';
+    return keys === '*' || keys.split(' ').indexOf(currentGrade) !== -1;
+  }
+
   function apply() {
     var q = norm(input.value.trim());
+    // 教科を相乗りしているツールは複数のセクションに同じカードが出るので、
+    // 「◯件のツール」は href で重複を除いて数える（各教科の「◯本」はカード数のまま）
+    var seen = {};
     var total = 0;
     groups.forEach(function (g) {
       var subjectOk = !currentSubject || g.dataset.subject === currentSubject;
       var visible = 0;
       g.querySelectorAll('.card').forEach(function (card) {
-        var hit = subjectOk && (!q || norm(card.dataset.search).indexOf(q) !== -1);
+        var hit = subjectOk && gradeOk(card) && (!q || norm(card.dataset.search).indexOf(q) !== -1);
         card.style.display = hit ? '' : 'none';
-        if (hit) visible++;
+        if (!hit) return;
+        visible++;
+        var href = card.getAttribute('href');
+        if (!seen[href]) { seen[href] = true; total++; }
       });
       g.style.display = visible ? '' : 'none';
       g.querySelector('.subject-head .n').textContent = visible + '本';
-      total += visible;
     });
     shown.textContent = total;
     empty.style.display = total ? 'none' : 'block';
   }
 
-  input.addEventListener('input', apply);
-  tabs.forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      tabs.forEach(function (t) { t.classList.remove('active'); });
-      tab.classList.add('active');
-      currentSubject = tab.dataset.subject;
-      apply();
+  // 同じ段のタブだけ active を付け替える（教科と学年は独立して効かせる）
+  function bindTabs(tabs, onPick) {
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        tabs.forEach(function (t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        onPick(tab);
+        apply();
+      });
     });
-  });
+  }
+
+  input.addEventListener('input', apply);
+  bindTabs(subjectTabs, function (tab) { currentSubject = tab.dataset.subject; });
+  bindTabs(gradeTabs, function (tab) { currentGrade = tab.dataset.grade; });
   apply();
 })();
 </script>
