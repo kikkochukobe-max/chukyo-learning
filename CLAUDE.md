@@ -20,6 +20,22 @@ assets/                共通モジュール（全ツールがscriptタグで読
                          ツール側CSSで前面に出すこと**（div/span だけで組んだ
                          ふきだし・ヘッダーが埋もれる。DivpFirework.clearPile() で消せる）
   divp-correct-jh.js     中学・高校用 正解スタンプエフェクト（es用Divp.correctとは別物）
+  divp-choice-mark.js    選択肢の「答え合わせ表示」。正解=緑 / 選んだ誤答=朱 /
+                         選ばなかった正解=緑＋「正解」バッジ / 残り=薄く。
+                         ⚠ divp-correct系(正解した瞬間のお祝い演出)とは別の関心事で、
+                         誤答時こそ必要なもの。Divp.correct を差し替えないので併用可。
+                         Divp.markChoices(list,{correct,selected,dimOthers,label})
+                         または Divp.markChoice(el,"correct|answer|wrong|dim")。
+                         クラス名ではなく data-divp-mark 属性で状態を持つので、
+                         ツール側の既存クラス(.hit/.sel-ok/.judge-ok/.is-correct と
+                         5流派に分裂している)を消さずに1本ずつ移行できる。
+                         色は var() のフォールバックで既定値を持つ＝ツールが :root で
+                         --divp-mark-ok / -ok-bg / -ok-bg-soft / -ng / -ng-bg /
+                         -dim-opacity を差せば読み込み順に関係なく勝つ。
+                         組み込み済み: 一次関数(製作中)・愛知県大問1。
+                         回帰テスト tests/choice-mark.spec.js
+                         ⚠ HTMLだけ先に上げるとツール側の採点CSSはもう無いので
+                         色が一切つかない(エラーも出ない)。assets を先に上げること
   print-watermark.js     印刷シート用透かしモジュール
   menseki-fig.js         円の面積(math_es6_en_menseki)の問題図SVG。単元専用だが
                          ツール本体と teacher.php の解き直しプリントの両方が読むため
