@@ -63,6 +63,19 @@ const TOOLS = [
     grade: '#check-btn',
     next: '#next-btn',
   },
+  {
+    name: 'イオンのしくみラボ',
+    url: '/learning/science/science_js3_ionlab.html',
+    start: async (page) => {
+      await page.locator('#tabbtn-quiz').click();
+      await page.locator('#quizStart button').first().click();
+    },
+    choices: '#quizChoices .choice',
+    // 単一選択は押した時点で採点。複数選択のときだけ「答え合わせ」ボタンが出る
+    grade: '#quizCheckBtn',
+    next: '#quizNextBtn',
+    multiAnswer: true,   // 「あてはまるものを全部えらんでね」があるので正解は複数ありうる
+  },
 ];
 
 for (const t of TOOLS) {
@@ -78,7 +91,11 @@ for (const t of TOOLS) {
       if (await choices.count() < 2) { await page.locator(t.next).click(); continue; }
 
       await choices.first().click();
-      if (t.grade) await page.locator(t.grade).click();
+      // 採点ボタンがある出題形式のときだけ押す(押した時点で採点されるツールもある)
+      if (t.grade) {
+        const g = page.locator(t.grade);
+        if (await g.isVisible()) await g.click();
+      }
 
       const marks = await page.evaluate(READ, t.choices);
       expect(marks.length, '選択肢が取れていない').toBeGreaterThanOrEqual(2);
@@ -86,7 +103,8 @@ for (const t of TOOLS) {
       expect(marks.filter((m) => m.mark === null), 'data-divp-mark の付け漏れ').toHaveLength(0);
       // 正解はちょうど1つ
       const answers = marks.filter((m) => m.mark === 'correct' || m.mark === 'answer');
-      expect(answers, '正解が1つでない').toHaveLength(1);
+      if (t.multiAnswer) expect(answers.length, '正解が1つも無い').toBeGreaterThanOrEqual(1);
+      else expect(answers, '正解が1つでない').toHaveLength(1);
       // 押したのは先頭。correct か wrong のどちらかでなければ選択状態が渡っていない
       expect(['correct', 'wrong'], '押した選択肢の状態がおかしい').toContain(marks[0].mark);
       // バッジは answer だけ

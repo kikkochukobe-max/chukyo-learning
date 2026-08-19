@@ -32,8 +32,13 @@ assets/                共通モジュール（全ツールがscriptタグで読
                          色は var() のフォールバックで既定値を持つ＝ツールが :root で
                          --divp-mark-ok / -ok-bg / -ok-bg-soft / -ng / -ng-bg /
                          -dim-opacity を差せば読み込み順に関係なく勝つ。
-                         組み込み済み: 一次関数(製作中)・愛知県大問1。
-                         回帰テスト tests/choice-mark.spec.js
+                         --divp-mark-ok-text は「正解」の文字色だけを分けたいとき用
+                         (既定は枠と同色。イオンのしくみラボのような暗い背景の
+                         ツールで、枠は明るい緑・文字は読める薄い色にするために使う)。
+                         組み込み済み7本: 一次関数(製作中)・愛知県大問1・方程式の利用・
+                         連立方程式の利用・計算特集(中2)・二次方程式・イオンのしくみラボ。
+                         回帰テスト tests/choice-mark.spec.js(仕様) と
+                         tests/choice-mark-tools.spec.js(各ツールの配線)
                          ⚠ HTMLだけ先に上げるとツール側の採点CSSはもう無いので
                          色が一切つかない(エラーも出ない)。assets を先に上げること
   print-watermark.js     印刷シート用透かしモジュール
