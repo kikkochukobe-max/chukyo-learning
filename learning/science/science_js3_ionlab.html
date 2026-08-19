@@ -370,11 +370,23 @@
   .choice sub{font-size:.6em}
   .choice:hover{border-color:var(--electron);transform:translateY(-2px)}
   .choice:disabled{cursor:default;transform:none}
-  .choice.correct{border-color:#7ee0a0;background:rgba(126,224,160,.16);box-shadow:0 0 0 1px #7ee0a0 inset;color:#d6ffe6}
-  .choice.wrong{border-color:#ff7a80;background:rgba(255,122,128,.16);box-shadow:0 0 0 1px #ff7a80 inset;color:#ffd9db}
+  /* 答え合わせ表示(選んで正解=緑 / 選ばなかった正解=緑＋「正解」バッジ /
+     選んだ誤答=赤 / 残りは薄く)は共通モジュール divp-choice-mark.js が
+     data-divp-mark を見て描く。このツールは暗い背景なので、枠は明るい色・
+     文字は読める薄い色に分けて指定する(--divp-mark-ok-text)。 */
+  :root{
+    --divp-mark-ok:#7ee0a0;
+    --divp-mark-ok-bg:rgba(126,224,160,.16);
+    --divp-mark-ok-bg-soft:rgba(126,224,160,.16);
+    --divp-mark-ok-text:#bfe6cf;
+    --divp-mark-ng:#ff7a80;
+    --divp-mark-ng-bg:rgba(255,122,128,.16);
+    --divp-mark-dim-opacity:.45;
+  }
+  /* モジュールは文字色を answer にしか当てないので、残りはここで暗背景用にする */
+  .choice[data-divp-mark="correct"]{color:#d6ffe6}
+  .choice[data-divp-mark="wrong"]{color:#ffd9db}
   .choice.sel{border-color:#7fd6ef;background:rgba(127,214,239,.16);box-shadow:0 0 0 1px #7fd6ef inset;color:#dff6ff}
-  .choice.miss{border-color:#7ee0a0;border-style:dashed;background:rgba(126,224,160,.07);color:#bfe6cf}
-  .choice.dim{opacity:.45}
   .quiz-check{margin-top:8px}
   .multi-hint{display:block;font-size:14px;color:var(--muted);font-weight:500;margin-top:8px}
   .quiz-fb{font-size:15px;line-height:1.6;border-radius:12px;margin-top:6px}
@@ -726,6 +738,7 @@
 
 </div>
 
+<script src="/assets/divp-choice-mark.js"></script>
 <script>
 /* ===== データ（原子番号1〜20・周期p・族g・代表イオンion） ===== */
 var ION_ELEMS = [
@@ -1564,6 +1577,10 @@ function quizReviewStart(){
   quizReview=true; quizQueue=qShuffle(quizWrong); quizPos=0; quizScore=0; quizWrong=[];
   quizView('play'); quizShow();
 }
+/* 共通モジュール divp-choice-mark.js のガード。読めない環境では何もしない */
+function divpMark(el,kind){
+  try{ if(window.Divp&&typeof Divp.markChoice==='function')Divp.markChoice(el,kind); }catch(e){}
+}
 function quizShow(){
   quizAnswered=false; quizSel=[];
   var it=quizQueue[quizPos];
@@ -1589,12 +1606,11 @@ function quizCheckMulti(){
   if(quizAnswered) return; quizAnswered=true;
   var it=quizQueue[quizPos], cs=it.correctSet, k, allOk=true;
   for(k=0;k<it.choices.length;k++){
-    var b=document.getElementById('quizCh'+k); b.disabled=true;
+    var b=document.getElementById('quizCh'+k); b.disabled=true; b.className='choice';
     var isCor=cs.indexOf(k)>=0, picked=!!quizSel[k];
-    if(isCor&&picked) b.className='choice correct';
-    else if(isCor&&!picked){ b.className='choice miss'; allOk=false; }
-    else if(!isCor&&picked){ b.className='choice wrong'; allOk=false; }
-    else b.className='choice dim';
+    /* 答え合わせ表示は共通モジュール divp-choice-mark.js にまかせる */
+    divpMark(b, isCor?(picked?'correct':'answer'):(picked?'wrong':'dim'));
+    if(isCor!==picked) allOk=false;
   }
   var cb=document.getElementById('quizCheckBtn'); if(cb) cb.className='btn give quiz-check is-hidden';
   var fb=document.getElementById('quizFb');
@@ -1607,8 +1623,9 @@ function quizAnswer(i){
   if(quizAnswered) return; quizAnswered=true;
   var it=quizQueue[quizPos], cor=it.correct, k;
   for(k=0;k<it.choices.length;k++){
-    var b=document.getElementById('quizCh'+k); b.disabled=true;
-    b.className='choice '+(k===cor?'correct':(k===i?'wrong':'dim'));
+    var b=document.getElementById('quizCh'+k); b.disabled=true; b.className='choice';
+    /* 答え合わせ表示は共通モジュール divp-choice-mark.js にまかせる */
+    divpMark(b, k===cor?(k===i?'correct':'answer'):(k===i?'wrong':'dim'));
   }
   var fb=document.getElementById('quizFb');
   if(i===cor){ quizScore++; fb.className='quiz-fb ok'; fb.innerHTML='<b>○ 正解！</b> '+it.explain; }

@@ -42,6 +42,8 @@
  *   ツール側の指定が勝つ(読み込み順に依存しない)。
  *   変数一覧 → --divp-mark-ok / --divp-mark-ok-bg / --divp-mark-ok-bg-soft
  *              --divp-mark-ng / --divp-mark-ng-bg / --divp-mark-dim-opacity
+ *   --divp-mark-ok-text は「正解」の文字色だけを分けたいとき用(既定は枠と同色)。
+ *   ダークテーマのツールは枠を明るい緑にしても文字が読めるよう、ここに薄い色を指定する。
  *
  * 注意：バッジは絶対配置なので、対象要素に position:relative が必要。
  *   このモジュールが [data-divp-mark] に position:relative を当てているが、
@@ -71,7 +73,7 @@
     + 'background:var(--divp-mark-ok-bg,#DCEBD3);'
     + 'border-color:var(--divp-mark-ok,#5E7B4E);'
     + 'box-shadow:inset 0 0 0 2px var(--divp-mark-ok,#5E7B4E);'
-    + 'color:var(--divp-mark-ok,#5E7B4E);font-weight:700;}'
+    + 'color:var(--divp-mark-ok-text,var(--divp-mark-ok,#5E7B4E));font-weight:700;}'
     // KaTeX は自前で色を持つので明示的に継がせる
     + '[data-divp-mark="answer"][data-divp-mark] .katex,'
     + '[data-divp-mark="answer"][data-divp-mark] .katex *{color:inherit;}'
