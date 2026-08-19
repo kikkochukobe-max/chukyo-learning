@@ -192,11 +192,19 @@ table.freq th{background:var(--paper-deep);font-weight:700}
 .mchoice.sel .mark{background:var(--ink);color:#fff}
 .mchoice.sel{border-color:var(--ai);background:var(--ok-bg)}
 .mchoice .body{flex:1;overflow:hidden}
-.mchoice.judge-ok{border-color:var(--midori);background:var(--midori-bg);box-shadow:0 0 0 1px var(--midori)}
-.mchoice.judge-ok .mark{background:var(--midori);border-color:var(--midori);color:#fff}
-.mchoice.judge-miss{opacity:.55}
-.mchoice.judge-wrongpick{border-color:var(--shu);background:var(--shu-bg);box-shadow:0 0 0 1px var(--shu)}
-.mchoice.judge-wrongpick .mark{background:var(--shu);border-color:var(--shu);color:#fff}
+/* 答え合わせ表示(正解=緑 / 選んだ誤答=朱 / 選ばなかった正解=緑＋「正解」バッジ /
+   残りは薄く)は共通モジュール divp-choice-mark.js が data-divp-mark を見て描く。
+   色だけこのツールのパレット(緑=midori・朱=shu)に合わせて差し替える。 */
+:root{
+  --divp-mark-ok:var(--midori);
+  --divp-mark-ok-bg:var(--midori-bg);
+  --divp-mark-ok-bg-soft:var(--midori-bg);
+  --divp-mark-ng:var(--shu);
+  --divp-mark-ng-bg:var(--shu-bg);
+}
+/* ア・イ・ウ の丸も採点結果に合わせる(モジュールは選択肢そのものだけ塗る) */
+.mchoice[data-divp-mark="correct"] .mark,.mchoice[data-divp-mark="answer"] .mark{background:var(--midori);border-color:var(--midori);color:#fff}
+.mchoice[data-divp-mark="wrong"] .mark{background:var(--shu);border-color:var(--shu);color:#fff}
 
 .actions{display:flex;gap:10px;margin-top:14px}
 .btn{
@@ -267,6 +275,7 @@ footer{margin-top:34px;text-align:center;font-size:.68rem;color:var(--usuzumi);l
 <script src="/assets/divp-header.js"></script>
 <script src="/assets/divp-core.js"></script>
 <script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-choice-mark.js"></script>
 <script>if(window.Divp&&Divp.init)Divp.init('math_js3_aichi_daimon1');</script>
 
 <div class="wrap">
@@ -2630,12 +2639,13 @@ $('btnCheck').addEventListener('click',()=>{
   question_replay:qReplayOf(q),
   correct_answer:ansText(q.correct,q.choices),
   wrong_answer:ansText(selected,q.choices)});
- document.querySelectorAll('.mchoice').forEach(b=>{
+ /* 答え合わせ表示は共通モジュール divp-choice-mark.js にまかせる。
+    選んで正解=緑 / 選ばなかった正解=緑＋「正解」バッジ / 選んだ誤答=朱 / 残り=薄く。
+    複数正解(q.correct は配列)があるので1つずつ振る。 */
+ document.querySelectorAll(".mchoice").forEach(b=>{
   const i=+b.dataset.i;
   const isC=q.correct.indexOf(i)>=0,isS=selected.indexOf(i)>=0;
-  if(isC)b.classList.add('judge-ok');
-  else if(isS)b.classList.add('judge-wrongpick');
-  else b.classList.add('judge-miss')});
+  safeDivp("markChoice",b,isC?(isS?"correct":"answer"):(isS?"wrong":"dim"))});
  if(ok){stamp(true);streak++;   /* はんこは自前 stamp()。Divp.correct は使わない */
   $('fbMsg').textContent='正解！ (答え: '+q.correct.map(i=>KANA[i]).join('・')+')';
   $('fbMsg').className='fb-msg ok';
