@@ -17,6 +17,9 @@
 <meta property="og:locale" content="ja_JP">
 <meta property="og:site_name" content="中京個別指導学院">
 <script src="/assets/print-watermark.js"></script>
+<!-- KaTeX: 印刷シートの式を数式組版で出す（トークン並べのHTMLより読みやすい） -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Bebas+Neue&family=Fira+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -342,14 +345,23 @@
   .p-sheet .ph-meta { display: flex; justify-content: space-between; font-size: 14px; margin: 0; align-items: center; }
   .p-sheet .ph-meta span { border-bottom: 1px solid #999; min-width: 130px; display: inline-block; padding-bottom: 2px; }
   .p-sheet .ph-meta .ph-name { min-width: 260px; height: 42px; border: 1px solid #999; border-radius: 5px; display: inline-flex; align-items: center; justify-content: flex-start; padding: 0 14px; }
-  .p-grid { display: flex; flex-direction: column; justify-content: space-between; margin-top: 12mm; min-height: 216mm; }
-  .p-item { display: flex; align-items: baseline; gap: 12px; font-size: 11px; padding-bottom: 3mm; font-family: 'Fira Mono', monospace; }
-  .p-item .no { font-weight: 800; width: 30px; flex: 0 0 auto; }
-  .p-ex { display: inline-flex; flex-wrap: wrap; align-items: center; column-gap: 0.3em; row-gap: 0.1em; }
+  /* 2列×5行。行を 1fr で切って用紙の縦を均等に使い切る（式は各マスの上端、下が計算スペース） */
+  .p-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(5, 1fr);
+            grid-auto-flow: column; column-gap: 10mm; margin-top: 6mm; height: 224mm; }
+  .p-item { display: flex; align-items: flex-start; gap: 10px; font-size: 12px;
+            padding: 1mm 0 0; border-top: 1px dotted #bbb; }
+  .p-item .no { font-weight: 800; width: 26px; flex: 0 0 auto; padding-top: 0.35em; }
+  .p-ex { display: inline-flex; flex-wrap: wrap; align-items: center; column-gap: 0.3em; row-gap: 0.1em;
+          font-family: 'Fira Mono', monospace; }
+  /* KaTeX は既定 1.21em。印刷では紙面に余裕があるので大きめに出す */
+  .p-item .katex { font-size: 1.55em; }
   .p-keypage { page-break-before: always; }
-  .p-kgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 26px; font-size: 11px; font-family: 'Fira Mono', monospace; }
-  .p-kgrid div { padding: 5px 0; border-bottom: 1px dotted #ccc; }
+  /* 解答も問題面と同じ「左に(1)〜(5)・右に(6)〜(10)」の並びにそろえる */
+  .p-kgrid { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(5, auto);
+             grid-auto-flow: column; gap: 8px 26px; font-size: 12px; font-family: 'Fira Mono', monospace; }
+  .p-kgrid div { padding: 7px 0; border-bottom: 1px dotted #ccc; display: flex; align-items: center; gap: 8px; }
   .p-kgrid .no { font-weight: 800; }
+  .p-kgrid .katex { font-size: 1.35em; }
 </style>
 </head>
 <body>
@@ -1001,6 +1013,57 @@ function exprText(ops, opers) {
   return s;
 }
 
+// ===== TeX版（印刷シート専用。画面側はトークン分割HTMLのまま） =====
+// exprHTML と同じ判断を TeX で書き直したもの。かっこの付け方・先頭負号の扱いは
+// operandText と同じ規則にそろえてある（画面・記録・印刷で式の見た目を食い違わせない）
+var OPTEX = { '+': '+', '-': '-', '*': '\\times', '/': '\\div' };
+function fracTeX(n, d) { return '\\dfrac{' + n + '}{' + d + '}'; }
+function magTeX(o) {
+  if (o.disp === 'dec') return decMag(o);
+  if (o.disp === 'frac' && o.r.d > 1) return fracTeX(Math.abs(o.r.n), o.r.d);
+  return '' + Math.abs(o.r.n);
+}
+function parenTeX(inner, bk) {
+  if (bk === 'curly') return '\\left\\{' + inner + '\\right\\}';
+  return '\\left(' + inner + '\\right)';
+}
+function operandTeX(o, first, afterDiv) {
+  if (o.sgnParen && isPlain(o)) return parenTeX((o.r.n < 0 ? '-' : '+') + magTeX(o));
+  if (o.disp === 'group') {
+    var s = operandTeX(o.gops[0], true, false);
+    for (var i = 0; i < o.gopers.length; i++) {
+      s += ' ' + OPTEX[o.gopers[i]] + ' ' + operandTeX(o.gops[i + 1], false, o.gopers[i] === '/');
+    }
+    return parenTeX(s, o.bk);
+  }
+  if (o.disp === 'npow') return '-' + o.base + '^{' + o.exp + '}';
+  if (o.disp === 'pow') return (o.base < 0 ? parenTeX('-' + Math.abs(o.base)) : '' + o.base) + '^{' + o.exp + '}';
+  if (o.disp === 'decpow') return (o.baseVal < 0 ? parenTeX('-' + Math.abs(o.baseVal)) : '' + o.baseVal) + '^{' + o.exp + '}';
+  if (o.disp === 'fracpow') return parenTeX((o.bn < 0 ? '-' : '') + fracTeX(Math.abs(o.bn), o.bd)) + '^{' + o.exp + '}';
+  var mag = magTeX(o);
+  if (o.r.n < 0) return first ? ('-' + mag) : parenTeX('-' + mag);
+  if (afterDiv && o.r.d > 1) return parenTeX(mag);   // 3 ÷ (1/2)
+  return mag;
+}
+function exprTeX(ops, opers) {
+  var s = operandTeX(ops[0], true, false);
+  for (var i = 0; i < opers.length; i++) s += ' ' + OPTEX[opers[i]] + ' ' + operandTeX(ops[i + 1], false, opers[i] === '/');
+  return s;
+}
+function ansTeX(p) {
+  var a = p.ans;
+  if (a.d === 1) return (a.n < 0 ? '-' : '') + Math.abs(a.n);
+  var wantDec = (p.flavor === 'dec') || (p.flavor === 'mix' && p.mixSec === 'dec');
+  if (wantDec) return decStr(a, false).replace('−', '-');
+  return (a.n < 0 ? '-' : '') + fracTeX(Math.abs(a.n), a.d);
+}
+// KaTeX 未読込（CDN到達不可）でも印刷できるよう、失敗時は従来のHTML版へ落とす
+function texOr(tex, fallbackHTML) {
+  if (!window.katex) return fallbackHTML;
+  try { return katex.renderToString(tex, { throwOnError: false, displayMode: false, strict: false }); }
+  catch (e) { return fallbackHTML; }
+}
+
 // 正解の表示（flavor に合わせて 分数/小数/整数）
 function ansHTML(p) {
   var a = p.ans;
@@ -1418,8 +1481,9 @@ function openPrint() {
   var items = '', keys = '';
   for (var i = 1; i <= 10; i++) {
     var p = GENERATORS[currentMode]();
-    items += '<div class="p-item"><span class="no">(' + i + ')</span><span class="p-ex">' + exprHTML(p.ops, p.opers) + '</span></div>';
-    keys += '<div><span class="no">(' + i + ')</span> &nbsp;' + ansHTML(p) + '</div>';
+    items += '<div class="p-item"><span class="no">(' + i + ')</span><span class="p-ex">'
+      + texOr(exprTeX(p.ops, p.opers), exprHTML(p.ops, p.opers)) + '</span></div>';
+    keys += '<div><span class="no">(' + i + ')</span>' + texOr(ansTeX(p), ansHTML(p)) + '</div>';
   }
   $('print-area').innerHTML =
     '<div class="p-sheet"><div class="ph-head"><div class="ph-title">正負の計算マスター　' + MODES[currentMode].title + '（' + NT_LABEL[cfgNumType] + '）</div>'
