@@ -7,8 +7,9 @@
 <meta name="description" content="中学2年生向け 一次関数の練習ツール。式をつくる(一次関数の判定)・増加量・グラフをかく(応用は切片が分数)・グラフを読む・変域(応用は変域から逆算)・式の特徴・式を求める(応用は一直線・変域・傾きの範囲)・交点・三角形の面積の12モード。中京個別指導学院。">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-<script src="../../assets/js/divp-header.js" onerror="this.remove()"></script>
-<script src="../../assets/js/divp-correct-jh.js" onerror="this.remove()"></script>
+<script src="/assets/divp-header.js" defer></script>
+<script src="/assets/divp-correct-jh.js" defer></script>
+<script src="/assets/divp-choice-mark.js" defer></script>
 <style>
 :root{
   --washi:#F6F1E7;
@@ -105,19 +106,10 @@ h1 .sub{font-size:.72rem;color:var(--ink-soft);letter-spacing:.2em;display:block
 }
 .choiceBtn .inner{display:inline-block;white-space:nowrap;transform-origin:center;}
 .choiceBtn.sel{background:var(--sakura-mist);border-color:var(--sakura);box-shadow:inset 0 0 0 1.5px var(--sakura);}
-.choiceBtn.hit{background:#E8F1E4;border-color:var(--moss);}
-.choiceBtn.miss{background:#FBE7EA;border-color:var(--sakura-deep);}
-/* 選ばなかった正解 ─ 緑ではっきり示す(どれが正解だったか一目でわかるように) */
-.choiceBtn.hit.unsel{
-  background:#DCEBD3;border-color:var(--moss);box-shadow:inset 0 0 0 2px var(--moss);
-  color:var(--moss);font-weight:700;
-}
-.choiceBtn.hit.unsel .katex{color:var(--moss);}
-.choiceBtn.hit.unsel::after{
-  content:"正解";position:absolute;right:0;top:0;
-  background:var(--moss);color:#fff;font-size:.58rem;font-weight:700;letter-spacing:.08em;
-  padding:2px 6px;border-bottom-left-radius:8px;
-}
+/* 採点後の色づけ(正解=緑 / 選んだ誤答=朱 / 選ばなかった正解=緑＋「正解」バッジ)は
+   共通モジュール divp-choice-mark.js が data-divp-mark 属性を見て描く。
+   緑は既定値がこのツールと同じ苔色なので、朱だけパレットに合わせて差し替える。 */
+:root{--divp-mark-ng:var(--sakura-deep);}
 /* 2段解答(式を選ぶ → ○×) */
 .eqStep+.eqStep{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;}
 .stepLab{
@@ -138,9 +130,7 @@ h1 .sub{font-size:.72rem;color:var(--ink-soft);letter-spacing:.2em;display:block
 }
 .oxBtn small{font-size:.62rem;letter-spacing:.08em;color:var(--ink-soft);font-family:inherit;}
 .oxBtn.sel{background:var(--sakura-mist);border-color:var(--sakura);box-shadow:inset 0 0 0 1.5px var(--sakura);}
-.oxBtn.hit{background:#E8F1E4;border-color:var(--moss);}
-.oxBtn.miss{background:#FBE7EA;border-color:var(--sakura-deep);}
-.oxBtn.hit.unsel{background:#DCEBD3;box-shadow:inset 0 0 0 2px var(--moss);color:var(--moss);}
+/* ○×ボタンの採点色も divp-choice-mark.js が描く(data-divp-mark) */
 .oxBtn:active{transform:scale(.96);}
 /* ①→②→③ の順にタップする解答 */
 .ordLab b{margin-left:auto;font-size:.8rem;color:var(--sakura-deep);font-family:'Hiragino Mincho ProN',serif;}
@@ -152,9 +142,10 @@ h1 .sub{font-size:.72rem;color:var(--ink-soft);letter-spacing:.2em;display:block
   color:var(--ink-soft);display:none;
 }
 .choiceBtn.ord .ordNum{display:flex;background:var(--sakura);border-color:var(--sakura-deep);color:#fff;}
-.choiceBtn.hit .ordNum{display:flex;background:var(--moss);border-color:var(--moss);color:#fff;}
-.choiceBtn.miss .ordNum{display:flex;background:var(--sakura-deep);border-color:var(--sakura-deep);color:#fff;}
-.choiceBtn.ordable.hit .ordNum:empty,.choiceBtn.ordable.miss .ordNum:empty{display:none;}
+/* 丸番号の色も採点結果に合わせる(共通モジュールのdata属性を見る) */
+.choiceBtn[data-divp-mark="correct"] .ordNum,.choiceBtn[data-divp-mark="answer"] .ordNum{display:flex;background:var(--moss);border-color:var(--moss);color:#fff;}
+.choiceBtn[data-divp-mark="wrong"] .ordNum{display:flex;background:var(--sakura-deep);border-color:var(--sakura-deep);color:#fff;}
+.choiceBtn.ordable[data-divp-mark] .ordNum:empty{display:none;}
 /* input fields */
 .fields{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:center;}
 .field{display:flex;align-items:center;gap:6px;font-size:1.1rem;}
@@ -1995,15 +1986,10 @@ function makeChoiceGroup(ch){
   });
   return g;
 }
-/* 採点後の色づけ: 正解=緑 / 選んだ誤答=朱 / 選ばなかった正解=緑＋「正解」 */
+/* 採点後の色づけは共通モジュール divp-choice-mark.js にまかせる
+   (正解=緑 / 選んだ誤答=朱 / 選ばなかった正解=緑＋「正解」バッジ) */
 function markChoices(correct){
-  document.querySelectorAll("#ansArea .choiceBtn").forEach((b,i)=>{
-    if(i===correct){
-      b.classList.add("hit");
-      if(i!==selChoice)b.classList.add("unsel");
-    }
-    else if(i===selChoice)b.classList.add("miss");
-  });
+  safeDivp("markChoices","#ansArea .choiceBtn",{correct:correct,selected:selChoice});
 }
 function renderAns(ans){
   const area=document.getElementById("ansArea");
@@ -2211,9 +2197,12 @@ function check(){
       const cp=ans.seq.indexOf(i), sp=orderSeq.indexOf(i);
       b.classList.remove("ord");
       b.querySelector(".ordNum").textContent=cp>=0?ORDNUM[cp]:"";
-      if(cp>=0&&cp===sp)b.classList.add("hit");
-      else if(cp>=0&&sp<0)b.classList.add("hit","unsel");  /* 選ばなかった正解は緑 */
-      else if(cp>=0||sp>=0)b.classList.add("miss");
+      /* 正しい位置に置けた=緑 / まったく選ばなかった正解=緑＋バッジ /
+         位置ちがい・ダミーを選んだ=朱 */
+      safeDivp("markChoice",b,
+        (cp>=0&&cp===sp) ? "correct"
+        : (cp>=0&&sp<0)  ? "answer"
+        : (cp>=0||sp>=0) ? "wrong" : null);
     });
     const nHit=orderSeq.filter((v,i)=>v===ans.seq[i]).length;
     if(!ok&&nHit>0)missMsg=nHit+"つは合っているよ！ 残りをグラフで確かめよう";
@@ -2225,13 +2214,7 @@ function check(){
     ok=okEq&&okOx;
     userStr=(ans.plain?ans.plain[selChoice]:"式:"+selChoice)+" / "+(selOx===0?"○":"×");
     markChoices(ans.correct);
-    document.querySelectorAll(".oxBtn").forEach((b,i)=>{
-      if((i===0)===ans.lin){
-        b.classList.add("hit");
-        if(i!==selOx)b.classList.add("unsel");
-      }
-      else if(i===selOx)b.classList.add("miss");
-    });
+    safeDivp("markChoices",".oxBtn",{correct:ans.lin?0:1,selected:selOx});
     if(okEq&&!okOx)missMsg="式は合っているよ！ 一次関数かどうかをもう一度考えよう";
     else if(!okEq&&okOx)missMsg="○×は合っているよ！ 式の立て方を解説で確かめよう";
   }
