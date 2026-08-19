@@ -231,8 +231,12 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
 }
 .choice.is-selected { border-color: var(--ink); background: #f3f1e8; box-shadow: inset 0 0 0 1.5px var(--ink); }
 .choice.is-selected .choice-num { border-color: var(--ink); color: var(--ink); }
-.choice.is-correct { border-color: var(--ok); background: var(--ok-soft); }
-.choice.is-wrong { border-color: var(--accent); background: var(--accent-soft); }
+/* 答え合わせ表示(選んで正解=緑 / 選ばなかった正解=緑＋「正解」バッジ /
+   選んだ誤答=朱 / 残りは薄く)は共通モジュール divp-choice-mark.js が
+   data-divp-mark を見て描く。色はこのツールのトークンに合わせる。 */
+:root{--divp-mark-ok:var(--ok);--divp-mark-ok-bg:var(--ok-soft);
+      --divp-mark-ok-bg-soft:var(--ok-soft);
+      --divp-mark-ng:var(--accent);--divp-mark-ng-bg:var(--accent-soft);}
 .choice:disabled { cursor: default; opacity: .92; }
 
 /* ---------- フィードバック ---------- */
@@ -493,6 +497,7 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
 <script src="/assets/divp-core.js" defer></script>
 <script src="/assets/print-watermark.js" defer></script>
 <script src="/assets/divp-correct-jh.js" defer></script>
+<script src="/assets/divp-choice-mark.js" defer></script>
 
 <script>
 /* ============================================================
@@ -1248,6 +1253,13 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
     return false;
   }
 
+  function divpMark(el, kind) {
+    try {
+      const D = window.Divp;
+      if (D && typeof D.markChoice === 'function') D.markChoice(el, kind);
+    } catch (e) {}
+  }
+
   /* ---------- ヒント ---------- */
   function buildHint(q) {
     const box = $('hint-box');
@@ -1365,12 +1377,14 @@ main { max-width: 720px; margin: 0 auto; padding: 14px 14px 60px; }
 
     $('check-btn').hidden = true;
     const buttons = $('choices').children;
+    /* 答え合わせ表示は共通モジュール divp-choice-mark.js にまかせる */
     for (let k = 0; k < buttons.length; k++) {
       buttons[k].disabled = true;
       buttons[k].classList.remove('is-selected');
-      if (C.solKey(current.choices[k]) === C.solKey(current.correct)) buttons[k].classList.add('is-correct');
+      const isC = C.solKey(current.choices[k]) === C.solKey(current.correct);
+      divpMark(buttons[k], isC ? (buttons[k] === btn ? 'correct' : 'answer')
+                              : (buttons[k] === btn ? 'wrong' : 'dim'));
     }
-    if (!ok) btn.classList.add('is-wrong');
 
     const fb = $('feedback');
     if (ok) {

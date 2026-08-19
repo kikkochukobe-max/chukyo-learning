@@ -274,8 +274,11 @@ font-family:var(--mathfont);}
 }
 .choice:hover{border-color:var(--ink2)}
 .choice.sel{border-color:var(--shu);background:#FBEDE9;box-shadow:0 0 0 2px rgba(199,62,46,.18)}
-.choice.correct{border-color:#3E7A4E;background:#EAF3E7;box-shadow:0 0 0 2px rgba(62,122,78,.18)}
-.choice.wrong{border-color:var(--shu);background:#FBEDE9;opacity:.85}
+/* 答え合わせ表示(選んで正解=緑 / 選ばなかった正解=緑＋「正解」バッジ /
+   選んだ誤答=朱 / 残りは薄く)は共通モジュール divp-choice-mark.js が
+   data-divp-mark を見て描く。色はこのツールの緑と朱に合わせる。 */
+:root{--divp-mark-ok:#3E7A4E;--divp-mark-ok-bg:#EAF3E7;--divp-mark-ok-bg-soft:#EAF3E7;
+      --divp-mark-ng:var(--shu);--divp-mark-ng-bg:#FBEDE9;}
 .choice:disabled{cursor:default}
 .choice:disabled:hover{border-color:var(--grid)}
 .choice.sel:disabled:hover,.choice.correct:disabled:hover,.choice.wrong:disabled:hover{border-color:inherit}
@@ -340,6 +343,7 @@ font-family:var(--mathfont);}
 <script src="/assets/divp-header.js"></script>
 <script src="/assets/divp-correct-jh.js"></script>
 <script src="/assets/divp-core.js"></script>
+<script src="/assets/divp-choice-mark.js"></script>
 <script src="/assets/print-watermark.js"></script>
 <script>if(window.Divp&&Divp.init)Divp.init('math_js2_keisan');</script>
 <div class="app">
@@ -2045,10 +2049,11 @@ function finish(ok,userText){
   const m=curMode(), q=state.q, st=state.modes[m.key];
   state.answered=true;
   const sel=$('choices').querySelector('.choice.sel');
+  /* 答え合わせ表示は共通モジュール divp-choice-mark.js にまかせる */
   $('choices').querySelectorAll('.choice').forEach(function(b){
     b.disabled=true;
-    if(b.dataset.correct==='1')b.classList.add('correct');
-    else if(b===sel)b.classList.add('wrong');
+    const isC=b.dataset.correct==='1';
+    markChoiceSafe(b, isC?(b===sel?'correct':'answer'):(b===sel?'wrong':'dim'));
   });
   $('checkBtn').hidden=true;
   sendDivp(ok,userText);
@@ -2094,6 +2099,9 @@ function qParamsWithReplay(q){
     p._replayTape=q._rngTape;
   }
   return p;
+}
+function markChoiceSafe(el,kind){
+  try{ if(window.Divp&&typeof window.Divp.markChoice==='function')window.Divp.markChoice(el,kind); }catch(e){}
 }
 function sendDivp(ok,userText){
   try{
