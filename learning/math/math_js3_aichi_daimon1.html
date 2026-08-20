@@ -114,16 +114,29 @@ h1 .box{display:inline-block;border:2px solid var(--ink);padding:0 .3em;margin-r
 .p-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #111;padding-bottom:6px;margin-bottom:12px;gap:10px;flex-wrap:wrap}
 .p-name{font-size:.8rem;white-space:nowrap}
 .p-lead{font-weight:700;margin-bottom:16px}
-/* 紙面の余白は本物の入試問題（大問1）に合わせて広めに取る。
-   問題間 30px・問題文と選択肢の間 12px・選択肢の横間隔 40px。
-   10問で約1800px＝A4 2枚（本文枠1047px/枚）に収まる範囲で最大限あけている。
-   これ以上広げると3枚目に落ちるので、増やすときは印刷プレビューで枚数を確認すること。 */
+/* 紙面の余白（画面のプレビューと印刷で共通）。本物の入試問題(大問1)に寄せて
+   問題間 23px・問題文と選択肢の間 8px・選択肢の横間隔 40px にしてある。
+   ⚠ 枚数がシビア: 図の大きい問題(ヒストグラム・相似のSVG等)が入ると1問で 400〜700px あり、
+   10問の問題ページは出題セット次第で A4 2〜3枚に振れる(本文枠は1枚1047px)。
+   余白を増やすときは「増やした版と元の版を同じ出題セットで印刷して枚数を比べる」こと。
+   実測では 問題間30px・選択肢12px まで広げると15セット中4セットで1枚増えた
+   (この値なら15セット中1セット)。Math.random を固定して chrome --print-to-pdf で数えられる。 */
 .p-q{margin:0 0 23px;break-inside:avoid;font-size:.92rem;line-height:1.85}
 .p-no{font-weight:700;margin-right:.5em}
 .p-fig{margin:7px 0}
 .p-fig table.freq{margin:8px 0}
 .p-choices{display:flex;flex-wrap:wrap;gap:8px 40px;margin-top:8px;padding-left:1.9em}
+/* 縦に伸びる選択肢(6択の「二つ選びなさい」・箱ひげ図などの図の選択肢)。
+   1列だと6行/図4枚ぶん紙を食うので、入るものは2列に詰める(.two は
+   fitChoiceCols() が幅を測って付ける。既定は1列＝はみ出さない側)。
+   並びは行方向(ア イ / ウ エ / オ カ)で、4択の横並びと読む向きをそろえている。 */
 .p-choices.vert{flex-direction:column;gap:7px}
+.p-choices.vert.two{display:grid;grid-template-columns:1fr 1fr;gap:9px 14px;padding-left:1.2em}
+.p-choices.vert.two .p-choice{display:flex;align-items:flex-start}
+.p-choices.vert.two .p-choice>b{flex:none}
+/* min-width:0 が無いと幅320pxの箱ひげSVGが列幅(約334px)で縮まずにはみ出す
+   (SVG側は max-width:100% を持っているので、縮める余地さえ与えれば収まる) */
+.p-choices.vert.two .p-choice>span{min-width:0}
 .p-ans{break-before:page;margin-top:22px;border-top:2px dashed #999;padding-top:12px}
 .p-page-note{font-size:.7rem;color:var(--usuzumi);margin-bottom:8px}
 .p-ans-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;font-size:.95rem;margin:10px 0 14px;border:1px solid #111;padding:8px 10px}
@@ -652,7 +665,19 @@ function gen5(){
    const rhs=(b===0)?String(c):(c===0?coefTex(b,'x'):coefTex(b,'x')+sn(c));
    const tex='(x'+sn(a)+')^{2}='+rhs;
    const correct=pairTex(r1,r2);
-   const w=[pairTex(-r1,-r2),pairTex(r1-1,r2+1),pairTex(-r1,r2),pairTex(r1,-r2),pairTex(r1+1,r2-1)];
+   /* まちがい選択肢。2値が一致する候補(x=0,0 / x=1,1 のような重解表記)は捨てる。
+      正解が「解が2つ」の形なので、重解を x=k,\ k と並べて書くのは表記として誤り
+      (重解なら x=k と書く)。r2=-r1 の対称な解のときに pairTex(-r1,r2) と
+      pairTex(r1,-r2) が、r2=r1+2 のときに pairTex(r1+1,r2-1) がちょうど一致するので、
+      候補を多めに並べて弾く(最悪ケースでも3つは残ることを確認済み)。 */
+   const pk=pr=>Math.min(pr[0],pr[1])+','+Math.max(pr[0],pr[1]);
+   const okKey=pk([r1,r2]),seenW={},w=[];
+   [[-r1,-r2],[r1-1,r2+1],[-r1,r2],[r1,-r2],[r1+1,r2-1],
+    [r1,r2+1],[r1-1,r2],[r1-2,r2-2],[r1+2,r2+2],[r1,r2-2]].forEach(pr=>{
+    if(pr[0]===pr[1])return;                       // x=k,k は出さない
+    const k2=pk(pr);
+    if(k2===okKey||seenW[k2])return;               // 正解と同じ／重複
+    seenW[k2]=1;w.push(pairTex(pr[0],pr[1]))});
    const ch=mkChoices(correct,w);
    if(!ch)continue;
    const p=-(r1+r2),q=r1*r2;
@@ -1777,11 +1802,66 @@ function genHisto(){
 function quadTex(S,P){return'x^{2}'+snTex(S,'x')+(P!==0?sn(P):'')}
 function facTex2(a){return'(x'+sn(a)+')'}
 function pairTexF(a,b){const lo=Math.min(a,b),hi=Math.max(a,b);return facTex2(lo)+facTex2(hi)}
+/* --- 展開の計算・表示ヘルパ（2次式を [x²の係数, xの係数, 定数] の3つ組で扱う） --- */
+/* (p1x+q1)(p2x+q2) を展開 */
+function mulLin(p1,q1,p2,q2){return[p1*p2,p1*q2+q1*p2,q1*q2]}
+/* T1 + s*T2 */
+function addQ(T1,T2,s){return[T1[0]+s*T2[0],T1[1]+s*T2[1],T1[2]+s*T2[2]]}
+/* Ax²+Bx+C の表示。A=0(1次式)・A=±1・項が消える場合も正しく出す */
+function polyTex(T){
+ const A=T[0],B=T[1],C=T[2];let s='';
+ if(A!==0)s+=coefTex(A,'x^{2}');
+ if(B!==0)s+=s?snTex(B,'x'):coefTex(B,'x');
+ if(C!==0)s+=s?sn(C):String(C);
+ return s||'0'}
+/* Av1²+Bv1v2+Cv2² の表示（2文字の展開用） */
+function polyTex2(T,v1,v2){
+ const A=T[0],B=T[1],C=T[2];let s='';
+ if(A!==0)s+=coefTex(A,v1+'^{2}');
+ if(B!==0)s+=s?snTex(B,v1+v2):coefTex(B,v1+v2);
+ if(C!==0)s+=s?snTex(C,v2+'^{2}'):coefTex(C,v2+'^{2}');
+ return s||'0'}
+/* 3つ組から誤答候補を作る。extra に「その問題らしい誤り」を先に並べると優先して採用される
+   (mkChoices が先頭から3つ取る)。正解と同じもの・重複は捨てる。
+   render は polyTex か (T)=>polyTex2(T,v1,v2) を渡す */
+function wrongsFrom(ok,extra,render){
+ const key=T=>T.join(','),okKey=key(ok),seen={},out=[];
+ (extra||[]).concat([[ok[0],-ok[1],ok[2]],[ok[0],ok[1],-ok[2]],[-ok[0],ok[1],ok[2]],
+  [ok[0],-ok[1],-ok[2]],[ok[0],ok[1]+2,ok[2]],[ok[0],ok[1],ok[2]+2]]).forEach(T=>{
+  const k=key(T);
+  if(k===okKey||seen[k])return;
+  seen[k]=1;out.push(render(T))});
+ return out}
+/* 2文字の変数名。x,y と a,b を混ぜて見た目の反復感を減らす */
+function varPair(){return rc([['x','y'],['a','b'],['x','y']])}
 function gen14(){
- const pat=rc(['wa','wa','heihou','wasa','sa']);
- if(pat==='sa'){ // 展開の差 → 1次式になる
+ /* パターンは重み付き抽選。「出せる問題の種類」に大きな差があるので、
+    種類の少ないものは重みを下げる(種類が10〜20通りしかないパターンが各20%出ると
+    使い回し感が強く出る。コメントの種類数は12000問生成の実測値)。 */
+ const pat=rc([
+  /* ※ 係数なしの基本形 wa=(x+a)(x+b) / heihou=(x+a)² / wasa=(x+a)(x-a) は
+     「簡単すぎる」として抽選から外した(2026-08-20)。実装も削除済み。 */
+  'sa','sa',                              // 差→1次式          10%   89種類
+  'combo','combo','combo','combo',        // 平方・積の和差→2次式 20%  201種類
+  'kei_wa','kei_wa','kei_wa',             // (px+q)(rx+s)       15%  112種類
+  'moji_wa','moji_wa','moji_wa',          // 2文字の積          15%   99種類
+  'tanko','tanko','tanko',                // 単項式との組合せ    15%  133種類
+  'kei_heihou','kei_heihou',              // (px+q)²            10%   32種類
+  'moji_heihou','moji_heihou',            // 2文字の平方        10%   37種類
+  'kei_wasa',                             // (px+q)(px-q)        5%   13種類 ← 種類が少ないので1枠
+  'moji_wasa'                             // 2文字の和と差       5%   24種類 ← 同じ
+ ]);
+ const TENKAI=txtPart(' を展開した結果として正しいものを、次のアからエまでの中から一つ選びなさい。');
+ const mk14=(tex,correct,w,ex,lead)=>{
+  const ch=mkChoices(correct,w);
+  if(!ch)return null;
+  return q_('t14','a1_tenkai',[texPart(tex),lead||TENKAI],ch,ex)};
+
+ if(pat==='sa'){ // (a₁x+b)² - (a₁x-c)(a₁x+d) → x²が消えて1次式になる
   for(let t=0;t<120;t++){
    const a1=rc([1,2]),b=nz(1,5),c1=nz(1,5),d=nz(1,5);
+   /* (2x-2) のように係数と定数が共通因数を持つカッコは不自然なので避ける */
+   if(gcd(a1,b)!==1||gcd(a1,c1)!==1||gcd(a1,d)!==1)continue;
    const P=a1*(2*b-d+c1),Q=b*b+c1*d;
    if(P===0)continue;
    const chk=()=>{for(const x of[5,-3]){
@@ -1794,46 +1874,156 @@ function gen14(){
    const w=[linTex(-P,Q),linTex(P,-Q),
     (a2===1?'x^{2}':a2+'x^{2}')+snTex(P,'x')+sn(Q),
     linTex(P,Q+2)];
-   const ch=mkChoices(correct,w);
-   if(!ch)continue;
-   const ex=['\\text{それぞれ展開すると }x^{2}\\text{ の項が消える}','='+correct];
-   const qq=q_('t14','a1_tenkai',[texPart(tex),SEL_TXT],ch,ex);
-   qq._meta={chk:chk};return qq}
+   const q2=mk14(tex,correct,w,['\\text{それぞれ展開すると }x^{2}\\text{ の項が消える}','='+correct],SEL_TXT);
+   if(!q2)continue;
+   q2._meta={chk:chk};return q2}
   return gen14()}
- if(pat==='heihou'){
-  const a=nz(-8,8);
-  const tex='(x'+sn(a)+')^{2}';
-  const correct=quadTex(2*a,a*a);
-  const w=[quadTex(0,a*a),quadTex(a,a*a),quadTex(2*a,-a*a),quadTex(-2*a,a*a)];
-  const ch=mkChoices(correct,w);
-  if(!ch)return gen14();
-  const ex=['(x+a)^{2}=x^{2}+2ax+a^{2}','='+correct];
-  return q_('t14','a1_tenkai',[txtPart('次の式を展開した結果として正しいものを、次のアからエまでの中から一つ選びなさい。　'),texPart(tex)],ch,ex)}
- if(pat==='wasa'){
-  const a=ri(2,9);
-  const tex='(x+'+a+')(x-'+a+')';
-  const correct=quadTex(0,-a*a);
-  const w=[quadTex(0,a*a),quadTex(-2*a,a*a),quadTex(2*a,-a*a),'x^{2}'+sn(-a)];
-  const ch=mkChoices(correct,w);
-  if(!ch)return gen14();
-  const ex=['(x+a)(x-a)=x^{2}-a^{2}','='+correct];
-  return q_('t14','a1_tenkai',[txtPart('次の式を展開した結果として正しいものを、次のアからエまでの中から一つ選びなさい。　'),texPart(tex)],ch,ex)}
- let a=nz(-8,8),b=nz(-8,8);
- while(b===a||a+b===0)b=nz(-8,8);
- const S=a+b,P=a*b;
- const tex='(x'+sn(a)+')(x'+sn(b)+')';
- const correct=quadTex(S,P);
- const w=[quadTex(P,S),quadTex(S,-P),quadTex(-S,P),quadTex(a-b,-P)];
- const ch=mkChoices(correct,w.filter(x=>x!==correct));
- if(!ch)return gen14();
- const ex=['(x+a)(x+b)=x^{2}+(a+b)x+ab',
-  '\\text{和 }'+S+'\\text{、積 }'+P+'\\text{ → }'+correct];
- return q_('t14','a1_tenkai',[txtPart('次の式を展開した結果として正しいものを、次のアからエまでの中から一つ選びなさい。　'),texPart(tex)],ch,ex)}
 
+ if(pat==='combo'){ // (a₁x+b)²±(a₂x+c)² / 積±平方 / 積±積
+  for(let t=0;t<200;t++){
+   const s=rc([1,-1]);
+   /* 4つの形(平方±平方 / 平方±積 / 積±平方 / 積±積)を等確率で振り分ける。
+      2項の形を独立にコイン投げで決めていたときは 積±積 が展開全体の4%、
+      うち「係数が違う積±積」は2%しか出ず、事実上見かけなかった。 */
+   const sq=rc([[1,1],[1,0],[0,1],[0,0]]);      // 1=平方 / 0=1次式2つの積
+   const P1=rc([1,1,2,3]);
+   /* 積±積 は (3x-2)(3x+1)-(2x-5)(2x+3) のように係数が違う形も出したいので、
+      2/3の確率でもう一方の係数を変える */
+   let P2=rc([1,1,2,3]);
+   if(sq[0]===0&&sq[1]===0&&rc([0,1,2])!==0){while(P2===P1)P2=rc([1,2,3])}
+   /* 1項ぶんを作る。積は本物の入試の (2x-3)(2x+1) の形に寄せて係数をそろえる。
+      係数と定数が共通因数を持つカッコ((2x+4) など)は不自然なので避ける */
+   const term=(isSq,p)=>{
+    const cq=()=>{let q=nz(-5,5);while(gcd(p,Math.abs(q))!==1)q=nz(-5,5);return q};
+    if(isSq){const q=cq();
+     return{tex:'('+coefTex(p,'x')+sn(q)+')^{2}',poly:mulLin(p,q,p,q)}}
+    const q=cq();let r=cq();
+    while(r===q)r=cq();
+    return{tex:'('+coefTex(p,'x')+sn(q)+')('+coefTex(p,'x')+sn(r)+')',poly:mulLin(p,q,p,r)}};
+   const T1=term(sq[0]===1,P1),T2=term(sq[1]===1,P2);
+   if(T1.tex===T2.tex)continue;                 // 同じものの和/差は問題にならない
+   const C=addQ(T1.poly,T2.poly,s);
+   if(C[0]===0&&C[1]===0)continue;              // 定数だけになる形は出さない
+   const tex=T1.tex+(s===1?'+':'-')+T2.tex;
+   const correct=polyTex(C);
+   /* 最重要の誤り = ひく方のカッコに符号を配り忘れる(＝符号を逆にして計算) */
+   const w=wrongsFrom(C,[addQ(T1.poly,T2.poly,-s),
+    [C[0],-C[1],C[2]],[C[0],C[1],-C[2]]],polyTex);
+   const q2=mk14(tex,correct,w,
+    ['\\text{それぞれ展開してから}'+(s===1?'\\text{たす}':'\\text{ひく（符号に注意）}'),
+     '='+correct],SEL_TXT);
+   if(q2)return q2}
+  return gen14()}
+
+ if(pat==='tanko'){ // 単項式との組合せ: kx(x+m) ± (x+p)(x+q)
+  for(let t=0;t<120;t++){
+   const k=ri(2,4),m=nz(-5,5),p=nz(-5,5),q=nz(-5,5),s=rc([1,-1]);
+   const T1=[k,k*m,0],T2=mulLin(1,p,1,q);
+   const C=addQ(T1,T2,s);
+   if(C[0]===0&&C[1]===0)continue;
+   const tex=coefTex(k,'x')+'(x'+sn(m)+')'+(s===1?'+':'-')+'(x'+sn(p)+')(x'+sn(q)+')';
+   const correct=polyTex(C);
+   const w=wrongsFrom(C,[addQ(T1,T2,-s),[C[0],-C[1],C[2]],[k,C[1],C[2]]],polyTex);
+   const q2=mk14(tex,correct,w,
+    [coefTex(k,'x')+'(x'+sn(m)+')='+polyTex(T1),
+     '(x'+sn(p)+')(x'+sn(q)+')='+polyTex(T2),'='+correct],SEL_TXT);
+   if(q2)return q2}
+  return gen14()}
+
+ if(pat==='kei_wa'){ // (px+q)(rx+s) 係数つき
+  for(let t=0;t<120;t++){
+   const p=ri(1,4),r=ri(1,4);
+   if(p===1&&r===1)continue;                    // それは 'wa' と同じ形
+   const q=nz(-6,6),u=nz(-6,6);
+   if(gcd(p,Math.abs(q))!==1||gcd(r,Math.abs(u))!==1)continue;   // (2x+4)(3x-6) のように共通因数が残る式は不自然
+   const C=mulLin(p,q,r,u);
+   const tex='('+coefTex(p,'x')+sn(q)+')('+coefTex(r,'x')+sn(u)+')';
+   const correct=polyTex(C);
+   const w=wrongsFrom(C,[[C[0],p*u-q*r,C[2]],[C[0],q*u,p*u+q*r],[p+r,C[1],C[2]]],polyTex);
+   const q2=mk14(tex,correct,w,
+    ['(px+q)(rx+s)=prx^{2}+(ps+qr)x+qs','='+correct]);
+   if(q2)return q2}
+  return gen14()}
+
+ if(pat==='kei_heihou'){ // (px+q)²
+  for(let t=0;t<60;t++){
+   const p=ri(2,4),q=nz(-9,9);
+   if(gcd(p,Math.abs(q))!==1)continue;      // (2x+4)² のような共通因数つきは出さない
+   const C=mulLin(p,q,p,q);
+   const tex='('+coefTex(p,'x')+sn(q)+')^{2}';
+   const correct=polyTex(C);
+   /* よくある誤り: 中央項を忘れる / 2倍し忘れ / 係数を2乗し忘れ */
+   const w=wrongsFrom(C,[[C[0],0,C[2]],[C[0],p*q,C[2]],[p,C[1],C[2]]],polyTex);
+   const q2=mk14(tex,correct,w,['(px+q)^{2}=p^{2}x^{2}+2pqx+q^{2}','='+correct]);
+   if(q2)return q2}
+  return gen14()}
+
+ if(pat==='kei_wasa'){ // (px+q)(px-q)
+  for(let t=0;t<60;t++){
+   const p=ri(2,4),q=ri(2,9);
+   if(gcd(p,q)!==1)continue;
+   const C=[p*p,0,-q*q];
+   const tex='('+coefTex(p,'x')+'+'+q+')('+coefTex(p,'x')+'-'+q+')';
+   const correct=polyTex(C);
+   const w=wrongsFrom(C,[[p*p,0,q*q],[p*p,-2*p*q,q*q],[p,0,-q*q]],polyTex);
+   const q2=mk14(tex,correct,w,['(px+q)(px-q)=p^{2}x^{2}-q^{2}','='+correct]);
+   if(q2)return q2}
+  return gen14()}
+
+ if(pat==='moji_wa'){ // 2文字 (v1+a v2)(v1+b v2)
+  for(let t=0;t<120;t++){
+   const v=varPair(),v1=v[0],v2=v[1];
+   const a=nz(-6,6),b=nz(-6,6);
+   if(b===a||a+b===0)continue;                  // a+b=0 は moji_wasa の形
+   const C=[1,a+b,a*b];
+   const tex='('+v1+snTex(a,v2)+')('+v1+snTex(b,v2)+')';
+   const rd=T=>polyTex2(T,v1,v2);
+   const correct=rd(C);
+   const w=wrongsFrom(C,[[1,a*b,a+b],[1,a-b,a*b],[1,C[1],-C[2]]],rd);
+   const q2=mk14(tex,correct,w,
+    ['(x+ay)(x+by)=x^{2}+(a+b)xy+aby^{2}','='+correct]);
+   if(q2)return q2}
+  return gen14()}
+
+ if(pat==='moji_heihou'){ // 2文字 (pv1+qv2)²
+  for(let t=0;t<60;t++){
+   const v=varPair(),v1=v[0],v2=v[1];
+   const p=ri(1,3),q=nz(-6,6);
+   if(gcd(p,Math.abs(q))!==1)continue;
+   if(p===1&&Math.abs(q)===1)continue;          // (x+y)² は変化に乏しいので避ける
+   const C=mulLin(p,q,p,q);
+   const tex='('+coefTex(p,v1)+snTex(q,v2)+')^{2}';
+   const rd=T=>polyTex2(T,v1,v2);
+   const correct=rd(C);
+   const w=wrongsFrom(C,[[C[0],0,C[2]],[C[0],p*q,C[2]],[p,C[1],C[2]]],rd);
+   const q2=mk14(tex,correct,w,['(px+qy)^{2}=p^{2}x^{2}+2pqxy+q^{2}y^{2}','='+correct]);
+   if(q2)return q2}
+  return gen14()}
+
+ if(pat==='moji_wasa'){ // 2文字 (pv1+qv2)(pv1-qv2)
+  for(let t=0;t<60;t++){
+   const v=varPair(),v1=v[0],v2=v[1];
+   const p=ri(1,3),q=ri(1,6);
+   if(gcd(p,q)!==1)continue;
+   if(p===1&&q===1)continue;
+   const C=[p*p,0,-q*q];
+   const tex='('+coefTex(p,v1)+'+'+coefTex(q,v2)+')('+coefTex(p,v1)+'-'+coefTex(q,v2)+')';
+   const rd=T=>polyTex2(T,v1,v2);
+   const correct=rd(C);
+   const w=wrongsFrom(C,[[p*p,0,q*q],[p*p,-2*p*q,q*q],[p,0,-q*q]],rd);
+   const q2=mk14(tex,correct,w,['(px+qy)(px-qy)=p^{2}x^{2}-q^{2}y^{2}','='+correct]);
+   if(q2)return q2}
+  return gen14()}
+
+ /* 係数なしの基本形 (x+a)(x+b) / (x+a)² / (x+a)(x-a) は
+    「簡単すぎる」として出題から外した(2026-08-20)。
+    抽選表(pat)からも消してあるので、ここに来るのは pat の綴りミスなど想定外のときだけ。
+    易しい形にフォールバックせず引き直す。 */
+ return gen14()}
 /* ── (3'') 因数分解 ── */
 function gen15(){
  const pat=rc(['wa','wa','heihou','wasa','tenkai_go','kyotsu']);
- const INSTR=[txtPart('次の式を因数分解した結果として正しいものを、次のアからエまでの中から一つ選びなさい。　')];
+ const INSTR=[txtPart(' を因数分解した結果として正しいものを、次のアからエまでの中から一つ選びなさい。')];
  if(pat==='tenkai_go'){ // 展開してから因数分解
   for(let t=0;t<300;t++){
    let A1=nz(-7,7),B1=nz(-7,7);
@@ -1855,7 +2045,7 @@ function gen15(){
    const ch=mkChoices(correct,w);
    if(!ch)continue;
    const ex=['\\text{まず展開して整理: }'+quadTex(S,Q),'='+correct];
-   const qq=q_('t15','a1_insu',INSTR.concat([texPart(tex)]),ch,ex);
+   const qq=q_('t15','a1_insu',[texPart(tex)].concat(INSTR),ch,ex);
    qq._meta={chk:chk};return qq}
   return gen15()}
  if(pat==='heihou'){
@@ -1866,7 +2056,7 @@ function gen15(){
   const ch=mkChoices(correct,w);
   if(!ch)return gen15();
   const ex=['x^{2}+2ax+a^{2}=(x+a)^{2}\\text{ の形}','='+correct];
-  return q_('t15','a1_insu',INSTR.concat([texPart(texQ)]),ch,ex)}
+  return q_('t15','a1_insu',[texPart(texQ)].concat(INSTR),ch,ex)}
  if(pat==='wasa'){
   const a=ri(2,9);
   const texQ='x^{2}-'+(a*a);
@@ -1875,7 +2065,7 @@ function gen15(){
   const ch=mkChoices(correct,w);
   if(!ch)return gen15();
   const ex=['x^{2}-a^{2}=(x+a)(x-a)','='+correct];
-  return q_('t15','a1_insu',INSTR.concat([texPart(texQ)]),ch,ex)}
+  return q_('t15','a1_insu',[texPart(texQ)].concat(INSTR),ch,ex)}
  if(pat==='kyotsu'){
   const k=rc([2,3]),a=ri(2,4);
   const texQ=k+'x^{2}-'+(k*a*a);
@@ -1884,7 +2074,7 @@ function gen15(){
   const ch=mkChoices(correct,w);
   if(!ch)return gen15();
   const ex=['\\text{まず共通因数 }'+k+'\\text{ をくくり出す: }'+k+'(x^{2}-'+(a*a)+')','='+correct];
-  return q_('t15','a1_insu',INSTR.concat([texPart(texQ)]),ch,ex)}
+  return q_('t15','a1_insu',[texPart(texQ)].concat(INSTR),ch,ex)}
  let a=nz(-7,7),b=nz(-7,7);
  while(b===a||a+b===0)b=nz(-7,7);
  const texQ=quadTex(a+b,a*b);
@@ -1893,7 +2083,7 @@ function gen15(){
  const ch=mkChoices(correct,w);
  if(!ch)return gen15();
  const ex=['\\text{積が }'+(a*b)+'\\text{、和が }'+(a+b)+'\\text{ の2数 → }'+a+'\\text{ と }'+b,'='+correct];
- return q_('t15','a1_insu',INSTR.concat([texPart(texQ)]),ch,ex)}
+ return q_('t15','a1_insu',[texPart(texQ)].concat(INSTR),ch,ex)}
 
 /* ── 連立方程式(解を選ぶ) 実物29A(7)型 ── */
 function gen17(){
@@ -2357,7 +2547,13 @@ const TYPES=[
 ];
 function pickT(id){return TYPES.filter(t2=>t2.id===id)[0]}
 /* 直前と見た目が近い問題が連続しないよう署名で最大10回リトライ。
-   署名 = key + 問題文の非数字部分の先頭 + 選択肢数 (数値違いだけの反復を抑制) */
+   署名 = key + 問題文の非数字部分の先頭 + 選択肢数 (数値違いだけの反復を抑制)
+   ⚠ 先頭40文字しか見ないので、**parts は「式」から始めること**。
+      「次の式を展開した結果として…」のような固定の指示文を先頭に置くと
+      40文字が全問共通になり、署名が1種類に潰れて重複回避が効かなくなる
+      (実測: t14/t15 は指示文が先だと署名4種類・式が先だと14種類)。
+      本物の入試も「〈式〉を計算した結果として正しいものを、…」の語順なので
+      指示文は式のうしろに置く。 */
 function qSig(q){
  let s=q.key+'|';
  s+=q.parts.map(p=>p.v).join('').replace(/[0-9]+/g,'#').slice(0,40);
@@ -2804,7 +3000,10 @@ function buildPrint(){
    const it=document.createElement('span');it.className='p-choice';
    const mk=document.createElement('b');mk.textContent=KANA[i]+'　';it.appendChild(mk);
    const bd=document.createElement('span');
-   if(typeof c==='object'&&c.svg)bd.innerHTML=c.svg;else ktx(bd,c);
+   /* 図の選択肢(箱ひげ図など)は作った側で印を付ける。KaTeXは√や大きいカッコを
+      <svg>で描くので、後から querySelector('svg') で見分けると平方根の選択肢まで
+      図と誤判定して fitChoiceCols() の幅測定をすり抜ける(実測ではみ出した) */
+   if(typeof c==='object'&&c.svg){bd.innerHTML=c.svg;it.classList.add('is-fig')}else ktx(bd,c);
    it.appendChild(bd);ch.appendChild(it)});
   d.appendChild(ch);
   sh.appendChild(d)});
@@ -2827,7 +3026,57 @@ function buildPrint(){
    ktx(row,line);d.appendChild(row)});
   ans.appendChild(d)});
  sh.appendChild(ans);
- toggleAns()}
+ toggleAns();fitChoiceCols()}
+/* 縦並びの選択肢(6択の「二つ選びなさい」・箱ひげ図などの図の選択肢)を、
+   入るものだけ2列に詰める。1列だと6行/図4枚ぶん紙を食うため。
+   - 図(SVG)は max-width:100% で列幅まで縮むので必ず入る＝常に2列。
+   - 本文は KaTeX が nowrap で折り返せないので、列幅に入らないものは
+     1行ぶち抜き(grid-column:1/-1)に逃がす＝文字が切れて消えるのを防ぐ。
+   ⚠ 幅の基準は「画面」ではなく「紙」。印刷時の本文幅は画面プレビューの幅と違うので、
+      画面で測って決めると紙ではみ出す/1列に戻る。画面外に紙幅の測定枠を作って測る。 */
+/* 紙の本文幅の想定は保守的に700px。A4の印刷可能幅はChrome既定余白で約725px、
+   余白がもう少し広いブラウザ/設定でも約700pxは確保される。狭く見積もる方向に
+   まちがえれば「2列にできたものが1行になる」だけで、はみ出して切れることはない。
+   ⚠ 逆に紙の本文幅が700pxを下回る環境では切れる(KaTeXの本文は nowrap で
+      折り返せないため。.katex{white-space:normal} を当てても折り返らないのを実測済み)。
+      実測: 紙幅699px・709pxのどちらでも はみ出し0件。684pxだと10件はみ出す。 */
+const PAPER_W=700,CH_INDENT=18,CH_GAP=14;   /* CH_* は .p-choices.vert.two の padding-left と column-gap に一致させる */
+/* 6択(アからカ)の本文は等倍だと列幅(334px)に入らない(実測120セット・303件で最大381px)ので、
+   2列に詰めるときだけ少し小さくする。実測で .78rem なら6択は全件収まる(.80remでも0件だが余裕3px)。
+   4択の「二つ選びなさい」(ヒストグラム等の読み取り文)は最大486pxの長文で、
+   小さくしても入らないうえ読みにくくなるだけなので等倍のまま＝1行ぶち抜きに逃がす。
+   ※この値は測定にもそのまま使う。CSSに書くと測定側と二重管理になるのでJSに1つだけ置く。 */
+const TIGHT_FONT='.78rem',TIGHT_MIN_ITEMS=5;
+let _chProbe=null;
+function chProbe(){
+ if(!_chProbe){
+  _chProbe=document.createElement('div');_chProbe.id='pMeasure';_chProbe.className='p-q';
+  _chProbe.style.cssText='position:absolute;left:-9999px;top:0;width:'+PAPER_W+'px;visibility:hidden';
+  document.body.appendChild(_chProbe)}
+ return _chProbe}
+/* 選択肢1つを紙幅の測定枠に置いて、折り返さない状態の自然幅を測る */
+function natChoiceW(it,fs){
+ const p=chProbe();p.innerHTML='';
+ const cl=it.cloneNode(true);
+ cl.style.cssText='display:inline-block;white-space:nowrap'+(fs?';font-size:'+fs:'');
+ p.appendChild(cl);
+ const w=cl.getBoundingClientRect().width;p.innerHTML='';return w}
+function fitChoiceCols(){
+ const col=(PAPER_W-CH_INDENT-CH_GAP)/2;
+ document.querySelectorAll('#pSheet .p-choices.vert').forEach(ch=>{
+  const items=Array.prototype.slice.call(ch.children);
+  items.forEach(it=>{it.style.gridColumn='';it.style.fontSize=''});
+  /* 図(SVG)は max-width:100% で列幅まで縮むので必ず入る＝測らずに2列 */
+  if(items.some(it=>it.classList.contains('is-fig'))){ch.classList.add('two');return}
+  const fs=items.length>=TIGHT_MIN_ITEMS?TIGHT_FONT:'';
+  const wide=items.filter(it=>natChoiceW(it,fs)>col);
+  /* 全部が列幅に入らないなら2列にする意味が無い(全部ぶち抜き＝1列と同じ) */
+  if(wide.length>=items.length){ch.classList.remove('two');return}
+  ch.classList.add('two');
+  if(fs)items.forEach(it=>{it.style.fontSize=fs});
+  wide.forEach(it=>{it.style.gridColumn='1/-1'})})}
+/* Webフォント/KaTeXフォントが後から効くと幅が変わるので、確定後にもう一度測る */
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if($('pSheet'))fitChoiceCols()});
 function toggleAns(){const a=$('pAns');if(a)a.style.display=$('pIncAns').checked?'block':'none'}
 $('btnPrintMode').addEventListener('click',()=>{
  printQs=E.genAichiSet();buildPrint();
