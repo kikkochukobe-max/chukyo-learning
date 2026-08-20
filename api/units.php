@@ -131,6 +131,13 @@ return [
         'sub'   => '数学・中2',
         'url'   => '/learning/math/math_js2_renritsu_riyou.html',
     ],
+    // 解き直しは question_params の {m:モード, s:種} で同じ問題を作り直す
+    // （生成関数が50個以上あるので replay_json は使わない。詳細はツール内の initRetry）
+    'math_js2_ichijikansu' => [
+        'title' => '一次関数マスター',
+        'sub'   => '数学・中2',
+        'url'   => '/learning/math/math_js2_ichijikansu.html',
+    ],
     'allgrade_romaji' => [
         'title' => 'ローマ字マスター',
         'sub'   => 'ローマ字・五十音・英単語(おまけ)',

@@ -4,15 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>一次関数マスター | 中京個別指導学院</title>
-<meta name="description" content="中学2年生向け 一次関数の練習ツール。式をつくる(一次関数の判定)・増加量・グラフをかく(応用は切片が分数・ax+by=cの変形)・グラフを読む・通る座標・変域(応用は変域から逆算)・式の特徴・式を求める(応用は一直線・変域・傾きの範囲)・交点・三角形の面積の13モード。中京個別指導学院。">
+<meta name="description" content="中学2年生向け 一次関数の練習ツール。式をつくる(一次関数の判定)・増加量・グラフをかく(応用は切片が分数・ax+by=cの変形)・グラフを読む・通る座標・変域(応用は変域から逆算)・式の特徴・式を求める(応用は一直線・変域・傾きの範囲)・交点(グラフなし・答えが分数の交点も)・三角形の面積(グラフなし・3直線の三角形の面積を2等分する直線も)の13モードと、えらんだ種類だけをランダムに出すミックス出題。中京個別指導学院。">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-<!-- ⚠ 製作途中。共通処理(学習記録・解き直し)は未組み込みで、この2本も
-     わざと元のパスのまま置いてある(assets/js/ は存在しないので読み込まれない)。
-     組み込むときに /assets/... へ直し、divp-core.js と Divp.answer を足す。 -->
-<script src="../../assets/js/divp-header.js" onerror="this.remove()"></script>
-<script src="../../assets/js/divp-correct-jh.js" onerror="this.remove()"></script>
-<!-- 答え合わせ表示だけは共通モジュールを使っている(採点色はこれが無いと出ない) -->
+<!-- 共通モジュール（file:// では divp-core が自動で黙る）
+     正解エフェクトは js/jh 共通の divp-correct-jh.js（はんこ）。
+     読み込めない環境だけ本ツール自前の #hanko に落ちる -->
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<!-- 答え合わせ表示（正解=緑 / 選んだ誤答=朱）。これが無いと採点色が付かない -->
 <script src="/assets/divp-choice-mark.js" defer></script>
 <style>
 :root{
@@ -73,14 +74,51 @@ h1 .sub{font-size:.72rem;color:var(--ink-soft);letter-spacing:.2em;display:block
 }
 .chip.on small{color:#fbe9ee;}
 .chip:active{transform:scale(.96);}
+/* ミックス出題(えらんだ種類だけをランダムに出す)。ふつうのモードと区別できるよう金色 */
+.chip.mix{border-color:var(--gold);border-style:dashed;}
+.chip.mix.on{background:var(--gold);border-color:#8B6C25;border-style:solid;color:#fff;}
+.chip.mix.on small{color:#FBF0D8;}
+.mixbox{
+  max-width:860px;margin:-4px auto 12px;background:#fff;border:1.5px solid var(--gold);
+  border-radius:12px;padding:10px 12px;box-shadow:0 2px 8px rgba(176,141,62,.14);
+}
+.mixhead{display:flex;align-items:center;gap:7px;font-size:.82rem;font-weight:bold;margin-bottom:8px;}
+.mixhead .cnt{font-weight:normal;font-size:.72rem;color:var(--ink-soft);}
+.mixhead .sp{margin-left:auto;}
+.mixbtn{
+  border:1px solid var(--line);background:var(--washi-deep);border-radius:8px;
+  padding:4px 8px;font-size:.7rem;font-family:inherit;color:var(--ink);cursor:pointer;
+}
+.mixbtn:active{transform:scale(.95);}
+.mixfold{border-color:var(--gold);color:#6E5518;}
+/* とじた状態: 中身と「ぜんぶ/基本だけ/ぜんぶ外す」を隠し、見出しと種類数だけ残す
+   （見えていない選択を変えるボタンは出さない） */
+.mixbox.folded{padding:8px 12px;}
+.mixbox.folded #mixBody{display:none;}
+.mixbox.folded .mixbtn:not(.mixfold){display:none;}
+.mixbox.folded .mixhead{margin-bottom:0;}
+.mixlist{display:grid;grid-template-columns:repeat(2,1fr);gap:2px 10px;}
+@media(min-width:700px){.mixlist{grid-template-columns:repeat(3,1fr);}}
+.mixlist label{display:flex;align-items:center;gap:6px;font-size:.78rem;padding:4px 2px;cursor:pointer;}
+.mixlist input{width:17px;height:17px;accent-color:var(--sakura-deep);flex:0 0 auto;}
+.mixnote{font-size:.66rem;color:var(--ink-soft);margin-top:7px;line-height:1.5;}
+/* ミックス出題中だけ「いま何の種類か」を出す札 */
+#qTag{
+  display:none;font-size:.68rem;color:#8B6C25;background:#FBF3E0;border:1px solid var(--gold);
+  border-radius:999px;padding:2px 11px;margin:0 auto 4px;width:fit-content;letter-spacing:.05em;
+}
 /* card */
 .card{
   max-width:860px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:14px;
-  box-shadow:0 3px 14px rgba(60,45,30,.07);padding:16px;position:relative;overflow:hidden;
+  box-shadow:0 3px 14px rgba(60,45,30,.07);padding:16px;position:relative;
+  /* overflow:hidden にしないこと。正解はんこ(divp-correct-jh)は直径171pxで、
+     はみ出す分が切られて欠けた丸になる */
+  overflow:visible;
 }
 .card::before{
   content:"";position:absolute;top:0;left:0;right:0;height:4px;
   background:linear-gradient(90deg,var(--sakura),var(--sakura-mist));
+  border-radius:14px 14px 0 0;      /* overflow:visible なので角丸を自分で持つ */
 }
 #qWrap{min-height:56px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:6px 0;}
 #qText{font-size:1.12rem;line-height:1.9;white-space:normal;text-align:left;}
@@ -219,13 +257,14 @@ footer{max-width:860px;margin:16px auto 0;text-align:center;font-size:.68rem;col
 }
 </style>
 </head>
-<body data-unit-key="math_jh2_ichijikansu" data-theme="washi" data-effect="jh">
+<body data-unit-key="math_js2_ichijikansu" data-theme="washi" data-effect="jh">
 
 <header class="dv-head">
   <h1><span class="sub">中2数学 ── 一次関数</span>一次関数マスター</h1>
+  <!-- LEVEL / XP はこのツールでは持たない。XPは save_answer.php が
+       question_catalog.base_xp × イベント倍率で確定し、レベルは累計XPから
+       マイページが算出する（端末ローカルの数字と二重に出さない） -->
   <div class="stats">
-    <div class="stat"><b id="lvVal">1</b><span>LEVEL</span></div>
-    <div class="stat"><b id="xpVal">0</b><span>XP</span></div>
     <div class="stat" id="rankBadge"><b id="rankVal">D</b><span>RANK</span></div>
     <div class="stat"><b id="streakVal">0</b><span>連続正解</span></div>
   </div>
@@ -243,11 +282,30 @@ footer{max-width:860px;margin:16px auto 0;text-align:center;font-size:.68rem;col
   <button class="chip" data-mode="tokucho">式の特徴<small>グラフと式</small></button>
   <button class="chip" data-mode="shiki">式を求める<small>傾き・切片・平行</small></button>
   <button class="chip" data-mode="shikiadv">式を求める 応用<small>一直線・変域・範囲</small></button>
-  <button class="chip" data-mode="koten">交点を求める<small>連立方程式</small></button>
-  <button class="chip" data-mode="menseki">三角形の面積<small>軸と交点</small></button>
+  <button class="chip" data-mode="koten">交点を求める<small>連立方程式・分数の交点</small></button>
+  <button class="chip" data-mode="menseki">三角形の面積<small>軸と交点・面積の2等分</small></button>
+  <button class="chip mix" data-mode="mix">ミックス<small>えらんだ種類からランダム</small></button>
 </nav>
 
+<!-- ミックス出題の種類えらび。中身(チェックボックス)は modeNav のチップから
+     自動で作るので、モードを増やしてもここは触らなくてよい -->
+<div class="mixbox" id="mixBox" style="display:none">
+  <div class="mixhead">
+    <span>出題する種類をえらぶ</span><span class="cnt" id="mixCount"></span>
+    <span class="sp"></span>
+    <button class="mixbtn" id="mixAll">ぜんぶ</button>
+    <button class="mixbtn" id="mixBasic">基本だけ</button>
+    <button class="mixbtn" id="mixNone">ぜんぶ外す</button>
+    <button class="mixbtn mixfold" id="mixFold" aria-expanded="true">とじる</button>
+  </div>
+  <div id="mixBody">
+    <div class="mixlist" id="mixList"></div>
+    <div class="mixnote">チェックした種類の中からランダムに1問ずつ出ます。この端末に保存されるので、次に開いたときも同じ設定です。</div>
+  </div>
+</div>
+
 <main class="card" id="card">
+  <div id="qTag"></div>
   <div id="qWrap"><div id="qText"></div></div>
   <div id="figWrap"></div>
   <div id="ansArea"></div>
@@ -267,8 +325,12 @@ footer{max-width:860px;margin:16px auto 0;text-align:center;font-size:.68rem;col
 <script>
 "use strict";
 /* ================================================================
-   math_jh2_ichijikansu.html  一次関数マスター
-   modes: zoukaryo / tokucho / shiki / graph / koten / menseki
+   math_js2_ichijikansu.html  一次関数マスター   unit_key = math_js2_ichijikansu
+   modes(=question_key): hantei / zoukaryo / graph / graphadv / yomitori / tooru /
+     hendomain / hendomainadv / tokucho / shiki / shikiadv / koten / menseki
+     ＋ mix(えらんだ種類からランダム。記録はその問題の種類で残すので "mix" は飛ばない)
+   共通処理: 学習記録(Divp.answer) / 正解エフェクト(divp-correct-jh) /
+     解き直し(?retry=1 …question_params の種で同じ問題を作り直す) / 図(question_figure)
    ================================================================ */
 
 /*GEN-START*/
@@ -322,8 +384,24 @@ function stdFormTex(A,B,C){
   const by=(B===1?"+y":(B===-1?"-y":(B>0?"+"+B+"y":B+"y")));
   return ax+by+"="+C;
 }
-/* ---------- RNG ---------- */
-function ri(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+/* ---------- RNG ----------
+   種(seed)から決まった順番で数を出す方式（xorshift32）。Math.random は使わない。
+   出題のたびに種を1つ引いて question_params に {m:モード, s:種} で保存するので、
+   解き直し(?retry=1)では同じ種でもう一度回すだけで**まったく同じ問題**が出る
+   ＝生成関数が50個以上あっても復元経路を書かなくてよい（CLAUDE.md 2c の
+   question_replay 方式の代わり。こちらは保存が数値2つで済む）。
+   ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
+     （params_hash は同じなので解き直しは成立するが、問題文は別物になる）。 */
+let _rngState=1;
+function rngSeed(s){_rngState=(s>>>0)||1;}
+function rngPick(){return (Math.floor(Math.random()*4294967296)>>>0)||1;}   /* 種そのものだけは真の乱数 */
+function rngNext(){
+  let x=_rngState;
+  x^=x<<13;x>>>=0;x^=x>>>17;x^=x<<5;x>>>=0;
+  _rngState=x;
+  return x/4294967296;
+}
+function ri(min,max){return Math.floor(rngNext()*(max-min+1))+min;}
 function pick(arr){return arr[ri(0,arr.length-1)];}
 function shuffle(arr){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;}
 function nzi(min,max){let v=0;while(v===0)v=ri(min,max);return v;}
@@ -492,7 +570,9 @@ function genTokucho(){
       qkey:"tokucho_v5",
       qHtml:`次のグラフの直線の式として正しいものを選びなさい。`,
       fig:{kind:"line",lines:[{a,b,color:"var(--indigo)"}],range:6},
-      ans:{kind:"choice",choices:choices.map(T),correct:choices.indexOf(correct)},
+      /* plain は記録用(講師画面に「choice:3」ではなく式そのものを残す)。
+         候補は TeX 文字列で作ってあるので F() 表記に直して持つ */
+      ans:{kind:"choice",choices:choices.map(T),plain:choices.map(texToPlain),correct:choices.indexOf(correct)},
       exLines:[
         `${T("y")} 軸との交点(切片)は ${T("(0,\\,"+rTexInline(b)+")")}`,
         `右へ ${T(String(a.d))} 進むと上下に ${T(rTexInline(rmk(a.n)))} 変化する ${T("\\Rightarrow")} 傾き ${T(rTexInline(a))}`,
@@ -516,7 +596,7 @@ function genTokucho(){
       qkey:"tokucho_v1",
       qHtml:`グラフが<b>${up?"右上がり":"右下がり"}</b>になる一次関数を選びなさい。`,
       fig:null,
-      ans:{kind:"choice",choices:all.map(l=>T(lineTex(l.a,l.b))),correct:all.indexOf(good)},
+      ans:{kind:"choice",choices:all.map(l=>T(lineTex(l.a,l.b))),plain:all.map(l=>lineTexPlain(l.a,l.b)),correct:all.indexOf(good)},
       exLines:[
         `傾き ${T("a")} が ${up?"正":"負"} ${T("("+(up?"a>0":"a<0")+")")} のときグラフは${up?"右上がり":"右下がり"}になる。`,
         `${T(lineTex(good.a,good.b))} の傾きは ${T(rTexInline(good.a))} で${up?"正":"負"}。`
@@ -539,7 +619,7 @@ function genTokucho(){
       qkey:"tokucho_v2",
       qHtml:`グラフが点 ${T("("+px+",\\,"+rTexInline(py)+")")} を通る一次関数を選びなさい。`,
       fig:null,
-      ans:{kind:"choice",choices:all.map(l=>T(lineTex(l.a,l.b))),correct:all.indexOf(good)},
+      ans:{kind:"choice",choices:all.map(l=>T(lineTex(l.a,l.b))),plain:all.map(l=>lineTexPlain(l.a,l.b)),correct:all.indexOf(good)},
       exLines:[
         `${T("x="+px)} を代入して ${T("y="+rTexInline(py))} になる式を探す。`,
         T(rTexInline(good.a)+"\\times("+px+")"+(good.b.n>=0?"+":"")+rTexInline(good.b)+"="+rTexInline(py))
@@ -561,7 +641,7 @@ function genTokucho(){
       qkey:"tokucho_v3",
       qHtml:`グラフが ${T(lineTex(base.a,base.b))} のグラフと<b>平行</b>になるものを選びなさい。`,
       fig:null,
-      ans:{kind:"choice",choices:all.map(l=>T(lineTex(l.a,l.b))),correct:all.indexOf(good)},
+      ans:{kind:"choice",choices:all.map(l=>T(lineTex(l.a,l.b))),plain:all.map(l=>lineTexPlain(l.a,l.b)),correct:all.indexOf(good)},
       exLines:[
         `平行 ${T("\\Leftrightarrow")} 傾きが等しい(切片は異なる)。`,
         `傾き ${T(rTexInline(base.a))} の式は ${T(lineTex(good.a,good.b))}`
@@ -581,7 +661,7 @@ function genTokucho(){
     qkey:"tokucho_v4",
     qHtml:`グラフが ${T("y")} 軸と点 ${T("(0,\\,"+rTexInline(b)+")")} で交わる一次関数を選びなさい。`,
     fig:null,
-    ans:{kind:"choice",choices:all.map(l=>T(lineTex(l.a,l.b))),correct:all.indexOf(good)},
+    ans:{kind:"choice",choices:all.map(l=>T(lineTex(l.a,l.b))),plain:all.map(l=>lineTexPlain(l.a,l.b)),correct:all.indexOf(good)},
     exLines:[
       `${T("y")} 軸との交点の ${T("y")} 座標は切片 ${T("b")}。`,
       `切片が ${T(rTexInline(b))} の式は ${T(lineTex(good.a,good.b))}`
@@ -1052,7 +1132,15 @@ function genGraphAdvStd(){
   };
 }
 
-function genKoten(){
+/* ================================================================
+   交点を求める  koten
+     v1 グラフあり・交点は格子点（交点の意味をつかむ導入。図から読める）
+     v2 グラフなし・交点は格子点（連立方程式として解く）
+     v3 グラフなし・交点の座標が分数（図からは読み取れないので計算しかない）
+   3種類を等しく回すので，グラフなしと分数の交点も必ず出る。
+   ================================================================ */
+/* 交点が格子点になる2直線 */
+function kotenIntCore(){
   let a1,a2,x0,y0,b1,b2,ok=false;
   while(!ok){
     a1=nzi(-3,3);a2=nzi(-3,3);
@@ -1061,19 +1149,75 @@ function genKoten(){
     b1=y0-a1*x0;b2=y0-a2*x0;
     ok=Math.abs(b1)<=9&&Math.abs(b2)<=9&&b1!==b2;
   }
-  const A1=rmk(a1),B1=rmk(b1),A2=rmk(a2),B2=rmk(b2);
+  return {a1,a2,b1,b2,x:rmk(x0),y:rmk(y0)};
+}
+/* 交点の座標が分数になる2直線(傾きの差でわり切れない組み合わせ) */
+function kotenFracCore(){
+  let a1,a2,b1,b2,x,y;
+  for(;;){
+    a1=nzi(-4,4);a2=nzi(-4,4);
+    if(a1===a2)continue;
+    b1=ri(-8,8);b2=ri(-8,8);
+    if(b1===b2)continue;                     /* 交点が y 軸上になり，切片を答えるだけになる */
+    x=rmk(b2-b1,a1-a2);
+    if(rIsInt(x))continue;                   /* 分数になるものだけを使う */
+    if(x.d>4||Math.abs(rVal(x))>6)continue;
+    y=radd(rmul(rmk(a1),x),rmk(b1));
+    if(y.d>4||Math.abs(rVal(y))>14)continue;
+    break;
+  }
+  return {a1,a2,b1,b2,x,y};
+}
+/* 連立方程式で交点を出す手順。整数でも分数でも同じ流れで書ける */
+function kotenExLines(c){
+  const A1=rmk(c.a1),B1=rmk(c.b1),A2=rmk(c.a2),B2=rmk(c.b2);
+  const dA=c.a1-c.a2, dB=c.b2-c.b1;
+  const L=[
+    `交点は2直線の両方の式にあてはまる点。${T("y")} が等しいので ${T(shortRHS(A1,B1)+"="+shortRHS(A2,B2))}`,
+    `${T("x")} をふくむ項を左辺，数を右辺に集めて ${T(axTex(rmk(dA))+"="+dB)}`
+  ];
+  if(dA!==1){                                /* dA=1 なら上の行がもう x=… になっている */
+    L.push(`両辺を ${T(parenTex(rmk(dA)))} でわって ${T("x="+dB+"\\div "+parenTex(rmk(dA))+"="+rTexInline(c.x))}`);
+  }
+  if(rIsInt(c.x)){
+    L.push(`${T("\\ell_1")} の式に代入して ${T("y="+substTex(A1,B1,c.x))}`);
+  }else{
+    /* 分数を代入するときは かけ算 → たし算 の2段に分ける */
+    const ax=rmul(A1,c.x);
+    L.push(`${T("\\ell_1")} の式に代入する。${T(axSubTex(A1,c.x)+"="+rTexInline(ax))}`);
+    L.push(`${T("y="+rTexInline(ax)+bTailTex(B1)+"="+rTexInline(c.y))}`);
+  }
+  L.push(`よって交点は ${T("("+rTexInline(c.x)+",\\,"+rTexInline(c.y)+")")}`);
+  return L;
+}
+/* 問題オブジェクト作り(グラフありもなしも問題文は同じ) */
+function kotenQ(c,qkey,fig,note){
+  const A1=rmk(c.a1),B1=rmk(c.b1),A2=rmk(c.a2),B2=rmk(c.b2);
   return {
-    qkey:"koten_v1",
-    qHtml:`2直線 ${T("\\ell_1:"+lineTex(A1,B1))} と ${T("\\ell_2:"+lineTex(A2,B2))} の交点の座標を求めなさい。`,
-    fig:{kind:"twolines",lines:[{a:A1,b:B1,color:"var(--indigo)",label:"ℓ₁"},{a:A2,b:B2,color:"var(--sakura-deep)",label:"ℓ₂"}],pt:{x:x0,y:y0},range:Math.max(8,Math.abs(b1),Math.abs(b2))>9?11:9},
-    ans:{kind:"input",fields:[{label:"x=",val:rmk(x0)},{label:"y=",val:rmk(y0)}],pre:"(x,y)"},
-    exLines:[
-      `交点では ${T("y")} が等しいので ${T(shortRHS(A1,B1)+"="+shortRHS(A2,B2))}`,
-      T((a1-a2)+"x="+(b2-b1)+"\\ \\Rightarrow\\ x="+x0),
-      T("y="+a1+"\\times("+x0+")"+(b1>=0?"+":"")+b1+"="+y0),
-      `よって交点は ${T("("+x0+",\\,"+y0+")")}`
-    ]
+    qkey:qkey,
+    qHtml:`2直線 ${T("\\ell_1:"+lineTex(A1,B1))} と ${T("\\ell_2:"+lineTex(A2,B2))} の交点の座標を求めなさい。`
+         +(note?`<br><span style="font-size:.8em;color:var(--ink-soft)">${note}</span>`:""),
+    fig:fig,
+    ans:{kind:"input",fields:[{label:"x=",val:c.x},{label:"y=",val:c.y}],pre:"(x,y)"},
+    exLines:kotenExLines(c)
   };
+}
+function genKoten(){
+  const v=ri(1,3);
+  if(v===3){
+    return kotenQ(kotenFracCore(),"koten_v3",null,
+      "(交点の座標は分数になる。グラフでは読み取れないので連立方程式で求めよう)");
+  }
+  const c=kotenIntCore();
+  if(v===2){
+    return kotenQ(c,"koten_v2",null,"(グラフはなし。2つの式を連立方程式として解こう)");
+  }
+  const A1=rmk(c.a1),B1=rmk(c.b1),A2=rmk(c.a2),B2=rmk(c.b2);
+  const fig={kind:"twolines",
+    lines:[{a:A1,b:B1,color:"var(--indigo)",label:"ℓ₁"},{a:A2,b:B2,color:"var(--sakura-deep)",label:"ℓ₂"}],
+    pt:{x:c.x.n,y:c.y.n},
+    range:Math.max(8,Math.abs(c.b1),Math.abs(c.b2))>9?11:9};
+  return kotenQ(c,"koten_v1",fig,null);
 }
 function shortRHS(a,b){
   let s="";
@@ -1082,9 +1226,14 @@ function shortRHS(a,b){
   return s;
 }
 
+/* v1/v2 はグラフあり，v3/v4 は同じ問題をグラフなしで出す
+   (図から底辺・高さを読むのではなく，切片や交点を計算で出させる)
+   v5/v6 は3直線でできた三角形の面積を2等分する直線 */
 function genMenseki(){
-  const v=ri(1,2);
-  if(v===1){
+  const v=ri(1,6);
+  if(v>=5)return genMensekiNibun(v===5);
+  const noFig=(v>=3);
+  if(v===1||v===3){
     /* 1直線と両軸 */
     const p=nzi(-6,6)>0?ri(2,6):-ri(2,6);      /* x切片 */
     const bb=nzi(-6,6)>0?ri(2,6):-ri(2,6);     /* y切片 */
@@ -1092,9 +1241,10 @@ function genMenseki(){
     const B=rmk(bb);
     const area=rdiv(rmk(Math.abs(p*bb)),rmk(2));
     return {
-      qkey:"menseki_v1",
-      qHtml:`直線 ${T(lineTex(a,B))} と ${T("x")} 軸，${T("y")} 軸で囲まれた三角形の面積を求めなさい。`,
-      fig:{kind:"tri",lines:[{a,b:B,color:"var(--indigo)"}],tri:[[0,0],[p,0],[0,bb]],range:Math.max(8,Math.abs(p)+1,Math.abs(bb)+1)},
+      qkey:noFig?"menseki_v3":"menseki_v1",
+      qHtml:`直線 ${T(lineTex(a,B))} と ${T("x")} 軸，${T("y")} 軸で囲まれた三角形の面積を求めなさい。`
+           +(noFig?`<br><span style="font-size:.8em;color:var(--ink-soft)">(グラフはなし。${T("x")} 軸・${T("y")} 軸との交点を計算で求めよう)</span>`:""),
+      fig:noFig?null:{kind:"tri",lines:[{a,b:B,color:"var(--indigo)"}],tri:[[0,0],[p,0],[0,bb]],range:Math.max(8,Math.abs(p)+1,Math.abs(bb)+1)},
       ans:{kind:"input",fields:[{label:"\\text{面積}=",val:area}]},
       exLines:[
         `${T("y=0")} のとき ${T("x="+p)} ${T("\\Rightarrow")} ${T("x")} 軸との交点 ${T("("+p+",\\,0)")}`,
@@ -1104,7 +1254,7 @@ function genMenseki(){
       ]
     };
   }
-  /* v2: 2直線とy軸 */
+  /* v2/v4: 2直線とy軸 */
   let a1,a2,x0,y0,b1,b2,ok=false;
   while(!ok){
     a1=nzi(-3,3);a2=nzi(-3,3);
@@ -1116,16 +1266,96 @@ function genMenseki(){
   const A1=rmk(a1),B1=rmk(b1),A2=rmk(a2),B2=rmk(b2);
   const area=rdiv(rmk(Math.abs(b1-b2)*Math.abs(x0)),rmk(2));
   return {
-    qkey:"menseki_v2",
-    qHtml:`2直線 ${T("\\ell_1:"+lineTex(A1,B1))}，${T("\\ell_2:"+lineTex(A2,B2))} と ${T("y")} 軸で囲まれた三角形の面積を求めなさい。`,
-    fig:{kind:"tri",lines:[{a:A1,b:B1,color:"var(--indigo)",label:"ℓ₁"},{a:A2,b:B2,color:"var(--sakura-deep)",label:"ℓ₂"}],tri:[[0,b1],[0,b2],[x0,y0]],range:Math.max(8,Math.abs(b1)+1,Math.abs(b2)+1)},
+    qkey:noFig?"menseki_v4":"menseki_v2",
+    qHtml:`2直線 ${T("\\ell_1:"+lineTex(A1,B1))}，${T("\\ell_2:"+lineTex(A2,B2))} と ${T("y")} 軸で囲まれた三角形の面積を求めなさい。`
+         +(noFig?`<br><span style="font-size:.8em;color:var(--ink-soft)">(グラフはなし。2直線の交点と，${T("y")} 軸上の2点を計算で求めよう)</span>`:""),
+    fig:noFig?null:{kind:"tri",lines:[{a:A1,b:B1,color:"var(--indigo)",label:"ℓ₁"},{a:A2,b:B2,color:"var(--sakura-deep)",label:"ℓ₂"}],tri:[[0,b1],[0,b2],[x0,y0]],range:Math.max(8,Math.abs(b1)+1,Math.abs(b2)+1)},
     ans:{kind:"input",fields:[{label:"\\text{面積}=",val:area}]},
     exLines:[
       `2直線の交点は ${T("("+x0+",\\,"+y0+")")}(連立方程式を解く)。`,
-      `${T("y")} 軸上の2頂点は ${T("(0,\\,"+b1+")")} と ${T("(0,\\,"+b2+")")} ${T("\\Rightarrow")} 底辺 ${T("|"+b1+"-("+b2+")|="+Math.abs(b1-b2))}`,
+      `${T("y")} 軸上の2頂点は ${T("(0,\\,"+b1+")")} と ${T("(0,\\,"+b2+")")} ${T("\\Rightarrow")} 底辺 ${T("|"+b1+"-"+parenTex(rmk(b2))+"|="+Math.abs(b1-b2))}`,
       `高さは交点の ${T("x")} 座標の絶対値 ${T(String(Math.abs(x0)))}`,
       T("\\text{面積}=\\dfrac{1}{2}\\times "+Math.abs(b1-b2)+"\\times "+Math.abs(x0)+"="+rTexInline(area))
     ]
+  };
+}
+
+/* ================================================================
+   面積を2等分する直線  menseki_v5(グラフあり) / v6(グラフなし)
+   3直線でできた三角形 ABC の頂点Aを通って面積を2等分する直線は，
+   向かい合う辺 BC の中点を通る直線(中線)。
+     ℓ₁=AB / ℓ₂=AC / ℓ₃=BC と決めておくので，グラフなしでも
+     「ℓ₁ と ℓ₂ の交点(=A)を通る」と言えば頂点が指定できる。
+   ================================================================ */
+/* 2点を通る直線 y=ax+b (x が同じ=縦の直線なら null) */
+function lineThrough(P,Q){
+  if(P.x===Q.x)return null;
+  const a=rmk(Q.y-P.y,Q.x-P.x);
+  return {a:a,b:rsub(rmk(P.y),rmul(a,rmk(P.x)))};
+}
+/* 3辺も中線も見やすい式になる三角形。B と C は x も y も偶奇をそろえて
+   作るので，BC の中点 M は必ず格子点になる(中点が分数だと答えが読みにくい) */
+function nibunCore(){
+  for(;;){
+    const bx=ri(-6,6), by=ri(-6,6);
+    const p=nzi(-3,3), q=nzi(-3,3);
+    const cx=bx+2*p, cy=by+2*q;
+    if(Math.abs(cx)>6||Math.abs(cy)>6)continue;
+    const ax=ri(-6,6), ay=ri(-6,6);
+    const mx=bx+p, my=by+q;
+    if(ax===bx||ax===cx||ax===mx)continue;     /* 縦の直線は y=ax+b で表せない */
+    if(Math.abs((bx-ax)*(cy-ay)-(cx-ax)*(by-ay))<10)continue;   /* つぶれた三角形を避ける */
+    const A={x:ax,y:ay},B={x:bx,y:by},C={x:cx,y:cy},M={x:mx,y:my};
+    const sides=[lineThrough(A,B),lineThrough(A,C),lineThrough(B,C)];
+    /* 3辺: 傾き0(=一次関数でない)と，読みにくい分数を除く */
+    if(sides.some(l=>!l||l.a.n===0||l.a.d>2||Math.abs(rVal(l.a))>4||l.b.d>2||Math.abs(rVal(l.b))>9))continue;
+    const med=lineThrough(A,M);                /* 答えの中線 */
+    if(!med||med.a.n===0||med.a.d>3||Math.abs(rVal(med.a))>5)continue;
+    if(med.b.d>3||Math.abs(rVal(med.b))>9)continue;
+    return {A,B,C,M,AB:sides[0],AC:sides[1],BC:sides[2],med:med};
+  }
+}
+function ptTex(P){return "("+P.x+",\\,"+P.y+")";}
+function genMensekiNibun(withFig){
+  const c=nibunCore();
+  const {A,B,C,M,med}=c;
+  const R=Math.max(8,...[A,B,C].map(P=>Math.max(Math.abs(P.x),Math.abs(P.y))+1));
+  const lines=[
+    {a:c.AB.a,b:c.AB.b,color:"var(--indigo)",label:"ℓ₁"},
+    {a:c.AC.a,b:c.AC.b,color:"var(--sakura-deep)",label:"ℓ₂"},
+    {a:c.BC.a,b:c.BC.b,color:"var(--gold)",label:"ℓ₃"}
+  ];
+  const shiki=`${T("\\ell_1:"+lineTex(c.AB.a,c.AB.b))}，${T("\\ell_2:"+lineTex(c.AC.a,c.AC.b))}，${T("\\ell_3:"+lineTex(c.BC.a,c.BC.b))}`;
+  const qHtml=withFig
+    ? `次の図のように，3直線 ${shiki} で囲まれた三角形 ${T("\\mathrm{ABC}")} があります。頂点 ${T("\\mathrm{A}")} を通り，${T("\\triangle \\mathrm{ABC}")} の面積を2等分する直線の式を求めなさい。`
+      +`<br><span style="font-size:.8em;color:var(--ink-soft)">(面積を2等分する直線は，向かい合う辺の<b>中点</b>を通る)</span>`
+    : `3直線 ${shiki} で囲まれた三角形について，${T("\\ell_1")} と ${T("\\ell_2")} の交点を通り，この三角形の面積を2等分する直線の式を求めなさい。`
+      +`<br><span style="font-size:.8em;color:var(--ink-soft)">(グラフはなし。まず3つの頂点の座標を求めよう)</span>`;
+  const ex=[];
+  ex.push(withFig
+    ? `頂点は3直線の交点。${T("\\mathrm{A}"+ptTex(A))}，${T("\\mathrm{B}"+ptTex(B))}，${T("\\mathrm{C}"+ptTex(C))}`
+    : `2直線ずつ連立方程式にして頂点を求める。${T("\\ell_1")} と ${T("\\ell_2")} の交点を ${T("\\mathrm{A}"+ptTex(A))}，`
+      +`残りの2つを ${T("\\mathrm{B}"+ptTex(B))}，${T("\\mathrm{C}"+ptTex(C))} とする。`);
+  ex.push(`頂点 ${T("\\mathrm{A}")} を通る直線が面積を2等分するのは，向かい合う辺 ${T("\\mathrm{BC}")} の中点 ${T("\\mathrm{M}")} を通るとき。`);
+  ex.push(`${T("\\mathrm{BM}=\\mathrm{MC}")} で，${T("\\triangle \\mathrm{ABM}")} と ${T("\\triangle \\mathrm{AMC}")} は<b>底辺が等しく高さも共通</b>だから面積が等しい。`);
+  ex.push(`中点 ${T("\\mathrm{M}")} は ${T("\\left(\\dfrac{"+B.x+"+"+parenTex(rmk(C.x))+"}{2},\\ \\dfrac{"+B.y+"+"+parenTex(rmk(C.y))+"}{2}\\right)="+ptTex(M))}`);
+  ex.push(`2点 ${T("\\mathrm{A}"+ptTex(A))}，${T("\\mathrm{M}"+ptTex(M))} を通る直線を求める。`
+    +`傾き ${T("a=\\dfrac{"+M.y+"-"+parenTex(rmk(A.y))+"}{"+M.x+"-"+parenTex(rmk(A.x))+"}="+rTexInline(med.a))}`);
+  ex.push(A.x===0
+    ? `${T("\\mathrm{A}")} は ${T("y")} 軸上の点なので，切片は ${T("b="+A.y)}`
+    : `${T("y="+axTex(med.a)+"+b")} に ${T("x="+A.x+",\\ y="+A.y)} を代入して ${T("b="+A.y+"-"+parenTex(rmul(med.a,rmk(A.x)))+"="+rTexInline(med.b))}`);
+  ex.push(`よって ${T(lineTex(med.a,med.b))}`);
+  return {
+    qkey:withFig?"menseki_v5":"menseki_v6",
+    qHtml:qHtml,
+    fig:withFig?{kind:"tri",lines:lines,
+      tri:[[A.x,A.y],[B.x,B.y],[C.x,C.y]],
+      pts:[A,B,C],
+      labels:[{x:A.x,y:A.y,t:"A"},{x:B.x,y:B.y,t:"B"},{x:C.x,y:C.y,t:"C"}],
+      bisect:{from:A,mid:M},                   /* 採点後に中線を重ねる */
+      range:R}:null,
+    ans:{kind:"input",fields:[{label:"a=",val:med.a},{label:"b=",val:med.b}],pre:"y=ax+b"},
+    exLines:ex
   };
 }
 
@@ -1427,15 +1657,18 @@ function bTailTex(b){
   if(b.n===0)return "";
   return (b.n>0?"+":"")+rTexInline(b);
 }
+/* ax の代入部分だけの TeX。例 2\times(-3) / -\frac{3}{5}
+   x は整数でも rational でもよい(交点が分数になる問題で使う) */
+function axSubTex(a,x){
+  const X=(x&&typeof x==="object")?x:rmk(x);
+  if(rEq(a,rmk(1)))return parenTex(X);
+  if(rEq(a,rmk(-1)))return "-"+parenTex(X);
+  return rTexInline(a)+"\\times "+parenTex(X);
+}
 /* y=ax+b に x を代入した途中式。例 2\times(-3)+1=-5 */
 function substTex(a,b,x){
-  const X=rmk(x);
-  let s;
-  if(rEq(a,rmk(1)))s=parenTex(X);
-  else if(rEq(a,rmk(-1)))s="-"+parenTex(X);
-  else s=rTexInline(a)+"\\times "+parenTex(X);
-  s+=bTailTex(b);
-  return s+"="+rTexInline(radd(rmul(a,X),b));
+  const X=(x&&typeof x==="object")?x:rmk(x);
+  return axSubTex(a,X)+bTailTex(b)+"="+rTexInline(radd(rmul(a,X),b));
 }
 /* 式と，その直線が通る格子点を1つ作る(グラフの中におさまるもの) */
 function tooruCore(lim,noZeroY){
@@ -1918,7 +2151,14 @@ function inputToChoice(ans){
 /*GEN-END*/
 
 /* ---------- KaTeX span helper ---------- */
-function T(tex){return `<span class="tex" data-tex="${tex.replace(/&/g,"&amp;").replace(/"/g,"&quot;")}">${tex}</span>`;}
+/* KaTeX に渡す式は data-tex に持たせる。< > も必ず実体参照にすること
+   （T("a>0") のような不等号がそのまま出ると、記録用にタグを外すときに
+     属性の途中で切れて「0">a>0」のような文字列になる） */
+function texEsc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;")
+                  .replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function T(tex){return `<span class="tex" data-tex="${texEsc(tex)}">${texEsc(tex)}</span>`;}
 function renderTexIn(root){
   root.querySelectorAll(".tex").forEach(el=>{
     const s=el.dataset.tex;
@@ -1928,7 +2168,7 @@ function renderTexIn(root){
 }
 
 /* ---------- Divp guard ---------- */
-const UNIT_KEY="math_jh2_ichijikansu";
+const UNIT_KEY="math_js2_ichijikansu";
 function safeDivp(fn){
   try{
     if(window.Divp && typeof Divp[fn]==="function"){
@@ -1938,23 +2178,91 @@ function safeDivp(fn){
   return undefined;
 }
 
-/* ---------- state / progress ---------- */
-const LS_KEY="divp_"+UNIT_KEY+"_v1";
-let totalXp=0;
-try{const s=JSON.parse(localStorage.getItem(LS_KEY)||"{}");totalXp=s.xp|0;}catch(e){}
+/* ---------- state / progress ----------
+   XPはこのツールでは持たない（localStorage の独自XPは廃止）。
+   付与は save_answer.php が question_catalog.base_xp × イベント倍率で確定し、
+   レベルは累計XPからマイページが算出する。RANK と連続正解はその場の励ましなので
+   画面だけで持つ（保存しない＝開き直すとD/0から） */
 let streak=0, perfectRun=0;
 let mode="hantei", cur=null, graded=false;
 let selChoice=-1, selOx=-1, orderSeq=[], drawPts=[], activeField=0;
+/* 学習記録用: いま出ている問題の種類(=question_key)と種、図、開始時刻 */
+let curMode="hantei", curSeed=0, figSnap=null, qStart=0;
+/* 解き直しモード(?retry=1)のキュー。null = 通常出題 */
+let retryQ=null, retryTotal=0, retryDone=0;
 
-function level(){return Math.floor(Math.sqrt(totalXp/100))+1;}
+/* ---------- ミックス出題(えらんだ種類だけをランダムに) ----------
+   種類の台帳は modeNav のチップそのもの。チップを1つ足せば
+   ここのチェックボックスにも自動で並ぶ(愛知大問1の「出題範囲」と同じ考え方だが，
+   あちらは未習単元を外す設定，こちらは練習したい種類をえらぶ設定)。 */
+const MIX_KEY="divp_mix_"+UNIT_KEY;
+let MODE_LIST=[];                        /* [{key,label}] ミックス以外の全モード */
+let mixSel={};                           /* {modeKey:true} チェック中の種類 */
+let mixLast="";                          /* 直前に出た種類(2つ以上あれば続けない) */
+function isBasic(k){return !/adv$/.test(k);}     /* 「応用」は adv で終わるモード */
+function loadMix(){
+  let saved=null;
+  try{saved=JSON.parse(localStorage.getItem(MIX_KEY)||"null");}catch(e){}
+  const sel={};
+  MODE_LIST.forEach(m=>{
+    /* 保存が無い/その種類の記録が無いときは基本モードだけオンで始める */
+    sel[m.key]=saved&&typeof saved[m.key]==="boolean" ? saved[m.key] : isBasic(m.key);
+  });
+  if(!Object.keys(sel).some(k=>sel[k]))MODE_LIST.forEach(m=>{sel[m.key]=isBasic(m.key);});
+  return sel;
+}
+function saveMix(){try{localStorage.setItem(MIX_KEY,JSON.stringify(mixSel));}catch(e){}}
+function mixKeys(){return MODE_LIST.filter(m=>mixSel[m.key]).map(m=>m.key);}
+function modeLabel(k){
+  const m=MODE_LIST.filter(x=>x.key===k)[0];
+  return m?m.label:"";
+}
+/* チップから種類の一覧を作り，チェックボックスを並べる */
+function buildMixBox(){
+  MODE_LIST=[...document.querySelectorAll("#modeNav .chip")]
+    .filter(c=>c.dataset.mode!=="mix")
+    .map(c=>({key:c.dataset.mode,label:c.childNodes[0].textContent.trim()}));
+  mixSel=loadMix();
+  const list=document.getElementById("mixList");
+  list.innerHTML="";
+  MODE_LIST.forEach(m=>{
+    const lab=document.createElement("label");
+    const cb=document.createElement("input");
+    cb.type="checkbox";cb.checked=!!mixSel[m.key];cb.dataset.mode=m.key;
+    cb.addEventListener("change",()=>{
+      mixSel[m.key]=cb.checked;saveMix();updMixCount();
+      /* 0種類の案内が出ている状態でチェックしたら，そのまま1問目を出す */
+      if(mode==="mix"&&!cur)newQuestion();
+    });
+    lab.appendChild(cb);
+    lab.appendChild(document.createTextNode(m.label));
+    list.appendChild(lab);
+  });
+  updMixCount();
+}
+function updMixCount(){
+  document.getElementById("mixCount").textContent="（"+mixKeys().length+" / "+MODE_LIST.length+" 種類）";
+}
+function setMixAll(fn){
+  MODE_LIST.forEach(m=>{mixSel[m.key]=fn(m.key);});
+  saveMix();
+  document.querySelectorAll("#mixList input").forEach(cb=>{cb.checked=!!mixSel[cb.dataset.mode];});
+  updMixCount();
+}
+/* ミックスで次に出す種類を決める(同じ種類が2回続かないようにする) */
+function pickMixMode(){
+  const ks=mixKeys();
+  if(!ks.length)return MODE_LIST[0].key;
+  if(ks.length===1)return ks[0];
+  const rest=ks.filter(k=>k!==mixLast);
+  return pick(rest.length?rest:ks);
+}
+
 function rank(){
   if(perfectRun>=25)return"SSS";if(perfectRun>=18)return"SS";if(perfectRun>=12)return"S";
   if(perfectRun>=8)return"A";if(perfectRun>=5)return"B";if(perfectRun>=3)return"C";return"D";
 }
-function saveLS(){try{localStorage.setItem(LS_KEY,JSON.stringify({xp:totalXp}));}catch(e){}}
 function updHUD(){
-  document.getElementById("lvVal").textContent=level();
-  document.getElementById("xpVal").textContent=totalXp;
   document.getElementById("rankVal").textContent=rank();
   document.getElementById("streakVal").textContent=streak;
 }
@@ -1967,6 +2275,10 @@ function makeGrid(R,size,interactive){
   const svg=document.createElementNS(SVGNS,"svg");
   svg.setAttribute("viewBox",`0 0 ${W} ${W}`);
   svg.setAttribute("width",Math.min(W,420));
+  /* 解き直しプリント側の目印。方眼は 360 単位四方あるので、共通の
+     「.q-fig2 svg は高さ54mm」だと目盛りの数字が1.5mmになって読めない
+     （teacher.php に .q-fig2 svg.gridfig の高さ指定がある） */
+  svg.setAttribute("class","gridfig");
   const gx=x=>pad+(x+R)*u, gy=y=>pad+(R-y)*u;
   svg._gx=gx; svg._gy=gy; svg._R=R; svg._u=u;
   /* 方眼 */
@@ -2115,6 +2427,9 @@ function renderFig(fig){
       if(l.label)lineLabel(svg,seg,l.label,l.color);
     });
     shadeTri(svg,fig.tri);
+    /* 面積の2等分: 頂点に A / B / C の名前を出す(問題文が頂点名で指定するため) */
+    (fig.pts||[]).forEach(p=>drawPointOn(svg,p.x,p.y,"var(--sakura-deep)",5));
+    (fig.labels||[]).forEach(l=>ptLabel(svg,l.x,l.y,l.t,"var(--ink)"));
   }
   if(fig.kind==="draw"){
     svg.style.cursor="crosshair";
@@ -2205,8 +2520,12 @@ function makeChoiceGroup(ch){
 }
 /* 採点後の色づけは共通モジュール divp-choice-mark.js にまかせる
    (正解=緑 / 選んだ誤答=朱 / 選ばなかった正解=緑＋「正解」バッジ) */
+/* 採点表示は共通モジュール divp-choice-mark.js にまかせる。
+   dimOthers:true で「正解でも選んでもいない選択肢」も薄く印を付ける
+   ＝どの選択肢にも状態が付く（他のツールと同じ見え方。付け漏れがあると
+     どれが答えだったのか読み取りにくい） */
 function markChoices(correct){
-  safeDivp("markChoices","#ansArea .choiceBtn",{correct:correct,selected:selChoice});
+  safeDivp("markChoices","#ansArea .choiceBtn",{correct:correct,selected:selChoice,dimOthers:true});
 }
 function renderAns(ans){
   const area=document.getElementById("ansArea");
@@ -2382,7 +2701,45 @@ function fitQuestion(){
 /* ---------- flow ---------- */
 function newQuestion(){
   graded=false;
-  cur=GENS[mode]();
+  const tag=document.getElementById("qTag");
+  if(retryQ&&!retryQ.length){                   /* 解き直しを1周した */
+    retryQ=null;
+    retryBanner("解き直し おつかれさま！ 同じ問題に2回連続で正解すると リストから消えるよ");
+  }
+  let useMode, seed, retryInfo="";
+  if(retryQ){                                   /* 解き直し: 保存した種で同じ問題を出す */
+    const it=retryQ.shift();
+    retryDone++;
+    useMode=it.question_params.m;
+    seed=it.question_params.s>>>0;
+    retryInfo="解き直し "+retryDone+" / "+retryTotal;
+  }else{
+    if(mode==="mix"&&!mixKeys().length){        /* 1つもえらばれていない */
+      cur=null;
+      tag.style.display="none";
+      document.getElementById("toast").textContent="";
+      document.getElementById("explain").style.display="none";
+      document.getElementById("nextBtn").style.display="none";
+      document.getElementById("checkBtn").style.display="none";
+      document.getElementById("ansArea").innerHTML="";
+      renderFig(null);
+      const q0=document.getElementById("qText");
+      q0.style.transform="";
+      q0.innerHTML="上の「出題する種類をえらぶ」で，練習したい種類にチェックを入れてね。";
+      return;
+    }
+    /* ミックスは毎問，チェックした種類の中から1つえらぶ */
+    useMode=(mode==="mix")?pickMixMode():mode;
+    seed=rngPick();
+    if(mode==="mix")mixLast=useMode;
+  }
+  if(retryInfo){tag.style.display="block";tag.textContent=retryInfo+" ・ "+modeLabel(useMode);}
+  else if(mode==="mix"){tag.style.display="block";tag.textContent=modeLabel(useMode);}
+  else tag.style.display="none";
+  curMode=useMode;
+  curSeed=seed;
+  rngSeed(seed);                                /* ここから先の乱数は種で決まる */
+  cur=GENS[useMode]();
   /* グラフをかく以外の解答は6択に組み直す(ジェネレータは値を返すだけでよい) */
   if(cur.ans.kind==="input")cur.ans=inputToChoice(cur.ans);
   /* 変域モードは①グラフをかく＋②変域を答える。②だけを6択にする */
@@ -2398,11 +2755,13 @@ function newQuestion(){
   renderFig(cur.fig);
   renderAns(cur.ans);
   requestAnimationFrame(fitQuestion);
-  safeDivp("log",UNIT_KEY,cur.qkey,"show");
+  /* 図は「正解を重ねる前」に撮る。1問の所要時間もここから数える */
+  figSnap=figureSnapshot();
+  qStart=Date.now();
 }
 
 function check(){
-  if(graded)return;
+  if(graded||!cur)return;
   const ans=cur.ans;
   let userStr="", ok=false, missMsg="おしい！ 解説を読んでもう一度挑戦しよう";
   if(ans.kind==="order"){
@@ -2431,7 +2790,7 @@ function check(){
     ok=okEq&&okOx;
     userStr=(ans.plain?ans.plain[selChoice]:"式:"+selChoice)+" / "+(selOx===0?"○":"×");
     markChoices(ans.correct);
-    safeDivp("markChoices",".oxBtn",{correct:ans.lin?0:1,selected:selOx});
+    safeDivp("markChoices",".oxBtn",{correct:ans.lin?0:1,selected:selOx,dimOthers:true});
     if(okEq&&!okOx)missMsg="式は合っているよ！ 一次関数かどうかをもう一度考えよう";
     else if(!okEq&&okOx)missMsg="○×は合っているよ！ 式の立て方を解説で確かめよう";
   }
@@ -2502,6 +2861,16 @@ function check(){
     const svg=document.querySelector("#figWrap svg");
     if(svg)drawPointOn(svg,cur.fig.pt.x,cur.fig.pt.y,"var(--gold)",6);
   }
+  /* 面積の2等分: 採点後に中線(頂点→対辺の中点M)を重ねて，なぜ2等分かを見せる */
+  if(cur.fig&&cur.fig.bisect){
+    const svg=document.querySelector("#figWrap svg");
+    if(svg){
+      const bs=cur.fig.bisect;
+      drawSegOn(svg,[bs.from.x,bs.from.y],[bs.mid.x,bs.mid.y],"var(--moss)",3);
+      drawPointOn(svg,bs.mid.x,bs.mid.y,"var(--moss)",5.5);
+      ptLabel(svg,bs.mid.x,bs.mid.y,"M","var(--moss)");
+    }
+  }
   /* 傾きの範囲: 採点後に境界の2直線を点線で重ねる(切片は問題ごとに固定) */
   if(cur.fig&&cur.fig.bounds){
     const svg=document.querySelector("#figWrap svg");
@@ -2509,22 +2878,42 @@ function check(){
     if(svg)cur.fig.bounds.forEach(s=>drawLineOn(svg,s,bb,"var(--moss)",true));
   }
 
-  const correctStr=describeAnswer(ans);
+  const correctStr=texToPlain(describeAnswer(ans));
   if(ok){
     streak++;perfectRun++;
-    totalXp+=10;saveLS();
-    toast("+10 XP");
+    /* 「+10 XP」の代わりに連続の伸びだけ出す(XPはサーバー側が持つ) */
+    toast(streak>=3?("連続 "+streak+" 問正解！"):"");
     correctEffect();
   }else{
     streak=0;perfectRun=0;
     toast(missMsg);
+    incorrectEffect();
     document.getElementById("card").classList.remove("shake");
     void document.getElementById("card").offsetWidth;
     document.getElementById("card").classList.add("shake");
   }
   updHUD();
   showExplain();
-  safeDivp("answer",UNIT_KEY,cur.qkey,ok,userStr,correctStr);
+  /* ── 学習記録（判定直後に1行）──────────────────────────────
+     question_key はモード名そのまま(CLAUDE.md 設計判断3)。
+     question_params は {m:モード, s:種} だけで、この2つがあれば
+     ?retry=1 で同じ問題を作り直せる(復元用のロジックはPHP側に置かない)。
+     未ログイン・file:// では divp-core が黙ってスキップする。 */
+  const qSec=qStart?Math.max(1,Math.round((Date.now()-qStart)/1000)):0;
+  safeDivp("answer",ok,{
+    question_key:curMode,
+    question_params:{m:curMode,s:curSeed},
+    question_text:qTextPlain(),
+    /* 図やグラフが無いと紙で解き直せない問題用(誤答時だけ保存される)。
+       出題直後のスナップショット＝正解の線は写っていない */
+    question_figure:figSnap,
+    /* 「式の特徴」だけは選択肢も保存する(並んだ式から選ぶ問題は選択肢が無いと紙で解けない) */
+    question_choices:choicesForRecord(),
+    correct_answer:correctStr,
+    wrong_answer:texToPlain(userStr),
+    /* 離席ぶんを混ぜないよう10分超は記録しない(愛知大問1と同じ扱い) */
+    time_taken_sec:(qSec>0&&qSec<=600)?qSec:null
+  });
 }
 /* ①②③ の並びを記録用の平文にする(選んでいない枠は「?」) */
 function ordPlain(ans,seq){
@@ -2547,6 +2936,71 @@ function lineTexPlain(a,b){
   if(b.n===0)return "y="+ax;
   return "y="+ax+(b.n>0?"+":"")+ratPlain(b);
 }
+/* ---------- 記録用のテキスト・図（講師/保護者画面向け） ----------
+   TeX → プレーンテキスト。分数は必ず F(分子/分母) にする
+   （生の "/" だと「6xy/2x」のような除算と区別できない。CLAUDE.md 2a の規約で、
+     mypage.php / retry.php / teacher.php の renderMathToHTML が縦組みに戻す） */
+function texToPlain(tex){
+  let s=String(tex);
+  s=s.replace(/\^\{2\}/g,"²").replace(/\^2/g,"²").replace(/\^\{3\}/g,"³").replace(/\^3/g,"³");
+  /* \text{} / \mathrm{} / \dfrac{}{} は内側から畳む(入れ子があるので繰り返す) */
+  for(let i=0;i<8;i++){
+    const t=s.replace(/\\text\{([^{}]*)\}/g,"$1")
+             .replace(/\\mathrm\{([^{}]*)\}/g,"$1")
+             .replace(/\\(?:dfrac|frac)\{([^{}]*)\}\{([^{}]*)\}/g,"F($1/$2)");
+    if(t===s)break;
+    s=t;
+  }
+  return s
+    .replace(/\\ell_1/g,"ℓ₁").replace(/\\ell_2/g,"ℓ₂").replace(/\\ell_3/g,"ℓ₃").replace(/\\ell/g,"ℓ")
+    .replace(/\\times/g,"×").replace(/\\div/g,"÷")
+    .replace(/\\leqq/g,"≦").replace(/\\geqq/g,"≧")
+    .replace(/\\Rightarrow/g,"⇒").replace(/\\Leftrightarrow/g,"⇔").replace(/\\to/g,"→")
+    .replace(/\\triangle/g,"△").replace(/\\cap/g,"∩").replace(/\\ne/g,"≠").replace(/\\sim/g,"∽")
+    .replace(/\\pi/g,"π")
+    .replace(/\\left|\\right/g,"")
+    .replace(/\\\\|\\,|\\ |\\!|\\;/g," ")
+    .replace(/[{}]/g,"")
+    .replace(/\s+/g," ").trim();
+}
+/* 問題文(qHtml)を1本のプレーンテキストに。
+   表(対応表モード)は問題文にすると「x0123y-5-3」と潰れるので、
+   本文からは外して question_figure 側に回す */
+function qTextPlain(q){
+  let h=String((q||cur||{}).qHtml||"");
+  h=h.replace(/<table[\s\S]*?<\/table>/gi,"（下の表）").replace(/<br\s*\/?>/gi," ");
+  /* タグ外しは正規表現ではなくブラウザにやらせる(不等号や実体参照で崩れない) */
+  const d=document.createElement("div");
+  d.innerHTML=h;
+  return texToPlain(d.textContent||"");
+}
+/* 選択肢そのものが問題の中身になる種類だけ、選択肢も保存する。
+   「式の特徴」は<b>並んだ式の中から選ぶ</b>問題なので、問題文と図だけ刷っても
+   紙で解けない（「右上がりになる一次関数を選びなさい」だけでは答えが定まらない）。
+   ほかの種類は答えが値や式そのもの＝記述式で解けるので保存しない
+   （愛知大問1の KEEP_CHOICES と同じ考え方。CLAUDE.md の question_choices 参照）。 */
+const KEEP_CHOICES={tokucho:1};
+function choicesForRecord(){
+  if(!KEEP_CHOICES[curMode])return null;
+  const a=cur&&cur.ans;
+  if(!a||!a.plain||a.plain.length<2)return null;
+  return a.plain.map(v=>({t:"tex",v:texToPlain(v)}));
+}
+/* 図が無いと解けない問題用のスナップショット（誤答時だけ保存される）。
+   ⚠ 採点後は正解の線を図に重ねるので、**出題直後に**撮っておくこと。
+   ⚠ 画面のSVGは stroke="var(--indigo)" のようにCSS変数を使っているが、
+     講師ページの解き直しプリントにはその変数が無い＝線が消える。
+     ここで実際の色に置き換えてから保存する。 */
+function figureSnapshot(){
+  const svg=document.querySelector("#figWrap svg");
+  if(svg){
+    const cs=getComputedStyle(document.documentElement);
+    return svg.outerHTML.replace(/var\((--[a-zA-Z0-9-]+)\)/g,
+      (m,v)=>(cs.getPropertyValue(v)||"").trim()||"#33312B");
+  }
+  const m=/<table[\s\S]*?<\/table>/i.exec(String(cur&&cur.qHtml||""));
+  return m?m[0]:null;
+}
 function showExplain(){
   const ex=document.getElementById("explain");
   const body=document.getElementById("exBody");
@@ -2555,20 +3009,76 @@ function showExplain(){
   ex.style.display="block";
 }
 function toast(s){document.getElementById("toast").textContent=s;}
+/* 正解=はんこ / 誤答=「ナイスチャレンジ！」バッジ（js/jh共通 divp-correct-jh.js）。
+   第1引数のセレクタは必須。#card は overflow:visible にしてある
+   （はんこは直径171pxで、hidden だと切れる） */
 function correctEffect(){
-  const r=safeDivp("correct");
-  if(r!==undefined)return;
-  const h=document.getElementById("hanko");
+  if(window.Divp&&typeof Divp.correct==="function"){Divp.correct("#card");return;}
+  const h=document.getElementById("hanko");           /* モジュール未読込のときの自前演出 */
   h.classList.remove("pop");void h.offsetWidth;h.classList.add("pop");
   setTimeout(()=>h.classList.remove("pop"),1100);
+}
+function incorrectEffect(){
+  if(window.Divp&&typeof Divp.incorrect==="function")Divp.incorrect("#card");
+}
+
+/* ---------- 解き直しモード(?retry=1) ----------
+   マイページの「解き直し」から ?retry=1 付きで開かれたときだけ動く。
+   question_params の {m:モード, s:種} で生成関数を回すと同じ問題が出るので、
+   pending をその順に消化する。判定後は通常どおり Divp.answer が飛ぶ＝
+   params_hash も同じなので、2連続正解で save_answer.php が mastered にする。 */
+function initRetry(){
+  if(!(window.Divp&&typeof Divp.getRetries==="function"))return;
+  Divp.getRetries().then(items=>{
+    const use=(items||[]).filter(it=>{
+      const p=it&&it.question_params;
+      return p&&GENS[p.m]&&typeof p.s==="number";
+    });
+    if(!use.length){
+      retryBanner("解き直せる問題は まだありません。これからまちがえた問題が ここに入ります");
+      return;
+    }
+    retryQ=use.slice();retryTotal=retryQ.length;retryDone=0;
+    newQuestion();
+  }).catch(()=>{});
+}
+/* 画面上部に数秒だけ出す帯(HTMLを増やさずJSだけで完結させる) */
+function retryBanner(msg){
+  const old=document.getElementById("retryBanner");
+  if(old)old.remove();
+  const d=document.createElement("div");
+  d.id="retryBanner";d.textContent=msg;
+  d.style.cssText="max-width:860px;margin:0 auto 10px;background:#FBF3E0;border:1.5px solid var(--gold);"
+    +"border-radius:10px;padding:9px 12px;font-size:.8rem;color:#6E5518;line-height:1.5";
+  const nav=document.getElementById("modeNav");
+  nav.parentNode.insertBefore(d,nav);
+  setTimeout(()=>{if(d.parentNode)d.remove();},9000);
 }
 
 /* ---------- events ---------- */
 document.getElementById("modeNav").addEventListener("click",e=>{
   const c=e.target.closest(".chip");if(!c)return;
   mode=c.dataset.mode;
+  retryQ=null;                                  /* 種類をえらび直したら解き直しモードを抜ける */
   document.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x===c));
+  document.getElementById("mixBox").style.display=(mode==="mix")?"block":"none";
   newQuestion();
+});
+/* 「ぜんぶ外す」→「必要な種類だけチェック」がえらび直しの近道。
+   0種類のときは問題を出さずに案内を出す(newQuestion が受け持つ) */
+document.getElementById("mixAll").addEventListener("click",()=>{setMixAll(()=>true);if(mode==="mix"&&!cur)newQuestion();});
+document.getElementById("mixBasic").addEventListener("click",()=>{setMixAll(isBasic);if(mode==="mix"&&!cur)newQuestion();});
+document.getElementById("mixNone").addEventListener("click",()=>{
+  setMixAll(()=>false);
+  if(mode==="mix")newQuestion();
+});
+/* 設定パネルの開閉。えらび終わったら畳んで問題に集中できるようにする(初期は開) */
+document.getElementById("mixFold").addEventListener("click",()=>{
+  const box=document.getElementById("mixBox"), b=document.getElementById("mixFold");
+  const fold=!box.classList.contains("folded");
+  box.classList.toggle("folded",fold);
+  b.textContent=fold?"ひらく":"とじる";
+  b.setAttribute("aria-expanded",fold?"false":"true");
 });
 document.getElementById("checkBtn").addEventListener("click",check);
 document.getElementById("nextBtn").addEventListener("click",newQuestion);
@@ -2582,8 +3092,13 @@ window.addEventListener("resize",fitQuestion);
 /* KaTeX 読み込み後に再レンダリング */
 window.addEventListener("load",()=>{renderTexIn(document.body);fitQuestion();});
 
+/* 学習記録の開始(セッション・学習時間・ハートビートは divp-core にまかせる) */
+safeDivp("init",UNIT_KEY);
+buildMixBox();
 updHUD();
 newQuestion();
+/* マイページの「解き直し」から来たときだけ、pending を同じ問題で出し直す */
+if(/[?&]retry=1/.test(location.search)){try{initRetry();}catch(e){}}
 </script>
 </body>
 </html>

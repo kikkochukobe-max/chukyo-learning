@@ -2058,6 +2058,9 @@ document.querySelectorAll('.math').forEach(function (el) {
       /* 54mm は「角度ラベル(10px)が縮まず原寸で出る」高さ。これ以下だと図中の数字が読みにくい */
       + '.q-fig2 svg{display:block!important;height:54mm!important;width:auto!important;'
         + 'max-width:110mm!important;margin:0!important;}'
+      /* 座標平面の方眼(一次関数マスターの class="gridfig")は 360単位四方＝上の54mmだと
+         目盛りの数字が1.5mmになって読めない。方眼に線を引かせる問題でもあるので大きく出す */
+      + '.q-fig2 svg.gridfig{height:88mm!important;max-width:88mm!important;}'
       + '.q-fig2 table{border-collapse:collapse;font-size:13px;margin:2px;}'
       + '.q-fig2 th,.q-fig2 td{border:1px solid #666;padding:2px 9px;text-align:center;white-space:nowrap;}'
       /* nowrap は数字だけの度数分布表むけ。文章がセルに入る表（理科のセキツイ動物分類表

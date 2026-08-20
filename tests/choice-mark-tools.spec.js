@@ -65,6 +65,17 @@ const TOOLS = [
     next: '#next-btn',
   },
   {
+    name: '一次関数',
+    url: '/learning/math/math_js2_ichijikansu.html',
+    start: async (page) => {
+      // 交点モードは必ず6択（○×・並べかえ・作図の出題形式にならない）
+      await page.locator('.chip[data-mode="koten"]').click();
+    },
+    choices: '#ansArea .choiceBtn',
+    grade: '#checkBtn',
+    next: '#nextBtn',
+  },
+  {
     name: 'イオンのしくみラボ',
     url: '/learning/science/science_js3_ionlab.html',
     start: async (page) => {

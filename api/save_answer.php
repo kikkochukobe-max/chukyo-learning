@@ -52,7 +52,7 @@ const FIG_TAGS = ['svg','g','line','polyline','polygon','rect','circle','ellipse
                   'b','strong','i','em','u','small','sub','sup'];
 const FIG_ATTRS = ['x','y','x1','y1','x2','y2','cx','cy','r','rx','ry','d','points','width','height',
                    'viewbox','xmlns','preserveaspectratio','fill','stroke','stroke-width','stroke-dasharray',
-                   'stroke-linecap','stroke-linejoin','font-size','font-family','font-weight','text-anchor',
+                   'stroke-linecap','stroke-linejoin','font-size','font-family','font-weight','font-style','text-anchor',
                    'dominant-baseline','transform','opacity','fill-opacity','class','style','colspan','rowspan',
                    // グラデーション（理科のりん片の図など）
                    'id','offset','stop-color','stop-opacity','gradientunits','gradienttransform','spreadmethod',
