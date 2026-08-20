@@ -218,6 +218,24 @@ table.freq th{background:var(--paper-deep);font-weight:700}
   --divp-mark-ng:var(--shu);
   --divp-mark-ng-bg:var(--shu-bg);
 }
+/* 採点結果カード(共通モジュール divp-result.js)をこのツールの和紙・藍の配色に寄せる。
+   ランクの色(--divp-result-grade-*)は既定のまま＝平方根マスターと同じ配色にそろえる。 */
+:root{
+  --divp-result-bg:#fffdf7;
+  --divp-result-ink:var(--ink);
+  --divp-result-sub:var(--usuzumi);
+  --divp-result-accent:var(--ai);
+  --divp-result-accent-ink:#fff;
+  --divp-result-sub-btn:var(--paper-deep);
+  --divp-result-ok:#2f6b45;
+  --divp-result-ok-bg:var(--midori-bg);
+  --divp-result-ng:var(--shu-deep);
+  --divp-result-ng-bg:var(--shu-bg);
+  --divp-result-wrong-btn:var(--shu);
+  --divp-result-grade-font:"Shippori Mincho",serif;
+}
+.divp-result{border:2px solid var(--ink);}
+.divp-result-cap{font-family:"Shippori Mincho",serif;font-weight:800;font-size:1.1rem;letter-spacing:.15em;}
 /* ア・イ・ウ の丸も採点結果に合わせる(モジュールは選択肢そのものだけ塗る) */
 .mchoice[data-divp-mark="correct"] .mark,.mchoice[data-divp-mark="answer"] .mark{background:var(--midori);border-color:var(--midori);color:#fff}
 .mchoice[data-divp-mark="wrong"] .mark{background:var(--shu);border-color:var(--shu);color:#fff}
@@ -292,6 +310,7 @@ footer{margin-top:34px;text-align:center;font-size:.68rem;color:var(--usuzumi);l
 <script src="/assets/divp-core.js"></script>
 <script src="/assets/divp-correct-jh.js"></script>
 <script src="/assets/divp-choice-mark.js"></script>
+<script src="/assets/divp-result.js"></script>
 <script>if(window.Divp&&Divp.init)Divp.init('math_js3_aichi_daimon1');</script>
 
 <div class="wrap">
@@ -2748,11 +2767,73 @@ function buildHome(){
 $('btnSet').addEventListener('click',startSet);
 
 function startFree(t){mode='free';curType=t;streak=0;retryQ=null;
+ /* タイプ別トレーニングも10問で1ラウンド。解いた問題は setQs に積んでいき、
+    10問そろったら本番セットと同じ採点結果カードを出す */
+ setQs=[];setMarks=[];setIdx=0;roundIsFree=true;wrongRetrySet=false;
+ initResultFree(t);safeDivp('resultStart',{total:FREE_N,questionKey:'free_'+t.id});
  $('streak').innerHTML='連続 <b>0</b>';
  $('timer').style.display='none';$('streak').style.display='inline';
  /* 学習セッションは Divp.init() が start_session/heartbeat/end_session まで面倒を見る */
  loadQ(E.genFresh(t.id));show('scr-drill')}
-function startSet(){mode='set';setQs=E.genAichiSet();setIdx=0;setMarks=[];retryQ=null;
+/* ═══ 本番セットの採点結果（共通モジュール divp-result.js）═══
+   ランク・メッセージ・次の行き先は共通カードにまかせ、このツールだけの情報
+   （タイム・○✕一覧）は extra で差し込む。読み込めなかった場合は下の
+   従来どおりの #scr-result（静的マークアップ）がそのまま出る＝画面は壊れない。 */
+const FREE_N=10;                       /* タイプ別トレーニングの1ラウンド */
+let lastSetSec=0, wrongRetrySet=false, roundIsFree=false;
+function setResultExtra(){
+ /* タイム計測は本番セットだけ。タイプ別トレーニングは○✕一覧のみ */
+ const t=roundIsFree?'':'<div class="result-time">タイム '
+  +Math.floor(lastSetSec/60)+'分'+(lastSetSec%60)+'秒</div>';
+ const mb=setMarks.map((ok,i)=>'<div class="mb"><b class="'+(ok?'o':'x')+'">'
+  +(ok?'○':'✕')+'</b>('+(i+1)+')</div>').join('');
+ return t+'<div class="marubatsu">'+mb+'</div>'}
+/* まちがえた問題だけをもう一度セットとして出す（同じ問題オブジェクトを使い回すので
+   params_hash も同じ＝2連続正解でマイページの解き直しリストから消える） */
+function startWrongSet(ws){
+ mode='set';setQs=ws.slice();setIdx=0;setMarks=[];retryQ=null;wrongRetrySet=true;
+ $('streak').style.display='none';
+ if(timerId)clearInterval(timerId);
+ if(roundIsFree){$('timer').style.display='none'}
+ else{
+  $('timer').style.display='inline';
+  tSetStart=Date.now();
+  timerId=setInterval(()=>{const s=Math.floor((Date.now()-tSetStart)/1000);
+   $('timer').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')},500)}
+ loadQ(setQs[0]);show('scr-drill')}
+function initResultSet(){
+ safeDivp('resultInit',{
+  total:10,questionKey:'set',masterLabel:'大問1マスター',
+  mount:'#scr-result',cap:'─ 採点結果 ─',extra:setResultExtra,
+  /* 文言は入試向けのまま（ランクの段階に合わせて割り当て直しただけ） */
+  msgs:{S:'満点！本番もこの調子でいこう。',
+        A:'合格ライン。まちがえた問題を復習しよう。',
+        B:'あと少しで合格ライン。まちがえた問題を復習しよう。',
+        C:'大問1は得点源。タイプ別で弱点をつぶそう。',
+        D:'まずはタイプ別トレーニングで基礎がためを。',
+        retry:'解き直しおつかれさま！'},
+  labels:{next:'もう一回（%d問）',wrong:'🔁 まちがえた %n 問をもう一度',
+          modes:'トップにもどる',home:'学習ツール一覧へ'},
+  onNext:startSet,onRetryWrong:startWrongSet,onModes:()=>show('scr-home')})}
+/* タイプ別トレーニング用。次の行き先が「同じタイプをもう10問」になるだけで
+   カードの中身は本番セットと同じ（ランクの連続はタイプごとに数える） */
+function initResultFree(t){
+ safeDivp('resultInit',{
+  total:FREE_N,questionKey:'free_'+t.id,masterLabel:t.label+'マスター',
+  mount:'#scr-result',cap:'─ 採点結果 ─',extra:setResultExtra,
+  msgs:{S:'全問正解！このタイプはもう大丈夫。',
+        A:'あと1問！よくできました。',
+        B:'もう少し！解説を読み直そう。',
+        C:'まちがえた問題をもう一度解いてみよう。',
+        D:'解説を読んでから、もう10問。',
+        retry:'解き直しおつかれさま！'},
+  labels:{next:'このタイプをもう%d問',wrong:'🔁 まちがえた %n 問をもう一度',
+          modes:'タイプをえらび直す',home:'学習ツール一覧へ'},
+  onNext:()=>startFree(curType),onRetryWrong:startWrongSet,
+  onModes:()=>show('scr-home')})}
+
+function startSet(){mode='set';setQs=E.genAichiSet();setIdx=0;setMarks=[];retryQ=null;wrongRetrySet=false;roundIsFree=false;
+ initResultSet();safeDivp('resultStart');
  $('streak').style.display='none';$('timer').style.display='inline';
  tSetStart=Date.now();
  if(timerId)clearInterval(timerId);
@@ -2764,7 +2845,9 @@ function nextQ(){
   retryDone++;
   if(!retryQ||!retryQ.length){finishRetry();return}
   loadQ(retryQ.shift());return}
- if(mode==='free'){loadQ(E.genFresh(curType.id))}
+ if(mode==='free'){
+  if(setMarks.length>=FREE_N){finishFree();return}
+  loadQ(E.genFresh(curType.id))}
  else{setIdx++;
   if(setIdx>=setQs.length){finishSet();return}
   loadQ(setQs[setIdx])}}
@@ -2772,7 +2855,8 @@ function nextQ(){
 function loadQ(newQ){q=newQ;graded=false;selected=[];tQStart=Date.now();
  const tp=E.TYPES.filter(t=>t.id===q.typeId)[0];
  $('qNo').textContent=mode==='set'?'('+(setIdx+1)+')'
-  :mode==='retry'?'解き直し '+(retryDone+1)+'/'+retryTotal:'(問)';
+  :mode==='retry'?'解き直し '+(retryDone+1)+'/'+retryTotal
+  :'('+(setMarks.length+1)+'/'+FREE_N+')';
  $('catTag').textContent=tp?tp.label:'';
  const parts=$('qParts');parts.innerHTML='';
  q.parts.forEach(pt=>{
@@ -2865,9 +2949,10 @@ $('btnCheck').addEventListener('click',()=>{
    ktx(s,line);fitEl(s)})}
  $('streak').innerHTML='連続 <b>'+streak+'</b>';
  if(mode==='set')setMarks.push(ok);
+ else if(mode==='free'){setMarks.push(ok);setQs.push(q)}
  $('fb').classList.add('show');
  $('btnCheck').style.display='none';$('btnNext').style.display='block';
- $('btnNext').textContent=(mode==='set'&&setIdx===setQs.length-1)?'採点結果へ'
+ $('btnNext').textContent=((mode==='set'&&setIdx===setQs.length-1)||(mode==='free'&&setMarks.length>=FREE_N))?'採点結果へ'
   :(mode==='retry'&&(!retryQ||!retryQ.length))?'解き直しを終わる':'次の問題へ'});
 $('btnNext').addEventListener('click',nextQ);
 $('btnQuit').addEventListener('click',()=>{if(timerId)clearInterval(timerId);show('scr-home')});
@@ -2892,25 +2977,41 @@ function finishSet(){
  if(timerId)clearInterval(timerId);
  const sec=Math.floor((Date.now()-tSetStart)/1000);
  const score=setMarks.filter(Boolean).length;
- $('rScore').textContent=score;
- $('rTime').textContent='タイム '+Math.floor(sec/60)+'分'+(sec%60)+'秒';
- const marks=$('rMarks');marks.innerHTML='';
- setMarks.forEach((ok,i)=>{
-  const d=document.createElement('div');d.className='mb';
-  d.innerHTML='<b class="'+(ok?'o':'x')+'">'+(ok?'○':'✕')+'</b>('+(i+1)+')';
-  marks.appendChild(d)});
- let msg='';
- if(score===10){msg='満点！本番もこの調子でいこう。'}
- else if(score>=8){msg='合格ライン。まちがえた問題を復習しよう。'}
- else if(score>=5){msg='大問1は得点源。タイプ別で弱点をつぶそう。'}
- else{msg='まずはタイプ別トレーニングで基礎がためを。'}
- $('rMsg').textContent=msg;
+ lastSetSec=sec;
+ renderRoundResult();
  /* 本番セットのタイムを記録(question_key='set'。10問中の誤答数をmiss_countに)。
     出題範囲をオフにした状態のセットは全範囲のセットと同列に比べられないので、
     ONにしていた単元数を meta に添えて講師ページ・マイページで区別できるようにする。 */
  const scOn=Object.keys(scope).filter(k=>scope[k]).length;
- safeDivp('saveTime',{question_key:'set',time_ms:sec*1000,miss_count:setMarks.length-score,
-  meta:{scope_on:scOn,scope_total:Object.keys(scope).length}});
+ if(!roundIsFree&&!wrongRetrySet&&setMarks.length===10){
+  safeDivp('saveTime',{question_key:'set',time_ms:sec*1000,miss_count:setMarks.length-score,
+   meta:{scope_on:scOn,scope_total:Object.keys(scope).length}})}}
+/* タイプ別トレーニングの10問ぶん（タイム記録はしない＝速さを競わせない） */
+function finishFree(){lastSetSec=0;renderRoundResult()}
+/* 採点結果カードを描く。共通モジュール(divp-result.js)が読めなかったときだけ
+   従来どおりの静的 #scr-result に書き込む＝画面が真っ白にならない */
+function renderRoundResult(){
+ const score=setMarks.filter(Boolean).length;
+ const useCommon=!!(window.Divp&&typeof Divp.resultPush==='function');
+ if(useCommon){
+  /* 10問ぶんまとめて push し、最後の1問で結果画面が描かれる。
+     まちがえ直しのミニラウンドは retry 扱い＝ランクを付けない・連続を進めない */
+  safeDivp('resultStart',{total:setMarks.length,retry:wrongRetrySet});
+  setMarks.forEach((ok,i)=>safeDivp('resultPush',ok,setQs[i]))}
+ else if($('rScore')){
+  $('rScore').textContent=score;
+  $('rTime').textContent=roundIsFree?'':'タイム '+Math.floor(lastSetSec/60)+'分'+(lastSetSec%60)+'秒';
+  const marks=$('rMarks');marks.innerHTML='';
+  setMarks.forEach((ok,i)=>{
+   const d=document.createElement('div');d.className='mb';
+   d.innerHTML='<b class="'+(ok?'o':'x')+'">'+(ok?'○':'✕')+'</b>('+(i+1)+')';
+   marks.appendChild(d)});
+  let msg='';
+  if(score===setMarks.length){msg='満点！この調子でいこう。'}
+  else if(score>=8){msg='合格ライン。まちがえた問題を復習しよう。'}
+  else if(score>=5){msg='大問1は得点源。タイプ別で弱点をつぶそう。'}
+  else{msg='まずはタイプ別トレーニングで基礎がためを。'}
+  $('rMsg').textContent=msg}
  show('scr-result')}
 $('btnRetrySet').addEventListener('click',startSet);
 $('btnHome').addEventListener('click',()=>show('scr-home'));
