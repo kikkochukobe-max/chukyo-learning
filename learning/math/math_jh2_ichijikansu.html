@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>一次関数マスター | 中京個別指導学院</title>
-<meta name="description" content="中学2年生向け 一次関数の練習ツール。式をつくる(一次関数の判定)・増加量・グラフをかく(応用は切片が分数・ax+by=cの変形)・グラフを読む・変域(応用は変域から逆算)・式の特徴・式を求める(応用は一直線・変域・傾きの範囲)・交点・三角形の面積の12モード。中京個別指導学院。">
+<meta name="description" content="中学2年生向け 一次関数の練習ツール。式をつくる(一次関数の判定)・増加量・グラフをかく(応用は切片が分数・ax+by=cの変形)・グラフを読む・通る座標・変域(応用は変域から逆算)・式の特徴・式を求める(応用は一直線・変域・傾きの範囲)・交点・三角形の面積の13モード。中京個別指導学院。">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <!-- ⚠ 製作途中。共通処理(学習記録・解き直し)は未組み込みで、この2本も
@@ -85,6 +85,9 @@ h1 .sub{font-size:.72rem;color:var(--ink-soft);letter-spacing:.2em;display:block
 #qWrap{min-height:56px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:6px 0;}
 #qText{font-size:1.12rem;line-height:1.9;white-space:normal;text-align:left;}
 #qText .katex{font-size:1.08em;}
+/* 分数は KaTeX の既定(textstyle)だと分子・分母が小さくて読みにくいので少し大きくする。
+   \frac / \dfrac のどちらも .mfrac なので，問題文・選択肢・解説すべてに効く。 */
+.katex .mfrac{font-size:1.3em;}
 .qtable{
   border-collapse:collapse;margin:10px auto 2px;font-size:1.05rem;
   font-family:'Hiragino Mincho ProN',serif;
@@ -234,6 +237,7 @@ footer{max-width:860px;margin:16px auto 0;text-align:center;font-size:.68rem;col
   <button class="chip" data-mode="graph">グラフをかく<small>点をうって作図</small></button>
   <button class="chip" data-mode="graphadv">グラフをかく 応用<small>分数の切片・式の変形</small></button>
   <button class="chip" data-mode="yomitori">グラフを読む<small>グラフ→式</small></button>
+  <button class="chip" data-mode="tooru">通る座標<small>式と点の座標</small></button>
   <button class="chip" data-mode="hendomain">変域<small>線分をかいて読む</small></button>
   <button class="chip" data-mode="hendomainadv">変域 応用<small>変域から逆算</small></button>
   <button class="chip" data-mode="tokucho">式の特徴<small>グラフと式</small></button>
@@ -1404,6 +1408,135 @@ function genYomitori(){
 }
 
 /* ================================================================
+   通る座標  tooru
+   式がわかっていて，直線が通る点の x・y のどちらか片方を求める。
+   グラフなし = 式に代入して計算する / グラフあり = グラフをたどって読む。
+   4種類を等しく回すので，どちらの形も必ず出る。
+   ================================================================ */
+/* 負の数はかっこでくくる(2\times -3 のような並びを避ける) */
+function parenTex(r){
+  return rVal(r)<0 ? "("+rTexInline(r)+")" : rTexInline(r);
+}
+/* 傾きの項 ax / 定数項 +b の TeX(lineTex の部品だが単独でも使う) */
+function axTex(a){
+  if(rEq(a,rmk(1)))return "x";
+  if(rEq(a,rmk(-1)))return "-x";
+  return rTexInline(a)+"x";
+}
+function bTailTex(b){
+  if(b.n===0)return "";
+  return (b.n>0?"+":"")+rTexInline(b);
+}
+/* y=ax+b に x を代入した途中式。例 2\times(-3)+1=-5 */
+function substTex(a,b,x){
+  const X=rmk(x);
+  let s;
+  if(rEq(a,rmk(1)))s=parenTex(X);
+  else if(rEq(a,rmk(-1)))s="-"+parenTex(X);
+  else s=rTexInline(a)+"\\times "+parenTex(X);
+  s+=bTailTex(b);
+  return s+"="+rTexInline(radd(rmul(a,X),b));
+}
+/* 式と，その直線が通る格子点を1つ作る(グラフの中におさまるもの) */
+function tooruCore(lim,noZeroY){
+  lim=lim||8;
+  let a,b,x,y;
+  for(;;){
+    a=pickSlope(false);
+    b=rmk(ri(-5,5));
+    const k=Math.floor((lim-1)/a.d);
+    if(k<1)continue;
+    x=a.d*nzi(-k,k);                         /* a.d の倍数 → y は必ず整数 */
+    y=radd(rmul(a,rmk(x)),b);
+    if(Math.abs(y.n)>lim-1)continue;
+    if(noZeroY&&y.n===0)continue;            /* y=0 だと補助線が x 軸に重なって見えない */
+    break;
+  }
+  return {a,b,x,y};
+}
+function genTooru(){
+  const v=ri(1,4);
+  if(v===1)return genTooruSubY();
+  if(v===2)return genTooruSubX();
+  return genTooruGraph(v===3);
+}
+/* --- グラフなし: y を求める(x を代入する) --- */
+function genTooruSubY(){
+  let a,b,x,y;
+  for(;;){
+    a=pickSlope(false);
+    b=rmk(ri(-6,6));
+    x=(ri(1,3)===1)?nzi(-10,10):a.d*nzi(-6,6);   /* 3回に2回は y が整数になるようにする */
+    y=radd(rmul(a,rmk(x)),b);
+    if(Math.abs(y.n)>60||y.d>4)continue;
+    break;
+  }
+  const P="("+x+",\\ \\text{ア})";
+  return {
+    qkey:"tooru_v1",
+    qHtml:`一次関数 ${T(lineTex(a,b))} のグラフが点 ${T(P)} を通ります。${T("\\text{ア}")} にあてはまる数を求めなさい。`,
+    fig:null,
+    ans:{kind:"input",fields:[{label:"\\text{ア}=",val:y}]},
+    exLines:[
+      `点 ${T(P)} を通る ${T("\\Rightarrow")} ${T("x="+x)} のときの ${T("y")} の値が ${T("\\text{ア}")}`,
+      `式の ${T("x")} に ${T(parenTex(rmk(x)))} を代入して ${T("y="+substTex(a,b,x))}`,
+      `よって ${T("\\text{ア}="+rTexInline(y))}`
+    ]
+  };
+}
+/* --- グラフなし: x を求める(y を代入して方程式を解く) --- */
+function genTooruSubX(){
+  let a,b,q,x;
+  for(;;){
+    a=pickSlope(false);
+    b=rmk(ri(-6,6));
+    q=rmk(ri(-10,10));
+    if(rEq(q,b))continue;                    /* x=0 になり，切片を答えるだけになってしまう */
+    x=rdiv(rsub(q,b),a);
+    if(x.d>4||Math.abs(rVal(x))>12)continue;
+    break;
+  }
+  const qb=rsub(q,b);
+  const P="(\\text{ア},\\ "+rTexInline(q)+")";
+  return {
+    qkey:"tooru_v2",
+    qHtml:`一次関数 ${T(lineTex(a,b))} のグラフが点 ${T(P)} を通ります。${T("\\text{ア}")} にあてはまる数を求めなさい。`,
+    fig:null,
+    ans:{kind:"input",fields:[{label:"\\text{ア}=",val:x}]},
+    exLines:[
+      `点 ${T(P)} を通る ${T("\\Rightarrow")} ${T("y="+rTexInline(q))} になる ${T("x")} の値が ${T("\\text{ア}")}`,
+      `式の ${T("y")} に ${T(rTexInline(q))} を代入して ${T(rTexInline(q)+"="+axTex(a)+bTailTex(b))}`,
+      `${T(axTex(a)+"="+rTexInline(qb))} だから ${T("x="+rTexInline(qb)+"\\div "+parenTex(a)+"="+rTexInline(x))}`,
+      `よって ${T("\\text{ア}="+rTexInline(x))}`
+    ]
+  };
+}
+/* --- グラフあり: 点Pの座標の片方をグラフから読む --- */
+function genTooruGraph(findY){
+  const R=8;
+  const c=tooruCore(R,!findY);
+  const a=c.a,b=c.b,x=c.x,y=c.y;
+  const P=findY?("("+x+",\\ \\text{ア})"):("(\\text{ア},\\ "+rTexInline(y)+")");
+  return {
+    qkey:findY?"tooru_v3":"tooru_v4",
+    qHtml:`次のグラフは一次関数 ${T(lineTex(a,b))} のグラフです。グラフ上の点 ${T("\\mathrm{P}")} の座標が ${T(P)} のとき，${T("\\text{ア}")} にあてはまる数を求めなさい。`
+         +`<br><span style="font-size:.8em;color:var(--ink-soft)">(点線をたどって読み取ろう。式に代入して確かめてもよい)</span>`,
+    fig:{kind:"linept",lines:[{a,b,color:"var(--indigo)"}],pt:{x:x,y:y.n},known:findY?"x":"y",range:R},
+    ans:{kind:"input",fields:[{label:"\\text{ア}=",val:findY?y:rmk(x)}]},
+    exLines:[
+      findY
+        ? `${T("x="+x)} のところから縦にたどると，直線と交わるのが点 ${T("\\mathrm{P}")}`
+        : `${T("y="+rTexInline(y))} のところから横にたどると，直線と交わるのが点 ${T("\\mathrm{P}")}`,
+      findY
+        ? `そこから ${T("y")} 軸へまっすぐたどって ${T("y="+rTexInline(y))}`
+        : `そこから ${T("x")} 軸へまっすぐたどって ${T("x="+x)}`,
+      `式に代入しても確かめられる。${T("y="+substTex(a,b,x))}`,
+      `よって ${T("\\text{ア}="+(findY?rTexInline(y):String(x)))}`
+    ]
+  };
+}
+
+/* ================================================================
    変域  hendomain / hendomainadv
    共通の道具: 変域の TeX を組み立てる。hide=0 なら下端，1 なら上端を
    「ア」にする(-1 でどちらも数値)。
@@ -1575,7 +1708,7 @@ function genHendoIntercept(){
 }
 
 /* チップの並び順に合わせてある(表示順=学習順) */
-const GENS={hantei:genHantei,zoukaryo:genZoukaryo,graph:genGraph,graphadv:genGraphAdv,yomitori:genYomitori,hendomain:genHendomain,hendomainadv:genHendomainAdv,tokucho:genTokucho,shiki:genShiki,shikiadv:genShikiAdv,koten:genKoten,menseki:genMenseki};
+const GENS={hantei:genHantei,zoukaryo:genZoukaryo,graph:genGraph,graphadv:genGraphAdv,yomitori:genYomitori,tooru:genTooru,hendomain:genHendomain,hendomainadv:genHendomainAdv,tokucho:genTokucho,shiki:genShiki,shikiadv:genShikiAdv,koten:genKoten,menseki:genMenseki};
 
 /* 入力文字列 → rational  (例 "-3", "1/2", "-4.5", "2.25") */
 function parseRat(s){
@@ -1898,6 +2031,20 @@ function drawSegOn(svg,P,Q,color,w){
   svg.appendChild(l);
   return l;
 }
+/* 座標を読み取るための点線(わかっている方の軸から点まで) */
+function drawGuideOn(svg,x,y,known){
+  const l=document.createElementNS(SVGNS,"line");
+  if(known==="x"){
+    l.setAttribute("x1",svg._gx(x));l.setAttribute("y1",svg._gy(0));
+    l.setAttribute("x2",svg._gx(x));l.setAttribute("y2",svg._gy(y));
+  }else{
+    l.setAttribute("x1",svg._gx(0));l.setAttribute("y1",svg._gy(y));
+    l.setAttribute("x2",svg._gx(x));l.setAttribute("y2",svg._gy(y));
+  }
+  l.setAttribute("stroke","var(--gold)");l.setAttribute("stroke-width",1.6);
+  l.setAttribute("stroke-dasharray","5 4");
+  svg.appendChild(l);
+}
 /* 点のよこに A / B などの名前を出す(右寄りの点は左側に置いて枠外に出さない) */
 function ptLabel(svg,x,y,text,color){
   const right=x>svg._R*0.55;
@@ -1943,11 +2090,17 @@ function renderFig(fig){
   const R=fig.range||8;
   const svg=makeGrid(R,360);
   wrap.appendChild(svg);
-  if(fig.kind==="line"||fig.kind==="twolines"){
+  if(fig.kind==="line"||fig.kind==="twolines"||fig.kind==="linept"){
     (fig.lines||[]).forEach(l=>{
       const seg=drawLineOn(svg,l.a,l.b,l.color);
       if(l.label)lineLabel(svg,seg,l.label,l.color);
     });
+    /* 通る座標: 点Pと，わかっている方の軸からの点線を出す(値そのものは読ませる) */
+    if(fig.kind==="linept"&&fig.pt){
+      drawGuideOn(svg,fig.pt.x,fig.pt.y,fig.known);
+      drawPointOn(svg,fig.pt.x,fig.pt.y,"var(--gold)",5.5);
+      ptLabel(svg,fig.pt.x,fig.pt.y,"P","var(--ink)");
+    }
     if(fig.kind==="twolines"&&fig.pt&&!graded){/* 交点は答えなので採点前は描かない */}
   }
   if(fig.kind==="points"){
