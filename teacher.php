@@ -1786,6 +1786,81 @@ function renderMathToHTML(src){
   if (/[²³]/.test(src)) return _renderMath(src);   // 日本語混じりで上付きを含む文は従来のトークン描画
   return _mescape(src).replace(/\n/g, '<br>');
 }
+/* ===== 「グラフをかく」問題の解答用: 方眼に正解の直線を引く =====
+   一次関数マスターの作図モードは、問題として空の方眼(class="gridfig gridfig-r8")を
+   保存する。解答が式や2点のままだと紙で見比べにくいので、解答（講師用）には
+   同じ方眼に正解の直線を引いたものを添える。
+   ⚠ 問題を作り直しているのではなく、保存済みの図と保存済みの答えを重ねるだけ。
+     方眼の座標系は viewBox と class の R から出す（ツールの makeGrid と同じ式）。 */
+// 記録の数値表記 → 数。符号は F() の外に付く規約（"-F(1/2)"）なので先に外す
+function _ratNum(s) {
+  s = String(s == null ? '' : s);
+  var neg = false;
+  if (s.charAt(0) === '-') { neg = true; s = s.slice(1); }
+  else if (s.charAt(0) === '+') { s = s.slice(1); }
+  var m = /^F\((\d+)\/(\d+)\)$/.exec(s);
+  var v = m ? (parseInt(m[1], 10) / parseInt(m[2], 10)) : parseFloat(s);
+  if (!isFinite(v)) return null;
+  return neg ? -v : v;
+}
+// 記録された答え → 引くべき線分。y=ax+b は方眼の枠で切り、(x,y) が2つ並ぶ答えはその2点を結ぶ
+function answerSegment(ans, R) {
+  var s = String(ans == null ? '' : ans).replace(/\s/g, '');
+  // ① 「(1,2) (4,5) / 2≦y≦5」のように点が2つ以上ある（変域モード）
+  var pts = s.match(/\(-?\d+,-?\d+\)/g);
+  if (pts && pts.length >= 2) {
+    var p = pts.slice(0, 2).map(function (t) {
+      var xy = t.replace(/[()]/g, '').split(',');
+      return [parseInt(xy[0], 10), parseInt(xy[1], 10)];
+    });
+    return { p1: p[0], p2: p[1], seg: true };
+  }
+  // ② 「y=F(1/2)x-3」「y=-x+3」「y=2x」
+  var m = /^y=(-?(?:F\(-?\d+\/\d+\)|\d+(?:\.\d+)?)?)x([+-](?:F\(-?\d+\/\d+\)|\d+(?:\.\d+)?))?$/.exec(s);
+  if (!m) return null;
+  var a = (m[1] === '' ? 1 : (m[1] === '-' ? -1 : _ratNum(m[1])));
+  var b = 0;
+  if (m[2]) {
+    var sign = (m[2].charAt(0) === '-') ? -1 : 1;
+    var v = _ratNum(m[2].slice(1));
+    if (v === null) return null;
+    b = sign * v;
+  }
+  if (a === null || !isFinite(a)) return null;
+  // 枠(±R)との交点を2つ求める（ツール側 drawLineOn と同じ切り方）
+  var cand = [[-R, a * -R + b], [R, a * R + b]].filter(function (p) { return Math.abs(p[1]) <= R + 1e-9; });
+  if (a !== 0) {
+    [[(R - b) / a, R], [(-R - b) / a, -R]].forEach(function (p) {
+      if (Math.abs(p[0]) <= R + 1e-9) cand.push(p);
+    });
+  }
+  if (cand.length < 2) return null;
+  cand.sort(function (p, q) { return p[0] - q[0]; });
+  return { p1: cand[0], p2: cand[cand.length - 1], seg: false };
+}
+// 保存済みの方眼SVG＋答え → 正解の線を重ねたSVG（描けないときは空文字）
+function answerGraphSvg(figsvg, ans) {
+  if (!figsvg) return '';
+  var mr = /class="[^"]*gridfig-r(\d+)/.exec(figsvg);
+  if (!mr) return '';
+  var R = parseInt(mr[1], 10);
+  var vb = /viewBox="0 0 (\d+(?:\.\d+)?)/.exec(figsvg);
+  var W = vb ? parseFloat(vb[1]) : 360;
+  var pad = 16, u = (W - pad * 2) / (2 * R);
+  var seg = answerSegment(ans, R);
+  if (!seg) return '';
+  var gx = function (x) { return Math.round((pad + (x + R) * u) * 10) / 10; };
+  var gy = function (y) { return Math.round((pad + (R - y) * u) * 10) / 10; };
+  var line = '<line x1="' + gx(seg.p1[0]) + '" y1="' + gy(seg.p1[1]) + '" x2="' + gx(seg.p2[0])
+    + '" y2="' + gy(seg.p2[1]) + '" stroke="#C73E2E" stroke-width="3" stroke-linecap="round"/>';
+  var dots = seg.seg
+    ? [seg.p1, seg.p2].map(function (p) {
+        return '<circle cx="' + gx(p[0]) + '" cy="' + gy(p[1]) + '" r="5" fill="#C73E2E"/>';
+      }).join('')
+    : '';
+  return figsvg.replace(/<\/svg>\s*$/, '') + line + dots + '</svg>';
+}
+
 document.querySelectorAll('.math').forEach(function (el) {
   el.innerHTML = renderMathToHTML(el.getAttribute('data-math') || '');
 });
@@ -1977,9 +2052,13 @@ document.querySelectorAll('.math').forEach(function (el) {
     var m = 0;
     var keyRows = items.map(function (it) {
       m++;
+      // 作図問題は式だけでは見比べにくいので、正解の直線を引いた方眼を添える
+      var ansFig = answerGraphSvg(it.figsvg, it.a);
       return '<tr><td class="k-no">' + m + '</td>'
         + '<td>' + fmt(it.q) + '</td>'
-        + '<td class="k-ans">' + fmt(it.a) + '</td>'
+        + '<td class="k-ans">' + fmt(it.a)
+        + (ansFig ? '<div class="k-graph">' + scopeFigIds(ansFig, 'k' + m) + '</div>' : '')
+        + '</td>'
         + '<td class="k-wa">' + fmt(it.sa) + '</td></tr>';
     }).join('');
     var keyPage = '<div class="page key-page"><div class="sheet-head">'
@@ -2087,6 +2166,10 @@ document.querySelectorAll('.math').forEach(function (el) {
       + '.key th{background:#f4f4f4;font-size:12px;}'
       + '.k-no{width:32px;text-align:center;color:#888;}'
       + '.k-ans{color:#1f7a3d;font-weight:700;}'
+      /* 作図問題の「正解の直線を引いた方眼」。解答欄なので問題面より小さくてよい */
+      + '.k-graph{margin-top:4px;}'
+      + '.k-graph svg{display:block!important;height:42mm!important;width:auto!important;'
+        + 'max-width:42mm!important;border:1px solid #ddd;border-radius:4px;}'
       + '.k-wa{color:#C73E2E;}'
       + '</style></head><body>' + body + keyPage + mapScript + '</body></html>';
 

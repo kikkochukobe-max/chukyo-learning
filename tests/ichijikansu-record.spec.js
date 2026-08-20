@@ -254,9 +254,13 @@ test('③ ?retry=1 は保存した種で同じ問題を出し直す', async ({ p
   await page.click('#nextBtn');
   await expect(page.locator('#qTag')).toHaveText('解き直し 2 / 2 ・ 通る座標');
   await answerCurrent(page);
+  // 解き直しラウンドの終わりも10問ごとの評価カード（ランクは付かない）
   await page.click('#nextBtn');
+  await expect(page.locator('.divp-result-ov')).toBeVisible();
+  await expect(page.locator('.divp-result-ov')).toContainText('解き直しおつかれさま');
+  await page.click('.divp-result-btn:has-text("つぎの10問へ")');
   await expect(page.locator('#retryBanner')).toBeVisible();
-  await expect(page.locator('#qTag')).toBeHidden();
+  await expect(page.locator('#qTag')).not.toContainText('解き直し');   // 通常出題に戻る
   calls = await page.evaluate(() => window.__calls);
   expect(calls.answer.map((c) => c.info.question_key)).toEqual(['koten', 'tooru']);
   expect(page.errors).toEqual([]);

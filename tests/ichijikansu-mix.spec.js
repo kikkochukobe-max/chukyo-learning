@@ -11,14 +11,16 @@ const { test, expect } = require('@playwright/test');
 const TOOL = '/learning/math/math_js2_ichijikansu.html';
 
 /* newQuestion() はインラインスクリプト直下の関数＝window から呼べる。
-   1問ずつ答えなくても出題だけを何回も回せるので、ばらつきの検証に使う */
+   1問ずつ答えなくても出題だけを何回も回せるので、ばらつきの検証に使う。
+   札は「1 / 10 問目 ・ 交点を求める」の形なので、種類名だけを取り出す */
 async function drawTags(page, n) {
   return await page.evaluate((count) => {
     const out = [];
     for (let i = 0; i < count; i++) {
       // @ts-ignore ツール内のグローバル関数
       newQuestion();
-      out.push(document.getElementById('qTag').textContent);
+      const t = document.getElementById('qTag').textContent || '';
+      out.push(t.includes('・') ? t.split('・').pop().trim() : t.trim());
     }
     return out;
   }, n);
@@ -85,7 +87,7 @@ test('0種類のときは問題を出さずに案内を出す', async ({ page })
   // チェックを1つ入れたら、その場で1問目が出る
   await page.check('#mixList input[data-mode="tooru"]');
   await expect(page.locator('#checkBtn')).toBeVisible();
-  await expect(page.locator('#qTag')).toHaveText('通る座標');
+  await expect(page.locator('#qTag')).toHaveText('1 / 10 問目 ・ 通る座標');
   expect(page.errors).toEqual([]);
 });
 
@@ -105,12 +107,13 @@ test('選択は端末に保存され、開き直しても復元される', async
   expect(page.errors).toEqual([]);
 });
 
-test('ふつうのモードに戻すとパネルは隠れ、種類の札も消える', async ({ page }) => {
+test('ふつうのモードに戻すとパネルは隠れ、札から種類名が消える', async ({ page }) => {
   await page.click('.chip.mix');
-  await expect(page.locator('#qTag')).toBeVisible();
+  await expect(page.locator('#qTag')).toContainText('・');       // ミックス中は種類名つき
   await page.click('.chip[data-mode="hantei"]');
   await expect(page.locator('#mixBox')).toBeHidden();
-  await expect(page.locator('#qTag')).toBeHidden();
+  // 札は残るが中身は「何問目か」だけ（1種類なので種類名を出す意味がない）
+  await expect(page.locator('#qTag')).toHaveText('1 / 10 問目');
   await expect(page.locator('#checkBtn')).toBeVisible();
   expect(page.errors).toEqual([]);
 });

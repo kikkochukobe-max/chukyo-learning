@@ -23,6 +23,19 @@
   --moss:#3E8E5A;      /* 正解の緑。共通モジュール divp-choice-mark.js の既定色にそろえてある */
   --line:#D8CDBA;
   --gold:#B08D3E;
+  /* 10問ごとの評価(divp-result.js)を和紙・桜のパレットに合わせる。
+     ランクの色(--divp-result-grade-*)は既定の派手な配色のままにする(ランクは目立ってよい) */
+  --divp-result-bg:#FFFDF8;
+  --divp-result-ink:#2E2A26;
+  --divp-result-sub:#6B6258;
+  --divp-result-accent:#C9556F;
+  --divp-result-accent-ink:#fff;
+  --divp-result-sub-btn:#EFE7D8;
+  --divp-result-wrong-btn:#2E5077;
+  --divp-result-ok:#3E8E5A;
+  --divp-result-ok-bg:#E8F1E4;
+  --divp-result-ng:#A83A55;
+  --divp-result-ng-bg:#F9E8EC;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{min-height:calc(100svh + 1px);}
@@ -33,9 +46,12 @@ body{
     var(--washi);
   color:var(--ink);
   font-family:'Hiragino Kaku Gothic ProN','Yu Gothic','Noto Sans JP',sans-serif;
-  padding:12px 12px 90px;
   touch-action:manipulation;
 }
+/* 余白は body ではなく中身側に持たせる。共通ヘッダー(divp-header)は
+   画面幅いっぱい・上端に貼り付く(position:sticky)バーなので、body に padding が
+   あると左右と上に和紙色のすき間ができて「ずれている」見え方になる。 */
+.wrap{padding:12px 12px 90px;}
 header.dv-head{
   max-width:860px;margin:0 auto 10px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;
   border-bottom:3px double var(--line);padding-bottom:8px;
@@ -263,6 +279,11 @@ footer{max-width:860px;margin:16px auto 0;text-align:center;font-size:.68rem;col
 <script src="/assets/divp-core.js"></script>
 <script src="/assets/divp-correct-jh.js"></script>
 <script src="/assets/divp-choice-mark.js" defer></script>
+<!-- 10問ごとの評価（RESULT画面）。読めなければ結果画面が出ないだけで練習は続く -->
+<script src="/assets/divp-result.js"></script>
+
+<!-- 共通ヘッダーはこの div の外（body直下）に入る＝画面幅いっぱいのバーになる -->
+<div class="wrap">
 
 <header class="dv-head">
   <h1><span class="sub">中2数学 ── 一次関数</span>一次関数マスター</h1>
@@ -326,6 +347,8 @@ footer{max-width:860px;margin:16px auto 0;text-align:center;font-size:.68rem;col
 <div id="hanko">正解</div>
 
 <footer>© 中京個別指導学院 — divp-suite</footer>
+
+</div><!-- /.wrap -->
 
 <script>
 "use strict";
@@ -2193,8 +2216,55 @@ let mode="hantei", cur=null, graded=false;
 let selChoice=-1, selOx=-1, orderSeq=[], drawPts=[], activeField=0;
 /* 学習記録用: いま出ている問題の種類(=question_key)と種、図、開始時刻 */
 let curMode="hantei", curSeed=0, figSnap=null, qStart=0;
-/* 解き直しモード(?retry=1)のキュー。null = 通常出題 */
-let retryQ=null, retryTotal=0, retryDone=0;
+/* 解き直しモード(?retry=1)のキュー。null = 通常出題
+   wrongRound=true のときは「10問の中でまちがえた分だけ」のミニラウンド */
+let retryQ=null, retryTotal=0, retryDone=0, wrongRound=false;
+
+/* ---------- 10問ごとの評価（共通モジュール divp-result.js）----------
+   終わりのない練習ツールなので、10問ごとにランク付きの結果画面を出す。
+   まちがえた問題は種(seed)を持っているので、そのまま解き直しラウンドにできる
+   （同じ種＝同じ問題＝params_hash も同じなので、2連続正解でマスターになる）。
+   ⚠ 結果画面は「10問目を解いた瞬間」ではなく、その次のボタンで出す。
+     解説の上にかぶせてしまわないため（愛知大問1と同じ考え方）。 */
+const ROUND_N=10;
+let roundMarks=[], roundTotal=ROUND_N, roundRetry=false;
+function hasResultCard(){return !!(window.Divp&&typeof Divp.resultPush==="function");}
+function roundStart(total,retry){
+  roundMarks=[];
+  roundTotal=(total>0)?total:ROUND_N;
+  roundRetry=!!retry;
+}
+function roundInit(){
+  safeDivp("resultInit",{
+    total:ROUND_N,
+    questionKey:mode,                       /* 連続全問正解は種類ごとに数える */
+    masterLabel:"一次関数マスター",
+    labels:{next:"つぎの%d問へ",wrong:"🔁 まちがえた %n 問を解き直す",
+            modes:"種類をえらび直す",home:"学習ツール一覧へ"},
+    onNext:function(){newQuestion();},
+    onRetryWrong:startWrongRound,
+    onModes:function(){try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){window.scrollTo(0,0);}},
+    home:"/learning/"
+  });
+  roundStart(ROUND_N,false);
+}
+/* ラウンドの結果画面を出す。モジュールが無ければ何もせず次の問題へ進む */
+function showRoundResult(){
+  if(!hasResultCard()){roundStart(ROUND_N,false);return false;}
+  const marks=roundMarks.slice();
+  safeDivp("resultStart",{total:marks.length,retry:roundRetry,questionKey:mode});
+  marks.forEach(m=>safeDivp("resultPush",m.ok,m.item));
+  roundStart(ROUND_N,false);
+  return true;
+}
+/* 「まちがえた N 問を解き直す」。10問の中の誤答を同じ種で出し直す */
+function startWrongRound(items){
+  retryQ=(items||[]).filter(it=>it&&GENS[it.m]).map(it=>({question_params:{m:it.m,s:it.s}}));
+  if(!retryQ.length){retryQ=null;newQuestion();return;}
+  retryTotal=retryQ.length;retryDone=0;wrongRound=true;
+  roundStart(retryTotal,true);
+  newQuestion();
+}
 
 /* ---------- ミックス出題(えらんだ種類だけをランダムに) ----------
    種類の台帳は modeNav のチップそのもの。チップを1つ足せば
@@ -2280,10 +2350,13 @@ function makeGrid(R,size,interactive){
   const svg=document.createElementNS(SVGNS,"svg");
   svg.setAttribute("viewBox",`0 0 ${W} ${W}`);
   svg.setAttribute("width",Math.min(W,420));
-  /* 解き直しプリント側の目印。方眼は 360 単位四方あるので、共通の
-     「.q-fig2 svg は高さ54mm」だと目盛りの数字が1.5mmになって読めない
-     （teacher.php に .q-fig2 svg.gridfig の高さ指定がある） */
-  svg.setAttribute("class","gridfig");
+  /* 解き直しプリント側の目印。2つの役目がある。
+     ① 方眼は 360 単位四方あるので、共通の「.q-fig2 svg は高さ54mm」だと
+        目盛りの数字が1.5mmになって読めない（teacher.php に .gridfig の高さ指定がある）
+     ② gridfig-r8 の数字＝方眼の範囲。teacher.php の解答欄が
+        「正解の直線を引いた方眼」を描くのに使う（viewBox と R があれば
+        pad・目盛り幅は makeGrid と同じ式で出せる） */
+  svg.setAttribute("class","gridfig gridfig-r"+R);
   const gx=x=>pad+(x+R)*u, gy=y=>pad+(R-y)*u;
   svg._gx=gx; svg._gy=gy; svg._R=R; svg._u=u;
   /* 方眼 */
@@ -2708,9 +2781,12 @@ function newQuestion(){
   graded=false;
   clearEffects();                               /* 前の問題のはんこ・バッジを片付ける */
   const tag=document.getElementById("qTag");
+  /* 1ラウンド解き終わっていたら、次の問題ではなく採点結果を出す */
+  if(roundMarks.length>=roundTotal&&showRoundResult())return;
   if(retryQ&&!retryQ.length){                   /* 解き直しを1周した */
     retryQ=null;
-    retryBanner("解き直し おつかれさま！ 同じ問題に2回連続で正解すると リストから消えるよ");
+    if(!wrongRound)retryBanner("解き直し おつかれさま！ 同じ問題に2回連続で正解すると リストから消えるよ");
+    wrongRound=false;
   }
   let useMode, seed, retryInfo="";
   if(retryQ){                                   /* 解き直し: 保存した種で同じ問題を出す */
@@ -2718,7 +2794,7 @@ function newQuestion(){
     retryDone++;
     useMode=it.question_params.m;
     seed=it.question_params.s>>>0;
-    retryInfo="解き直し "+retryDone+" / "+retryTotal;
+    retryInfo=(wrongRound?"まちがえ直し ":"解き直し ")+retryDone+" / "+retryTotal;
   }else{
     if(mode==="mix"&&!mixKeys().length){        /* 1つもえらばれていない */
       cur=null;
@@ -2739,9 +2815,12 @@ function newQuestion(){
     seed=rngPick();
     if(mode==="mix")mixLast=useMode;
   }
-  if(retryInfo){tag.style.display="block";tag.textContent=retryInfo+" ・ "+modeLabel(useMode);}
-  else if(mode==="mix"){tag.style.display="block";tag.textContent=modeLabel(useMode);}
-  else tag.style.display="none";
+  /* 札には「ラウンドの何問目か」を出す。ミックスは種類名も添える */
+  const no=(roundMarks.length+1)+" / "+roundTotal;
+  tag.style.display="block";
+  tag.textContent=retryInfo
+    ? retryInfo+" ・ "+modeLabel(useMode)
+    : (mode==="mix" ? no+" 問目 ・ "+modeLabel(useMode) : no+" 問目");
   curMode=useMode;
   curSeed=seed;
   rngSeed(seed);                                /* ここから先の乱数は種で決まる */
@@ -2752,7 +2831,9 @@ function newQuestion(){
   if(cur.ans.kind==="drawseg")cur.ans.rc=inputToChoice({fields:cur.ans.fields});
   document.getElementById("toast").textContent="";
   document.getElementById("explain").style.display="none";
-  document.getElementById("nextBtn").style.display="none";
+  const nb=document.getElementById("nextBtn");
+  nb.style.display="none";
+  nb.textContent="次の問題 ➜";
   document.getElementById("checkBtn").style.display="inline-block";
   const q=document.getElementById("qText");
   q.style.transform="";
@@ -2920,6 +3001,12 @@ function check(){
     /* 離席ぶんを混ぜないよう10分超は記録しない(愛知大問1と同じ扱い) */
     time_taken_sec:(qSec>0&&qSec<=600)?qSec:null
   });
+  /* 10問ごとの評価用に1問ぶん記録。結果画面は解説を隠さないよう次のボタンで出す
+     （まちがえた問題は種を持たせておく＝そのまま解き直しラウンドにできる） */
+  roundMarks.push({ok:ok,item:{m:curMode,s:curSeed}});
+  if(roundMarks.length>=roundTotal&&hasResultCard()){
+    document.getElementById("nextBtn").textContent="採点結果へ ➜";
+  }
 }
 /* ①②③ の並びを記録用の平文にする(選んでいない枠は「?」) */
 function ordPlain(ans,seq){
@@ -3050,7 +3137,8 @@ function initRetry(){
       retryBanner("解き直せる問題は まだありません。これからまちがえた問題が ここに入ります");
       return;
     }
-    retryQ=use.slice();retryTotal=retryQ.length;retryDone=0;
+    retryQ=use.slice();retryTotal=retryQ.length;retryDone=0;wrongRound=false;
+    roundStart(retryTotal,true);               /* 解き直しはランクを付けないラウンド */
     newQuestion();
   }).catch(()=>{});
 }
@@ -3071,7 +3159,9 @@ function retryBanner(msg){
 document.getElementById("modeNav").addEventListener("click",e=>{
   const c=e.target.closest(".chip");if(!c)return;
   mode=c.dataset.mode;
-  retryQ=null;                                  /* 種類をえらび直したら解き直しモードを抜ける */
+  retryQ=null;wrongRound=false;                 /* 種類をえらび直したら解き直しモードを抜ける */
+  roundStart(ROUND_N,false);                    /* ラウンドも数え直し(連続は種類ごと) */
+  safeDivp("resultClose");
   document.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x===c));
   document.getElementById("mixBox").style.display=(mode==="mix")?"block":"none";
   newQuestion();
@@ -3107,6 +3197,7 @@ window.addEventListener("load",()=>{renderTexIn(document.body);fitQuestion();});
 /* 学習記録の開始(セッション・学習時間・ハートビートは divp-core にまかせる) */
 safeDivp("init",UNIT_KEY);
 buildMixBox();
+roundInit();                                    /* 10問ごとの評価 */
 updHUD();
 newQuestion();
 /* マイページの「解き直し」から来たときだけ、pending を同じ問題で出し直す */
