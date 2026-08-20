@@ -106,6 +106,12 @@ test.describe('愛知県公立入試 大問1 に組み込んだ状態', () => {
   const KANA = ['ア', 'イ', 'ウ', 'エ', 'オ', 'カ'];
 
   test('誤答時も正解時も、採点表示が仕様どおりになる', async ({ page }) => {
+    // テストではAPIが無い＝未ログイン扱いになるので、divp-core の
+    // 「ログインすると記録が残る」案内が画面中央に出て選択肢のクリックを邪魔する
+    // （まれに落ちる原因だった）。この検証には関係しないので出さない。
+    await page.addInitScript(() => {
+      try { sessionStorage.setItem('divp_login_nudge_shown', '1'); } catch (e) {}
+    });
     await page.goto(AICHI);
     // ホームの最初のタイプ（出題オンのもの）でフリー演習を始める
     await page.locator('#chips button.chip:not(.chip-off)').first().click();
@@ -146,6 +152,20 @@ test.describe('愛知県公立入試 大問1 に組み込んだ状態', () => {
       if (ok) sawCorrect++; else sawWrong++;
       await page.locator('#btnNext').click();
       await expect(page.locator('#fb.show')).toBeHidden();
+      // 10問で1ラウンド＝採点結果カード(divp-result)が出たら「つぎの10問へ」で続ける。
+      // 押さないと出題画面が隠れたままで、次のクリックが延々と待たされる。
+      // カードは少し遅れて出てくるので、どちらが出たか決まるまで待つ。
+      const again = page.locator('.divp-result-btn', { hasText: 'つぎの10問' }).first();
+      const firstChoice = page.locator('#choices .mchoice').first();
+      await expect.poll(async () => {
+        if (await again.isVisible()) return 'result';
+        if (await firstChoice.isVisible()) return 'drill';
+        return 'wait';
+      }, { timeout: 10000 }).not.toBe('wait');
+      if (await again.isVisible()) {
+        await again.click();
+        await expect(firstChoice).toBeVisible();
+      }
     }
     expect(sawWrong, '誤答のケースを1問も踏めなかった').toBeGreaterThan(0);
     expect(sawCorrect, '正解のケースを1問も踏めなかった').toBeGreaterThan(0);

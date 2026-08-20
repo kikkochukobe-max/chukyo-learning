@@ -31,6 +31,12 @@
  * 未ログイン・ローカル起動(file://)・API未疎通の環境では黙って何もしない
  * （safeDivpCorrect()と同じ思想。組み込んでもツールが壊れない）。
  *
+ * ただし「ログイン済みで始めたのに、解いている途中でログインが切れた」ときだけは
+ * 画面上部に帯を出して知らせる（save_answer/heartbeat/save_time の 401 で検出）。
+ * PHPセッションは actor を1組しか持てないので、同じブラウザで講師・保護者として
+ * ログインすると生徒は黙ってログアウトされ、以後の解答は1問も残らない。
+ * 帯が無いと「記録されているつもりで解き続ける」ことになるため、ここだけは黙らない。
+ *
  * 更新方法：このファイルを /assets/divp-core.js に上書きするだけで、
  * 読み込んでいる全ツールに一斉反映される（URL固定・.htaccessでキャッシュ制御）。
  */
@@ -61,8 +67,25 @@
   var trialCountMem = {};                   // localStorage不可時のフォールバック（このページ限り）
   var trialWallShown = false;               // ロックの二重表示防止
 
+  // ログイン済みで始めたのに、解いている途中でセッションが切れた状態。
+  // 同じブラウザで講師・保護者としてログインすると生徒セッションが上書きされる
+  // （PHPセッションは actor を1組しか持てない）ほか、期限切れでも起きる。
+  // 記録は1問も残らないのに画面は何も変わらないので、気づけるように印を持つ。
+  var sessionLost = false;
+  var sessionLostShown = false;
+
   function isLocal() {
     return !!(global.location && global.location.protocol === 'file:');
+  }
+
+  // save_answer.php の応答を見て「途中でログインが切れた」を検出する。
+  // 401 以外（500など一時的な失敗）では状態を変えない＝次の問題で再送を試みる。
+  function handleSaveStatus(res) {
+    if (!res || res.ok || res.status !== 401) return;
+    enabled = false;
+    authState = 'out';
+    sessionLost = true;
+    showSessionLostNotice();
   }
 
   function postJSON(path, body) {
@@ -126,7 +149,8 @@
     setInterval(function () {
       if (!enabled || !sessionId) return;
       if (document.visibilityState !== 'visible') return;
-      postJSON('heartbeat.php', { session_id: sessionId }).catch(function () {});
+      // 解答と同じく401を見る＝解く前にログインが切れても気づける
+      postJSON('heartbeat.php', { session_id: sessionId }).then(handleSaveStatus).catch(function () {});
     }, 60 * 1000);
   }
 
@@ -136,6 +160,9 @@
 
     var send = function () {
       if (!enabled) {
+        // 解いている途中でログインが切れた場合（下の 401 で分かる）。
+        // 塾生なので「お試し上限」ではなく、記録が止まっていることだけを伝える。
+        if (sessionLost) { showSessionLostNotice(); return; }
         // 未ログイン（サーバー応答あり）→ お試し回数をカウント。
         // 上限に達したら全画面ロック、まだなら初回だけそっとログイン案内。
         if (authState === 'out') {
@@ -165,7 +192,7 @@
         student_answer: info.wrong_answer != null ? String(info.wrong_answer) : null,
         is_correct: !!ok,
         time_taken_sec: info.time_taken_sec || null,
-      }).catch(function () {});
+      }).then(handleSaveStatus).catch(function () {});
     };
 
     if (sessionStarting) { sessionStarting.then(send); } else { send(); }
@@ -192,7 +219,10 @@
         miss_count: info.miss_count || 0,
         meta: info.meta || null,
       })
-        .then(function (res) { return res.ok ? res.json() : { ok: false, skipped: true }; })
+        .then(function (res) {
+          handleSaveStatus(res);          // タイム記録も401なら「記録が止まっています」を出す
+          return res.ok ? res.json() : { ok: false, skipped: true };
+        })
         .catch(function () { return { ok: false, skipped: true }; });
     };
 
@@ -316,6 +346,73 @@
 
     // 12秒で自動的に引っ込む（sessionStorageの印は残るので再表示はしない）
     setTimeout(close, 12000);
+  }
+
+  // 解いている途中でログインが切れたときの帯（画面上部・閉じられる）。
+  // 未ログインで始めた人向けの maybeNudgeLogin とは別物で、こちらは
+  // 「さっきまで記録されていたのに止まった」を伝えるためのもの。
+  // ページごとに一度だけ出す（閉じたら出し直さない＝しつこくしない）。
+  function showSessionLostNotice() {
+    if (sessionLostShown || !global.document) return;
+    sessionLostShown = true;
+    if (document.getElementById('divp-session-lost')) return;
+
+    var bar = document.createElement('div');
+    bar.id = 'divp-session-lost';
+    bar.setAttribute('role', 'alert');
+    bar.style.cssText = [
+      'position:fixed', 'top:0', 'left:0', 'right:0', 'z-index:2147483200',
+      'background:#FDF3E3', 'color:#7A5417',
+      'border-bottom:3px solid #D89A45', 'box-shadow:0 3px 14px rgba(0,0,0,.18)',
+      'padding:11px 14px', 'display:flex', 'align-items:center', 'gap:12px',
+      'flex-wrap:wrap', 'justify-content:center',
+      "font-family:'Zen Kaku Gothic New',system-ui,sans-serif",
+      'font-size:14px', 'line-height:1.5'
+    ].join(';');
+
+    var msg = document.createElement('span');
+    msg.innerHTML = '⚠ <b>記録が止まっています。</b>'
+      + 'ログインが切れました（同じブラウザで別の人がログインした場合も起きます）。'
+      + 'ログインし直すと、また記録されるよ。';
+
+    var loginBtn = document.createElement('button');
+    loginBtn.type = 'button';
+    loginBtn.textContent = 'ログインし直す';
+    loginBtn.style.cssText = [
+      'background:#C73E2E', 'color:#fff', 'border:0', 'border-radius:9px',
+      'padding:8px 16px', 'font-size:14px', 'font-family:inherit',
+      'font-weight:700', 'cursor:pointer', 'flex:0 0 auto'
+    ].join(';');
+    loginBtn.addEventListener('click', function () {
+      var hdrBtn = document.getElementById('divp-login-btn');
+      try { global.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { global.scrollTo(0, 0); }
+      if (hdrBtn) hdrBtn.click();
+    });
+
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.setAttribute('aria-label', 'とじる');
+    closeBtn.textContent = '×';
+    closeBtn.style.cssText = [
+      'background:transparent', 'border:0', 'color:#7A5417', 'font-size:22px',
+      'line-height:1', 'padding:2px 6px', 'cursor:pointer', 'flex:0 0 auto'
+    ].join(';');
+    closeBtn.addEventListener('click', function () {
+      if (bar.parentNode) bar.parentNode.removeChild(bar);
+    });
+
+    if (!document.getElementById('divp-session-lost-style')) {
+      var st = document.createElement('style');
+      st.id = 'divp-session-lost-style';
+      /* 紙には共通UIを載せない（共通ヘッダー・お試し上限の暗幕と同じ考え方） */
+      st.textContent = '@media print{#divp-session-lost{display:none !important}}';
+      document.head.appendChild(st);
+    }
+
+    bar.appendChild(msg);
+    bar.appendChild(loginBtn);
+    bar.appendChild(closeBtn);
+    (document.body || document.documentElement).appendChild(bar);
   }
 
   // ── お試し上限のカウント（ツール=unit_keyごと・端末保存）─────────────
