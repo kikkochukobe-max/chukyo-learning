@@ -7,14 +7,9 @@
 <meta name="description" content="中学2年生向け 一次関数の練習ツール。式をつくる(一次関数の判定)・増加量・グラフをかく(応用は切片が分数・ax+by=cの変形)・グラフを読む・通る座標・変域(応用は変域から逆算)・式の特徴・式を求める(応用は一直線・変域・傾きの範囲)・交点(グラフなし・答えが分数の交点も)・三角形の面積(グラフなし・3直線の三角形の面積を2等分する直線も)の13モードと、えらんだ種類だけをランダムに出すミックス出題。中京個別指導学院。">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-<!-- 共通モジュール（file:// では divp-core が自動で黙る）
-     正解エフェクトは js/jh 共通の divp-correct-jh.js（はんこ）。
-     読み込めない環境だけ本ツール自前の #hanko に落ちる -->
-<script src="/assets/divp-header.js"></script>
-<script src="/assets/divp-core.js"></script>
-<script src="/assets/divp-correct-jh.js"></script>
-<!-- 答え合わせ表示（正解=緑 / 選んだ誤答=朱）。これが無いと採点色が付かない -->
-<script src="/assets/divp-choice-mark.js" defer></script>
+<!-- ⚠ 共通モジュールは <head> ではなく <body> 開始直後に置く。
+     divp-header.js は document.currentScript の位置に自分を挿し込むので、
+     head に置くと header 要素が head の中に入って画面に出ない。 -->
 <style>
 :root{
   --washi:#F6F1E7;
@@ -258,6 +253,16 @@ footer{max-width:860px;margin:16px auto 0;text-align:center;font-size:.68rem;col
 </style>
 </head>
 <body data-unit-key="math_js2_ichijikansu" data-theme="washi" data-effect="jh">
+
+<!-- 共通モジュール（file:// では divp-core が自動で黙る）
+     ・divp-header.js … 共通ヘッダー。この位置に挿し込まれる（body直後が定位置）
+     ・divp-core.js … 学習記録（Divp.init / Divp.answer）
+     ・divp-correct-jh.js … 正解=はんこ / 誤答=バッジ。読み込めない環境だけ自前の #hanko に落ちる
+     ・divp-choice-mark.js … 答え合わせ表示（正解=緑 / 選んだ誤答=朱） -->
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-choice-mark.js" defer></script>
 
 <header class="dv-head">
   <h1><span class="sub">中2数学 ── 一次関数</span>一次関数マスター</h1>
@@ -2701,6 +2706,7 @@ function fitQuestion(){
 /* ---------- flow ---------- */
 function newQuestion(){
   graded=false;
+  clearEffects();                               /* 前の問題のはんこ・バッジを片付ける */
   const tag=document.getElementById("qTag");
   if(retryQ&&!retryQ.length){                   /* 解き直しを1周した */
     retryQ=null;
@@ -3011,9 +3017,15 @@ function showExplain(){
 function toast(s){document.getElementById("toast").textContent=s;}
 /* 正解=はんこ / 誤答=「ナイスチャレンジ！」バッジ（js/jh共通 divp-correct-jh.js）。
    第1引数のセレクタは必須。#card は overflow:visible にしてある
-   （はんこは直径171pxで、hidden だと切れる） */
+   （はんこは直径171pxで、hidden だと切れる）。
+   ⚠ はんこは既定で自動では消えない（カードを innerHTML で作り直すツール前提の作り）。
+     このツールは #card の中身だけ差し替えるので消えずに残る。
+     fadeMs を渡して自分で引っ込めさせ、次の問題でも clearEffects() で片付ける。 */
+function clearEffects(){
+  document.querySelectorAll("#card .divp-hanko,#card .divp-nice").forEach(e=>e.remove());
+}
 function correctEffect(){
-  if(window.Divp&&typeof Divp.correct==="function"){Divp.correct("#card");return;}
+  if(window.Divp&&typeof Divp.correct==="function"){Divp.correct("#card",{fadeMs:1200});return;}
   const h=document.getElementById("hanko");           /* モジュール未読込のときの自前演出 */
   h.classList.remove("pop");void h.offsetWidth;h.classList.add("pop");
   setTimeout(()=>h.classList.remove("pop"),1100);

@@ -49,6 +49,40 @@ test.beforeEach(async ({ page }) => {
   page.errors = errors;
 });
 
+/* ここから2件だけは Divp を差し替えず、本物の共通モジュールで見る
+   （ヘッダーの挿入位置と、はんこの後片付けはモジュールとの合わせ技なので） */
+test('② 共通ヘッダーが body の中（ツールの見出しより前）に出る', async ({ page }) => {
+  await page.goto(TOOL);
+  await expect(page.locator('.divp-header')).toBeVisible();
+  const ok = await page.evaluate(() => {
+    const h = document.body.querySelector('.divp-header');
+    if (!h) return 'bodyの中に無い(headに入っていないか)';
+    // 4 = DOCUMENT_POSITION_FOLLOWING（ツールの見出しがヘッダーより後ろ）
+    if (!(h.compareDocumentPosition(document.querySelector('header.dv-head')) & 4)) return '順番が逆';
+    return 'ok';
+  });
+  expect(ok).toBe('ok');
+  expect(page.errors).toEqual([]);
+});
+
+test('② 正解のはんこは自動で消え、次の問題にも残らない', async ({ page }) => {
+  // 未ログイン案内は出さない（クリックの邪魔になるだけで、ここの検証対象ではない）
+  await page.addInitScript(() => { try { sessionStorage.setItem('divp_login_nudge_shown', '1'); } catch (e) {} });
+  await page.goto(TOOL);
+  await page.click('.chip[data-mode="koten"]');
+  const hanko = page.locator('#card .divp-hanko');
+
+  await answerCurrent(page);
+  await expect(hanko).toHaveCount(1);
+  await page.click('#nextBtn');
+  await expect(hanko).toHaveCount(0);            // 次の問題に持ち越さない
+
+  await answerCurrent(page);
+  await expect(hanko).toHaveCount(1);
+  await expect(hanko).toHaveCount(0, { timeout: 5000 });   // 置いておけば自分で引っ込む
+  expect(page.errors).toEqual([]);
+});
+
 test('①④ 判定直後に飛ぶ内容（モード名・種・プレーンな問題文・図）', async ({ page }) => {
   await stubDivp(page, []);
   await page.goto(TOOL);
