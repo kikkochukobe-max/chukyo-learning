@@ -641,9 +641,13 @@
       grid-auto-flow:column;
       column-gap:10mm;
     }
+    /* 問題側・こたえ側とも「番号+ひらがな」を上段、四線を下段に折り返す。
+       横に並べると「うちゅうひこうし」のような長い語で書くところが半分以下になってしまうため。
+       align-content:flex-end = 行の下端にそろえる(1段=22.5mm のうち下側に寄せる) */
     .ps-item{
-      display:flex; align-items:flex-end; gap:3mm;
-      padding-bottom:4mm;
+      display:flex; align-items:flex-end; flex-wrap:wrap; align-content:flex-end;
+      gap:3mm; row-gap:1mm;
+      padding-bottom:2mm;
       break-inside:avoid;
     }
     .ps-item .num{
@@ -656,11 +660,41 @@
       letter-spacing:.08em;
       flex-shrink:0;
     }
+    /* 解答欄はアルファベットの四線(英習罫)。3.5mm等間隔・全部1pxの細線でノートと同じ見た目にする。
+       上端=1本目・下端=4本目を border で、中の2・3本目を疑似要素で引く
+       (background-image だと「背景を印刷しない」設定で消えるため)。
+       ベースライン=3本目だけ黒で、書き出しの位置がわかるようにしている */
     .ps-item .write{
-      flex:1;
-      border-bottom:1px solid #000;
-      height:9mm;
+      /* 番号のぶんだけ下げて、ひらがなの左端から四線が始まるようにする(7mm + gap 3mm)。
+         box-sizing:content-box なので flex-basis は中身の幅＝はみ出さない */
+      flex:1 0 calc(100% - 10mm);
+      margin-left:10mm;
+      position:relative;
+      box-sizing:content-box; /* 全体が border-box なので、上下の罫線ぶん(2px)が中の高さを削って下段だけ狭くなる */
+      height:10.5mm;
+      border-top:1px solid #9A9A9A;    /* 1本目(大文字・bなどの上端) */
+      border-bottom:1px solid #9A9A9A; /* 4本目(g,yなどの下端) */
     }
+    .ps-item .write::before,
+    .ps-item .write::after{
+      content:""; position:absolute; left:0; right:0;
+    }
+    .ps-item .write::before{ top:3.5mm; border-top:1px solid #9A9A9A; } /* 2本目(小文字の上) */
+    .ps-item .write::after{ top:7mm; border-top:1px solid #000; }       /* 3本目(ベースライン) */
+    /* こたえ側は問題側と同じ位置にローマ字だけを置く(四線は出さない。
+       線と文字がわずかにずれて見えるため)。枠の寸法は問題側と同じままにして
+       罫線だけ消す ＝ 問題ページとこたえページで行の位置がそろう */
+    .ps-item.ps-a .write{
+      display:flex; align-items:flex-end;
+      border-color:transparent;
+    }
+    .ps-item.ps-a .write::before,
+    .ps-item.ps-a .write::after{ display:none; }
+    /* 20pt = 小文字の高さ(x-height)が問題側の四線の2〜3本目の間(3.5mm)と同じになるサイズ。
+       margin-bottom は問題側のベースライン(上から7mm)に文字が載る値で、
+       10.5mm - 7mm - 下ゲタ(≒フォントサイズ×0.05) の実測値。
+       font-size / line-height を変えたら margin-bottom も再調整が必要 */
+    .ps-item.ps-a .roman{ font-size:20pt; margin:0 0 3.2mm 1mm; line-height:1; }
     .ps-footer{
       text-align:right;
       font-size:8.5pt;
@@ -1782,11 +1816,11 @@
       grid.appendChild(item);
 
       var ans = document.createElement("div");
-      ans.className = "ps-item";
+      ans.className = "ps-item ps-a"; // ps-a = こたえ側(問題と同じ四線の上にローマ字を入れる)
       ans.innerHTML =
         '<span class="num">' + (i + 1) + '.</span>' +
         '<span class="kana">' + promptOf(pool[i]) + '</span>' +
-        '<span class="roman">' + answerOf(pool[i]) + '</span>';
+        '<span class="write"><span class="roman">' + answerOf(pool[i]) + '</span></span>';
       ansGrid.appendChild(ans);
     }
     window.print();

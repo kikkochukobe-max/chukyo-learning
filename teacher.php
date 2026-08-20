@@ -536,14 +536,18 @@ if ($detailStudentId > 0) {
     $stmt->execute($params);
     $dSessions = $stmt->fetchAll();
 
-    // タイムアタック記録（100マス等・全期間のベストと上位10件）。
-    // answer_logs を残さないゲームなので単元カルテには出ない → 専用に集計して見せる。
+    // タイム記録（100マス・愛知大問1の本番セット等）。全期間のベストと上位/直近10件。
+    // 100マスは answer_logs を残さないので単元カルテに出ない。
+    // 大問1の本番セットは1問ずつ answer_logs にも残るが、
+    // 「10問を通しで何分で解いたか」はそこには出ないのでここで見せる。
     $dTimeUnits = [];
-    foreach (time_rank_units() as $tuk => $tlabel) {
+    foreach (time_units() as $tuk => $_tconf) {
+        $tconf = time_unit_conf($tuk);
         $tsum = time_records_summary($pdo, $detailStudentId, $tuk, null, null);
         if ($tsum['plays'] > 0) {
             $dTimeUnits[$tuk] = [
-                'label'   => $tlabel,
+                'conf'    => $tconf,
+                'label'   => $tconf['label'],
                 'summary' => $tsum,
                 'top'     => time_records_top($pdo, $detailStudentId, $tuk, 10),
             ];
@@ -1054,20 +1058,39 @@ function sp_select(string $label, array $options): string
 
 <?php if (!empty($dTimeUnits)): ?>
   <div class="card" style="border-top-color:var(--kin);">
-    <h2>タイムアタック記録（全期間・速い順）</h2>
-<?php foreach ($dTimeUnits as $tuk => $tinfo): ?>
+    <h2>かかった時間の記録（全期間）</h2>
+<?php foreach ($dTimeUnits as $tuk => $tinfo):
+    $tc = $tinfo['conf'];
+    $isRecent = $tc['order'] === 'recent';   // 速さを競わない単元は新しい順に並べる
+    $hasScore = $tc['total'] !== null;       // miss_count から得点(満点-ミス)を出す
+?>
     <p style="font-size:13px;font-weight:700;margin-top:8px;"><?= h($tinfo['label']) ?>
-      <span style="font-size:11px;color:var(--ink-soft);font-weight:500;">ベスト <?= h(fmt_time_ms((int)$tinfo['summary']['best'])) ?> ・ これまで<?= (int)$tinfo['summary']['plays'] ?>回</span></p>
+      <span style="font-size:11px;color:var(--ink-soft);font-weight:500;"><?= $isRecent ? '最速' : 'ベスト' ?> <?= h(fmt_time_unit((int)$tinfo['summary']['best'], $tuk)) ?> ・ これまで<?= (int)$tinfo['summary']['plays'] ?>回<?= $isRecent ? '（新しい順）' : '（速い順）' ?></span></p>
     <div class="scroll">
     <table class="mcard">
-      <tr><th class="num">順位</th><th class="num">タイム</th><th class="num">ミス</th><th>表示</th><th>日時</th></tr>
+      <tr><?php if (!$isRecent): ?><th class="num">順位</th><?php endif; ?><th class="num">タイム</th><th class="num"><?= h($tc['miss_label']) ?></th><th>表示</th><th>日時</th></tr>
 <?php foreach ($tinfo['top'] as $ti => $trow):
-    $tmode = isset($trow['meta']['mode']) ? ($trow['meta']['mode'] === 'grid' ? '100マス' : 'よこ') : '';
+    // 「表示」列: 100マスは表示タイプ、大問1は出題範囲（オフにした単元があるセットは
+    // 全範囲のセットと同列に比べられないので、範囲を絞っていたことが分かるようにする）
+    $tmode = '';
+    if (isset($trow['meta']['mode'])) {
+        $tmode = $trow['meta']['mode'] === 'grid' ? '100マス' : 'よこ';
+    } elseif (isset($trow['meta']['scope_on'], $trow['meta']['scope_total'])) {
+        $son = (int)$trow['meta']['scope_on'];
+        $stot = (int)$trow['meta']['scope_total'];
+        $tmode = $son >= $stot ? '全範囲' : '範囲 ' . $son . '/' . $stot;
+    }
+    // 得点表示のある単元（大問1=10問）は 8/10 のように出し、満点は金色で強調
+    $miss = (int)$trow['miss_count'];
+    $scoreTxt = $hasScore ? (max(0, (int)$tc['total'] - $miss) . '/' . (int)$tc['total']) : (string)$miss;
+    $perfect = $hasScore && $miss === 0;
 ?>
       <tr>
+<?php if (!$isRecent): ?>
         <td class="num" data-label="順位" style="font-weight:700;<?= $ti < 3 ? 'color:var(--kin);' : '' ?>"><?= $ti + 1 ?>位</td>
-        <td class="num" data-label="タイム" style="font-weight:700;"><?= h(fmt_time_ms((int)$trow['time_ms'])) ?></td>
-        <td class="num" data-label="ミス"><?= (int)$trow['miss_count'] ?></td>
+<?php endif; ?>
+        <td class="num" data-label="タイム" style="font-weight:700;"><?= h(fmt_time_unit((int)$trow['time_ms'], $tuk)) ?></td>
+        <td class="num" data-label="<?= h($tc['miss_label']) ?>"<?= $perfect ? ' style="font-weight:700;color:var(--kin);"' : '' ?>><?= h($scoreTxt) ?></td>
         <td data-label="表示"><?= h($tmode) ?></td>
         <td data-label="日時" style="white-space:nowrap;"><?= h(substr((string)$trow['created_at'], 0, 16)) ?></td>
       </tr>

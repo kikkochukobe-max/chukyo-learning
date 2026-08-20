@@ -256,6 +256,19 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    study_sessions.ended_at は「最後に活動した時刻」の意味（NULLチェック廃止）。
    放置時間は最大5分しか数えず、ページ強制終了でも誤差は1分強。
    講師ページのセッション一覧は解答0件かつ1分未満の空セッションを非表示
+5a2. **「1回のプレイにかかった時間」は time_records に1プレイ=1行**（学習時間 duration_sec とは別物）。
+   ツールが `Divp.saveTime({question_key, time_ms, miss_count, meta})` を呼ぶだけ。
+   **見せる単元の台帳は api/time_ranking.php の `time_units()`**（ここに無い unit_key は
+   time_records に溜まっていてもどの画面にも出ない＝記録されていないと誤読しやすい）。
+   台帳の項目: `ranking`(true のときだけ教室内の速さランキングに載せる。**速さを競わせると
+   急いでミスする方向に働くので、本番形式の演習は false にしてタイムだけ見せる**) /
+   `order`('time'=速い順 / 'recent'=新しい順) / `total`(1プレイの問題数。miss_count から
+   得点を出す) / `miss_label` / `precision`('sec'なら「8分12秒」表記) / `question_key`。
+   表示は mypage.php（カード）と teacher.php の生徒詳細（表）の2箇所。
+   組み込み済み: math_es_hyakumasu(100マス・ランキング有) /
+   math_js3_aichi_daimon1(本番セット10問・ランキング無・得点10点満点・出題範囲をmetaに)。
+   1問ごとの所要時間は別で、`Divp.answer` に `time_taken_sec` を渡すと answer_logs に入る
+   （大問1は組み込み済み。離席ぶんを混ぜないよう10分超は記録しない）
 5b. **講師確認ページ → 完了（/teacher.php）**: 講師ログインフォーム内蔵。
    生徒一覧（期間タブ+教室タブ+教科タブ、学習時間/解答数/正答率/解き直し数/最終学習）→
    生徒名クリックで詳細（教科別にグループ化した単元カルテ・直近の誤答30件・学習セッション20件+端末）。

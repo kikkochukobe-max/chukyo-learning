@@ -8,13 +8,62 @@ declare(strict_types=1);
 // time_records テーブルがまだ無い環境（migrate 未適用）でも
 // ページが落ちないよう、存在チェックを噛ませて空を返す。
 
-// タイムアタックとして扱うツールの台帳（unit_key => 表示名）。
-// 100マス以外の「速さを競う」ツールを足したらここに1行追加する。
-function time_rank_units(): array
+// タイムを記録するツールの台帳（unit_key => 設定）。
+// 新しく Divp.saveTime() を呼ぶツールを作ったらここに1行追加する
+// （ここに無い unit_key は time_records に溜まっていても どの画面にも出ない）。
+//   label        表示名
+//   question_key ツールが saveTime に渡している question_key（省略時は全部まとめて集計）
+//   ranking      true のときだけ「教室内の速さランキング」に載せる。
+//                速さを競わせると急いでミスする方向に働くので、
+//                本番形式の演習（愛知 大問1 など）は false にしてタイムだけ見せる
+//   order        'time'=速い順に上位を並べる / 'recent'=新しい順に並べる
+//   total        1プレイの問題数。指定すると miss_count から得点(total - miss)を出す
+//   miss_label   miss_count 列の見出し（既定「ミス」）
+//   precision    'ms'=1:03.4 表記（既定） / 'sec'=8分12秒 表記（秒単位でしか測らない単元）
+function time_units(): array
 {
     return [
-        'math_es_hyakumasu' => '100マス たし算',
+        'math_es_hyakumasu' => [
+            'label'   => '100マス たし算',
+            'ranking' => true,
+            'order'   => 'time',
+        ],
+        'math_js3_aichi_daimon1' => [
+            'label'        => '愛知県 大問1 本番セット',
+            'question_key' => 'set',
+            'ranking'      => false,
+            'order'        => 'recent',
+            'total'        => 10,
+            'miss_label'   => '得点',
+            'precision'    => 'sec',
+        ],
     ];
+}
+
+// 台帳の1行を既定値で埋めて返す（台帳に無い unit_key なら null）
+function time_unit_conf(string $unitKey): ?array
+{
+    $conf = time_units()[$unitKey] ?? null;
+    if ($conf === null) return null;
+    return $conf + [
+        'label'        => $unitKey,
+        'question_key' => null,
+        'ranking'      => false,
+        'order'        => 'time',
+        'total'        => null,
+        'miss_label'   => 'ミス',
+        'precision'    => 'ms',
+    ];
+}
+
+// 速さランキングに出す単元だけ（unit_key => 表示名）。講師ページのタブ用。
+function time_rank_units(): array
+{
+    $out = [];
+    foreach (time_units() as $k => $v) {
+        if (!empty($v['ranking'])) $out[$k] = $v['label'];
+    }
+    return $out;
 }
 
 // time_records テーブルが存在するか（1回だけ確認してキャッシュ）
@@ -43,19 +92,51 @@ function fmt_time_ms(int $ms): string
     return $m . ':' . $remStr;
 }
 
-// 指定生徒のベストタイム上位を返す（速い順）。講師詳細・マイページ共用。
+// 台帳の precision に合わせてタイムを整形する。
+// 'sec'（愛知 大問1 のように秒単位でしか測っていない単元）は「8分12秒」、
+// 既定の 'ms'（100マス）は fmt_time_ms と同じ「1:03.4」。
+// 小数第1位が常に .0 になる単元で「8:12.0」と出すのを避けるための分岐。
+function fmt_time_unit(int $ms, string $unitKey): string
+{
+    $conf = time_unit_conf($unitKey);
+    if ($conf !== null && ($conf['precision'] ?? 'ms') === 'sec') {
+        if ($ms < 0) $ms = 0;
+        $s = intdiv($ms, 1000);
+        return intdiv($s, 60) . '分' . ($s % 60) . '秒';
+    }
+    return fmt_time_ms($ms);
+}
+
+// 台帳の question_key を WHERE 句に足す（台帳に question_key が無い単元は素通り）。
+// 同じ単元で種目違いのタイムを別々に記録している場合に混ざらないようにするための絞り込み。
+function time_qk_where(string $unitKey, array &$params, string $col = 'question_key'): string
+{
+    $conf = time_unit_conf($unitKey);
+    if ($conf === null || $conf['question_key'] === null) return '';
+    $params['qk'] = $conf['question_key'];
+    return " AND {$col} = :qk";
+}
+
+// 指定生徒のタイム記録を返す。台帳の order が 'recent' なら新しい順、
+// 既定（'time'）なら速い順。講師詳細・マイページ共用。
 function time_records_top(PDO $pdo, int $studentId, string $unitKey, int $limit = 10): array
 {
     if (!time_records_available($pdo)) return [];
     $limit = max(1, min(50, $limit));
+    $conf = time_unit_conf($unitKey);
+    $order = ($conf !== null && $conf['order'] === 'recent')
+        ? 'created_at DESC, time_ms ASC'
+        : 'time_ms ASC, created_at ASC';
+    $params = ['sid' => $studentId, 'uk' => $unitKey];
+    $wq = time_qk_where($unitKey, $params);
     $stmt = $pdo->prepare(
         "SELECT time_ms, miss_count, meta, created_at
          FROM time_records
-         WHERE student_id = :sid AND unit_key = :uk
-         ORDER BY time_ms ASC, created_at ASC
+         WHERE student_id = :sid AND unit_key = :uk{$wq}
+         ORDER BY {$order}
          LIMIT {$limit}"
     );
-    $stmt->execute(['sid' => $studentId, 'uk' => $unitKey]);
+    $stmt->execute($params);
     $out = [];
     foreach ($stmt->fetchAll() as $row) {
         $out[] = [
@@ -74,6 +155,7 @@ function time_records_summary(PDO $pdo, int $studentId, string $unitKey, ?string
     $empty = ['best' => null, 'plays' => 0, 'last_at' => null];
     if (!time_records_available($pdo)) return $empty;
     $params = ['sid' => $studentId, 'uk' => $unitKey];
+    $wq = time_qk_where($unitKey, $params);
     $w = '';
     if ($fromStr !== null) {
         $params['from'] = $fromStr;
@@ -82,7 +164,7 @@ function time_records_summary(PDO $pdo, int $studentId, string $unitKey, ?string
     }
     $stmt = $pdo->prepare(
         "SELECT MIN(time_ms) AS best, COUNT(*) AS plays, MAX(created_at) AS last_at
-         FROM time_records WHERE student_id = :sid AND unit_key = :uk{$w}"
+         FROM time_records WHERE student_id = :sid AND unit_key = :uk{$wq}{$w}"
     );
     $stmt->execute($params);
     $r = $stmt->fetch();
@@ -116,6 +198,7 @@ function time_ranking_rows(PDO $pdo, ?array $classroomIds, string $unitKey, ?str
         $params['to']   = $toStr;
         $wt = ' AND tr.created_at >= :from AND tr.created_at < :to';
     }
+    $wt .= time_qk_where($unitKey, $params, 'tr.question_key');
 
     $stmt = $pdo->prepare(
         "SELECT s.student_id, s.student_name, s.grade, s.classroom_id, c.classroom_name,

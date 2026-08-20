@@ -227,21 +227,33 @@ if ($activeEvent) {
     }
 }
 
-// ---- 100マス計算（タイムアタック）: 自分のベスト＆教室内じゅんい（全期間） ----
-// answer_logs を残さないゲームなので単元カルテには出ない。ここに専用カードで見せる。
+// ---- かかった時間の記録: 自分のベスト＆教室内じゅんい（全期間） ----
+// 100マスは answer_logs を残さないゲームなので単元カルテに出ない。
+// 愛知 大問1 の本番セットは1問ずつカルテに出るが「10問通しで何分」はそこに出ない。
+// どちらも api/time_ranking.php の台帳(time_units)に載っている単元だけカードにする。
 require_once __DIR__ . '/api/time_ranking.php';
-$hyakuUnit = 'math_es_hyakumasu';
-$hyakuSummary = time_records_summary($pdo, $studentId, $hyakuUnit, null, null);
-$hyakuTop = [];
-$hyakuRank = null;
-$hyakuTotal = 0;
-if ($hyakuSummary['plays'] > 0) {
-    $hyakuTop = time_records_top($pdo, $studentId, $hyakuUnit, 5);
-    $hRankRows = time_ranking_rows($pdo, [(int)$student['classroom_id']], $hyakuUnit, null, null, $viewerIsTest);
-    $hyakuTotal = count($hRankRows);
-    foreach ($hRankRows as $r) {
-        if ((int)$r['student_id'] === $studentId) { $hyakuRank = (int)$r['rank']; break; }
+$timeCards = [];
+foreach (time_units() as $tuk => $_c) {
+    $conf = time_unit_conf($tuk);
+    $sum = time_records_summary($pdo, $studentId, $tuk, null, null);
+    if ($sum['plays'] <= 0) continue;
+    $rank = null;
+    $rankTotal = 0;
+    // 速さを競う単元だけ教室内じゅんいを出す（本番形式の演習は順位を出さない）
+    if ($conf['ranking']) {
+        $rows = time_ranking_rows($pdo, [(int)$student['classroom_id']], $tuk, null, null, $viewerIsTest);
+        $rankTotal = count($rows);
+        foreach ($rows as $r) {
+            if ((int)$r['student_id'] === $studentId) { $rank = (int)$r['rank']; break; }
+        }
     }
+    $timeCards[$tuk] = [
+        'conf'       => $conf,
+        'summary'    => $sum,
+        'top'        => time_records_top($pdo, $studentId, $tuk, 5),
+        'rank'       => $rank,
+        'rank_total' => $rankTotal,
+    ];
 }
 
 // ---- 単元カルテ(選択期間・種類別) ----
@@ -482,7 +494,9 @@ function h(?string $s): string
   .rankrow .pos.top3{color:var(--kin)}
   .rankrow .none{font-size:12px;color:var(--ink-soft)}
 
-  /* ---------- 100マス タイムアタック ---------- */
+  /* ---------- かかった時間の記録（100マス・愛知 大問1 本番セット） ---------- */
+  /* .hyaku-* は100マス専用ではなく「かかった時間の記録」カード共通（愛知 大問1 も使う）。
+     クラス名は既存のまま流用している */
   .hyaku-best{display:flex;align-items:baseline;gap:8px;margin:8px 0 2px;flex-wrap:wrap}
   .hyaku-best .t{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:34px;
     color:var(--ai);font-feature-settings:'tnum';line-height:1}
@@ -655,34 +669,43 @@ function h(?string $s): string
 <?php endforeach; ?>
   </section>
 
-<?php if ($hyakuSummary['plays'] > 0): ?>
-  <!-- 100マス計算 タイムアタック（全期間・自分の記録） -->
+<?php foreach ($timeCards as $tuk => $tcard):
+    $tc = $tcard['conf'];
+    $isRecent = $tc['order'] === 'recent';   // 速さを競わない単元は新しい順
+    $hasScore = $tc['total'] !== null;       // miss_count から得点(満点-ミス)を出す
+?>
+  <!-- かかった時間の記録（全期間・自分の記録） -->
   <section class="rankcard" style="border-top-color:var(--ai);">
-    <div class="rc-title" style="color:var(--ai);">100マス たし算 タイムアタック</div>
+    <div class="rc-title" style="color:var(--ai);"><?= h($tc['label']) ?><?= $isRecent ? ' かかった時間' : ' タイムアタック' ?></div>
     <div class="hyaku-best">
-      <span class="t"><?= h(fmt_time_ms((int)$hyakuSummary['best'])) ?></span>
-      <span class="u">ベストタイム ・ これまで <?= (int)$hyakuSummary['plays'] ?>回</span>
+      <span class="t"><?= h(fmt_time_unit((int)$tcard['summary']['best'], $tuk)) ?></span>
+      <span class="u"><?= $isRecent ? 'いちばん速かったとき' : 'ベストタイム' ?> ・ これまで <?= (int)$tcard['summary']['plays'] ?>回</span>
     </div>
-<?php if ($hyakuRank !== null): ?>
+<?php if ($tcard['rank'] !== null): ?>
     <div class="rankrow">
       <span><?= h($student['classroom_name']) ?>教室での じゅんい（速さ）</span>
-      <span class="pos<?= $hyakuRank <= 3 ? ' top3' : '' ?>"><?= $hyakuRank ?>位<small><?= $hyakuTotal ?>人中</small></span>
+      <span class="pos<?= $tcard['rank'] <= 3 ? ' top3' : '' ?>"><?= (int)$tcard['rank'] ?>位<small><?= (int)$tcard['rank_total'] ?>人中</small></span>
     </div>
 <?php endif; ?>
     <ol class="hyaku-list">
-<?php foreach ($hyakuTop as $i => $t):
-    $medal = ['🥇', '🥈', '🥉'][$i] ?? (string)($i + 1);
+<?php foreach ($tcard['top'] as $i => $t):
+    // 速い順の単元はメダル、新しい順の単元は「・」（順位の意味を持たせない）
+    $medal = $isRecent ? '・' : (['🥇', '🥈', '🥉'][$i] ?? (string)($i + 1));
+    $miss = (int)$t['miss_count'];
+    $missTxt = $hasScore
+        ? ($tc['miss_label'] . ' ' . max(0, (int)$tc['total'] - $miss) . '/' . (int)$tc['total'])
+        : ($tc['miss_label'] . ' ' . $miss);
 ?>
       <li>
         <span class="rk"><?= h((string)$medal) ?></span>
-        <span class="tm"><?= h(fmt_time_ms((int)$t['time_ms'])) ?></span>
-        <span class="mc">ミス <?= (int)$t['miss_count'] ?></span>
+        <span class="tm"><?= h(fmt_time_unit((int)$t['time_ms'], $tuk)) ?></span>
+        <span class="mc"><?= h($missTxt) ?></span>
         <span class="dt"><?= h(substr((string)$t['created_at'], 5, 5)) ?></span>
       </li>
 <?php endforeach; ?>
     </ol>
   </section>
-<?php endif; ?>
+<?php endforeach; ?>
 
 <?php if ($eventRanks !== null):
     $evFromD = new DateTimeImmutable($activeEvent['from']);

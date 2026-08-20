@@ -113,14 +113,17 @@ h1 .box{display:inline-block;border:2px solid var(--ink);padding:0 .3em;margin-r
 .p-title{font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;font-weight:800;font-size:1.1rem}
 .p-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #111;padding-bottom:6px;margin-bottom:12px;gap:10px;flex-wrap:wrap}
 .p-name{font-size:.8rem;white-space:nowrap}
-.p-lead{font-weight:700;margin-bottom:12px}
-.p-q{margin:0 0 16px;break-inside:avoid;font-size:.92rem;line-height:1.85}
+.p-lead{font-weight:700;margin-bottom:16px}
+/* 紙面の余白は本物の入試問題（大問1）に合わせて広めに取る。
+   問題間 30px・問題文と選択肢の間 12px・選択肢の横間隔 40px。
+   10問で約1800px＝A4 2枚（本文枠1047px/枚）に収まる範囲で最大限あけている。
+   これ以上広げると3枚目に落ちるので、増やすときは印刷プレビューで枚数を確認すること。 */
+.p-q{margin:0 0 23px;break-inside:avoid;font-size:.92rem;line-height:1.85}
 .p-no{font-weight:700;margin-right:.5em}
-.p-fig{margin:4px 0}
+.p-fig{margin:7px 0}
 .p-fig table.freq{margin:8px 0}
-.p-choices{display:flex;flex-wrap:wrap;gap:6px 28px;margin-top:4px;padding-left:1.9em}
-.p-choices.vert{flex-direction:column;gap:5px}
-.p-choice b{font-weight:700}
+.p-choices{display:flex;flex-wrap:wrap;gap:8px 40px;margin-top:8px;padding-left:1.9em}
+.p-choices.vert{flex-direction:column;gap:7px}
 .p-ans{break-before:page;margin-top:22px;border-top:2px dashed #999;padding-top:12px}
 .p-page-note{font-size:.7rem;color:var(--usuzumi);margin-bottom:8px}
 .p-ans-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;font-size:.95rem;margin:10px 0 14px;border:1px solid #111;padding:8px 10px}
@@ -2622,6 +2625,10 @@ $('btnCheck').addEventListener('click',()=>{
  if(selected.length<q.multi){
   toast(q.multi===2?'2つマークしてね':'マークしてね');return}
  graded=true;
+ /* この1問にかかった秒数（answer_logs.time_taken_sec）。
+    タブを開いたまま離席したぶんまで記録すると平均が壊れるので、
+    10分を超えたら「解いていた時間」とは見なさず記録しない。 */
+ const qSec=tQStart?Math.max(1,Math.round((Date.now()-tQStart)/1000)):0;
  const ok=selected.length===q.correct.length&&
   q.correct.every(c=>selected.indexOf(c)>=0);
  /* 学習記録: 判定直後に1行。未ログイン/file://ではdivp-core側が黙ってスキップする */
@@ -2638,7 +2645,8 @@ $('btnCheck').addEventListener('click',()=>{
      ?retry=1 のときは list_retries.php から返ってきたこれを loadQ に渡す */
   question_replay:qReplayOf(q),
   correct_answer:ansText(q.correct,q.choices),
-  wrong_answer:ansText(selected,q.choices)});
+  wrong_answer:ansText(selected,q.choices),
+  time_taken_sec:(qSec>0&&qSec<=600)?qSec:null});
  /* 答え合わせ表示は共通モジュール divp-choice-mark.js にまかせる。
     選んで正解=緑 / 選ばなかった正解=緑＋「正解」バッジ / 選んだ誤答=朱 / 残り=薄く。
     複数正解(q.correct は配列)があるので1つずつ振る。 */
@@ -2701,8 +2709,12 @@ function finishSet(){
  else if(score>=5){msg='大問1は得点源。タイプ別で弱点をつぶそう。'}
  else{msg='まずはタイプ別トレーニングで基礎がためを。'}
  $('rMsg').textContent=msg;
- /* 本番セットのタイムを記録(question_key='set'。10問中の誤答数をmiss_countに) */
- safeDivp('saveTime',{question_key:'set',time_ms:sec*1000,miss_count:setMarks.length-score});
+ /* 本番セットのタイムを記録(question_key='set'。10問中の誤答数をmiss_countに)。
+    出題範囲をオフにした状態のセットは全範囲のセットと同列に比べられないので、
+    ONにしていた単元数を meta に添えて講師ページ・マイページで区別できるようにする。 */
+ const scOn=Object.keys(scope).filter(k=>scope[k]).length;
+ safeDivp('saveTime',{question_key:'set',time_ms:sec*1000,miss_count:setMarks.length-score,
+  meta:{scope_on:scOn,scope_total:Object.keys(scope).length}});
  show('scr-result')}
 $('btnRetrySet').addEventListener('click',startSet);
 $('btnHome').addEventListener('click',()=>show('scr-home'));
