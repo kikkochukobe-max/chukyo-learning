@@ -303,7 +303,9 @@
     if (!document.getElementById('divp-nudge-anim')) {
       var st = document.createElement('style');
       st.id = 'divp-nudge-anim';
-      st.textContent = '@keyframes divpNudgeIn{from{opacity:0;transform:translate(-50%,-50%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}';
+      st.textContent = '@keyframes divpNudgeIn{from{opacity:0;transform:translate(-50%,-50%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}'
+        /* 印刷では出さない（共通ヘッダーと同じ考え方で、紙に共通UIを載せない） */
+        + '@media print{#divp-login-nudge{display:none !important}}';
       document.head.appendChild(st);
     }
 
@@ -421,7 +423,9 @@
     if (!document.getElementById('divp-wall-anim')) {
       var st = document.createElement('style');
       st.id = 'divp-wall-anim';
-      st.textContent = '@keyframes divpWallIn{from{opacity:0}to{opacity:1}}';
+      st.textContent = '@keyframes divpWallIn{from{opacity:0}to{opacity:1}}'
+        /* 印刷では出さない（画面いっぱいの暗幕がそのまま紙に出てしまう） */
+        + '@media print{#divp-trial-wall{display:none !important}}';
       document.head.appendChild(st);
     }
 

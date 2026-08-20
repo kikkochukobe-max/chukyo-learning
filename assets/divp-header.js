@@ -68,7 +68,12 @@
     + '.divp-header img.divp-logo{width:38px;height:38px;}'
     + '.divp-header .divp-text{font-size:11px;letter-spacing:0;}'
     + '.divp-header a.divp-sub{font-size:10px;}'
-    + '}';
+    + '}'
+    // 印刷では共通ヘッダーを出さない（各ツールの印刷シートは自前の見出しを持つ）。
+    // ツール側の @media print が .wrap / .app だけを display:none にしていると
+    // 兄弟として注入されたヘッダーが紙の1枚目上部に残るため、ここで一律に消す。
+    // 別ウィンドウを開いて刷るツール（平方根マスター等）はこのヘッダーを持たないので影響なし。
+    + '@media print{.divp-header{display:none !important;}}';
 
   function injectFont() {
     if (document.getElementById('divp-font-zenmaru')) return;
