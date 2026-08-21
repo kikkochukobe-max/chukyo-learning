@@ -13,9 +13,15 @@
 -- DBは既にHetemlに構築済みなので schema_full.sql を丸ごと流し直す必要はない。
 -- phpMyAdmin でこのファイルを上から順に実行する。
 --
+-- ★ 2026-08-21 追記: 近年(2023〜2026)の大問1に出ている型を4つ足したので
+--   a1_nijikai / a1_katamuki / a1_kotenniji / a1_kukan の4行を追加した。
+--   このファイルは ON DUPLICATE KEY UPDATE なので、そのまま流し直せばよい
+--   （既存行はラベルが上書きされるだけ。answer_logs は触らない）。
+--   未実行のままでも記録は普通に入り、講師画面のラベルがキー名で出るだけ。
+--
 -- question_key は math_js3_aichi_daimon1.html 内の q_() 第2引数と一致。
--- ツールは1モード（TYPES[].id = t1〜t21）に対して複数の question_key を
--- 出し分けるため、TYPESの数(21)より多い32行になる。
+-- ツールは1モード（TYPES[].id = t1〜t25）に対して複数の question_key を
+-- 出し分けるため、TYPESの数(25)より多い36行になる。
 -- 例: t10「関数・数の性質」は henka/shizen/hanpirei/koten/heikou/kansuhan の6種、
 -- 　　t13「図形(角度)」は kakudo/enshukaku の2種。
 --
@@ -35,8 +41,11 @@ INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('math_js3_aichi_daimon1', 'a1_tenkai',       '(3)式の展開',                  1),
   ('math_js3_aichi_daimon1', 'a1_insu',         '(3)因数分解',                  1),
   ('math_js3_aichi_daimon1', 'a1_heihokon',     '(4)平方根の計算',              1),
+  ('math_js3_aichi_daimon1', 'a1_nijikai',      '(4)二次方程式(解の変換)',      1),
   ('math_js3_aichi_daimon1', 'a1_niji',         '(5)二次方程式',                1),
   ('math_js3_aichi_daimon1', 'a1_renritsu',     '(5)連立方程式',                1),
+  ('math_js3_aichi_daimon1', 'a1_katamuki',     '(5)グラフ上の2点を通る直線の傾き', 1),
+  ('math_js3_aichi_daimon1', 'a1_kotenniji',    '(6)交点を通る放物線',          1),
   ('math_js3_aichi_daimon1', 'a1_risshiki',     '(6)不等式の立式',              1),
   ('math_js3_aichi_daimon1', 'a1_wariai',       '(6)割合の文章題',              1),
   ('math_js3_aichi_daimon1', 'a1_seigo',        '(7)正誤・二つ選ぶ',            1),
@@ -59,7 +68,8 @@ INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('math_js3_aichi_daimon1', 'a1_sanpei',       '(10)三平方(直角三角形・対角線)', 1),
   ('math_js3_aichi_daimon1', 'a1_enpei',        '(10)円と三平方(弦の長さ)',     1),
   ('math_js3_aichi_daimon1', 'a1_hiritsu',      '(10)面積比・体積比',           1),
-  ('math_js3_aichi_daimon1', 'a1_nitohen',      '(10)二等辺三角形+垂線(相似と三平方)', 1)
+  ('math_js3_aichi_daimon1', 'a1_nitohen',      '(10)二等辺三角形+垂線(相似と三平方)', 1),
+  ('math_js3_aichi_daimon1', 'a1_kukan',        '(10)空間図形(平面の決定・体積の比較)', 1)
 ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
 
 -- 本番セットのタイム記録用（save_time.php が question_key='set' で書く）
@@ -67,7 +77,7 @@ INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('math_js3_aichi_daimon1', 'set', '本番セット10問', 1)
 ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
 
--- 確認用（33行返り、コロン入りが0件なら成功）
+-- 確認用（37行返り = a1_〜36行 + set、コロン入りが0件なら成功）
 -- SELECT question_key, label, base_xp FROM question_catalog
 --  WHERE unit_key = 'math_js3_aichi_daimon1' ORDER BY question_key;
 -- SELECT COUNT(*) AS colon_left FROM question_catalog
