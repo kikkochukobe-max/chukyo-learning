@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- ⚠ タイトルの2番目のセグメントに「・」を3つ以上入れないこと。
+     learning/index.php の parse_title() が「・」3つ以上のセグメントをSEO地名リストと
+     みなして捨てるため、一覧カードの副題が空になる（単元名はキーワードでなく description 側に書く）。 -->
+<title>光・音・力マスター｜中1理科 身のまわりの現象｜中京個別指導学院</title>
+<meta name="description" content="中1理科「身のまわりの現象」の総合6択クイズ。光(反射・屈折・全反射)／凸レンズ(実像・虚像)／音(振幅・振動数・速さ)／力(フックの法則・質量と重さ・つり合い)／圧力(大気圧・水圧)／計算特集を細かく確認できる無料教材。名古屋市・長久手市・焼山・吉根・神丘・高針台・一社・貴船・有松・植田・志段味エリアの中学生向け。中京個別指導学院。">
+<meta name="keywords" content="中1理科,身のまわりの現象,光の反射,反射の法則,光の屈折,全反射,凸レンズ,実像,虚像,焦点距離,音の速さ,振動数,振幅,ヘルツ,モノコード,力のはたらき,フックの法則,質量と重さ,力のつり合い,圧力,大気圧,水圧,パスカル,6択クイズ,無料教材,中京個別指導学院,名古屋,長久手">
+<meta name="author" content="中京個別指導学院">
+<meta property="og:title" content="光・音・力マスター｜中1理科">
+<meta property="og:description" content="中1理科「身のまわりの現象」を光・凸レンズ・音・力・圧力・計算の6モードで総ざらい。名古屋・長久手の個別指導塾「中京個別指導学院」提供の無料教材。">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="中京個別指導学院">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBFAF6; --grid:#ECE9E0; --ink:#33312B; --ink-soft:#8B877C;
+  --shu:#C73E2E; --shu-soft:#F6E3DF;
+  --ai:#2C5F8A; --kin:#C9A227;
+  --midori:#4A7C59; --midori-d:#3B6349; --midori-soft:#E6EFE8;
+  --daidai:#D89A45;
+  --white:#fff; --radius:14px;
+  --shadow:0 1px 3px rgba(51,49,43,.08), 0 6px 16px rgba(51,49,43,.06);
+  /* 採点表示（divp-choice-mark.js）の色。正解の緑は全ツール共通の #3E8E5A に合わせ、
+     誤答は理科シリーズの「赤で責めない」橙にそろえる（結果画面の低正答率と同じ色）。 */
+  --divp-mark-ng:#D89A45; --divp-mark-ng-bg:#FBF1E1;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{
+  font-family:'Zen Kaku Gothic New',sans-serif;color:var(--ink);
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;line-height:1.7;-webkit-font-smoothing:antialiased;min-height:100vh;
+}
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px 90px}
+:root{--fs:clamp(15px,1.15vw,18px)}
+@media (pointer:coarse){:root{--fs:clamp(16px,2.2vw,26px)}}
+h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif}
+
+.page-head{text-align:center;margin:6px 0 22px}
+.page-head .eyebrow{display:inline-block;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;
+  font-size:12px;letter-spacing:.16em;color:var(--midori);background:var(--midori-soft);
+  border-radius:999px;padding:5px 14px;margin-bottom:12px}
+.page-head h1{font-weight:900;font-size:clamp(22px,4.4vw,32px);letter-spacing:.03em;line-height:1.35}
+.page-head p{font-size:14px;color:var(--ink-soft);margin-top:8px}
+
+.card-panel{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
+  border-top:5px solid var(--midori);padding:20px 18px;margin-bottom:18px}
+.card-panel h2{font-weight:900;font-size:17px;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.card-panel h2 .dot{width:9px;height:9px;border-radius:3px;background:var(--midori)}
+.card-panel .lead{font-size:13.5px;color:var(--ink-soft);margin-bottom:16px}
+
+/* モード選択カード */
+.mode-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px}
+.mode-card{display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;
+  background:var(--paper);border:1.6px solid var(--grid);border-radius:12px;padding:9px 12px;
+  cursor:pointer;font-family:inherit;color:var(--ink);transition:transform .12s,box-shadow .12s,border-color .12s}
+.mode-card:hover{transform:translateY(-2px);border-color:var(--midori);box-shadow:0 5px 16px rgba(74,124,89,.18)}
+.mode-card.active{border-color:var(--midori);background:var(--midori-soft);box-shadow:0 4px 14px rgba(74,124,89,.2)}
+.mode-card .nm{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:16px}
+.mode-card .nm .ct{font-weight:700;font-size:12px;color:var(--midori-d)}
+.mode-card .ds{font-size:11px;color:var(--ink-soft);line-height:1.35}
+
+/* モード詳細パネル */
+.mode-panel{margin-top:16px;border-top:1px dashed var(--grid);padding-top:16px}
+.mode-panel h3{font-weight:900;font-size:16px;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.chip-lbl{font-size:12px;color:var(--ink-soft);width:100%;font-weight:700}
+.chip-btn{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;cursor:pointer;
+  background:var(--white);border:1.5px solid var(--grid);color:var(--ink);border-radius:999px;
+  padding:7px 14px;transition:all .12s}
+.chip-btn:hover{border-color:var(--midori);background:var(--midori-soft);color:var(--midori-d)}
+.chip-btn .n{color:var(--ink-soft);font-weight:400;font-size:11px;margin-left:3px}
+
+.big-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}
+.btn{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:16px;cursor:pointer;border:none;
+  border-radius:12px;padding:14px 22px;transition:transform .12s,box-shadow .12s,background .12s;
+  display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:var(--midori);color:#fff;box-shadow:0 3px 0 var(--midori-d)}
+.btn-primary:hover{background:var(--midori-d);transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(2px);box-shadow:none}
+.btn-outline{background:var(--white);color:var(--midori-d);border:1.5px solid var(--midori)}
+.btn-outline:hover{background:var(--midori-soft)}
+.btn-ghost{background:transparent;color:var(--ink-soft);font-size:13px;padding:8px 12px}
+.btn-ghost:hover{color:var(--ink)}
+.grow{flex:1;justify-content:center;min-width:170px}
+.btn.sm{font-size:14px;padding:10px 16px}
+
+#quiz[hidden],#result[hidden],#start[hidden]{display:none}
+.quiz-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.badge-cat{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;background:var(--midori-soft);
+  color:var(--midori-d);border-radius:999px;padding:5px 14px;display:inline-flex;gap:6px;align-items:center}
+.quiz-meta{display:flex;gap:14px;align-items:center;font-size:13px;color:var(--ink-soft)}
+.quiz-meta b{font-family:'Zen Maru Gothic',sans-serif;color:var(--ink);font-size:16px}
+.quiz-meta .sc b{color:var(--shu)}
+.progress-wrap{height:6px;background:var(--grid);border-radius:3px;overflow:hidden;margin-bottom:16px}
+.progress-bar{height:100%;width:0;background:var(--midori);border-radius:3px;transition:width .3s}
+
+#qcard{position:relative;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 20px;overflow:hidden}
+#qnum{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:12px;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:6px}
+#qtext{font-size:calc(var(--fs) + 2px);font-weight:500;line-height:1.75;color:#1a1a1a;margin-bottom:18px}
+#qtbl{margin:-6px 0 18px}
+#qtbl:empty{display:none}
+#qtbl table{border-collapse:collapse;font-size:14px;margin:0 auto;background:var(--white)}
+#qtbl svg{display:block;margin:2px auto;max-width:100%;height:auto}
+#qtbl th,#qtbl td{border:1.4px solid var(--grid);padding:6px 12px;text-align:center;white-space:nowrap}
+#qtbl th{background:var(--midori-soft);font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--midori-d)}
+#qtbl td:first-child{font-weight:700;color:var(--ink)}
+#qtbl .figrow{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:flex-end}
+#qtbl .figrow .figcell{text-align:center}
+#qtbl .figrow .figcell .cap{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;color:var(--midori-d)}
+#choices{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
+@media (max-width:520px){
+  #choices{grid-template-columns:1fr;gap:7px}
+  /* スマホでは6択の縦を詰める */
+  #qcard{padding:16px 15px 74px}   /* 下は固定フッターのぶん空ける */
+  #qtext{margin-bottom:12px;line-height:1.55}
+  #qtbl{margin:-2px 0 12px}
+  .ch{padding:8px 12px;gap:9px;line-height:1.3}
+  .ch .no{width:22px;height:22px;font-size:13px}
+  /* 操作ボタンを画面下に固定＝解説が伸びても「答え合わせ／次へ」を常にスクロールなしで押せる */
+  .qfoot{position:fixed;left:0;right:0;bottom:0;margin:0;padding:10px 14px;box-sizing:border-box;
+    background:rgba(255,255,255,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+    box-shadow:0 -2px 12px rgba(0,0,0,.1);z-index:200}
+}
+/* position:relative は divp-choice-mark の「正解」バッジ（絶対配置）の基準。
+   モジュール側でも当てているが、最初から相対にしておかないと採点の瞬間に基準が変わる */
+.ch{position:relative;display:flex;align-items:center;gap:10px;text-align:left;background:var(--paper);border:1.6px solid var(--grid);
+  border-radius:12px;padding:13px 14px;cursor:pointer;font-family:inherit;font-size:var(--fs);color:var(--ink);
+  line-height:1.5;transition:border-color .12s,background .12s,transform .1s}
+.ch .no{flex:none;width:26px;height:26px;border-radius:50%;background:var(--white);border:1.5px solid var(--grid);
+  display:flex;align-items:center;justify-content:center;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:14px;color:var(--ink-soft)}
+.ch:hover:not(:disabled){border-color:var(--midori);background:var(--midori-soft);transform:translateY(-1px)}
+.ch:disabled{cursor:default}
+.ch.sel{border-color:var(--midori);background:var(--midori-soft);box-shadow:0 0 0 2px var(--midori) inset}
+.ch.sel .no{background:var(--midori);color:#fff;border-color:var(--midori)}
+/* ↓ divp-choice-mark.js が読めなかったときだけ効くフォールバック（採点色が一切つかないのを防ぐ） */
+.ch.ok{border-color:var(--midori);background:var(--midori-soft)}
+.ch.ok .no{background:var(--midori);color:#fff;border-color:var(--midori)}
+.ch.ng{border-color:var(--daidai);background:#FBF1E1;opacity:.85}
+.ch.ng .no{background:var(--daidai);color:#fff;border-color:var(--daidai)}
+#explain{margin-top:16px;font-size:14px;line-height:1.8;background:var(--midori-soft);border-left:5px solid var(--midori);
+  border-radius:8px;padding:13px 15px;color:#2f3a32;display:none}
+#explain.show{display:block;animation:fadeUp .25s ease}
+#explain .lbl{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--midori-d);margin-right:6px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.qfoot{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
+.qfoot-right{display:flex;gap:10px;align-items:center}
+#next{display:none}
+#next.show{display:inline-flex}
+#grade{display:none}
+#grade.show{display:inline-flex}
+#grade:disabled{opacity:.45;cursor:default}
+.retry-banner{background:#FFF7E8;border:1.5px solid var(--kin);border-radius:12px;padding:11px 15px;margin-bottom:16px;
+  font-size:13.5px;color:#7a5f14;display:flex;align-items:center;gap:8px}
+
+.result-head{text-align:center;margin-bottom:20px}
+.result-head .face{font-size:52px;line-height:1}
+.result-head h2{font-weight:900;font-size:24px;margin-top:6px}
+.result-score{text-align:center;margin:14px 0 22px}
+.result-score .big{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:52px;color:var(--midori);line-height:1}
+.result-score .big .of{font-size:24px;color:var(--ink-soft)}
+.result-score .pct{font-size:15px;color:var(--ink-soft);margin-top:2px}
+.bd-row{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px dashed var(--grid);font-size:14px}
+.bd-row:last-child{border-bottom:none}
+.bd-row .nm{flex:1;font-weight:500}
+.bd-row .sc{font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
+.bd-row .maruicon{color:var(--shu);font-weight:900}
+.bd-bar{flex:none;width:84px;height:7px;background:var(--grid);border-radius:4px;overflow:hidden}
+.bd-bar span{display:block;height:100%;background:var(--midori);border-radius:4px}
+.bd-bar span.low{background:var(--daidai)}
+
+.modal{position:fixed;inset:0;z-index:9000;background:rgba(51,49,43,.5);backdrop-filter:blur(3px);
+  display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto}
+.modal[hidden]{display:none}
+.modal-box{background:var(--paper);border-radius:18px;max-width:920px;width:100%;box-shadow:0 18px 60px rgba(0,0,0,.35);
+  border-top:6px solid var(--midori);overflow:hidden}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--grid)}
+.modal-hd h2{font-weight:900;font-size:18px;display:flex;gap:8px;align-items:center}
+.modal-close{background:transparent;border:none;font-size:26px;color:var(--ink-soft);cursor:pointer;line-height:1;padding:2px 8px}
+.modal-close:hover{color:var(--ink)}
+.ref-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:12px 16px 0}
+.ref-tab{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;cursor:pointer;background:var(--white);
+  border:1.5px solid var(--grid);color:var(--ink-soft);border-radius:999px;padding:6px 13px}
+.ref-tab.active{background:var(--midori);border-color:var(--midori);color:#fff}
+.ref-body{padding:14px 18px 20px}
+.ref-pane{display:none}
+.ref-pane.active{display:block}
+.ref-pane h4{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:15px;color:var(--midori-d);
+  margin:14px 0 6px;border-left:5px solid var(--midori);padding-left:9px}
+.ref-pane h4:first-child{margin-top:0}
+.ref-pane p,.ref-pane li{font-size:13.5px;line-height:1.85}
+.ref-pane ul{margin:2px 0 2px 1.1em}
+.ref-pane .formula{background:var(--white);border:1.5px solid var(--midori);border-radius:10px;padding:11px 14px;
+  font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--midori-d);margin:6px 0;font-size:15px;
+  overflow-x:auto}
+.ref-pane .hl{background:#FBF1E1;border-radius:4px;padding:0 4px;font-weight:700;color:#8a5a12}
+/* CSSだけで分数（横線）表記を作る */
+.frac{display:inline-flex;flex-direction:column;text-align:center;vertical-align:middle;margin:0 4px}
+.frac .nu{border-bottom:1.7px solid currentColor;padding:0 8px 1px}
+.frac .de{padding:1px 8px 0}
+.table-scroll{overflow-x:auto}
+table.gas{border-collapse:collapse;width:100%;min-width:640px;font-size:12.5px;margin-top:4px}
+table.gas th,table.gas td{border:1px solid #ddd7cb;padding:7px 9px;text-align:center;vertical-align:middle}
+table.gas thead th{background:var(--midori);color:#fff;font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
+table.gas td.name{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--ink);background:#fff}
+table.gas tbody tr:nth-child(even) td{background:#fdfcf8}
+.chip{display:inline-block;font-size:11px;border-radius:6px;padding:2px 6px;font-weight:700;font-family:'Zen Maru Gothic',sans-serif}
+.chip.up{background:#E3F0FB;color:#2C5F8A}
+.chip.down{background:#F6E3DF;color:#B23325}
+.chip.water{background:var(--midori-soft);color:var(--midori-d)}
+.ref-pane .fig{display:block;margin:8px auto;max-width:100%;height:auto}
+
+footer{text-align:center;font-size:11px;color:var(--ink-soft);letter-spacing:.06em;margin-top:26px}
+footer a{color:var(--ink-soft);text-decoration:none}
+footer a:hover{text-decoration:underline}
+/* 紙に共通ヘッダーは出さない（divp-header.js 側でも消しているが、HTMLだけ先に上げたときの保険） */
+@media print{.divp-header{display:none!important}}
+</style>
+</head>
+<body>
+
+<!-- 共通モジュール（ヘッダー＋ログイン窓 / 中学生用 正解スタンプ / 採点表示 / 学習記録クライアント）-->
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-choice-mark.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script>Divp.init('science_js1_hikari_oto_chikara');</script>
+
+<div class="wrap">
+  <!-- ══════ スタート ══════ -->
+  <section id="start">
+    <div class="page-head">
+      <span class="eyebrow">中1 理科 ／ 身のまわりの現象</span>
+      <h1>光・音・力マスター</h1>
+      <p>光・凸レンズ・音・力・圧力・計算の6モードで、<br>「身のまわりの現象」を すみずみまでチェック！</p>
+    </div>
+
+    <div class="card-panel">
+      <h2><span class="dot"></span>モードをえらぶ</h2>
+      <p class="lead">まずモードをタップ。分野をしぼって集中れんしゅうもできます。</p>
+      <div class="mode-grid" id="modeGrid"></div>
+      <div class="mode-panel" id="modePanel" hidden></div>
+    </div>
+
+    <div class="card-panel">
+      <h2><span class="dot"></span>まとめて / まとめ表</h2>
+      <div class="big-actions">
+        <button class="btn btn-primary grow" id="startMix">🎲 6モードからミックス20問</button>
+        <button class="btn btn-outline grow" id="openTable">📋 まとめ表を見る</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ クイズ ══════ -->
+  <section id="quiz" hidden>
+    <div id="retryBanner" class="retry-banner" hidden>🔁 解き直しモード：まちがえた問題だけ出しています</div>
+    <div class="quiz-top">
+      <span class="badge-cat" id="badgeCat"></span>
+      <div class="quiz-meta">
+        <span>第 <b id="qCur">1</b> / <span id="qTot">10</span> 問</span>
+        <span class="sc">正解 <b id="qScore">0</b></span>
+      </div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="progBar"></div></div>
+    <div id="qcard">
+      <div id="qnum"></div>
+      <div id="qtext"></div>
+      <div id="qtbl"></div>
+      <div id="choices"></div>
+      <div id="explain"></div>
+      <div class="qfoot">
+        <button class="btn btn-ghost" id="quitBtn">← ホームに戻る</button>
+        <div class="qfoot-right">
+          <button class="btn btn-primary" id="grade">答え合わせ</button>
+          <button class="btn btn-primary" id="next">次へ →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 結果 ══════ -->
+  <section id="result" hidden>
+    <div class="card-panel" style="border-top-color:var(--kin)">
+      <div class="result-head">
+        <div class="face" id="resFace">💮</div>
+        <h2 id="resTitle">おつかれさま！</h2>
+      </div>
+      <div class="result-score">
+        <div class="big"><span id="resCorrect">0</span><span class="of"> / <span id="resTotal">0</span></span></div>
+        <div class="pct" id="resPct"></div>
+      </div>
+      <div id="breakdown"></div>
+      <div class="big-actions" style="margin-top:22px">
+        <button class="btn btn-primary grow" id="againBtn">🔁 同じ範囲でもう一度</button>
+        <button class="btn btn-outline grow" id="backBtn">↩ モードをえらぶ</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>© 中京個別指導学院 ／ <a href="https://chukyokobetsu.com/" target="_blank" rel="noopener">chukyokobetsu.com</a></footer>
+</div>
+
+<!-- ══════ まとめ表モーダル ══════ -->
+<div class="modal" id="tableModal" hidden>
+  <div class="modal-box">
+    <div class="modal-hd">
+      <h2>📋 身のまわりの現象 まとめ表</h2>
+      <button class="modal-close" id="tableClose" aria-label="とじる">×</button>
+    </div>
+    <div class="ref-tabs" id="refTabs">
+      <button class="ref-tab active" data-ref="hikari">光</button>
+      <button class="ref-tab" data-ref="lens">凸レンズ</button>
+      <button class="ref-tab" data-ref="oto">音</button>
+      <button class="ref-tab" data-ref="chikara">力</button>
+      <button class="ref-tab" data-ref="atsuryoku">圧力</button>
+      <button class="ref-tab" data-ref="keisan">計算</button>
+    </div>
+    <div class="ref-body">
+      <!-- 光 -->
+      <div class="ref-pane active" data-ref="hikari">
+        <h4>光の進み方</h4>
+        <ul>
+          <li><b>光源</b>＝自ら光を出す物体（太陽・電灯・燃えているろうそく）</li>
+          <li><b>光の直進</b>＝光がまっすぐ進む現象。光源から出た光は<span class="hl">四方八方に広がりながら</span>直進する</li>
+          <li>光源でない物体が見えるのは、物体に当たって<b>はね返った光が目に入る</b>から</li>
+          <li>光の速さは約<b>30万km/s</b>（音よりはるかに速い）</li>
+        </ul>
+        <h4>光の反射</h4>
+        <ul>
+          <li><b>入射光</b>＝物体に当たる光／<b>反射光</b>＝はね返った光</li>
+          <li>入射角・反射角は<span class="hl">面に垂直な直線（法線）</span>との角。鏡の面との角ではない</li>
+          <li><b>反射の法則</b>＝入射角＝反射角</li>
+          <li><b>乱反射</b>＝でこぼこした面で光がさまざまな方向に反射すること。どの向きからでも物体が見えるのは乱反射のおかげ。1つ1つの光は反射の法則にしたがう</li>
+        </ul>
+        <div class="formula">鏡の面と光のなす角が a° のとき　入射角＝90°−a°</div>
+        <h4>鏡にうつる像</h4>
+        <ul>
+          <li><b>像</b>＝鏡などにうつって見えるもの。鏡の像は<b>虚像</b></li>
+          <li>像は鏡の面に対して物体と<span class="hl">対称の位置</span>にできる</li>
+          <li>大きさは物体と同じ／<b>左右の向きは反対</b></li>
+          <li>2枚の鏡を90°に組み合わせると像は<b>3つ</b>（像1・像2は左右逆、像3は左右同じ向き）</li>
+        </ul>
+        <div class="formula">全身がうつる鏡の縦の長さ＝身長×<span class="frac"><span class="nu">1</span><span class="de">2</span></span>　／　鏡の下端の高さ＝目の高さ×<span class="frac"><span class="nu">1</span><span class="de">2</span></span></div>
+        <h4>光の屈折</h4>
+        <ul>
+          <li><b>屈折</b>＝種類のちがう物質へ進むとき、境界面で折れ曲がって進む現象。<span class="hl">屈折と同時に一部は反射する</span></li>
+          <li>境界面に<b>垂直に入射</b>したとき → 屈折せず直進する</li>
+          <li>水中のコインが浮き上がって見える・ストローが折れて見えるのは屈折のため</li>
+          <li>半円形ガラスの中心へ入射させると、曲面側では屈折せず直進する</li>
+        </ul>
+        <div class="table-scroll">
+          <table class="gas">
+            <thead><tr><th>光の進む向き</th><th>屈折角と入射角</th><th>覚え方</th></tr></thead>
+            <tbody>
+              <tr><td class="name">空気 → 水・ガラス</td><td>屈折角 &lt; 入射角</td><td>境界面に垂直な線に<span class="chip water">近づく</span></td></tr>
+              <tr><td class="name">水・ガラス → 空気</td><td>屈折角 &gt; 入射角</td><td>境界面に垂直な線から<span class="chip down">遠ざかる</span></td></tr>
+              <tr><td class="name">垂直に入射</td><td>屈折しない</td><td>そのまま<span class="chip up">直進</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h4>全反射と光の色</h4>
+        <ul>
+          <li><b>全反射</b>＝<span class="hl">水・ガラスから空気へ</span>進むとき、入射角がある大きさより大きくなると屈折せずすべて反射する現象</li>
+          <li>★空気から水へ進むときは全反射は<b>起こらない</b></li>
+          <li>利用＝<b>光ファイバー</b>（光通信・内視鏡）</li>
+          <li>太陽光（<b>白色光</b>）をプリズムに通すと、色によって屈折角がちがうため色に分かれる。にじは空気中の水滴がプリズムのようにはたらいてできる</li>
+          <li><b>可視光線</b>＝目に見える光。目に見えない光には<b>赤外線・紫外線</b>がある</li>
+        </ul>
+      </div>
+
+      <!-- 凸レンズ -->
+      <div class="ref-pane" data-ref="lens">
+        <h4>凸レンズの性質</h4>
+        <ul>
+          <li><b>凸レンズ</b>＝ふちより中央がふくらんだレンズ。光を屈折させて集める（入るとき・出るときの<b>2回</b>屈折）</li>
+          <li><b>焦点</b>＝光軸に平行な光が屈折して集まる点。<span class="hl">レンズの両側に1つずつ、合計2つ</span></li>
+          <li><b>焦点距離</b>＝レンズの中心から焦点までの距離</li>
+          <li>ふくらみが<b>大きい</b>ほど焦点距離は<b>短い</b></li>
+        </ul>
+        <h4>凸レンズを通る3本の光</h4>
+        <ul>
+          <li>① 光軸に平行な光 → 屈折して<b>焦点を通る</b></li>
+          <li>② 焦点を通る光 → 屈折して<b>光軸に平行</b>に進む</li>
+          <li>③ レンズの中心を通る光 → <b>そのまま直進</b></li>
+          <li>作図ではレンズの中心線で1回屈折するようにかく</li>
+        </ul>
+        <h4>実像と虚像</h4>
+        <div class="table-scroll">
+          <table class="gas">
+            <thead><tr><th></th><th>実像</th><th>虚像</th></tr></thead>
+            <tbody>
+              <tr><td class="name">物体の位置</td><td>焦点の<b>外側</b></td><td>焦点の<b>内側</b></td></tr>
+              <tr><td class="name">向き</td><td>上下・左右が逆（<b>倒立</b>）</td><td>実物と同じ（<b>正立</b>）</td></tr>
+              <tr><td class="name">大きさ</td><td>位置で変わる</td><td>実物より<b>大きい</b></td></tr>
+              <tr><td class="name">スクリーン</td><td><span class="chip water">うつる</span></td><td><span class="chip down">うつらない</span></td></tr>
+              <tr><td class="name">できかた</td><td>光が実際に集まる</td><td>レンズを通して見える</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h4>物体の位置と像（Fは焦点、F′は焦点距離の2倍の位置）</h4>
+        <div class="table-scroll">
+          <table class="gas">
+            <thead><tr><th>物体の位置</th><th>できる像</th><th>大きさ</th></tr></thead>
+            <tbody>
+              <tr><td class="name">F′より遠い</td><td>倒立の実像</td><td>物体より小さい</td></tr>
+              <tr><td class="name">F′の位置（焦点距離の2倍）</td><td>倒立の実像</td><td>物体と同じ</td></tr>
+              <tr><td class="name">FとF′の間</td><td>倒立の実像</td><td>物体より大きい</td></tr>
+              <tr><td class="name">Fの上（焦点上）</td><td colspan="2">実像も虚像も<b>できない</b></td></tr>
+              <tr><td class="name">Fより内側</td><td>正立の虚像</td><td>物体より大きい</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul>
+          <li>焦点の外側から物体を焦点に近づけていくと、実像のできる位置は<b>遠ざかり</b>、実像は<b>大きくなる</b></li>
+          <li>レンズの一部をおおうと、像の大きさ・形・向き・位置は変わらないが<span class="hl">暗くなる</span>（集まる光の量が減るため）</li>
+        </ul>
+        <h4>身のまわりの凸レンズ</h4>
+        <ul>
+          <li><b>カメラ</b>＝物体は焦点の外側。撮像素子に<b>実像</b>ができる</li>
+          <li><b>ルーペ（虫眼鏡）</b>＝物体を焦点の内側に置き、拡大された<b>虚像</b>を見る</li>
+          <li>虫眼鏡で遠くの景色を見ると（物体が焦点の外側）→ 小さい<b>倒立の実像</b>が見える</li>
+        </ul>
+        <div class="formula">実像の高さ　a：b＝ℓ：x　（a＝光源と凸レンズの距離、b＝凸レンズと実像の距離、ℓ＝光源の高さ、x＝実像の高さ）</div>
+      </div>
+
+      <!-- 音 -->
+      <div class="ref-pane" data-ref="oto">
+        <h4>音の発生と伝わり方</h4>
+        <ul>
+          <li><b>音源（発音体）</b>＝音を出している物体。音は物体の<b>振動</b>によって発生する</li>
+          <li><b>波</b>＝振動が次々に伝わる現象。音は空気の濃い・うすいが次々に伝わる波</li>
+          <li>音が伝わるとき、<span class="hl">空気そのものは移動せず、振動だけが伝わる</span></li>
+          <li>音を伝えるもの＝気体・液体・<b>固体</b>すべて。<b>真空中では伝わらない</b></li>
+          <li>耳の中の<b>鼓膜</b>が振動して音が聞こえる</li>
+        </ul>
+        <h4>音の速さ</h4>
+        <ul>
+          <li>空気中 約<b>340m/s</b>／水中 約<b>1500m/s</b>（固体＞液体＞気体）</li>
+          <li>いなずまが見えてから雷鳴が聞こえるのは、音の速さが<b>光の速さ（約30万km/s）よりはるかに遅い</b>ため</li>
+        </ul>
+        <div class="formula">音の速さ〔m/s〕＝<span class="frac"><span class="nu">音源までの距離〔m〕</span><span class="de">音が伝わる時間〔s〕</span></span>　　距離＝速さ×時間　　時間＝<span class="frac"><span class="nu">距離</span><span class="de">速さ</span></span></div>
+        <div class="formula">壁で反射した音（やまびこ）　音が伝わった距離＝壁までの距離×2</div>
+        <h4>音の大きさと高さ</h4>
+        <div class="table-scroll">
+          <table class="gas">
+            <thead><tr><th></th><th>決めるもの</th><th>大きく／高くする</th><th>波形</th></tr></thead>
+            <tbody>
+              <tr><td class="name">音の大小</td><td><b>振幅</b>（振れ幅）</td><td>振幅を大きく（強くはじく）</td><td>山が<b>高い</b></td></tr>
+              <tr><td class="name">音の高低</td><td><b>振動数</b>〔Hz〕</td><td>振動数を多く</td><td>波の数が<b>多い</b></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul>
+          <li><b>振動数</b>＝1秒間に振動する回数。単位は<b>ヘルツ（Hz）</b></li>
+          <li>波形のグラフ：<b>縦軸＝振幅</b>（音の大小）／<b>横軸＝時間</b>（波の数＝音の高低）</li>
+        </ul>
+        <div class="formula">振動数〔Hz〕＝<span class="frac"><span class="nu">振動した回数〔回〕</span><span class="de">振動した時間〔s〕</span></span>　＝<span class="frac"><span class="nu">1</span><span class="de">1回の振動にかかる時間〔s〕</span></span></div>
+        <h4>弦（モノコード）と音の高さ</h4>
+        <div class="table-scroll">
+          <table class="gas">
+            <thead><tr><th>変えるもの</th><th>変わるのは</th><th>高い音が出る条件</th></tr></thead>
+            <tbody>
+              <tr><td class="name">はじく強さ</td><td><b>振幅</b>（音の大小）</td><td>―（高さは変わらない）</td></tr>
+              <tr><td class="name">弦の長さ</td><td rowspan="3"><b>振動数</b>（音の高低）</td><td><b>短い</b>ほど高い</td></tr>
+              <tr><td class="name">弦の太さ</td><td><b>細い</b>ほど高い</td></tr>
+              <tr><td class="name">弦の張り方</td><td><b>強く張る</b>ほど高い</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h4>いろいろな音源（ひっかけ注意）</h4>
+        <ul>
+          <li><b>試験管の口をふく</b>：振動しているのは<span class="hl">中の空気</span>。空気の部分が短い＝<b>水が多いほうが音が高い</b></li>
+          <li><b>ビーカー・試験管をたたく</b>：振動しているのは<span class="hl">容器と水</span>。<b>水が多いほうが音が低い</b>（振動しにくいため）</li>
+          <li>音さを鳴らして水に入れると水しぶきが上がる＝音さが振動している証拠</li>
+          <li>同じ高さの音が出る音さAをたたくとBも鳴り出す＝空気の振動が伝わったため</li>
+        </ul>
+      </div>
+
+      <!-- 力 -->
+      <div class="ref-pane" data-ref="chikara">
+        <h4>力の3つのはたらき</h4>
+        <ul>
+          <li>① 物体の<b>形を変える</b>（ゴム風船を押す）</li>
+          <li>② 物体を<b>支える</b>（バーベルを持ち上げて静止）</li>
+          <li>③ 物体の<b>運動の状態を変える</b>（バットでボールを打つ）</li>
+        </ul>
+        <h4>いろいろな力</h4>
+        <div class="table-scroll">
+          <table class="gas">
+            <thead><tr><th>力</th><th>どんな力か</th><th>ふれ合う／離れていても</th></tr></thead>
+            <tbody>
+              <tr><td class="name">弾性力</td><td>変形した物体がもとの形に戻ろうとする力</td><td rowspan="3"><span class="chip water">ふれ合ってはたらく</span></td></tr>
+              <tr><td class="name">摩擦力</td><td>ふれ合う面で運動を妨げる向きにはたらく力</td></tr>
+              <tr><td class="name">垂直抗力</td><td>面に接した物体が面から垂直に受ける力（面の弾性力）</td></tr>
+              <tr><td class="name">重力</td><td>地球が中心に向かって物体を引く力</td><td rowspan="3"><span class="chip up">離れていてもはたらく</span></td></tr>
+              <tr><td class="name">磁力</td><td>磁石の極と極の間・鉄を引きつける力</td></tr>
+              <tr><td class="name">電気力</td><td>＋と−は引き合い、同じ電気は反発する力</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h4>力の大きさとフックの法則</h4>
+        <ul>
+          <li>力の単位は<b>ニュートン（記号 N）</b>。<span class="hl">1Nは地球上で約100gの物体にはたらく重力の大きさ</span>（正確には0.98N）</li>
+          <li><b>フックの法則</b>＝ばねののびは、ばねを引く力の大きさに<b>比例</b>する</li>
+          <li>★比例するのは「ばねの<b>のび</b>」。ばねの<b>長さ</b>は比例しない（自然長のぶんずれる）</li>
+          <li>★横にしたばねを両側から3Nで引いたとき、ばねにはたらく力は<b>3N</b>（6Nではない）</li>
+          <li>グラフは測定点の近くを通る<b>直線</b>を引く。折れ線にしてはいけない</li>
+        </ul>
+        <div class="formula">重力〔N〕＝質量〔g〕÷100　　（例）250g → 2.5N ／ 1kg → 約10N</div>
+        <h4>質量と重さ</h4>
+        <div class="table-scroll">
+          <table class="gas">
+            <thead><tr><th></th><th>質量</th><th>重さ</th></tr></thead>
+            <tbody>
+              <tr><td class="name">意味</td><td>物体そのものの量</td><td>物体にはたらく重力の大きさ</td></tr>
+              <tr><td class="name">単位</td><td>g・kg</td><td>N</td></tr>
+              <tr><td class="name">はかる器具</td><td><b>上皿てんびん</b></td><td><b>ばねばかり</b></td></tr>
+              <tr><td class="name">場所で変わるか</td><td><span class="chip water">変わらない</span></td><td><span class="chip down">変わる</span></td></tr>
+              <tr><td class="name">月面（重力は<span class="frac"><span class="nu">1</span><span class="de">6</span></span>）</td><td>地球と同じ分銅とつり合う</td><td>地球上の約<span class="frac"><span class="nu">1</span><span class="de">6</span></span>を示す</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h4>力の表し方と2力のつり合い</h4>
+        <ul>
+          <li><b>力の3要素</b>＝力のはたらく点（<b>作用点</b>）・力の<b>向き</b>・力の<b>大きさ</b></li>
+          <li>矢印の<b>始点</b>＝作用点／<b>向き</b>＝力の向き／<b>長さ</b>＝力の大きさ</li>
+          <li>重力は物体の中心（作用点）から1本の矢印でかく</li>
+          <li><b>作用線</b>＝力の矢印に重ねて引いた直線。作用線上で作用点を動かしても力のはたらきは変わらない</li>
+        </ul>
+        <div class="formula">2力がつり合う3条件　① 大きさが等しい　② 向きが反対　③ 一直線上にある（作用線が一致）</div>
+        <ul>
+          <li>机の上で静止：重力とつり合うのは<b>垂直抗力</b></li>
+          <li>押しても動かない：押す力とつり合うのは<b>摩擦力</b></li>
+          <li>ばねにつり下げて静止：重力とつり合うのは<b>弾性力</b></li>
+          <li>2力の大きさがちがうときは、<b>大きいほうの力の向きに動く</b></li>
+        </ul>
+      </div>
+
+      <!-- 圧力 -->
+      <div class="ref-pane" data-ref="atsuryoku">
+        <h4>圧力</h4>
+        <ul>
+          <li><b>圧力</b>＝面を垂直に押す力のはたらきの大きさ。<span class="hl">同じ面積あたりの力の大きさ</span>で表す</li>
+          <li>単位は<b>パスカル（記号 Pa）</b>。1Pa＝1N/m²＝1m²の面を1Nの力で垂直に押すときの圧力</li>
+          <li>1m²＝<b>10000cm²</b>（cm²で計算したら10000でわってm²にする）</li>
+        </ul>
+        <div class="formula">圧力〔Pa〕＝<span class="frac"><span class="nu">面を垂直に押す力〔N〕</span><span class="de">力がはたらく面積〔m²〕</span></span></div>
+        <h4>面積と圧力</h4>
+        <ul>
+          <li>同じ力なら、面積が<b>小さい</b>ほど圧力は<b>大きい</b></li>
+          <li>画びょう・包丁・スパイク＝面積を小さくして圧力を大きくする</li>
+          <li>スキー板・キャタピラ・ラクダの足＝面積を大きくして圧力を小さくする</li>
+          <li>直方体を置く向きを変えると、力は同じでも面積が変わるので<b>圧力は変わる</b>（下にする面がいちばん小さいとき圧力が最大）</li>
+          <li>同じ物体を2段に重ねると、面積は同じで力が2倍→圧力も<b>2倍</b></li>
+        </ul>
+        <h4>大気圧（気圧）</h4>
+        <ul>
+          <li><b>大気圧</b>＝空気の重さによって生じる圧力。<span class="hl">あらゆる向き（上下左右すべて）</span>にはたらく</li>
+          <li>海面付近では約<b>1013hPa</b>（＝約1気圧）。1hPa＝100Pa</li>
+          <li>標高が高いほど上にある空気が少ないので、大気圧は<b>小さくなる</b>（山でお菓子の袋がふくらむ）</li>
+          <li>容器の空気を抜くとつぶれるのは、外からの大気圧のほうが大きくなるため</li>
+        </ul>
+        <h4>水圧</h4>
+        <ul>
+          <li><b>水圧</b>＝水の重さによって生じる圧力。あらゆる向きにはたらく</li>
+          <li>深いほど上にある水が多いので、水圧は<b>大きくなる</b></li>
+          <li>深海用の潜水艇が丈夫につくられているのは、深いところの水圧が非常に大きいため</li>
+        </ul>
+      </div>
+
+      <!-- 計算 -->
+      <div class="ref-pane" data-ref="keisan">
+        <h4>音の速さ</h4>
+        <div class="formula">速さ〔m/s〕＝<span class="frac"><span class="nu">距離〔m〕</span><span class="de">時間〔s〕</span></span>　　距離＝速さ×時間　　時間＝<span class="frac"><span class="nu">距離</span><span class="de">速さ</span></span></div>
+        <ul>
+          <li>（例）510m はなれた所で1.5秒後に音が聞こえた → 510÷1.5＝<b>340m/s</b></li>
+          <li><b>壁で反射</b>した音は往復するので、<span class="hl">距離＝壁までの距離×2</span></li>
+          <li>（例）壁から170mの位置で音を鳴らすと、340×？＝170×2 → <b>1秒後</b>に反射音が聞こえる</li>
+        </ul>
+        <h4>振動数</h4>
+        <div class="formula">振動数〔Hz〕＝<span class="frac"><span class="nu">振動した回数〔回〕</span><span class="de">振動した時間〔s〕</span></span>　＝<span class="frac"><span class="nu">1</span><span class="de">1回の振動にかかる時間〔s〕</span></span></div>
+        <ul>
+          <li>（例）10秒間に3000回 → 3000÷10＝<b>300Hz</b></li>
+          <li>（例）0.002秒で1回 → 1÷0.002＝<b>500Hz</b>／<span class="frac"><span class="nu">1</span><span class="de">400</span></span>秒で1回 → <b>400Hz</b></li>
+          <li>波形は「1回の振動が何目盛りか」を数え、1目盛りの時間をかけて1回の振動の時間を出す</li>
+        </ul>
+        <h4>ばねののび（フックの法則）</h4>
+        <div class="formula">のび＝1Nあたりのび×力〔N〕　　ばねの長さ＝自然長＋のび　　力〔N〕＝質量〔g〕÷100</div>
+        <ul>
+          <li>（例）0.5Nで2cmのびるばね → 1Nで4cm。60gのおもり（0.6N）なら 4×0.6＝<b>2.4cm</b></li>
+          <li>★「ばねの長さ」を聞かれたら自然長をたし忘れない</li>
+        </ul>
+        <h4>重さと質量</h4>
+        <div class="formula">重力〔N〕＝質量〔g〕÷100　　月面での重さ＝地球上の重さ×<span class="frac"><span class="nu">1</span><span class="de">6</span></span>　（質量は変わらない）</div>
+        <h4>圧力</h4>
+        <div class="formula">圧力〔Pa〕＝<span class="frac"><span class="nu">力〔N〕</span><span class="de">面積〔m²〕</span></span>　　面積〔m²〕＝面積〔cm²〕÷10000</div>
+        <ul>
+          <li>（例）質量600gの直方体を10cm×20cmの面で置く → 力6N、面積0.02m² → 6÷0.02＝<b>300Pa</b></li>
+        </ul>
+        <h4>凸レンズ</h4>
+        <div class="formula">a：b＝ℓ：x　（a＝光源と凸レンズの距離、b＝凸レンズと実像の距離、ℓ＝光源の高さ、x＝実像の高さ）</div>
+        <ul>
+          <li>物体と同じ大きさの実像ができるのは、物体が<b>焦点距離の2倍</b>の位置にあるとき（そのときスクリーンも焦点距離の2倍の位置）</li>
+          <li>（例）物体を24cmの位置に置いて同じ大きさの実像 → 焦点距離は<b>12cm</b></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* 学習記録（divp-core.js 経由）。未ログイン・file://・API未疎通では黙ってスキップ。
+   question_key = モード（hikari/lens/oto/chikara/atsuryoku/keisan）。
+   question_params = {id} … 同一問題の判定キー。?retry=1 の解き直しで再出題される。
+   動的生成問題は {gen:'…', …生成パラメータ} を持ち、REBUILDERS で同じ問題を復元する。 */
+function safeDivpAnswer(ok,info){ if(window.Divp&&typeof Divp.answer==='function'){try{Divp.answer(ok,info);}catch(e){}} }
+function safeDivpCorrect(sel){ if(window.Divp&&typeof Divp.correct==='function'){try{Divp.correct(sel);}catch(e){}} }
+function safeDivpIncorrect(sel){ if(window.Divp&&typeof Divp.incorrect==='function'){try{Divp.incorrect(sel);}catch(e){}} }
+function safeDivpClear(sel){ var c=document.querySelector(sel); if(c){c.querySelectorAll('.divp-hanko,.divp-nice').forEach(function(el){el.remove();});} }
+
+/* モード定義（表示順） */
+var MODES = {
+  hikari:   {label:'光',       ico:'🔆', desc:'直進・反射・鏡の像・屈折・全反射'},
+  lens:     {label:'凸レンズ', ico:'🔍', desc:'焦点距離・実像・虚像・光の道筋'},
+  oto:      {label:'音',       ico:'🔔', desc:'伝わり方・速さ・振幅・振動数'},
+  chikara:  {label:'力',       ico:'💪', desc:'いろいろな力・ばね・質量と重さ'},
+  atsuryoku:{label:'圧力',     ico:'👟', desc:'圧力の公式・大気圧・水圧'},
+  keisan:   {label:'計算特集', ico:'🧮', desc:'音の速さ・振動数・ばね・圧力'}
+};
+
+/* 分野（サブカテゴリ）ラベル */
+var CATS = {
+  h_susumi:'光の進み方', h_hansha:'反射の法則', h_kagami:'鏡にうつる像', h_kussetsu:'光の屈折',
+  h_zenhansha:'全反射', h_iro:'光の色・プリズム',
+  l_seishitsu:'凸レンズの性質', l_michisuji:'光の道筋', l_zou:'実像と虚像',
+  l_ichi:'物体の位置と像', l_riyou:'凸レンズの利用',
+  o_tsutawari:'音の伝わり方', o_hayasa:'音の速さ', o_okisa:'音の大小・高低',
+  o_gen:'モノコード・弦', o_hakei:'波形・オシロスコープ', o_ongen:'いろいろな音源',
+  c_hataraki:'力のはたらき', c_shurui:'いろいろな力', c_tanni:'力の大きさと単位',
+  c_bane:'ばね・フックの法則', c_shitsuryo:'質量と重さ', c_arawashi:'力の表し方', c_tsuriai:'2力のつり合い',
+  a_kihon:'圧力の基本', a_menseki:'面積と圧力', a_taiki:'大気圧', a_suiatsu:'水圧',
+  k_oto:'音の計算', k_bane:'ばねの計算', k_juryoku:'重さと質量の計算',
+  k_atsu:'圧力の計算', k_lens:'凸レンズの計算'
+};
+
+/* 分野 → モード */
+var CAT_MODE = {
+  h_susumi:'hikari', h_hansha:'hikari', h_kagami:'hikari', h_kussetsu:'hikari',
+  h_zenhansha:'hikari', h_iro:'hikari',
+  l_seishitsu:'lens', l_michisuji:'lens', l_zou:'lens', l_ichi:'lens', l_riyou:'lens',
+  o_tsutawari:'oto', o_hayasa:'oto', o_okisa:'oto', o_gen:'oto', o_hakei:'oto', o_ongen:'oto',
+  c_hataraki:'chikara', c_shurui:'chikara', c_tanni:'chikara', c_bane:'chikara',
+  c_shitsuryo:'chikara', c_arawashi:'chikara', c_tsuriai:'chikara',
+  a_kihon:'atsuryoku', a_menseki:'atsuryoku', a_taiki:'atsuryoku', a_suiatsu:'atsuryoku',
+  k_oto:'keisan', k_bane:'keisan', k_juryoku:'keisan', k_atsu:'keisan', k_lens:'keisan'
+};
+
+/* ── 問題バンク（中1理科・身のまわりの現象）──
+   各問: id(不変), cat(分野), q, c(選択肢6), a(正解), exp。mode は CAT_MODE から自動判定。
+   数値計算の問題は下の GENERATORS で毎回ちがう数値で作る。 */
+var BANK = [
+  /* ========== 光：光の進み方 ========== */
+  {id:'h_sus1',cat:'h_susumi',q:'太陽や電灯のように、自ら光を出している物体を何という？',c:['光源','反射体','屈折体','焦点','虚像','可視光線'],a:'光源',exp:'自ら光を出している物体を光源という。太陽・電灯・燃えているろうそくなど。'},
+  {id:'h_sus2',cat:'h_susumi',q:'光が空気中や水中をまっすぐ進むことを、光の何という？',c:['直進','反射','屈折','分散','全反射','乱反射'],a:'直進',exp:'光がまっすぐ進む現象を光の直進という。光源から出た光は四方八方に広がりながら直進する。'},
+  {id:'h_sus3',cat:'h_susumi',q:'光源ではない物体（本やノート）が見えるのはなぜ？',c:['物体に当たってはね返った光が目に入るから','物体が自ら光を出しているから','物体が光を吸収しているから','目から光が出ているから','物体が振動しているから','光が屈折して消えるから'],a:'物体に当たってはね返った光が目に入るから',exp:'自ら光を出さない物体が見えるのは、物体に当たってはね返った（反射した）光が目に入っているから。'},
+  {id:'h_sus4',cat:'h_susumi',q:'光源から出た光の進み方として正しいのは？',c:['四方八方に広がりながら直進する','1本の線になって進む','曲がりながら進む','上にだけ進む','進まずにとどまる','必ず反射してから進む'],a:'四方八方に広がりながら直進する',exp:'光源から出た光はあらゆる方向に広がりながら、とぎれることなく直進する。'},
+  {id:'h_sus5',cat:'h_susumi',q:'太陽の光が平行に進んでいるように見えるのはなぜ？',c:['地球が太陽からはるか遠くにあり、広がって進む光のわずかな部分しか見ていないから','太陽の光だけは広がらないから','空気が光をまっすぐにそろえるから','太陽が動いているから','光が屈折して平行になるから','太陽の光が反射しているから'],a:'地球が太陽からはるか遠くにあり、広がって進む光のわずかな部分しか見ていないから',exp:'太陽の光も広がって進むが、地球はとても遠いのでそのごく一部だけを見ているため平行に見える。教室くらいの範囲では平行と考えてよい。'},
+  {id:'h_sus6',cat:'h_susumi',q:'光の速さはおよそどれくらい？',c:['約30万km/s','約340m/s','約1500m/s','約3万km/s','約340km/s','約100万km/s'],a:'約30万km/s',exp:'光の速さは約30万km/s。音（空気中で約340m/s）よりはるかに速い。'},
+  /* ========== 光：反射 ========== */
+  {id:'h_han1',cat:'h_hansha',q:'光が物体の表面に当たってはね返ることを、光の何という？',c:['反射','屈折','直進','分散','吸収','振動'],a:'反射',exp:'光が物体の表面に当たってはね返ることを光の反射という。'},
+  {id:'h_han2',cat:'h_hansha',q:'鏡に当たる光のことを何という？',c:['入射光','反射光','屈折光','光軸','法線','可視光線'],a:'入射光',exp:'物体に当たる光が入射光、当たってはね返った光が反射光。'},
+  {id:'h_han3',cat:'h_hansha',q:'入射角・反射角は、何との間の角のこと？',c:['光が当たった面に垂直な直線','鏡の面','水平な床','光軸','鏡の端','反射光と入射光'],a:'光が当たった面に垂直な直線',exp:'入射角・反射角は「面に垂直な直線（法線）」と光がつくる角。鏡の面との角ではないので注意。'},
+  {id:'h_han4',cat:'h_hansha',q:'光が反射するとき、入射角と反射角の関係は？',c:['入射角＝反射角','入射角＞反射角','入射角＜反射角','関係はない','入射角＝反射角×2','入射角＋反射角＝90°'],a:'入射角＝反射角',exp:'反射の法則。光が反射するとき入射角と反射角の大きさは必ず等しい。'},
+  {id:'h_han5',cat:'h_hansha',q:'入射角と反射角の大きさが等しいことを何という？',c:['反射の法則','屈折の法則','フックの法則','慣性の法則','全反射','乱反射'],a:'反射の法則',exp:'入射角＝反射角となることを反射の法則という。'},
+  {id:'h_han6',cat:'h_hansha',q:'表面がでこぼこした物体に当たった光が、さまざまな方向に反射することを何という？',c:['乱反射','全反射','屈折','分散','直進','散乱吸収'],a:'乱反射',exp:'でこぼこした表面ではいろいろな向きに反射する。これを乱反射という。'},
+  {id:'h_han7',cat:'h_hansha',q:'物体がどの方向から見ても見えるのは、光の何のはたらき？',c:['乱反射','全反射','屈折','直進だけ','分散','吸収'],a:'乱反射',exp:'表面のわずかなでこぼこで光がいろいろな方向へ反射（乱反射）するため、どの方向からでも見える。'},
+  {id:'h_han8',cat:'h_hansha',q:'乱反射している1つ1つの光について正しいのは？',c:['それぞれが反射の法則にしたがっている','反射の法則は成り立たない','屈折の法則にしたがう','向きはでたらめで法則はない','すべて同じ向きに進む','光は消えてしまう'],a:'それぞれが反射の法則にしたがっている',exp:'乱反射でも、1つ1つの光の道筋では入射角＝反射角が成り立っている。面の向きがばらばらなだけ。'},
+  /* ========== 光：鏡にうつる像 ========== */
+  {id:'h_kag1',cat:'h_kagami',q:'鏡などにうつって見えているものを何という？',c:['像','光源','焦点','法線','虚光','反射角'],a:'像',exp:'鏡や凸レンズなどによって、実際にはそこに物体がないのに見えるものを像という。'},
+  {id:'h_kag2',cat:'h_kagami',q:'鏡にうつる像ができる位置は？',c:['鏡の面に対して物体と対称の位置','鏡の面の上','物体と同じ位置','鏡の手前','鏡の中心','決まっていない'],a:'鏡の面に対して物体と対称の位置',exp:'像は鏡の面に対して物体と対称（線対称）の位置にできる。作図の基本。'},
+  {id:'h_kag3',cat:'h_kagami',q:'鏡にうつる像の大きさと向きについて正しいのは？',c:['大きさは物体と同じで、左右の向きが反対','大きさも向きも物体と同じ','物体より大きく、向きは同じ','物体より小さく、上下が反対','大きさは同じで上下が反対','大きさは半分になる'],a:'大きさは物体と同じで、左右の向きが反対',exp:'鏡の像は物体と同じ大きさで、左右の向きだけが反対になる。'},
+  {id:'h_kag4',cat:'h_kagami',q:'鏡にうつって見える範囲の限界を決めているのは？',c:['鏡の端で反射して目に届く光の道筋','鏡の中心を通る光','鏡の面に垂直な光だけ','部屋の明るさ','鏡の厚さ','目の高さだけ'],a:'鏡の端で反射して目に届く光の道筋',exp:'鏡の端で反射して目に届く光の道筋が限界。その範囲にある物体はすべて鏡にうつって見える。'},
+  {id:'h_kag5',cat:'h_kagami',q:'2枚の鏡を90°に組み合わせて物体を置くと、像はいくつ見える？',c:['3つ','1つ','2つ','4つ','6つ','見えない'],a:'3つ',exp:'それぞれの鏡にできる像1・像2（物体と左右が逆）と、それがもう一方の鏡にうつってできる像3（物体と左右が同じ向き）で合計3つ。'},
+  {id:'h_kag6',cat:'h_kagami',q:'鏡にうつる像は、実像・虚像のどちら？',c:['虚像','実像','どちらでもない','半分ずつ','明るいときだけ実像','スクリーンにうつる実像'],a:'虚像',exp:'鏡の像は光が実際に集まってできたものではなく、そこにあるように見えるだけなので虚像。スクリーンにはうつらない。'},
+  {id:'h_kag7',cat:'h_kagami',q:'自分の全身をちょうどうつすことができる鏡の縦の長さは？',c:['身長の半分','身長と同じ','身長の3分の1','身長の2倍','目の高さと同じ','身長から目の高さを引いた長さ'],a:'身長の半分',exp:'鏡では入射角＝反射角なので、必要な鏡の長さは身長の1/2。鏡の下端の高さは目の高さの1/2。'},
+  {id:'h_kag8',cat:'h_kagami',q:'鏡から遠ざかると、鏡にうつって見える自分の全身の見え方はどうなる？',c:['必要な鏡の長さは変わらない','必要な鏡の長さが長くなる','必要な鏡の長さが短くなる','像が小さくなって全身が見えなくなる','像が上下逆になる','鏡にうつらなくなる'],a:'必要な鏡の長さは変わらない',exp:'距離を変えても、全身をうつすのに必要な鏡の長さは身長の1/2のまま変わらない（見える範囲は広がる）。'},
+  /* ========== 光：屈折 ========== */
+  {id:'h_kus1',cat:'h_kussetsu',q:'光が種類のちがう物質へ進むとき、境界面で折れ曲がって進む現象を何という？',c:['光の屈折','光の反射','光の直進','全反射','乱反射','分散'],a:'光の屈折',exp:'空気から水、空気からガラスのように種類のちがう物質へ進むとき、境界面で折れ曲がる。これが光の屈折。'},
+  {id:'h_kus2',cat:'h_kussetsu',q:'屈折角とは、屈折光と何がつくる角？',c:['境界面に垂直な直線','境界面','水面と平行な線','入射光','反射光','光軸'],a:'境界面に垂直な直線',exp:'屈折角は屈折光と「境界面に垂直な直線」がつくる角。入射角・反射角と同じ基準。'},
+  {id:'h_kus3',cat:'h_kussetsu',q:'光が空気から水へ進むとき、屈折角の大きさは入射角と比べてどうなる？',c:['小さくなる','大きくなる','等しくなる','0°になる','90°になる','決まらない'],a:'小さくなる',exp:'空気から水（ガラス）へ進むときは屈折角＜入射角。境界面に垂直な直線に近づくように曲がる。'},
+  {id:'h_kus4',cat:'h_kussetsu',q:'光が水から空気へ進むとき、屈折角の大きさは入射角と比べてどうなる？',c:['大きくなる','小さくなる','等しくなる','0°になる','必ず90°になる','決まらない'],a:'大きくなる',exp:'水（ガラス）から空気へ進むときは屈折角＞入射角。境界面に垂直な直線から遠ざかるように曲がる。'},
+  {id:'h_kus5',cat:'h_kussetsu',q:'光が水面に垂直に入射したとき、水中での光の進み方は？',c:['屈折せずに直進する','大きく曲がる','全反射する','消えてしまう','水面に沿って進む','2本に分かれる'],a:'屈折せずに直進する',exp:'境界面に垂直に入射した光は屈折せずそのまま直進する。'},
+  {id:'h_kus6',cat:'h_kussetsu',q:'光が屈折するとき、同時に起こっていることは？',c:['一部の光が境界面で反射する','光が消える','音が発生する','すべての光が屈折する','光の色が変わらなくなる','光の速さが変わらない'],a:'一部の光が境界面で反射する',exp:'境界面では屈折と同時に、一部の光が反射している（水面に景色がうつるのはこのため）。'},
+  {id:'h_kus7',cat:'h_kussetsu',q:'水を入れた茶わんの底のコインが浮き上がって見えるのはなぜ？',c:['コインから出た光が水から空気へ出るとき屈折し、実際より浅いところにあるように見えるから','コインが実際に浮いているから','水が光を吸収するから','コインが乱反射するから','水面で全反射するから','コインが大きく見えるから'],a:'コインから出た光が水から空気へ出るとき屈折し、実際より浅いところにあるように見えるから',exp:'水中から空気へ出るとき屈折角＞入射角となるため、目には光がまっすぐ来たように見え、実際より浅い位置に見える。'},
+  {id:'h_kus8',cat:'h_kussetsu',q:'水に入れたストローが折れ曲がって見えるのは、光の何によるもの？',c:['屈折','反射','直進','乱反射','分散','振動'],a:'屈折',exp:'水中の部分から出た光が水面で屈折するため、ストローが折れ曲がって（短く浮き上がって）見える。'},
+  {id:'h_kus9',cat:'h_kussetsu',q:'半円形ガラスの平面部の中心に向かって光を当てると、曲面側から出る光はどうなる？',c:['屈折せずに直進する','大きく屈折する','全反射する','2本に分かれる','消える','逆向きに進む'],a:'屈折せずに直進する',exp:'中心に入射させると曲面部には垂直に当たるので、曲面側では屈折せず直進する。'},
+  {id:'h_kus10',cat:'h_kussetsu',q:'直方体のガラスを通りぬけた光について正しいのは？',c:['入った光と出た光は平行になる','出た光は入った光と直角になる','出た光は必ず消える','出た光は逆向きになる','出た光は広がって進む','屈折は1回だけ起こる'],a:'入った光と出た光は平行になる',exp:'入るときと出るときで逆向きに同じだけ屈折するので、入射光と出ていく光は平行になる（位置だけずれる）。'},
+  /* ========== 光：全反射 ========== */
+  {id:'h_zen1',cat:'h_zenhansha',q:'光が水から空気へ進むとき、境界面で屈折せずにすべて反射する現象を何という？',c:['全反射','乱反射','分散','屈折','直進','散乱'],a:'全反射',exp:'入射角がある大きさより大きくなると、屈折して空気中へ出ていく光がなくなり、すべて反射する。これが全反射。'},
+  {id:'h_zen2',cat:'h_zenhansha',q:'全反射が起こるのはどんなとき？',c:['水やガラスから空気へ進むとき、入射角が大きいとき','空気から水へ進むとき、入射角が大きいとき','垂直に入射したとき','入射角が0°のとき','どんなときでも起こる','光が弱いとき'],a:'水やガラスから空気へ進むとき、入射角が大きいとき',exp:'全反射は「水・ガラス→空気」のときだけ。入射角がある大きさより大きくなると屈折角が90°をこえて起こる。'},
+  {id:'h_zen3',cat:'h_zenhansha',q:'光が空気から水へ進むとき、全反射は起こる？',c:['起こらない','必ず起こる','入射角が大きいと起こる','垂直に入射すると起こる','水がにごっていれば起こる','入射角が0°のとき起こる'],a:'起こらない',exp:'空気から水へ進むときは屈折角＜入射角なので、屈折光が必ず存在する。全反射は起こらない。'},
+  {id:'h_zen4',cat:'h_zenhansha',q:'全反射を利用しているものはどれ？',c:['光ファイバー','発光ダイオード','蛍光灯','虫眼鏡','鏡','プリズム'],a:'光ファイバー',exp:'光ファイバーは2種類のガラスの境界面で全反射をくり返しながら光を進ませる。光通信や内視鏡に使われる。'},
+  {id:'h_zen5',cat:'h_zenhansha',q:'光ファイバーが使われているものはどれ？',c:['光通信・内視鏡','電子レンジ','ストーブ','スピーカー','ばねばかり','上皿てんびん'],a:'光通信・内視鏡',exp:'全反射で光を遠くまで送れるので、光通信のケーブルや医療用の内視鏡に使われる。'},
+  {id:'h_zen6',cat:'h_zenhansha',q:'水そうの中のキンギョが水面にうつって2匹に見えることがある。これは何のため？',c:['水面で全反射が起こるため','キンギョが分裂したため','水が光を出すため','キンギョが乱反射するため','水面で屈折して消えるため','水そうのガラスが厚いため'],a:'水面で全反射が起こるため',exp:'キンギョから出た光の一部が水面で全反射し、水面の上側にキンギョの像が見えるため2匹に見える。'},
+  /* ========== 光：光の色 ========== */
+  {id:'h_iro1',cat:'h_iro',q:'太陽光をプリズムに通すと、いろいろな色の光に分かれるのはなぜ？',c:['光の色によって屈折角がちがうから','光が乱反射するから','光が全反射するから','プリズムが色を出すから','光が直進するから','光が消えるから'],a:'光の色によって屈折角がちがうから',exp:'太陽光は複数の色の光が合わさった白色光。色によって屈折角がちがうため、プリズムを通すと色に分かれる。'},
+  {id:'h_iro2',cat:'h_iro',q:'いろいろな色の光が合わさった太陽光のような光を何という？',c:['白色光','単色光','可視光線','赤外線','紫外線','虚光'],a:'白色光',exp:'太陽光のようにいろいろな色の光が混ざった光を白色光という。'},
+  {id:'h_iro3',cat:'h_iro',q:'雨上がりににじが見えるのは、空気中の何がプリズムのようにはたらくため？',c:['水滴','ちり','雲','ちっ素','酸素','氷の板'],a:'水滴',exp:'空気中の水滴がプリズムと同じはたらきをして太陽光を色に分けるため、にじが見える。'},
+  {id:'h_iro4',cat:'h_iro',q:'白色光や色のついた光のように、目に見える光を何という？',c:['可視光線','赤外線','紫外線','X線','電波','放射線'],a:'可視光線',exp:'目に見える光を可視光線という。目に見えない光には赤外線・紫外線などがある。'},
+  {id:'h_iro5',cat:'h_iro',q:'目に見えない光の例として正しいのは？',c:['赤外線・紫外線','赤色の光・紫色の光','白色光','可視光線','緑色の光','だいだい色の光'],a:'赤外線・紫外線',exp:'可視光線の赤より外側が赤外線、紫より外側が紫外線。どちらも目には見えない。'},
+  /* ========== 凸レンズ：性質 ========== */
+  {id:'l_sei1',cat:'l_seishitsu',q:'ふちよりも中央部がふくらんでいるレンズを何という？',c:['凸レンズ','凹レンズ','平面鏡','プリズム','半円形ガラス','虫眼鏡ではない'],a:'凸レンズ',exp:'ふちより中央がふくらんだレンズが凸レンズ。光を屈折させて集める。'},
+  {id:'l_sei2',cat:'l_seishitsu',q:'凸レンズは光をどうする？',c:['屈折させて集める','反射させて広げる','屈折させて広げる','そのまま通す','吸収する','全反射させる'],a:'屈折させて集める',exp:'凸レンズは光を屈折させて1点（焦点）に集める。'},
+  {id:'l_sei3',cat:'l_seishitsu',q:'光軸に平行な光を凸レンズに当てたとき、光が屈折して集まる点を何という？',c:['焦点','作用点','中心','光軸','焦点距離','像点'],a:'焦点',exp:'光軸（凸レンズの軸）に平行な光が屈折して集まる点が焦点。'},
+  {id:'l_sei4',cat:'l_seishitsu',q:'1つの凸レンズに焦点はいくつある？',c:['2つ（両側に1つずつ）','1つ','3つ','4つ','0','レンズの厚さによる'],a:'2つ（両側に1つずつ）',exp:'焦点はレンズの両側に1つずつあり、合計2つ。'},
+  {id:'l_sei5',cat:'l_seishitsu',q:'焦点距離とは何の距離？',c:['凸レンズの中心から焦点までの距離','物体から凸レンズまでの距離','凸レンズからスクリーンまでの距離','物体から像までの距離','焦点から焦点までの距離','レンズの厚さ'],a:'凸レンズの中心から焦点までの距離',exp:'焦点距離は凸レンズの中心から焦点までの距離。'},
+  {id:'l_sei6',cat:'l_seishitsu',q:'直径が同じで、ふくらみが大きい凸レンズにとりかえると焦点距離は？',c:['短くなる','長くなる','変わらない','0になる','2倍になる','決まらない'],a:'短くなる',exp:'ふくらみが大きいほど光を強く屈折させるので、焦点距離は短くなる。'},
+  {id:'l_sei7',cat:'l_seishitsu',q:'光が凸レンズを通るとき、屈折は何回起こる？',c:['2回（入るときと出るとき）','1回','3回','屈折しない','4回','レンズの厚さによる'],a:'2回（入るときと出るとき）',exp:'凸レンズに入るときと出るときの2回、屈折が起こる。作図では中心線で1回屈折するようにかく。'},
+  /* ========== 凸レンズ：光の道筋 ========== */
+  {id:'l_mic1',cat:'l_michisuji',q:'光軸に平行に凸レンズへ入った光は、屈折したあとどう進む？',c:['焦点を通る','光軸に平行に進む','そのまま直進する','もとの向きに戻る','レンズの中心を通る','広がって進む'],a:'焦点を通る',exp:'光軸に平行な光は屈折して焦点を通る。'},
+  {id:'l_mic2',cat:'l_michisuji',q:'焦点を通って凸レンズへ入った光は、屈折したあとどう進む？',c:['光軸に平行に進む','焦点を通る','そのまま直進する','逆向きに戻る','光軸と直角に進む','広がって進む'],a:'光軸に平行に進む',exp:'焦点を通る光は屈折して光軸に平行に進む（光軸に平行な光の逆）。'},
+  {id:'l_mic3',cat:'l_michisuji',q:'凸レンズの中心を通る光は、どう進む？',c:['そのまま直進する','焦点を通る','光軸に平行に進む','大きく曲がる','全反射する','2本に分かれる'],a:'そのまま直進する',exp:'凸レンズの中心を通る光は屈折せず（向きを変えず）そのまま直進する。'},
+  {id:'l_mic4',cat:'l_michisuji',q:'凸レンズを通る光の道筋を作図するときの決まりは？',c:['レンズの中心線で1回屈折するようにかく','レンズの表と裏で2回屈折するようにかく','屈折させずに直線でかく','必ず焦点で反射させる','光軸に沿ってかく','曲線でかく'],a:'レンズの中心線で1回屈折するようにかく',exp:'実際は2回屈折するが、作図では中心線で1回屈折するようにかくと決まっている。'},
+  /* ========== 凸レンズ：実像と虚像 ========== */
+  {id:'l_zou1',cat:'l_zou',q:'凸レンズで屈折した光が実際に集まってできる像を何という？',c:['実像','虚像','鏡像','焦点像','正立像','拡大像'],a:'実像',exp:'光が実際に集まってできる像が実像。スクリーンにうつすことができる。'},
+  {id:'l_zou2',cat:'l_zou',q:'スクリーンにうつすことができるのはどんな像？',c:['実像','虚像','鏡にうつる像','ルーペで見える像','どちらもうつせる','どちらもうつせない'],a:'実像',exp:'実像は光が実際に集まっているのでスクリーンにうつる。虚像はうつらない。'},
+  {id:'l_zou3',cat:'l_zou',q:'スクリーンにうつった実像の向きは、実物と比べてどうなっている？',c:['上下・左右が逆（倒立）','上下・左右が同じ（正立）','上下だけが逆','左右だけが逆','ななめになる','決まらない'],a:'上下・左右が逆（倒立）',exp:'実像は上下・左右がともに実物と逆向き（倒立）になる。'},
+  {id:'l_zou4',cat:'l_zou',q:'実像ができるのは、物体が焦点のどちらにあるとき？',c:['外側','内側','焦点の上','光軸の外','レンズにくっついているとき','どこでもできる'],a:'外側',exp:'物体（光源）が焦点の外側にあるときに実像ができる。'},
+  {id:'l_zou5',cat:'l_zou',q:'光が集まってできる像ではなく、凸レンズを通して見える像を何という？',c:['虚像','実像','焦点像','倒立像','反射像','投影像'],a:'虚像',exp:'光が実際には集まっておらず、レンズを通して見えるだけの像が虚像。スクリーンにはうつらない。'},
+  {id:'l_zou6',cat:'l_zou',q:'虚像ができるのは、物体が焦点のどちらにあるとき？',c:['内側','外側','焦点距離の2倍の位置','焦点の上','光軸の上','どこでもできる'],a:'内側',exp:'物体が焦点の内側（レンズと焦点の間）にあるとき、レンズを通して虚像が見える。'},
+  {id:'l_zou7',cat:'l_zou',q:'虚像の向きと大きさは、実物と比べてどうなっている？',c:['向きは同じ（正立）で、実物より大きい','向きは逆（倒立）で、実物より大きい','向きは同じで、実物より小さい','向きは逆で、実物より小さい','向きも大きさも実物と同じ','決まらない'],a:'向きは同じ（正立）で、実物より大きい',exp:'虚像は実物と同じ向き（正立）で、実物より大きく見える。ルーペで見える像がこれ。'},
+  {id:'l_zou8',cat:'l_zou',q:'虚像はスクリーンにうつすことができる？',c:['できない','できる','明るければできる','大きければできる','焦点に置けばできる','鏡を使えばできる'],a:'できない',exp:'虚像は光が実際に集まっていないので、スクリーンにうつすことはできない。'},
+  {id:'l_zou9',cat:'l_zou',q:'鏡にうつる像は、凸レンズでできる実像・虚像のどちらと同じ種類？',c:['虚像','実像','どちらでもない','両方','明るさで変わる','距離で変わる'],a:'虚像',exp:'鏡の像も光が実際に集まってできたものではないので虚像。'},
+  /* ========== 凸レンズ：物体の位置と像 ========== */
+  {id:'l_ich1',cat:'l_ichi',q:'物体が焦点距離の2倍よりも遠い位置にあるとき、できる像は？',c:['物体より小さい倒立の実像','物体と同じ大きさの倒立の実像','物体より大きい倒立の実像','物体より大きい正立の虚像','像はできない','物体より小さい正立の虚像'],a:'物体より小さい倒立の実像',exp:'焦点距離の2倍より遠いと、実像は焦点距離の2倍より近い位置にでき、物体より小さくなる。'},
+  {id:'l_ich2',cat:'l_ichi',q:'物体が焦点距離の2倍の位置にあるとき、できる像は？',c:['物体と同じ大きさの倒立の実像','物体より小さい倒立の実像','物体より大きい倒立の実像','物体より大きい正立の虚像','像はできない','物体と同じ大きさの正立の虚像'],a:'物体と同じ大きさの倒立の実像',exp:'焦点距離の2倍の位置に物体を置くと、反対側の焦点距離の2倍の位置に同じ大きさの倒立の実像ができる。'},
+  {id:'l_ich3',cat:'l_ichi',q:'物体が焦点距離の2倍の位置と焦点の間にあるとき、できる像は？',c:['物体より大きい倒立の実像','物体より小さい倒立の実像','物体と同じ大きさの倒立の実像','物体より大きい正立の虚像','像はできない','物体より小さい正立の虚像'],a:'物体より大きい倒立の実像',exp:'焦点に近づくほど実像は遠くにでき、大きくなる。'},
+  {id:'l_ich4',cat:'l_ichi',q:'物体が焦点の上（焦点の位置）にあるとき、像はどうなる？',c:['実像も虚像もできない','とても大きい実像ができる','とても大きい虚像ができる','物体と同じ大きさの実像ができる','焦点に像ができる','無限に小さい像ができる'],a:'実像も虚像もできない',exp:'焦点上に物体があると、屈折した光が平行に進んで集まらないので実像も虚像もできない。'},
+  {id:'l_ich5',cat:'l_ichi',q:'焦点の外側から物体を焦点に近づけていくと、実像はどうなる？',c:['できる位置が遠ざかり、大きくなる','できる位置が近づき、小さくなる','できる位置は変わらず、大きくなる','できる位置が遠ざかり、小さくなる','変わらない','すぐに虚像になる'],a:'できる位置が遠ざかり、大きくなる',exp:'物体を焦点に近づけると実像のできる位置は遠ざかり、実像は大きくなる。'},
+  {id:'l_ich6',cat:'l_ichi',q:'凸レンズの下半分を黒い紙でおおうと、スクリーンにうつる実像はどうなる？',c:['大きさ・形・向きは変わらないが暗くなる','下半分が消える','上半分が消える','半分の大きさになる','向きが変わる','像ができなくなる'],a:'大きさ・形・向きは変わらないが暗くなる',exp:'レンズを通る光の量が減るだけなので、像の大きさ・形・向き・位置は変わらず、明るさだけが暗くなる。'},
+  {id:'l_ich7',cat:'l_ichi',q:'凸レンズの一部をおおったとき、像のできる位置は？',c:['変わらない','レンズに近づく','レンズから遠ざかる','光軸からずれる','決まらない','像ができなくなる'],a:'変わらない',exp:'おおっても残りの光は同じ点に集まるので、像のできる位置は変わらない。'},
+  /* ========== 凸レンズ：利用 ========== */
+  {id:'l_riy1',cat:'l_riyou',q:'カメラで写真をとるとき、撮像素子にできる像は？',c:['実像','虚像','鏡像','正立の虚像','像はできない','どちらでもよい'],a:'実像',exp:'カメラは焦点より遠くにある物体の光を凸レンズで集め、撮像素子上に実像をつくる。'},
+  {id:'l_riy2',cat:'l_riyou',q:'ルーペ（虫眼鏡）で花を近づけて見るとき、見えている像は？',c:['拡大された正立の虚像','拡大された倒立の実像','縮小された倒立の実像','縮小された正立の虚像','鏡像','像は見えない'],a:'拡大された正立の虚像',exp:'ルーペは物体を焦点の内側に置いて使うので、拡大された正立の虚像が見える。'},
+  {id:'l_riy3',cat:'l_riyou',q:'虫眼鏡で遠くの景色を見ると、どのように見える？',c:['上下・左右が逆の小さい像（実像）が見える','拡大された正立の像が見える','何も見えない','景色がそのまま見える','半分だけ見える','色が分かれて見える'],a:'上下・左右が逆の小さい像（実像）が見える',exp:'遠くの景色は焦点の外側にあるので、倒立の実像が見える（近づけたときの虚像とは逆）。'},
+  {id:'l_riy4',cat:'l_riyou',q:'カメラで物体を近づけたとき、はっきりした像をうつすためのスクリーン（撮像素子）の位置は？',c:['レンズから遠ざける','レンズに近づける','変えなくてよい','レンズにくっつける','焦点に置く','どこでもよい'],a:'レンズから遠ざける',exp:'物体を近づけると実像のできる位置は遠ざかるので、スクリーンをレンズから遠ざける（簡易カメラなら筒を引き出す）。'}
+];
+
+/* ── 問題バンク つづき（音）──
+   BANK は分野が多いので、単元ごとに push で足していく（1つの巨大リテラルにしない）。 */
+BANK.push.apply(BANK, [
+  /* ========== 音：伝わり方 ========== */
+  {id:'o_tsu1',cat:'o_tsutawari',q:'音を出している物体を何という？',c:['音源（発音体）','振動体','波源','鼓膜','音波','共鳴体'],a:'音源（発音体）',exp:'音を出している物体を音源（発音体）という。音さ・弦・スピーカーなど。'},
+  {id:'o_tsu2',cat:'o_tsutawari',q:'音が発生するのは、物体がどうなっているから？',c:['振動しているから','熱くなっているから','光っているから','電気を帯びているから','磁石になっているから','ふくらんでいるから'],a:'振動しているから',exp:'音は物体の振動によって発生する。音さを鳴らして水に入れると水しぶきが上がるのは、音さが振動している証拠。'},
+  {id:'o_tsu3',cat:'o_tsutawari',q:'振動が次々に伝わっていく現象を何という？',c:['波','流れ','対流','拡散','伝導','放射'],a:'波',exp:'振動が次々に伝わる現象を波という。音は空気の濃い・うすいが次々に伝わる波。'},
+  {id:'o_tsu4',cat:'o_tsutawari',q:'音が空気中を伝わるとき、空気そのものはどうなっている？',c:['移動せず、振動だけが伝わっていく','音と一緒に移動していく','まったく動かない','ちっ素だけが移動する','一方向に流れ続ける','熱くなって上に動く'],a:'移動せず、振動だけが伝わっていく',exp:'空気そのものは移動せず、押し縮められて濃くなったり引かれてうすくなったりする変化（振動）が次々に伝わっていく。'},
+  {id:'o_tsu5',cat:'o_tsutawari',q:'真空中で音はどうなる？',c:['伝わらない','よく伝わる','速く伝わる','光に変わる','大きくなる','高くなる'],a:'伝わらない',exp:'波を伝えるものがない真空中では音は伝わらない。'},
+  {id:'o_tsu6',cat:'o_tsutawari',q:'音を伝えることができるものはどれ？',c:['気体・液体・固体のすべて','気体だけ','液体だけ','固体だけ','気体と液体だけ','真空をふくむすべて'],a:'気体・液体・固体のすべて',exp:'空気などの気体だけでなく、水などの液体、金属などの固体も音を伝える。'},
+  {id:'o_tsu7',cat:'o_tsutawari',q:'空気中を伝わってきた音の波が、耳の中の何を振動させて音が聞こえる？',c:['鼓膜','水晶体','網膜','こまく骨だけ','鼻','のど'],a:'鼓膜',exp:'空気の振動が耳の中の鼓膜を振動させることで音が聞こえる。'},
+  {id:'o_tsu8',cat:'o_tsutawari',q:'ブザーを入れた容器の空気を真空ポンプで抜いていくと、音はどうなる？',c:['聞こえにくくなる','大きくなる','高くなる','低くなる','変わらない','急に大きくなる'],a:'聞こえにくくなる',exp:'空気がうすくなると音を伝えるものが減るので、音は聞こえにくくなる。真空では伝わらない。'},
+  {id:'o_tsu9',cat:'o_tsutawari',q:'同じ高さの音が出る2つの音さA・Bを並べ、Aだけをたたくとどうなる？',c:['Bも鳴り出す','Bは鳴らない','Bが高い音で鳴る','Bが低い音で鳴る','Aの音が消える','Bがこわれる'],a:'Bも鳴り出す',exp:'Aの振動が空気の振動としてBに伝わり、同じ高さの音が出るBも振動して鳴り出す（共鳴）。'},
+  {id:'o_tsu10',cat:'o_tsutawari',q:'鳴らした音さを水の入ったビーカーに入れると水しぶきが上がる。これは何を示している？',c:['音さが振動していること','音さが熱くなっていること','水が音を出していること','音が水にとけること','音さが磁石であること','水が蒸発していること'],a:'音さが振動していること',exp:'音源である音さが振動しているため、ふれた水が飛ばされて水しぶきが上がる。'},
+  /* ========== 音：速さ ========== */
+  {id:'o_hay1',cat:'o_hayasa',q:'空気中を伝わる音の速さはおよそ何m/s？',c:['約340m/s','約34m/s','約1500m/s','約3400m/s','約30万m/s','約100m/s'],a:'約340m/s',exp:'空気中での音の速さは約340m/s（メートル毎秒）。'},
+  {id:'o_hay2',cat:'o_hayasa',q:'水中を伝わる音の速さはおよそ何m/s？',c:['約1500m/s','約340m/s','約150m/s','約15000m/s','約30万m/s','約1000m/s'],a:'約1500m/s',exp:'水中での音の速さは約1500m/s。空気中よりずっと速い。'},
+  {id:'o_hay3',cat:'o_hayasa',q:'音の速さを求める式として正しいのは？',c:['音源までの距離÷音が伝わる時間','音が伝わる時間÷音源までの距離','距離×時間','振動数÷時間','振幅÷時間','距離＋時間'],a:'音源までの距離÷音が伝わる時間',exp:'音の速さ〔m/s〕＝音源までの距離〔m〕÷音が伝わる時間〔s〕。'},
+  {id:'o_hay4',cat:'o_hayasa',q:'いなずまが見えたあとで雷鳴が聞こえるのはなぜ？',c:['音の伝わる速さが光の速さよりはるかに遅いから','光が音より遅いから','音が空気にとけるから','雷が2回鳴っているから','音が屈折するから','光が反射しているから'],a:'音の伝わる速さが光の速さよりはるかに遅いから',exp:'光は約30万km/sでほぼ一瞬で届くが、音は約340m/sなので遅れて聞こえる。'},
+  {id:'o_hay5',cat:'o_hayasa',q:'音の速さについて正しいのは？',c:['伝わる物質によって異なり、固体＞液体＞気体の順に速い','どの物質でも同じ','気体がいちばん速い','真空中がいちばん速い','温度によっては変わらない','液体がいちばん遅い'],a:'伝わる物質によって異なり、固体＞液体＞気体の順に速い',exp:'音の速さは伝える物質によって異なる。ふつう固体＞液体＞気体の順に速い。'},
+  {id:'o_hay6',cat:'o_hayasa',q:'花火が開くのが見えてから音が聞こえるまでに時間がかかる理由は？',c:['音の速さが光の速さよりはるかに遅いから','花火の音が遅れて発生するから','音が上に逃げるから','音が屈折するから','花火が2回開くから','光が遅れて届くから'],a:'音の速さが光の速さよりはるかに遅いから',exp:'雷と同じ理由。光はほぼ一瞬で届き、音は約340m/sで進むので遅れて聞こえる。'},
+  /* ========== 音：大小・高低 ========== */
+  {id:'o_oki1',cat:'o_okisa',q:'音源の振動の振れ幅を何という？',c:['振幅','振動数','周期','波長','音圧','ヘルツ'],a:'振幅',exp:'もとの位置からの振れ幅を振幅という。'},
+  {id:'o_oki2',cat:'o_okisa',q:'音源が一定時間（1秒間）に振動する回数を何という？',c:['振動数','振幅','周期','波の高さ','音の速さ','波長'],a:'振動数',exp:'1秒間に振動する回数が振動数。単位はヘルツ（Hz）。'},
+  {id:'o_oki3',cat:'o_okisa',q:'振動数の単位「Hz」は何と読む？',c:['ヘルツ','ヘクトパスカル','ニュートン','パスカル','ヘルシー','ホルツ'],a:'ヘルツ',exp:'振動数の単位はヘルツ（記号Hz）。1秒間に1回振動すると1Hz。'},
+  {id:'o_oki4',cat:'o_okisa',q:'音の大きさを決めているのは？',c:['振幅','振動数','音の速さ','波長','温度','音源の重さ'],a:'振幅',exp:'音の大小は振幅で決まる。振幅が大きいほど音は大きい。'},
+  {id:'o_oki5',cat:'o_okisa',q:'音の高さを決めているのは？',c:['振動数','振幅','音の速さ','音源の大きさ','距離','温度'],a:'振動数',exp:'音の高低は振動数で決まる。振動数が多いほど音は高い。'},
+  {id:'o_oki6',cat:'o_okisa',q:'音源の振幅が大きいほど、音はどうなる？',c:['大きくなる','高くなる','低くなる','小さくなる','速くなる','変わらない'],a:'大きくなる',exp:'振幅が大きい＝大きい音。高さ（振動数）とは関係ない。'},
+  {id:'o_oki7',cat:'o_okisa',q:'音源の振動数が多いほど、音はどうなる？',c:['高くなる','大きくなる','小さくなる','低くなる','速くなる','変わらない'],a:'高くなる',exp:'振動数が多い＝高い音。大小（振幅）とは関係ない。'},
+  /* ========== 音：モノコード・弦 ========== */
+  {id:'o_gen1',cat:'o_gen',q:'モノコードの弦を強くはじくと、音はどうなる？',c:['振幅が大きくなり音が大きくなる','振動数が多くなり音が高くなる','振動数が少なくなり音が低くなる','振幅が小さくなり音が小さくなる','高さも大きさも変わらない','速さが変わる'],a:'振幅が大きくなり音が大きくなる',exp:'はじく強さを変えると変わるのは振幅＝音の大小。高さは変わらない。'},
+  {id:'o_gen2',cat:'o_gen',q:'弦の長さを短くすると、出る音はどうなる？',c:['高くなる','低くなる','大きくなる','小さくなる','変わらない','聞こえなくなる'],a:'高くなる',exp:'弦が短いほど振動数が多くなり、音が高くなる。'},
+  {id:'o_gen3',cat:'o_gen',q:'弦を細いものにかえると、出る音はどうなる？',c:['高くなる','低くなる','大きくなる','小さくなる','変わらない','速くなる'],a:'高くなる',exp:'弦が細いほど振動数が多くなり、音が高くなる。'},
+  {id:'o_gen4',cat:'o_gen',q:'弦を強く張ると、出る音はどうなる？',c:['高くなる','低くなる','大きくなる','小さくなる','変わらない','聞こえなくなる'],a:'高くなる',exp:'強く張るほど振動数が多くなり、音が高くなる。おもりを増やすのと同じこと。'},
+  {id:'o_gen5',cat:'o_gen',q:'モノコードでもっとも高い音が出る条件の組み合わせは？',c:['弦を短く・細く・強く張る','弦を長く・太く・弱く張る','弦を短く・太く・弱く張る','弦を長く・細く・強く張る','強くはじく','弱くはじく'],a:'弦を短く・細く・強く張る',exp:'短い・細い・強く張るの3つがそろうと振動数が最も多くなり、音が最も高くなる。'},
+  {id:'o_gen6',cat:'o_gen',q:'弦の長さや太さ、張る強さを変えると変わるのは、振幅と振動数のどちら？',c:['振動数','振幅','どちらも変わる','どちらも変わらない','音の速さ','波長だけ'],a:'振動数',exp:'長さ・太さ・張り方を変えると振動数（音の高さ）が変わる。はじく強さを変えると振幅（音の大きさ）が変わる。'},
+  {id:'o_gen7',cat:'o_gen',q:'最初の音より「低くて大きい音」を出すには、弦の長さと振幅をどう変える？',c:['弦を長くして、振幅を大きくする','弦を長くして、振幅を小さくする','弦を短くして、振幅を大きくする','弦を短くして、振幅を小さくする','弦の太さだけ変える','張り方だけ変える'],a:'弦を長くして、振幅を大きくする',exp:'低い音＝振動数を少なく（弦を長く）、大きい音＝振幅を大きく（強くはじく）。'},
+  {id:'o_gen8',cat:'o_gen',q:'モノコードの弦の張りだけを強くして、同じ強さではじいた。音はどう変化する？',c:['高くなった','低くなった','大きくなった','小さくなった','変わらない','聞こえなくなった'],a:'高くなった',exp:'張りを強くすると振動数が多くなるので音は高くなる。はじく強さは同じなので大きさは変わらない。'},
+  /* ========== 音：波形 ========== */
+  {id:'o_hak1',cat:'o_hakei',q:'オシロスコープで見た音の波形で、縦軸は何を表している？',c:['振幅','時間','振動数','音の速さ','距離','温度'],a:'振幅',exp:'波形のグラフは縦軸が振幅、横軸が時間。'},
+  {id:'o_hak2',cat:'o_hakei',q:'オシロスコープで見た音の波形で、横軸は何を表している？',c:['時間','振幅','振動数','音の大きさ','距離','音の速さ'],a:'時間',exp:'横軸は時間。一定時間内の波の数が振動数を表す。'},
+  {id:'o_hak3',cat:'o_hakei',q:'波形の「波の高さ」が示しているのは？',c:['音の大小','音の高低','音の速さ','音源までの距離','振動数','波長だけ'],a:'音の大小',exp:'波の高さ＝振幅＝音の大小を示す。'},
+  {id:'o_hak4',cat:'o_hakei',q:'波形で「一定時間内の波の数」が示しているのは？',c:['音の高低','音の大小','音の速さ','距離','振幅','温度'],a:'音の高低',exp:'一定時間の波の数＝振動数＝音の高低を示す。'},
+  {id:'o_hak5',cat:'o_hakei',q:'ある音と比べて「山が高く、一定時間の波の数は同じ」波形の音は？',c:['同じ高さで大きい音','同じ大きさで高い音','高くて大きい音','低くて小さい音','同じ高さで小さい音','低くて大きい音'],a:'同じ高さで大きい音',exp:'山の高さ（振幅）だけが大きい＝高さは同じで大きい音。'},
+  {id:'o_hak6',cat:'o_hakei',q:'ある音と比べて「一定時間の波の数が多く、山の高さは同じ」波形の音は？',c:['同じ大きさで高い音','同じ高さで大きい音','低くて小さい音','高くて大きい音','同じ大きさで低い音','変わらない音'],a:'同じ大きさで高い音',exp:'波の数（振動数）だけが多い＝大きさは同じで高い音。'},
+  {id:'o_hak7',cat:'o_hakei',q:'音の高さを変えずに音の大きさを2倍にすると、波形はどうなる？',c:['波の数は同じで、山の高さが2倍になる','波の数が2倍になり、山の高さは同じ','波の数も山の高さも2倍になる','波の数が半分になる','山の高さが半分になる','何も変わらない'],a:'波の数は同じで、山の高さが2倍になる',exp:'音の大きさ＝振幅なので、山の高さ（振幅）だけが2倍になり、波の数（振動数）は変わらない。'},
+  /* ========== 音：いろいろな音源 ========== */
+  {id:'o_ong1',cat:'o_ongen',q:'試験管の口をふいたときに音を出しているのは何？',c:['試験管の中の空気','試験管のガラス','試験管の中の水','くちびる','試験管の外の空気だけ','試験管の底'],a:'試験管の中の空気',exp:'口をふいたときは試験管の中の空気（水面より上の部分）が振動して音が出る。'},
+  {id:'o_ong2',cat:'o_ongen',q:'水の量がちがう同じ試験管の口をふいたとき、もっとも高い音が出るのは？',c:['水がもっとも多い試験管','水がもっとも少ない試験管','水が半分の試験管','水が入っていない試験管','どれも同じ','水の量とは関係ない'],a:'水がもっとも多い試験管',exp:'水が多い＝振動する空気の部分が短い＝振動数が多い＝音が高い。'},
+  {id:'o_ong3',cat:'o_ongen',q:'糸でつるした試験管を棒でたたいたとき、音を出しているのは何？',c:['試験管（と中の水）','試験管の中の空気','棒','糸','外の空気だけ','水面'],a:'試験管（と中の水）',exp:'たたいたときは試験管そのもの（と中の水）が振動して音が出る。ふいたときと区別すること。'},
+  {id:'o_ong4',cat:'o_ongen',q:'水の量がちがうビーカーを同じ場所でたたいたとき、水が多いほうの音は？',c:['低い','高い','大きい','小さい','変わらない','聞こえない'],a:'低い',exp:'水が多いほどビーカー全体が振動しにくくなり、振動数が少なくなるので音は低い。'},
+  {id:'o_ong5',cat:'o_ongen',q:'「口をふく」と「たたく」で水の量と音の高さの関係が逆になるのはなぜ？',c:['ふくときは中の空気、たたくときは容器と水が振動するから','水の量の測り方がちがうから','ふくときだけ空気が入るから','たたくと水が減るから','ふくと温度が上がるから','たたくと振幅が変わるから'],a:'ふくときは中の空気、たたくときは容器と水が振動するから',exp:'振動しているものが別（空気か、容器と水か）なので、水を増やしたときの効果が逆になる。定期テストの定番ひっかけ。'}
+]);
+
+/* ── 問題バンク つづき（力・圧力）── */
+BANK.push.apply(BANK, [
+  /* ========== 力：力のはたらき ========== */
+  {id:'c_hat1',cat:'c_hataraki',q:'力のはたらきとして正しい3つの組み合わせは？',c:['物体の形を変える・物体を支える・物体の運動の状態を変える','物体を光らせる・温める・冷やす','物体を大きくする・小さくする・消す','物体を振動させる・止める・光らせる','物体の質量を変える・体積を変える・色を変える','物体を磁石にする・帯電させる・冷やす'],a:'物体の形を変える・物体を支える・物体の運動の状態を変える',exp:'力には①形を変える②支える③運動の状態（速さや向き）を変える、の3つのはたらきがある。'},
+  {id:'c_hat2',cat:'c_hataraki',q:'バーベルを持ち上げて静止しているとき、手がバーベルに加えている力のはたらきは？',c:['物体を支える','物体の形を変える','物体の運動の状態を変える','物体の質量を変える','物体を光らせる','はたらきはない'],a:'物体を支える',exp:'動かさずに持ち上げて静止させている＝物体を支えるはたらき。'},
+  {id:'c_hat3',cat:'c_hataraki',q:'ゴム風船を手で押しているとき、手が加えている力のはたらきは？',c:['物体の形を変える','物体を支える','物体の運動の状態を変える','物体の質量を変える','物体を冷やす','はたらきはない'],a:'物体の形を変える',exp:'風船がへこむ＝形を変えるはたらき。'},
+  {id:'c_hat4',cat:'c_hataraki',q:'バットでボールを打ち返したとき、バットがボールに加えた力のはたらきは？',c:['物体の運動の状態を変える','物体を支える','物体の形を変えるだけ','物体の質量を変える','物体を光らせる','はたらきはない'],a:'物体の運動の状態を変える',exp:'ボールの速さや向きが変わる＝運動の状態を変えるはたらき。'},
+  {id:'c_hat5',cat:'c_hataraki',q:'手をはなすとボールが落ちる。このときボールにはたらいている力は？',c:['重力','弾性力','摩擦力','垂直抗力','磁力','電気力'],a:'重力',exp:'支えるものがなくなると、地球がボールを引く力（重力）だけがはたらいて落ちる。'},
+  /* ========== 力：いろいろな力 ========== */
+  {id:'c_shu1',cat:'c_shurui',q:'変形した物体が、もとの形に戻ろうとする力を何という？',c:['弾性力','摩擦力','垂直抗力','重力','磁力','電気力'],a:'弾性力',exp:'変形した物体がもとの形に戻ろうとして生じる力を弾性力（弾性の力）という。'},
+  {id:'c_shu2',cat:'c_shurui',q:'物体がふれ合っている面と面の間で、物体の運動を妨げるようにはたらく力を何という？',c:['摩擦力','弾性力','垂直抗力','重力','磁力','電気力'],a:'摩擦力',exp:'ふれ合う面で、物体が動こうとする向きと反対向きにはたらく力を摩擦力という。'},
+  {id:'c_shu3',cat:'c_shurui',q:'面に接した物体が、面から垂直に受ける力を何という？',c:['垂直抗力','摩擦力','弾性力','重力','磁力','張力'],a:'垂直抗力',exp:'物体を置くとわずかに変形した面が、もとに戻ろうとして物体を垂直に押し返す力（弾性力）が垂直抗力。'},
+  {id:'c_shu4',cat:'c_shurui',q:'地球がその中心に向かって物体を引く力を何という？',c:['重力','弾性力','摩擦力','垂直抗力','磁力','電気力'],a:'重力',exp:'地球が中心に向かって物体を引く力を重力という。地球上のすべての物体にはたらく。'},
+  {id:'c_shu5',cat:'c_shurui',q:'鉄を引きつけたり、N極とS極が引き合ったりする力を何という？',c:['磁力（磁石の力）','電気力','重力','弾性力','摩擦力','垂直抗力'],a:'磁力（磁石の力）',exp:'磁石の力を磁力という。ちがう極どうしは引き合い、同じ極どうしはしりぞけ合う。'},
+  {id:'c_shu6',cat:'c_shurui',q:'下じきで髪をこすると紙片が引きつけられる。このときはたらいている力は？',c:['電気力（電気の力）','磁力','重力','弾性力','摩擦力','垂直抗力'],a:'電気力（電気の力）',exp:'電気には＋と−があり、ちがう電気どうしは引き合う。この力が電気力。'},
+  {id:'c_shu7',cat:'c_shurui',q:'「離れていてもはたらく力」の組み合わせとして正しいのは？',c:['重力・磁力・電気力','弾性力・摩擦力・垂直抗力','重力・弾性力・摩擦力','磁力・摩擦力・垂直抗力','重力・垂直抗力・電気力','弾性力・磁力・電気力'],a:'重力・磁力・電気力',exp:'重力・磁力・電気力は離れていてもはたらく。弾性力・摩擦力・垂直抗力はふれ合ってはたらく。'},
+  {id:'c_shu8',cat:'c_shurui',q:'「ふれ合ってはたらく力」の組み合わせとして正しいのは？',c:['弾性力・摩擦力・垂直抗力','重力・磁力・電気力','重力・弾性力・磁力','摩擦力・磁力・電気力','垂直抗力・重力・電気力','弾性力・重力・摩擦力'],a:'弾性力・摩擦力・垂直抗力',exp:'ふれ合ってはたらくのは弾性力・摩擦力・垂直抗力の3つ。'},
+  {id:'c_shu9',cat:'c_shurui',q:'垂直抗力が生じるしくみとして正しいのは？',c:['物体を置いてわずかに変形した面が、もとに戻ろうとして押し返すから','面が物体を引きつけているから','重力が上向きにはたらくから','摩擦力が上向きになるから','空気が物体を押し上げるから','磁力がはたらくから'],a:'物体を置いてわずかに変形した面が、もとに戻ろうとして押し返すから',exp:'垂直抗力は面の弾性力。だから「ふれ合ってはたらく力」に入る。'},
+  {id:'c_shu10',cat:'c_shurui',q:'地球上のどこに立っていても、足の裏はどの向きを向いている？',c:['地球の中心の向き','いつも真下（南の向き）','太陽の向き','北の向き','決まっていない','空の向き'],a:'地球の中心の向き',exp:'重力は地球の中心に向かってはたらくので、地球上のどこでも足の裏は地球の中心を向いている。'},
+  /* ========== 力：力の大きさと単位 ========== */
+  {id:'c_tan1',cat:'c_tanni',q:'力の大きさを表す単位は？',c:['ニュートン（N）','パスカル（Pa）','ヘルツ（Hz）','グラム（g）','ジュール（J）','ワット（W）'],a:'ニュートン（N）',exp:'力の単位はニュートン（記号N）。'},
+  {id:'c_tan2',cat:'c_tanni',q:'1Nはどれくらいの大きさの力？',c:['地球上で約100gの物体にはたらく重力の大きさ','地球上で約1kgの物体にはたらく重力の大きさ','地球上で約10gの物体にはたらく重力の大きさ','地球上で約1gの物体にはたらく重力の大きさ','月面で100gの物体にはたらく重力の大きさ','決まっていない'],a:'地球上で約100gの物体にはたらく重力の大きさ',exp:'1Nは地球上で約100gの物体にはたらく重力の大きさ（正確には0.98N）。'},
+  {id:'c_tan3',cat:'c_tanni',q:'100gの物体にはたらく重力の大きさは、正確には何N？',c:['0.98N','1.00N','1.02N','0.10N','9.80N','0.098N'],a:'0.98N',exp:'正確には0.98N。中学では「100g＝1N」として計算してよい。'},
+  {id:'c_tan4',cat:'c_tanni',q:'1kgの物体にはたらく重力の大きさは約何N？',c:['約10N','約1N','約100N','約0.1N','約1000N','約0.01N'],a:'約10N',exp:'1kg＝1000gなので、1000÷100＝約10N。'},
+  {id:'c_tan5',cat:'c_tanni',q:'力の単位「N」の名前のもとになった科学者は？',c:['ニュートン','フック','パスカル','ヘルツ','ジュール','ワット'],a:'ニュートン',exp:'イギリスの科学者ニュートンにちなむ。ばねの法則を見つけたフックも同じイギリスの科学者。'},
+  /* ========== 力：ばね・フックの法則 ========== */
+  {id:'c_ban1',cat:'c_bane',q:'ばねののびが、ばねを引く力の大きさに比例する関係を何という？',c:['フックの法則','反射の法則','慣性の法則','パスカルの原理','オームの法則','質量保存の法則'],a:'フックの法則',exp:'ばねののびは力の大きさに比例する。これをフックの法則という。'},
+  {id:'c_ban2',cat:'c_bane',q:'フックの法則を利用して力の大きさをはかる器具は？',c:['ばねばかり','上皿てんびん','電子てんびん','メスシリンダー','台ばかりだけ','温度計'],a:'ばねばかり',exp:'ばねばかりはフックの法則を利用して力（重さ）をはかる器具。'},
+  {id:'c_ban3',cat:'c_bane',q:'ばねに加えた力の大きさに比例するのは、ばねの長さとばねののびのどちら？',c:['ばねののび','ばねの長さ','どちらも比例する','どちらも比例しない','ばねの太さ','ばねの重さ'],a:'ばねののび',exp:'比例するのは「のび」。ばねの長さは自然長のぶんだけずれるので比例しない（グラフが原点を通らない）。'},
+  {id:'c_ban4',cat:'c_bane',q:'ばねを壁に固定して手で3Nの力で引いた。次に同じばねを両側から3Nの力で引いた。2回目にばねにはたらく力の大きさは？',c:['3N','6N','1.5N','0N','9N','決まらない'],a:'3N',exp:'ばねがのびるときは必ず両端を同じ大きさの力が引いている。壁が引く力も3Nなので、どちらの場合もばねにはたらく力は3Nで、のびも同じ。3+3=6Nとするのはまちがい。'},
+  {id:'c_ban5',cat:'c_bane',q:'ばねののびと力の関係のグラフをかくときの注意点は？',c:['測定点のなるべく近くを通る1本の直線を引く','測定点を順に結んで折れ線にする','曲線でなめらかに結ぶ','いちばん大きい値だけを使う','原点を通らないようにかく','点はかかずに線だけかく'],a:'測定点のなるべく近くを通る1本の直線を引く',exp:'測定値には誤差があるので、点を結んで折れ線にしてはいけない。近くを通る直線を引く。'},
+  {id:'c_ban6',cat:'c_bane',q:'同じ力を加えたとき、ばねAのほうがばねBよりよくのびた。これについて正しいのは？',c:['同じのびにするには、ばねBのほうが大きい力が必要','同じのびにするには、ばねAのほうが大きい力が必要','どちらも同じ力でよい','ばねBはフックの法則にしたがわない','ばねAは自然長が長い','比べられない'],a:'同じのびにするには、ばねBのほうが大きい力が必要',exp:'のびにくいばねBを同じだけのばすには、より大きい力が必要になる。'},
+  /* ========== 力：質量と重さ ========== */
+  {id:'c_shi1',cat:'c_shitsuryo',q:'物体にはたらく重力の大きさを何という？',c:['重さ','質量','体積','密度','圧力','弾性力'],a:'重さ',exp:'重さ＝物体にはたらく重力の大きさ。単位はN。場所によって変わる。'},
+  {id:'c_shi2',cat:'c_shitsuryo',q:'場所によって変わらない、物体そのものの量を何という？',c:['質量','重さ','体積','密度','圧力','重力'],a:'質量',exp:'質量は物体そのものの量。場所が変わっても変わらない。単位はg・kg。'},
+  {id:'c_shi3',cat:'c_shitsuryo',q:'質量をはかるのに使う器具は？',c:['上皿てんびん','ばねばかり','メスシリンダー','温度計','ものさし','ストップウォッチ'],a:'上皿てんびん',exp:'質量は上皿てんびん（電子てんびん）ではかる。重さはばねばかり。'},
+  {id:'c_shi4',cat:'c_shitsuryo',q:'重さ（重力の大きさ）をはかるのに使う器具は？',c:['ばねばかり','上皿てんびん','メスシリンダー','分銅','ものさし','温度計'],a:'ばねばかり',exp:'重さはばねののびを利用するばねばかりではかる。'},
+  {id:'c_shi5',cat:'c_shitsuryo',q:'月面上での重力の大きさは、地球上の約何分の1？',c:['約6分の1','約2分の1','約3分の1','約10分の1','約100分の1','地球と同じ'],a:'約6分の1',exp:'月面上の重力は地球上の約1/6。'},
+  {id:'c_shi6',cat:'c_shitsuryo',q:'地球上で600gの物体を月面上で上皿てんびんではかると、何gの分銅とつり合う？',c:['600g','100g','300g','3600g','60g','つり合わない'],a:'600g',exp:'上皿てんびんは質量をはかる器具。質量は場所によって変わらないので月面でも600gの分銅とつり合う。'},
+  {id:'c_shi7',cat:'c_shitsuryo',q:'地球上で6Nを示す物体を月面上でばねばかりではかると、およそ何Nを示す？',c:['1N','6N','36N','3N','12N','0N'],a:'1N',exp:'ばねばかりは重さ（重力の大きさ）をはかる器具。月面の重力は1/6なので6÷6＝1N。'},
+  {id:'c_shi8',cat:'c_shitsuryo',q:'質量について正しく述べているのは？',c:['物体そのものの量で、上皿てんびんで測定する','重力の大きさを示す量で、上皿てんびんで測定する','重力の大きさを示す量で、ばねばかりで測定する','物体そのものの量で、ばねばかりで測定する','場所によって変わる量である','単位はNである'],a:'物体そのものの量で、上皿てんびんで測定する',exp:'質量＝物体そのものの量、単位はg・kg、上皿てんびんで測定、場所によって変わらない。'},
+  /* ========== 力：力の表し方 ========== */
+  {id:'c_ara1',cat:'c_arawashi',q:'力の3要素とは？',c:['力のはたらく点（作用点）・力の向き・力の大きさ','力の大きさ・質量・体積','作用点・重力・摩擦力','向き・速さ・大きさ','大きさ・単位・記号','作用点・作用線・重心'],a:'力のはたらく点（作用点）・力の向き・力の大きさ',exp:'力の3要素は作用点・向き・大きさ。これを矢印で表す。'},
+  {id:'c_ara2',cat:'c_arawashi',q:'力を矢印で表すとき、矢印の始点は何を表す？',c:['力のはたらく点（作用点）','力の大きさ','力の向き','物体の重心だけ','力の単位','作用線'],a:'力のはたらく点（作用点）',exp:'矢印の始点＝作用点、向き＝力の向き、長さ＝力の大きさ。'},
+  {id:'c_ara3',cat:'c_arawashi',q:'力を矢印で表すとき、矢印の長さは何を表す？',c:['力の大きさ','力の向き','作用点','物体の質量','物体の体積','力がはたらく時間'],a:'力の大きさ',exp:'矢印の長さを力の大きさに比例させてかく（例：1Nを1cmとする）。'},
+  {id:'c_ara4',cat:'c_arawashi',q:'物体にはたらく重力を矢印で表すとき、正しいかき方は？',c:['物体の中心を作用点として、1本の矢印でかく','物体の全体からたくさんの矢印をかく','物体の上の面から1本かく','物体の下の面から上向きにかく','矢印はかかない','物体の左右から2本かく'],a:'物体の中心を作用点として、1本の矢印でかく',exp:'重力は物体のすべての部分にはたらくが、まとめて物体の中心（作用点）から下向きの1本の矢印でかく。'},
+  {id:'c_ara5',cat:'c_arawashi',q:'力の矢印に重ねて引いた直線を何という？',c:['作用線','光軸','法線','中心線','重力線','境界面'],a:'作用線',exp:'力の矢印に重ねて引いた直線が作用線。作用線上で作用点を動かしても力のはたらきは変わらない。'},
+  /* ========== 力：2力のつり合い ========== */
+  {id:'c_tsu1',cat:'c_tsuriai',q:'1つの物体にいくつかの力がはたらいていても物体が動かないとき、その力はどうなっているという？',c:['つり合っている','打ち消えている','消えている','はたらいていない','比例している','反発している'],a:'つり合っている',exp:'力がはたらいていても物体が静止しているとき、力はつり合っているという。'},
+  {id:'c_tsu2',cat:'c_tsuriai',q:'2力がつり合う3つの条件として正しい組み合わせは？',c:['大きさが等しい・向きが反対・一直線上にある','大きさが等しい・向きが同じ・一直線上にある','大きさがちがう・向きが反対・一直線上にある','大きさが等しい・向きが反対・直角である','大きさが等しい・向きが反対・平行である','一直線上にある・向きが同じ・大きさがちがう'],a:'大きさが等しい・向きが反対・一直線上にある',exp:'①2力の大きさが等しい②向きが反対③一直線上にある（作用線が一致する）。3つすべて満たすこと。'},
+  {id:'c_tsu3',cat:'c_tsuriai',q:'水平な机の上に置かれた物体が静止しているとき、重力とつり合っているのはどんな力？',c:['垂直抗力','摩擦力','弾性力','磁力','電気力','張力'],a:'垂直抗力',exp:'机が物体を垂直に押し返す垂直抗力が、重力とつり合っている。'},
+  {id:'c_tsu4',cat:'c_tsuriai',q:'机の上の物体を水平に押しても動かないとき、押す力とつり合っているのは？',c:['摩擦力','垂直抗力','重力','弾性力','磁力','電気力'],a:'摩擦力',exp:'ふれ合う面ではたらく摩擦力が、押す力とつり合っている。'},
+  {id:'c_tsu5',cat:'c_tsuriai',q:'ばねにつり下げた物体が静止しているとき、重力とつり合っているのは？',c:['弾性力','垂直抗力','摩擦力','磁力','電気力','大気圧'],a:'弾性力',exp:'のびたばねがもとに戻ろうとして物体を引く力（弾性力）が、重力とつり合っている。'},
+  {id:'c_tsu6',cat:'c_tsuriai',q:'1つの物体にはたらく2力の大きさがちがうとき、物体はどうなる？',c:['大きいほうの力の向きに動く','小さいほうの力の向きに動く','静止したままである','その場で回転する','ばらばらに動く','力が消える'],a:'大きいほうの力の向きに動く',exp:'つり合いの条件が欠けると物体は動く。大きさがちがうときは大きいほうの向きに動く。'},
+  {id:'c_tsu7',cat:'c_tsuriai',q:'2力の大きさが等しく向きも反対だが、一直線上になかった。この2力は？',c:['つり合っていない','つり合っている','大きさが変わる','消えてしまう','必ず静止する','向きが変わる'],a:'つり合っていない',exp:'3条件のどれか1つでも欠けるとつり合わない。一直線上（作用線が一致）でなければ物体は動く（回転する）。'},
+  /* ========== 圧力：基本 ========== */
+  {id:'a_kih1',cat:'a_kihon',q:'面を垂直に押す力のはたらきの大きさを、面積あたりで表したものを何という？',c:['圧力','重力','弾性力','張力','摩擦力','大気'],a:'圧力',exp:'一定の面積あたりの、面を垂直に押す力の大きさを圧力という。'},
+  {id:'a_kih2',cat:'a_kihon',q:'圧力を求める式として正しいのは？',c:['面を垂直に押す力〔N〕÷力がはたらく面積〔m²〕','力がはたらく面積〔m²〕÷面を垂直に押す力〔N〕','力〔N〕×面積〔m²〕','質量〔g〕÷面積〔m²〕','力〔N〕÷質量〔g〕','力〔N〕÷長さ〔m〕'],a:'面を垂直に押す力〔N〕÷力がはたらく面積〔m²〕',exp:'圧力〔Pa〕＝面を垂直に押す力〔N〕÷力がはたらく面積〔m²〕。'},
+  {id:'a_kih3',cat:'a_kihon',q:'圧力の単位は？',c:['パスカル（Pa）','ニュートン（N）','ヘルツ（Hz）','ジュール（J）','グラム（g）','ワット（W）'],a:'パスカル（Pa）',exp:'圧力の単位はパスカル（記号Pa）。1Pa＝1N/m²。'},
+  {id:'a_kih4',cat:'a_kihon',q:'1Paとはどんな圧力？',c:['1m²の面を1Nの力で垂直に押すときの圧力','1cm²の面を1Nの力で押すときの圧力','1m²の面を100Nの力で押すときの圧力','1kgの物体が受ける圧力','1mの深さの水圧','1気圧のこと'],a:'1m²の面を1Nの力で垂直に押すときの圧力',exp:'1Pa＝1N/m²。1m²の面を1Nの力で垂直に押すときの圧力。'},
+  {id:'a_kih5',cat:'a_kihon',q:'1m²は何cm²？',c:['10000cm²','100cm²','1000cm²','100000cm²','10cm²','1000000cm²'],a:'10000cm²',exp:'1m＝100cmなので、1m²＝100×100＝10000cm²。cm²で出した面積は10000でわってm²にする。'},
+  {id:'a_kih6',cat:'a_kihon',q:'圧力の単位「Pa」は「N/m²」とも書く。この書き方が表しているのは？',c:['1m²あたり何Nの力で押しているか','1Nあたり何m²の面積か','1m²あたりの質量','1Nあたりの深さ','1秒あたりの力','1mあたりの力'],a:'1m²あたり何Nの力で押しているか',exp:'N/m²＝1m²あたりのN（力）。だから面積が小さいほど同じ力でも圧力は大きくなる。'},
+  /* ========== 圧力：面積と圧力 ========== */
+  {id:'a_men1',cat:'a_menseki',q:'加える力の大きさが同じとき、力がはたらく面積が小さいほど圧力は？',c:['大きくなる','小さくなる','変わらない','0になる','半分になる','決まらない'],a:'大きくなる',exp:'圧力＝力÷面積なので、面積が小さいほど圧力は大きい。'},
+  {id:'a_men2',cat:'a_menseki',q:'画びょうの先がとがっているのはなぜ？',c:['面積を小さくして圧力を大きくするため','面積を大きくして圧力を小さくするため','力を大きくするため','重さを軽くするため','摩擦力を大きくするため','見た目のため'],a:'面積を小さくして圧力を大きくするため',exp:'先をとがらせて面積を小さくすることで、同じ力でも大きな圧力をかけられる。'},
+  {id:'a_men3',cat:'a_menseki',q:'スキー板やかんじきをはくと雪に沈みにくくなるのはなぜ？',c:['面積が大きくなって圧力が小さくなるから','面積が小さくなって圧力が大きくなるから','体重が軽くなるから','重力が小さくなるから','摩擦力がなくなるから','雪が固くなるから'],a:'面積が大きくなって圧力が小さくなるから',exp:'接する面積を大きくすると、同じ体重（力）でも雪にかかる圧力が小さくなるので沈みにくい。'},
+  {id:'a_men4',cat:'a_menseki',q:'同じ直方体を、置く面を変えて机の上に置いた。机が受ける圧力は？',c:['下にする面の面積が小さいほど大きい','下にする面の面積が大きいほど大きい','どの面でも同じ','高さが高いほど大きい','決まらない','いつも0になる'],a:'下にする面の面積が小さいほど大きい',exp:'押す力（重さ）は同じでも面積が変わるので圧力は変わる。面積がいちばん小さい面を下にしたとき圧力は最大。'},
+  {id:'a_men5',cat:'a_menseki',q:'同じ直方体を同じ向きに2段に重ねると、机が受ける圧力は1個のときの何倍？',c:['2倍','1倍（変わらない）','4倍','半分','3倍','決まらない'],a:'2倍',exp:'面積は同じで力（重さ）が2倍になるので、圧力も2倍。'},
+  {id:'a_men6',cat:'a_menseki',q:'次のうち「面積を大きくして圧力を小さくしている」例はどれ？',c:['キャタピラ（無限軌道）','包丁の刃','スパイクシューズ','画びょう','くぎの先','ホチキスの針'],a:'キャタピラ（無限軌道）',exp:'キャタピラは接地面積を大きくして、やわらかい地面でも沈まないようにしている。ほかは面積を小さくして圧力を大きくする例。'},
+  /* ========== 圧力：大気圧 ========== */
+  {id:'a_tai1',cat:'a_taiki',q:'空気の重さによって生じる圧力を何という？',c:['大気圧（気圧）','水圧','浮力','張力','弾性力','摩擦力'],a:'大気圧（気圧）',exp:'空気にも重さがあり、それによって生じる圧力を大気圧（気圧）という。'},
+  {id:'a_tai2',cat:'a_taiki',q:'海面（標高0m）付近の大気圧はおよそどれくらい？',c:['約1013hPa','約100hPa','約1hPa','約10130hPa','約340hPa','約1013Pa'],a:'約1013hPa',exp:'海面付近の大気圧は約1013hPa。これを1気圧という。1hPa＝100Pa。'},
+  {id:'a_tai3',cat:'a_taiki',q:'大気圧がはたらく向きは？',c:['あらゆる向き（上下左右すべて）','下向きだけ','上向きだけ','横向きだけ','決まっていない','地面と平行な向きだけ'],a:'あらゆる向き（上下左右すべて）',exp:'大気圧はあらゆる向きにはたらく。だから紙をコップにかぶせて逆さにしても水が落ちない。'},
+  {id:'a_tai4',cat:'a_taiki',q:'高い山に登ると大気圧はどうなる？',c:['小さくなる','大きくなる','変わらない','0になる','2倍になる','決まらない'],a:'小さくなる',exp:'標高が高いほど、上にある空気の量が少なくなるので大気圧は小さくなる。'},
+  {id:'a_tai5',cat:'a_taiki',q:'ふもとで買ったお菓子の袋を山の上に持っていくとふくらむのはなぜ？',c:['まわりの大気圧が小さくなり、袋の中から押す力のほうが大きくなるから','袋の中の空気が増えるから','気温が上がって空気が増えるから','袋がやわらかくなるから','重力が小さくなるから','水蒸気が入るから'],a:'まわりの大気圧が小さくなり、袋の中から押す力のほうが大きくなるから',exp:'外からの大気圧が小さくなるので、中の空気が押し返して袋がふくらむ。'},
+  {id:'a_tai6',cat:'a_taiki',q:'空気を抜いた密閉容器がつぶれるのはなぜ？',c:['外側からの大気圧のほうが大きくなるから','内側からの圧力が大きくなるから','容器が重くなるから','重力が大きくなるから','容器が冷えて縮むから','水圧がかかるから'],a:'外側からの大気圧のほうが大きくなるから',exp:'中の空気が減って内側から押し返す力が小さくなり、外側の大気圧に負けてつぶれる。'},
+  /* ========== 圧力：水圧 ========== */
+  {id:'a_sui1',cat:'a_suiatsu',q:'水の重さによって生じる圧力を何という？',c:['水圧','大気圧','浮力','弾性力','摩擦力','張力'],a:'水圧',exp:'水の重さによって生じる圧力を水圧という。'},
+  {id:'a_sui2',cat:'a_suiatsu',q:'水圧の大きさは、深さとどんな関係にある？',c:['深いほど大きくなる','深いほど小さくなる','深さとは関係ない','浅いところだけ大きい','水面でいちばん大きい','決まらない'],a:'深いほど大きくなる',exp:'深いほど上にある水の量が多くなるので、水圧は大きくなる。'},
+  {id:'a_sui3',cat:'a_suiatsu',q:'水圧がはたらく向きは？',c:['あらゆる向き（上下左右すべて）','下向きだけ','上向きだけ','横向きだけ','水面に平行な向きだけ','決まっていない'],a:'あらゆる向き（上下左右すべて）',exp:'水圧は大気圧と同じようにあらゆる向きにはたらく。'},
+  {id:'a_sui4',cat:'a_suiatsu',q:'深海用の潜水艇がとても丈夫につくられているのはなぜ？',c:['深いところでは水圧が非常に大きくなるから','深いところでは水温が高くなるから','深いところでは重力が大きくなるから','深いところでは大気圧が大きくなるから','光が届かないから','海水が塩からいから'],a:'深いところでは水圧が非常に大きくなるから',exp:'深さに応じて水圧が非常に大きくなるので、つぶれないよう丈夫につくる必要がある。'},
+  {id:'a_sui5',cat:'a_suiatsu',q:'水中にある物体が受ける圧力について正しいのは？',c:['水圧と大気圧の両方を受けている','水圧だけを受けている','大気圧だけを受けている','どちらも受けていない','水面でだけ大気圧を受ける','深さによって大気圧が変わる'],a:'水圧と大気圧の両方を受けている',exp:'水中の物体は、水の重さによる水圧と、水面より上の空気の重さによる大気圧の両方を受けている。'}
+]);
+
+/* ── 状態 ── */
+var MARU = ['①','②','③','④','⑤','⑥'];
+var state = { queue:[], idx:0, correct:0, byCat:{}, spec:null, retry:false, retryQueue:null, selMode:null };
+
+function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;} return a; }
+function byId(id){ return document.getElementById(id); }
+/* 生成器の本数（＝1回の出題で増える問題数）。GENERATORSはこの関数より後に定義されるが、
+   呼ばれるのは描画時（スクリプト実行後）なので参照できる */
+function genCountCat(c){ return (typeof GENERATORS!=='undefined' && GENERATORS[c]) ? GENERATORS[c].length : 0; }
+function countMode(m){ var n=0; for(var i=0;i<BANK.length;i++) if(CAT_MODE[BANK[i].cat]===m) n++;
+  Object.keys(CAT_MODE).forEach(function(c){ if(CAT_MODE[c]===m) n+=genCountCat(c); }); return n; }
+function countCat(c){ var n=0; for(var i=0;i<BANK.length;i++) if(BANK[i].cat===c) n++; return n+genCountCat(c); }
+function catsOfMode(m){ var s=[]; Object.keys(CATS).forEach(function(c){ if(CAT_MODE[c]===m && countCat(c)>0) s.push(c); }); return s; }
+
+/* ── モードカード ──（GENERATORS定義後にスクリプト末尾で呼ぶ。
+   即時実行だと生成問題の本数が0で数えられてしまうため） */
+function buildModeGrid(){
+  var g=byId('modeGrid'), html='';
+  Object.keys(MODES).forEach(function(m){
+    var d=MODES[m];
+    html+='<button class="mode-card" data-mode="'+m+'">'
+        +'<span class="nm">'+d.label+' <span class="ct">'+countMode(m)+'問</span></span>'
+        +'<span class="ds">'+d.desc+'</span></button>';
+  });
+  g.innerHTML=html;
+  g.addEventListener('click',function(e){ var b=e.target.closest('.mode-card'); if(b) selectMode(b.getAttribute('data-mode')); });
+}
+
+function selectMode(m){
+  state.selMode=m;
+  byId('modeGrid').querySelectorAll('.mode-card').forEach(function(el){ el.classList.toggle('active', el.getAttribute('data-mode')===m); });
+  var d=MODES[m], total=countMode(m), cats=catsOfMode(m);
+  var html='<h3>'+d.label+'</h3>';
+  html+='<div class="big-actions"><button class="btn btn-primary sm" id="startModeAll">この単元を全部（'+total+'問）</button>';
+  if(total>15) html+='<button class="btn btn-outline sm" id="startModeRand">ランダム15問</button>';
+  html+='</div>';
+  html+='<div class="chip-row"><span class="chip-lbl">分野をしぼる：</span>';
+  cats.forEach(function(c){ html+='<button class="chip-btn" data-cat="'+c+'">'+CATS[c]+'<span class="n">'+countCat(c)+'</span></button>'; });
+  html+='</div>';
+  var p=byId('modePanel'); p.innerHTML=html; p.hidden=false;
+  byId('startModeAll').addEventListener('click',function(){ startQuiz({mode:m}); });
+  var r=byId('startModeRand'); if(r) r.addEventListener('click',function(){ startQuiz({mode:m,cap:15}); });
+  p.querySelectorAll('.chip-btn').forEach(function(b){ b.addEventListener('click',function(){ startQuiz({cat:b.getAttribute('data-cat')}); }); });
+  try{ p.scrollIntoView({behavior:'smooth',block:'nearest'}); }catch(e){}
+}
+
+/* ── 動的生成問題（毎回ランダムな数値で作る）── */
+function ri(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function pick(a){ return a[ri(0,a.length-1)]; }
+function numStr(n){ return (Math.round(n*100000)/100000).toString(); }   /* 末尾0を落として表示 */
+function r1(n){ return Math.round(n*100)/100; }                          /* 誤答は小数第2位に丸め */
+/* 正解＋誤答候補から重複なし6択を作る。fmt=表示整形。正解は必ず含み、正の有限値のみ採用 */
+function assemble(correct, wrongs, fmt){
+  var a=fmt(correct), seen={}, out=[a]; seen[a]=1;
+  shuffle(wrongs).forEach(function(w){
+    if(out.length>=6 || !isFinite(w) || w<=0) return;
+    var t=fmt(r1(w)); if(!seen[t]){ seen[t]=1; out.push(t); }
+  });
+  var step=correct>=10?10:(correct>=1?1:0.1);
+  var cand=[correct*2, correct/2, correct*3, correct*1.5, correct*0.8,
+            correct+step, correct+2*step, correct*4, correct*10, correct/10, correct+3*step];
+  for(var i=0;i<cand.length && out.length<6;i++){
+    var w=r1(cand[i]); if(!isFinite(w)||w<=0) continue;
+    var t=fmt(w); if(!seen[t]){ seen[t]=1; out.push(t); }
+  }
+  return {c:shuffle(out), a:a};
+}
+/* 生成問題は「値を選ぶ gen」と「値から問題を組む build」に分離する。
+   build が返す question には params(=完全な生成情報)を持たせ、Divp.answer にそのまま渡す。
+   解き直し(?retry=1)では params から build を呼び直して同じ問題を再現する。
+   → params_hash が問題ごとに一意になり、2連続正解のmastered判定も正しく働く。 */
+
+/* 波形SVG。1回の振動が k 目盛り、振幅 amp 目盛りの正弦波を 12×8 の方眼にかく。
+   marker（矢印）は save_answer.php の figure_is_safe() のホワイトリストに無いので使わない。 */
+function waveSVG(k, amp, W){
+  W=W||12;
+  var H=8, u=22, x0=16, y0=12, i;
+  var w=x0*2+W*u, h=y0*2+H*u;
+  var s='<svg viewBox="0 0 '+w+' '+h+'" width="'+Math.min(w,360)+'" role="img" aria-label="音の波形">';
+  for(i=0;i<=W;i++) s+='<line x1="'+(x0+i*u)+'" y1="'+y0+'" x2="'+(x0+i*u)+'" y2="'+(y0+H*u)+'" stroke="#e2ded1" stroke-width="1"/>';
+  for(i=0;i<=H;i++) s+='<line x1="'+x0+'" y1="'+(y0+i*u)+'" x2="'+(x0+W*u)+'" y2="'+(y0+i*u)+'" stroke="#e2ded1" stroke-width="1"/>';
+  var mid=y0+H/2*u;
+  s+='<line x1="'+x0+'" y1="'+mid+'" x2="'+(x0+W*u)+'" y2="'+mid+'" stroke="#8B877C" stroke-width="1" stroke-dasharray="4 3"/>';
+  var pts=[], n=W*u, A=amp*u;
+  for(i=0;i<=n;i++){
+    var t=i/u;   /* t=目盛り数 */
+    pts.push((x0+i).toFixed(1)+','+(mid-A*Math.sin(2*Math.PI*t/k)).toFixed(1));
+  }
+  s+='<polyline points="'+pts.join(' ')+'" fill="none" stroke="#2C5F8A" stroke-width="2.4"/>';
+  s+='<rect x="'+x0+'" y="'+y0+'" width="'+(W*u)+'" height="'+(H*u)+'" fill="none" stroke="#8B877C" stroke-width="1.4"/>';
+  s+='</svg>';
+  return s;
+}
+function twoWaveHTML(k1,a1,k2,a2){
+  return '<div class="figrow">'
+    +'<div class="figcell"><div class="cap">図1</div>'+waveSVG(k1,a1,12)+'</div>'
+    +'<div class="figcell"><div class="cap">図2</div>'+waveSVG(k2,a2,12)+'</div></div>';
+}
+
+/* ========== 音の計算 ========== */
+var SPD=[320,330,340,350,360];
+function buildOtoSpeed(p){
+  var d=p.v*p.t;
+  var a=assemble(p.v,[p.t*100, d, d/2, p.v/2, p.v*p.t],function(n){return numStr(n)+'m/s';});
+  return {cat:'k_oto',q:'音源から '+numStr(d)+'m はなれた場所で、'+numStr(p.t)+'秒後にその音が聞こえた。このときの音の速さは何m/sか。',
+    c:a.c,a:a.a,exp:'音の速さ＝距離÷時間＝'+numStr(d)+'÷'+numStr(p.t)+'＝'+numStr(p.v)+'m/s。',
+    params:{gen:'otoSpeed',v:p.v,t:p.t}};
+}
+function genOtoSpeed(){ return buildOtoSpeed({v:pick(SPD),t:pick([0.5,1.5,2,2.5,3,4,5])}); }
+
+function buildOtoDist(p){
+  var d=340*p.t;
+  var a=assemble(d,[340/p.t, p.t*100, d*2, 340+p.t],function(n){return numStr(n)+'m';});
+  return {cat:'k_oto',q:'空気中の音の速さを340m/sとする。花火が開くのが見えてから '+numStr(p.t)+'秒後に音が聞こえた。花火が開いた場所までの距離は何mか。',
+    c:a.c,a:a.a,exp:'距離＝速さ×時間＝340×'+numStr(p.t)+'＝'+numStr(d)+'m。光はほぼ一瞬で届くので、この時間はすべて音が伝わった時間と考えてよい。',
+    params:{gen:'otoDist',t:p.t}};
+}
+function genOtoDist(){ return buildOtoDist({t:pick([1.5,2,2.5,3,4,4.5,5])}); }
+
+function buildOtoTime(p){
+  var d=340*p.t;
+  var a=assemble(p.t,[d/34, 340/d, p.t*2, d],function(n){return numStr(n)+'秒';});
+  return {cat:'k_oto',q:'空気中の音の速さを340m/sとする。'+numStr(d)+'m はなれた場所で鳴らした音が聞こえるまでに何秒かかるか。',
+    c:a.c,a:a.a,exp:'時間＝距離÷速さ＝'+numStr(d)+'÷340＝'+numStr(p.t)+'秒。',
+    params:{gen:'otoTime',t:p.t}};
+}
+function genOtoTime(){ return buildOtoTime({t:pick([0.5,1,1.5,2,2.5,3])}); }
+
+function buildOtoEcho(p){
+  var t=2*p.d/p.v;
+  var a=assemble(t,[p.d/p.v, t*2, p.v/p.d, p.d/(2*p.v)],function(n){return numStr(n)+'秒';});
+  return {cat:'k_oto',q:'空気中の音の速さを'+p.v+'m/sとする。垂直な壁から '+p.d+'m はなれた位置で音を鳴らすと、壁で反射した音が聞こえるのは何秒後か。',
+    c:a.c,a:a.a,exp:'音は壁までを往復するので、伝わった距離は '+p.d+'×2＝'+numStr(2*p.d)+'m。時間＝'+numStr(2*p.d)+'÷'+p.v+'＝'+numStr(t)+'秒。「往復で2倍」を忘れないこと。',
+    params:{gen:'otoEcho',v:p.v,d:p.d}};
+}
+function genOtoEcho(){
+  var v=340, d=pick([68,85,102,153,170,340,510]);
+  return buildOtoEcho({v:v,d:d});
+}
+
+function buildOtoEchoSpeed(p){
+  var v=2*p.d/p.t;
+  var a=assemble(v,[p.d/p.t, v/2, p.t*100, p.d*p.t],function(n){return numStr(n)+'m/s';});
+  return {cat:'k_oto',q:'校舎から '+p.d+'m はなれた地点でたいこをたたくと、校舎で反射した音が聞こえるまでの時間は '+numStr(p.t)+'秒であった。このときの音の速さは何m/sか。',
+    c:a.c,a:a.a,exp:'音が伝わった距離は往復なので '+p.d+'×2＝'+numStr(2*p.d)+'m。速さ＝'+numStr(2*p.d)+'÷'+numStr(p.t)+'＝'+numStr(v)+'m/s。',
+    params:{gen:'otoEchoSpeed',d:p.d,t:p.t}};
+}
+function genOtoEchoSpeed(){
+  var pairs=[[68,0.4],[85,0.5],[102,0.6],[170,1],[204,1.2],[255,1.5]];
+  var pr=pick(pairs); return buildOtoEchoSpeed({d:pr[0],t:pr[1]});
+}
+
+function buildOtoHzCount(p){
+  var n=p.hz*p.t;
+  var a=assemble(p.hz,[p.t/n, n, p.hz*p.t, n/2],function(x){return numStr(x)+'Hz';});
+  return {cat:'k_oto',q:numStr(p.t)+'秒間に '+numStr(n)+'回振動する音の振動数は何Hzか。',
+    c:a.c,a:a.a,exp:'振動数＝振動した回数÷振動した時間＝'+numStr(n)+'÷'+numStr(p.t)+'＝'+numStr(p.hz)+'Hz。',
+    params:{gen:'otoHzCount',hz:p.hz,t:p.t}};
+}
+function genOtoHzCount(){ return buildOtoHzCount({hz:pick([200,250,300,400,440,500,600]),t:pick([2,4,5,10])}); }
+
+function buildOtoHzPeriod(p){
+  var hz=1/p.T;
+  var a=assemble(hz,[p.T*1000, hz/2, p.T, 1/(p.T*2)],function(x){return numStr(x)+'Hz';});
+  return {cat:'k_oto',q:numStr(p.T)+'秒間に1回振動する音の振動数は何Hzか。',
+    c:a.c,a:a.a,exp:'振動数＝1÷（1回の振動にかかる時間）＝1÷'+numStr(p.T)+'＝'+numStr(hz)+'Hz。',
+    params:{gen:'otoHzPeriod',T:p.T}};
+}
+function genOtoHzPeriod(){ return buildOtoHzPeriod({T:pick([0.002,0.0025,0.004,0.005,0.008,0.01,0.02])}); }
+
+function buildOtoHzFrac(p){
+  var a=assemble(p.n,[p.n/2, p.n*2, 1/p.n, p.n/10],function(x){return numStr(x)+'Hz';});
+  return {cat:'k_oto',q:'1／'+p.n+' 秒間に1回振動する音の振動数は何Hzか。',
+    c:a.c,a:a.a,exp:'1回の振動にかかる時間が 1／'+p.n+' 秒なので、振動数＝1÷(1／'+p.n+')＝'+p.n+'Hz。1秒間に'+p.n+'回振動する。',
+    params:{gen:'otoHzFrac',n:p.n}};
+}
+function genOtoHzFrac(){ return buildOtoHzFrac({n:pick([100,200,250,400,500,600,800])}); }
+
+function buildOtoWaveHz(p){
+  var T=p.k*p.u, hz=1/T;
+  var a=assemble(hz,[1/p.u, p.k*1000, hz/2, 1/(p.k*p.u*2)],function(x){return numStr(x)+'Hz';});
+  return {cat:'k_oto',q:'図はコンピュータで表した音の波形である。横軸の1目盛りは '+numStr(p.u)+'秒を表している。この音の振動数は何Hzか。',
+    tbl:waveSVG(p.k,3,12),
+    c:a.c,a:a.a,
+    exp:'1回の振動は '+p.k+'目盛りぶんなので、1回の振動にかかる時間は '+numStr(p.u)+'×'+p.k+'＝'+numStr(T)+'秒。振動数＝1÷'+numStr(T)+'＝'+numStr(hz)+'Hz。',
+    params:{gen:'otoWaveHz',k:p.k,u:p.u}};
+}
+function genOtoWaveHz(){ return buildOtoWaveHz({k:pick([2,3,4,6]),u:pick([0.001,0.002,0.0005])}); }
+
+function buildOtoWavePeriod(p){
+  var T=p.k*p.u;
+  var a=assemble(T,[p.u, p.k, T*2, 1/T],function(x){return numStr(x)+'秒';});
+  return {cat:'k_oto',q:'図はコンピュータで表した音の波形である。横軸の1目盛りは '+numStr(p.u)+'秒を表している。この音が1回振動するのにかかる時間は何秒か。',
+    tbl:waveSVG(p.k,3,12),
+    c:a.c,a:a.a,
+    exp:'1回の振動（山と谷が1組）は '+p.k+'目盛りぶん。1回の振動にかかる時間＝'+numStr(p.u)+'×'+p.k+'＝'+numStr(T)+'秒。',
+    params:{gen:'otoWavePeriod',k:p.k,u:p.u}};
+}
+function genOtoWavePeriod(){ return buildOtoWavePeriod({k:pick([2,3,4,6]),u:pick([0.001,0.002,0.0005])}); }
+
+function buildOtoWaveCompare(p){
+  var ratio=p.k1/p.k2;
+  var a=assemble(ratio,[p.k2/p.k1, ratio*2, p.k1, p.k2],function(x){return numStr(x)+'倍';});
+  return {cat:'k_oto',q:'図1・図2は音の波形で、縦軸は振幅、横軸は時間を表し、1目盛りが示す値はどちらも同じである。図2の音の振動数は、図1の音の振動数の何倍か。',
+    tbl:twoWaveHTML(p.k1,p.a1,p.k2,p.a2),
+    c:a.c,a:a.a,
+    exp:'1回の振動の目盛り数は図1が'+p.k1+'、図2が'+p.k2+'。振動数は1回の振動にかかる時間に反比例するので、'+p.k1+'÷'+p.k2+'＝'+numStr(ratio)+'倍。（振幅＝音の大小はここでは関係ない）',
+    params:{gen:'otoWaveCompare',k1:p.k1,k2:p.k2,a1:p.a1,a2:p.a2}};
+}
+function genOtoWaveCompare(){
+  var pr=pick([[4,2],[6,2],[6,3],[4,1],[6,4],[3,1]]);
+  return buildOtoWaveCompare({k1:pr[0],k2:pr[1],a1:pick([2,3]),a2:pick([2,3])});
+}
+
+/* ========== ばねの計算（フックの法則）==========
+   k = 1Nあたりのび〔cm〕。のび＝k×力〔N〕、力〔N〕＝質量〔g〕÷100 */
+var BANE_K=[2,2.5,3,4,5,6,8];
+var BANE_F=[0.2,0.4,0.5,0.6,0.8,1,1.2,1.5];
+function buildBaneNobi(p){
+  var nobi=p.k*p.F;
+  var a=assemble(nobi,[p.k/p.F, p.F/p.k, nobi*2, p.k, p.F*100],function(n){return numStr(n)+'cm';});
+  return {cat:'k_bane',q:'1Nの力で '+numStr(p.k)+'cm のびるばねに、'+numStr(p.F)+'N の力を加えた。ばねののびは何cmか。',
+    c:a.c,a:a.a,exp:'のびは力に比例する（フックの法則）。'+numStr(p.k)+'×'+numStr(p.F)+'＝'+numStr(nobi)+'cm。',
+    params:{gen:'baneNobi',k:p.k,F:p.F}};
+}
+function genBaneNobi(){ return buildBaneNobi({k:pick(BANE_K),F:pick(BANE_F)}); }
+
+function buildBaneForce(p){
+  var nobi=p.k*p.F;
+  var a=assemble(p.F,[nobi/p.k/2, nobi*p.k, p.k/nobi, p.F*100],function(n){return numStr(n)+'N';});
+  return {cat:'k_bane',q:'1Nの力で '+numStr(p.k)+'cm のびるばねが '+numStr(nobi)+'cm のびた。ばねに加えた力の大きさは何Nか。',
+    c:a.c,a:a.a,exp:'力＝のび÷（1Nあたりのび）＝'+numStr(nobi)+'÷'+numStr(p.k)+'＝'+numStr(p.F)+'N。',
+    params:{gen:'baneForce',k:p.k,F:p.F}};
+}
+function genBaneForce(){ return buildBaneForce({k:pick(BANE_K),F:pick(BANE_F)}); }
+
+function buildBaneMass(p){
+  var nobi=p.k*p.F, m=p.F*100;
+  var a=assemble(m,[p.F, nobi*100, m/10, nobi*p.k],function(n){return numStr(n)+'g';});
+  return {cat:'k_bane',q:'1Nの力で '+numStr(p.k)+'cm のびるばねに おもりをつるすと '+numStr(nobi)+'cm のびた。おもりの質量は何gか。（100gの物体にはたらく重力の大きさを1Nとする）',
+    c:a.c,a:a.a,exp:'ばねに加わった力＝'+numStr(nobi)+'÷'+numStr(p.k)+'＝'+numStr(p.F)+'N。100gで1Nだから '+numStr(p.F)+'×100＝'+numStr(m)+'g。',
+    params:{gen:'baneMass',k:p.k,F:p.F}};
+}
+function genBaneMass(){ return buildBaneMass({k:pick(BANE_K),F:pick(BANE_F)}); }
+
+function buildBaneLength(p){
+  var F=p.m/100, nobi=p.k*F, L=p.L0+nobi;
+  var a=assemble(L,[nobi, p.L0, p.L0+F, nobi*2],function(n){return numStr(n)+'cm';});
+  return {cat:'k_bane',q:'何もつるさないとき '+numStr(p.L0)+'cm のばねがある。このばねは1Nの力で '+numStr(p.k)+'cm のびる。'+numStr(p.m)+'g のおもりをつるしたとき、ばねの長さは何cmか。（100gの物体にはたらく重力の大きさを1Nとする）',
+    c:a.c,a:a.a,exp:'力＝'+numStr(p.m)+'÷100＝'+numStr(F)+'N。のび＝'+numStr(p.k)+'×'+numStr(F)+'＝'+numStr(nobi)+'cm。ばねの長さ＝自然長＋のび＝'+numStr(p.L0)+'＋'+numStr(nobi)+'＝'+numStr(L)+'cm。「のび」だけ答えないよう注意。',
+    params:{gen:'baneLength',L0:p.L0,k:p.k,m:p.m}};
+}
+function genBaneLength(){ return buildBaneLength({L0:pick([4,5,8,10,12,15,25]),k:pick([2,2.5,4,5]),m:pick([20,40,50,60,80,100])}); }
+
+function buildBaneMassForLen(p){
+  var nobi=p.k*(p.m/100), L=p.L0+nobi;
+  var a=assemble(p.m,[nobi*100, L*10, p.m/2, nobi],function(n){return numStr(n)+'g';});
+  return {cat:'k_bane',q:'何もつるさないとき '+numStr(p.L0)+'cm のばねがある。このばねは1Nの力で '+numStr(p.k)+'cm のびる。ばねの長さを '+numStr(L)+'cm にするには、何gのおもりをつるせばよいか。（100gの物体にはたらく重力の大きさを1Nとする）',
+    c:a.c,a:a.a,exp:'必要なのび＝'+numStr(L)+'−'+numStr(p.L0)+'＝'+numStr(nobi)+'cm。力＝'+numStr(nobi)+'÷'+numStr(p.k)+'＝'+numStr(p.m/100)+'N。質量＝'+numStr(p.m/100)+'×100＝'+numStr(p.m)+'g。',
+    params:{gen:'baneMassForLen',L0:p.L0,k:p.k,m:p.m}};
+}
+function genBaneMassForLen(){ return buildBaneMassForLen({L0:pick([4,5,8,10,12]),k:pick([2,2.5,4,5]),m:pick([20,40,60,80,100,120])}); }
+
+/* 表から読み取る型。表そのものが問題の一部なので tbl を Divp.answer に渡す */
+function baneTableHTML(L0,k){
+  var ms=[0,20,40,60,80,100], h='<table><tr><th>おもりの質量〔g〕</th>', r='<tr><td>ばねの長さ〔cm〕</td>';
+  ms.forEach(function(m){ h+='<th>'+m+'</th>'; r+='<td>'+numStr(L0+k*(m/100))+'</td>'; });
+  return h+'</tr>'+r+'</tr></table>';
+}
+function buildBaneTable(p){
+  var nobi=p.k*(p.m/100);
+  var a=assemble(nobi,[p.L0+nobi, p.m/100, nobi*2, p.k],function(n){return numStr(n)+'cm';});
+  return {cat:'k_bane',q:'表は、あるばねにおもりをつるしたときのばねの長さをまとめたものである。'+numStr(p.m)+'g のおもりをつるしたとき、ばねの「のび」は何cmか。',
+    tbl:baneTableHTML(p.L0,p.k),
+    c:a.c,a:a.a,exp:'のび＝ばねの長さ−自然長（0gのときの長さ '+numStr(p.L0)+'cm）＝'+numStr(p.L0+nobi)+'−'+numStr(p.L0)+'＝'+numStr(nobi)+'cm。',
+    params:{gen:'baneTable',L0:p.L0,k:p.k,m:p.m}};
+}
+function genBaneTable(){ return buildBaneTable({L0:pick([4,5,10,12,25]),k:pick([2,2.5,4,5]),m:pick([20,40,60,80,100])}); }
+
+/* ========== 重さと質量の計算 ========== */
+function buildJuryokuN(p){
+  var N=p.m/100;
+  var a=assemble(N,[p.m, p.m/10, p.m/1000, N*6, N/6],function(n){return numStr(n)+'N';});
+  return {cat:'k_juryoku',q:'質量 '+numStr(p.m)+'g の物体にはたらく重力の大きさは何Nか。（100gの物体にはたらく重力の大きさを1Nとする）',
+    c:a.c,a:a.a,exp:'100gで1Nだから '+numStr(p.m)+'÷100＝'+numStr(N)+'N。',
+    params:{gen:'juryokuN',m:p.m}};
+}
+function genJuryokuN(){ return buildJuryokuN({m:pick([30,50,120,150,250,300,450,600,800,1000])}); }
+
+function buildMassFromN(p){
+  var m=p.N*100;
+  var a=assemble(m,[p.N, p.N*1000, m/6, m*6],function(n){return numStr(n)+'g';});
+  return {cat:'k_juryoku',q:'ばねばかりが '+numStr(p.N)+'N を示した。この物体の質量は何gか。（100gの物体にはたらく重力の大きさを1Nとする）',
+    c:a.c,a:a.a,exp:'1Nが100gにあたるので '+numStr(p.N)+'×100＝'+numStr(m)+'g。',
+    params:{gen:'massFromN',N:p.N}};
+}
+function genMassFromN(){ return buildMassFromN({N:pick([0.5,0.6,1.2,1.5,2,2.5,3,4.5,6])}); }
+
+function buildMoonSpring(p){
+  var earth=p.m/100, moon=earth/6;
+  var a=assemble(moon,[earth, earth*6, p.m/6, p.m/600/2],function(n){return numStr(n)+'N';});
+  return {cat:'k_juryoku',q:'質量 '+numStr(p.m)+'g の物体を月面上でばねばかりではかると、何Nを示すか。（100gの物体にはたらく重力の大きさを地球上で1N、月面上の重力は地球上の6分の1とする）',
+    c:a.c,a:a.a,exp:'地球上の重さは '+numStr(p.m)+'÷100＝'+numStr(earth)+'N。ばねばかりは重さ（重力の大きさ）をはかるので、月面では '+numStr(earth)+'÷6＝'+numStr(moon)+'N。',
+    params:{gen:'moonSpring',m:p.m}};
+}
+function genMoonSpring(){ return buildMoonSpring({m:pick([600,1200,1800,2400,3000,300])}); }
+
+function buildMoonBalance(p){
+  var wrongs=[numStr(p.m/6)+'g', numStr(p.m*6)+'g', numStr(p.m/100)+'g', numStr(p.m/2)+'g', numStr(p.m/3)+'g'];
+  var out=[numStr(p.m)+'g'], seen={}; seen[out[0]]=1;
+  wrongs.forEach(function(w){ if(out.length<6 && !seen[w]){ seen[w]=1; out.push(w); } });
+  return {cat:'k_juryoku',q:'地球上で上皿てんびんを使うと '+numStr(p.m)+'g の分銅とつり合う物体がある。この物体を月面上で上皿てんびんではかると、何gの分銅とつり合うか。（月面上の重力は地球上の6分の1とする）',
+    c:shuffle(out),a:numStr(p.m)+'g',
+    exp:'上皿てんびんは「質量」をはかる器具。質量は場所によって変わらないので、月面でも同じ '+numStr(p.m)+'g の分銅とつり合う（ばねばかりなら6分の1になる）。',
+    params:{gen:'moonBalance',m:p.m}};
+}
+function genMoonBalance(){ return buildMoonBalance({m:pick([120,180,240,300,600,900])}); }
+
+/* ========== 圧力の計算 ========== */
+function buildAtsuPa(p){
+  var P=p.F/p.A;
+  var a=assemble(P,[p.A/p.F, p.F*p.A, P/10, P*10, p.F],function(n){return numStr(n)+'Pa';});
+  return {cat:'k_atsu',q:numStr(p.A)+'m² の面を '+numStr(p.F)+'N の力で垂直に押したときの圧力は何Paか。',
+    c:a.c,a:a.a,exp:'圧力＝力÷面積＝'+numStr(p.F)+'÷'+numStr(p.A)+'＝'+numStr(P)+'Pa。',
+    params:{gen:'atsuPa',F:p.F,A:p.A}};
+}
+function genAtsuPa(){ return buildAtsuPa({F:pick([10,20,30,40,50,60,100,120]),A:pick([0.1,0.2,0.25,0.5,2,4])}); }
+
+function buildAtsuForce(p){
+  var F=p.P*p.A;
+  var a=assemble(F,[p.P/p.A, p.A/p.P, F/10, p.P],function(n){return numStr(n)+'N';});
+  return {cat:'k_atsu',q:numStr(p.A)+'m² の面に '+numStr(p.P)+'Pa の圧力がかかっている。この面を垂直に押している力は何Nか。',
+    c:a.c,a:a.a,exp:'力＝圧力×面積＝'+numStr(p.P)+'×'+numStr(p.A)+'＝'+numStr(F)+'N。',
+    params:{gen:'atsuForce',P:p.P,A:p.A}};
+}
+function genAtsuForce(){ return buildAtsuForce({P:pick([50,100,200,250,400,500]),A:pick([0.1,0.2,0.4,0.5,2])}); }
+
+function buildAtsuArea(p){
+  var A=p.F/p.P;
+  var a=assemble(A,[p.P/p.F, p.F*p.P, A*10, A/10],function(n){return numStr(n)+'m²';});
+  return {cat:'k_atsu',q:numStr(p.F)+'N の力で垂直に押したときの圧力が '+numStr(p.P)+'Pa であった。力がはたらいた面積は何m²か。',
+    c:a.c,a:a.a,exp:'面積＝力÷圧力＝'+numStr(p.F)+'÷'+numStr(p.P)+'＝'+numStr(A)+'m²。',
+    params:{gen:'atsuArea',F:p.F,P:p.P}};
+}
+function genAtsuArea(){
+  var A=pick([0.1,0.2,0.25,0.5,2]), P=pick([100,200,400,500]);
+  return buildAtsuArea({F:P*A,P:P});
+}
+
+function buildAtsuBlockCm(p){
+  var F=p.m/100, Am=p.a*p.b/10000, P=F/Am;
+  var a=assemble(P,[F/(p.a*p.b), p.m/(p.a*p.b), P/10, P*10, p.m],function(n){return numStr(n)+'Pa';});
+  return {cat:'k_atsu',q:'質量 '+numStr(p.m)+'g の直方体を、'+p.a+'cm×'+p.b+'cm の面を下にして水平な机の上に置いた。机が受ける圧力は何Paか。（100gの物体にはたらく重力の大きさを1Nとする）',
+    c:a.c,a:a.a,
+    exp:'力＝'+numStr(p.m)+'÷100＝'+numStr(F)+'N。面積＝'+p.a+'×'+p.b+'＝'+numStr(p.a*p.b)+'cm²＝'+numStr(Am)+'m²（10000でわる）。圧力＝'+numStr(F)+'÷'+numStr(Am)+'＝'+numStr(P)+'Pa。',
+    params:{gen:'atsuBlockCm',m:p.m,a:p.a,b:p.b}};
+}
+function genAtsuBlockCm(){
+  var pr=pick([[10,10],[10,20],[20,20],[10,25],[20,25],[10,40],[5,20],[5,10]]);
+  var P=pick([200,300,400,500,600,800]);
+  var m=P*pr[0]*pr[1]/100;
+  if(m!==Math.round(m)) m=Math.round(m/10)*10;
+  return buildAtsuBlockCm({m:m,a:pr[0],b:pr[1]});
+}
+
+function blockFaceTableHTML(x,y,z){
+  return '<table><tr><th>下にする面</th><th>面の大きさ</th></tr>'
+    +'<tr><td>面A</td><td>'+x+'cm × '+y+'cm</td></tr>'
+    +'<tr><td>面B</td><td>'+y+'cm × '+z+'cm</td></tr>'
+    +'<tr><td>面C</td><td>'+x+'cm × '+z+'cm</td></tr></table>';
+}
+function buildAtsuBlockFace(p){
+  var areas={'面A':p.x*p.y,'面B':p.y*p.z,'面C':p.x*p.z};
+  var names=['面A','面B','面C'], best=names[0], i;
+  for(i=1;i<3;i++){
+    if(p.kind==='max' ? areas[names[i]]<areas[best] : areas[names[i]]>areas[best]) best=names[i];
+  }
+  var c=['面A','面B','面C','どの面でも同じ','いちばん高くなる面','面積では決まらない'];
+  return {cat:'k_atsu',q:'たて '+p.x+'cm、横 '+p.y+'cm、高さ '+p.z+'cm の直方体を、下にする面を変えて水平な机の上に置いた。机が受ける圧力が'+(p.kind==='max'?'もっとも大きく':'もっとも小さく')+'なるのは、どの面を下にしたときか。',
+    tbl:blockFaceTableHTML(p.x,p.y,p.z),
+    c:shuffle(c),a:best,
+    exp:'押す力（重さ）はどの向きでも同じなので、圧力は面積だけで決まる。面Aは'+areas['面A']+'cm²、面Bは'+areas['面B']+'cm²、面Cは'+areas['面C']+'cm²。圧力＝力÷面積なので、面積が'+(p.kind==='max'?'いちばん小さい':'いちばん大きい')+' '+best+' のとき圧力が'+(p.kind==='max'?'最大':'最小')+'になる。',
+    params:{gen:'atsuBlockFace',x:p.x,y:p.y,z:p.z,kind:p.kind}};
+}
+function genAtsuBlockFace(){
+  var t=pick([[4,6,10],[5,8,20],[3,5,12],[6,10,15],[4,5,8],[2,6,9]]);
+  return buildAtsuBlockFace({x:t[0],y:t[1],z:t[2],kind:pick(['max','min'])});
+}
+
+/* ========== 凸レンズの計算 ========== */
+function buildLensHeight(p){
+  var x=p.L*p.b/p.a;
+  var a=assemble(x,[p.L*p.a/p.b, p.L, p.a/p.b, p.b/p.a*10],function(n){return numStr(n)+'cm';});
+  return {cat:'k_lens',q:'高さ '+numStr(p.L)+'cm の光源を凸レンズから '+numStr(p.a)+'cm の位置に置くと、凸レンズから '+numStr(p.b)+'cm の位置にあるスクリーンにはっきりした実像がうつった。この実像の高さは何cmか。',
+    c:a.c,a:a.a,
+    exp:'a：b＝ℓ：x が成り立つ（2つの三角形が拡大・縮図の関係）。'+numStr(p.a)+'：'+numStr(p.b)+'＝'+numStr(p.L)+'：x より x＝'+numStr(p.L)+'×'+numStr(p.b)+'÷'+numStr(p.a)+'＝'+numStr(x)+'cm。',
+    params:{gen:'lensHeight',a:p.a,b:p.b,L:p.L}};
+}
+function genLensHeight(){
+  var pr=pick([[40,24],[30,30],[20,60],[40,20],[30,15],[20,30],[36,24],[15,45]]);
+  return buildLensHeight({a:pr[0],b:pr[1],L:pick([2,3,4,5,6])});
+}
+
+function buildLensFocusSame(p){
+  var f=p.a/2;
+  var a=assemble(f,[p.a, p.a*2, p.a/4, p.a/3],function(n){return numStr(n)+'cm';});
+  return {cat:'k_lens',q:'凸レンズから '+numStr(p.a)+'cm の位置に物体を置くと、スクリーンに物体と同じ大きさの実像がはっきりとうつった。この凸レンズの焦点距離は何cmか。',
+    c:a.c,a:a.a,
+    exp:'物体と同じ大きさの実像ができるのは、物体が焦点距離の2倍の位置にあるとき。焦点距離＝'+numStr(p.a)+'÷2＝'+numStr(f)+'cm。',
+    params:{gen:'lensFocusSame',a:p.a}};
+}
+function genLensFocusSame(){ return buildLensFocusSame({a:pick([16,20,24,28,32,36,40])}); }
+
+function buildLensSameDist(p){
+  var d=p.f*2;
+  var a=assemble(d,[p.f, p.f*4, p.f/2, p.f*3],function(n){return numStr(n)+'cm';});
+  return {cat:'k_lens',q:'焦点距離 '+numStr(p.f)+'cm の凸レンズを使って、物体と同じ大きさの実像をスクリーンにうつしたい。物体は凸レンズから何cmの位置に置けばよいか。',
+    c:a.c,a:a.a,
+    exp:'物体と同じ大きさの実像ができるのは、物体が焦点距離の2倍の位置にあるとき。'+numStr(p.f)+'×2＝'+numStr(d)+'cm（スクリーンも凸レンズから'+numStr(d)+'cmの位置になる）。',
+    params:{gen:'lensSameDist',f:p.f}};
+}
+function genLensSameDist(){ return buildLensSameDist({f:pick([6,8,10,12,15,16,18])}); }
+
+function buildLensFocusGrid(p){
+  var f=p.mem*p.u;
+  var a=assemble(f,[p.mem, p.u, f*2, f/2],function(n){return numStr(n)+'cm';});
+  return {cat:'k_lens',q:'光軸に平行な光を凸レンズに当てたところ、光は凸レンズの中心から '+p.mem+'目盛りの点に集まった。光軸の1目盛りが '+numStr(p.u)+'cm のとき、この凸レンズの焦点距離は何cmか。',
+    c:a.c,a:a.a,exp:'光軸に平行な光が集まる点が焦点。焦点距離＝'+numStr(p.u)+'×'+p.mem+'＝'+numStr(f)+'cm。',
+    params:{gen:'lensFocusGrid',mem:p.mem,u:p.u}};
+}
+function genLensFocusGrid(){ return buildLensFocusGrid({mem:pick([2,3,4,5]),u:pick([2,3,4,5])}); }
+
+/* ========== 光：反射・鏡（数値問題）========== */
+function buildHanshaMirror(p){
+  var inc=90-p.a;
+  var a=assemble(inc,[p.a, 90+p.a, 180-p.a, p.a/2],function(n){return numStr(n)+'°';});
+  return {cat:'h_hansha',q:'鏡の面と光のなす角が '+p.a+'° になるように光を当てた。このときの入射角は何度か。',
+    c:a.c,a:a.a,
+    exp:'入射角は「鏡の面に垂直な直線」との角なので、90°−'+p.a+'°＝'+inc+'°。鏡の面との角（'+p.a+'°）と混同しないこと。反射角も'+inc+'°になる。',
+    params:{gen:'hanshaMirror',a:p.a}};
+}
+function genHanshaMirror(){ return buildHanshaMirror({a:pick([20,25,30,35,40,50,55,60,70])}); }
+
+function buildHanshaSum(p){
+  var inc=p.sum/2;
+  var a=assemble(inc,[p.sum, 90-p.sum, p.sum/4, 180-p.sum],function(n){return numStr(n)+'°';});
+  return {cat:'h_hansha',q:'鏡に当てた光の、入射光と反射光がつくる角の大きさが '+p.sum+'° であった。入射角は何度か。',
+    c:a.c,a:a.a,
+    exp:'入射角＝反射角（反射の法則）で、その2つを合わせた角が'+p.sum+'°。だから入射角＝'+p.sum+'÷2＝'+inc+'°。',
+    params:{gen:'hanshaSum',sum:p.sum}};
+}
+function genHanshaSum(){ return buildHanshaSum({sum:pick([40,50,60,70,80,90,100,110,120])}); }
+
+function buildKagamiZenshin(p){
+  var need=p.h/2;
+  var a=assemble(need,[p.h, p.h/3, p.h-p.eye, p.eye/2],function(n){return numStr(n)+'cm';});
+  return {cat:'h_kagami',q:'身長 '+p.h+'cm、目の高さ '+p.eye+'cm の人が、床に垂直に立てた鏡に全身をちょうどうつすには、鏡の縦の長さを何cmにすればよいか。',
+    c:a.c,a:a.a,
+    exp:'鏡では入射角＝反射角なので、必要な鏡の長さは身長の半分。'+p.h+'÷2＝'+need+'cm。（目の高さは鏡を取りつける高さを決めるときに使う）',
+    params:{gen:'kagamiZenshin',h:p.h,eye:p.eye}};
+}
+function genKagamiZenshin(){
+  var h=pick([140,144,150,152,156,160,164,170]);
+  return buildKagamiZenshin({h:h,eye:h-12});
+}
+
+function buildKagamiShitan(p){
+  var low=p.eye/2;
+  var a=assemble(low,[p.h/2, p.eye, p.h-p.eye, p.h/2-p.eye/2],function(n){return numStr(n)+'cm';});
+  return {cat:'h_kagami',q:'身長 '+p.h+'cm、目の高さ '+p.eye+'cm の人の全身をちょうどうつす鏡を、床に垂直に取りつける。鏡の下端の床からの高さは何cmにすればよいか。',
+    c:a.c,a:a.a,
+    exp:'足元から出た光が鏡で反射して目に届くには、鏡の下端が「床と目の高さの中間」にあればよい。'+p.eye+'÷2＝'+low+'cm。',
+    params:{gen:'kagamiShitan',h:p.h,eye:p.eye}};
+}
+function genKagamiShitan(){
+  var h=pick([140,150,152,160,164,170]);
+  return buildKagamiShitan({h:h,eye:h-10});
+}
+
+/* cat → 生成関数（buildQueueで該当スコープに差し込む） */
+var GENERATORS={
+  h_hansha:[genHanshaMirror, genHanshaSum],
+  h_kagami:[genKagamiZenshin, genKagamiShitan],
+  k_oto:[genOtoSpeed, genOtoDist, genOtoTime, genOtoEcho, genOtoEchoSpeed,
+         genOtoHzCount, genOtoHzPeriod, genOtoHzFrac, genOtoWaveHz, genOtoWavePeriod, genOtoWaveCompare],
+  k_bane:[genBaneNobi, genBaneForce, genBaneMass, genBaneLength, genBaneMassForLen, genBaneTable],
+  k_juryoku:[genJuryokuN, genMassFromN, genMoonSpring, genMoonBalance],
+  k_atsu:[genAtsuPa, genAtsuForce, genAtsuArea, genAtsuBlockCm, genAtsuBlockFace],
+  k_lens:[genLensHeight, genLensFocusSame, genLensSameDist, genLensFocusGrid]
+};
+/* params.gen → build関数（解き直しで同じ問題を復元する） */
+var REBUILDERS={
+  hanshaMirror:buildHanshaMirror, hanshaSum:buildHanshaSum,
+  kagamiZenshin:buildKagamiZenshin, kagamiShitan:buildKagamiShitan,
+  otoSpeed:buildOtoSpeed, otoDist:buildOtoDist, otoTime:buildOtoTime,
+  otoEcho:buildOtoEcho, otoEchoSpeed:buildOtoEchoSpeed,
+  otoHzCount:buildOtoHzCount, otoHzPeriod:buildOtoHzPeriod, otoHzFrac:buildOtoHzFrac,
+  otoWaveHz:buildOtoWaveHz, otoWavePeriod:buildOtoWavePeriod, otoWaveCompare:buildOtoWaveCompare,
+  baneNobi:buildBaneNobi, baneForce:buildBaneForce, baneMass:buildBaneMass,
+  baneLength:buildBaneLength, baneMassForLen:buildBaneMassForLen, baneTable:buildBaneTable,
+  juryokuN:buildJuryokuN, massFromN:buildMassFromN, moonSpring:buildMoonSpring, moonBalance:buildMoonBalance,
+  atsuPa:buildAtsuPa, atsuForce:buildAtsuForce, atsuArea:buildAtsuArea,
+  atsuBlockCm:buildAtsuBlockCm, atsuBlockFace:buildAtsuBlockFace,
+  lensHeight:buildLensHeight, lensFocusSame:buildLensFocusSame,
+  lensSameDist:buildLensSameDist, lensFocusGrid:buildLensFocusGrid
+};
+function rebuildFromParams(p){
+  if(!p||!p.gen||!REBUILDERS[p.gen]) return null;
+  try{ return REBUILDERS[p.gen](p); }catch(e){ return null; }
+}
+
+/* ── 出題キューを作る ── */
+function buildQueue(spec){
+  if(spec.queue) return spec.queue.slice();
+  var pool;
+  if(spec.cat) pool=BANK.filter(function(q){return q.cat===spec.cat;});
+  else if(spec.mode) pool=BANK.filter(function(q){return CAT_MODE[q.cat]===spec.mode;});
+  else pool=BANK.slice();
+  /* 動的生成問題を該当スコープに追加（毎回ちがう数値で作られる） */
+  Object.keys(GENERATORS).forEach(function(c){
+    var inScope = spec.cat ? (spec.cat===c) : spec.mode ? (CAT_MODE[c]===spec.mode) : true;
+    if(inScope) GENERATORS[c].forEach(function(fn){ pool=pool.concat(fn()); });
+  });
+  pool=shuffle(pool);
+  if(spec.cap) pool=pool.slice(0,Math.min(spec.cap,pool.length));
+  return pool;
+}
+
+/* ── クイズ開始 ── */
+function startQuiz(spec){
+  state.spec=spec; state.idx=0; state.correct=0; state.byCat={}; state.retry=!!spec.retry;
+  state.queue=buildQueue(spec);
+  byId('retryBanner').hidden=!state.retry;
+  byId('start').hidden=true; byId('result').hidden=true; byId('quiz').hidden=false;
+  byId('qTot').textContent=state.queue.length;
+  window.scrollTo(0,0); renderQ();
+}
+
+/* ── 1問描画 ── */
+function renderQ(){
+  var q=state.queue[state.idx], m=CAT_MODE[q.cat], md=MODES[m]||{ico:''}, cat=CATS[q.cat]||q.cat;
+  byId('badgeCat').innerHTML=(md.ico||'')+' '+cat;
+  byId('qCur').textContent=state.idx+1;
+  byId('qScore').textContent=state.correct;
+  byId('progBar').style.width=(state.idx/state.queue.length*100)+'%';
+  byId('qnum').textContent='Q'+(state.idx+1);
+  byId('qtext').textContent=q.q;
+  byId('qtbl').innerHTML=q.tbl||'';
+  var exp=byId('explain'); exp.className=''; exp.innerHTML='';
+  var next=byId('next'); next.className='btn btn-primary';
+  next.textContent=(state.idx===state.queue.length-1)?'結果を見る →':'次へ →';
+  var grade=byId('grade'); grade.className='btn btn-primary'; grade.disabled=false;
+  state.selected=null; state.graded=false;
+  safeDivpClear('#qcard');
+  var choices=shuffle(q.c), box=byId('choices'); box.innerHTML='';
+  choices.forEach(function(txt,i){
+    var b=document.createElement('button'); b.className='ch'; b.type='button';
+    b.innerHTML='<span class="no">'+MARU[i]+'</span><span class="tx"></span>';
+    b.querySelector('.tx').textContent=txt;      /* 選択肢は textContent で入れる（記号の混入で崩れない） */
+    b.addEventListener('click',function(){ onSelect(txt,b); });
+    box.appendChild(b);
+  });
+}
+
+/* ── 選択（まだ採点しない）── */
+function onSelect(txt,btn){
+  if(state.graded) return;
+  state.selected={txt:txt,btn:btn};
+  byId('choices').querySelectorAll('.ch').forEach(function(el){ el.classList.remove('sel'); });
+  btn.classList.add('sel');
+  byId('grade').classList.add('show');   /* 選んだら「答え合わせ」を出す */
+}
+
+/* ── 採点（「答え合わせ」ボタンで実行）── */
+function gradeCurrent(){
+  if(!state.selected||state.graded) return;
+  var q=state.queue[state.idx], chosen=state.selected.txt, btn=state.selected.btn;
+  state.graded=true;
+  var ok=(chosen===q.a);
+  /* 採点表示は共通モジュール divp-choice-mark.js に任せる
+     （正解=緑 / 選んだ誤答=橙 / 選ばなかった正解=緑＋「正解」バッジ / 残りは薄く）。
+     モジュールが無い環境では従来の .ok/.ng クラスで最低限の色をつける。 */
+  var els=[], ci=-1, si=-1;
+  byId('choices').querySelectorAll('.ch').forEach(function(el,i){
+    els.push(el); el.disabled=true; el.classList.remove('sel');
+    if(el.querySelector('.tx').textContent===q.a) ci=i;
+    if(el===btn) si=i;
+  });
+  if(window.Divp&&typeof Divp.markChoices==='function'){
+    Divp.markChoices(els,{correct:ci,selected:si,dimOthers:true});
+  }else{
+    if(ci>=0) els[ci].classList.add('ok');
+    if(!ok&&si>=0) els[si].classList.add('ng');
+  }
+  if(ok) state.correct++;
+  var bc=state.byCat[q.cat]||(state.byCat[q.cat]={s:0,c:0}); bc.s++; if(ok) bc.c++;
+  byId('qScore').textContent=state.correct;
+  if(ok) safeDivpCorrect('#qcard'); else safeDivpIncorrect('#qcard');
+  var exp=byId('explain');
+  exp.innerHTML='<span class="lbl">'+(ok?'正解！':'正解は「'+q.a+'」')+'</span>'+q.exp;
+  exp.className='show';
+  /* 図・表つきの問題は、図が無いと講師ページの解き直しプリントで成立しない。
+     また「正しく述べたものを選ぶ」型は選択肢そのものが問題の中身なので、
+     画面に出したものをそのまま渡す（どちらも誤答のときだけ保存される）。 */
+  safeDivpAnswer(ok,{question_key:CAT_MODE[q.cat],question_params:q.params||{id:q.id},question_text:q.q,
+    question_figure:q.tbl||null,
+    question_choices:q.c.map(function(t){return {t:'tex',v:t};}),
+    correct_answer:q.a,wrong_answer:chosen});
+  byId('grade').classList.remove('show');   /* 採点したら「答え合わせ」を隠して「次へ」を出す */
+  byId('next').classList.add('show');
+  byId('progBar').style.width=((state.idx+1)/state.queue.length*100)+'%';
+}
+byId('grade').addEventListener('click',gradeCurrent);
+
+byId('next').addEventListener('click',function(){
+  if(state.idx<state.queue.length-1){ state.idx++; renderQ(); window.scrollTo(0,0); } else showResult();
+});
+
+/* ── 結果 ── */
+function showResult(){
+  byId('quiz').hidden=true; byId('result').hidden=false; window.scrollTo(0,0);
+  var total=state.queue.length, correct=state.correct, pct=total?Math.round(correct/total*100):0;
+  byId('resCorrect').textContent=correct; byId('resTotal').textContent=total; byId('resPct').textContent='正答率 '+pct+'%';
+  var face,title;
+  if(pct===100){face='💮';title='パーフェクト！さすが！';}
+  else if(pct>=80){face='🌸';title='とてもよくできました！';}
+  else if(pct>=60){face='✏️';title='あと少し！復習しよう';}
+  else{face='📒';title='まとめ表でおさらいしよう';}
+  byId('resFace').textContent=face; byId('resTitle').textContent=title;
+  var bd=byId('breakdown'); bd.innerHTML='';
+  Object.keys(state.byCat).forEach(function(c){
+    var d=state.byCat[c], md=MODES[CAT_MODE[c]]||{ico:''}, r=d.s?Math.round(d.c/d.s*100):0, low=r<60;
+    var maru=r>=90?'<span class="maruicon">◎</span>':'';
+    bd.innerHTML+='<div class="bd-row"><span class="nm">'+(md.ico||'')+' '+(CATS[c]||c)+'</span>'
+      +'<span class="bd-bar"><span class="'+(low?'low':'')+'" style="width:'+r+'%"></span></span>'
+      +'<span class="sc">'+d.c+'/'+d.s+' '+maru+'</span></div>';
+  });
+}
+
+byId('startMix').addEventListener('click',function(){ startQuiz({cap:20}); });
+byId('quitBtn').addEventListener('click',backToStart);
+byId('backBtn').addEventListener('click',backToStart);
+byId('againBtn').addEventListener('click',function(){ startQuiz(state.spec||{cap:20}); });
+function backToStart(){ byId('quiz').hidden=true; byId('result').hidden=true; byId('start').hidden=false; window.scrollTo(0,0); }
+
+/* モードカードを描画（GENERATORS定義後なので生成問題の本数も正しく数えられる） */
+buildModeGrid();
+
+/* ── まとめ表モーダル ── */
+byId('openTable').addEventListener('click',function(){
+  byId('tableModal').hidden=false;
+  if(state.selMode) switchRef(state.selMode);
+});
+byId('tableClose').addEventListener('click',function(){ byId('tableModal').hidden=true; });
+byId('tableModal').addEventListener('click',function(e){ if(e.target===this) this.hidden=true; });
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') byId('tableModal').hidden=true; });
+byId('refTabs').addEventListener('click',function(e){ var b=e.target.closest('.ref-tab'); if(b) switchRef(b.getAttribute('data-ref')); });
+function switchRef(ref){
+  byId('refTabs').querySelectorAll('.ref-tab').forEach(function(t){ t.classList.toggle('active',t.getAttribute('data-ref')===ref); });
+  document.querySelectorAll('.ref-pane').forEach(function(p){ p.classList.toggle('active',p.getAttribute('data-ref')===ref); });
+}
+
+/* ── 解き直しモード（?retry=1）──
+   question_params は静的問題が {id}、生成問題が {gen,…}。
+   生成問題は REBUILDERS で同じ数値の問題を作り直す（params_hash が一致するので
+   2連続正解で mastered になり、解き直しリストから消える）。 */
+(function checkRetry(){
+  var params=new URLSearchParams(location.search);
+  if(params.get('retry')!=='1' || !(window.Divp&&typeof Divp.getRetries==='function')) return;
+  Divp.getRetries().then(function(items){
+    if(!items||!items.length) return;
+    var queue=[], seenStatic={};
+    items.forEach(function(it){
+      var p=it.question_params; if(typeof p==='string'){try{p=JSON.parse(p);}catch(e){p=null;}}
+      if(!p) return;
+      if(p.gen){                                   /* 生成問題：paramsから同じ問題を復元 */
+        var g=rebuildFromParams(p); if(g) queue.push(g);
+      } else if(p.id && !seenStatic[p.id]){        /* 静的問題：BANKからidで取得 */
+        seenStatic[p.id]=true;
+        var b=BANK.filter(function(q){return q.id===p.id;})[0]; if(b) queue.push(b);
+      }
+    });
+    queue=shuffle(queue);
+    if(!queue.length) return;
+    state.retryQueue=queue; startQuiz({queue:queue,retry:true});
+  }).catch(function(){});
+})();
+</script>
+</body>
+</html>

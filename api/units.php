@@ -173,6 +173,11 @@ return [
         'sub'   => '理科・中1',
         'url'   => '/learning/science/science_js1_busshitsu.html',
     ],
+    'science_js1_hikari_oto_chikara' => [
+        'title' => '光・音・力マスター',
+        'sub'   => '理科・中1',
+        'url'   => '/learning/science/science_js1_hikari_oto_chikara.html',
+    ],
     'science_js1_daichi' => [
         'title' => '大地の変化マスター',
         'sub'   => '理科・中1',
