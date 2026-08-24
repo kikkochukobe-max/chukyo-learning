@@ -13,6 +13,16 @@ assets/                共通モジュール（全ツールがscriptタグで読
                         モジュール側で一律に消している。ツール側にも同じ1行を入れてあるので
                         （HTMLだけ先に上げても紙に出ない）、印刷シートを新設するときは
                         `.divp-header{display:none!important}` を印刷CSSに書くこと。
+                        ⚠ **script タグは必ず `<body>` 開始直後に置く**。ヘッダーは
+                        `document.currentScript` の位置に挿すので、`<head>` に書くと
+                        （defer 付きでも）`<head>` の中に入って**画面に一切出ない**。
+                        エラーが出ないので「ヘッダーだけ付かない」という気づきにくい
+                        壊れ方をする（4ツールで発生: romaji_master /
+                        japanese_esjs_goi_crossword / math_js1_mojishiki_keisan /
+                        social_es4_todofuken）。2026-08にモジュール側で受け止める
+                        よう修正済み（body の中から読まれた時だけその場に挿し、
+                        それ以外は body 先頭へ）＝assets を上げれば置き場所を
+                        間違えているツールも直る。とはいえ新規ツールは body 直後に置くこと。
   divp-correct.js        小学生用 正解エフェクト（星＋「正解！」演出）
   divp-correct-firework.js  小学生用 正解エフェクト「花火」（絵文字が360度に弾けて落下＋
                          「せいかい！」が1文字ずつ散って戻る＋落ちた記号が画面下に積もる）。

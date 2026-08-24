@@ -30,6 +30,11 @@
   if (window.__divpHeaderLoaded) return;   // 二重読み込み防止
   window.__divpHeaderLoaded = true;
 
+  // このスクリプト自身のタグ。document.currentScript は「そのスクリプトを同期実行して
+  // いる最中」しか有効でないので、読み込まれた瞬間にここで控えておく
+  // （<body> がまだ無い場合に DOMContentLoaded まで待ってから使うため）
+  var SELF = document.currentScript;
+
   var SITE_URL = 'https://chukyokobetsu.com';
   var SCHOOL_NAME = '中京個別指導学院';
 
@@ -223,22 +228,34 @@
       return;
     }
 
-    // プレースホルダが無ければ、このスクリプトの位置に直接挿入
-    // （document.currentScript は同期実行中のみ有効）
+    // プレースホルダが無ければ、このスクリプトの位置に直接挿入する。
+    // ⚠ ただし「本文(<body>)の中から読まれている時」だけ。
+    //   <head> で読み込まれていると（defer 付きでも）SELF.parentNode が <head> になり、
+    //   ヘッダーを <head> の中に入れてしまって画面に一切出ない。
+    //   エラーも出ないので「ヘッダーだけ付かない」という分かりにくい壊れ方をする
+    //   （実際に4ツールで発生：romaji_master / japanese_esjs_goi_crossword /
+    //     math_js1_mojishiki_keisan / social_es4_todofuken）。
+    //   本来の使い方は <body> 開始直後に置くことだが、置き場所を間違えても
+    //   <body> の先頭に出るようにモジュール側で受け止める。
     var header = document.createElement('header');
     header.className = 'divp-header';
     header.innerHTML = headerHTML();
-    var cs = document.currentScript;
-    if (cs && cs.parentNode) {
-      cs.parentNode.insertBefore(header, cs);
-    } else if (document.body) {
-      document.body.insertBefore(header, document.body.firstChild);
+    if (SELF && SELF.parentNode && document.body.contains(SELF)) {
+      SELF.parentNode.insertBefore(header, SELF);
     } else {
-      document.write('');
-      document.documentElement.insertBefore(header, document.body);
+      document.body.insertBefore(header, document.body.firstChild);
     }
   }
 
-  render();
-  renderAuth();
+  // render() も renderAuth() も <body> が要る（renderAuth は render が挿した
+  // #divp-auth を探す）。<head> で同期読み込みされた時はまだ <body> が無いので待つ。
+  function start() {
+    render();
+    renderAuth();
+  }
+  if (document.body) {
+    start();
+  } else {
+    document.addEventListener('DOMContentLoaded', start);
+  }
 })();
