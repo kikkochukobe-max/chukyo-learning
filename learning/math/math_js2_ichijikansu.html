@@ -135,7 +135,12 @@ h1 .sub{font-size:.72rem;color:var(--ink-soft);letter-spacing:.2em;display:block
 #qText{font-size:1.12rem;line-height:1.9;white-space:normal;text-align:left;}
 #qText .katex{font-size:1.08em;}
 /* 分数は KaTeX の既定(textstyle)だと分子・分母が小さくて読みにくいので少し大きくする。
-   \frac / \dfrac のどちらも .mfrac なので，問題文・選択肢・解説すべてに効く。 */
+   \frac / \dfrac のどちらも .mfrac なので，問題文・選択肢・解説すべてに効く。
+   ⚠ そのため **選択肢の分数は \dfrac ではなく \frac で書くこと**。
+   \dfrac(displaystyle)は分子・分母がもともと本文と同じ大きさなので、この 1.3em が
+   上乗せされて選択肢だけ極端に大きくなる（比例・反比例の判定モードで実際に起きた）。
+   ふつうの選択肢は lineTex()→rTexInline() が \frac を出すので、そちらにそろえる。
+   解説(exLines)は1行が独立しているので \dfrac のままでよい。 */
 .katex .mfrac{font-size:1.3em;}
 .qtable{
   border-collapse:collapse;margin:10px auto 2px;font-size:1.05rem;
@@ -1431,7 +1436,7 @@ const HANTEI_POOL=[
     return{
       txt:`時速 ${a} km で ${T("x")} 時間歩いたときに進む道のりを ${T("y")} km とします。`,
       eq:`y=${a}x`,
-      bad:[`y=\\dfrac{${a}}{x}`,`y=\\dfrac{x}{${a}}`,`y=${a}x+${a}`,`y=x+${a}`,`y=${a}x-${a}`],
+      bad:[`y=\\frac{${a}}{x}`,`y=\\frac{x}{${a}}`,`y=${a}x+${a}`,`y=x+${a}`,`y=${a}x-${a}`],
       why:[`道のり ${T("=")} 速さ ${T("\\times")} 時間 だから ${T("y="+a+"x")}`],
       note:true
     };
@@ -1462,7 +1467,7 @@ const HANTEI_POOL=[
     return{
       txt:`1辺の長さが ${T("x")} cm の${nm}の周の長さを ${T("y")} cm とします。`,
       eq:`y=${k}x`,
-      bad:[`y=${k}x+${k}`,`y=x^2`,`y=\\dfrac{${k}}{x}`,`y=${k}x^2`,`y=x+${k}`],
+      bad:[`y=${k}x+${k}`,`y=x^2`,`y=\\frac{${k}}{x}`,`y=${k}x^2`,`y=x+${k}`],
       why:[`${nm}の辺は ${k} 本あり，どれも ${T("x")} cm。`,
            `周の長さは ${T("y="+k+"x")}`],
       note:true
@@ -1483,7 +1488,7 @@ const HANTEI_POOL=[
     return{
       txt:`1 m の重さが ${a} g の針金があります。この針金 ${T("x")} m の重さを ${T("y")} g とします。`,
       eq:`y=${a}x`,
-      bad:[`y=\\dfrac{${a}}{x}`,`y=x+${a}`,`y=\\dfrac{x}{${a}}`,`y=${a}x+${a}`,`y=${a}x^2`],
+      bad:[`y=\\frac{${a}}{x}`,`y=x+${a}`,`y=\\frac{x}{${a}}`,`y=${a}x+${a}`,`y=${a}x^2`],
       why:[`1 m で ${T(String(a))} g だから，${T("x")} m では ${T("y="+a+"x")}`],
       note:true
     };
@@ -1491,7 +1496,7 @@ const HANTEI_POOL=[
   {lin:true,f:()=>({
     txt:`半径 ${T("x")} cm の円の周の長さを ${T("y")} cm とします。`,
     eq:`y=2\\pi x`,
-    bad:[`y=\\pi x^2`,`y=\\pi x`,`y=4\\pi x`,`y=\\dfrac{2\\pi}{x}`,`y=2\\pi x^2`],
+    bad:[`y=\\pi x^2`,`y=\\pi x`,`y=4\\pi x`,`y=\\frac{2\\pi}{x}`,`y=2\\pi x^2`],
     why:[`円周 ${T("=")} 直径 ${T("\\times\\pi")} だから ${T("y=2\\pi x")}`,
          `${T("2\\pi")} は決まった数（定数）なので，${T("y=ax")} の ${T("a")} にあたる。`],
     note:true
@@ -1501,7 +1506,7 @@ const HANTEI_POOL=[
     return{
       txt:`底辺が ${T("x")} cm，高さが ${h} cm の三角形の面積を ${T("y")} cm² とします。`,
       eq:`y=${h/2}x`,
-      bad:[`y=${h}x`,`y=\\dfrac{${h}}{x}`,`y=x^2`,`y=\\dfrac{1}{2}x`,`y=${2*h}x`],
+      bad:[`y=${h}x`,`y=\\frac{${h}}{x}`,`y=x^2`,`y=\\frac{1}{2}x`,`y=${2*h}x`],
       why:[`三角形の面積 ${T("=\\dfrac{1}{2}\\times\\text{底辺}\\times\\text{高さ}")}`,
            T("y=\\dfrac{1}{2}\\times x\\times "+h+"="+(h/2)+"x")],
       note:true
@@ -1512,8 +1517,8 @@ const HANTEI_POOL=[
     const a=pick([12,18,24,36,60]);
     return{
       txt:`${a} km の道のりを，時速 ${T("x")} km で進むときにかかる時間を ${T("y")} 時間とします。`,
-      eq:`y=\\dfrac{${a}}{x}`,
-      bad:[`y=${a}x`,`y=\\dfrac{x}{${a}}`,`y=${a}x+${a}`,`y=${a}-x`,`y=-${a}x`],
+      eq:`y=\\frac{${a}}{x}`,
+      bad:[`y=${a}x`,`y=\\frac{x}{${a}}`,`y=${a}x+${a}`,`y=${a}-x`,`y=-${a}x`],
       why:[`時間 ${T("=")} 道のり ${T("\\div")} 速さ だから ${T("y=\\dfrac{"+a+"}{x}")}`],
       reason:`${T("y")} が ${T("x")} に反比例する式`
     };
@@ -1522,8 +1527,8 @@ const HANTEI_POOL=[
     const a=pick([12,18,24,36]);
     return{
       txt:`面積が ${a} cm² の長方形の，縦の長さを ${T("x")} cm，横の長さを ${T("y")} cm とします。`,
-      eq:`y=\\dfrac{${a}}{x}`,
-      bad:[`y=${a}x`,`y=-x+${a}`,`y=\\dfrac{x}{${a}}`,`y=\\dfrac{${a}}{2x}`,`y=${a}+x`],
+      eq:`y=\\frac{${a}}{x}`,
+      bad:[`y=${a}x`,`y=-x+${a}`,`y=\\frac{x}{${a}}`,`y=\\frac{${a}}{2x}`,`y=${a}+x`],
       why:[`縦 ${T("\\times")} 横 ${T("=")} 面積 だから ${T(a+"=x\\times y")}`,
            `よって ${T("y=\\dfrac{"+a+"}{x}")}`],
       reason:`${T("y")} が ${T("x")} に反比例する式`
@@ -1532,14 +1537,14 @@ const HANTEI_POOL=[
   {lin:false,f:()=>({
     txt:`1辺の長さが ${T("x")} cm の正方形の面積を ${T("y")} cm² とします。`,
     eq:`y=x^2`,
-    bad:[`y=4x`,`y=2x`,`y=\\dfrac{4}{x}`,`y=x^3`,`y=2x^2`],
+    bad:[`y=4x`,`y=2x`,`y=\\frac{4}{x}`,`y=x^3`,`y=2x^2`],
     why:[`正方形の面積 ${T("=")} 1辺 ${T("\\times")} 1辺 だから ${T("y=x\\times x=x^2")}`],
     reason:`${T("x")} の2乗をふくむ式`
   })},
   {lin:false,f:()=>({
     txt:`半径 ${T("x")} cm の円の面積を ${T("y")} cm² とします。`,
     eq:`y=\\pi x^2`,
-    bad:[`y=2\\pi x`,`y=\\pi x`,`y=\\dfrac{\\pi}{x}`,`y=4\\pi x^2`,`y=\\pi x^3`],
+    bad:[`y=2\\pi x`,`y=\\pi x`,`y=\\frac{\\pi}{x}`,`y=4\\pi x^2`,`y=\\pi x^3`],
     why:[`円の面積 ${T("=")} 半径 ${T("\\times")} 半径 ${T("\\times\\pi")} だから ${T("y=\\pi x^2")}`],
     reason:`${T("x")} の2乗をふくむ式`
   })},
@@ -1554,8 +1559,8 @@ const HANTEI_POOL=[
     const a=pick([6,9,12,18]);
     return{
       txt:`面積が ${a} cm² の三角形の，底辺を ${T("x")} cm，高さを ${T("y")} cm とします。`,
-      eq:`y=\\dfrac{${2*a}}{x}`,
-      bad:[`y=\\dfrac{${a}}{x}`,`y=${a}x`,`y=\\dfrac{x}{${2*a}}`,`y=\\dfrac{x}{${a}}`,`y=${2*a}x`],
+      eq:`y=\\frac{${2*a}}{x}`,
+      bad:[`y=\\frac{${a}}{x}`,`y=${a}x`,`y=\\frac{x}{${2*a}}`,`y=\\frac{x}{${a}}`,`y=${2*a}x`],
       why:[T("\\dfrac{1}{2}\\times x\\times y="+a),
            `両辺を ${T("2")} 倍して ${T("xy="+(2*a))}，よって ${T("y=\\dfrac{"+(2*a)+"}{x}")}`],
       reason:`${T("y")} が ${T("x")} に反比例する式`
@@ -1566,7 +1571,7 @@ const HANTEI_POOL=[
     return{
       txt:`底面が1辺 ${T("x")} cm の正方形で，高さが ${h} cm の直方体の体積を ${T("y")} cm³ とします。`,
       eq:`y=${h}x^2`,
-      bad:[`y=${h}x`,`y=x^3`,`y=\\dfrac{${h}}{x}`,`y=${h}x^3`,`y=${2*h}x^2`],
+      bad:[`y=${h}x`,`y=x^3`,`y=\\frac{${h}}{x}`,`y=${h}x^3`,`y=${2*h}x^2`],
       why:[`体積 ${T("=")} 底面積 ${T("\\times")} 高さ で，底面積は ${T("x^2")} cm²。`,
            `よって ${T("y="+h+"x^2")}`],
       reason:`${T("x")} の2乗をふくむ式`

@@ -341,19 +341,33 @@
   }
   .p-sheet { font-family: 'Noto Sans JP', sans-serif; color: #111; }
   .p-sheet .ph-head { display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 2px solid #111; padding-bottom: 6px; margin-bottom: 12px; }
-  .p-sheet .ph-title { font-weight: 800; font-size: 18px; }
-  .p-sheet .ph-school { font-size: 12px; color: #444; }
+  /* 見出しも折り返さず1行。「四則計算（4〜6項）（整数）」のように長いモード名でも
+     fitPrintSheet() が実測して文字を縮める（折り返すと校名が2段になり罫線が下がる） */
+  .p-sheet .ph-title { font-weight: 800; font-size: 18px; white-space: nowrap; flex: 0 0 auto; }
+  .p-sheet .ph-title.ph-title-wrap { white-space: normal; }
+  /* 校名は幅を動かさない（縮小の判定幅が揺れないよう1行に固定する） */
+  .p-sheet .ph-school { font-size: 12px; color: #444; white-space: nowrap; flex: 0 0 auto; padding-left: 10px; }
   .p-sheet .ph-meta { display: flex; justify-content: space-between; font-size: 14px; margin: 0; align-items: center; }
   .p-sheet .ph-meta span { border-bottom: 1px solid #999; min-width: 130px; display: inline-block; padding-bottom: 2px; }
   .p-sheet .ph-meta .ph-name { min-width: 260px; height: 42px; border: 1px solid #999; border-radius: 5px; display: inline-flex; align-items: center; justify-content: flex-start; padding: 0 14px; }
   /* 2列×5行。行を 1fr で切って用紙の縦を均等に使い切る（式は各マスの上端、下が計算スペース） */
-  .p-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(5, 1fr);
+  /* 列は minmax(0,1fr)。素の 1fr は「中身より狭くならない」ので、長い式があると
+     その列だけ広がって左右がずれる（＝縮小の判定に使う幅も揺れる） */
+  .p-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: repeat(5, 1fr);
             grid-auto-flow: column; column-gap: 10mm; margin-top: 6mm; height: 224mm; }
-  .p-item { display: flex; align-items: flex-start; gap: 10px; font-size: 12px;
+  .p-item { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; min-width: 0;
             padding: 1mm 0 0; border-top: 1px dotted #bbb; }
   .p-item .no { font-weight: 800; width: 26px; flex: 0 0 auto; padding-top: 0.35em; }
-  .p-ex { display: inline-flex; flex-wrap: wrap; align-items: center; column-gap: 0.3em; row-gap: 0.1em;
+  /* 式は折り返さず1行に出す。マスに収まらない長い式は fitPrintSheet() が
+     実測して文字を縮める（折り返すと1問が2〜3行になり、下の計算スペースが潰れる）。
+     KaTeX は二項演算子ごとに .base を分けて出すので、そこが折り返し位置になる＝
+     .katex / .katex-html にも nowrap を効かせないと止まらない */
+  .p-ex { display: inline-flex; flex: 0 0 auto; flex-wrap: nowrap; align-items: center; column-gap: 0.3em;
           font-family: 'Fira Mono', monospace; }
+  .p-ex, .p-ex .katex, .p-ex .katex-html { white-space: nowrap; }
+  /* 縮小の下限まで小さくしても収まらない極端な式だけは、はみ出すより折り返す */
+  .p-ex.p-ex-wrap { flex: 1 1 auto; min-width: 0; flex-wrap: wrap; row-gap: 0.1em; }
+  .p-ex.p-ex-wrap, .p-ex.p-ex-wrap .katex, .p-ex.p-ex-wrap .katex-html { white-space: normal; }
   /* KaTeX は既定 1.21em。印刷では紙面に余裕があるので大きめに出す */
   .p-item .katex { font-size: 1.55em; }
   .p-keypage { page-break-before: always; }
@@ -1478,6 +1492,55 @@ function ensureWatermarkStyle() {
   document.head.appendChild(st);
 }
 
+// 長い式・長い見出しを「収まるまで縮小」する実測パス。
+// 画面では #print-area は display:none なので寸法が取れない。用紙の本文幅
+// （A4 210mm − @page の左右余白 12mm×2 = 186mm）で画面外に一時展開して測り、
+// 収まらないものだけ font-size を % で下げる（式は .p-item .katex の 1.55em も一緒に縮む）。
+var PRINT_EX_MIN_SCALE = 0.62;      // 式：これ以上は縮めない（KaTeX 1.55em×0.62 ≒ 11.5px）
+var PRINT_TITLE_MIN_SCALE = 0.70;   // 見出し：これ以上は縮めない（18px×0.70 ≒ 12.6px）
+// el を avail に収まるまで縮小する。下限まで縮めても収まらなければ wrapClass を付けて折り返させる
+// （はみ出して切れるより折り返すほうがまし）。戻り値は掛けた倍率
+function shrinkToFit(el, avail, minScale, wrapClass) {
+  el.style.fontSize = '';
+  el.classList.remove(wrapClass);
+  var need = el.getBoundingClientRect().width;   // flex:0 0 auto + nowrap なので実寸
+  if (avail <= 0 || need <= avail) return 1;
+  var scale = avail / need;
+  if (scale < minScale) { scale = minScale; el.classList.add(wrapClass); }
+  el.style.fontSize = (scale * 100).toFixed(1) + '%';
+  return scale;
+}
+function fitPrintSheet(done) {
+  var area = $('print-area');
+  var prevStyle = area.getAttribute('style');
+  area.style.cssText = 'display:block;position:absolute;left:-10000px;top:0;width:186mm;visibility:hidden;';
+  void area.offsetWidth;   // ここで KaTeX の書体の読み込みが始まる（fonts.ready を取る前に強制レイアウト）
+  var measure = function () {
+    // 見出し（問題面・解答面の両方）。右の校名は幅固定なので、その残りが使える幅
+    var heads = area.querySelectorAll('.ph-head');
+    for (var h = 0; h < heads.length; h++) {
+      var ti = heads[h].querySelector('.ph-title');
+      var sc = heads[h].querySelector('.ph-school');
+      if (!ti) continue;
+      shrinkToFit(ti, heads[h].clientWidth - (sc ? sc.offsetWidth : 0) - 1, PRINT_TITLE_MIN_SCALE, 'ph-title-wrap');
+    }
+    // 各問の式
+    var list = area.querySelectorAll('.p-item');
+    for (var i = 0; i < list.length; i++) {
+      var ex = list[i].querySelector('.p-ex');
+      var no = list[i].querySelector('.no');
+      if (!ex) continue;
+      // 10px = .p-item の gap / 1px = clientWidth の丸め誤差ぶんの余裕
+      shrinkToFit(ex, list[i].clientWidth - (no ? no.offsetWidth : 0) - 10 - 1, PRINT_EX_MIN_SCALE, 'p-ex-wrap');
+    }
+    if (prevStyle === null) area.removeAttribute('style'); else area.setAttribute('style', prevStyle);
+    done();
+  };
+  // KaTeX の書体は印刷シートで初めて使うため、読み込み前に測ると幅がずれる
+  if (document.fonts && document.fonts.ready && document.fonts.ready.then) document.fonts.ready.then(measure, measure);
+  else measure();
+}
+
 function openPrint() {
   var items = '', keys = '';
   for (var i = 1; i <= 10; i++) {
@@ -1497,8 +1560,10 @@ function openPrint() {
   if (window.ChukyoPrint) $('print-area').insertAdjacentHTML('afterbegin', ChukyoPrint.img());
   // 透かし画像は毎回作り直すので、デコードを待ってから印刷する。
   // 直後に window.print() を呼ぶとロゴが間に合わず抜けることがある（旧実装のバグ）
-  if (window.ChukyoPrint && ChukyoPrint.print) ChukyoPrint.print($('print-area'));
-  else window.print();
+  fitPrintSheet(function () {
+    if (window.ChukyoPrint && ChukyoPrint.print) ChukyoPrint.print($('print-area'));
+    else window.print();
+  });
 }
 $('title-print-btn').addEventListener('click', openPrint);
 

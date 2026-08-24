@@ -1389,10 +1389,11 @@ const PRINT_LABELS=["ア","イ","ウ","エ","オ","カ"];
 // 問題オブジェクト → { q:問題LaTeX, a:解答LaTeX, tall?:縦長 }
 function printItem(q){
   if(state.cat==="linear"){
-    // 選択肢を縦に並べ、記号で答えさせる
-    const rows=q.options.map((o,i)=>"\\text{"+PRINT_LABELS[i]+".}\\ & "+o.tex).join(" \\\\ ");
+    // 選択肢を縦に並べ、記号で答えさせる。
+    // LaTeX の array で縦に積むと分数が上下の行と重なるので、
+    // 1行=1要素のHTML（opts）として渡し、行間はCSSで持たせる。
     const ans=q.options.map((o,i)=>o.ok?PRINT_LABELS[i]:null).filter(Boolean).join("、");
-    return { q:"\\begin{array}{ll} "+rows+" \\end{array}", a:"\\text{"+ans+"}", tall:true };
+    return { opts:q.options.map(o=>o.tex), a:"\\text{"+ans+"}", tall:true };
   }
   if(state.cat==="coef" && q.kind==="single"){
     // easy: 単一文字の係数。どの文字かを問題文に添える（prompt 例「x の係数を選ぼう」）
@@ -1403,12 +1404,13 @@ function printItem(q){
 }
 function openPrint(){
   const cat=state.cat, diff=state.diff;
-  const count = cat==="linear" ? 6 : 10;      // 1次式えらびは選択肢が縦長なので少なめ
+  const count = 10;                           // どのモードも10問（2列×5行）
   const items=[], seen=new Set();
   for(let attempt=0; items.length<count && attempt<count*10; attempt++){
     const it=printItem(GEN[cat](diff));
-    if(seen.has(it.q)) continue;               // 同一問題の重複を避ける
-    seen.add(it.q); items.push(it);
+    const key=it.q||(it.opts?it.opts.join("|"):it.a);  // 選択肢問題は q を持たない
+    if(seen.has(key)) continue;                // 同一問題の重複を避ける
+    seen.add(key); items.push(it);
   }
   const label=CATNAME[cat]+"（"+DIFFNAME[diff]+"）";
   buildPrintWindow("文字式の計算マスター", label, PRINT_INSTR[cat]||"次の問題を解きなさい。", items);
@@ -1423,9 +1425,17 @@ function buildPrintWindow(title, label, instr, items){
     '<div class="ph-head"><div><div class="ph-school">中京個別指導学院</div>'
     +'<div class="ph-title">'+title+'　'+sub+'</div></div>'
     +'<div class="ph-meta"><div class="ph-name">名前：</div><div class="ph-date">'+dateStr+'</div></div></div>';
+  // 選択肢つき（opts）は ア. イ. … を1行ずつ組む
+  const body=(it,ans)=>{
+    if(ans||!it.opts) return rk(ans?it.a:it.q);
+    return it.opts.map((tex,i)=>'<span class="opt"><span class="ol">'+PRINT_LABELS[i]+'.</span>'
+      +'<span class="oe">'+rk(tex)+'</span></span>').join("");
+  };
   const rows=(list,ans)=>list.map((it,i)=>
     '<div class="p-item'+(ans?' ans':(it.tall?' tall':''))+'"><span class="no">('+(i+1)+')</span>'
-    +'<span class="p-ex">'+rk(ans?it.a:it.q)+'</span></div>').join("");
+    +'<span class="p-ex"><span class="p-fit">'+body(it,ans)+'</span></span></div>').join("");
+  // 2列均等配置。行数は問題数の半分（10問→5行）
+  const rowN=Math.ceil(items.length/2);
   const html='<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">'
     +'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">'
     +'<title>'+title+'　'+label+' 練習プリント｜中京個別指導学院</title><style>'
@@ -1433,33 +1443,70 @@ function buildPrintWindow(title, label, instr, items){
     +'*{box-sizing:border-box;margin:0;padding:0;}'
     +'body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;color:#1a1a1a;}'
     +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}'
-    +'.page{position:relative;}.page.answers{page-break-before:always;}'
+    /* ページの器は「紙の本文枠」ぴったりに固定する（A4 297mm − 上下マージン14mm×2 = 269mm、
+     * 改ページのまるめ誤差ぶん1mm引く）。透かし(.wm)は .page の中央に置かれるので、
+     * 器を中身なりの高さにすると紙の中央から外れてロゴがずれる。*/
+    +'.page{position:relative;height:268mm;display:flex;flex-direction:column;}'
+    +'.page.answers{page-break-before:always;}'
     +'.ph-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2.5px solid #A63E54;padding-bottom:7px;margin-bottom:12px;}'
     +'.ph-school{font-size:9pt;font-weight:700;color:#A63E54;margin-bottom:3px;}'
     +'.ph-title{font-size:16pt;font-weight:800;color:#3A3226;}'
     +'.ph-meta{text-align:right;}'
     +'.ph-name{border:1px solid #999;border-radius:5px;min-width:180px;height:34px;display:flex;align-items:center;padding:0 12px;margin-bottom:5px;font-size:10pt;color:#3A3226;}'
     +'.ph-date{font-size:9pt;color:#666;}'
-    +'.label-bar{display:inline-block;font-size:11pt;font-weight:700;color:#fff;background:#A63E54;border-radius:5px;padding:3px 14px;margin-bottom:6px;}'
+    /* .page が縦flexなので align-self:flex-start が無いと帯が横幅いっぱいに伸びる */
+    +'.label-bar{display:inline-block;align-self:flex-start;font-size:11pt;font-weight:700;color:#fff;background:#A63E54;border-radius:5px;padding:3px 14px;margin-bottom:6px;}'
     +'.instr{font-size:10pt;color:#444;margin-bottom:10px;}'
-    +'.p-item{display:flex;align-items:baseline;gap:12px;min-height:16mm;padding:5px 4px 3px;border-bottom:1px solid #d8d2c4;}'
-    +'.p-item.tall{align-items:flex-start;min-height:auto;padding:9px 4px;}'
-    +'.p-item.ans{min-height:0;padding:6px 4px;}'
-    +'.p-item .no{font-weight:800;font-size:12pt;min-width:34px;flex:0 0 auto;color:#A63E54;}'
-    +'.p-item .p-ex{font-size:13pt;}.p-item.ans .p-ex{font-size:12pt;}'
+    /* 5問×2列（列優先＝左列に(1)〜(5)、右列に(6)〜(10)）。
+     * ヘッダーを除いた残り全部を grid-template-rows:1fr で割る＝1枚に均等配置。
+     * 解答ページは書くスペースが要らないので行の高さは中身なり。*/
+    +'.problems{flex:1 1 auto;min-height:0;display:grid;grid-auto-flow:column;'
+    +'grid-template-columns:1fr 1fr;grid-template-rows:repeat('+rowN+',1fr);column-gap:9mm;}'
+    +'.problems.ansgrid{flex:0 0 auto;grid-template-rows:repeat('+rowN+',auto);row-gap:3mm;}'
+    +'.p-item{display:flex;align-items:baseline;gap:10px;padding:4px 2px 3px;'
+    +'border-bottom:1px solid #d8d2c4;overflow:hidden;}'
+    +'.p-item.tall{align-items:flex-start;}'
+    +'.p-item .no{font-weight:800;font-size:12pt;min-width:30px;flex:0 0 auto;color:#A63E54;}'
+    +'.p-item .p-ex{flex:1 1 auto;min-width:0;font-size:13pt;overflow:hidden;}'
+    /* 縮小の対象。nowrap＋inline-block にして「折り返さない本来の幅」を測れるようにする */
+    +'.p-fit{display:inline-block;white-space:nowrap;transform-origin:left top;}'
+    /* 分数は行の高さを超えて描かれる＝罫線に重なるので、式の実寸で行を取らせる */
+    +'.p-fit>.katex{display:inline-block;vertical-align:middle;line-height:1;}'
+    /* 選択肢（1次式えらび）。1行1選択肢。分数が入っても重ならない行間をCSSで持つ */
+    +'.opt{display:flex;align-items:center;gap:6px;min-height:6.4mm;margin-bottom:1.2mm;}'
+    +'.opt .ol{flex:0 0 auto;min-width:17px;font-size:10.5pt;color:#555;}'
+    /* KaTeX のインライン分数は行の高さを超えて描かれるので、
+     * inline-block にして「式の実寸」で行の高さを取らせる（＝上下の選択肢と重ならない）*/
+    +'.opt .oe .katex{display:inline-block;vertical-align:middle;line-height:1;}'
+    +'.problems.ansgrid .p-ex{font-size:12pt;}'
     +WM_CSS+'</style></head><body>'
     +'<div class="page">'+WM_IMG+head(label)
     +'<div class="label-bar">'+label+'</div><div class="instr">'+instr+'</div>'
     +'<div class="problems">'+rows(items,false)+'</div></div>'
     +'<div class="page answers">'+WM_IMG+head("解答")
     +'<div class="label-bar" style="background:#6B6152;">解答</div>'
-    +'<div class="problems">'+rows(items,true)+'</div></div>'
+    +'<div class="problems ansgrid">'+rows(items,true)+'</div></div>'
+    /* 式が長いとき（列幅に入らないとき）だけ縮小する。
+     * KaTeX のCSSとフォントが効いてからでないと幅が測れないので
+     * fonts.ready / load / 300ms の3回まわす（親も print 直前に fitAll() を呼ぶ）。*/
+    +'<script>(function(){function fit(){var it=document.querySelectorAll(".p-item");'
+    +'for(var i=0;i<it.length;i++){var box=it[i].querySelector(".p-ex"),f=it[i].querySelector(".p-fit");'
+    +'if(!box||!f)continue;f.style.transform="";'
+    /* 高さは行の内寸から12px（上下の余白ぶん）引く＝ぎりぎり入る式も少し縮めて行間を残す */
+    +'var aw=box.clientWidth,ah=it[i].clientHeight-12,w=f.offsetWidth,h=f.offsetHeight,s=1;'
+    +'if(w>aw&&aw>0)s=aw/w;'
+    +'if(ah>0&&h>ah)s=Math.min(s,ah/h);'
+    +'if(s<1)f.style.transform="scale("+Math.max(s,0.42).toFixed(3)+")";}}'
+    +'window.fitAll=fit;'
+    +'if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);'
+    +'window.addEventListener("load",fit);setTimeout(fit,300);})();<\/script>'
     +'</body></html>';
   const w=window.open("","_blank","width=794,height=1123");
   if(!w){ alert("印刷用ウィンドウを開けませんでした。ポップアップを許可してください。"); return; }
   w.document.write(html); w.document.close();
   // 透かし画像のデコードも待つ（待たずに print するとロゴが出たり出なかったりする）
   setTimeout(function(){
+    try{ if(w.fitAll) w.fitAll(); }catch(e){}   // 印刷直前にもう一度だけ縮小を測り直す
     if(window.ChukyoPrint&&ChukyoPrint.print) ChukyoPrint.print(w.document,w);
     else { try{ w.focus(); w.print(); }catch(e){} }
   }, 500);
