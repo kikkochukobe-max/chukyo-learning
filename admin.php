@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-// アカウント管理ページ: 生徒登録・生徒一括登録・保護者登録・講師登録・登録一覧 をタブで切替。
+// アカウント管理ページ: 生徒登録／生徒一括登録／保護者・兄弟登録／講師登録／登録一覧 をタブで切替。
 // デザインは講師ページと同じ藍基調。権限で表示を出し分ける:
 //   super_admin     = 全機能(講師登録・講師一覧はここだけ)
-//   classroom_admin = 担当教室の生徒登録・保護者登録・一覧
+//   classroom_admin = 担当教室の生徒登録／保護者・兄弟登録／一覧
 //   teacher         = 登録権限なし(案内のみ)
 // 登録一覧では、このページを開いている間に登録・変更した行を色違いで表示する。
 require_once __DIR__ . '/api/db.php';
@@ -130,7 +130,7 @@ if ($role === 'super_admin') {
     background-size:24px 24px;line-height:1.6;-webkit-font-smoothing:antialiased;
     -webkit-text-size-adjust:100%;text-size-adjust:100%;
   }
-  .wrap{max-width:1100px;margin:0 auto;padding:0 16px 64px}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 16px 64px}
   header{display:flex;align-items:center;justify-content:space-between;padding:14px 2px 10px;flex-wrap:wrap;gap:8px}
   header img.logo{height:34px;width:auto;display:block}
   .who{font-size:12px;color:var(--ink-soft);display:flex;align-items:center;gap:10px}
@@ -174,6 +174,14 @@ if ($role === 'super_admin') {
   th.sortable:hover{color:var(--ai,#2C5F8A)}
   th.sortable .arw{font-size:9px;margin-left:3px;color:var(--ai,#2C5F8A)}
   td{border-bottom:1px solid #F3F0E8;padding:6px 8px}
+  /* 保護者一覧は兄弟がいると1セルに複数分が並ぶので、氏名・教室・お子さまの幅を確保する */
+  #guardians-table th:nth-child(2),#guardians-table td:nth-child(2){white-space:nowrap;min-width:11em}
+  #guardians-table th:nth-child(3),#guardians-table td:nth-child(3){white-space:nowrap;min-width:8em}
+  #guardians-table th:nth-child(4),#guardians-table td:nth-child(4){min-width:18em}
+  /* 「操作」列（最終列）はボタンが折り返さないよう幅を確保する */
+  #students-table th:last-child,#students-table td:last-child,
+  #guardians-table th:last-child,#guardians-table td:last-child,
+  #teachers-table th:last-child,#teachers-table td:last-child{white-space:nowrap;min-width:16em}
   .ok-cell{color:#166534;font-weight:700}
   .ng-cell{color:var(--shu);font-weight:700}
   tr.new-row td{background:var(--kin-soft)}
@@ -182,11 +190,16 @@ if ($role === 'super_admin') {
   .inactive{color:var(--ink-soft)}
   .state-on{color:#166534;font-weight:700;white-space:nowrap}
   .state-off{color:var(--ink-soft);font-weight:700;white-space:nowrap}
+  .sib-badge{display:inline-block;font-size:10px;font-weight:900;color:var(--white);background:var(--kin);
+    font-family:'Zen Maru Gothic',sans-serif;border-radius:999px;padding:1px 7px;margin-right:5px;white-space:nowrap}
+  .sib-gid{font-weight:700;white-space:nowrap}
+  .sib-none{color:var(--shu);font-weight:700;white-space:nowrap}
+  .sib-names{display:block;font-size:11px;color:var(--ink-soft);margin-top:2px}
   button.mini{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:11px;
     border-radius:999px;padding:2px 12px;cursor:pointer;white-space:nowrap;background:var(--white)}
   button.mini.off{color:var(--shu);border:1.5px solid var(--shu)}
   button.mini.on{color:var(--ai);border:1.5px solid var(--ai)}
-  /* 記録リセット: 「無効にする」(朱枠)と「完全削除」(朱ベタ)の中間の危険度を橙で示す */
+  /* 記録リセット: 「無効」(朱枠)と「完全削除」(朱ベタ)の中間の危険度を橙で示す */
   button.mini.warn{color:var(--dai);border:1.5px solid var(--dai)}
   button.mini.del{color:#fff;background:var(--shu);border:1.5px solid var(--shu);margin-left:6px}
   .scroll{overflow-x:auto}
@@ -223,7 +236,7 @@ if ($role === 'super_admin') {
 <?php if ($role === 'super_admin'): ?>
     <button class="tab" data-tab="school" type="button">志望校</button>
 <?php endif; ?>
-    <button class="tab" data-tab="guardian" type="button">保護者登録</button>
+    <button class="tab" data-tab="guardian" type="button">保護者・兄弟登録</button>
 <?php if ($role === 'super_admin'): ?>
     <button class="tab" data-tab="teacher" type="button">講師登録</button>
 <?php endif; ?>
@@ -235,7 +248,7 @@ if ($role === 'super_admin') {
   <div class="card">
     <h2>生徒登録</h2>
     <p class="note">生徒コードは自動採番（入塾年度2桁+通し番号4桁）。<strong>保護者アカウント（ID=生徒コードにg）も同時に自動発行</strong>されます（<strong>保護者はお子さまと同じPINでログイン</strong>。専用パスワードはありません）。登録後に下に出る案内文をコピーしてご家庭に渡してください。<br>
-      ※兄弟が後から入塾した場合も自動発行されます。上の子の保護者IDにまとめたいときは「保護者登録」タブの「兄弟・姉妹の追加」で付け替えてください（自動発行された方は無効化されます）。</p>
+      ※兄弟が後から入塾した場合も自動発行されます。上の子の保護者IDにまとめたいときは「保護者・兄弟登録」タブの「兄弟・姉妹の追加」で付け替えてください（自動発行された方は無効化されます）。</p>
     <form id="student-form">
       <div class="row2">
         <label>教室
@@ -296,10 +309,10 @@ if ($role === 'super_admin') {
   </div>
   </div>
 
-  <!-- ============ 保護者登録 ============ -->
+  <!-- ============ 保護者・兄弟登録 ============ -->
   <div class="pane" id="pane-guardian" style="display:none;">
   <div class="card">
-    <h2>保護者登録</h2>
+    <h2>保護者・兄弟登録</h2>
     <p class="note"><strong>新しく登録する生徒は「生徒登録」時に保護者アカウントが自動発行されるため、このフォームは不要です。</strong>保護者アカウントがまだ無い既存の生徒に後から発行するときに使ってください。<br>
       お子さまの生徒コードと紐づけて登録します（兄弟はカンマ区切りで複数可）。<strong>保護者IDは「最初に入力したお子さまの生徒コードに g を付けたもの」を自動発行</strong>します（例: 260038 → g260038）。保護者氏名の登録は不要で、<strong>「代表のお子さまの生徒名＋保護者様」が表示名</strong>になります。<strong>保護者はお子さまと同じPIN（4桁）でログイン</strong>します（専用パスワードはありません。兄弟のうち誰かのPINでログインできます）。保護者ページ: <a href="/guardian.php" target="_blank">/guardian.php</a></p>
     <form id="guardian-form">
@@ -430,7 +443,7 @@ if ($role === 'super_admin') {
   <div class="card">
     <h2>志望校マスター <span style="font-size:11px;color:var(--ink-soft);font-weight:500;">（統括のみ）</span></h2>
     <p class="note">私立・公立それぞれ学校名を登録します。ここで登録した学校が、生徒登録・生徒情報の修正の志望校プルダウンと、講師ページの志望校ランキングに出ます。<br>
-      使わなくなった学校は「無効にする」で隠せます（生徒にひもづけた記録は残り、いつでも「有効に戻す」で復活できます）。同じ名前でも私立・公立は別々に登録できます。</p>
+      使わなくなった学校は「無効」で隠せます（生徒にひもづけた記録は残り、いつでも「有効に戻す」で復活できます）。同じ名前でも私立・公立は別々に登録できます。</p>
     <form id="school-form" class="row2" style="align-items:end;">
       <label>学校名<input type="text" name="name" maxlength="80" required></label>
       <label>種別
@@ -456,7 +469,7 @@ if ($role === 'super_admin') {
   <div class="card">
     <h2>登録一覧</h2>
     <p class="note">このページを開いている間に登録・変更した行は<span style="background:var(--kin-soft);padding:0 8px;border-radius:4px;">この色</span>で表示されます（再読み込みすると消えます）。<br>
-      退塾などは「無効にする」を使ってください（ログイン不可になるだけで学習記録は残り、いつでも「有効に戻す」で復活できます）。<br>
+      退塾などは「無効」を使ってください（ログイン不可になるだけで学習記録は残り、いつでも「有効に戻す」で復活できます）。<br>
       生徒の「記録リセット」はアカウントを残して学習記録だけを空にします（統括のみ・元に戻せません。テストデータの掃除用）。<br>
       「完全削除」は登録間違い・テストデータ専用です（統括のみ・学習記録ごと消え、元に戻せません）。</p>
     <!-- 講師のPW初期化で発行した仮パスワードの案内メールをここに表示（既存講師への送付用） -->
@@ -510,7 +523,7 @@ if ($role === 'super_admin') {
       <div class="list-count" id="students-count"></div>
       <div class="scroll">
       <table id="students-table">
-        <thead><tr><th class="sortable" data-key="login_id">生徒コード</th><th class="sortable" data-key="classroom_name">教室</th><th class="sortable" data-key="grade">学年</th><th class="sortable" data-key="student_name">氏名</th><th class="sortable" data-key="target_private_name">私立志望</th><th class="sortable" data-key="target_public_name">公立志望</th><th class="sortable" data-key="is_active">状態</th><th class="sortable" data-key="created_at">登録日</th><th>操作</th></tr></thead>
+        <thead><tr><th class="sortable" data-key="login_id">生徒コード</th><th class="sortable" data-key="classroom_name">教室</th><th class="sortable" data-key="grade">学年</th><th class="sortable" data-key="student_name">氏名</th><th class="sortable" data-key="sibling_state">保護者・兄弟</th><th class="sortable" data-key="target_private_name">私立志望</th><th class="sortable" data-key="target_public_name">公立志望</th><th class="sortable" data-key="is_active">状態</th><th class="sortable" data-key="created_at">登録日</th><th>操作</th></tr></thead>
         <tbody></tbody>
       </table>
       </div>
@@ -518,14 +531,22 @@ if ($role === 'super_admin') {
 
     <!-- 保護者一覧 -->
     <div id="list-guardians" style="display:none;">
+<?php if (count($classrooms) > 1): ?>
+      <div class="tabs" style="margin-top:10px;">
+        <button class="tab active" data-cls="" type="button">全教室</button>
+<?php foreach ($classrooms as $c): ?>
+        <button class="tab" data-cls="<?= h($c['classroom_name']) ?>" type="button"><?= h($c['classroom_name']) ?></button>
+<?php endforeach; ?>
+      </div>
+<?php endif; ?>
       <label style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:13px;font-weight:700;color:var(--ink,#33312B);cursor:pointer;white-space:nowrap;">
         <input type="checkbox" class="hide-test" checked style="width:auto;flex:none;margin:0;">テスト生（名前に「テスト」を含む）を非表示
       </label>
-      <p style="margin:8px 0 4px;color:var(--ai,#2C5F8A);font-weight:700;font-size:13px;">列の見出し（ログインID・氏名など）をクリックすると、その項目で並び替えできます（もう一度クリックで昇順⇄降順、▲▼が今の並び順）。</p>
+      <p style="margin:8px 0 4px;color:var(--ai,#2C5F8A);font-weight:700;font-size:13px;">列の見出し（ログインID・氏名・教室など）をクリックすると、その項目で並び替えできます（もう一度クリックで昇順⇄降順、▲▼が今の並び順）。</p>
       <div class="list-count" id="guardians-count"></div>
       <div class="scroll">
       <table id="guardians-table">
-        <thead><tr><th class="sortable" data-key="login_id">ログインID</th><th class="sortable" data-key="guardian_name">氏名</th><th class="sortable" data-key="children">お子さま</th><th class="sortable" data-key="is_active">状態</th><th class="sortable" data-key="created_at">登録日</th><th class="sortable" data-key="last_login_at">最終ログイン</th><th>操作</th></tr></thead>
+        <thead><tr><th class="sortable" data-key="login_id">ログインID</th><th class="sortable" data-key="guardian_name">氏名</th><th class="sortable" data-key="classroom_names">教室</th><th class="sortable" data-key="children">お子さま</th><th class="sortable" data-key="is_active">状態</th><th class="sortable" data-key="created_at">登録日</th><th class="sortable" data-key="last_login_at">最終ログイン</th><th>操作</th></tr></thead>
         <tbody></tbody>
       </table>
       </div>
@@ -727,7 +748,7 @@ async function loadSchools() {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'mini ' + (s.is_active ? 'off' : 'on');
-      btn.textContent = s.is_active ? '無効にする' : '有効に戻す';
+      btn.textContent = s.is_active ? '無効' : '有効に戻す';
       btn.addEventListener('click', () => toggleSchool(s.target_school_id, s.name, !s.is_active));
       opTd.appendChild(btn);
       tr.append(nameTd, kindTd, stateTd, opTd);
@@ -840,7 +861,34 @@ function fillRow(tr, values, isNew, isActive, stateIdx) {
   if (!isActive) tr.classList.add('inactive');
 }
 
-// 操作セル: 有効なら「無効にする」、停止中なら「有効に戻す」ボタン
+// 「保護者・兄弟」セル: 兄弟登録が済んでいる家庭を一覧で見分けられるようにする。
+// 保護者未発行（＝兄弟のひもづけもまだ）は朱色で出し、案内文を渡す前に気づけるようにする。
+// fillRow は textContent しか入れないので、このセルだけ後から組み立てる。
+function siblingCell(td, r) {
+  if (!r.guardian_login_id) {
+    td.innerHTML = '<span class="sib-none">保護者未発行</span>';
+    return;
+  }
+  if (r.siblings) {
+    const badge = document.createElement('span');
+    badge.className = 'sib-badge';
+    // siblings は自分以外の兄弟なので、家庭の人数は +1
+    badge.textContent = '兄弟' + (String(r.siblings).split('、').length + 1) + '人';
+    td.appendChild(badge);
+  }
+  const gid = document.createElement('span');
+  gid.className = 'sib-gid';
+  gid.textContent = r.guardian_login_id;
+  td.appendChild(gid);
+  if (r.siblings) {
+    const names = document.createElement('span');
+    names.className = 'sib-names';
+    names.textContent = r.siblings;
+    td.appendChild(names);
+  }
+}
+
+// 操作セル: 有効なら「無効」、停止中なら「有効に戻す」ボタン
 function actionCell(tr, kind, loginId, name, isActive, row) {
   const td = document.createElement('td');
   // 生徒は「編集」で修正フォームに現在値を読み込む（氏名・学年・志望校）
@@ -863,7 +911,7 @@ function actionCell(tr, kind, loginId, name, isActive, row) {
     edit.addEventListener('click', () => fillTeacherEditForm(row));
     td.appendChild(edit);
   }
-  // 保護者は「兄弟追加」で保護者登録タブの追加フォームに保護者IDを流し込む。
+  // 保護者は「兄弟追加」で保護者・兄弟登録タブの追加フォームに保護者IDを流し込む。
   // 保護者はお子さまのPINでログインするため、パスワード初期化ボタンは無い
   // （ログインできない＝お子さまのPINが不明なので、生徒PIN側で対応する）。
   if (kind === 'guardians' && CAN_MANAGE) {
@@ -887,7 +935,7 @@ function actionCell(tr, kind, loginId, name, isActive, row) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'mini ' + (isActive ? 'off' : 'on');
-    btn.textContent = isActive ? '無効にする' : '有効に戻す';
+    btn.textContent = isActive ? '無効' : '有効に戻す';
     btn.addEventListener('click', () => toggleActive(kind, loginId, name, !isActive));
     td.appendChild(btn);
   }
@@ -980,7 +1028,7 @@ async function deleteTeacher(loginId, name) {
     + '・この講師IDではログインできなくなり、元に戻せません\n'
     + '・担当教室の割り当ても一緒に消えます\n'
     + '・生徒・学習記録・確認テストの結果は消えません（登録者・記録者の欄が空欄になるだけ）\n\n'
-    + '※登録間違い・テストデータの掃除用です。退任など通常の停止は「無効にする」を使ってください';
+    + '※登録間違い・テストデータの掃除用です。退任など通常の停止は「無効」を使ってください';
   if (!confirm(message)) return;
   const typed = prompt('確認のため、削除する講師のログインIDを入力してください（' + loginId + '）');
   if (typed === null) return;
@@ -1006,7 +1054,7 @@ async function deleteGuardian(loginId, name) {
     + '・お子さま（生徒）と学習記録はそのまま残ります\n'
     + '・この保護者IDではログインできなくなり、元に戻せません\n'
     + '・同じ代表の子で保護者を登録し直せるようになります\n\n'
-    + '※登録間違い・テストデータの掃除用です。退塾など通常の停止は「無効にする」を使ってください';
+    + '※登録間違い・テストデータの掃除用です。退塾など通常の停止は「無効」を使ってください';
   if (!confirm(message)) return;
   try {
     const { res, data } = await post('/api/delete_guardian.php', { login_id: loginId });
@@ -1057,7 +1105,7 @@ async function deleteStudent(loginId, name) {
     + '・学習記録（解答・学習時間・XP・解き直し）もすべて消えます\n'
     + '・この操作は元に戻せません\n'
     + '・兄弟がいる保護者は残ります（この生徒だけの保護者は一緒に削除）\n\n'
-    + '※退塾など通常の停止は「無効にする」を使ってください';
+    + '※退塾など通常の停止は「無効」を使ってください';
   if (!confirm(message)) return;
   const typed = prompt('確認のため、削除する生徒コードを入力してください（' + loginId + '）');
   if (typed === null) return;
@@ -1103,14 +1151,17 @@ async function toggleActive(kind, loginId, name, toActive) {
   }
 }
 
-// 生徒一覧の教室絞り込み（複数教室の権限がある講師のみタブが表示される）
-let classroomFilter = '';
-const clsButtons = document.querySelectorAll('.tab[data-cls]');
-clsButtons.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    classroomFilter = btn.dataset.cls;
-    clsButtons.forEach((b) => b.classList.toggle('active', b === btn));
-    renderRows('students');
+// 生徒一覧・保護者一覧の教室絞り込み（複数教室の権限がある講師のみタブが表示される）
+// 一覧ごとに独立した絞り込み（保護者は「お子さまの教室」で絞る）
+const classroomFilter = { students: '', guardians: '' };
+['students', 'guardians'].forEach((kind) => {
+  const btns = document.querySelectorAll('#list-' + kind + ' .tab[data-cls]');
+  btns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      classroomFilter[kind] = btn.dataset.cls;
+      btns.forEach((b) => b.classList.toggle('active', b === btn));
+      renderRows(kind);
+    });
   });
 });
 
@@ -1161,6 +1212,13 @@ async function loadList(kind) {
       return;
     }
     listCache[kind] = data[kind];
+    // 兄弟登録の有無を1つの値にしておく（列見出しクリックで「兄弟あり」をまとめて上に出せる）
+    if (kind === 'students') {
+      for (const r of listCache[kind]) {
+        r.sibling_state = !r.guardian_login_id ? '保護者未発行'
+          : (r.siblings ? '兄弟あり' : '兄弟なし');
+      }
+    }
     renderRows(kind);
   } catch (err) {
     tbody.innerHTML = '<tr><td colspan="' + cols + '" class="ng-cell">通信エラーが発生しました</td></tr>';
@@ -1170,8 +1228,13 @@ async function loadList(kind) {
 function renderRows(kind) {
   const tbody = document.querySelector('#' + kind + '-table tbody');
   let rows = listCache[kind] || [];
-  if (kind === 'students' && classroomFilter !== '') {
-    rows = rows.filter((r) => r.classroom_name === classroomFilter);
+  const clsFilter = classroomFilter[kind] || '';
+  if (kind === 'students' && clsFilter !== '') {
+    rows = rows.filter((r) => r.classroom_name === clsFilter);
+  }
+  // 保護者は複数の教室にお子さまがいることがあるので、どれか1つでも一致すれば残す
+  if (kind === 'guardians' && clsFilter !== '') {
+    rows = rows.filter((r) => String(r.classroom_names || '').split('、').includes(clsFilter));
   }
   // テスト生（名前に「テスト」を含む）非表示（teacher.php / ranking.php と同じ基準）
   const hideTest = document.querySelector('#list-' + kind + ' .hide-test');
@@ -1194,8 +1257,9 @@ function renderRows(kind) {
   tbody.innerHTML = '';
   if (rows.length === 0) {
     const cols = document.querySelectorAll('#' + kind + '-table thead th').length;
-    const text = (kind === 'students' && classroomFilter !== '')
-      ? 'この教室には生徒がいません' : 'まだ登録がありません';
+    const text = clsFilter !== ''
+      ? (kind === 'students' ? 'この教室には生徒がいません' : 'この教室のお子さまに紐づく保護者はいません')
+      : 'まだ登録がありません';
     tbody.innerHTML = '<tr><td colspan="' + cols + '" style="color:var(--ink-soft);">' + text + '</td></tr>';
     return;
   }
@@ -1204,13 +1268,14 @@ function renderRows(kind) {
     let name;
     if (kind === 'students') {
       name = r.student_name;
-      fillRow(tr, [r.login_id, r.classroom_name, r.grade ?? '', r.student_name,
+      fillRow(tr, [r.login_id, r.classroom_name, r.grade ?? '', r.student_name, '',
         r.target_private_name ?? '', r.target_public_name ?? '', '', r.created_at],
         recent.students.has(r.login_id), r.is_active);
+      siblingCell(tr.children[4], r);
     } else if (kind === 'guardians') {
       name = r.guardian_name;
-      fillRow(tr, [r.login_id, r.guardian_name, r.children, '', r.created_at, r.last_login_at || '未ログイン'],
-        recent.guardians.has(r.login_id), r.is_active, 3);
+      fillRow(tr, [r.login_id, r.guardian_name, r.classroom_names || '', r.children, '', r.created_at, r.last_login_at || '未ログイン'],
+        recent.guardians.has(r.login_id), r.is_active, 4);
     } else {
       name = r.teacher_name;
       fillRow(tr, [r.login_id, r.teacher_name, r.role, r.classroom_names, '', r.created_at],
@@ -1376,7 +1441,7 @@ document.getElementById('bulk-guide-btn').addEventListener('click', () => {
 document.getElementById('bulk-guide-copy').addEventListener('click', () =>
   copyWithNote(document.getElementById('bulk-guide-text').value, 'bulk-guide-note'));
 
-// ---- 保護者登録 ----
+// ---- 保護者・兄弟登録 ----
 document.getElementById('guardian-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = e.target;

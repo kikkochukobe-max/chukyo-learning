@@ -18,12 +18,15 @@ $baseSql =
     "SELECT g.login_id, g.guardian_name, g.is_active, g.created_at,
             COALESCE(GROUP_CONCAT(CONCAT(s.login_id, ' ', s.student_name)
               ORDER BY s.login_id SEPARATOR '、'), '') AS children,
+            COALESCE(GROUP_CONCAT(DISTINCT c.classroom_name
+              ORDER BY c.classroom_name SEPARATOR '、'), '') AS classroom_names,
             (SELECT MAX(ll.logged_in_at) FROM login_logs ll
               WHERE ll.actor_type = 'guardian' AND ll.actor_id = g.guardian_id
                 AND ll.success = 1) AS last_login_at
      FROM guardians g
      LEFT JOIN guardian_students gs ON gs.guardian_id = g.guardian_id
-     LEFT JOIN students s ON s.student_id = gs.student_id";
+     LEFT JOIN students s ON s.student_id = gs.student_id
+     LEFT JOIN classrooms c ON c.classroom_id = s.classroom_id";
 
 if ($requesterRole === 'super_admin') {
     $guardians = $pdo->query($baseSql . ' GROUP BY g.guardian_id ORDER BY g.guardian_id')->fetchAll();

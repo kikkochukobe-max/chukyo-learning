@@ -110,6 +110,7 @@ db/                    DB用SQL（phpMyAdminで手動実行。本番へは配信
   migrations/           適用済みスキーマ変更の履歴
   seeds/                question_catalog等のシード（ミラー環境の再構築で再利用）
   maintenance/          運用SQL（生徒1人の記録だけ消す等。テストデータ掃除用）
+  reports/              集計SQL（教室別稼働率など。phpMyAdminで実行して読む参照専用）
 ```
 
 ファイル名規則: `教科_校種学年_単元(_製作者コード).html`
@@ -369,6 +370,11 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    別々に登録済みの兄弟の統合にも対応: 別保護者に紐づく子は needs_move(409)→画面で確認→
    move=true 再送で付け替え、空になった元の保護者は自動 is_active=0）。登録一覧は開くたび再取得、
    同一ページ内で登録・変更した行は金色+NEWで先頭表示、教室フィルタあり(生徒)。
+   **生徒一覧の「保護者・兄弟」列で兄弟登録済みの家庭が分かる**（保護者ID＋「兄弟N人」バッジ＋
+   兄弟の生徒コード/氏名。保護者が未発行なら朱色で「保護者未発行」＝ご家庭向け案内文を
+   渡す前に気づける）。値は api/list_students.php が相関サブクエリで付ける
+   guardian_login_id / siblings で、並び替え用の sibling_state（兄弟あり/兄弟なし/保護者未発行）は
+   admin.php 側で組む＝列見出しクリックで兄弟ありをまとめて先頭に出せる。
    削除は is_active 切替（api/set_active.php、講師は統括のみ・自分自身は不可）。
    生徒の完全物理削除は統括のみ（api/delete_student.php、生徒コード打ち直し確認つき。
    CASCADE+login_logs/auth_tokens明示削除。子がいなくなった保護者のみ道連れ、兄弟がいれば保護者は残る）。
