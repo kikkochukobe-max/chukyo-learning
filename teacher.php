@@ -942,6 +942,7 @@ function sp_select(string $label, array $options): string
       </span>
       <span class="who-actions">
         <a class="logout" href="/admin.php" style="text-decoration:none;">生徒・保護者登録＆修正</a>
+        <a class="logout" href="/vocab_admin.php" style="text-decoration:none;">語彙クロスワード 作問</a>
         <a class="logout" href="/password.php" style="text-decoration:none;">パスワード変更</a>
       </span>
     </div>

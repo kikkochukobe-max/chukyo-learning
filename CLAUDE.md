@@ -177,6 +177,7 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
 | 確認テスト | paper_tests / paper_test_results | アナログ確認テスト。attempt_no=1が本試、2以降が追試。合格率・追試数は集計で算出 |
 | XP | xp_events / xp_logs | イベント期間の倍率。**XPは付与時点で確定値を記録**(再計算禁止)。レベルはカラムに持たず累計XPから式で算出: floor(sqrt(totalXp/100))+1 |
 | カタログ | question_catalog | (unit_key,question_key)→日本語ラベル+base_xp。平方根8モードシード済み。当面は難易度を分けずbase_xp=1で統一 |
+| コンテンツ | vocab_words / vocab_hints | 語彙クロスワード(japanese_goi_crossword)の語3350件と段階ヒント。**schema_full.sql には無い**（db/migrations/migrate_vocab_crossword.sql + db/seeds/seed_japanese_goi_crossword.sql を phpMyAdmin で実行）。**問題データをDBに置く最初のツール**で、先生が /vocab_admin.php から語とヒントを増やせる（API=api/vocab_admin.php）。正誤は既存 answer_logs に集約＝専用ログ表は作らない |
 
 ## 主要な設計判断（確定事項）
 
@@ -253,6 +254,17 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    （params_hash は同じままなので解き直し自体は成立するが、出る問題は別物になる）。
    ⚠ 種は question_params に入る＝params_hash に効くので、
    「同じ問題」の単位は種そのもの。同じ問題を2回出したいなら種を使い回す。
+2e. **問題データそのものがDBにあるツールは、そのIDだけを question_params に入れる**。
+   語彙クロスワード(japanese_goi_crossword)は語を vocab_words に持つので
+   `question_params:{word_id:123}` の1項目だけ。読み・語釈・レベル・分野は**入れない**
+   （先生が /vocab_admin.php で語を直したとたん params_hash が変わって、
+   その語は永久に mastered にならなくなる）。復元も再表示も要らず、
+   `?retry=1` では word_id を api/vocab_words.php の `ids=` に渡して
+   「pending の語を必ず盤面に載せる」だけで解き直しが成立する。
+   ⚠ 出題プールはAPIが決めるので、**プールを広げると1盤面に載る pending 語が減る**
+   （盤面は語を混ぜて作るため）。解き直し時だけ limit を絞ってある。
+   ⚠ 1語=1レコード。ヒントでマスを開けた語は正解でも**誤答で記録する**
+   （そうしないとヒント連打で全問正解になり、解き直しリストが減らない）
 3. **question_key はツールのモード変数をそのまま使う**。命名ブレ防止のため
    question_catalog が台帳を兼ね、カタログに無い question_key が飛んできたら
    save_answer.php が警告ログを出す
@@ -448,6 +460,12 @@ GROUP BY al.question_key;
 ## 注意（Heteml固有）
 
 - Heteml はリモートMySQL接続不可 → ローカル開発はMySQLミラーで
+- **日本語の「読み」にUNIQUEを張る列は `COLLATE utf8mb4_bin` にする**。既定の
+  `utf8mb4_unicode_ci` は主レベルの重みだけで比較する＝**濁点・半濁点・小書きの差を無視**し、
+  「ニシ＝ニジ」「キケン＝キゲン」「規制(キセイ)＝犠牲(ギセイ)」が同じ文字列になる。
+  vocab_words.yomi でこれを踏み、seed投入が #1062（44組が衝突）で止まった。
+  検索窓のLIKEだけは `列 COLLATE utf8mb4_unicode_ci LIKE ?` と寄せると
+  かな・濁点の揺れを吸収できる（UNIQUE制約は列の照合順序のままなので厳密）
 - HetemlのMySQL/PHPはUTC → `api/db.php` で `date_default_timezone_set('Asia/Tokyo')` と
   接続時 `SET time_zone = '+09:00'` を必ず通す（NOW()/CURDATE()が9時間ずれるため）
 - .html はPHPを実行しない → ヘッダーはJS注入方式（divp-header.js）

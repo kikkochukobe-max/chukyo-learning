@@ -36,6 +36,11 @@ return [
         'sub'   => '国語・中1',
         'url'   => '/learning/japanese/japanese_js1_kaeriten.html',
     ],
+    'japanese_goi_crossword' => [
+        'title' => 'ことばのマスで語彙力マス',
+        'sub'   => '国語・小学〜中学（語彙クロスワード）',
+        'url'   => '/learning/japanese/japanese_esjs_goi_crossword.html',
+    ],
     'math_js1_seihu' => [
         'title' => '正負の計算マスター',
         'sub'   => '数学・中1',
