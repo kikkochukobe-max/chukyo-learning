@@ -16,7 +16,11 @@
   --gold:#FEB342;
   --cell:34px;
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+/* touch-action:manipulation = ダブルタップ拡大を切る。盤面のマスやかなキーボードを
+   速く連打すると2回目のタップが「ダブルタップ」と判定されて画面がズームしてしまう
+   のをふせぐ。ピンチでの拡大とスクロール（.levels の横スクロール等）はのこる。
+   iOS Safari は viewport の user-scalable=no を無視するので、これが実質の対策 */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 html,body{margin:0;padding:0;}
 body{
   background:var(--paper);
@@ -184,7 +188,12 @@ h1 span{font-size:11px;letter-spacing:.1em;color:var(--rule);margin-left:6px;fon
         ヘッダーを挿すので、<head> に置くと <head> の中に入って画面に出ない。 -->
 <script src="/assets/divp-header.js"></script>
 <script src="/assets/divp-core.js"></script>
-<script src="/assets/divp-correct-jh.js"></script>
+<!-- 正解エフェクトは小学生(es)用の星＋「正解！」。中学レベル(l4〜l6)も同じ盤面ゲームで、
+     ひらがな主体の文言・盤面いっぱいの演出のほうが合うため es 側にそろえた。
+     ⚠ es版 Divp.correct(opts) と jh版 Divp.correct(sel,opts) は引数が違う（safeCorrect 参照）。
+     ⚠ jh をやめた＝Divp.incorrect（ナイスチャレンジ バッジ）は無い。誤答時の知らせは
+        キーボード上の「まちがいが Nマス あるよ」で受け持つ。 -->
+<script src="/assets/divp-correct.js"></script>
 
 <header>
   <div class="brand">中京個別指導学院</div>
@@ -3758,11 +3767,24 @@ var QKEY={l1:'es_low',l2:'es_mid',l3:'es_high',l4:'js_easy',l5:'js_normal',l6:'j
 var LVNUM={l1:1,l2:2,l3:3,l4:4,l5:5,l6:6};
 var hasDivp=function(){ return (typeof window!=='undefined') && window.Divp; };
 
-/* 正解はんこ／ナイスチャレンジ（無ければ何もしない）。safeDivp* 定石に沿う。
-   第一引数はカードのCSSセレクタ必須。はんこは171px固定なので、語1つぶんの
-   カギ行(.clue)ではなく盤面(#board)に出す。盤面は次の問題で innerHTML から
-   作り直されるので、こちらで消す後片付けは要らない。 */
-function safeCorrect(sel,opts){ try{ if(hasDivp() && window.Divp.correct) window.Divp.correct(sel,opts); }catch(e){} }
+/* 正解エフェクト（無ければ何もしない）。safeDivp* 定石に沿う。
+   ⚠ es版 divp-correct.js は引数がオプション1個 Divp.correct({target,text,…})。
+     jh版の Divp.correct(セレクタ, opts) とは形が違うので、ここで要素を渡す形に寄せる。
+     target は星の発生源で、盤面(#board)の中央から散らせる。エフェクトは
+     画面いっぱいの fixed レイヤーなので、盤面を作り直しても後片付けは要らない
+     （寿命が来ると自分で消える）。 */
+function safeCorrect(el,opts){
+  try{
+    if(!(hasDivp() && window.Divp.correct)) return;
+    var o={}; if(opts) for(var k in opts) o[k]=opts[k];
+    if(o.target==null) o.target=el;
+    window.Divp.correct(o);
+  }catch(e){}
+}
+/* 誤答時のバッジは jh 専用機能（Divp.incorrect）で、es版には無い＝この呼び出しは
+   今は何もしない。es は「赤で責めない」うえに誤答マスがその場で分かるので、
+   知らせはキーボード上の「まちがいが Nマス あるよ」だけで足りる。
+   jh に戻すときのために呼び出し口は残してある。 */
 function safeIncorrect(sel,opts){ try{ if(hasDivp() && window.Divp.incorrect) window.Divp.incorrect(sel,opts); }catch(e){} }
 
 /* question_params は params_hash の材料＝「同じ問題」の単位。
@@ -4116,10 +4138,11 @@ function finish(){
     d.innerHTML='<b>'+(w.e.d? w.e.d : w.e.w)+'</b><span class="mincho">'+w.e.w+'</span><small>'+w.e.c+'</small>';
     list.appendChild(d);
   });
-  // 盤面ぜんぶ完成＝1プレイのクリア。共通モジュールの正解はんこを盤面に出し、
-  // 少し見せてから結果シートを出す（シートは fixed の暗幕なのでハンコに重なる）
+  // 盤面ぜんぶ完成＝1プレイのクリア。共通モジュール（小学生用）の星エフェクトを
+  // 盤面中央から散らせ、少し見せてから結果シートを出す。エフェクト側のレイヤーは
+  // 最前面なので、結果シートが出たあとも星は上に降りつづける（じゃまはしない）
   $('kb').classList.add('hidden');
-  safeCorrect('#board');
+  safeCorrect($('board'));
   setTimeout(function(){ $('doneWrap').classList.remove('hidden'); }, 750);
 }
 
