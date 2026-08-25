@@ -183,7 +183,10 @@ body{
   padding:30px 18px;min-height:130px;position:relative;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
 }
-.q-cond{font-size:.95rem;color:var(--ink)}
+.q-cond{font-size:.95rem;color:var(--ink);line-height:1.9}
+/* 条件文の中の縦型分数（式の値の代入値）は本文より少し小さく、バーも細く組む */
+.q-cond .fr{font-size:.9em}
+.q-cond .fr .fn{border-bottom-width:1px}
 .q-main{font-family:var(--mathfont);font-size:1.7rem;letter-spacing:.03em;text-align:center;line-height:1.9;width:100%;white-space:nowrap}
 .q-cond{font-family:var(--mathfont)}
 .fb .ng b{font-family:var(--mathfont);font-size:1.15em}
@@ -1139,7 +1142,9 @@ function genShikiNoAtai(lv){
     for(const u of simp)v=v.add(u.c.mul(Fpow(sF,u.ex)).mul(Fpow(tF,u.ey)));
     if(Math.abs(v.n)>(lv>=4?300:120)||v.d>12)continue;
     const pd=p===1?'':(p<0?'−'+(-p):String(p));
-    const cs=function(f){return f.isInt()?numDisp(f.n):(f.n<0?'−':'')+Math.abs(f.n)+'/'+f.d;};
+    /* 代入値は縦型分数で見せる（画面・プリント）。ログ用テキストは F(分子/分母) マーカー。 */
+    const condH='x = '+fnumHTML(sF)+'，y = '+fnumHTML(tF)+' のとき、次の式の値は？';
+    const condT='x = '+fnumTextF(sF)+'，y = '+fnumTextF(tF)+' のとき、次の式の値は？';
     let html,text;
     if(lv===1){
       html='('+termsHTML(P)+') + ('+termsHTML(Q)+')';
@@ -1149,7 +1154,7 @@ function genShikiNoAtai(lv){
       text=p+'('+termsText(P)+')'+(q<0?'-':'+')+Math.abs(q)+'('+termsText(Q)+')';
     }
     return {html:html,text:text,
-      cond:'x = '+cs(sF)+'，y = '+cs(tF)+' のとき、次の式の値は？',
+      cond:condT,condHTML:condH,
       params:{lv:lv,x:fnumText(sF),y:fnumText(tF)},
       answer:{type:'num',v:v},
       ansHTML:v.isInt()?numDisp(v.n):fracHTML(numDisp(v.n),v.d),
@@ -2014,7 +2019,13 @@ function newQuestion(){
   fitExpr();
   const c=$('qCond');
   const src=m.rand?'【'+state.q.srcName+'】':'';
-  if(src||state.q.cond){c.hidden=false;c.textContent=src+(state.q.cond?(src?'　':'')+state.q.cond:'');}
+  if(src||state.q.cond){
+    c.hidden=false;
+    /* condHTML を持つ問題（式の値）は縦型分数を含むので innerHTML で描く。
+       src はツール内で組み立てた固定文字列なのでそのまま連結してよい。 */
+    if(state.q.condHTML)c.innerHTML=src+(src?'　':'')+state.q.condHTML;
+    else c.textContent=src+(state.q.cond?(src?'　':'')+state.q.cond:'');
+  }
   else{c.hidden=true;c.textContent='';}
   ['fxMaru','fxBatsu','fxClear'].forEach(function(id){$(id).classList.remove('show');});
   /* 共通ハンコ（divp-correct-jh）を出している場合、.paper は再描画しないので手動で消す */
@@ -2145,7 +2156,7 @@ function buildPrint(){
   h+='<ol class="pgrid'+(m.at==='sys'?' sysgrid':'')+'">';
   items.forEach(function(q,i){
     h+='<li><span class="pno">('+(i+1)+')</span>'
-      +(q.cond?'<span style="font-size:9.5pt">'+q.cond+'</span><br>':'')
+      +(q.cond?'<span style="font-size:9.5pt">'+(q.condHTML||q.cond)+'</span><br>':'')
       +q.html+'</li>';
   });
   h+='</ol></div>';
