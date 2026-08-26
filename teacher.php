@@ -769,9 +769,16 @@ function sp_select(string $label, array $options): string
   .rank-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start;margin-top:14px}
   .rank-grid .card{margin:0}
   @media (max-width:820px){.rank-grid{grid-template-columns:1fr}}
-  .fsel{font-size:12px;font-weight:700;color:var(--ink-soft);display:inline-flex;align-items:center;gap:6px}
+  .fsel{font-size:12px;font-weight:700;color:var(--ink-soft);display:inline-flex;align-items:center;gap:6px;
+    max-width:100%;min-width:0;
+    /* 見出し（「モード」等）は折り返さない。中の select だけが縮むようにする
+       ＝これが無いと select に幅を取られて「モ／ー／ド」と縦に割れる */
+    white-space:nowrap}
+  /* select は最長の option に合わせて広がるため、モード一覧のような長いラベルがあると
+     カードの外へはみ出す（ランキングの「モード」で発生）。枠内で縮むよう上限を付ける */
   .fsel select,.fsel input[type=date]{font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;font-weight:500;color:var(--ink);
-    border:1.5px solid var(--grid);border-radius:8px;padding:4px 8px;background:var(--white);cursor:pointer;width:auto}
+    border:1.5px solid var(--grid);border-radius:8px;padding:4px 8px;background:var(--white);cursor:pointer;width:auto;
+    max-width:100%;min-width:0;box-sizing:border-box;text-overflow:ellipsis}
   footer{margin-top:28px;text-align:center;font-size:11px;color:var(--ink-soft)}
 
   /* ---------- 足あと（生徒詳細・日別カレンダー） ---------- */
@@ -814,8 +821,12 @@ function sp_select(string $label, array $options): string
     .wrap{padding:0 10px 48px}
 
     /* --- ヘッダー: 1行目=ロゴ+学習ツール一覧 … ログアウト(右上)、2行目=名前や他ボタン --- */
-    header{padding:10px 0 6px;gap:8px 10px;flex-wrap:wrap;align-items:center}
-    .brand{flex:1 1 auto;gap:9px 8px;order:1;flex-wrap:wrap}
+    /* align-items:flex-start = ログアウトをロゴと同じ高さ(右上)に置く。
+       center だと .brand が2行に折り返した分だけ下にずれる */
+    header{padding:10px 0 6px;gap:8px 10px;flex-wrap:wrap;align-items:flex-start}
+    /* flex-basis:0 が要る。auto だと .brand の基準幅=中身の最大幅(ロゴ+ボタン2つ)に
+       なって1行を占有し、ログアウトが次の行に押し出される */
+    .brand{flex:1 1 0;min-width:0;gap:9px 8px;order:1;flex-wrap:wrap}
     header img.logo{height:30px}
     .toollink{flex:0 0 auto;font-size:13px;padding:6px 14px}
     #logout-btn{order:2;margin-left:auto}
