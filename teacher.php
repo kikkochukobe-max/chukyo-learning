@@ -820,16 +820,19 @@ function sp_select(string $label, array $options): string
     body{zoom:1;background-size:20px 20px}
     .wrap{padding:0 10px 48px}
 
-    /* --- ヘッダー: 1行目=ロゴ+学習ツール一覧 … ログアウト(右上)、2行目=名前や他ボタン --- */
+    /* --- ヘッダー: 1行目=ロゴ+学習ツール一覧+別サイト+ログアウトを「横一列」、2行目=名前や他ボタン --- */
     /* align-items:flex-start = ログアウトをロゴと同じ高さ(右上)に置く。
        center だと .brand が2行に折り返した分だけ下にずれる */
     header{padding:10px 0 6px;gap:8px 10px;flex-wrap:wrap;align-items:flex-start}
     /* flex-basis:0 が要る。auto だと .brand の基準幅=中身の最大幅(ロゴ+ボタン2つ)に
        なって1行を占有し、ログアウトが次の行に押し出される */
-    .brand{flex:1 1 0;min-width:0;gap:9px 8px;order:1;flex-wrap:wrap}
-    header img.logo{height:30px}
-    .toollink{flex:0 0 auto;font-size:13px;padding:6px 14px}
-    #logout-btn{order:2;margin-left:auto}
+    /* flex-wrap:nowrap = ロゴ+ボタン2つを折り返さず1行に保つ。
+       ここが wrap だと幅の足りない端末で「別サイト講師ページ」だけ2段目に落ちる */
+    .brand{flex:1 1 0;min-width:0;gap:9px 6px;order:1;flex-wrap:nowrap}
+    header img.logo{height:26px}
+    /* 1行に4つ並べるので font/padding を絞る（ログアウトはさらに小さく） */
+    .toollink{flex:0 0 auto;font-size:11.5px;padding:5px 10px}
+    #logout-btn{order:2;margin-left:auto;font-size:10.5px;padding:4px 10px}
     .who{flex:1 1 100%;order:3;margin-left:0;flex-direction:column;align-items:flex-start;gap:8px;font-size:13px}
     .who-id{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     .who-actions{display:flex;gap:8px;width:100%}
@@ -933,6 +936,12 @@ function sp_select(string $label, array $options): string
       font-family:system-ui,'Segoe UI',Arial,sans-serif;font-variant-numeric:tabular-nums}   /* 数字 */
     table.rankt td:nth-child(6){display:none}                                                /* 解答数/回数(非表示) */
   }
+
+  /* 幅の狭い端末(iPhone SE等)ではヘッダー1行に4つ入らないので、
+     「別サイト講師ページ」→「別サイト」と略す（ボタン自体は消さない） */
+  @media (max-width:390px){
+    .toollink .lbl-long{display:none}
+  }
 </style>
 </head>
 <body>
@@ -944,7 +953,7 @@ function sp_select(string $label, array $options): string
            alt="中京個別指導学院">
       <a class="toollink" href="/learning/">学習ツール一覧</a>
       <a class="toollink ext" href="https://ranking.chukyo.workers.dev/Ranking"
-         target="_blank" rel="noopener">別サイト講師ページ</a>
+         target="_blank" rel="noopener">別サイト<span class="lbl-long">講師ページ</span></a>
     </div>
     <div class="who">
       <span class="who-id">
@@ -953,7 +962,8 @@ function sp_select(string $label, array $options): string
       </span>
       <span class="who-actions">
         <a class="logout" href="/admin.php" style="text-decoration:none;">生徒・保護者登録＆修正</a>
-        <a class="logout" href="/vocab_admin.php" style="text-decoration:none;">語彙クロスワード 作問</a>
+        <!-- 作問はPC作業なのでスマホでは出さない（.sp-hide） -->
+        <a class="logout sp-hide" href="/vocab_admin.php" style="text-decoration:none;">語彙クロスワード 作問</a>
         <a class="logout" href="/password.php" style="text-decoration:none;">パスワード変更</a>
       </span>
     </div>
