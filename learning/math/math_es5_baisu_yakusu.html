@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="only light">
+<title>倍数・約数マスター（調整中）｜中京個別指導学院</title>
+<!-- ============================================================
+     ★ テストモード（開発途中・実機テスト用）
+     公開するときは、この2つを消すだけで通常公開になる:
+       ① <title> の「（調整中）」
+       ② body 内の「テストモードのカギ」ブロック（HTML/CSS/JS）
+     パスワードは TESTMODE_PASS（JS内）。ブラウザ内の判定なので
+     「生徒がうっかり触らない」ためのカギであって、機密の保護ではない。
+
+     ※ learning/index.php の一覧には**出す**（実機テスト時に目次から
+       開けないと不便なため）。カギがあるので生徒が開いても
+       「調整中です」の画面で止まる。
+       逆に一覧からも消したいときは、head に divp-hidden の meta を
+       1行足す（index.php が除外する目印。この注記の中にタグそのものを
+       書かないこと＝コメント内でも正規表現に一致してしまうため）。
+     ============================================================ -->
+<!-- 本番(Heteml)ではサブセット自己ホストに差し替え -->
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBFAF6;
+    --grid:#ECE9E0;
+    --sumi:#33312B;
+    --usuzumi:#8B877C;
+    --shu:#C73E2E;
+    --kin:#C9A227;
+    --ai:#2C5F8A;
+    /* 答え合わせの色は共通モジュール(divp-choice-mark.js)の既定にそろえる */
+    --divp-mark-ok:#3E8E5A;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html{ scrollbar-gutter:stable; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:24px 24px;
+    color:var(--sumi);
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    touch-action:manipulation;
+  }
+  .app{
+    width:100%;
+    max-width:560px;
+    margin:0 auto;
+    padding:12px 14px calc(90px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    flex:1;
+  }
+
+  /* ---- ヘッダー ---- */
+  header{ display:flex; align-items:center; gap:8px; }
+  header h1{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700; margin:0;
+    letter-spacing:.04em;
+  }
+  header h1 .sub{
+    display:block;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    letter-spacing:.1em;
+  }
+  .mode-back{
+    margin-left:auto;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.5px solid var(--ai);
+    background:#fff;
+    border-radius:8px;
+    padding:5px 9px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+
+  /* ---- スコア ---- */
+  .score{
+    display:flex; align-items:baseline; gap:12px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700; color:var(--usuzumi);
+  }
+  .score b{ color:var(--shu); font-size:17px; }
+  .score .streak b{ color:var(--kin); }
+  .score .qno{ margin-left:auto; color:var(--ai); }
+
+  /* ---- 問題カード ---- */
+  .card{
+    position:relative;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:16px;
+    box-shadow:0 2px 0 rgba(51,49,43,.06);
+    padding:16px 16px 14px;
+  }
+  .card .qtag{
+    display:inline-block;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.2px solid var(--ai);
+    border-radius:999px;
+    padding:2px 10px;
+    margin-bottom:8px;
+    letter-spacing:.06em;
+  }
+  .card .qtext{
+    font-size:16px; line-height:1.85;
+    letter-spacing:.02em;
+  }
+  .card .qtext b{ color:var(--shu); }
+  .card .big{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:clamp(38px, 13vw, 56px);
+    font-weight:700;
+    text-align:center;
+    letter-spacing:.06em;
+    margin:6px 0 2px;
+    color:var(--sumi);
+  }
+  .card .nums{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:clamp(26px, 9vw, 38px);
+    font-weight:700;
+    text-align:center;
+    letter-spacing:.08em;
+    margin:8px 0 2px;
+  }
+  .card .nums .sep{ color:var(--usuzumi); font-size:.6em; margin:0 .2em; }
+
+  /* ---- メモ欄（約数の個数のように「書き出して数える」問題だけに出す） ---- */
+  .memo{
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:12px;
+    padding:9px 11px 11px;
+  }
+  .memo-head{
+    display:flex; align-items:center; gap:6px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700; color:var(--usuzumi);
+    margin-bottom:6px;
+  }
+  .memo-clear{
+    margin-left:auto;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:11px; font-weight:700;
+    color:var(--usuzumi);
+    border:1.2px solid var(--grid);
+    background:var(--paper);
+    border-radius:999px;
+    padding:3px 11px;
+    cursor:pointer;
+  }
+  .memo textarea{
+    display:block; width:100%;
+    min-height:96px;
+    border:1px dashed var(--grid);
+    border-radius:8px;
+    padding:4px 9px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:16px;              /* iOSの自動ズーム回避のため16px以上 */
+    line-height:24px;            /* ↓の罫線の間かくと そろえる */
+    color:var(--sumi);
+    background-color:#fff;
+    background-image:repeating-linear-gradient(to bottom,
+      transparent 0 23px, var(--grid) 23px 24px);
+    resize:vertical;
+  }
+  .memo textarea:focus{ outline:none; border-color:var(--ai); border-style:solid; }
+
+  /* ---- 解答パーツ ---- */
+  .part{ display:flex; flex-direction:column; gap:8px; }
+  .p-label{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700;
+    color:var(--ai);
+    letter-spacing:.04em;
+  }
+  .p-label .hint{ color:var(--usuzumi); font-weight:500; font-size:11px; margin-left:6px; }
+  .opts{ display:flex; flex-wrap:wrap; gap:8px; }
+  .optBtn{
+    position:relative;          /* 「せいかい」バッジの基準（divp-choice-mark.js） */
+    flex:1 1 auto;
+    min-width:72px;
+    min-height:52px;
+    padding:8px 14px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:11px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:20px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .opts.wide .optBtn{ flex:1 1 100%; font-size:17px; min-height:56px; line-height:1.5; }
+  .opts.small .optBtn{ flex:0 0 auto; min-width:62px; font-size:19px; }
+  .optBtn.on{
+    background:#FDECE9;
+    border-color:var(--shu);
+    border-bottom-color:var(--shu);
+    color:var(--shu);
+  }
+  .optBtn:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .optBtn:disabled{ cursor:default; transform:none; }
+  .optBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+  .picked-n{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700; color:var(--usuzumi);
+  }
+  .picked-n.full{ color:var(--shu); }
+
+  /* ---- フィードバック ---- */
+  .feedback{ display:none; }
+  .feedback.show{ display:flex; flex-direction:column; gap:10px; }
+  .fb-msg{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    text-align:center;
+    letter-spacing:.06em;
+  }
+  .fb-msg.good{ color:var(--shu); }
+  .fb-msg.bad{ color:var(--ai); }
+  .expl{
+    background:#fff;
+    border:1.5px dashed var(--kin);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:14px; line-height:1.9;
+  }
+  .expl b{ color:var(--shu); }
+  .expl .ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--kin);
+    letter-spacing:.08em;
+    display:block; margin-bottom:4px;
+  }
+  .expl .list{
+    font-family:"Zen Maru Gothic", sans-serif;
+    letter-spacing:.04em;
+    word-break:break-all;
+  }
+  .toast{
+    text-align:center;
+    font-size:13px; font-weight:700; color:var(--ai);
+    min-height:20px;
+  }
+
+  /* ---- 下の大きなボタン ---- */
+  .bottom{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--paper) 62%, rgba(251,250,246,0));
+    z-index:20;
+  }
+  .bottom .inner{ max-width:560px; margin:0 auto; }
+  .bigBtn{
+    width:100%;
+    height:54px;
+    border:none;
+    border-radius:13px;
+    background:var(--shu);
+    color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    letter-spacing:.2em; text-indent:.2em;
+    box-shadow:0 3px 0 #9E2F22;
+    cursor:pointer;
+  }
+  .bigBtn:active{ transform:translateY(2px); box-shadow:0 1px 0 #9E2F22; }
+  .bigBtn.next{ background:var(--ai); box-shadow:0 3px 0 #1E466A; }
+  .bigBtn.next:active{ box-shadow:0 1px 0 #1E466A; }
+  .bigBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- モード選択画面（ローマ字マスターと同じ作り） ---- */
+  .mode-screen{ display:none; }
+  body.choosing .app,
+  body.choosing .bottom{ display:none; }
+  body.choosing .mode-screen{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:100%;
+    max-width:520px;
+    margin:0 auto;
+    padding:34px 18px 48px;
+  }
+  .m-logo{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:25px; font-weight:700;
+    text-align:center;
+    letter-spacing:.08em;
+  }
+  .m-sub{
+    text-align:center;
+    font-size:13px; color:var(--usuzumi);
+    margin-bottom:8px;
+  }
+  .m-card{
+    display:flex; align-items:center; gap:13px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:4px solid #D8D4C8;
+    border-radius:16px;
+    padding:14px 16px;
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;
+    width:100%;
+  }
+  .m-card:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .m-card.mix{ border-color:var(--kin); border-bottom-color:var(--kin); }
+  .m-body{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .m-name{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700;
+  }
+  .m-desc{ font-size:11.5px; color:var(--usuzumi); line-height:1.5; }
+
+  /* 解き直し(?retry=1)の案内帯 */
+  #retryBanner{
+    background:#FBF3E0;
+    border:1.5px solid var(--kin);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:12.5px; line-height:1.6;
+    color:#6E5518;
+  }
+
+  /* ---- テストモードのカギ（公開時にこのブロックごと削除する） ---- */
+  body.locked .mode-screen,
+  body.locked .app,
+  body.locked .bottom,
+  body.locked .divp-header{ display:none !important; }
+  .tm-gate{ display:none; }
+  body.locked .tm-gate{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:14px;
+    min-height:100dvh;
+    padding:24px 20px;
+    text-align:center;
+  }
+  .tm-card{
+    width:100%; max-width:380px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-top:6px solid var(--kin);
+    border-radius:18px;
+    box-shadow:0 10px 34px rgba(51,49,43,.14);
+    padding:30px 24px 26px;
+  }
+  .tm-emoji{ font-size:46px; line-height:1; }
+  .tm-ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:20px; font-weight:700;
+    margin:8px 0 6px;
+  }
+  .tm-lead{ font-size:13px; line-height:1.8; color:var(--usuzumi); }
+  .tm-form{ display:flex; gap:8px; margin-top:18px; }
+  .tm-form input{
+    flex:1; min-width:0;
+    height:48px;
+    padding:0 12px;
+    border:1.5px solid var(--grid);
+    border-radius:10px;
+    background:var(--paper);
+    font-family:inherit;
+    font-size:16px;                /* iOSの自動ズーム回避のため16px以上 */
+    color:var(--sumi);
+  }
+  .tm-form input:focus{ outline:none; border-color:var(--ai); }
+  .tm-form button{
+    flex:0 0 auto;
+    height:48px; padding:0 20px;
+    border:none; border-radius:10px;
+    background:var(--ai); color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:15px; font-weight:700;
+    cursor:pointer;
+  }
+  .tm-err{
+    min-height:20px; margin-top:10px;
+    font-size:13px; font-weight:700; color:var(--shu);
+  }
+  .tm-card.shake{ animation:tmShake .35s; }
+  @keyframes tmShake{
+    20%{ transform:translateX(-7px); } 40%{ transform:translateX(7px); }
+    60%{ transform:translateX(-4px); } 80%{ transform:translateX(4px); }
+  }
+  @media (prefers-reduced-motion: reduce){ .tm-card.shake{ animation:none; } }
+  /* 解除中だけ出る目印。本番公開だと勘違いしないように出しっぱなしにする */
+  .tm-badge{ display:none; }
+  body:not(.locked) .tm-badge{
+    display:block;
+    position:fixed; right:8px; bottom:74px; z-index:30;
+    background:var(--kin); color:#fff;
+    border:none; border-radius:999px;
+    padding:5px 12px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:11px; font-weight:700;
+    letter-spacing:.08em;
+    box-shadow:0 2px 8px rgba(51,49,43,.25);
+    cursor:pointer;
+    opacity:.85;
+  }
+
+  @media print{
+    /* 共通ヘッダーは紙に出さない（assets/divp-header.js と同じ方針） */
+    .divp-header{ display:none !important; }
+    .bottom{ display:none !important; }
+    .tm-gate, .tm-badge{ display:none !important; }
+  }
+</style>
+</head>
+<body class="choosing locked">
+<!-- ============================================================
+     ★ テストモードのカギ（公開時はここから </script> までを削除）
+     ・body に locked が付いている間、ツール本体は表示しない
+     ・合言葉が合うと localStorage に印を残すので、その端末では次から素通り
+     ・?pass=… を付けたURLでも開ける（実機にURLを送るとき用）
+     ============================================================ -->
+<div class="tm-gate" id="tmGate">
+  <div class="tm-card" id="tmCard">
+    <div class="tm-emoji">🔧</div>
+    <div class="tm-ttl">ただいま 調整中です</div>
+    <div class="tm-lead">このページは 先生が テスト中の ページです。<br>合言葉を 入れると 開きます。</div>
+    <form class="tm-form" id="tmForm">
+      <input type="password" id="tmPass" placeholder="合言葉" autocomplete="off"
+             autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="合言葉">
+      <button type="submit">ひらく</button>
+    </form>
+    <div class="tm-err" id="tmErr"></div>
+  </div>
+</div>
+<button type="button" class="tm-badge" id="tmBadge" title="タップすると カギを かけ直します">テストモード</button>
+<script>
+(function(){
+  "use strict";
+  var TESTMODE_PASS = "testestes";
+  var KEY = "divp_testmode_math_es5_baisu_yakusu";
+
+  function unlock(remember){
+    if(remember){ try{ localStorage.setItem(KEY, "1"); }catch(e){} }
+    document.body.classList.remove("locked");
+  }
+  /* 既に解除済みの端末 / URLに ?pass= が付いている場合はそのまま開く */
+  var already = false;
+  try{ already = localStorage.getItem(KEY) === "1"; }catch(e){}
+  var m = /[?&]pass=([^&]*)/.exec(location.search);
+  if(already) unlock(false);
+  else if(m && decodeURIComponent(m[1]) === TESTMODE_PASS) unlock(true);
+
+  document.addEventListener("DOMContentLoaded", function(){
+    var form = document.getElementById("tmForm");
+    var pass = document.getElementById("tmPass");
+    var err  = document.getElementById("tmErr");
+    var card = document.getElementById("tmCard");
+    form.addEventListener("submit", function(e){
+      e.preventDefault();
+      if(pass.value === TESTMODE_PASS){ err.textContent = ""; unlock(true); return; }
+      err.textContent = "合言葉が ちがいます";
+      pass.value = "";
+      card.classList.remove("shake");
+      void card.offsetWidth;              /* アニメーションを再生し直す */
+      card.classList.add("shake");
+    });
+    /* 目印をタップしたら、この端末のカギを かけ直す（解除の解除） */
+    document.getElementById("tmBadge").addEventListener("click", function(){
+      try{ localStorage.removeItem(KEY); }catch(e){}
+      location.href = location.pathname;  /* ?pass= を落としてから閉じる */
+    });
+  });
+})();
+</script>
+
+<!-- 共通ヘッダー(ロゴ・ログイン窓)の差し込み先。script は body 直後に置くこと -->
+<div class="divp-header"></div>
+<!-- 学習記録システム共通モジュール -->
+<script src="/assets/divp-core.js" defer></script>
+<script src="/assets/divp-header.js" defer></script>
+<!-- 小学生ツールなので正解演出は星＋「せいかい！」 -->
+<script src="/assets/divp-correct.js" defer></script>
+<!-- 選択肢の答え合わせ表示（正解=緑 / 選んだ誤答=朱） -->
+<script src="/assets/divp-choice-mark.js" defer></script>
+
+<div class="mode-screen" id="modeScreen">
+  <div class="m-logo">倍数・約数マスター</div>
+  <div class="m-sub">小5 算数 ／ れんしゅうしたいものを えらんでね</div>
+  <div id="retryBannerSlot"></div>
+
+  <button type="button" class="m-card" data-mode="guusuu">
+    <span class="m-body"><span class="m-name">偶数と奇数</span>
+    <span class="m-desc">偶数・奇数を 見わける／たし算・ひき算の 答えは どっち？</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="koubai2">
+    <span class="m-body"><span class="m-name">公倍数（2つの数）</span>
+    <span class="m-desc">小さいほうから 3つ ＋ 最小公倍数</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="koubai3">
+    <span class="m-body"><span class="m-name">公倍数（3つの数）</span>
+    <span class="m-desc">小さいほうから 3つ ＋ 最小公倍数</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="koubai_bun">
+    <span class="m-body"><span class="m-name">公倍数の 文章題</span>
+    <span class="m-desc">「つぎに 同じになるのは？」を 考える</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="yakusu">
+    <span class="m-body"><span class="m-name">約数の 見つけ方</span>
+    <span class="m-desc">ペアで さがす／ぜんぶ えらぶ／何個ある？</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="kouyaku">
+    <span class="m-body"><span class="m-name">公約数</span>
+    <span class="m-desc">公約数を ぜんぶ ＋ 最大公約数</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="kouyaku_bun">
+    <span class="m-body"><span class="m-name">公約数の 文章題</span>
+    <span class="m-desc">「あまりなく 同じ数ずつ 分ける」を 考える</span></span>
+  </button>
+
+  <button type="button" class="m-card mix" data-mode="mix">
+    <span class="m-body"><span class="m-name">ミックス</span>
+    <span class="m-desc">「約数の 見つけ方」いがいを ごちゃまぜで 出題（しあげ用）</span></span>
+  </button>
+</div>
+
+<div class="app" id="app">
+  <header>
+    <h1>倍数・約数マスター<span class="sub" id="modeLabel">偶数と奇数</span></h1>
+    <button type="button" class="mode-back" id="homeBtn">ホームに戻る</button>
+  </header>
+
+  <div class="score">
+    <span>せいかい <b id="scoreOk">0</b> / <span id="scoreAll">0</span></span>
+    <span class="streak">れんぞく <b id="scoreStreak">0</b></span>
+    <span class="qno" id="qNo"></span>
+  </div>
+
+  <div class="card">
+    <span class="qtag" id="qTag">問題</span>
+    <div class="qtext" id="qText"></div>
+  </div>
+
+  <!-- メモ欄（cur.memo を持つ問題のときだけ中身が入る） -->
+  <div id="memoArea"></div>
+
+  <div id="partArea" style="display:flex;flex-direction:column;gap:14px"></div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="feedback" id="feedback">
+    <div class="fb-msg" id="fbMsg"></div>
+    <div class="expl" id="expl"></div>
+  </div>
+</div>
+
+<div class="bottom" id="bottom">
+  <div class="inner">
+    <button type="button" class="bigBtn" id="checkBtn">こたえあわせ</button>
+    <button type="button" class="bigBtn next" id="nextBtn" style="display:none">つぎの問題 ➜</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   倍数・約数マスター（算数・小5）
+   unit_key = math_es5_baisu_yakusu
+
+   ■ 解き直し（?retry=1）は「種(seed)方式」＝ CLAUDE.md 2d
+     乱数は ri()/pick()/shuffle() に一本化してあり、出題のたびに種を1つ引いて
+     question_params:{m:サブモード, s:種} だけを保存する。?retry=1 では同じ種で
+     同じ生成関数を回すだけで まったく同じ問題が出るので、replay_json も
+     生成関数ごとの復元経路も要らない。
+     ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
+       （params_hash は同じままなので解き直し自体は成立する）。
+
+   ■ question_key はサブモード名（ミックスでも実際に出た種類を記録する）。
+     日本語ラベルは db/seeds/seed_math_es5_baisu_yakusu.sql で question_catalog へ。
+   ===================================================================== */
+
+var UNIT_KEY = "math_es5_baisu_yakusu";
+
+/* ---------- 共通モジュールの安全呼び出し（未読込でも壊れない） ---------- */
+function safeDivp(fn){
+  try{
+    if(window.Divp && typeof window.Divp[fn] === "function"){
+      return window.Divp[fn].apply(window.Divp, [].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return null;
+}
+
+/* ---------- RNG（xorshift32・種から決まった順に出る） ---------- */
+var _rngState = 1;
+function rngSeed(s){ _rngState = (s>>>0) || 1; }
+function rngPick(){ return (Math.floor(Math.random()*4294967296)>>>0) || 1; }  /* 種そのものだけ真の乱数 */
+function rngNext(){
+  var x = _rngState;
+  x ^= x<<13; x >>>= 0; x ^= x>>>17; x ^= x<<5; x >>>= 0;
+  _rngState = x;
+  return x/4294967296;
+}
+function ri(min,max){ return Math.floor(rngNext()*(max-min+1))+min; }
+function pick(arr){ return arr[ri(0,arr.length-1)]; }
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i=a.length-1;i>0;i--){ var j=ri(0,i); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+
+/* ---------- 算数のヘルパー ---------- */
+function gcd(a,b){ while(b){ var t=a%b; a=b; b=t; } return a; }
+function lcm(a,b){ return a/gcd(a,b)*b; }
+function divisors(n){
+  var d=[];
+  for(var i=1;i*i<=n;i++){ if(n%i===0){ d.push(i); if(i!==n/i) d.push(n/i); } }
+  return d.sort(function(x,y){ return x-y; });
+}
+function mulList(n,upto){
+  var a=[];
+  for(var i=1;n*i<=upto;i++) a.push(n*i);
+  return a.join("、");
+}
+function divPairs(n){
+  var out=[];
+  for(var i=1;i*i<=n;i++){ if(n%i===0) out.push(i+"×"+(n/i)); }
+  return out.join("、");
+}
+function uniqSorted(set){
+  return Array.prototype.slice.call(set).sort(function(a,b){ return a-b; });
+}
+
+/* 数値の4択をつくる（correct + まぎらわしい数） */
+function numChoices(correct, cands){
+  var out=[correct], i, c;
+  var cs = shuffle(cands);
+  for(i=0;i<cs.length && out.length<4;i++){
+    c = cs[i];
+    if(c>0 && c!==correct && out.indexOf(c)<0) out.push(c);
+  }
+  var k=1;
+  while(out.length<4){
+    if(out.indexOf(correct+k)<0) out.push(correct+k);
+    else if(correct-k>0 && out.indexOf(correct-k)<0) out.push(correct-k);
+    k++;
+  }
+  var arr = shuffle(out);
+  return { options: arr.map(String), correct: arr.indexOf(correct), values: arr };
+}
+
+/* =====================================================================
+   ① 偶数と奇数
+   ===================================================================== */
+function gen_guusuu(){
+  var t = ri(1,10);
+
+  /* (a) 数を見て 偶数か奇数か（1けた〜4けた。0 もまざる）
+     ⚠ 0 は「2でわりきれる＝偶数」だが まちがえやすいので、
+        候補に必ず入れて 解説も 0 専用の言い方にする */
+  if(t<=4){
+    var n = pick([0, ri(1,9), ri(10,99), ri(10,99), ri(100,999), ri(1000,9999)]);
+    var odd = n%2;
+    return {
+      key:"guusuu",
+      tag:"偶数と奇数",
+      qHtml:'つぎの 数は <b>偶数</b>ですか、<b>奇数</b>ですか。<div class="big">'+n+'</div>',
+      plainQ: n+" は偶数か奇数か",
+      parts:[{ type:"choice", label:"どちらですか？", cls:"", options:["偶数","奇数"], correct:odd }],
+      expl:'<span class="ttl">かんがえ方</span>'
+        +(n===0
+          ? '<b>0 は 偶数</b>です。0÷2＝0 で <b>わりきれる</b>（あまりが 0）から。'
+            +'<br>まちがえやすいので おぼえておこう。'
+          : '一のくらいが <b>'+(n%10)+'</b> なので <b>'+(odd?"奇数":"偶数")+'</b>です。')
+        +'<br>一のくらいが 0・2・4・6・8 → <b>偶数</b>（2でわりきれる）'
+        +'<br>一のくらいが 1・3・5・7・9 → <b>奇数</b>（2でわると1あまる）'
+    };
+  }
+
+  /* (b) 偶数・奇数の たし算／ひき算 4パターン（言葉で考える） */
+  if(t<=8){
+    var A = ri(0,1), B = ri(0,1), sub = ri(0,1);   /* 0=偶数 1=奇数 */
+    var nm = ["偶数","奇数"];
+    var opJ = sub ? "ひく" : "たす";
+    var opS = sub ? "－" : "＋";
+    var r = (A+B)%2;
+    /* 具体例をひとつ添える（ひき算は答えが0より大きくなるように作る） */
+    var ex1, ex2;
+    if(!sub){
+      ex1 = A ? ri(1,9)*2+1 : ri(1,9)*2;
+      ex2 = B ? ri(1,9)*2+1 : ri(1,9)*2;
+    }else{
+      ex2 = B ? ri(1,6)*2+1 : ri(1,6)*2;
+      ex1 = ex2 + (r ? ri(1,5)*2-1 : ri(1,5)*2);
+      if(ex1%2 !== A) ex1 += 1;                    /* A の偶奇に合わせる */
+    }
+    var exAns = sub ? ex1-ex2 : ex1+ex2;
+    return {
+      key:"guusuu",
+      tag:"偶数と奇数（たし算・ひき算）",
+      qHtml:'<b>'+nm[A]+'</b> に <b>'+nm[B]+'</b> を '+opJ+'と、答えは 偶数と奇数の どちらに なりますか。'
+        +'<div class="nums">'+nm[A]+'<span class="sep">'+opS+'</span>'+nm[B]+'<span class="sep">＝</span>？</div>',
+      plainQ: nm[A]+opS+nm[B]+" の答えは偶数か奇数か",
+      parts:[{ type:"choice", label:"答えは どちら？", cls:"", options:["偶数","奇数"], correct:r }],
+      expl:'<span class="ttl">かんがえ方</span>'
+        +'<b>'+nm[A]+opS+nm[B]+'＝'+nm[r]+'</b> です。'
+        +'<br>たとえば '+ex1+opS+ex2+'＝'+exAns+'（'+nm[exAns%2]+'）'
+        +'<br><br>おぼえ方：偶数は2のかたまり、奇数は2のかたまり＋1。'
+        +'<br>あまりの1が <b>2つ そろうと 偶数</b>、<b>1つだけ 残ると 奇数</b>になります。'
+        +'<br>・偶数＋偶数＝偶数　・偶数＋奇数＝奇数'
+        +'<br>・奇数＋奇数＝偶数　（ひき算も 同じ）'
+    };
+  }
+
+  /* (c) 具体的な数のたし算・ひき算（計算しないで考える） */
+  var a = ri(21,199), b = ri(11,a-1), sb = ri(0,1);
+  var ans = sb ? a-b : a+b;
+  var nm2 = ["偶数","奇数"];
+  return {
+    key:"guusuu",
+    tag:"偶数と奇数（たし算・ひき算）",
+    qHtml:'計算しないで 考えましょう。<br>つぎの 答えは <b>偶数</b>ですか、<b>奇数</b>ですか。'
+      +'<div class="nums">'+a+'<span class="sep">'+(sb?"－":"＋")+'</span>'+b+'</div>',
+    plainQ: a+(sb?"−":"+")+b+" の答えは偶数か奇数か",
+    parts:[{ type:"choice", label:"どちらですか？", cls:"", options:["偶数","奇数"], correct:ans%2 }],
+    expl:'<span class="ttl">かんがえ方</span>'
+      +a+' は <b>'+nm2[a%2]+'</b>、'+b+' は <b>'+nm2[b%2]+'</b> なので、'
+      +'<br><b>'+nm2[a%2]+(sb?"－":"＋")+nm2[b%2]+'＝'+nm2[ans%2]+'</b>。'
+      +'<br>じっさいに 計算すると '+a+(sb?"－":"＋")+b+'＝'+ans+' で、たしかに '+nm2[ans%2]+'です。'
+  };
+}
+
+/* =====================================================================
+   ②③ 公倍数（2つ／3つの数）
+   ===================================================================== */
+/* 公倍数チップの候補をつくる。
+   ⚠ L の倍数（4L 以上）は入れない。「小さいほうから3つ」の答えが
+      あいまいになるため（4L も公倍数だが 3つには入らない）。
+   ⚠ ダミーの上限（top）を 3L に固定してはいけない。固定すると
+      「いちばん大きいチップ＝3L＝かならず正解」になり、
+      数えなくても答えが読めてしまう（実際そうなっていた）。
+      かといって毎回 3L より上まで広げると、今度は
+      「いちばん大きいチップは かならずハズレ」という逆のクセになる。
+      → 1問ごとに 3L までか 4L までかを half-half で決める。 */
+function commonMulPool(nums, L, size){
+  var wide = (ri(1,2) === 1);
+  var top = wide ? 4*L : 3*L;
+  var set = [L, 2*L, 3*L];
+  /* 広いほうを引いた回は「3L より大きいダミー」を必ず1つ置く
+     （運悪く1つも入らないと 3L 止まりの回と区別がつかなくなるため） */
+  if(wide){
+    var g0 = 0;
+    while(g0++ < 100){
+      var hi = ri(3*L+1, top);
+      if(hi % L === 0) continue;      /* 4L は 4つ目の公倍数なので入れない */
+      set.push(hi);
+      break;
+    }
+  }
+  var guard = 0;
+  while(set.length < size && guard++ < 400){
+    var v;
+    var r = ri(1, nums.length+1);
+    if(r <= nums.length){ var n = nums[r-1]; v = n * ri(1, Math.floor(top/n)); }
+    else { v = ri(2, top); }
+    if(v < 2 || v > top) continue;
+    if(v % L === 0) continue;                 /* 公倍数は 3つだけにする */
+    if(set.indexOf(v) >= 0) continue;
+    set.push(v);
+  }
+  return set.sort(function(a,b){ return a-b; });
+}
+
+function gen_koubai(count){
+  var nums, L, guard = 0;
+  do{
+    nums = [];
+    while(nums.length < count){
+      var v = (count===2) ? ri(2,12) : ri(2,9);
+      if(nums.indexOf(v) < 0) nums.push(v);
+    }
+    L = nums.reduce(function(x,y){ return lcm(x,y); });
+    guard++;
+  }while((L > (count===2?72:60) || L < 4) && guard < 400);
+  nums.sort(function(a,b){ return a-b; });
+
+  var pool = commonMulPool(nums, L, 9);
+  var correctIdx = [];
+  pool.forEach(function(v,i){ if(v%L===0) correctIdx.push(i); });
+
+  /* 最小公倍数の4択 */
+  var prod = nums.reduce(function(x,y){ return x*y; });
+  var sum  = nums.reduce(function(x,y){ return x+y; });
+  var g    = nums.reduce(function(x,y){ return gcd(x,y); });
+  var ch = numChoices(L, [prod, 2*L, sum, g, L+nums[0]]);
+
+  var listHtml = nums.map(function(n){
+    return n+'の倍数：'+mulList(n, 3*L);
+  }).join("<br>");
+
+  var numsHtml = nums.join(' <span class="sep">と</span> ');
+  return {
+    key: (count===2 ? "koubai2" : "koubai3"),
+    tag: "公倍数（"+count+"つの数）",
+    qHtml:'つぎの '+count+'つの 数の <b>公倍数</b>と <b>最小公倍数</b>を 見つけましょう。'
+      +'<div class="nums">'+numsHtml+'</div>',
+    plainQ: nums.join("と")+" の公倍数(小さい順3つ)と最小公倍数",
+    parts:[
+      { type:"pick", label:"① 公倍数を 小さいほうから 3つ えらぼう", hint:"3つ タップ",
+        cls:"small", options:pool.map(String), correct:correctIdx, need:3 },
+      { type:"choice", label:"② 最小公倍数は？", cls:"small",
+        options:ch.options, correct:ch.correct }
+    ],
+    expl:'<span class="ttl">かんがえ方</span>'
+      +'それぞれの 倍数を ならべて、<b>同じ数</b>を さがします。'
+      +'<div class="list">'+listHtml+'</div>'
+      +'共通しているのは <b>'+L+'、'+(2*L)+'、'+(3*L)+'</b>（これが 公倍数）。'
+      +'<br>いちばん 小さい <b>'+L+'</b> が <b>最小公倍数</b>です。'
+      +'<br><br>公倍数は 最小公倍数の 倍数（'+L+'の 2ばい、3ばい…）に なります。'
+  };
+}
+function gen_koubai2(){ return gen_koubai(2); }
+function gen_koubai3(){ return gen_koubai(3); }
+
+/* =====================================================================
+   ④ 公倍数の文章題
+   ===================================================================== */
+function gen_koubai_bun(){
+  var a, b, L, guard=0;
+  do{ a=ri(3,12); b=ri(3,12); L=lcm(a,b); guard++; }while((a===b||L>72||L<6) && guard<400);
+  if(a>b){ var t=a; a=b; b=t; }
+
+  var T = ri(1,5), q, ansVal, unit, expl, plainQ;
+  var howto = 'こういう問題は <b>公倍数</b>（＝いちばん小さいのは 最小公倍数）で 考えます。'
+    +'<div class="list">'+a+'の倍数：'+mulList(a,3*L)+'<br>'+b+'の倍数：'+mulList(b,3*L)+'</div>'
+    +'はじめて そろうのが <b>'+L+'</b>（最小公倍数）です。';
+
+  if(T===1){
+    q = 'えきから、バスは <b>'+a+'分</b>ごとに、電車は <b>'+b+'分</b>ごとに 出発します。'
+      + '<br>いま バスと 電車が 同時に 出発しました。'
+      + '<br><b>つぎに 同時に 出発する</b>のは 何分後ですか。';
+    plainQ = a+"分ごとのバスと"+b+"分ごとの電車が次に同時に出発するのは何分後か";
+    ansVal = L; unit = "分後";
+    expl = howto + '<br>答えは <b>'+L+'分後</b>です。';
+  }else if(T===2){
+    q = 'たて <b>'+a+'cm</b>、よこ <b>'+b+'cm</b> の カードを、すきまなく ならべて '
+      + '<br>正方形を つくります。いちばん 小さい 正方形の 1辺は 何cm ですか。';
+    plainQ = "たて"+a+"cmよこ"+b+"cmのカードで作れる一番小さい正方形の1辺";
+    ansVal = L; unit = "cm";
+    expl = howto + '<br>1辺は たてにも よこにも わりきれる 長さ＝公倍数なので、'
+      + 'いちばん 小さい 正方形の 1辺は <b>'+L+'cm</b> です。';
+  }else if(T===3){
+    q = '赤いランプは <b>'+a+'秒</b>ごとに、青いランプは <b>'+b+'秒</b>ごとに 光ります。'
+      + '<br>いま 同時に 光りました。<b>3回目に 同時に 光る</b>のは 何秒後ですか。';
+    plainQ = a+"秒ごとと"+b+"秒ごとのランプが3回目に同時に光るのは何秒後か";
+    ansVal = 3*L; unit = "秒後";
+    expl = howto + '<br>同時に 光るのは '+L+'秒後、'+(2*L)+'秒後、'+(3*L)+'秒後…なので、'
+      + '3回目は <b>'+(3*L)+'秒後</b>です。';
+  }else if(T===4){
+    q = 'お兄さんは <b>'+a+'日</b>ごとに、妹は <b>'+b+'日</b>ごとに プールへ 行きます。'
+      + '<br>今日は 2人とも 行きました。<b>つぎに 2人が いっしょになる</b>のは 何日後ですか。';
+    plainQ = a+"日ごとと"+b+"日ごとの2人が次にいっしょになるのは何日後か";
+    ansVal = L; unit = "日後";
+    expl = howto + '<br>答えは <b>'+L+'日後</b>です。';
+  }else{
+    q = 'ある駅では、上りの電車が <b>'+a+'分</b>ごと、下りの電車が <b>'+b+'分</b>ごとに 来ます。'
+      + '<br>いま 同時に 来ました。<b>2回目に 同時に 来る</b>のは 何分後ですか。';
+    plainQ = a+"分ごとと"+b+"分ごとの電車が2回目に同時に来るのは何分後か";
+    ansVal = 2*L; unit = "分後";
+    expl = howto + '<br>同時に 来るのは '+L+'分後、'+(2*L)+'分後…なので、2回目は <b>'+(2*L)+'分後</b>です。';
+  }
+
+  var ch = numChoices(ansVal, [a*b, a+b, L, 2*L, 3*L, b-a]);
+  return {
+    key:"koubai_bun",
+    tag:"公倍数の 文章題",
+    qHtml:q,
+    plainQ:plainQ,
+    parts:[{ type:"choice", label:"答えは？", cls:"small",
+             options:ch.options.map(function(v){ return v+unit; }), correct:ch.correct }],
+    expl:'<span class="ttl">かんがえ方</span>'+expl
+  };
+}
+
+/* =====================================================================
+   ⑤ 約数の見つけ方
+   ===================================================================== */
+var YAKUSU_NUMS = [12,16,18,20,24,28,30,32,36,40,42,45,48,50,54,56,60];
+
+function gen_yakusu(){
+  var n = pick(YAKUSU_NUMS);
+  var ds = divisors(n);
+  var t = ri(1,10);
+
+  /* (a) 約数を ぜんぶ えらぶ */
+  if(t<=4){
+    var pool = ds.slice();
+    /* ダミーの上限。3回に2回くらいは n より大きい数まで広げる。
+       いつも n までにすると「いちばん大きいチップ＝n＝かならず約数」に
+       なり、答えが読めてしまうため（毎回広げると逆のクセがつくので
+       ときどきにする）。n より大きい数は n の約数にならないので
+       そのままダミーとして使える */
+    var hiTop = (ri(1,3) !== 1) ? n + ri(1, Math.max(4, Math.round(n/2))) : n;
+    var guard=0;
+    while(pool.length < ds.length+4 && guard++ < 300){
+      var v = ri(2, hiTop);
+      if(n%v===0) continue;
+      if(pool.indexOf(v)>=0) continue;
+      pool.push(v);
+    }
+    pool.sort(function(x,y){ return x-y; });
+    var ci = [];
+    pool.forEach(function(v,i){ if(n%v===0) ci.push(i); });
+    return {
+      key:"yakusu",
+      tag:"約数の 見つけ方",
+      qHtml:'<b>'+n+'の 約数</b>を ぜんぶ えらびましょう。'
+        +'<div class="big">'+n+'</div>',
+      plainQ: n+" の約数をすべて選ぶ",
+      parts:[{ type:"pick", label:"約数を ぜんぶ えらぼう", hint:"1 と じぶんも 約数だよ",
+               cls:"small", options:pool.map(String), correct:ci, need:null }],
+      expl:'<span class="ttl">かんがえ方</span>'
+        +'<b>かけ算の ペア</b>で さがすと 見つけもれが ありません。'
+        +'<div class="list">'+divPairs(n)+'</div>'
+        +'だから '+n+'の 約数は <b>'+ds.join("、")+'</b> の '+ds.length+'個です。'
+        +'<br>1 と その数 じしんも 約数に なることを わすれずに。'
+    };
+  }
+
+  /* (b) 約数は何個？ */
+  if(t<=6){
+    var ch = numChoices(ds.length, [ds.length-1, ds.length+1, ds.length-2, ds.length+2]);
+    return {
+      key:"yakusu",
+      tag:"約数の 見つけ方",
+      qHtml:'<b>'+n+'の 約数</b>は ぜんぶで 何個 ありますか。'
+        +'<div class="big">'+n+'</div>',
+      plainQ: n+" の約数は何個か",
+      /* 数えあげる問題なので、書き出すための メモ欄を出す */
+      memo:{ placeholder:"れい）\n1×"+n+"\n2×…" },
+      parts:[{ type:"choice", label:"何個？", cls:"small",
+               options:ch.options.map(function(v){ return v+"個"; }), correct:ch.correct }],
+      expl:'<span class="ttl">かんがえ方</span>'
+        +'小さいほうから ペアで さがします。'
+        +'<div class="list">'+divPairs(n)+'</div>'
+        +'約数は <b>'+ds.join("、")+'</b> なので <b>'+ds.length+'個</b>です。'
+    };
+  }
+
+  /* (c) 約数でないもの をえらぶ */
+  if(t<=8){
+    var inner = ds.filter(function(v){ return v!==1 && v!==n; });
+    if(inner.length >= 3){
+      var three = shuffle(inner).slice(0,3);
+      var bad, g2=0;
+      do{ bad = ri(2, n-1); g2++; }while(n%bad===0 && g2<300);
+      var opts = shuffle(three.concat([bad]));
+      return {
+        key:"yakusu",
+        tag:"約数の 見つけ方",
+        qHtml:'つぎのうち <b>'+n+'の 約数では ないもの</b>は どれですか。',
+        plainQ: n+" の約数でないものを選ぶ",
+        parts:[{ type:"choice", label:"約数では ないもの", cls:"small",
+                 options:opts.map(String), correct:opts.indexOf(bad) }],
+        expl:'<span class="ttl">かんがえ方</span>'
+          +n+'を わりきれるか どうかで 見わけます。'
+          +'<div class="list">'+n+'の約数：'+ds.join("、")+'</div>'
+          +'<b>'+bad+'</b>は '+n+'を わりきれない（'+n+'÷'+bad+'＝'+Math.floor(n/bad)+'あまり'+(n%bad)+'）ので 約数では ありません。'
+      };
+    }
+  }
+
+  /* (d) ペアの あいて をこたえる */
+  var inner2 = ds.filter(function(v){ return v!==1 && v!==n; });
+  var one = inner2.length ? pick(inner2) : pick(ds);
+  var other = n/one;
+  var ch2 = numChoices(other, [other+1, other-1, n-one, one]);
+  return {
+    key:"yakusu",
+    tag:"約数の 見つけ方",
+    qHtml:'約数を <b>ペア</b>で さがしています。<br>□に あてはまる 数は 何ですか。'
+      +'<div class="nums">'+n+'<span class="sep">＝</span>'+one+'<span class="sep">×</span>□</div>',
+    plainQ: n+" = "+one+" × □ の□にあてはまる数",
+    parts:[{ type:"choice", label:"□に 入る数", cls:"small",
+             options:ch2.options, correct:ch2.correct }],
+    expl:'<span class="ttl">かんがえ方</span>'
+      +n+'÷'+one+'＝<b>'+other+'</b> なので、□は '+other+'。'
+      +'<br>この '+one+' と '+other+' は <b>約数の ペア</b>です。'
+      +'<div class="list">'+divPairs(n)+'</div>'
+      +n+'の 約数：<b>'+ds.join("、")+'</b>'
+  };
+}
+
+/* =====================================================================
+   ⑥ 公約数
+   ===================================================================== */
+function makeAB(){
+  var G,m,n,guard=0;
+  do{
+    G = ri(2,12); m = ri(2,9); n = ri(2,9);
+    guard++;
+  }while((m===n || gcd(m,n)!==1) && guard<400);
+  var a = G*m, b = G*n;
+  return { G:G, a:(a<b?a:b), b:(a<b?b:a) };
+}
+
+function gen_kouyaku(){
+  var s = makeAB();
+  var a = s.a, b = s.b, G = gcd(a,b);
+  var cd = divisors(G);                        /* 公約数 = 最大公約数の約数 */
+  var da = divisors(a), db = divisors(b);
+
+  /* チップの候補：公約数 ＋ 片方だけの約数 ＋ どちらでもない数 */
+  var pool = cd.slice();
+  var extras = da.concat(db).filter(function(v){ return G%v!==0; });
+  extras = shuffle(extras);
+  for(var i=0;i<extras.length && pool.length<8;i++){
+    if(pool.indexOf(extras[i])<0) pool.push(extras[i]);
+  }
+  var guard=0;
+  while(pool.length<9 && guard++<300){
+    var v = ri(2, Math.min(a,b));
+    if(pool.indexOf(v)>=0) continue;
+    if(G%v===0) continue;
+    pool.push(v);
+  }
+  pool.sort(function(x,y){ return x-y; });
+  var ci=[];
+  pool.forEach(function(v,i){ if(G%v===0) ci.push(i); });
+
+  var cands = [2*G, G+1, lcm(a,b), 1].concat(cd.filter(function(v){ return v!==G; }));
+  var ch = numChoices(G, cands);
+
+  return {
+    key:"kouyaku",
+    tag:"公約数",
+    qHtml:'つぎの 2つの 数の <b>公約数</b>と <b>最大公約数</b>を 見つけましょう。'
+      +'<div class="nums">'+a+' <span class="sep">と</span> '+b+'</div>',
+    plainQ: a+"と"+b+" の公約数と最大公約数",
+    parts:[
+      { type:"pick", label:"① 公約数を ぜんぶ えらぼう", hint:"1 も 公約数だよ",
+        cls:"small", options:pool.map(String), correct:ci, need:null },
+      { type:"choice", label:"② 最大公約数は？", cls:"small",
+        options:ch.options, correct:ch.correct }
+    ],
+    expl:'<span class="ttl">かんがえ方</span>'
+      +'それぞれの 約数を ぜんぶ 書き出して、<b>同じ数</b>を さがします。'
+      +'<div class="list">'+a+'の約数：'+da.join("、")+'<br>'+b+'の約数：'+db.join("、")+'</div>'
+      +'共通しているのは <b>'+cd.join("、")+'</b>（これが 公約数）。'
+      +'<br>いちばん 大きい <b>'+G+'</b> が <b>最大公約数</b>です。'
+      +'<br><br>公約数は 最大公約数の 約数（'+G+'の約数：'+cd.join("、")+'）に なります。'
+  };
+}
+
+/* =====================================================================
+   ⑦ 公約数の文章題
+   ===================================================================== */
+function gen_kouyaku_bun(){
+  var s = makeAB();
+  var a = s.a, b = s.b, G = gcd(a,b);
+  var cd = divisors(G);
+  var T = ri(1,4);
+
+  var howto = 'こういう問題は <b>公約数</b>（＝いちばん大きいのは 最大公約数）で 考えます。'
+    +'<div class="list">'+a+'の約数：'+divisors(a).join("、")+'<br>'+b+'の約数：'+divisors(b).join("、")+'</div>'
+    +'共通するのは <b>'+cd.join("、")+'</b>、いちばん 大きいのは <b>'+G+'</b> です。';
+
+  if(T===1){
+    var ch = numChoices(G, [a-b, cd[cd.length-2]||1, G*2, a+b]);
+    var ch2 = numChoices(a/G, [b/G, a/G+1, a/G-1, G]);
+    return {
+      key:"kouyaku_bun",
+      tag:"公約数の 文章題",
+      qHtml:'あめが <b>'+a+'こ</b>、ガムが <b>'+b+'こ</b> あります。'
+        +'<br>どちらも あまりが 出ないように、同じ数ずつ 分けます。'
+        +'<br><b>いちばん 多くて 何人</b>に 分けられますか。',
+      plainQ: "あめ"+a+"ことガム"+b+"こをあまりなく同じ数ずつ分けられる最大人数と1人分",
+      parts:[
+        { type:"choice", label:"① いちばん 多くて 何人？", cls:"small",
+          options:ch.options.map(function(v){ return v+"人"; }), correct:ch.correct },
+        { type:"choice", label:"② そのとき、1人分の あめは 何こ？", cls:"small",
+          options:ch2.options.map(function(v){ return v+"こ"; }), correct:ch2.correct }
+      ],
+      expl:'<span class="ttl">かんがえ方</span>'+howto
+        +'<br>だから <b>'+G+'人</b>に 分けられます。'
+        +'<br>1人分の あめは '+a+'÷'+G+'＝<b>'+(a/G)+'こ</b>、ガムは '+b+'÷'+G+'＝'+(b/G)+'こ です。'
+    };
+  }
+
+  if(T===2){
+    var ch3 = numChoices(G, [a-b, G*2, cd[cd.length-2]||1, a+b]);
+    return {
+      key:"kouyaku_bun",
+      tag:"公約数の 文章題",
+      qHtml:'たて <b>'+a+'cm</b>、よこ <b>'+b+'cm</b> の 紙が あります。'
+        +'<br>あまりが 出ないように、<b>同じ大きさの 正方形</b>に 切り分けます。'
+        +'<br>いちばん 大きい 正方形の 1辺は 何cm ですか。',
+      plainQ: "たて"+a+"cmよこ"+b+"cmの紙をあまりなく切れる一番大きい正方形の1辺",
+      parts:[{ type:"choice", label:"1辺の 長さは？", cls:"small",
+               options:ch3.options.map(function(v){ return v+"cm"; }), correct:ch3.correct }],
+      expl:'<span class="ttl">かんがえ方</span>'+howto
+        +'<br>1辺は たてにも よこにも わりきれる 長さ＝公約数なので、'
+        +'いちばん 大きい 正方形の 1辺は <b>'+G+'cm</b> です。'
+        +'<br>（たてに '+(a/G)+'こ、よこに '+(b/G)+'こ ならびます）'
+    };
+  }
+
+  if(T===3){
+    /* 公約数を ぜんぶ えらぶ（1人はのぞく＝2以上） */
+    var ok = cd.filter(function(v){ return v>1; });
+    if(ok.length >= 2){
+      var pool = ok.slice();
+      var guard=0;
+      while(pool.length < ok.length+4 && guard++<300){
+        var v = ri(2, Math.min(a,b));
+        if(pool.indexOf(v)>=0) continue;
+        if(G%v===0) continue;
+        pool.push(v);
+      }
+      pool.sort(function(x,y){ return x-y; });
+      var ci=[];
+      pool.forEach(function(v,i){ if(G%v===0) ci.push(i); });
+      return {
+        key:"kouyaku_bun",
+        tag:"公約数の 文章題",
+        qHtml:'色紙が <b>'+a+'まい</b>、おり紙が <b>'+b+'まい</b> あります。'
+          +'<br>どちらも あまりが 出ないように、何人かで 同じ数ずつ 分けます。'
+          +'<br>考えられる 人数を ぜんぶ えらびましょう。<span style="font-size:13px;color:#8B877C">（1人は のぞきます）</span>',
+        plainQ: "色紙"+a+"まいとおり紙"+b+"まいをあまりなく分けられる人数(2人以上)をすべて選ぶ",
+        parts:[{ type:"pick", label:"考えられる 人数を ぜんぶ", hint:"いくつでも えらべるよ",
+                 cls:"small", options:pool.map(String), correct:ci, need:null }],
+        expl:'<span class="ttl">かんがえ方</span>'+howto
+          +'<br>人数に できるのは <b>公約数</b>なので '+cd.join("、")+'。'
+          +'1人を のぞくと <b>'+ok.join("、")+'</b> です。'
+      };
+    }
+  }
+
+  /* (T===4 と、T===3 で公約数が少なかったとき) */
+  var ch4 = numChoices(G, [a-b, G*2, cd[cd.length-2]||1, a+b]);
+  return {
+    key:"kouyaku_bun",
+    tag:"公約数の 文章題",
+    qHtml:'えんぴつが <b>'+a+'本</b>、消しゴムが <b>'+b+'こ</b> あります。'
+      +'<br>あまりが 出ないように、できるだけ <b>多くの 子ども</b>に 同じ数ずつ 配ります。'
+      +'<br>何人に 配れますか。',
+    plainQ: "えんぴつ"+a+"本と消しゴム"+b+"こをあまりなく配れる最大人数",
+    parts:[{ type:"choice", label:"何人に 配れる？", cls:"small",
+             options:ch4.options.map(function(v){ return v+"人"; }), correct:ch4.correct }],
+    expl:'<span class="ttl">かんがえ方</span>'+howto
+      +'<br>だから <b>'+G+'人</b>に 配れます。'
+      +'<br>1人分は えんぴつ '+(a/G)+'本、消しゴム '+(b/G)+'こ です。'
+  };
+}
+
+/* =====================================================================
+   生成関数の台帳（question_params.m のキーはここと一致させる）
+   ===================================================================== */
+var GENS = {
+  guusuu:      gen_guusuu,
+  koubai2:     gen_koubai2,
+  koubai3:     gen_koubai3,
+  koubai_bun:  gen_koubai_bun,
+  yakusu:      gen_yakusu,
+  kouyaku:     gen_kouyaku,
+  kouyaku_bun: gen_kouyaku_bun
+};
+/* ⑧ミックスは「⑤約数の見つけ方 いがい」 */
+var MIX_KEYS = ["guusuu","koubai2","koubai3","koubai_bun","kouyaku","kouyaku_bun"];
+var MODE_LABEL = {
+  guusuu:"偶数と奇数",
+  koubai2:"公倍数（2つの数）",
+  koubai3:"公倍数（3つの数）",
+  koubai_bun:"公倍数の 文章題",
+  yakusu:"約数の 見つけ方",
+  kouyaku:"公約数",
+  kouyaku_bun:"公約数の 文章題",
+  mix:"ミックス"
+};
+
+/* =====================================================================
+   画面の状態
+   ===================================================================== */
+var MODE = "guusuu";        /* えらんだモード（mix を含む） */
+var cur = null;             /* いま出ている問題 */
+var curKey = null;          /* 実際のサブモード（＝question_key） */
+var curSeed = 0;
+var sel = [];               /* パーツごとの選択状態 */
+var graded = false;
+var score = 0, total = 0, streak = 0;
+var qStart = 0;
+
+/* 解き直し（?retry=1） */
+var retryQ = null, retryTotal = 0, retryDone = 0;
+
+function $(id){ return document.getElementById(id); }
+
+/* ---------- 出題 ---------- */
+function newQuestion(){
+  graded = false;
+  $("feedback").classList.remove("show");
+  $("toast").textContent = "";
+  $("checkBtn").style.display = "block";
+  $("nextBtn").style.display = "none";
+
+  var useKey, seed;
+  if(retryQ){
+    /* 解き直しを1周した。モード選択にもどって、案内帯をそこに出す
+       （そのまま次の問題を出そうとすると MODE が "retry" のままで生成関数が無い） */
+    if(!retryQ.length){
+      retryQ = null;
+      backHome();
+      showRetryBanner("解き直し おつかれさま！ 同じ問題に 2回つづけて 正解すると リストから 消えるよ");
+      return;
+    }
+    var it = retryQ.shift();
+    retryDone++;
+    useKey = it.question_params.m;
+    seed = it.question_params.s>>>0;
+  }else{
+    useKey = (MODE === "mix") ? pick(MIX_KEYS) : MODE;
+    seed = rngPick();
+  }
+
+  curKey = useKey;
+  curSeed = seed;
+  rngSeed(seed);                       /* ここから先の乱数は種で決まる */
+  cur = GENS[useKey]();
+
+  $("qTag").textContent = retryQ ? ("解き直し "+retryDone+" / "+retryTotal+" ・ "+cur.tag) : cur.tag;
+  $("qNo").textContent = retryQ ? "" : ("第 "+(total+1)+" 問");
+  $("qText").innerHTML = cur.qHtml;
+  renderMemo();
+  renderParts();
+  qStart = Date.now();
+  try{ window.scrollTo({ top:0, behavior:"smooth" }); }catch(e){ window.scrollTo(0,0); }
+}
+
+/* 「書き出して数える」問題用のメモ欄。cur.memo を持つ問題のときだけ出す。
+   中身は採点にも記録にも いっさい使わない（紙のメモと同じあつかい）。
+   問題が変わるたびに 作り直す＝前の問題のメモは残らない。 */
+function renderMemo(){
+  var host = $("memoArea");
+  host.innerHTML = "";
+  if(!cur || !cur.memo) return;
+
+  var box = document.createElement("div");
+  box.className = "memo";
+
+  var head = document.createElement("div");
+  head.className = "memo-head";
+  head.innerHTML = "📝 メモ（じゆうに 書いて いいよ）";
+  var clear = document.createElement("button");
+  clear.type = "button";
+  clear.className = "memo-clear";
+  clear.textContent = "けす";
+  head.appendChild(clear);
+
+  var ta = document.createElement("textarea");
+  ta.id = "memoText";
+  ta.rows = 4;
+  ta.spellcheck = false;
+  ta.setAttribute("aria-label", "メモ");
+  ta.placeholder = cur.memo.placeholder || "";
+
+  clear.addEventListener("click", function(){ ta.value = ""; ta.focus(); });
+
+  box.appendChild(head);
+  box.appendChild(ta);
+  host.appendChild(box);
+}
+
+function renderParts(){
+  var host = $("partArea");
+  host.innerHTML = "";
+  sel = cur.parts.map(function(p){ return (p.type === "pick") ? [] : -1; });
+
+  cur.parts.forEach(function(p, pi){
+    var wrap = document.createElement("div");
+    wrap.className = "part";
+
+    var lab = document.createElement("div");
+    lab.className = "p-label";
+    lab.innerHTML = p.label + (p.hint ? '<span class="hint">'+p.hint+'</span>' : "")
+      + (p.type === "pick" ? ' <span class="picked-n" id="pn'+pi+'"></span>' : "");
+    wrap.appendChild(lab);
+
+    var opts = document.createElement("div");
+    opts.className = "opts " + (p.cls || "");
+    p.options.forEach(function(txt, oi){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "optBtn";
+      b.dataset.part = pi;
+      b.dataset.idx = oi;
+      b.textContent = txt;
+      b.addEventListener("click", function(){ tapOption(pi, oi, b); });
+      opts.appendChild(b);
+    });
+    wrap.appendChild(opts);
+    host.appendChild(wrap);
+    if(p.type === "pick") updatePickCount(pi);
+  });
+}
+
+function tapOption(pi, oi, btn){
+  if(graded) return;
+  var p = cur.parts[pi];
+  $("toast").textContent = "";
+  if(p.type === "pick"){
+    var arr = sel[pi];
+    var at = arr.indexOf(oi);
+    if(at >= 0){ arr.splice(at,1); btn.classList.remove("on"); }
+    else{
+      if(p.need && arr.length >= p.need){
+        $("toast").textContent = p.need+"つまでだよ。えらび直すときは もう一度 タップして はずしてね";
+        return;
+      }
+      arr.push(oi); btn.classList.add("on");
+    }
+    updatePickCount(pi);
+  }else{
+    sel[pi] = oi;
+    document.querySelectorAll('.optBtn[data-part="'+pi+'"]').forEach(function(b){
+      b.classList.toggle("on", Number(b.dataset.idx) === oi);
+    });
+  }
+}
+
+function updatePickCount(pi){
+  var el = $("pn"+pi);
+  if(!el) return;
+  var p = cur.parts[pi], n = sel[pi].length;
+  if(p.need){
+    el.textContent = n+" / "+p.need+"こ";
+    el.classList.toggle("full", n === p.need);
+  }else{
+    el.textContent = n+"こ えらび中";
+    el.classList.toggle("full", n > 0);
+  }
+}
+
+/* ---------- 答え合わせ ---------- */
+function sameSet(a,b){
+  if(a.length !== b.length) return false;
+  var x = a.slice().sort(function(p,q){ return p-q; });
+  var y = b.slice().sort(function(p,q){ return p-q; });
+  for(var i=0;i<x.length;i++){ if(x[i] !== y[i]) return false; }
+  return true;
+}
+
+function check(){
+  if(graded || !cur) return;
+
+  /* 未回答チェック */
+  for(var i=0;i<cur.parts.length;i++){
+    var p = cur.parts[i];
+    if(p.type === "pick"){
+      if(p.need && sel[i].length !== p.need){
+        $("toast").textContent = (i+1) === 1 ? p.need+"つ えらんでね" : "①を "+p.need+"つ えらんでね";
+        return;
+      }
+      if(!p.need && sel[i].length === 0){ $("toast").textContent = "あてはまるものを えらんでね"; return; }
+    }else if(sel[i] < 0){
+      $("toast").textContent = cur.parts.length > 1 ? "ぜんぶ こたえてね" : "答えを えらんでね";
+      return;
+    }
+  }
+
+  graded = true;
+  var ok = true;
+  var userParts = [], ansParts = [];
+
+  cur.parts.forEach(function(p, pi){
+    var btns = document.querySelectorAll('.optBtn[data-part="'+pi+'"]');
+    if(p.type === "pick"){
+      if(!sameSet(sel[pi], p.correct)) ok = false;
+      btns.forEach(function(b, oi){
+        var isC = p.correct.indexOf(oi) >= 0;
+        var isS = sel[pi].indexOf(oi) >= 0;
+        safeDivp("markChoice", b, isC ? (isS ? "correct" : "answer") : (isS ? "wrong" : null));
+      });
+      userParts.push(sel[pi].slice().sort(function(x,y){ return x-y; })
+        .map(function(oi){ return p.options[oi]; }).join("、"));
+      ansParts.push(p.correct.map(function(oi){ return p.options[oi]; }).join("、"));
+    }else{
+      if(sel[pi] !== p.correct) ok = false;
+      safeDivp("markChoices", btns, { correct:p.correct, selected:sel[pi], dimOthers:true, label:"せいかい" });
+      userParts.push(p.options[sel[pi]]);
+      ansParts.push(p.options[p.correct]);
+    }
+    btns.forEach(function(b){ b.disabled = true; });
+  });
+
+  total++;
+  if(ok){ score++; streak++; } else { streak = 0; }
+  renderScore();
+
+  var sec = Math.round((Date.now()-qStart)/1000);
+  /* 学習記録（未ログイン・ローカルでは黙ってスキップされる） */
+  safeDivp("answer", ok, {
+    question_key: curKey,
+    question_params: { m: curKey, s: curSeed },     /* 種方式：この2つで同じ問題を作り直せる */
+    question_text: cur.plainQ,
+    correct_answer: ansParts.join(" ／ "),
+    wrong_answer: ok ? null : userParts.join(" ／ "),
+    time_taken_sec: (sec > 0 && sec < 600) ? sec : null
+  });
+
+  $("fbMsg").className = "fb-msg " + (ok ? "good" : "bad");
+  $("fbMsg").textContent = ok ? "せいかい！ よくできました" : "おしい！ かんがえ方を 見てみよう";
+  $("expl").innerHTML = cur.expl;
+  $("feedback").classList.add("show");
+  $("checkBtn").style.display = "none";
+  $("nextBtn").style.display = "block";
+  $("toast").textContent = "";
+
+  if(ok) safeDivp("correct");
+}
+
+function renderScore(){
+  $("scoreOk").textContent = score;
+  $("scoreAll").textContent = total;
+  $("scoreStreak").textContent = streak;
+}
+
+/* ---------- モード選択 ---------- */
+function startMode(m){
+  MODE = m;
+  retryQ = null;
+  score = 0; total = 0; streak = 0;
+  renderScore();
+  $("modeLabel").textContent = MODE_LABEL[m] || "";
+  document.body.classList.remove("choosing");
+  newQuestion();
+}
+function backHome(){
+  document.body.classList.add("choosing");
+  retryQ = null;
+  cur = null;
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+
+/* ---------- 解き直し（?retry=1） ---------- */
+function showRetryBanner(msg){
+  var slot = $("retryBannerSlot");
+  var d = $("retryBanner");
+  if(!d){
+    d = document.createElement("div");
+    d.id = "retryBanner";
+    slot.appendChild(d);
+  }
+  d.textContent = msg;
+}
+function initRetry(){
+  if(!(window.Divp && typeof Divp.getRetries === "function")) return;
+  Divp.getRetries().then(function(items){
+    var use = (items||[]).filter(function(it){
+      var p = it && it.question_params;
+      return p && GENS[p.m] && typeof p.s === "number";
+    });
+    if(!use.length){
+      showRetryBanner("解き直せる 問題は まだ ありません。まちがえた 問題が ここに たまっていくよ。");
+      return;
+    }
+    retryQ = use.slice();
+    retryTotal = retryQ.length;
+    retryDone = 0;
+    MODE = "retry";
+    score = 0; total = 0; streak = 0;
+    renderScore();
+    $("modeLabel").textContent = "まちがえた問題の 解き直し";
+    document.body.classList.remove("choosing");
+    newQuestion();
+  }).catch(function(){});
+}
+
+/* ---------- イベント ---------- */
+document.querySelectorAll(".m-card").forEach(function(b){
+  b.addEventListener("click", function(){ startMode(b.dataset.mode); });
+});
+$("homeBtn").addEventListener("click", backHome);
+$("checkBtn").addEventListener("click", check);
+$("nextBtn").addEventListener("click", newQuestion);
+
+/* divp-core は defer で読まれるので、DOM構築後に初期化する */
+window.addEventListener("DOMContentLoaded", function(){
+  safeDivp("init", UNIT_KEY);
+  if(/[?&]retry=1/.test(location.search)){
+    try{ initRetry(); }catch(e){}
+  }
+});
+</script>
+</body>
+</html>
