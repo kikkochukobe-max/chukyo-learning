@@ -1443,11 +1443,16 @@ function buildPrintWindow(title, label, instr, items){
     +'*{box-sizing:border-box;margin:0;padding:0;}'
     +'body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;color:#1a1a1a;}'
     +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}'
-    /* ページの器は「紙の本文枠」ぴったりに固定する（A4 297mm − 上下マージン14mm×2 = 269mm、
-     * 改ページのまるめ誤差ぶん1mm引く）。透かし(.wm)は .page の中央に置かれるので、
-     * 器を中身なりの高さにすると紙の中央から外れてロゴがずれる。*/
-    +'.page{position:relative;height:268mm;display:flex;flex-direction:column;}'
-    +'.page.answers{page-break-before:always;}'
+    /* ページの器は高さを固定する（透かし(.wm)は .page の中央に置かれるので、
+     * 器を中身なりの高さにすると紙の中央から外れてロゴがずれる）。
+     * ⚠ 高さは本文枠(A4 297mm − 上下マージン14mm×2 = 269mm)ぴったりにしない。
+     * 268mm だと余裕が1mmしかなく、環境によっては器が本文枠を1mmだけ超えて
+     * 2ページ目のあとに空白の3ページ目が出る（実際に出た）。7mm残して 262mm とし、
+     * overflow:hidden と break-inside:avoid で器が紙をまたがないようにする。*/
+    +'.page{position:relative;height:262mm;display:flex;flex-direction:column;'
+    +'overflow:hidden;break-inside:avoid;page-break-inside:avoid;}'
+    +'.page.answers{page-break-before:always;break-before:page;}'
+    +'.page:last-child{page-break-after:auto;break-after:auto;}'
     +'.ph-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2.5px solid #A63E54;padding-bottom:7px;margin-bottom:12px;}'
     +'.ph-school{font-size:9pt;font-weight:700;color:#A63E54;margin-bottom:3px;}'
     +'.ph-title{font-size:16pt;font-weight:800;color:#3A3226;}'
