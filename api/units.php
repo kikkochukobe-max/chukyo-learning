@@ -21,6 +21,18 @@ return [
         // 解き直しに replay_json が必須の単元（retry.php がボタンの出し分けに使う）
         'replay' => true,
     ],
+    // 解き直しは question_params の {m:サブモード, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
+    'math_es5_baisu_yakusu' => [
+        'title' => '倍数・約数マスター',
+        'sub'   => '算数・小5',
+        'url'   => '/learning/math/math_es5_baisu_yakusu.html',
+    ],
+    // 解き直しは question_params の {m:モード, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
+    'math_es5_tsuubun_kagen' => [
+        'title' => '通分マスター（分数のたし算・ひき算）',
+        'sub'   => '算数・小5',
+        'url'   => '/learning/math/math_es5_tsuubun_kagen.html',
+    ],
     'math_es5_yakubun' => [
         'title' => '約分練習ドリル',
         'sub'   => '算数・小5',
