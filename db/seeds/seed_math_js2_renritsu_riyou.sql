@@ -3,7 +3,7 @@
 -- question_catalog への追加シードだけを行う増分スクリプト。
 --
 -- DBは既にHetemlに構築済みなので schema_full.sql を丸ごと流し直す必要はない。
--- 講師・保護者画面のラベル表示のために、この21行だけ phpMyAdmin で実行する。
+-- 講師・保護者画面のラベル表示のために、この24行だけ phpMyAdmin で実行する。
 -- （未登録でも save_answer.php が既定XP=1を付与するので、XP自体は動くが
 -- 　ラベルが question_key 生値のままになるため、必ず登録しておく）
 --
@@ -30,5 +30,8 @@ INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('math_js2_renritsu_riyou', 'wariai3',   '割合：値引きして売り切る',   1),
   ('math_js2_renritsu_riyou', 'shokuen1',  '食塩水：混ぜて◯%にする',    1),
   ('math_js2_renritsu_riyou', 'shokuen2',  '食塩水：濃度を求める',       1),
+  ('math_js2_renritsu_riyou', 'janken1',   'じゃんけん：勝ち・負けの回数', 1),
+  ('math_js2_renritsu_riyou', 'janken2',   'じゃんけん：2人の位置から',   1),
+  ('math_js2_renritsu_riyou', 'janken3',   'じゃんけん：ひねり',         1),
   ('math_js2_renritsu_riyou', 'mix',       '総合ミックス',               1)
 ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);

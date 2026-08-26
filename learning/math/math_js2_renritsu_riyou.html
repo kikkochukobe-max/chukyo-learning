@@ -326,7 +326,7 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
  * - 種類(カテゴリ) × STEP の2階層構成
  * - 答え(自然数)→ 問題の数値 の逆算生成。解はつねに自然数
  * - question_key = STEPのキー (suu1..3 / kaimono1..3 / kafusoku1..2 /
- *   hayasa1..2 / tsuka1..3 / wariai1..2 / shokuen1..2 / mix)
+ *   hayasa1..3 / tsuka1..3 / wariai1..3 / shokuen1..2 / janken1..3 / mix)
  * - Divp統合: judge() 内のマーカー箇所に Divp.answer() を1行挿入予定
  * ===================================================================== */
 
@@ -1481,6 +1481,142 @@ function genShokuen2(){
   return genShokuen1();
 }
 
+/* ===== じゃんけん ===== */
+
+/* 「最初の位置より◯段上/下」の言い回し */
+function danText(D){
+  if(D>0) return '最初の位置より <b>'+D+'段上</b>';
+  if(D<0) return '最初の位置より <b>'+(-D)+'段下</b>';
+  return '<b>最初と同じ段</b>';
+}
+function jankenRule(a,b){
+  return 'じゃんけんに勝つと <b>'+a+'段</b>上がり、負けると <b>'+b+'段</b>下がります(あいこはないものとします)';
+}
+
+/* janken1: 回数がわかっている(勝ちx回・負けy回) */
+function genJanken1(){
+  for(let i=0;i<300;i++){
+    const a=pick([2,3,4,5]);
+    const b=pick([1,2,3]);
+    if(b>=a) continue;
+    const N=rnd(6,16);
+    const x=rnd(2,N-2), y=N-x;
+    if(x===y) continue;
+    const D=a*x-b*y;
+    if(D===0) continue;
+    const setup='Aさんの勝った回数を x 回、負けた回数を y 回とする';
+    const eq2=eqLatex(a,-b,D);
+    const answers=[
+      {label:'勝った回数', unit:'回', value:x},
+      {label:'負けた回数', unit:'回', value:y}
+    ];
+    /* 負けた分を引き忘れる典型ミス */
+    const miss=solveInt(1,1,N, a,b,D);
+    return {
+      text:'Aさんは階段の下のほうに立って、Bさんとじゃんけんをします。'+jankenRule(a,b)+'。<b>'+N+'回</b>じゃんけんをしたところ、Aさんは '+danText(D)+' にいました。Aさんの勝った回数と負けた回数をそれぞれ求めなさい。',
+      answers,
+      distractors: miss?[miss]:[],
+      hints:hint3(setup, 'x+y='+N, eq2+'\\ (上がった段数)'),
+      steps:buildSteps(setup, [{a:1,b:1,c:N},{a:a,b:-b,c:D}], [x,y], answers)
+    };
+  }
+  return genSuu1();
+}
+
+/* janken2: 2人の位置から(Aの勝ちx回・Bの勝ちy回) */
+function genJanken2(){
+  for(let i=0;i<300;i++){
+    const a=pick([2,3,4,5]);
+    const b=pick([1,2]);
+    if(b>=a) continue;
+    const x=rnd(1,12), y=rnd(1,12);
+    if(x===y) continue;
+    if(x+y>20) continue;
+    const DA=a*x-b*y, DB=a*y-b*x;
+    if(DA===0||DB===0) continue;
+    const setup='Aさんの勝った回数を x 回、Bさんの勝った回数を y 回とする(Aさんが負けた回数は y 回)';
+    const eq1=eqLatex(a,-b,DA), eq2=eqLatex(-b,a,DB);
+    const answers=[
+      {label:'Aさんの勝ち', unit:'回', value:x},
+      {label:'Bさんの勝ち', unit:'回', value:y}
+    ];
+    /* 負けの符号を逆にした典型ミス */
+    const miss=solveInt(a,b,DA, b,a,DB);
+    return {
+      text:'AさんとBさんが階段の同じ段に立ってじゃんけんをします。'+jankenRule(a,b)+'。何回かじゃんけんをしたところ、Aさんは '+danText(DA)+'、Bさんは '+danText(DB)+' にいました。AさんとBさんが勝った回数をそれぞれ求めなさい。',
+      answers,
+      distractors: miss?[miss]:[],
+      hints:hint3(setup, eq1+'\\ (Aさんの段数)', eq2+'\\ (Bさんの段数)'),
+      steps:buildSteps(setup, [{a:a,b:-b,c:DA},{a:-b,b:a,c:DB}], [x,y], answers)
+    };
+  }
+  return genJanken1();
+}
+
+/* janken3: ひねり(得点をもらう / あいこがある) */
+function genJanken3(){
+  const type=pick(['tokuten','aiko']);
+
+  if(type==='tokuten'){
+    for(let i=0;i<300;i++){
+      const p=pick([3,4,5]), q=pick([1,2]);
+      if(p<=q) continue;
+      const x=rnd(2,10), y=rnd(2,10);
+      if(x===y) continue;
+      const P=p*x+q*y, Q=q*x+p*y;
+      const setup='Aさんの勝った回数を x 回、Bさんの勝った回数を y 回とする';
+      const answers=[
+        {label:'Aさんの勝ち', unit:'回', value:x},
+        {label:'Bさんの勝ち', unit:'回', value:y}
+      ];
+      return {
+        text:'AさんとBさんがじゃんけんをします。1回ごとに、勝った人は <b>'+p+'点</b>、負けた人は <b>'+q+'点</b>もらえます(あいこはないものとします)。何回かじゃんけんをしたところ、Aさんの得点は <b>'+P+'点</b>、Bさんの得点は <b>'+Q+'点</b>でした。AさんとBさんが勝った回数をそれぞれ求めなさい。',
+        answers,
+        hints:hint3(setup, eqLatex(p,q,P)+'\\ (Aさんの得点)', eqLatex(q,p,Q)+'\\ (Bさんの得点)'),
+        steps:buildSteps(setup, [{a:p,b:q,c:P},{a:q,b:p,c:Q}], [x,y], answers)
+      };
+    }
+    return genJanken1();
+  }
+
+  /* あいこのときは2人とも1段上がる */
+  for(let i=0;i<300;i++){
+    const a=pick([2,3]);
+    const b=pick([1,2]);
+    if(b>=a) continue;
+    const k=rnd(1,4);
+    const N=rnd(8,16);
+    const W=N-k;                       /* 勝ち負けのついた回数 */
+    if(W<4) continue;
+    const x=rnd(1,W-1), y=W-x;
+    if(x===y) continue;
+    const D=a*x-b*y+k;
+    if(D===0) continue;
+    const setup='Aさんの勝った回数を x 回、負けた回数を y 回とする';
+    const disp1='x+y='+N+'-'+k+'='+W;
+    const disp2=term(a,'x',true)+term(-b,'y')+'+'+k+'='+D;
+    const answers=[
+      {label:'勝った回数', unit:'回', value:x},
+      {label:'負けた回数', unit:'回', value:y}
+    ];
+    /* あいこを回数からも段数からも除き忘れる典型ミス */
+    const miss=solveInt(1,1,N, a,-b,D);
+    return {
+      text:'Aさんは階段の下のほうに立って、Bさんとじゃんけんをします。じゃんけんに勝つと <b>'+a+'段</b>上がり、負けると <b>'+b+'段</b>下がり、<b>あいこのときは2人とも1段上がります</b>。<b>'+N+'回</b>じゃんけんをしたところ、そのうち <b>あいこが '+k+'回</b>で、Aさんは '+danText(D)+' にいました。Aさんの勝った回数と負けた回数をそれぞれ求めなさい。',
+      answers,
+      distractors: miss?[miss]:[],
+      hints:hint3('あいこの '+k+'回 は勝ち負けの回数に入らない。'+setup,
+        disp1+'\\ (あいこ以外の回数)', disp2+'\\ (段数。あいこの分も上がる)'),
+      steps:buildSteps(setup,
+        [{disp:disp1, a:1,b:1,c:W},
+         {disp:disp2, a:a,b:-b,c:D-k,
+          pre:[{label:'②を整理する', latex:eqLatex(a,-b,D-k)}]}],
+        [x,y], answers)
+    };
+  }
+  return genJanken1();
+}
+
 /* =====================================================================
  * カテゴリ × STEP 定義
  * ===================================================================== */
@@ -1518,6 +1654,11 @@ const CATS=[
   {key:'shokuen', name:'食塩水', desc:'濃度の問題', steps:[
     {key:'shokuen1', name:'混ぜて◯%にする', desc:'2つの食塩水を何gずつ混ぜるか', gen:genShokuen1},
     {key:'shokuen2', name:'濃度を求める', desc:'混ぜた結果から濃度を逆算', gen:genShokuen2},
+  ]},
+  {key:'janken', name:'じゃんけん', desc:'階段を上がる・得点', steps:[
+    {key:'janken1', name:'勝ち・負けの回数', desc:'◯回じゃんけんをして何段上がったか', gen:genJanken1},
+    {key:'janken2', name:'2人の位置から', desc:'AさんとBさんの段数から勝ち数を求める', gen:genJanken2},
+    {key:'janken3', name:'ひねり問題', desc:'得点をもらう・あいこがある', gen:genJanken3},
   ]},
   {key:'mixcat', name:'総合ミックス', desc:'ぜんぶのパターンからランダム出題!', mix:true, steps:[
     {key:'mix', name:'総合ミックス', desc:'', gen:genMix},
