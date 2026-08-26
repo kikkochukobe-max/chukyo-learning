@@ -2453,7 +2453,7 @@ function gen21Sakkaku(){
  const parts=[txtPart('図で、ℓ∥m である。図の2つの角の大きさがそれぞれ '+a+'°、'+b+'° のとき、∠xの大きさとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
  const ex=[jt('xの頂点を通り ℓ に平行な直線をひくと、平行線の錯角は等しい'),
   '\\angle x='+a+'^{\\circ}+'+b+'^{\\circ}='+ans+'^{\\circ}'];
- return q_('t21','a1_heikousen',parts,ch,ex,1,heikouSvg(a,b))}
+ return q_('t26','a1_heikousen',parts,ch,ex,1,heikouSvg(a,b))}
 
 /* ═══ 中2図形の角度(二等辺三角形・正三角形・平行四辺形・ひし形・正方形) ═══
    実物大問1(1)の構図。座標は与えた角度から実際に計算し、fitPts で viewBox に
@@ -2751,9 +2751,55 @@ function genSquare(){
   jt('AD=DEより△ADEは二等辺三角形だから ∠AED=(180°-'+(90-tt)+'°)÷2=')+ans+'^{\\circ}'];
  return q_('t21','a1_chu2kakudo',parts,ch,ex,1,s)}
 
-/* 平行線と角(錯角)は愛知の定番なので2枠、残りは中2図形の角度を7パターン */
-function gen21(){return rc([gen21Sakkaku,gen21Sakkaku,
- genPgBisect,genPgIso,genIsoDE,genIsoEqui,genPgIso2,genRhombus,genSquare])()}
+/* ── 中2H: AB=ACの二等辺三角形 + 長方形BDEF(E、Fは辺AC上) ──
+   ∠BAF=a のとき ∠BGD=a/2。長方形の内角90°から DE⊥AC が出るのが要点で、
+   BF は「BからACへ下ろした垂線」になる。Gは辺BCとDEの交点(Dは辺BCの下側)。 */
+function genRectIso(){
+ for(let t=0;t<200;t++){
+  const a=ri(24,39)*2;                       // ∠BAF=∠BAC (48〜78)
+  const ans=a/2;                             // ∠BGD
+  const be=(180-a)/2;                        // 底角∠ACB
+  const c=200,D2R=Math.PI/180;
+  const B=[0,0],C=[c,0],A=[c/2,-(c/2)*Math.tan(be*D2R)];
+  const uL=Math.hypot(C[0]-A[0],C[1]-A[1]);
+  const u=[(C[0]-A[0])/uL,(C[1]-A[1])/uL];   // A→C の単位ベクトル
+  const af=(B[0]-A[0])*u[0]+(B[1]-A[1])*u[1];// AF (BからACへの垂線の足まで)
+  const F=[A[0]+af*u[0],A[1]+af*u[1]];
+  const k=(uL-af)*0.46;                      // FE の長さ(Eが Cに寄りすぎないよう)
+  if(k<uL*0.12)continue;
+  const E=[F[0]+k*u[0],F[1]+k*u[1]];
+  const D=[B[0]+k*u[0],B[1]+k*u[1]];         // 長方形BDEF: B→D = F→E
+  const G=segX(D,E,B,C);
+  if(!isFinite(G[0])||G[0]<c*0.25||G[0]>c*0.8)continue;
+  if(Math.abs(angDeg(G,B,D)-ans)>0.5)continue;
+  const ch=degChoices(ans,[be,a,90-a,ans+8,ans-8,180-2*a]);
+  if(!ch)continue;
+  const P=fitPts({A:A,B:B,C:C,D:D,E:E,F:F,G:G},240,210,26);
+  const ctr=ctrOf(P,['A','B','C']);
+  const s=svgOpen(240,210)
+   +figLine(P,['A','B','C','A'])+figLine(P,['B','D','E','F','B'])
+   +figLbl(P,['A','B','C'],ctr,15)
+   +figLbl(P,['D','E','F'],ctr,13)
+   +svgT([P.G[0]+4,P.G[1]+14],'G',12)
+   +angMark(P.A,P.B,P.C,a,18,32)
+   +angArc(P.G,P.B,P.D,13)+'</svg>';
+  const parts=[txtPart('図で、△ABCはAB=ACの二等辺三角形、四角形BDEFは長方形で、点E、Fは辺AC上にある。また、Gは辺BCとDEとの交点である。∠BAF = '+a+'° のとき、∠BGDの大きさとして正しいものを、次のアからエまでの中から一つ選びなさい。')];
+  const ex=[jt('AB=ACだから ∠ACB=(180°-'+a+'°)÷2='+be+'°'),
+   jt('四角形BDEFは長方形だから ∠FED=90°。E、Fは辺AC上にあるので DE⊥AC'),
+   jt('△GECで ∠EGC=180°-90°-'+be+'°='+ans+'°'),
+   jt('∠BGDは∠EGCの対頂角だから ∠BGD=')+ans+'^{\\circ}'];
+  return q_('t21','a1_chu2kakudo',parts,ch,ex,1,s)}
+ return genRectIso()}
+
+/* 中2図形の角(t21)と平行線と角(t26)は別タイプに分けてある。
+   実物の大問1(1)には「二等辺三角形＋長方形」のような中2の角度が出る一方、
+   平行線と角(錯角)は2023〜2026の大問1には出ていないため、
+   本番セットに載せるのは t21 だけにしたい＝1つの gen にまとめられない。
+   ⚠ 分ける前は両方 t21 だったので、それ以前の解き直し(pending)は
+      question_params の t が 't21' のまま再表示される(錯角の問題に
+      「中2図形の角」のタグが出るだけで、解き直し・mastered判定は成立する)。 */
+function gen21(){return rc([genPgBisect,genPgIso,genIsoDE,genIsoEqui,
+ genPgIso2,genRhombus,genSquare,genRectIso])()}
 
 /* ═════════════════════════════════════════════════════════════════
    近年(2023〜2026)の大問1に出ているのに生成関数が無かった型。
@@ -3016,7 +3062,8 @@ const TYPES=[
  {no:10,id:'t10',label:'関数・数の性質', gen:gen10},
  {no:10,id:'t13',label:'図形(角度)', gen:genKakudo},
  {no:10,id:'t16',label:'図形(長さ・相似・三平方)', gen:genZukei},
- {no:10,id:'t21',label:'平行線と角・中2図形の角', gen:gen21},
+ {no:10,id:'t21',label:'中2図形の角(二等辺・平行四辺形など)', gen:gen21},
+ {no:10,id:'t26',label:'平行線と角', gen:gen21Sakkaku},
  {no:10,id:'t25',label:'空間図形', gen:gen25}
 ];
 function pickT(id){return TYPES.filter(t2=>t2.id===id)[0]}
@@ -3065,9 +3112,11 @@ function genAichiSet(){ // scopeでオフのタイプは代替(既出タイプ�
      (8) ヒストグラム1・標本調査1・正誤1・整数の性質1
      (9) 変化の割合1・箱ひげ図1・確率1・平方根の大小1
     (10) 相似1・三平方1・角度1・空間図形1
+    ※(10)の「角度1」には円周角(t13)だけでなく、二等辺三角形＋長方形のような
+      中2図形の角(t21)も実物に出るので、t13 と並べて (10) の候補に入れてある。
     ⚠ この4年の大問1に一度も出ていない型は本番セットから外した
       (t14 式の展開 / t15 因数分解 / t17 連立方程式 / t19 平均値(度数分布表) /
-       t21 平行線と角)。
+       t26 平行線と角(錯角))。
       タイプ別トレーニングでは今までどおり選べるので、練習用途は落としていない。
       円周角(t13の一部)は大問1ではなく大問3の内容なので genKakudo 側で頻度を下げた。 */
  return[
@@ -3080,7 +3129,7 @@ function genAichiSet(){ // scopeでオフのタイプは代替(既出タイプ�
   take('t7'),                                   // (7) 正誤(二つ選びなさい)
   slot(['t12','t8','t10'],['t12']),             // (8) データの活用 / 数の性質
   slot(['t10','t10','t9','t9','t11'],['t9']),   // (9) 関数・数の性質 / 確率 / 箱ひげ図
-  slot(['t16','t16','t16','t13','t25'],['t16','t10','t25'])]}// (10) 図形 / 空間図形
+  slot(['t16','t16','t16','t13','t21','t25'],['t16','t10','t25'])]}// (10) 図形 / 空間図形
 
 g.ENGINE={ri:ri,rc:rc,nz:nz,shuffle:shuffle,gcd:gcd,F:F,isSquare:isSquare,C2:C2,isPrime:isPrime,
  sqfree:sqfree,divisorsOf:divisorsOf,TYPES:TYPES,genAichiSet:genAichiSet,genFresh:genFresh,setScope:setScope,typeOK:typeOK};
