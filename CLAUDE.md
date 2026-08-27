@@ -188,6 +188,7 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
 | XP | xp_events / xp_logs | イベント期間の倍率。**XPは付与時点で確定値を記録**(再計算禁止)。レベルはカラムに持たず累計XPから式で算出: floor(sqrt(totalXp/100))+1 |
 | カタログ | question_catalog | (unit_key,question_key)→日本語ラベル+base_xp。平方根8モードシード済み。当面は難易度を分けずbase_xp=1で統一 |
 | コンテンツ | vocab_words / vocab_hints | 語彙クロスワード(japanese_goi_crossword)の語3350件と段階ヒント。**schema_full.sql には無い**（db/migrations/migrate_vocab_crossword.sql + db/seeds/seed_japanese_goi_crossword.sql を phpMyAdmin で実行）。**問題データをDBに置く最初のツール**で、先生が /vocab_admin.php から語とヒントを増やせる（API=api/vocab_admin.php）。正誤は既存 answer_logs に集約＝専用ログ表は作らない |
+| 自習 | self_study_logs | 生徒が自分で書く「家でやった自習」の記録（日付・教科・教材・範囲・時間・手ごたえ・メモ）＋講師の確認印(checked_at)とコメント。**schema_full.sql には無い**（db/migrations/migrate_self_study.sql を実行）。自己申告なので**XPも学習時間集計も付けない**（ロードマップ 5g） |
 
 ## 主要な設計判断（確定事項）
 
@@ -419,6 +420,42 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    お子さまのPINが不明な場合は生徒PIN側で対応する）
 5f. **TZ診断**: api/timecheck.php（講師ログイン必須）で php_now/db_now/session_tz を確認できる。
    2026-07-03 に旧db.phpで入ったUTC行(+9時間ずれ)は修正済み
+5g. **自習の記録 → 完了（self_study_logs）**: 生徒が「家で何を自習したか」を自分で書き残し、
+   講師が確認印とひとことを返す。テーブルは db/migrations/migrate_self_study.sql
+   （schema_full.sql には無い。phpMyAdmin で1回実行する）。
+   ラベル・権限判定の共通定義は **api/self_study_common.php**（SELF_STUDY_SUBJECTS /
+   SELF_STUDY_FEELINGS / SELF_STUDY_FEELING_FACES / SELF_STUDY_BACKDATE_DAYS）で、
+   生徒側API・講師側API・mypage.php・teacher.php の4か所が読む＝文言を1箇所で直せる。
+   API: save_self_study.php（生徒・新規/修正）/ list_self_study.php（生徒=自分・
+   講師=担当教室の生徒・保護者=ひもづく子）/ delete_self_study.php /
+   check_self_study.php（講師の確認印・コメント）。
+   入力項目は 日付・教科・教材名・範囲・時間(分)・手ごたえ(1〜5)・メモ の7つ。
+   ⚠ **XPは付けない。answer_logs / study_sessions / time_records にも一切書かない**
+   （自己申告なので水増しできる。がんばりカードの学習時間・正答率とは別枠のまま保つ）。
+   ⚠ **確認印が押された記録は生徒側から編集・削除できない**（api が already_checked=409 で弾く）。
+   講師のコメントと食い違うため。押しまちがいは講師側の「確認を取り消す」で戻せる
+   （そのときコメントも一緒に消す＝「確認していないのにコメントだけ残る」を防ぐ）。
+   ⚠ 生徒が書ける日付は今日〜SELF_STUDY_BACKDATE_DAYS(31)日前まで。未来日は不可。
+   ⚠ **講師画面の一覧は未確認の記録を期間タブに関係なく必ず出す**
+   （確認印は「見たかどうか」のTo-Doなので、期間を切り替えて隠れると押し忘れる）。
+   生徒一覧にも「自習 未確認」列があり、こちらも期間フィルタの対象外。
+   ⚠ **SQLのテーブル別名に `ssl` を使わない**（`SSL` はMySQLの予約語で、
+   `FROM self_study_logs ssl` が構文エラー1064になる。本番で踏んだ）。`sslog` を使う。
+   ⚠ 保護者ページ(guardian.php)の画面は未実装。list_self_study.php は
+   guardian でも読めるようにしてあるので、出すならUIを足すだけでよい
+5h. **利用状況レポート → 完了（/report.php）**: 会議・共有用の1枚資料。
+   ①教室別利用状況（**1問以上解いた生徒 ÷ 在籍生徒 × 100** を「小」「中」に分けて出す。
+   高校生・テスト生・退塾は分母分子とも除外し、除外人数を注記に出す）
+   ②人気のサイトランキング（利用生徒数の多い順＋解答数・正答率。小/中のベスト5も）。
+   期間タブ（今週/今月/先月/全期間）＋任意期間、印刷ボタンつき。teacher.php のヘッダーから遷移。
+   権限は teacher.php と同じ（super_admin=全教室 / それ以外=担当教室のみ）。
+   ⚠ **学校種は students.grade の文字列から判定する**（es4/js1 形式が正だが 小4/中２ も拾う）。
+   空欄の生徒は小中どちらの分母にも入らない＝**学年欄が空だと稼働率が実際より高く出る**。
+   画面下に「学年未設定 N人」を出してあるので、そこが0でないうちは数字を鵜呑みにしない。
+   ⚠ 同じ定義の phpMyAdmin 用SQLが db/reports/kadouritsu_by_classroom.sql にある
+   （こちらは高校生・未設定も行として出る）。**定義を変えたら両方直す**。
+   ⚠ ツール名は api/units.php の台帳から引くので、台帳に無い unit_key は
+   キーのまま出る（＝1行足せば名前が出る。記録が無いわけではない）。
 6. **実機で1周**: ログイン→解く→answer_logs→マイページ反映まで確認
 7. 平方根が1周通っていれば「計算どぅする？」
    (math_es_keisan_dousuru、13カテゴリのIDをquestion_keyに)も横展開
