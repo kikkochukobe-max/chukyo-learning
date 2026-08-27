@@ -4,22 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="color-scheme" content="only light">
-<title>倍数・約数マスター（調整中）｜中京個別指導学院</title>
-<!-- ============================================================
-     ★ テストモード（開発途中・実機テスト用）
-     公開するときは、この2つを消すだけで通常公開になる:
-       ① <title> の「（調整中）」
-       ② body 内の「テストモードのカギ」ブロック（HTML/CSS/JS）
-     パスワードは TESTMODE_PASS（JS内）。ブラウザ内の判定なので
-     「生徒がうっかり触らない」ためのカギであって、機密の保護ではない。
-
-     ※ learning/index.php の一覧には**出す**（実機テスト時に目次から
-       開けないと不便なため）。カギがあるので生徒が開いても
-       「調整中です」の画面で止まる。
-       逆に一覧からも消したいときは、head に divp-hidden の meta を
-       1行足す（index.php が除外する目印。この注記の中にタグそのものを
-       書かないこと＝コメント内でも正規表現に一致してしまうため）。
-     ============================================================ -->
+<title>倍数・約数マスター｜中京個別指導学院</title>
 <!-- 本番(Heteml)ではサブセット自己ホストに差し替え -->
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -341,151 +326,14 @@
     color:#6E5518;
   }
 
-  /* ---- テストモードのカギ（公開時にこのブロックごと削除する） ---- */
-  body.locked .mode-screen,
-  body.locked .app,
-  body.locked .bottom,
-  body.locked .divp-header{ display:none !important; }
-  .tm-gate{ display:none; }
-  body.locked .tm-gate{
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:14px;
-    min-height:100dvh;
-    padding:24px 20px;
-    text-align:center;
-  }
-  .tm-card{
-    width:100%; max-width:380px;
-    background:#fff;
-    border:1.5px solid var(--grid);
-    border-top:6px solid var(--kin);
-    border-radius:18px;
-    box-shadow:0 10px 34px rgba(51,49,43,.14);
-    padding:30px 24px 26px;
-  }
-  .tm-emoji{ font-size:46px; line-height:1; }
-  .tm-ttl{
-    font-family:"Zen Maru Gothic", sans-serif;
-    font-size:20px; font-weight:700;
-    margin:8px 0 6px;
-  }
-  .tm-lead{ font-size:13px; line-height:1.8; color:var(--usuzumi); }
-  .tm-form{ display:flex; gap:8px; margin-top:18px; }
-  .tm-form input{
-    flex:1; min-width:0;
-    height:48px;
-    padding:0 12px;
-    border:1.5px solid var(--grid);
-    border-radius:10px;
-    background:var(--paper);
-    font-family:inherit;
-    font-size:16px;                /* iOSの自動ズーム回避のため16px以上 */
-    color:var(--sumi);
-  }
-  .tm-form input:focus{ outline:none; border-color:var(--ai); }
-  .tm-form button{
-    flex:0 0 auto;
-    height:48px; padding:0 20px;
-    border:none; border-radius:10px;
-    background:var(--ai); color:#fff;
-    font-family:"Zen Maru Gothic", sans-serif;
-    font-size:15px; font-weight:700;
-    cursor:pointer;
-  }
-  .tm-err{
-    min-height:20px; margin-top:10px;
-    font-size:13px; font-weight:700; color:var(--shu);
-  }
-  .tm-card.shake{ animation:tmShake .35s; }
-  @keyframes tmShake{
-    20%{ transform:translateX(-7px); } 40%{ transform:translateX(7px); }
-    60%{ transform:translateX(-4px); } 80%{ transform:translateX(4px); }
-  }
-  @media (prefers-reduced-motion: reduce){ .tm-card.shake{ animation:none; } }
-  /* 解除中だけ出る目印。本番公開だと勘違いしないように出しっぱなしにする */
-  .tm-badge{ display:none; }
-  body:not(.locked) .tm-badge{
-    display:block;
-    position:fixed; right:8px; bottom:74px; z-index:30;
-    background:var(--kin); color:#fff;
-    border:none; border-radius:999px;
-    padding:5px 12px;
-    font-family:"Zen Maru Gothic", sans-serif;
-    font-size:11px; font-weight:700;
-    letter-spacing:.08em;
-    box-shadow:0 2px 8px rgba(51,49,43,.25);
-    cursor:pointer;
-    opacity:.85;
-  }
-
   @media print{
     /* 共通ヘッダーは紙に出さない（assets/divp-header.js と同じ方針） */
     .divp-header{ display:none !important; }
     .bottom{ display:none !important; }
-    .tm-gate, .tm-badge{ display:none !important; }
   }
 </style>
 </head>
-<body class="choosing locked">
-<!-- ============================================================
-     ★ テストモードのカギ（公開時はここから </script> までを削除）
-     ・body に locked が付いている間、ツール本体は表示しない
-     ・合言葉が合うと localStorage に印を残すので、その端末では次から素通り
-     ・?pass=… を付けたURLでも開ける（実機にURLを送るとき用）
-     ============================================================ -->
-<div class="tm-gate" id="tmGate">
-  <div class="tm-card" id="tmCard">
-    <div class="tm-emoji">🔧</div>
-    <div class="tm-ttl">ただいま 調整中です</div>
-    <div class="tm-lead">このページは 先生が テスト中の ページです。<br>合言葉を 入れると 開きます。</div>
-    <form class="tm-form" id="tmForm">
-      <input type="password" id="tmPass" placeholder="合言葉" autocomplete="off"
-             autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="合言葉">
-      <button type="submit">ひらく</button>
-    </form>
-    <div class="tm-err" id="tmErr"></div>
-  </div>
-</div>
-<button type="button" class="tm-badge" id="tmBadge" title="タップすると カギを かけ直します">テストモード</button>
-<script>
-(function(){
-  "use strict";
-  var TESTMODE_PASS = "testestes";
-  var KEY = "divp_testmode_math_es5_baisu_yakusu";
-
-  function unlock(remember){
-    if(remember){ try{ localStorage.setItem(KEY, "1"); }catch(e){} }
-    document.body.classList.remove("locked");
-  }
-  /* 既に解除済みの端末 / URLに ?pass= が付いている場合はそのまま開く */
-  var already = false;
-  try{ already = localStorage.getItem(KEY) === "1"; }catch(e){}
-  var m = /[?&]pass=([^&]*)/.exec(location.search);
-  if(already) unlock(false);
-  else if(m && decodeURIComponent(m[1]) === TESTMODE_PASS) unlock(true);
-
-  document.addEventListener("DOMContentLoaded", function(){
-    var form = document.getElementById("tmForm");
-    var pass = document.getElementById("tmPass");
-    var err  = document.getElementById("tmErr");
-    var card = document.getElementById("tmCard");
-    form.addEventListener("submit", function(e){
-      e.preventDefault();
-      if(pass.value === TESTMODE_PASS){ err.textContent = ""; unlock(true); return; }
-      err.textContent = "合言葉が ちがいます";
-      pass.value = "";
-      card.classList.remove("shake");
-      void card.offsetWidth;              /* アニメーションを再生し直す */
-      card.classList.add("shake");
-    });
-    /* 目印をタップしたら、この端末のカギを かけ直す（解除の解除） */
-    document.getElementById("tmBadge").addEventListener("click", function(){
-      try{ localStorage.removeItem(KEY); }catch(e){}
-      location.href = location.pathname;  /* ?pass= を落としてから閉じる */
-    });
-  });
-})();
-</script>
+<body class="choosing">
 
 <!-- 共通ヘッダー(ロゴ・ログイン窓)の差し込み先。script は body 直後に置くこと -->
 <div class="divp-header"></div>
@@ -849,6 +697,9 @@ function gen_koubai_bun(){
   do{ a=ri(3,12); b=ri(3,12); L=lcm(a,b); guard++; }while((a===b||L>72||L<6) && guard<400);
   if(a>b){ var t=a; a=b; b=t; }
 
+  /* 4回に1回は「何時何分」で答える型（時刻への変換まで練習させる） */
+  if(ri(1,4) === 1) return gen_koubai_bun_jikoku(a,b,L);
+
   var T = ri(1,5), q, ansVal, unit, expl, plainQ;
   var howto = 'こういう問題は <b>公倍数</b>（＝いちばん小さいのは 最小公倍数）で 考えます。'
     +'<div class="list">'+a+'の倍数：'+mulList(a,3*L)+'<br>'+b+'の倍数：'+mulList(b,3*L)+'</div>'
@@ -898,6 +749,80 @@ function gen_koubai_bun(){
     parts:[{ type:"choice", label:"答えは？", cls:"small",
              options:ch.options.map(function(v){ return v+unit; }), correct:ch.correct }],
     expl:'<span class="ttl">かんがえ方</span>'+expl
+  };
+}
+
+/* ---------------------------------------------------------------------
+   ④' 公倍数の文章題（電車とバス／答えを「何時何分」で出す型）
+   「何分後」が出せたら、その先の時刻の くり上がりまで やらせる。
+   ⚠ 正午をまたぐと 午前/午後 の 言いかえが まざって 論点がずれるので、
+      出発時刻は 午前6〜7時台 / 午後3〜4時台 に かぎってある
+      （3L＝最大216分 進めても その半日から 出ない）。
+   --------------------------------------------------------------------- */
+function fmtJikoku(min){
+  var h = Math.floor(min/60), m = min%60;
+  var ampm = (h < 12) ? "午前" : "午後";
+  var hh = (h > 12) ? h-12 : h;
+  return ampm + hh + "時" + (m === 0 ? "" : m + "分");
+}
+function gen_koubai_bun_jikoku(a,b,L){
+  var h0 = pick([6,7,15,16]);
+  var m0 = pick([0,5,10,15,20,25,30,40,45,50]);
+  var start = h0*60 + m0;
+  var limit = (h0 < 12) ? 12*60-1 : 24*60-1;   /* 半日をまたがせない */
+  var k = ri(1,3);                              /* 1:つぎ 2:2回目 3:3回目 */
+  var kJ = (k === 1) ? "つぎに" : k+"回目に";
+  var off = k*L;
+  var ansMin = start + off;
+  var ansTxt = fmtJikoku(ansMin);
+
+  /* 選択肢は「時刻」でつくる（分後のままだと 変換の練習にならない）。
+     ダミーも 時刻に なおすので、start+ずれ が 半日から 出ないものだけ使う */
+  var offs = [off];
+  var cand = shuffle([a*b, a+b, (k+1)*L, (k-1)*L, off+a, off+b, off-a, off+10]);
+  for(var i=0;i<cand.length && offs.length<4;i++){
+    var v = cand[i];
+    if(v <= 0 || offs.indexOf(v) >= 0) continue;
+    if(start+v > limit) continue;
+    offs.push(v);
+  }
+  var pad = 5;
+  while(offs.length < 4){                       /* 足りなければ 5分ずつ ずらす */
+    if(offs.indexOf(off+pad) < 0 && start+off+pad <= limit) offs.push(off+pad);
+    else if(offs.indexOf(off-pad) < 0 && off-pad > 0) offs.push(off-pad);
+    pad += 5;
+  }
+  var arr = shuffle(offs);
+
+  var mm = m0 + off, carry = Math.floor(mm/60), rest = mm%60;
+  var timeExpl = '<br><br><b>時刻に なおします。</b>'
+    + '<br>' + fmtJikoku(start) + ' の ' + off + '分後 なので、'
+    + '<br>分は ' + m0 + '＋' + off + '＝' + mm + '分。'
+    + (carry > 0
+        ? '60分で 1時間 に くり上がるので、' + carry + '時間'
+          + (rest > 0 ? ' と ' + rest + '分' : ' ちょうど')
+          + ' すすんで <b>' + ansTxt + '</b>。'
+        : 'そのまま <b>' + ansTxt + '</b>。');
+
+  return {
+    key:"koubai_bun",
+    tag:"公倍数の 文章題（時刻）",
+    qHtml:'えきを、バスは <b>'+a+'分</b>ごと、電車は <b>'+b+'分</b>ごとに 出発します。'
+      +'<br><b>'+fmtJikoku(start)+'</b> に バスと 電車が 同時に 出発しました。'
+      +'<br>'+kJ+' 同時に 出発するのは <b>何時何分</b>ですか。',
+    plainQ: fmtJikoku(start)+"に同時発車、"+a+"分ごとのバスと"+b+"分ごとの電車が"+kJ+"同時に出発する時刻",
+    parts:[{ type:"choice", label:"答えは？", cls:"small",
+             options:arr.map(function(v){ return fmtJikoku(start+v); }),
+             correct:arr.indexOf(off) }],
+    expl:'<span class="ttl">かんがえ方</span>'
+      +'まず <b>何分後</b>に そろうかを 公倍数で 考えます。'
+      +'<div class="list">'+a+'の倍数：'+mulList(a,3*L)+'<br>'+b+'の倍数：'+mulList(b,3*L)+'</div>'
+      +'はじめて そろうのが <b>'+L+'分後</b>（最小公倍数）。'
+      +(k > 1
+         ? '<br>同時に 出発するのは '+L+'分後、'+(2*L)+'分後、'+(3*L)+'分後…なので、'
+           +k+'回目は <b>'+off+'分後</b>です。'
+         : '')
+      +timeExpl
   };
 }
 
