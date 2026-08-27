@@ -133,6 +133,8 @@
     color:var(--shu);
   }
   .expr.small{ font-size:clamp(20px, 6.4vw, 28px); }
+  /* 下の 入力欄（.ansRow.chain）の ＝ の右に そろえて 左づめにする */
+  .expr.chain{ justify-content:flex-start; padding-left:28px; }
 
   /* ---- 円の絵（通分のアニメーション） ---- */
   .pieWrap{
@@ -185,7 +187,23 @@
     display:flex; flex-direction:column; gap:8px; align-items:center;
   }
   .ansHint{ font-size:11.5px; color:var(--usuzumi); text-align:center; line-height:1.6; }
+  .ansStep{ width:100%; display:flex; flex-direction:column; gap:6px; align-items:center; }
+  .ansStep + .ansStep{ margin-top:4px; padding-top:10px; border-top:1px dashed var(--grid); }
+  .stepTtl{
+    align-self:flex-start;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12.5px; font-weight:700; color:var(--ai);
+    letter-spacing:.04em;
+  }
+  .midop{ font-size:20px; }
   .ansRow{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
+  /* ノートと同じように、問題の式に ＝ でつないで 下へ 書き足していく */
+  .ansRow.chain{ align-self:stretch; justify-content:flex-start; gap:6px; padding-left:2px; }
+  .eqlead{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:24px; font-weight:700; color:var(--usuzumi);
+    min-width:24px; text-align:center;
+  }
   .ansUnit{ display:flex; align-items:center; gap:4px; }
   .ansUnit .lbl{
     font-family:"Zen Maru Gothic", sans-serif;
@@ -193,6 +211,7 @@
   }
   .fbox{ display:flex; flex-direction:column; align-items:center; gap:3px; }
   .fbox .bar{ width:64px; height:2.5px; background:var(--sumi); border-radius:2px; }
+  .fbox .bar.small{ width:56px; }
   .nbox{
     width:60px; height:50px;
     border:2px solid var(--grid);
@@ -209,8 +228,8 @@
   .nbox.empty::after{ content:"　"; color:var(--usuzumi); }
   .nbox.ok{ border-color:var(--divp-mark-ok); background:#EAF5EE; color:var(--divp-mark-ok); }
   .nbox.ng{ border-color:var(--shu); background:#FBEDEB; color:var(--shu); }
-  .wholeSlot .nbox{ border-style:dashed; }
-  .wholeSlot .nbox.focus{ border-style:solid; }
+  .wholeSlot .nbox, .nbox.wholeBox{ border-style:dashed; }
+  .wholeSlot .nbox.focus, .nbox.wholeBox.focus{ border-style:solid; }
 
   /* ---- テンキー ---- */
   .keypad{
@@ -269,6 +288,12 @@
     margin:4px 0 2px; line-height:1.5;
   }
   .expl .ex-note{ font-size:12.5px; color:var(--usuzumi); }
+  .expl .ex-alt{
+    margin-top:8px; padding-top:8px; border-top:1px dashed var(--grid);
+    font-size:13px; color:var(--usuzumi);
+  }
+  .expl .ex-alt b{ color:var(--ai); }
+  .expl .ex-alt .ex-line{ color:var(--sumi); }
   .expl .ex-ans{
     margin-top:8px; padding-top:8px; border-top:1px dashed var(--grid);
     font-family:"Zen Maru Gothic", sans-serif;
@@ -444,7 +469,7 @@
   <button type="button" class="m-card" data-mode="add_tai">
     <span class="m-no">4</span>
     <span class="m-body"><span class="m-name">帯分数を ふくむ たし算<span class="m-tag">帯分数</span></span>
-    <span class="m-desc">仮分数に なおしてから 通分して たす</span></span>
+    <span class="m-desc">帯分数のまま／仮分数に なおして、どちらの やり方でも OK</span></span>
   </button>
 
   <button type="button" class="m-card" data-mode="add_shou">
@@ -824,6 +849,23 @@ function explCalc(terms, ops){
   if(r.d === 1 && (r.n !== num || L !== 1)) t2 += '<span class="op">＝</span><span class="wn">'+r.n+'</span>';
   s += '<div class="ex-line">' + t2 + '</div>';
   s += '<div class="ex-ans">こたえ ' + mixHtml(r) + '</div>';
+
+  /* 帯分数が ある問題は「帯分数の まま 通分する」やり方も 見せる
+     （途中式は どちらの 書き方でも 正解にしているため） */
+  if(terms.some(function(t){ return t.kind === "mixed"; })){
+    var alt = terms.map(function(t, i){
+      var k = t.f.n * (L/t.f.d), w2 = Math.floor(k/L), n2 = k - w2*L;
+      var h = !w2 ? frHtml(fr(n2, L))
+        : (n2 ? '<span class="mx"><span class="wn">'+w2+'</span>'+frHtml(fr(n2,L))+'</span>'
+              : '<span class="wn">'+w2+'</span>');
+      return (i ? '<span class="op">'+(ops[i-1] === "+" ? "＋" : "－")+'</span>' : '') + h;
+    }).join("");
+    s += '<div class="ex-alt"><b>別の やり方</b>：帯分数を 仮分数に しないで、'
+      + '<b>帯分数の まま</b> 通分しても かまいません。'
+      + '<div class="ex-line">' + alt + '</div>'
+      + '<span class="ex-note">このあと 整数どうし・分数どうしで 計算します。'
+      + 'ひき算で 分数が ひけない ときは、整数から 1（＝' + frHtml(fr(L,L)) + '）を くずします。</span></div>';
+  }
   return s;
 }
 
@@ -831,17 +873,34 @@ function makeCalcQ(key, tag, lead, terms, ops){
   var ans = calcVal(terms, ops);
   var showPie = (terms.length === 2 && terms[0].kind === "frac" && terms[1].kind === "frac"
                  && lcm(terms[0].f.d, terms[1].f.d) <= 24);
+  /* 途中式（通分した式）の 正解。小数・帯分数は 仮分数に なおしたうえで 分母を L に そろえる */
+  var L = terms.reduce(function(a,t){ return lcm(a, t.f.d); }, 1);
+  var midNums = terms.map(function(t){ return t.f.n * (L / t.f.d); });
+  var midText = midNums.map(function(n,i){
+    return (i ? (ops[i-1] === "+" ? "＋" : "－") : "") + frText(fr(n, L));
+  }).join("");
   return {
     key: key,
     tag: tag,
     lead: lead,
     ansKind: "frac",
     ans: ans,
+    terms: terms,
+    ops: ops,
+    L: L,
+    midNums: midNums,
+    midText: midText,
+    /* 1 より大きい 項（帯分数・1.5 のような小数）は、途中式を
+       「帯分数のまま 通分」でも「仮分数に なおして 通分」でも 書けるように
+       整数の マスを 出す。判定は 値で 見るので どちらでも 正解になる。 */
+    midWhole: terms.map(function(t){ return t.kind === "mixed" || fval(t.f) >= 1; }),
     exprHtml: exprHtml(terms, ops),
-    qHtml: '<div class="expr'+(terms.length > 2 ? ' small' : '')+'">'
-      + exprHtml(terms, ops) + '<span class="op">＝</span><span class="qbox">？</span></div>',
+    qHtml: '<div class="expr chain'+(terms.length > 2 ? ' small' : '')+'">'
+      /* 「＝？」は 付けない。下の 入力欄が ＝ で つづく ノート形式に なっているため */
+      + exprHtml(terms, ops) + "</div>",
     plainQ: exprText(terms, ops),
-    ansText: mixText(ans),
+    /* correct_answer は 講師・保護者画面の 表示用。通分した式も 見えるようにする */
+    ansText: midText + "＝" + mixText(ans),
     ansHtml: mixHtml(ans),
     expl: explCalc(terms, ops),
     pies: showPie ? { fs:[terms[0].f, terms[1].f], ops:ops } : null
@@ -970,7 +1029,7 @@ function gen_add_tai(){
     if(++g > 200){ ts = [tMixed(1, fr(1,2)), tMixed(2, fr(1,3))]; break; }
   }
   return makeCalcQ("add_tai", "帯分数の たし算",
-    "帯分数は <b>仮分数</b>に なおしてから 通分すると まちがえにくいよ。", ts, ["+"]);
+    "帯分数は <b>そのまま</b>でも <b>仮分数</b>に なおしても かまいません。やりやすい ほうで。", ts, ["+"]);
 }
 function gen_sub_tai(){
   var g = 0, ts;
@@ -982,7 +1041,7 @@ function gen_sub_tai(){
     if(++g > 200){ ts = [tMixed(3, fr(1,4)), tMixed(1, fr(2,3))]; break; }
   }
   return makeCalcQ("sub_tai", "帯分数の ひき算",
-    "帯分数は <b>仮分数</b>に なおしてから 通分すると、くり下がりでも まちがえないよ。", ts, ["-"]);
+    "帯分数は <b>そのまま</b>でも <b>仮分数</b>に なおしても かまいません。仮分数なら くり下がりで まちがえにくいよ。", ts, ["-"]);
 }
 function gen_add_shou(){
   var g = 0, ts;
@@ -1058,7 +1117,7 @@ function gen_mix_all(){
     if(++g > 600){ ts = [tDec("0.5"), tMixed(1, fr(1,3))]; ops = ["+"]; break; }
   }
   return makeCalcQ("mix_all", "加減ミックス（小数・分数・帯分数）",
-    "小数は 分数に、帯分数は 仮分数に なおしてから 計算しましょう。", ts, ops);
+    "小数は 分数に なおします。帯分数は そのままでも 仮分数でも かまいません。", ts, ops);
 }
 
 /* =====================================================================
@@ -1190,17 +1249,44 @@ function renderAnswer(){
     host.innerHTML = h;
     setSlots(["n1","d1","n2","d2"]);
   }else{
-    h = '<div class="ansWrap"><div class="ansHint">'
-      + '答えを 入れてね。<b>約分</b>できるときは 約分します。<br>'
+    /* ① 通分した式（途中式）… 帯分数のまま／仮分数、どちらで 書いても 正解にする */
+    var mid = "", ids = [];
+    cur.midNums.forEach(function(v, i){
+      if(i > 0) mid += '<span class="op midop">'+(cur.ops[i-1] === "+" ? "＋" : "－")+'</span>';
+      mid += '<div class="ansUnit">';
+      if(cur.midWhole[i]){                 /* 帯分数のままでも 書けるように 整数の マス */
+        mid += box("m"+i+"w","small wholeBox");
+        ids.push("m"+i+"w");
+      }
+      mid += '<div class="fbox">'
+        + box("m"+i+"n","small") + '<div class="bar small"></div>' + box("m"+i+"d","small")
+        + '</div></div>';
+      ids.push("m"+i+"n", "m"+i+"d");
+    });
+    var hasWhole = cur.midWhole.some(function(x){ return x; });
+    var hasConv = cur.terms.some(function(t){ return t.kind === "dec"; });
+    h = '<div class="ansWrap">'
+      + '<div class="ansStep"><div class="stepTtl">① 通分した 式</div>'
+      + '<div class="ansHint">'
+      + (hasConv ? '小数は 分数に なおしてから、' : '')
+      + '分母を そろえて 書きましょう。分母は ぜんぶ 同じ数（最小公倍数）に なります。'
+      + (hasWhole
+          ? '<br>整数の マス（点線）は <b>あってもなくても OK</b>。'
+            + '<b>帯分数の まま</b> 書いても、<b>仮分数</b>に なおして 書いても 正解だよ。'
+          : '')
+      + '</div>'
+      + '<div class="ansRow chain"><span class="eqlead">＝</span>' + mid + '</div></div>'
+      + '<div class="ansStep"><div class="stepTtl">② こたえ</div>'
+      + '<div class="ansHint">'
+      + '<b>約分</b>できるときは 約分します。'
       + '整数の 部分（帯分数）が ないときは、左の マスは あけたままで いいよ。</div>'
-      + '<div class="ansRow">'
+      + '<div class="ansRow chain"><span class="eqlead">＝</span>'
       + '<div class="ansUnit wholeSlot">' + box("w") + '</div>'
       + '<div class="ansUnit"><div class="fbox">'
       +   box("n") + '<div class="bar"></div>' + box("d") + '</div></div>'
-      + '</div></div>';
+      + '</div></div></div>';
     host.innerHTML = h;
-    setSlots(["w","n","d"]);
-    focusIdx = 1;                          /* ふつうは 分子から 入れる */
+    setSlots(ids.concat(["w","n","d"]));
   }
   paintFocus();
 }
@@ -1272,6 +1358,40 @@ function judgeFrac(){
     user: (W ? W+"と" : "") + N + "/" + D
   };
 }
+/* 途中式（通分した式）。分母は ぜんぶ そろっていて、かつ 最小公倍数で あることを 見る */
+function judgeMid(){
+  var i, L = cur.L, ws = [], ns = [], ds = [], marks = {};
+  for(i=0;i<cur.midNums.length;i++){
+    var w = cur.midWhole[i] ? slotVal("m"+i+"w") : "";
+    var n = slotVal("m"+i+"n"), d = slotVal("m"+i+"d");
+    if(!n || !d) return { err:"①「通分した 式」の マスも ぜんぶ 入れてね" };
+    ws.push(w ? parseInt(w,10) : 0);
+    ns.push(parseInt(n,10));
+    ds.push(parseInt(d,10));
+  }
+  var sameDen = ds.every(function(d){ return d === ds[0]; });
+  var isL = sameDen && ds[0] === L;
+  var equiv = true;
+  for(i=0;i<ns.length;i++){
+    /* 帯分数のまま（整数のマスあり）でも 仮分数でも、値が 合っていれば 正解にする */
+    var termOk = (ds[i] !== 0 && feq(fr(ws[i]*ds[i] + ns[i], ds[i]), cur.terms[i].f));
+    if(!termOk) equiv = false;
+    marks["m"+i+"w"] = (termOk && ds[i] === L);
+    marks["m"+i+"n"] = (termOk && ds[i] === L);
+    marks["m"+i+"d"] = (ds[i] === L);
+  }
+  return {
+    ok: isL && equiv,
+    marks: marks,
+    msg: !equiv ? "おしい！ 通分は 分母と 分子に 同じ数を かけるよ（①を 見なおそう）"
+       : (!sameDen ? "おしい！ ①の 分母を ぜんぶ 同じ数に そろえよう"
+                   : "おしい！ ①の 分母は もっと 小さい 数（最小公倍数）に できるよ"),
+    user: ns.map(function(v,i){
+      return (i ? (cur.ops[i-1] === "+" ? "＋" : "－") : "")
+        + (ws[i] ? ws[i]+"と" : "") + v + "/" + ds[i];
+    }).join("")
+  };
+}
 function judgeTsuubun(){
   var n1 = slotVal("n1"), d1 = slotVal("d1"), n2 = slotVal("n2"), d2 = slotVal("d2");
   if(!n1 || !d1 || !n2 || !d2) return { err:"4つの マス ぜんぶに 数を 入れてね" };
@@ -1304,19 +1424,26 @@ function check(){
     }
     slots.forEach(function(s){ s.el.classList.add(r.marks[s.id] ? "ok" : "ng"); });
   }else{
+    /* 途中式 → 答え の じゅんに 見る。どちらか まちがえたら 不正解 */
+    var jm = judgeMid();
+    if(jm.err){ $("toast").textContent = jm.err; return; }
     var j = judgeFrac();
     if(j.err){ $("toast").textContent = j.err; return; }
-    userStr = j.user;
+    userStr = jm.user + "＝" + j.user;
     var same = feq(j.val, cur.ans);
-    ok = same && j.reduced && j.proper;
+    var ansOk = same && j.reduced && j.proper;
+    ok = jm.ok && ansOk;
     if(!ok){
-      msg = !same ? "おしい！ かんがえ方を 見てみよう"
-          : (!j.reduced ? "おしい！ もう 約分できるよ"
-                        : "おしい！ 整数の 部分が あるときは 分子を 分母より 小さくしてね");
+      msg = !jm.ok ? jm.msg
+          : (!same ? "おしい！ ②の こたえを 見なおそう"
+          : (!j.reduced ? "おしい！ ②は もう 約分できるよ"
+                        : "おしい！ 整数の 部分が あるときは 分子を 分母より 小さくしてね"));
     }
     slots.forEach(function(s){
-      if(s.val === "" && s.id === "w") return;
-      s.el.classList.add(ok ? "ok" : "ng");
+      /* 空のままでよい 整数の マス（仮分数で 書いた とき）には ○×を つけない */
+      if(s.val === "" && /^(w|m\d+w)$/.test(s.id)) return;
+      if(s.id in jm.marks){ s.el.classList.add(jm.marks[s.id] ? "ok" : "ng"); return; }
+      s.el.classList.add(ansOk ? "ok" : "ng");
     });
   }
 

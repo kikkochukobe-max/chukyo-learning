@@ -64,22 +64,61 @@ test('11モードすべて 出題→入力→採点→次の問題 が通る', a
   expect(errs).toEqual([]);
 });
 
-test('計算10モード: 正しい答えを入れると せいかい になる（各3問）', async ({ page }) => {
+/* 通分した途中式（①）と こたえ（②）の両方を 正しく入れる */
+async function answerCorrectly(page) {
+  const { terms, ans } = await readExpr(page);
+  const g = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) { const t = a % b; a = b; b = t; } return a || 1; };
+  const L = terms.reduce((a, t) => a / g(a, t.d) * t.d, 1);
+  for (let i = 0; i < terms.length; i++) {
+    await typeInto(page, `m${i}n`, terms[i].n * (L / terms[i].d));
+    await typeInto(page, `m${i}d`, L);
+  }
+  const w = Math.floor(ans.n / ans.d), n = ans.n - w * ans.d;   // こたえは帯分数で入れる
+  if (w) await typeInto(page, 'w', w);
+  if (n) { await typeInto(page, 'n', n); await typeInto(page, 'd', ans.d); }
+  return { L, ans };
+}
+
+test('計算10モード: 途中式とこたえを正しく入れると せいかい になる（各3問）', async ({ page }) => {
   await page.goto(URL);
   const modes = ['add2', 'add3', 'add_tai', 'add_shou', 'sub2', 'sub3', 'sub_tai', 'sub_shou', 'mix_bun', 'mix_all'];
   for (const m of modes) {
     await page.click(`.m-card[data-mode="${m}"]`);
     for (let i = 0; i < 3; i++) {
-      const { ans } = await readExpr(page);
-      const w = Math.floor(ans.n / ans.d), n = ans.n - w * ans.d;   // 帯分数で入れる
-      if (w) await typeInto(page, 'w', w);
-      if (n) { await typeInto(page, 'n', n); await typeInto(page, 'd', ans.d); }
+      await answerCorrectly(page);
       await page.click('#checkBtn');
       await expect(page.locator('#fbMsg'), `${m} #${i + 1}`).toHaveClass(/good/);
       await page.click('#nextBtn');
     }
     await page.click('#homeBtn');
   }
+});
+
+test('途中式のマスは 空のままだと 答えあわせできない', async ({ page }) => {
+  await page.goto(URL);
+  await page.click('.m-card[data-mode="add2"]');
+  const { ans } = await readExpr(page);
+  await typeInto(page, 'n', ans.n);   // こたえだけ 入れる
+  await typeInto(page, 'd', ans.d);
+  await page.click('#checkBtn');
+  await expect(page.locator('#toast')).toContainText('通分した 式');
+  await expect(page.locator('#feedback')).not.toHaveClass(/show/);
+});
+
+test('途中式をまちがえると 答えが合っていても 不正解になる', async ({ page }) => {
+  await page.goto(URL);
+  await page.click('.m-card[data-mode="add2"]');
+  const { terms, ans } = await readExpr(page);
+  // 分母だけ そろえて 分子を 直し忘れた形（よくあるまちがい）
+  const g = (a, b) => { while (b) { const t = a % b; a = b; b = t; } return a; };
+  const L = terms[0].d / g(terms[0].d, terms[1].d) * terms[1].d;
+  for (let i = 0; i < 2; i++) { await typeInto(page, `m${i}n`, terms[i].n); await typeInto(page, `m${i}d`, L); }
+  const w = Math.floor(ans.n / ans.d), n = ans.n - w * ans.d;
+  if (w) await typeInto(page, 'w', w);
+  if (n) { await typeInto(page, 'n', n); await typeInto(page, 'd', ans.d); }
+  await page.click('#checkBtn');
+  await expect(page.locator('#fbMsg')).toHaveClass(/bad/);
+  await expect(page.locator('#fbMsg')).toContainText('①');
 });
 
 test('通分モード: 最小公倍数で通分すると せいかい / 円の絵は採点後に線が増える', async ({ page }) => {
@@ -102,13 +141,17 @@ test('通分モード: 最小公倍数で通分すると せいかい / 円の�
   }
 });
 
-test('未約分・分母をそろえ忘れは 専用のメッセージで 不正解になる', async ({ page }) => {
+test('こたえの約分もれは 専用のメッセージで 不正解になる', async ({ page }) => {
   await page.goto(URL);
   await page.click('.m-card[data-mode="add2"]');
-  await page.click('#checkBtn');
-  await expect(page.locator('#toast')).toContainText('答えを 入れてね');
+  const { terms, ans } = await readExpr(page);
+  const g = (a, b) => { while (b) { const t = a % b; a = b; b = t; } return a; };
+  const L = terms[0].d / g(terms[0].d, terms[1].d) * terms[1].d;
+  for (let i = 0; i < 2; i++) {
+    await typeInto(page, `m${i}n`, terms[i].n * (L / terms[i].d));
+    await typeInto(page, `m${i}d`, L);
+  }
   // 値は合っているが 約分できる形（分子・分母を2倍）で入れる
-  const { ans } = await readExpr(page);
   await typeInto(page, 'n', ans.n * 2);
   await typeInto(page, 'd', ans.d * 2);
   await page.click('#checkBtn');
@@ -126,3 +169,37 @@ test('印刷シートが 表12問＋裏こたえ で作られる', async ({ page
   await expect(page.locator('#printArea .sheet.ans .p-item')).toHaveCount(12);
   await expect(page.locator('#printArea .sheet').first().locator('.p-blank')).toHaveCount(12);
 });
+
+/* 帯分数の途中式は「帯分数のまま」でも「仮分数」でも正解にする（両方の書き方を試す） */
+for (const style of ['帯分数のまま', '仮分数']) {
+  test(`帯分数モード: 途中式を ${style} で書いても せいかい になる（各3問）`, async ({ page }) => {
+    await page.goto(URL);
+    for (const m of ['add_tai', 'sub_tai']) {
+      await page.click(`.m-card[data-mode="${m}"]`);
+      for (let i = 0; i < 3; i++) {
+        const { terms, ans } = await readExpr(page);
+        const g = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) { const t = a % b; a = b; b = t; } return a || 1; };
+        const L = terms.reduce((a, t) => a / g(a, t.d) * t.d, 1);
+        for (let k = 0; k < terms.length; k++) {
+          const num = terms[k].n * (L / terms[k].d);
+          const hasW = await page.$(`.nbox[data-slot="m${k}w"]`);
+          if (style === '帯分数のまま' && hasW) {
+            const w = Math.floor(num / L);
+            if (w) await typeInto(page, `m${k}w`, w);
+            await typeInto(page, `m${k}n`, num - w * L);
+          } else {
+            await typeInto(page, `m${k}n`, num);          // 仮分数のまま（整数マスは空）
+          }
+          await typeInto(page, `m${k}d`, L);
+        }
+        const w = Math.floor(ans.n / ans.d), n = ans.n - w * ans.d;
+        if (w) await typeInto(page, 'w', w);
+        if (n) { await typeInto(page, 'n', n); await typeInto(page, 'd', ans.d); }
+        await page.click('#checkBtn');
+        await expect(page.locator('#fbMsg'), `${m} ${style} #${i + 1}`).toHaveClass(/good/);
+        await page.click('#nextBtn');
+      }
+      await page.click('#homeBtn');
+    }
+  });
+}
