@@ -8,6 +8,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/api/db.php';
 require_once __DIR__ . '/api/helpers.php';
 require_once __DIR__ . '/api/todofuken_map.php'; // 都道府県ミニ地図SVG（解き直しプリントの地図問題用）
+require_once __DIR__ . '/api/self_study_common.php'; // 自習の記録（教科・手ごたえのラベル）
 
 function h(?string $s): string
 {
@@ -553,6 +554,37 @@ if ($detailStudentId > 0) {
             ];
         }
     }
+
+    // 自習の記録（生徒の自己申告。ツールの実績とは別枠なので単元カルテには混ざらない）。
+    // 期間タブに従うが、未確認の記録だけは期間外でも必ず出す
+    // （確認印は「見たかどうか」の To-Do なので、期間を切り替えて隠れると押し忘れる）。
+    $params = ['id' => $detailStudentId];
+    $wPeriod = pf('sslog.study_date', $fromStr, 'ss1', $params);
+    $wSubj = '';
+    if ($filterSubject !== '') {
+        $wSubj = ' AND sslog.subject = :subjss';
+        $params['subjss'] = $filterSubject;
+    }
+    $stmt = $pdo->prepare(
+        "SELECT sslog.log_id, sslog.study_date, sslog.subject, sslog.material, sslog.range_text,
+                sslog.minutes, sslog.feeling, sslog.memo, sslog.checked_at, sslog.teacher_comment,
+                t.teacher_name
+         FROM self_study_logs sslog
+         LEFT JOIN teachers t ON t.teacher_id = sslog.teacher_id
+         WHERE sslog.student_id = :id{$wSubj}
+           AND (sslog.checked_at IS NULL OR (1=1{$wPeriod}))
+         ORDER BY sslog.checked_at IS NULL DESC, sslog.study_date DESC, sslog.log_id DESC
+         LIMIT 60"
+    );
+    $stmt->execute($params);
+    $dSelfStudy = $stmt->fetchAll();
+
+    $dSelfUnchecked = 0;
+    $dSelfMinutes = 0;
+    foreach ($dSelfStudy as $sslog) {
+        if ($sslog['checked_at'] === null) $dSelfUnchecked++;
+        $dSelfMinutes += (int)$sslog['minutes'];
+    }
 }
 
 // ============================================================
@@ -610,6 +642,8 @@ if (!$detail && !$rankView) {
                   WHERE al.student_id = s.student_id{$wAns2}) AS correct,
                 (SELECT COUNT(*) FROM retry_queue rq
                   WHERE rq.student_id = s.student_id AND rq.status = 'pending'{$wRetry}) AS retries,
+                (SELECT COUNT(*) FROM self_study_logs sslog
+                  WHERE sslog.student_id = s.student_id AND sslog.checked_at IS NULL) AS self_new,
                 (SELECT MAX(al.answered_at) FROM answer_logs al
                   WHERE al.student_id = s.student_id) AS last_at
          FROM students s
@@ -765,6 +799,36 @@ function sp_select(string $label, array $options): string
   .sysrows{display:inline-flex;flex-direction:column;gap:6px;text-align:left}
   .wrong-ans{color:var(--shu);font-weight:700}
   .scroll{overflow-x:auto}
+  /* ---------- 自習の記録（生徒の自己申告。確認印とコメントを返す） ---------- */
+  .ssl{border-top:1px solid #F3F0E8;padding:10px 0}
+  .ssl:first-of-type{border-top:none}
+  .ssl.yet{background:#FFFCF2;border-left:3px solid var(--kin);padding-left:10px;margin-left:-10px}
+  .ssl-l1{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--ink-soft)}
+  .ssl-date{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--ink);
+    font-feature-settings:'tnum'}
+  .ssl-chip{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
+    background:var(--ai-soft);color:var(--ai);font-family:'Zen Maru Gothic',sans-serif}
+  .ssl-yet{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
+    background:#FFF3D0;color:#8A6D12;font-family:'Zen Maru Gothic',sans-serif}
+  .ssl-ok{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
+    background:#EAF3EC;color:#3E8E5A;font-family:'Zen Maru Gothic',sans-serif}
+  .ssl-l2{font-size:14px;font-weight:700;margin-top:2px;word-break:break-word}
+  .ssl-l2 small{color:var(--ink-soft);font-weight:400;margin-left:6px}
+  .ssl-memo{font-size:12px;margin-top:3px;white-space:pre-wrap;word-break:break-word;
+    color:var(--ink);background:var(--paper);border-radius:6px;padding:6px 8px}
+  .ssl-form{display:flex;gap:6px;margin-top:6px;align-items:flex-start;flex-wrap:wrap}
+  .ssl-form textarea{flex:1;min-width:180px;font-family:'Zen Kaku Gothic New',sans-serif;font-size:12px;
+    color:var(--ink);border:1.5px solid var(--grid);border-radius:8px;padding:6px 8px;
+    background:var(--white);resize:vertical;min-height:34px;line-height:1.5}
+  .ssl-form textarea:focus{outline:none;border-color:var(--ai)}
+  .ssl-btn{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:12px;
+    padding:7px 14px;border-radius:999px;cursor:pointer;border:none;
+    background:var(--ai);color:#fff;white-space:nowrap}
+  .ssl-btn.undo{background:transparent;color:var(--ink-soft);border:1.5px solid var(--grid)}
+  .ssl-btn:disabled{opacity:.5;cursor:default}
+  .ssl-cmt{font-size:12px;margin-top:5px;padding:6px 8px;border-radius:6px;background:#EDF3F8;
+    border-left:3px solid var(--ai);white-space:pre-wrap;word-break:break-word}
+  .ssl-cmt b{font-family:'Zen Maru Gothic',sans-serif;font-size:10px;color:var(--ai);display:block}
   /* ランキングはPCの広い横幅では2枚ずつ横並び、狭い画面では1枚ずつ縦積み */
   .rank-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start;margin-top:14px}
   .rank-grid .card{margin:0}
@@ -962,6 +1026,8 @@ function sp_select(string $label, array $options): string
       </span>
       <span class="who-actions">
         <a class="logout" href="/admin.php" style="text-decoration:none;">生徒・保護者登録＆修正</a>
+        <!-- 教室別利用状況＋人気ツールの共有用資料（印刷前提なのでスマホでは出さない） -->
+        <a class="logout sp-hide" href="/report.php" style="text-decoration:none;">利用状況レポート</a>
         <!-- 作問はPC作業なのでスマホでは出さない（.sp-hide） -->
         <a class="logout sp-hide" href="/vocab_admin.php" style="text-decoration:none;">語彙クロスワード 作問</a>
         <a class="logout" href="/password.php" style="text-decoration:none;">パスワード変更</a>
@@ -1261,6 +1327,59 @@ function sp_select(string $label, array $options): string
           ];
       }, $dWrongs),
     ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
+<?php endif; ?>
+  </div>
+
+  <div class="card" id="selfStudyCard">
+    <h2>自習の記録
+      <?php if ($dSelfUnchecked > 0): ?><span class="ssl-yet">未確認 <?= $dSelfUnchecked ?>件</span><?php endif; ?>
+    </h2>
+    <p style="font-size:12px;color:var(--ink-soft);">
+      生徒の自己申告です（XPや正答率には入りません）。未確認の記録は期間タブに関係なく常に表示します。
+      <?php if (count($dSelfStudy) > 0): ?>表示中 <?= count($dSelfStudy) ?>件・合計<?= $dSelfMinutes ?>分。<?php endif; ?>
+    </p>
+<?php if (count($dSelfStudy) === 0): ?>
+    <p style="font-size:13px;color:var(--ink-soft);">この期間の自習記録はありません</p>
+<?php else: ?>
+<?php foreach ($dSelfStudy as $ssl):
+    $checked = $ssl['checked_at'] !== null;
+    $fee = $ssl['feeling'] !== null ? (int)$ssl['feeling'] : 0;
+?>
+    <div class="ssl<?= $checked ? '' : ' yet' ?>" data-id="<?= (int)$ssl['log_id'] ?>">
+      <div class="ssl-l1">
+        <span class="ssl-date"><?= h(substr((string)$ssl['study_date'], 5)) ?></span>
+        <span class="ssl-chip"><?= h(SELF_STUDY_SUBJECTS[$ssl['subject']] ?? $ssl['subject']) ?></span>
+<?php if ($ssl['minutes'] !== null): ?><span><?= (int)$ssl['minutes'] ?>分</span><?php endif; ?>
+<?php if ($fee): ?><span title="<?= h(SELF_STUDY_FEELINGS[$fee]) ?>"><?= h(SELF_STUDY_FEELING_FACES[$fee]) ?> <?= h(SELF_STUDY_FEELINGS[$fee]) ?></span><?php endif; ?>
+        <span class="ssl-state">
+<?php if ($checked): ?>
+          <span class="ssl-ok">✓ <?= h($ssl['teacher_name'] ?? '') ?> 確認済み</span>
+<?php else: ?>
+          <span class="ssl-yet">未確認</span>
+<?php endif; ?>
+        </span>
+      </div>
+      <div class="ssl-l2"><?= h($ssl['material']) ?><?php if ($ssl['range_text']): ?><small><?= h($ssl['range_text']) ?></small><?php endif; ?></div>
+<?php if ($ssl['memo']): ?>
+      <div class="ssl-memo"><?= h($ssl['memo']) ?></div>
+<?php endif; ?>
+      <div class="ssl-body">
+<?php if ($checked): ?>
+<?php if ($ssl['teacher_comment']): ?>
+        <div class="ssl-cmt"><b>先生から</b><?= h($ssl['teacher_comment']) ?></div>
+<?php endif; ?>
+        <div class="ssl-form">
+          <button type="button" class="ssl-btn undo" data-act="undo">確認を取り消す</button>
+        </div>
+<?php else: ?>
+        <div class="ssl-form">
+          <textarea data-role="comment" maxlength="500" placeholder="ひとこと返す（任意・生徒のマイページに出ます）"></textarea>
+          <button type="button" class="ssl-btn" data-act="check">確認しました</button>
+        </div>
+<?php endif; ?>
+      </div>
+    </div>
+<?php endforeach; ?>
 <?php endif; ?>
   </div>
 
@@ -1638,12 +1757,14 @@ function sp_select(string $label, array $options): string
     <table id="students-table" class="sortable" data-build="sort-grade-v5">
       <colgroup>
         <col style="width:132px"><col style="width:78px"><col style="width:84px"><col style="width:60px">
-        <col style="width:78px"><col style="width:66px"><col style="width:74px"><col style="width:96px"><col style="width:112px">
+        <col style="width:78px"><col style="width:66px"><col style="width:74px"><col style="width:96px"><col style="width:76px"><col style="width:112px">
       </colgroup>
       <thead>
       <tr><th data-sort="text">生徒</th><th data-sort="num">コード</th><th data-sort="text">教室</th><th data-sort="grade">学年</th>
         <th class="num" data-sort="num">学習時間</th><th class="num" data-sort="num">解答数</th><th class="num" data-sort="num">正答率</th>
-        <th class="num" data-sort="num">解き直し残数</th><th data-sort="text">最終学習</th></tr>
+        <th class="num" data-sort="num">解き直し残数</th>
+        <th class="num" data-sort="num" title="生徒が書いた自習記録のうち、まだ講師が確認印を押していない件数（期間フィルタの対象外）">自習 未確認</th>
+        <th data-sort="text">最終学習</th></tr>
       </thead>
       <tbody>
 <?php foreach ($students as $s):
@@ -1660,6 +1781,9 @@ function sp_select(string $label, array $options): string
         <td class="num <?= $rate !== null && $rate < 60 ? 'lowrate' : ($rate !== null && $rate >= 90 ? 'okrate' : '') ?>" data-label="正答率" data-val="<?= $rate !== null ? $rate : -1 ?>">
           <?= $rate !== null ? $rate . '%' : '-' ?></td>
         <td class="num" data-label="解き直し残数" data-val="<?= (int)$s['retries'] ?>"><?= (int)$s['retries'] ?></td>
+<?php $selfNew = (int)$s['self_new']; ?>
+        <td class="num" data-label="自習 未確認" data-val="<?= $selfNew ?>"
+            <?= $selfNew > 0 ? 'style="color:#8A6D12;font-weight:900;"' : '' ?>><?= $selfNew > 0 ? $selfNew : '-' ?></td>
         <td class="c-last" style="white-space:nowrap;" data-label="最終学習" data-val="<?= $s['last_at'] ? h($s['last_at']) : '' ?>"><?= $s['last_at'] ? h(substr($s['last_at'], 0, 16)) : '-' ?></td>
       </tr>
 <?php endforeach; ?>
@@ -2463,6 +2587,68 @@ document.querySelectorAll('.math').forEach(function (el) {
     });
   }
   render();
+})();
+
+// ---------- 自習の記録: 確認印とコメント ----------
+// 押した行だけをその場で描き替える（ページ全体は再読み込みしない＝スクロール位置が飛ばない）。
+(function () {
+  var card = document.getElementById('selfStudyCard');
+  if (!card) return;
+
+  function esc(t) {
+    return String(t == null ? '' : t)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function paint(row, item) {
+    var body = row.querySelector('.ssl-body');
+    var state = row.querySelector('.ssl-state');
+    if (item.checked_at) {
+      row.classList.remove('yet');
+      state.innerHTML = '<span class="ssl-ok">✓ ' + esc(item.teacher_name || '') + ' 確認済み</span>';
+      body.innerHTML =
+        (item.teacher_comment
+          ? '<div class="ssl-cmt"><b>先生から</b>' + esc(item.teacher_comment) + '</div>' : '')
+        + '<div class="ssl-form"><button type="button" class="ssl-btn undo" data-act="undo">確認を取り消す</button></div>';
+    } else {
+      row.classList.add('yet');
+      state.innerHTML = '<span class="ssl-yet">未確認</span>';
+      body.innerHTML =
+        '<div class="ssl-form">'
+        + '<textarea data-role="comment" maxlength="500" placeholder="ひとこと返す（任意・生徒のマイページに出ます）"></textarea>'
+        + '<button type="button" class="ssl-btn" data-act="check">確認しました</button></div>';
+    }
+  }
+
+  card.addEventListener('click', function (e) {
+    var btn = e.target.closest('.ssl-btn');
+    if (!btn) return;
+    var row = btn.closest('.ssl');
+    var act = btn.getAttribute('data-act');
+    if (act === 'undo' && !window.confirm('確認を取り消します（先生のコメントも消えます）。よろしいですか？')) return;
+
+    var cmtEl = row.querySelector('[data-role="comment"]');
+    var body = { log_id: Number(row.getAttribute('data-id')), checked: act === 'check' };
+    if (act === 'check' && cmtEl) body.comment = cmtEl.value.trim();
+
+    btn.disabled = true;
+    fetch('/api/check_self_study.php', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        btn.disabled = false;
+        if (d && d.ok) paint(row, d.item);
+        else window.alert('保存できませんでした');
+      })
+      .catch(function () {
+        btn.disabled = false;
+        window.alert('つうしんに失敗しました');
+      });
+  });
 })();
 </script>
 </body>

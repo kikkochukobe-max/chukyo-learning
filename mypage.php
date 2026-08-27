@@ -5,6 +5,7 @@ declare(strict_types=1);
 // データ取得元: study_sessions / answer_logs / xp_logs / retry_queue / question_catalog
 require_once __DIR__ . '/api/db.php';
 require_once __DIR__ . '/api/helpers.php';
+require_once __DIR__ . '/api/self_study_common.php';   // 自習の記録（教科・手ごたえのラベル）
 
 $actor = current_actor();
 
@@ -576,6 +577,75 @@ function h(?string $s): string
     background:var(--white);color:var(--ink-soft);border:1.5px solid var(--grid);
   }
   .stab.active{background:var(--ai);color:#fff;border-color:var(--ai)}
+
+  /* ---------- 自習の記録 ---------- */
+  .selfstudy{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:16px 18px;margin-top:14px;border-top:4px solid var(--kin)}
+  .ss-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .ss-title{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:15px;color:var(--ink)}
+  .ss-sum{font-size:12px;color:var(--ink-soft);font-feature-settings:'tnum'}
+  .ss-sum b{color:var(--ink);font-weight:900}
+  .ss-open{
+    font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;
+    margin-top:12px;width:100%;padding:10px 14px;border-radius:999px;cursor:pointer;
+    background:var(--shu);color:#fff;border:none;
+  }
+  .ss-open.cancel{background:transparent;color:var(--ink-soft);border:1.5px solid var(--grid)}
+  /* 入力フォーム */
+  .ss-form{margin-top:12px;display:none}
+  .ss-form.open{display:block}
+  .ss-row{display:flex;gap:8px;margin-bottom:8px}
+  .ss-row>div{flex:1;min-width:0}
+  .ss-lbl{font-size:11px;color:var(--ink-soft);font-family:'Zen Maru Gothic',sans-serif;
+    font-weight:700;display:block;margin-bottom:3px}
+  .ss-form input[type=text],.ss-form input[type=date],.ss-form input[type=number],
+  .ss-form select,.ss-form textarea{
+    width:100%;font-family:'Zen Kaku Gothic New',sans-serif;font-size:14px;color:var(--ink);
+    padding:8px 10px;border:1.5px solid var(--grid);border-radius:8px;background:var(--paper);
+    /* iOSが16px未満の入力欄でズームするのを防ぐため、フォーカス時も含め拡大表示させない */
+    -webkit-appearance:none;appearance:none;
+  }
+  .ss-form textarea{resize:vertical;min-height:56px;line-height:1.5}
+  .ss-form input:focus,.ss-form select:focus,.ss-form textarea:focus{
+    outline:none;border-color:var(--shu);background:var(--white)}
+  .ss-feels{display:flex;gap:6px}
+  .ss-feel{
+    flex:1;padding:6px 2px;border-radius:8px;cursor:pointer;text-align:center;
+    background:var(--paper);border:1.5px solid var(--grid);
+    font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:9px;color:var(--ink-soft);
+  }
+  .ss-feel .face{display:block;font-size:18px;line-height:1.3}
+  .ss-feel.on{background:#FFF8E1;border-color:var(--kin);color:#8A6D12}
+  .ss-save{
+    font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:14px;
+    width:100%;margin-top:4px;padding:11px 14px;border-radius:999px;cursor:pointer;
+    background:var(--kin);color:#fff;border:none;
+  }
+  .ss-save:disabled{opacity:.5;cursor:default}
+  .ss-msg{font-size:12px;margin-top:8px;text-align:center;color:var(--shu);font-weight:700}
+  /* 一覧 */
+  .ss-list{margin-top:12px}
+  .ss-item{border-top:1px dashed var(--grid);padding:10px 0}
+  .ss-item:first-child{border-top:none}
+  .ss-line1{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--ink-soft)}
+  .ss-date{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--ink);
+    font-feature-settings:'tnum'}
+  .ss-chip{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
+    background:var(--shu-soft);color:var(--shu);font-family:'Zen Maru Gothic',sans-serif}
+  .ss-mark{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
+    background:#EDF3F8;color:var(--ai);font-family:'Zen Maru Gothic',sans-serif}
+  .ss-mark.yet{background:var(--paper);color:#C7C2B6;border:1px dashed var(--grid)}
+  .ss-line2{font-size:14px;font-weight:500;margin-top:2px;word-break:break-word}
+  .ss-line2 small{color:var(--ink-soft);font-weight:400;margin-left:6px}
+  .ss-memo{font-size:12px;color:var(--ink-soft);margin-top:3px;white-space:pre-wrap;word-break:break-word}
+  .ss-cmt{margin-top:6px;padding:8px 10px;border-radius:8px;background:#FDF6F5;
+    border-left:3px solid var(--shu);font-size:12px;white-space:pre-wrap;word-break:break-word}
+  .ss-cmt b{display:block;font-family:'Zen Maru Gothic',sans-serif;font-size:10px;color:var(--shu)}
+  .ss-acts{margin-top:5px;display:flex;gap:10px}
+  .ss-act{font-size:11px;color:var(--ai);background:none;border:none;cursor:pointer;
+    padding:0;text-decoration:underline;font-family:'Zen Kaku Gothic New',sans-serif}
+  .ss-act.del{color:var(--ink-soft)}
+  .ss-empty{font-size:13px;color:var(--ink-soft);padding:10px 0}
 </style>
 </head>
 <body>
@@ -651,6 +721,77 @@ function h(?string $s): string
     <span class="badge"><?= $retryCount ?>問</span>
   </a>
 <?php endif; ?>
+
+  <!-- 自習の記録（生徒の自己申告。ツールの実績とは別枠でXPも付かない） -->
+  <section class="selfstudy" id="selfStudy"
+           data-from="<?= $from ? h($from->format('Y-m-d')) : '' ?>"
+           data-to="<?= $to ? h($to->format('Y-m-d')) : '' ?>"
+           data-today="<?= h($todayStr) ?>"
+           data-minday="<?= h((new DateTimeImmutable('today'))->modify('-' . SELF_STUDY_BACKDATE_DAYS . ' days')->format('Y-m-d')) ?>">
+    <div class="ss-head">
+      <span class="ss-title">自習の記録</span>
+      <span class="ss-sum" id="ssSum">よみこみ中…</span>
+    </div>
+
+    <button type="button" class="ss-open" id="ssOpen">＋ 自習したことを書く</button>
+
+    <form class="ss-form" id="ssForm" autocomplete="off">
+      <input type="hidden" id="ssLogId" value="">
+      <div class="ss-row">
+        <div>
+          <label class="ss-lbl" for="ssDate">いつ</label>
+          <input type="date" id="ssDate" required>
+        </div>
+        <div>
+          <label class="ss-lbl" for="ssSubject">教科</label>
+          <select id="ssSubject" required>
+<?php foreach (SELF_STUDY_SUBJECTS as $key => $label): ?>
+            <option value="<?= h($key) ?>"><?= h($label) ?></option>
+<?php endforeach; ?>
+          </select>
+        </div>
+      </div>
+      <div class="ss-row">
+        <div>
+          <label class="ss-lbl" for="ssMaterial">なにを（教材名）</label>
+          <input type="text" id="ssMaterial" list="ssMaterials" placeholder="学校のワーク" maxlength="100" required>
+          <datalist id="ssMaterials"></datalist>
+        </div>
+      </div>
+      <div class="ss-row">
+        <div>
+          <label class="ss-lbl" for="ssRange">どこを（範囲）</label>
+          <input type="text" id="ssRange" placeholder="p.24〜27" maxlength="100">
+        </div>
+        <div style="flex:0 0 96px;">
+          <label class="ss-lbl" for="ssMinutes">時間（分）</label>
+          <input type="number" id="ssMinutes" min="0" max="600" step="5" inputmode="numeric" placeholder="30">
+        </div>
+      </div>
+      <div class="ss-row">
+        <div>
+          <label class="ss-lbl">手ごたえ</label>
+          <div class="ss-feels" id="ssFeels">
+<?php foreach (SELF_STUDY_FEELINGS as $v => $label): ?>
+            <button type="button" class="ss-feel" data-v="<?= (int)$v ?>">
+              <span class="face"><?= h(SELF_STUDY_FEELING_FACES[$v]) ?></span><?= h($label) ?>
+            </button>
+<?php endforeach; ?>
+          </div>
+        </div>
+      </div>
+      <div class="ss-row">
+        <div>
+          <label class="ss-lbl" for="ssMemo">ひとこと・質問（先生が読みます）</label>
+          <textarea id="ssMemo" maxlength="500" placeholder="ここが分からなかった、など"></textarea>
+        </div>
+      </div>
+      <button type="submit" class="ss-save" id="ssSave">この内容で記録する</button>
+      <div class="ss-msg" id="ssMsg"></div>
+    </form>
+
+    <div class="ss-list" id="ssList"></div>
+  </section>
 
   <!-- 教室内ランキング(自分の順位のみ) -->
   <section class="rankcard">
@@ -883,6 +1024,228 @@ document.querySelectorAll('.today-q').forEach(function (el) {
       c.style.display = (sel === 'all' || c.getAttribute('data-subject') === sel) ? '' : 'none';
     });
   });
+})();
+
+// ---------- 自習の記録 ----------
+// 一覧・保存・削除はすべて /api/*_self_study.php 経由。画面はここだけで組み立てる
+// （PHPとJSに同じ描画を二重に持たない）。XPは付かない＝がんばりカードの数字は動かない。
+(function () {
+  var root = document.getElementById('selfStudy');
+  if (!root) return;
+
+  var FEELS = <?= json_encode(SELF_STUDY_FEELING_FACES, JSON_UNESCAPED_UNICODE) ?>;
+  var FEEL_LABELS = <?= json_encode(SELF_STUDY_FEELINGS, JSON_UNESCAPED_UNICODE) ?>;
+  var periodFrom = root.getAttribute('data-from');   // 空 = 全期間タブ
+  var periodTo   = root.getAttribute('data-to');
+  var today      = root.getAttribute('data-today');
+  var minDay     = root.getAttribute('data-minday');
+
+  var elForm = document.getElementById('ssForm');
+  var elOpen = document.getElementById('ssOpen');
+  var elList = document.getElementById('ssList');
+  var elSum  = document.getElementById('ssSum');
+  var elMsg  = document.getElementById('ssMsg');
+  var elSave = document.getElementById('ssSave');
+  var elFeels = document.getElementById('ssFeels');
+  var f = {
+    id: document.getElementById('ssLogId'),
+    date: document.getElementById('ssDate'),
+    subject: document.getElementById('ssSubject'),
+    material: document.getElementById('ssMaterial'),
+    range: document.getElementById('ssRange'),
+    minutes: document.getElementById('ssMinutes'),
+    memo: document.getElementById('ssMemo')
+  };
+
+  function esc(t) {
+    return String(t == null ? '' : t)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function mmdd(d) { var p = String(d).split('-'); return p[1] + '/' + p[2]; }
+  function feeling() {
+    var on = elFeels.querySelector('.ss-feel.on');
+    return on ? Number(on.getAttribute('data-v')) : null;
+  }
+
+  function resetForm() {
+    f.id.value = '';
+    f.date.value = today;
+    f.subject.selectedIndex = 0;
+    f.material.value = '';
+    f.range.value = '';
+    f.minutes.value = '';
+    f.memo.value = '';
+    elFeels.querySelectorAll('.ss-feel').forEach(function (b) { b.classList.remove('on'); });
+    elSave.textContent = 'この内容で記録する';
+    elMsg.textContent = '';
+  }
+
+  function openForm(open) {
+    elForm.classList.toggle('open', open);
+    elOpen.textContent = open ? '× 入力をやめる' : '＋ 自習したことを書く';
+    elOpen.classList.toggle('cancel', open);
+    if (!open) resetForm();
+  }
+
+  function render(data) {
+    var items = data.items || [];
+
+    // 期間タブの範囲に入る記録だけを集計して見出しに出す（全期間タブなら全部）
+    var n = 0, min = 0;
+    items.forEach(function (it) {
+      if (periodFrom && (it.study_date < periodFrom || it.study_date >= periodTo)) return;
+      n++;
+      min += it.minutes || 0;
+    });
+    elSum.innerHTML = n === 0
+      ? 'この期間の記録はまだありません'
+      : '<b>' + n + '</b>件 ・ <b>' + min + '</b>分';
+
+    // 教材名の入力候補（過去に自分が書いたもの）
+    document.getElementById('ssMaterials').innerHTML =
+      (data.materials || []).map(function (m) { return '<option value="' + esc(m) + '">'; }).join('');
+
+    if (items.length === 0) {
+      elList.innerHTML = '<div class="ss-empty">「＋ 自習したことを書く」から、家でやった勉強を残せます。<br>先生が読んで、確認印とひとことを返します。</div>';
+      return;
+    }
+
+    elList.innerHTML = items.map(function (it) {
+      var checked = !!it.checked_at;
+      var h = [];
+      h.push('<div class="ss-item" data-id="' + it.log_id + '">');
+      h.push('<div class="ss-line1">');
+      h.push('<span class="ss-date">' + esc(mmdd(it.study_date)) + '</span>');
+      h.push('<span class="ss-chip">' + esc(it.subject_label) + '</span>');
+      if (it.minutes) h.push('<span>' + it.minutes + '分</span>');
+      if (it.feeling) h.push('<span title="' + esc(FEEL_LABELS[it.feeling] || '') + '">' + esc(FEELS[it.feeling] || '') + '</span>');
+      h.push(checked
+        ? '<span class="ss-mark">✓ 先生かくにん済み</span>'
+        : '<span class="ss-mark yet">みてもらう前</span>');
+      h.push('</div>');
+      h.push('<div class="ss-line2">' + esc(it.material)
+        + (it.range_text ? '<small>' + esc(it.range_text) + '</small>' : '') + '</div>');
+      if (it.memo) h.push('<div class="ss-memo">' + esc(it.memo) + '</div>');
+      if (it.teacher_comment) {
+        h.push('<div class="ss-cmt"><b>' + esc(it.teacher_name || '先生') + 'から</b>'
+          + esc(it.teacher_comment) + '</div>');
+      }
+      // 確認印が押された記録はもう直せない（先生のコメントと食い違うため）
+      if (!checked) {
+        h.push('<div class="ss-acts">'
+          + '<button type="button" class="ss-act" data-act="edit">なおす</button>'
+          + '<button type="button" class="ss-act del" data-act="del">けす</button></div>');
+      }
+      h.push('</div>');
+      return h.join('');
+    }).join('');
+
+    elList._items = items;
+  }
+
+  function load() {
+    fetch('/api/list_self_study.php?limit=30', { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d && d.ok) render(d); else elSum.textContent = ''; })
+      .catch(function () { elSum.textContent = ''; });
+  }
+
+  elOpen.addEventListener('click', function () { openForm(!elForm.classList.contains('open')); });
+
+  elFeels.addEventListener('click', function (e) {
+    var btn = e.target.closest('.ss-feel');
+    if (!btn) return;
+    var was = btn.classList.contains('on');
+    elFeels.querySelectorAll('.ss-feel').forEach(function (b) { b.classList.remove('on'); });
+    if (!was) btn.classList.add('on');   // もう一度押すと選び直せる（未選択に戻す）
+  });
+
+  var ERRORS = {
+    invalid_date: '日付を選んでください',
+    date_out_of_range: '書けるのは今日から1か月前までの日付です',
+    invalid_material: '教材名を入れてください',
+    invalid_minutes: '時間は0〜600分で入れてください',
+    already_checked: '先生が確認した記録は直せません',
+    not_found: 'その記録は見つかりませんでした'
+  };
+
+  elForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (f.date.value < minDay || f.date.value > today) {
+      elMsg.textContent = ERRORS.date_out_of_range;
+      return;
+    }
+    elSave.disabled = true;
+    elMsg.textContent = '';
+    var body = {
+      study_date: f.date.value,
+      subject: f.subject.value,
+      material: f.material.value.trim(),
+      range_text: f.range.value.trim(),
+      minutes: f.minutes.value,
+      feeling: feeling(),
+      memo: f.memo.value.trim()
+    };
+    if (f.id.value) body.log_id = Number(f.id.value);
+
+    fetch('/api/save_self_study.php', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        elSave.disabled = false;
+        if (d && d.ok) { openForm(false); load(); return; }
+        elMsg.textContent = (d && ERRORS[d.error]) || 'うまく保存できませんでした';
+      })
+      .catch(function () {
+        elSave.disabled = false;
+        elMsg.textContent = 'つうしんに失敗しました';
+      });
+  });
+
+  elList.addEventListener('click', function (e) {
+    var btn = e.target.closest('.ss-act');
+    if (!btn) return;
+    var id = Number(btn.closest('.ss-item').getAttribute('data-id'));
+    var it = (elList._items || []).filter(function (x) { return x.log_id === id; })[0];
+    if (!it) return;
+
+    if (btn.getAttribute('data-act') === 'edit') {
+      f.id.value = it.log_id;
+      f.date.value = it.study_date;
+      f.subject.value = it.subject;
+      f.material.value = it.material;
+      f.range.value = it.range_text || '';
+      f.minutes.value = it.minutes || '';
+      f.memo.value = it.memo || '';
+      elFeels.querySelectorAll('.ss-feel').forEach(function (b) {
+        b.classList.toggle('on', Number(b.getAttribute('data-v')) === it.feeling);
+      });
+      elSave.textContent = 'なおした内容で保存する';
+      elForm.classList.add('open');
+      elOpen.textContent = '× 入力をやめる';
+      elOpen.classList.add('cancel');
+      elForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    if (!window.confirm(mmdd(it.study_date) + '「' + it.material + '」の記録をけしますか？')) return;
+    fetch('/api/delete_self_study.php', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ log_id: id })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function () { load(); })
+      .catch(function () {});
+  });
+
+  resetForm();
+  load();
 })();
 </script>
 </body>
