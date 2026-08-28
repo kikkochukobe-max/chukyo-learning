@@ -8,7 +8,7 @@ return [
         'url'   => '/learning/math/math_js3_heihokonmaster.html',
     ],
     'math_js3_nijihoteishiki' => [
-        'title' => '2次方程式マスター',
+        'title' => '二次方程式マスター',
         'sub'   => '数学・中3',
         'url'   => '/learning/math/math_js3_nijihoteishiki.html',
     ],
@@ -147,6 +147,13 @@ return [
         'title' => '連立方程式マスター 文章題編',
         'sub'   => '数学・中2',
         'url'   => '/learning/math/math_js2_renritsu_riyou.html',
+    ],
+    // 解き直しは question_params の {m:モード, s:種} で同じ問題を作り直す
+    // （連立の文章題編と同じ画面構成だが、乱数を種方式にしてある = CLAUDE.md 2d）
+    'math_js3_nijihoteishiki_riyou' => [
+        'title' => '二次方程式マスター 文章題編',
+        'sub'   => '数学・中3',
+        'url'   => '/learning/math/math_js3_nijihoteishiki_riyou.html',
     ],
     // 解き直しは question_params の {m:モード, s:種} で同じ問題を作り直す
     // （生成関数が50個以上あるので replay_json は使わない。詳細はツール内の initRetry）

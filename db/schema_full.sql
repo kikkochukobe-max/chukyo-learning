@@ -377,7 +377,7 @@ INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('math_js3_heihokon', 'subst',     '代入',     1)
 ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
 
--- 2次方程式マスターのシード
+-- 二次方程式マスターのシード
 -- question_key は math_js3_nijihoteishiki.html 内の MODES の key と一致させる
 INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('math_js3_nijihoteishiki', 'heihokon',    '平方根の形',     1),
