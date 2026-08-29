@@ -1,10 +1,16 @@
 // @ts-check
 // 「スマホde100マス」テンキーの高速入力に取りこぼし・二重入力がないことの回帰テスト。
 // 実装の要点（touch=touchstart 主経路 / pointerdown はマウス・ペン専用 / HIT_SLOP 吸着 /
-// 近接コアレス廃止＝両手同時押しを捨てない）が壊れていないかを機械的に見張る。
+// 近接コアレス廃止＝両手同時押しを捨てない / touchstart が届かなかった指を
+// touchmove・touchend から拾い直す）が壊れていないかを機械的に見張る。
 //
 // 打鍵は page.tap() ではなく in-page の dispatch で行う（間隔をmsで厳密に制御するため）。
 // mobile プロジェクトだけは touchscreen.tap() による実タッチエミュレーションも通す。
+//
+// ⚠ 画面の書き換えは requestAnimationFrame にまとめてある（passive:false の touchstart の
+//   中で DOM を書くと、その間に来た次の接地をブラウザが落とすため）。__ans/__idx/__disp は
+//   どれも DOM を読むので、打鍵の直後に読むと1フレーム前の値が返る。
+//   打ってすぐ読む検査は必ず await window.__frame() を挟むこと。
 const { test, expect } = require('@playwright/test');
 
 const URL = '/learning/math/math_es_hyakumasu.html';
@@ -44,6 +50,46 @@ const DRIVER = () => {
     b.dispatchEvent(new PointerEvent('pointerdown', {
       bubbles: true, cancelable: true, pointerType: 'touch', clientX: x, clientY: y,
     }));
+  };
+
+  // 描画フレームを1回待つ。DOM を読む前に必ず挟む（ファイル先頭の注意書き参照）。
+  window.__frame = function () {
+    return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  };
+
+  // touchstart が届かなかった指の模擬。
+  // iOS が素早い2打目をジェスチャー審査で保留すると接地イベントが来ず、
+  // 指を動かした／離した時点で初めて届く。その時に入力が成立することを見る。
+  window.__hitLate = function (k, via) {
+    const b = btnOf(k);
+    if (!b) throw new Error('no key: ' + k);
+    const { x, y } = centerOf(b);
+    const id = (Date.now() % 100000) + 500;
+    const t = new Touch({ identifier: id, target: b, clientX: x, clientY: y });
+    const mk = (type, touches) => new TouchEvent(type, {
+      bubbles: true, cancelable: true,
+      touches: touches, targetTouches: touches, changedTouches: [t],
+    });
+    if (via === 'move') b.dispatchEvent(mk('touchmove', [t]));
+    b.dispatchEvent(mk('touchend', []));
+  };
+
+  // 接地→わずかな移動→離す、を同じ identifier で通す普通のタップ。
+  // 拾い直し(recover)が「もう処理した指」を二重に入力しないことの確認用。
+  window.__tapFull = function (k) {
+    const b = btnOf(k);
+    if (!b) throw new Error('no key: ' + k);
+    const { x, y } = centerOf(b);
+    const id = (Date.now() % 100000) + 900;
+    const at = (dx) => new Touch({ identifier: id, target: b, clientX: x + dx, clientY: y });
+    const fire = (type, t, touches) => b.dispatchEvent(new TouchEvent(type, {
+      bubbles: true, cancelable: true,
+      touches: touches, targetTouches: touches, changedTouches: [t],
+    }));
+    const t0 = at(0), t1 = at(1), t2 = at(1);
+    fire('touchstart', t0, [t0]);
+    fire('touchmove', t1, [t1]);
+    fire('touchend', t2, []);
   };
 
   window.__ans = function () {
@@ -86,6 +132,7 @@ const DRIVER = () => {
       const before = window.__idx();
       await window.__type(String(a), 0, mode);
       window.__hit('7', mode);                  // ← 保留中の1打
+      await window.__frame();                   // 描画は次フレームにまとめている
       const advanced = window.__idx() === before + 1;
       // press() 冒頭の flushQ() で次問が描画済みのはず
       if (String(window.__ans()).length === 2) {
@@ -166,6 +213,7 @@ test.describe('100マス テンキー高速入力', () => {
     const before = await page.evaluate(() => window.__idx());
     await page.evaluate(([w, m]) => window.__type(String(w), 0, m), [wrong, mode]);
     await page.evaluate((m) => window.__hit('7', m), mode);
+    await page.evaluate(() => window.__frame());
     expect(await page.evaluate(() => window.__disp())).toBe('7');
     expect(await page.evaluate(() => window.__idx())).toBe(before);   // 進んでいない
   });
@@ -187,7 +235,38 @@ test.describe('100マス テンキー高速入力', () => {
     await page.evaluate(() => window.__seekTwoDigit('touch'));
     await page.waitForTimeout(120);
     await page.evaluate(() => window.__hitTouchThenPointer('7'));
+    await page.evaluate(() => window.__frame());
     expect(await page.evaluate(() => window.__disp())).toBe('7');
+  });
+
+  // T5b touchstart が届かなかった接地を touchmove / touchend から拾い直す
+  // （iOS が素早い2打目をジェスチャー審査で保留する現象への保険。ここが効かないと
+  //   「2桁目だけ入らない」が再発する）
+  for (const via of ['move', 'end']) {
+    test(`T5b touchstart 無しでも ${via} で2桁目が入る`, async ({ page }, testInfo) => {
+      test.skip(modeFor(testInfo) !== 'touch', 'タッチのある環境のみ');
+      await open(page);
+      const ans = await page.evaluate(() => window.__seekTwoDigit('touch'));
+      await page.waitForTimeout(120);
+      const before = await page.evaluate(() => window.__idx());
+      const s = String(ans);
+      await page.evaluate(([d]) => window.__hit(d, 'touch'), [s[0]]);        // 1桁目は通常経路
+      await page.evaluate(([d, v]) => window.__hitLate(d, v), [s[1], via]);  // 2桁目は接地が来ない
+      await expect
+        .poll(() => page.evaluate(() => window.__idx()), { timeout: 2000 })
+        .toBe(before + 1);
+    });
+  }
+
+  // T5c 接地が届いた指は二重に入らない（拾い直しが誤爆しないこと）
+  test('T5c 通常のタップは touchend で二重入力にならない', async ({ page }, testInfo) => {
+    test.skip(modeFor(testInfo) !== 'touch', 'タッチのある環境のみ');
+    await open(page);
+    await page.evaluate(() => window.__seekTwoDigit('touch'));
+    await page.waitForTimeout(120);
+    await page.evaluate(() => window.__tapFull('7'));
+    await page.evaluate(() => window.__frame());
+    expect(await page.evaluate(() => window.__disp())).toBe('7');   // '77' になっていない
   });
 
   // T6 物理キーボード（同じ press() を通る）

@@ -28,6 +28,12 @@
   --line:#d9cfba;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+/* touch-action は html にも書く。iOS はタップのたびに「この座標の要素の touch-action は何か」を
+   調べてダブルタップ拡大などのジェスチャー審査をするか決めるが、ルート要素が既定値(auto)のままだと
+   その判定にメインスレッドの答えを待つ場面が出る。1打目の描画でメインスレッドが埋まっていると
+   待ちきれずに審査側へ倒れ、2打目の接地イベントがそこで消える（＝1の位が無反応の正体）。
+   html まで静的に決めておけば、この判定はメインスレッドを待たずに済む。 */
+html{touch-action:manipulation}
 html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 body{
   font-family:"Zen Maru Gothic",system-ui,sans-serif;
@@ -532,6 +538,10 @@ body{
   }
 
   var ms=[], ns=[], idx=0, miss=0, startT=0, splits=[], coolStart=0, running=false, input='';
+  // input=判定に使う「状態」／dispInput=答え欄に出す「見た目」。
+  // 正解した瞬間は状態だけ空にして見た目は打ち終えた数字を残す（下の ANS_HOLD_MS）ので、
+  // この2つは意図的に別物にしてある。
+  var dispInput='';
   var rafId=null, lastShown='';
 
   // ── 正解した答えを一瞬だけ見せる（ニニマス方式）────────────────────
@@ -543,11 +553,34 @@ body{
   // 速く打つ生徒の入力は1つも待たされない＝タイムに影響しない。
   var ANS_HOLD_MS=90;                // 見せる長さ。ここだけ触れば調整できる
   var qHoldTimer=null, qPending=false;
+
+  // ── 描画はすべて次のフレームにまとめる ─────────────────────────────
+  // touchstart のリスナーは passive:false ＝ブラウザはこの関数が返るまで
+  // 「このタップをジェスチャーとして扱うか」を決められない。ここで DOM を書くと
+  // スタイル再計算がぶら下がり、その間に来た2打目がジェスチャー審査に食われる。
+  // そこで「タップの瞬間に走るのは状態の更新だけ」にして、画面の書き換えは
+  // requestAnimationFrame に1回ぶんまとめて逃がす（見た目は最大1フレーム＝約16msの差）。
+  var paintReq=false, needQ=false, needIn=false, flashQueue=[];
+  function schedulePaint(){
+    if(paintReq) return;
+    paintReq=true;
+    requestAnimationFrame(paintNow);
+  }
+  function paintNow(){
+    paintReq=false;
+    if(needQ){ needQ=false; paintQ(); }
+    if(needIn){ needIn=false; renderInput(); }
+    for(var i=0;i<flashQueue.length;i++) flashKeyNow(flashQueue[i]);
+    flashQueue.length=0;
+  }
   function flushQ(){
     if(!qPending) return;
     qPending=false;
     clearTimeout(qHoldTimer); qHoldTimer=null;
-    renderQ();
+    // 状態(idx)は correctNext で進み済み。ここは描画だけ＝フレームに逃がす。
+    // 答え欄も塗り直す（タイマー経由なら input='' なので空に、
+    // キー経由ならこの直後に press が paintInput() で1桁目を積む）。
+    dispInput=input; needQ=true; needIn=true; schedulePaint();
   }
   function cancelHold(){
     qPending=false;
@@ -666,21 +699,28 @@ body{
     scr.classList.add('show');
   }
 
-  function renderQ(){
+  // 問題まわりの「塗り」だけ。状態は触らない＝保留の吐き出し(flushQ)から
+  // フレーム内で呼んでも、直前に押されたキーの input を消してしまわない。
+  function paintQ(){
     qM.textContent=curM(); qN.textContent=curN();
     qMg.textContent=curM(); qNg.textContent=curN();
-    input='';
-    renderInput();
     coolLabel.textContent='第'+(Math.floor(idx/PER_COOL)+1)+'クール';
     countLabel.textContent=(idx+1)+' / '+TOTAL;
     barFill.style.transform='scaleX('+(idx/TOTAL)+')';
   }
+  function renderQ(){
+    input=''; dispInput='';
+    paintQ();
+    renderInput();
+  }
 
   function renderInput(){
-    var t=input===''?'\u00A0':input;
-    ansBox.textContent=t; ansBox.classList.toggle('on', input!=='');
-    ansBoxG.textContent=t; ansBoxG.classList.toggle('on', input!=='');
+    var t=dispInput===''?'\u00A0':dispInput;
+    ansBox.textContent=t; ansBox.classList.toggle('on', dispInput!=='');
+    ansBoxG.textContent=t; ansBoxG.classList.toggle('on', dispInput!=='');
   }
+  // \u300C\u4ECA\u306E input \u3092\u7B54\u3048\u6B04\u306B\u51FA\u3059\u300D\u4E88\u7D04\u3002DOM \u306F\u6B21\u30D5\u30EC\u30FC\u30E0\u3067\u307E\u3068\u3081\u3066\u66F8\u304F\u3002
+  function paintInput(){ dispInput=input; needIn=true; schedulePaint(); }
 
   function start(){
     build();
@@ -690,6 +730,7 @@ body{
     stage.setAttribute('data-mode', mode);
     show(scrPlay);
     renderQ();
+    remeasureSoon();                     // 表示直後（カウントダウン中）にも一度測っておく
     lastShown='0:00'; timerEl.textContent='0:00';
     var c=3;
     countdown.classList.add('show');
@@ -697,6 +738,7 @@ body{
       if(!cdActive)return;
       if(c===0){
         countdown.classList.remove('show');
+        measureKeys();          // 「はじめ！」の直前＝レイアウトが確定した状態で採寸する
         startT=Date.now(); coolStart=startT; running=true;
         if(SHOW_TIMER){ cancelAnimationFrame(rafId); tick(); }
         return;
@@ -1089,41 +1131,46 @@ body{
     im.src=BUTA;
   }
 
+  // ここで DOM は一切書かない（renderInput / paintQ は schedulePaint 経由でフレームに逃がす）。
+  // 理由は schedulePaint のコメント参照＝1打目の描画で2打目を落とさないため。
   function press(k){
-    if(!running){ dbgEv('  press '+k+' → 無視(未開始)'); return; }
+    if(!running){ if(DBG) dbgEv('  press '+k+' → 無視(未開始)'); return; }
     // 「答えを見せている最中」に次のキーが来た＝もう次へ行きたい。
     // 保留していた次の問題の描画を先に吐き出してから、このキーを処理する。
     // これで待ち時間はゼロのまま、間があいた時だけ答えが見える。
     if(qPending) flushQ();
-    if(k==='C'){ input=''; renderInput(); return; }
-    if(k==='B'){ input=input.slice(0,-1); renderInput(); return; }
+    if(k==='C'){ input=''; paintInput(); return; }
+    if(k==='B'){ input=input.slice(0,-1); paintInput(); return; }
     if(!/^[0-9]$/.test(k))return;
-    if(input.length>=2){ dbgEv('  press '+k+' → 無視(2桁で満杯)'); return; }
+    if(input.length>=2){ if(DBG) dbgEv('  press '+k+' → 無視(2桁で満杯)'); return; }
     input+=k;
-    renderInput();
+    paintInput();           // 打った数字は必ず出す（正解でもここで出した表示が一瞬残る）
     var ans=String(curAns());
     if(input.length===ans.length){
       if(input===ans){
-        dbgEv('  press '+k+' in='+input+' ○正解');
-        correctNext();
+        if(DBG) dbgEv('  press '+k+' in='+input+' ○正解');
+        correctNext();      // input だけ空にする＝答え欄は打ち終えた数字のまま
       }else{
-        dbgEv('  press '+k+' in='+input+' ×不正解(答'+ans+')');
+        if(DBG) dbgEv('  press '+k+' in='+input+' ×不正解(答'+ans+')');
         miss++;
         input='';           // 不正解: 何も表示せず入力だけリセット
-        renderInput();
+        paintInput();
       }
     }else{
-      dbgEv('  press '+k+' in='+input+' (答'+ans+'・待ち)');
+      if(DBG) dbgEv('  press '+k+' in='+input+' (答'+ans+'・待ち)');
     }
   }
 
   // 同じキーに2本の指が続けて当たった時（例 答え77）に、1本目のタイマーが
   // 2本目の点灯を消してしまわないよう、消灯タイマーはキーごとに持ち直す。
-  function flashKey(el){
+  function flashKeyNow(el){
     el.classList.add('pressed');
     if(el._ft) clearTimeout(el._ft);
     el._ft=setTimeout(function(){ el.classList.remove('pressed'); el._ft=null; },90);
   }
+  // press が早期 return する場合（2桁で満杯など）でも点灯だけは出したいので、
+  // ここでも描画フレームを予約しておく。
+  function flashKey(el){ flashQueue.push(el); schedulePaint(); }
   var nowMs=(window.performance&&performance.now)?function(){return performance.now();}
                                                :function(){return +new Date();};
 
@@ -1132,37 +1179,63 @@ body{
   // 2つのAPIを併用しないので「同じ指を二重に入力しないための座標・時刻の近接判定」が
   // 要らない＝両手同時押し（答え 11/77 のように同じキーを2本で打つ）を取りこぼす
   // 理屈がそもそも無い。触るのは次の3か所だけ:
-  //   keyAt() … 座標→キー / hit() … 1接地を入力 / 下のリスナー2本
+  //   keyAt() … 座標→キー / hit() … 1接地を入力 / 下のリスナー群
+  //
+  // 判定は「座標だけ」で行う（イベントの target は見ない）。target を信じると、
+  // 指の下に一瞬でも別の要素が重なった接地や、ジェスチャー審査で遅れて届いた接地で
+  // 見当違いの要素が入ってきて落ちる。座標→キーは事前採寸した矩形との比較だけなので、
+  // DOM もレイアウトも触らずに済む＝touchstart の中でブラウザを待たせない。
   var TOUCH=('ontouchstart' in window);
   // ヒットスロップ(px): キーの外縁からこの距離内の“かすり接地”は最寄りキーに吸着。
   // 大きくしすぎると隣キー誤爆になるので控えめに。
   var HIT_SLOP=20;
-  function keyAt(x,y,el){
-    // 接地点の target を最優先（高速連打では elementFromPoint の同期レイアウトが律速）
-    var b=(el&&el.closest)?el.closest('button'):null;
-    if(b&&$('tenkey').contains(b)) return b;
-    var p=document.elementFromPoint(x,y);
-    b=(p&&p.closest)?p.closest('button'):null;
-    if(b&&$('tenkey').contains(b)) return b;
-    // 座標直下にキーが無い＝縁や隙間をかすった時：スロップ内の最寄りキーに吸着
-    var btns=$('tenkey').querySelectorAll('button'),best=null,bestD=HIT_SLOP;
+
+  // ── キーの位置は先に測って持っておく ────────────────────────────
+  // 以前は接地のたびに elementFromPoint / getBoundingClientRect を呼んでいた。
+  // どちらも「今のレイアウトを確定させてから答える」API＝passive:false の
+  // touchstart の中で強制同期レイアウトが走る。1打目でこれをやると、直後に来る
+  // 2打目の接地をブラウザが捌けずにジェスチャー審査へ流してしまう。
+  // 位置は打っている間ずっと変わらないので、測るのは事前に1回でよい。
+  var KEYS=[], keysOK=false;
+  function measureKeys(){
+    var btns=$('tenkey').querySelectorAll('button');
+    var list=[], ok=false;
     for(var i=0;i<btns.length;i++){
       var r=btns[i].getBoundingClientRect();
-      var dx=x<r.left?r.left-x:(x>r.right?x-r.right:0);
-      var dy=y<r.top?r.top-y:(y>r.bottom?y-r.bottom:0);
-      var d=Math.max(dx,dy);   // 矩形からのはみ出し量（縦横の大きい方）
-      if(d<bestD){bestD=d;best=btns[i];}
+      if(r.width>0 && r.height>0) ok=true;
+      list.push({el:btns[i],k:btns[i].dataset.k,l:r.left,t:r.top,r:r.right,b:r.bottom});
     }
-    return best;
+    KEYS=list; keysOK=ok;      // 非表示中(display:none)は全部0＝採寸できていない
+    return ok;
+  }
+  // 測り直しは「レイアウトが動きうる時」だけ。タップ経路からは絶対に呼ばない。
+  function remeasureSoon(){ requestAnimationFrame(function(){ measureKeys(); }); }
+
+  function keyAt(x,y){
+    if(!keysOK && !measureKeys()) return null;
+    var best=null,bestD=HIT_SLOP;
+    for(var i=0;i<KEYS.length;i++){
+      var r=KEYS[i];
+      var dx=x<r.l?r.l-x:(x>r.r?x-r.r:0);
+      var dy=y<r.t?r.t-y:(y>r.b?y-r.b:0);
+      if(dx===0&&dy===0) return r.el;              // キーの内側＝即決
+      var d=dx>dy?dx:dy;                           // 矩形からのはみ出し量（縦横の大きい方）
+      if(d<bestD){bestD=d;best=r.el;}
+    }
+    return best;                                   // 縁や隙間をかすった接地は最寄りキーへ吸着
   }
   // 1接地を入力する。戻り値 true = テンキーを押した。
   // 「直前の入力と近いから捨てる」類の判定はここに置かない
   //（両手同時押し＝同座標・同時刻の2発が正当な入力なので、近さで捨ててはいけない）。
-  function hit(x,y,el,src){
-    var b=running?keyAt(x,y,el):null;      // プレイ中のテンキー上だけ反応する
-    dbgEv((src||'?')+' '+(b?b.dataset.k:'—'));
-    if(running) dbgHit(!!b);
-    if(!b) return false;
+  function hit(x,y,src){
+    var b=running?keyAt(x,y):null;         // プレイ中のテンキー上だけ反応する
+    if(DBG){ dbgEv((src||'?')+' '+(b?b.dataset.k:'—')); if(running) dbgHit(!!b); }
+    if(!b){
+      // キーに当たらなかった＝採寸がずれている可能性がある（フォント読み込み・
+      // 回転・ヘッダーの高さ変化など）。次フレームで測り直して自分で治す。
+      if(running) remeasureSoon();
+      return false;
+    }
     flashKey(b); press(b.dataset.k);
     return true;
   }
@@ -1171,40 +1244,58 @@ body{
     // #tenkey ではなく document で受ける。指の下に一瞬でも別の要素（演出・トースト・
     // ヘッダー）が重なった接地はテンキーのリスナーに届かず消えるが、document で受けて
     // 「座標がどのキーか」で決めれば、届いたイベントは必ず入力になる。
-    var down={};        // identifier → 接地時に入力済みの指
+    // identifier → その指をどう処理したか。
+    //   1 = 接地(touchstart)でキーとして入力済み / 2 = 接地は届いたがキー外だった
+    // 「そもそも登録が無い identifier」＝接地イベントが届かなかった指なので、
+    // touchmove / touchend で初めて見た時に拾い直す（下の recover）。
+    // ※2 を分けているのは、テンキーの外から始めた指がなぞってキーに入った時に
+    //   勝手に入力しないため（0 と 2 を混ぜると誤爆する）。
+    var down={};
     document.addEventListener('touchstart',function(e){
-      dbgTouches(Math.max(e.touches?e.touches.length:1, e.changedTouches.length));
+      if(DBG) dbgTouches(Math.max(e.touches?e.touches.length:1, e.changedTouches.length));
       var onKey=false;
       for(var i=0;i<e.changedTouches.length;i++){
         // ※changedTouches の並び＝接地された順。同一フレームに2本着地しても
         //   この配列順がそのまま十の位→一の位の順になる。
         var t=e.changedTouches[i];
-        if(hit(t.clientX,t.clientY,t.target,'ts')){ down[t.identifier]=1; onKey=true; }
+        if(hit(t.clientX,t.clientY,'ts')){ down[t.identifier]=1; onKey=true; }
+        else down[t.identifier]=2;
       }
       // テンキーを打った時だけ止める（合成クリック・ダブルタップ拡大・ピンチ審査を切る）。
       // document 全体で無条件に止めると、ヘッダーのログイン窓や記録一覧が触れなくなる。
       if(onKey && e.cancelable) e.preventDefault();
     },{passive:false,capture:true});
 
-    // 【離した時に取りこぼしだけ拾う】
-    // iOS Safari は素早い2打目をジェスチャー審査でいったん保留し、接地イベントを
-    // 投げてこないことがある（?debug=1 で ts が増えない状態＝2打目が無反応になる正体）。
-    // 離した時点では審査が終わっているので、そこで初めて届く接地を拾い直す。
-    // 接地時に入力できた指は identifier で控えてあるので二重入力にはならない。
-    function lift(e){
+    // 【接地イベントが来なかった指を拾い直す】
+    // iOS は素早い2打目をジェスチャー審査でいったん保留し、touchstart を投げて
+    // こないことがある（?debug=1 で ts が増えない状態＝1の位が無反応になる正体）。
+    // 審査が終わると touchmove / touchend からは届くので、そこで初めて見た指を入力する。
+    // 動いた時点で拾うので、指を離すまで待たずに済む＝表示の遅れも小さい。
+    function recover(e,src){
       for(var i=0;i<e.changedTouches.length;i++){
         var t=e.changedTouches[i];
-        if(down[t.identifier]){ delete down[t.identifier]; continue; }
-        hit(t.clientX,t.clientY,t.target,'te');
+        if(down[t.identifier]) continue;               // 接地で処理済み(1 or 2)
+        down[t.identifier]=hit(t.clientX,t.clientY,src)?1:2;
       }
+    }
+    // 指がわずかに動いた瞬間にピンチ/スクロール判定が走ると、以降の接地が落ちる。
+    // テンキーを触っている指の移動は無効化しておく（記録一覧のスクロールは通す）。
+    document.addEventListener('touchmove',function(e){
+      recover(e,'tm');
+      var ours=false;
+      for(var i=0;i<e.changedTouches.length;i++){
+        if(down[e.changedTouches[i].identifier]===1){ ours=true; break; }
+      }
+      if(ours && e.cancelable) e.preventDefault();
+    },{passive:false,capture:true});
+
+    function lift(e){
+      recover(e,'te');
+      for(var i=0;i<e.changedTouches.length;i++) delete down[e.changedTouches[i].identifier];
       if(!e.touches || e.touches.length===0) down={};   // 全部離れた＝控えを空にする
     }
     document.addEventListener('touchend',lift,{passive:true,capture:true});
     document.addEventListener('touchcancel',lift,{passive:true,capture:true});
-
-    // 指がわずかに動いた瞬間にピンチ/スクロール判定が走ると、以降の接地が落ちる。
-    // テンキー上の移動は無効化しておく。
-    $('tenkey').addEventListener('touchmove',function(e){ e.preventDefault(); },{passive:false});
 
     // 観測のみ（?debug=1 のときだけ）。touchstart が来ない接地で pointerdown は
     // 来ているのかを見る。入力はしない＝入力経路は1本のまま。
@@ -1214,12 +1305,22 @@ body{
   }else{
     // マウス / ペン
     document.addEventListener('pointerdown',function(e){
-      if(hit(e.clientX,e.clientY,e.target,'mouse')) e.preventDefault();
+      if(hit(e.clientX,e.clientY,'mouse')) e.preventDefault();
     },{passive:false,capture:true});
   }
   // 長押しメニュー・ダブルタップ拡大・ピンチ判定は、OSがタップをイベント化する前に
   // 次の1発を握りつぶす原因になる。この審査はページ単位で走る（iOS は
   // user-scalable=no を無視する）ので、テンキーではなく document 側で塞ぐ。
+  // 採寸のやり直し。ここに挙げた「レイアウトが動きうる出来事」でだけ測り直す。
+  ['resize','orientationchange','pageshow'].forEach(function(ev){
+    window.addEventListener(ev,remeasureSoon);
+  });
+  window.addEventListener('load',remeasureSoon);   // Webフォント適用でキーの高さが変わる
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='visible') remeasureSoon();
+  });
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(remeasureSoon).catch(function(){});
+
   $('tenkey').addEventListener('contextmenu',function(e){ e.preventDefault(); });
   ['gesturestart','gesturechange','gestureend','dblclick'].forEach(function(ev){
     document.addEventListener(ev,function(e){ e.preventDefault(); },{passive:false});
