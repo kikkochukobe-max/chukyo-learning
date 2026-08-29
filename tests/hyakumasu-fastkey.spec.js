@@ -162,9 +162,9 @@ const DRIVER = () => {
   };
 };
 
-async function open(page) {
+async function open(page, query) {
   await page.addInitScript(DRIVER);
-  await page.goto(URL);
+  await page.goto(URL + (query || ''));
   await page.click('#btnStart');
   // カウントダウン3秒。消えた＝running=true
   await expect(page.locator('#countdown')).not.toHaveClass(/show/, { timeout: 10_000 });
@@ -267,6 +267,35 @@ test.describe('100マス テンキー高速入力', () => {
     await page.evaluate(() => window.__tapFull('7'));
     await page.evaluate(() => window.__frame());
     expect(await page.evaluate(() => window.__disp())).toBe('7');   // '77' になっていない
+  });
+
+  // T5d passive 実験経路（?tap=p）でも入力が成立する
+  // 実機の iOS でしか本題（ジェスチャー審査の待ちが消えるか）は検証できないが、
+  // 「preventDefault をやめても入力・拾い直し・二重入力なしが保たれる」ことはここで見られる。
+  test('T5d ?tap=p でも2桁が両方入り二重入力もしない', async ({ page }, testInfo) => {
+    const mode = modeFor(testInfo);
+    await open(page, '?tap=p');
+    // 経路の切替が効いていること（passive:true のリスナーで preventDefault は呼べない）
+    const warned = [];
+    page.on('console', (m) => { if (/passive/i.test(m.text())) warned.push(m.text()); });
+    for (let round = 0; round < 3; round++) {
+      const ans = await page.evaluate((m) => window.__seekTwoDigit(m), mode);
+      const before = await page.evaluate(() => window.__idx());
+      await page.evaluate(([a, m]) => window.__type(String(a), 0, m), [ans, mode]);
+      await expect
+        .poll(() => page.evaluate(() => window.__idx()), { timeout: 2000 })
+        .toBe(before + 1);
+      await page.waitForTimeout(120);
+    }
+    if (mode === 'touch') {
+      // 答えが1桁の問題だと '7' の1打で判定が走り入力欄が空に戻る＝残り方を見られない
+      await page.evaluate(() => window.__seekTwoDigit('touch'));
+      await page.waitForTimeout(120);
+      await page.evaluate(() => window.__tapFull('7'));
+      await page.evaluate(() => window.__frame());
+      expect(await page.evaluate(() => window.__disp())).toBe('7');   // '77' になっていない
+    }
+    expect(warned, 'passive リスナー内で preventDefault を呼んでいる').toEqual([]);
   });
 
   // T6 物理キーボード（同じ press() を通る）

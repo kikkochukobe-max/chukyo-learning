@@ -1760,6 +1760,152 @@ function buildKussetsuGlass(p){
 }
 function genKussetsuGlass(){ return buildKussetsuGlass({th:pick([40,45,50,55])}); }
 
+/* ========== 光：図の角を記号でえらぶ（入射角・反射角・屈折角）==========
+   境界面（または鏡）の1点に光の道すじをかき、角を4つ ア〜エ で示して
+   「入射角はどれか」を記号で答えさせる。プリントの定番で、
+   「面との角」を入射角と答えてしまう間違いをねらって出す。
+   スロット（幾何的な位置）は固定で、記号の割りふりだけ perm で入れかえる
+   （毎回イが入射角、では図を見ずに当てられてしまう）。 */
+var KAKU_PERM={
+  4:[[0,1,2,3],[1,0,3,2],[2,3,0,1],[3,2,1,0],[0,2,1,3],[2,0,3,1],[1,3,0,2],[3,1,2,0]],
+  5:[[0,1,2,3,4],[1,2,3,4,0],[2,3,4,0,1],[3,4,0,1,2],[4,0,1,2,3],
+     [0,2,4,1,3],[2,4,1,3,0],[4,1,3,0,2],[1,3,0,2,4],[3,0,2,4,1]]
+};
+function kakuLabels(perm,n){
+  var t=KAKU_PERM[n], p=t[perm%t.length], out=[], i;
+  for(i=0;i<n;i++) out.push(MARU_FIG[p[i]]);
+  return out;
+}
+/* 角の弧＋記号。ang0〜ang1 は法線からの角（右が正）、up で境界面のどちら側か。
+   記号は「弧のすぐ外側」に置き、角が小さいときは半径を広げて
+   法線をはさんだ2つの記号がくっつかないようにする。 */
+function kakuMark(px,by,a0,a1,up,labels,idx,fixedR){
+  var mid=(a0+a1)/2, span=Math.abs(a1-a0)/2, rad=Math.PI/180;
+  var lr=fixedR||Math.min(66,Math.max(46,12/Math.max(0.08,Math.sin(span*rad))));
+  var ar=lr-14, m=figPolar(px,by,mid,lr,up);
+  return figArc(px,by,ar,a0,a1,up,FIG.ai)
+    +figHalo(m.x,m.y+4,labels[idx],FIG.ai,13.5);
+}
+
+/* ── 境界面（空気⇔水／空気⇔ガラス）の図 ── */
+var KAKU_MEDIA=[
+  {lower:'水',    n:1.33, fromUp:true },
+  {lower:'水',    n:1.33, fromUp:false},
+  {lower:'ガラス',n:1.50, fromUp:true },
+  {lower:'ガラス',n:1.50, fromUp:false}
+];
+function kakuTh2(dir,th){
+  var m=KAKU_MEDIA[dir], rad=Math.PI/180;
+  var s=m.fromUp ? Math.sin(th*rad)/m.n : Math.sin(th*rad)*m.n;
+  if(s>0.985) s=0.985;
+  return Math.round(Math.asin(s)/rad);
+}
+function kakuKigouSVG(dir,th,labels){
+  var m=KAKU_MEDIA[dir], th2=kakuTh2(dir,th);
+  var W=360,H=268,x0=14,x1=346,by=134,px=178,R=92;
+  var loFill=(m.lower==='水')?FIG.mizu:FIG.lens;
+  var uIn=m.fromUp, uOut=!m.fromUp;
+  var s=svgOpen(W,H,'光の反射と屈折の図');
+  s+=figRect(x0,12,x1-x0,by-12,FIG.shiro);
+  s+=figRect(x0,by,x1-x0,H-12-by,loFill);
+  s+=figLine(x0,by,x1,by,FIG.mizuD,2.2);
+  s+=figLine(px,30,px,H-16,FIG.sub,1.3,'5 4');
+  s+=figText(px,24,'法線',FIG.sub,11);
+  s+=figText(x0+5,34,'空気',FIG.sub,12,'start');
+  s+=figText(x0+5,H-16,m.lower,FIG.mizuD,12,'start');
+  /* 光の道すじ（入射光は境界面に向かう矢印、反射光・屈折光は出ていく矢印） */
+  var ip=figPolar(px,by,-th,R,uIn);
+  s+=figArrow(ip.x,ip.y,px,by,FIG.shu,2.6,10);
+  var rp=figPolar(px,by,th,R,uIn);
+  s+=figArrow(px,by,rp.x,rp.y,FIG.shu,2.2,10);
+  var kp=figPolar(px,by,th2,R,uOut);
+  s+=figArrow(px,by,kp.x,kp.y,FIG.shu,2.2,10);
+  s+=figCircle(px,by,3,FIG.ink);
+  /* 0=入射光と境界面の角 / 1=入射角 / 2=反射角 / 3=屈折角 / 4=屈折光と境界面の角
+     屈折光の側にも「面との角」を1つ置く。ここが1つしかないと、
+     法線のきまりを知らなくても「境界面の下にある角」だけで屈折角を当てられてしまう。 */
+  s+=kakuMark(px,by,-90,-th,uIn,labels,0,84);
+  s+=kakuMark(px,by,-th,0,uIn,labels,1);
+  s+=kakuMark(px,by,0,th,uIn,labels,2);
+  s+=kakuMark(px,by,0,th2,uOut,labels,3);
+  s+=kakuMark(px,by,th2,90,uOut,labels,4,84);
+  return s+'</svg>';
+}
+function buildKakuKigou(p){
+  var m=KAKU_MEDIA[p.dir], labels=kakuLabels(p.perm,5), slot={in:1,ref:2,kus:3}[p.ask];
+  var into=(m.lower==='水')?'水中':'ガラスの中';
+  var setup=m.fromUp
+    ? '図のように、空気中から'+into+'へ光を当てたところ、光の一部は境界面で反射し、残りは'+into+'へ進んだ。'
+    : '図のように、'+into+'から空気中へ向かって光を進ませたところ、光の一部は境界面で反射し、残りは空気中へ出ていった。';
+  var name={in:'入射角',ref:'反射角',kus:'屈折角'}[p.ask];
+  var exp;
+  if(p.ask==='in'){
+    exp='入射角は「入射光」と「境界面に垂直な直線（法線）」がつくる角。境界面との角ではないので注意（そこが最も多い間違い）。矢印が境界面に向かっている光が入射光。';
+  }else if(p.ask==='ref'){
+    exp='反射角は「反射光」と法線がつくる角。反射光は入射光と同じ物質の中を、法線をはさんで反対側へ進む光。反射の法則より入射角＝反射角なので、入射角と同じ大きさの角をさがしてもよい。';
+  }else{
+    exp='屈折角は「屈折光」と法線がつくる角。屈折光は境界面をこえて別の物質へ進んだ光で、境界面との角ではないので注意。'
+      +(m.fromUp
+        ? '空気中から'+into+'へ進むときは、法線に近づくように曲がるので屈折角＜入射角。'
+        : into+'から空気中へ出るときは、法線から遠ざかるように曲がるので屈折角＞入射角。');
+  }
+  return {cat:'h_kussetsu',
+    q:setup+'図のア〜オのうち、'+name+'を表しているものはどれか。',
+    tbl:kakuKigouSVG(p.dir,p.th,labels),
+    c:MARU_FIG.slice(0,5),a:labels[slot],exp:exp,
+    params:{gen:'kakuKigou',dir:p.dir,th:p.th,ask:p.ask,perm:p.perm}};
+}
+function genKakuKigouAngle(){
+  var dir=ri(0,3), m=KAKU_MEDIA[dir];
+  var th=m.fromUp ? pick([40,45,50,55]) : (m.n>1.4 ? pick([20,25,30]) : pick([25,30,35]));
+  return buildKakuKigou({dir:dir,th:th,ask:pick(['in','ref']),perm:ri(0,KAKU_PERM[5].length-1)});
+}
+function genKakuKigouKussetsu(){
+  var dir=ri(0,3), m=KAKU_MEDIA[dir];
+  var th=m.fromUp ? pick([40,45,50,55]) : (m.n>1.4 ? pick([20,25,30]) : pick([25,30,35]));
+  return buildKakuKigou({dir:dir,th:th,ask:'kus',perm:ri(0,KAKU_PERM[5].length-1)});
+}
+
+/* ── 鏡の図（入射角・反射角を記号でえらぶ）── */
+function kagamiKakuSVG(th,labels){
+  var W=360,H=214,x0=14,x1=346,by=148,px=178,R=106;
+  var s=svgOpen(W,H,'鏡に当たる光の図');
+  s+=figRect(x0,12,x1-x0,by-12,FIG.shiro);
+  s+=figRect(x0,by,x1-x0,14,FIG.kabe,FIG.kabeD,1.6);
+  s+=figLine(x0,by,x1,by,FIG.ink,2.2);
+  var i;
+  for(i=0;i<16;i++) s+=figLine(x0+8+i*21,by+14,x0+18+i*21,by+2,FIG.kabeD,1.1);
+  s+=figText(x1-6,by+30,'鏡',FIG.ink,12,'end');
+  s+=figLine(px,26,px,by,FIG.sub,1.3,'5 4');
+  s+=figText(px,20,'法線',FIG.sub,11);
+  var ip=figPolar(px,by,-th,R,true);
+  s+=figArrow(ip.x,ip.y,px,by,FIG.shu,2.6,10);
+  var rp=figPolar(px,by,th,R,true);
+  s+=figArrow(px,by,rp.x,rp.y,FIG.shu,2.6,10);
+  s+=figCircle(px,by,3,FIG.ink);
+  /* 0=入射光と鏡の面の角 / 1=入射角 / 2=反射角 / 3=反射光と鏡の面の角 */
+  s+=kakuMark(px,by,-90,-th,true,labels,0,88);
+  s+=kakuMark(px,by,-th,0,true,labels,1);
+  s+=kakuMark(px,by,0,th,true,labels,2);
+  s+=kakuMark(px,by,th,90,true,labels,3);
+  return s+'</svg>';
+}
+function buildKagamiKaku(p){
+  var labels=kakuLabels(p.perm,4), slot=(p.ask==='in')?1:2;
+  var name=(p.ask==='in')?'入射角':'反射角';
+  var exp=(p.ask==='in')
+    ? '入射角は「入射光」と「鏡の面に垂直な直線（法線）」がつくる角。鏡の面との角ではない。矢印が鏡に向かっている光が入射光で、はね返っていく光が反射光。'
+    : '反射角は「反射光」と法線がつくる角。鏡の面との角ではない。入射角＝反射角（反射の法則）なので、法線をはさんで入射角と向かい合う角になる。';
+  return {cat:'h_hansha',
+    q:'図のように、鏡に光を当てたところ、光は鏡の面ではね返った。図のア〜エのうち、'+name+'を表しているものはどれか。',
+    tbl:kagamiKakuSVG(p.th,labels),
+    c:MARU_FIG.slice(0,4),a:labels[slot],exp:exp,
+    params:{gen:'kagamiKaku',th:p.th,ask:p.ask,perm:p.perm}};
+}
+function genKagamiKaku(){
+  return buildKagamiKaku({th:pick([25,30,35,40,50,55,60]),ask:pick(['in','ref']),perm:ri(0,KAKU_PERM[4].length-1)});
+}
+
 /* ========== 凸レンズ：光の道すじ（図からえらぶ）========== */
 function lensMichiCands(v,f,h,pat){
   var mm;
@@ -1888,9 +2034,9 @@ function genLensHankakushi(){
 
 /* cat → 生成関数（buildQueueで該当スコープに差し込む） */
 var GENERATORS={
-  h_hansha:[genHanshaMirror, genHanshaSum],
+  h_hansha:[genHanshaMirror, genHanshaSum, genKagamiKaku],
   h_kagami:[genKagamiZenshin, genKagamiShitan],
-  h_kussetsu:[genKussetsuIn, genKussetsuOut, genKussetsuGlass],
+  h_kussetsu:[genKussetsuIn, genKussetsuOut, genKussetsuGlass, genKakuKigouAngle, genKakuKigouKussetsu],
   h_zenhansha:[genZenhanshaMichi],
   l_seishitsu:[genLensHankakushi],
   l_michisuji:[genLensMichiPara, genLensMichiFocus],
@@ -1913,6 +2059,7 @@ var REBUILDERS={
   otoHzCount:buildOtoHzCount, otoHzPeriod:buildOtoHzPeriod, otoHzFrac:buildOtoHzFrac,
   otoKaitei:buildOtoKaitei, otoKaiteiTime:buildOtoKaiteiTime,
   kussetsuMichi:buildKussetsuMichi, kussetsuGlass:buildKussetsuGlass,
+  kakuKigou:buildKakuKigou, kagamiKaku:buildKagamiKaku,
   lensMichisuji:buildLensMichisuji, lensZouKind:buildLensZouKind,
   lensZouIchi:buildLensZouIchi, lensZouBai:buildLensZouBai, lensHankakushi:buildLensHankakushi,
   otoWaveHz:buildOtoWaveHz, otoWavePeriod:buildOtoWavePeriod, otoWaveCompare:buildOtoWaveCompare,
