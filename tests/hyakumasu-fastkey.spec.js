@@ -269,15 +269,31 @@ test.describe('100マス テンキー高速入力', () => {
     expect(await page.evaluate(() => window.__disp())).toBe('7');   // '77' になっていない
   });
 
-  // T5d passive 実験経路（?tap=p）でも入力が成立する
-  // 実機の iOS でしか本題（ジェスチャー審査の待ちが消えるか）は検証できないが、
-  // 「preventDefault をやめても入力・拾い直し・二重入力なしが保たれる」ことはここで見られる。
-  test('T5d ?tap=p でも2桁が両方入り二重入力もしない', async ({ page }, testInfo) => {
-    const mode = modeFor(testInfo);
-    await open(page, '?tap=p');
-    // 経路の切替が効いていること（passive:true のリスナーで preventDefault は呼べない）
+  // T5d 既定は passive 経路。passive リスナーの中で preventDefault を呼んでいないこと。
+  // （呼ぶとブラウザが警告を出すだけで何も止まらない＝直したつもりの取りこぼしが復活する）
+  test('T5d 既定の passive 経路で preventDefault を呼んでいない', async ({ page }, testInfo) => {
     const warned = [];
     page.on('console', (m) => { if (/passive/i.test(m.text())) warned.push(m.text()); });
+    const mode = modeFor(testInfo);
+    await open(page);
+    for (let round = 0; round < 3; round++) {
+      const ans = await page.evaluate((m) => window.__seekTwoDigit(m), mode);
+      const before = await page.evaluate(() => window.__idx());
+      await page.evaluate(([a, m]) => window.__type(String(a), 0, m), [ans, mode]);
+      await expect
+        .poll(() => page.evaluate(() => window.__idx()), { timeout: 2000 })
+        .toBe(before + 1);
+      await page.waitForTimeout(120);
+    }
+    expect(warned, 'passive リスナー内で preventDefault を呼んでいる').toEqual([]);
+  });
+
+  // T5e 退避経路（?tap=n＝旧の非passive＋preventDefault）に戻せること。
+  // touch-action:none が効かない古い端末に出したときの逃げ道なので、生かしておく。
+  test('T5e ?tap=n で旧経路に戻しても2桁が両方入る', async ({ page }, testInfo) => {
+    const mode = modeFor(testInfo);
+    await open(page, '?tap=n&debug=1');
+    await expect(page.locator('body')).toContainText('経路:旧(preventDefault)');
     for (let round = 0; round < 3; round++) {
       const ans = await page.evaluate((m) => window.__seekTwoDigit(m), mode);
       const before = await page.evaluate(() => window.__idx());
@@ -295,7 +311,6 @@ test.describe('100マス テンキー高速入力', () => {
       await page.evaluate(() => window.__frame());
       expect(await page.evaluate(() => window.__disp())).toBe('7');   // '77' になっていない
     }
-    expect(warned, 'passive リスナー内で preventDefault を呼んでいる').toEqual([]);
   });
 
   // T6 物理キーボード（同じ press() を通る）

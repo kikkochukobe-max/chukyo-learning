@@ -555,11 +555,11 @@ body{
   var qHoldTimer=null, qPending=false;
 
   // ── 描画はすべて次のフレームにまとめる ─────────────────────────────
-  // touchstart のリスナーが passive:false だと、ブラウザはこの関数が返るまで
-  // 「このタップをジェスチャーとして扱うか」を決められない。ここで DOM を書くと
-  // スタイル再計算がぶら下がり、その間に来た2打目がジェスチャー審査に食われる。
-  // （passive 実験 = PASSIVE_TAP ではその待ち自体を無くしているが、
-  //   描画をまとめるのは経路に関係なく効くので常に有効にしてある）
+  // タップの瞬間に走る処理は軽いほどよい。既定の passive 経路では
+  // 「ブラウザがJSを待つ」こと自体が無くなっているが、描画をまとめるのは
+  // 経路に関係なく効くので常に有効にしてある（?tap=n の旧経路では必須。
+  // 非passive のリスナーの中で DOM を書くと、スタイル再計算がぶら下がった分だけ
+  // ジェスチャー審査を待たせて2打目を落とす）。
   // そこで「タップの瞬間に走るのは状態の更新だけ」にして、画面の書き換えは
   // requestAnimationFrame に1回ぶんまとめて逃がす（見た目は最大1フレーム＝約16msの差）。
   var paintReq=false, needQ=false, needIn=false, flashQueue=[];
@@ -605,28 +605,34 @@ body{
     else if(localStorage.getItem('hm_dbg')==='1'){ DBG=true; }
   }catch(e){ DBG = /[?&]debug=1/.test(String(location.search||'')); }
 
-  // ── 入力経路の実験スイッチ（?tap=p でON / ?tap=n でOFF）──────────────
-  // 既定(false): touchstart を passive:false で受け、テンキーを打った接地だけ preventDefault。
-  // ?tap=p(true): touchstart / touchmove を passive で受け、preventDefault を一切しない。
+  // ── 入力経路：touch リスナーは passive にする（2026-08-30 実機で確定）──────
+  // 【これが一番効く。ほかのテンキー系ツールへ横展開する時もここから移す】
   //
-  // ねらい: 非passiveのリスナーが1つでもあると、iOS は「このタップをジェスチャーとして
+  // 非passive の touch リスナーが1つでもあると、iOS は「このタップをジェスチャーとして
   // 扱うか」を決める前に JS の実行を待つ。その待ちの間に来た2打目が審査側に倒れて消える。
-  // passive にすれば待ち自体が無くなる＝ネイティブの touchesBegan に一番近づく。
-  // preventDefault をやめても実害が無いことは確認済み:
-  //   ・ダブルタップ拡大/ピンチ … .tenkey と button の touch-action:none で止まる
+  // ＝「2桁の答えの1の位だけ反応しない」の正体。passive にすると待ち自体が無くなり、
+  // ネイティブの touchesBegan に一番近い挙動になる。
+  // 実機(iPhone)で、Safari・ホーム画面追加(standalone)の両方で明確に改善を確認済み。
+  // ⚠ touchstart だけ passive にしても効かない。非passive の touchmove が1つ残れば
+  //    ブラウザは結局そこで待つので、touch 系は全部まとめて passive にすること。
+  //
+  // preventDefault をやめても止めたいものは全部ふさいである:
+  //   ・ダブルタップ拡大/ピンチ … .tenkey と button の touch-action:none
   //   ・合成クリック … テンキーに click ハンドラが無い（pointerdown 経路は非タッチ端末専用）
   //   ・スクロール … html,body が overflow:hidden + overscroll-behavior:none
   //   ・長押しメニュー/選択 … -webkit-touch-callout:none と user-select:none
-  // ⚠ standalone(ホーム画面追加)はURLを打ち替えられないので、
-  //    ?tap=p を付けたURLでもう1つアイコンを作れば同じ端末で2つを比べられる。
-  //    一度読むと localStorage に残るので、次回以降はフラグ無しでも継続する。
-  var PASSIVE_TAP=false;
+  // ⚠ このうち touch-action:none だけは iOS 13 未満で効かない。万一そういう端末で
+  //    テンキーがダブルタップ拡大するようなら `?tap=n` で旧経路（非passive＋
+  //    preventDefault）に戻せる。localStorage に残るので1回開かせれば継続する
+  //    （standalone は URL を打ち替えられないので ?tap=n 付きURLでアイコンを作り直す）。
+  //    戻すのは `?tap=p`。
+  var PASSIVE_TAP=true;
   try{
     var tq=String(location.search||''), th=String(location.hash||'');
-    if(/[?&]tap=n/.test(tq) || /(^|#)tap=n\b/.test(th)){ localStorage.removeItem('hm_tap'); }
-    else if(/[?&]tap=p/.test(tq) || /(^|#)tap=p\b/.test(th)){ localStorage.setItem('hm_tap','1'); }
-    PASSIVE_TAP = localStorage.getItem('hm_tap')==='1';
-  }catch(e){ PASSIVE_TAP = /[?&]tap=p/.test(String(location.search||'')); }
+    if(/[?&]tap=n/.test(tq) || /(^|#)tap=n\b/.test(th)) localStorage.setItem('hm_tap','n');
+    else if(/[?&]tap=p/.test(tq) || /(^|#)tap=p\b/.test(th)) localStorage.removeItem('hm_tap');
+    PASSIVE_TAP = localStorage.getItem('hm_tap')!=='n';
+  }catch(e){ PASSIVE_TAP = !/[?&]tap=n/.test(String(location.search||'')); }
 
   var dbgRaw=0, dbgKey=0, dbgBox=null, dbgLast=0, dbgMulti=0, dbgMaxN=1;
   function dbgInit(){
@@ -640,7 +646,7 @@ body{
   }
   function dbgRender(){
     if(!dbgBox) return;
-    dbgBox.textContent='経路:'+(PASSIVE_TAP?'passive(実験)':'通常(preventDefault)')
+    dbgBox.textContent='経路:'+(PASSIVE_TAP?'passive(既定)':'旧(preventDefault)')
       +'\nraw(生タップ):'+dbgRaw+'\nkey(登録):'+dbgKey
       +'\nΔ(取りこぼし):'+(dbgRaw-dbgKey)
       +'\n同時2本以上:'+dbgMulti+' (最大'+dbgMaxN+'本)'
@@ -1278,7 +1284,7 @@ body{
     // ※2 を分けているのは、テンキーの外から始めた指がなぞってキーに入った時に
     //   勝手に入力しないため（0 と 2 を混ぜると誤爆する）。
     var down={};
-    // passive の指定は PASSIVE_TAP で切り替える（上のスイッチ参照）。
+    // passive で受ける（既定）。旧経路に戻すのは ?tap=n のときだけ＝上の PASSIVE_TAP 参照。
     // ⚠ passive:true のリスナーの中で preventDefault を呼ぶとコンソール警告が出るだけで
     //    何も起きないので、呼ぶ側も必ずフラグで分岐させること。
     var TS_OPT = PASSIVE_TAP ? {passive:true,capture:true} : {passive:false,capture:true};
@@ -1311,8 +1317,8 @@ body{
     }
     // 指がわずかに動いた瞬間にピンチ/スクロール判定が走ると、以降の接地が落ちる。
     // テンキーを触っている指の移動は無効化しておく（記録一覧のスクロールは通す）。
-    // ⚠ passive 実験時はこちらも passive にする。touchstart だけ passive にしても、
-    //    非passive の touchmove が1つ残っていればブラウザは結局 JS を待つ。
+    // ⚠ touchstart だけ passive にしても意味がない。
+    //    非passive の touchmove が1つ残っていれば、ブラウザは結局そこで JS を待つ。
     document.addEventListener('touchmove',function(e){
       recover(e,'tm');
       if(PASSIVE_TAP) return;                          // 移動の抑止は touch-action:none に任せる
@@ -1355,7 +1361,7 @@ body{
   // 長押しメニュー・ダブルタップ拡大・ピンチ判定は、OSがタップをイベント化する前に
   // 次の1発を握りつぶす原因になる。この審査はページ単位で走る（iOS は
   // user-scalable=no を無視する）ので、テンキーではなく document 側で塞ぐ。
-  // ※これらは touch イベントではないので、passive 実験(PASSIVE_TAP)でも残す
+  // ※これらは touch イベントではないので、passive 経路でも残す
   //   ＝touchstart の配達を待たせる原因にはならない。
   $('tenkey').addEventListener('contextmenu',function(e){ e.preventDefault(); });
   ['gesturestart','gesturechange','gestureend','dblclick'].forEach(function(ev){
