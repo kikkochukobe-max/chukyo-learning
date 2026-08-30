@@ -616,6 +616,49 @@ function h(?string $s): string
   }
   .ss-feel .face{display:block;font-size:18px;line-height:1.3}
   .ss-feel.on{background:#FFF8E1;border-color:var(--kin);color:#8A6D12}
+  /* 「覚える勉強」「忘れない勉強」の欄。この2つに分けて入力する */
+  .ss-block{margin-top:14px;border:1.5px solid var(--grid);border-radius:12px;
+    padding:10px 10px 12px;background:var(--paper)}
+  .ss-block[data-type="memorize"]{border-color:#EFCBC5}
+  .ss-block[data-type="retain"]{border-color:#C3DACC}
+  .ss-bhead{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .ss-btitle{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:14px}
+  .ss-block[data-type="memorize"] .ss-btitle{color:var(--shu)}
+  .ss-block[data-type="retain"] .ss-btitle{color:#3E7A5E}
+  .ss-bdesc{font-size:11px;color:var(--ink-soft)}
+  /* 教科ボタン。押すとその教科の入力カードが1枚増える（複数教科をまとめて書ける） */
+  .ss-subj{display:flex;flex-wrap:wrap;gap:6px}
+  .ss-sbtn{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:12px;
+    padding:7px 12px;border-radius:999px;cursor:pointer;
+    background:var(--white);color:var(--ink);border:1.5px solid var(--grid)}
+  .ss-sbtn::before{content:'＋';color:var(--ink-soft);margin-right:3px}
+  .ss-block[data-type="memorize"] .ss-sbtn:active{background:var(--shu-soft);border-color:var(--shu)}
+  .ss-block[data-type="retain"] .ss-sbtn:active{background:#E9F2EC;border-color:#3E7A5E}
+  /* 教科ごとの入力カード */
+  .ss-card{background:var(--white);border:1.5px solid var(--grid);border-radius:10px;
+    padding:8px 10px 10px;margin-top:8px}
+  .ss-card.err{border-color:var(--shu);box-shadow:0 0 0 3px var(--shu-soft)}
+  .ss-chead{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .ss-cs{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:13px;color:var(--ink)}
+  .ss-chead select{width:auto;max-width:170px;font-size:13px;padding:5px 8px}
+  .ss-cx{margin-left:auto;font-size:18px;line-height:1;color:var(--ink-soft);
+    background:none;border:none;cursor:pointer;padding:0 4px}
+  /* 短期／長期（忘れない勉強のカードだけ）と、なおすとき用の種別えらび */
+  .ss-spans{display:flex;gap:6px;margin-bottom:8px}
+  .ss-spans[hidden]{display:none}
+  .ss-span,.ss-tpill{flex:1;padding:6px 4px;border-radius:8px;cursor:pointer;text-align:center;
+    background:var(--paper);border:1.5px solid var(--grid);
+    font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:12px;color:var(--ink-soft)}
+  .ss-span small{display:block;font-size:9px;font-weight:500}
+  .ss-span.on{background:#E9F2EC;border-color:#3E7A5E;color:#2F6349}
+  .ss-tpill.on[data-type="memorize"]{background:var(--shu-soft);border-color:var(--shu);color:var(--shu)}
+  .ss-tpill.on[data-type="retain"]{background:#E9F2EC;border-color:#3E7A5E;color:#2F6349}
+  /* ひとことは既定で折りたたむ（カードが増えても縦に伸びすぎない） */
+  .ss-memo-btn{font-size:11px;color:var(--ai);background:none;border:none;cursor:pointer;
+    padding:2px 0;text-decoration:underline;font-family:'Zen Kaku Gothic New',sans-serif}
+  .ss-memo-row[hidden]{display:none}
+  /* なおすときは1件だけを出す（教科ボタンで増やす画面は隠す） */
+  .ss-form.editing .ss-block{display:none}
   .ss-save{
     font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:14px;
     width:100%;margin-top:4px;padding:11px 14px;border-radius:999px;cursor:pointer;
@@ -630,8 +673,14 @@ function h(?string $s): string
   .ss-line1{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--ink-soft)}
   .ss-date{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--ink);
     font-feature-settings:'tnum'}
+  /* 教科は下地の情報なので控えめに。色を持たせるのは勉強の種類のほう */
   .ss-chip{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
-    background:var(--shu-soft);color:var(--shu);font-family:'Zen Maru Gothic',sans-serif}
+    background:var(--paper);color:var(--ink-soft);border:1px solid var(--grid);
+    font-family:'Zen Maru Gothic',sans-serif}
+  .ss-type{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
+    font-family:'Zen Maru Gothic',sans-serif}
+  .ss-type.mem{background:var(--shu-soft);color:var(--shu)}
+  .ss-type.ret{background:#E9F2EC;color:#3E7A5E}
   .ss-mark{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
     background:#EDF3F8;color:var(--ai);font-family:'Zen Maru Gothic',sans-serif}
   .ss-mark.yet{background:var(--paper);color:#C7C2B6;border:1px dashed var(--grid)}
@@ -742,50 +791,29 @@ function h(?string $s): string
           <label class="ss-lbl" for="ssDate">いつ</label>
           <input type="date" id="ssDate" required>
         </div>
-        <div>
-          <label class="ss-lbl" for="ssSubject">教科</label>
-          <select id="ssSubject" required>
-<?php foreach (SELF_STUDY_SUBJECTS as $key => $label): ?>
-            <option value="<?= h($key) ?>"><?= h($label) ?></option>
+      </div>
+      <!-- 教材名の入力候補（この生徒が前に書いたもの）。カードが何枚できても1つを共有する -->
+      <datalist id="ssMaterials"></datalist>
+
+      <!-- 「覚える勉強」「忘れない勉強」の2欄。教科ボタンを押すとカードが増える -->
+<?php foreach (SELF_STUDY_TYPES as $tkey => $tlabel): ?>
+      <div class="ss-block" data-type="<?= h($tkey) ?>">
+        <div class="ss-bhead">
+          <span class="ss-btitle"><?= h($tlabel) ?></span>
+          <span class="ss-bdesc"><?= h(SELF_STUDY_TYPE_DESCS[$tkey]) ?></span>
+        </div>
+        <div class="ss-subj">
+<?php foreach (SELF_STUDY_SUBJECTS as $skey => $slabel): ?>
+          <button type="button" class="ss-sbtn" data-subject="<?= h($skey) ?>"><?= h($slabel) ?></button>
 <?php endforeach; ?>
-          </select>
         </div>
+        <div class="ss-cards"></div>
       </div>
-      <div class="ss-row">
-        <div>
-          <label class="ss-lbl" for="ssMaterial">なにを（教材名）</label>
-          <input type="text" id="ssMaterial" list="ssMaterials" placeholder="学校のワーク" maxlength="100" required>
-          <datalist id="ssMaterials"></datalist>
-        </div>
-      </div>
-      <div class="ss-row">
-        <div>
-          <label class="ss-lbl" for="ssRange">どこを（範囲）</label>
-          <input type="text" id="ssRange" placeholder="p.24〜27" maxlength="100">
-        </div>
-        <div style="flex:0 0 96px;">
-          <label class="ss-lbl" for="ssMinutes">時間（分）</label>
-          <input type="number" id="ssMinutes" min="0" max="600" step="5" inputmode="numeric" placeholder="30">
-        </div>
-      </div>
-      <div class="ss-row">
-        <div>
-          <label class="ss-lbl">手ごたえ</label>
-          <div class="ss-feels" id="ssFeels">
-<?php foreach (SELF_STUDY_FEELINGS as $v => $label): ?>
-            <button type="button" class="ss-feel" data-v="<?= (int)$v ?>">
-              <span class="face"><?= h(SELF_STUDY_FEELING_FACES[$v]) ?></span><?= h($label) ?>
-            </button>
 <?php endforeach; ?>
-          </div>
-        </div>
-      </div>
-      <div class="ss-row">
-        <div>
-          <label class="ss-lbl" for="ssMemo">ひとこと・質問（先生が読みます）</label>
-          <textarea id="ssMemo" maxlength="500" placeholder="ここが分からなかった、など"></textarea>
-        </div>
-      </div>
+
+      <!-- なおすときは、この中にカードを1枚だけ出す（上の2欄は隠れる） -->
+      <div id="ssEditWrap"></div>
+
       <button type="submit" class="ss-save" id="ssSave">この内容で記録する</button>
       <div class="ss-msg" id="ssMsg"></div>
     </form>
@@ -1029,55 +1057,170 @@ document.querySelectorAll('.today-q').forEach(function (el) {
 // ---------- 自習の記録 ----------
 // 一覧・保存・削除はすべて /api/*_self_study.php 経由。画面はここだけで組み立てる
 // （PHPとJSに同じ描画を二重に持たない）。XPは付かない＝がんばりカードの数字は動かない。
+//
+// 入力は「覚える勉強」「忘れない勉強」の2欄。教科ボタンを押すとその教科のカードが1枚増え、
+// 何教科ぶんでも1回の送信でまとめて保存する（保存は教科ごとに1件＝先生が教科ごとに確認印を押せる）。
+// 「なおす」は1件ずつなので、カードを1枚だけ出す編集モード（.editing）に切り替える。
 (function () {
   var root = document.getElementById('selfStudy');
   if (!root) return;
 
-  var FEELS = <?= json_encode(SELF_STUDY_FEELING_FACES, JSON_UNESCAPED_UNICODE) ?>;
+  var SUBJECTS    = <?= json_encode(SELF_STUDY_SUBJECTS, JSON_UNESCAPED_UNICODE) ?>;
+  var TYPES       = <?= json_encode(SELF_STUDY_TYPES, JSON_UNESCAPED_UNICODE) ?>;
+  var SPANS       = <?= json_encode(SELF_STUDY_RETAIN_SPANS, JSON_UNESCAPED_UNICODE) ?>;
+  var SPAN_DESCS  = <?= json_encode(SELF_STUDY_RETAIN_SPAN_DESCS, JSON_UNESCAPED_UNICODE) ?>;
+  var FEELS       = <?= json_encode(SELF_STUDY_FEELING_FACES, JSON_UNESCAPED_UNICODE) ?>;
   var FEEL_LABELS = <?= json_encode(SELF_STUDY_FEELINGS, JSON_UNESCAPED_UNICODE) ?>;
   var periodFrom = root.getAttribute('data-from');   // 空 = 全期間タブ
   var periodTo   = root.getAttribute('data-to');
   var today      = root.getAttribute('data-today');
   var minDay     = root.getAttribute('data-minday');
 
-  var elForm = document.getElementById('ssForm');
-  var elOpen = document.getElementById('ssOpen');
-  var elList = document.getElementById('ssList');
-  var elSum  = document.getElementById('ssSum');
-  var elMsg  = document.getElementById('ssMsg');
-  var elSave = document.getElementById('ssSave');
-  var elFeels = document.getElementById('ssFeels');
-  var f = {
-    id: document.getElementById('ssLogId'),
-    date: document.getElementById('ssDate'),
-    subject: document.getElementById('ssSubject'),
-    material: document.getElementById('ssMaterial'),
-    range: document.getElementById('ssRange'),
-    minutes: document.getElementById('ssMinutes'),
-    memo: document.getElementById('ssMemo')
-  };
+  var elForm  = document.getElementById('ssForm');
+  var elOpen  = document.getElementById('ssOpen');
+  var elList  = document.getElementById('ssList');
+  var elSum   = document.getElementById('ssSum');
+  var elMsg   = document.getElementById('ssMsg');
+  var elSave  = document.getElementById('ssSave');
+  var elEdit  = document.getElementById('ssEditWrap');
+  var elDate  = document.getElementById('ssDate');
+  var elLogId = document.getElementById('ssLogId');
 
   function esc(t) {
     return String(t == null ? '' : t)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
   function mmdd(d) { var p = String(d).split('-'); return p[1] + '/' + p[2]; }
-  function feeling() {
-    var on = elFeels.querySelector('.ss-feel.on');
-    return on ? Number(on.getAttribute('data-v')) : null;
+
+  // ---- 入力カード1枚（＝保存すると1件）のHTML ----
+  // edit=true（なおすとき）だけ、教科の選び直しと「覚える／忘れない」の切替を出す。
+  // 新規のときは教科ボタンで作るので、教科はカードのラベルとして出すだけにする。
+  function cardHtml(o, edit) {
+    var h = [];
+    h.push('<div class="ss-card" data-type="' + esc(o.type) + '" data-subject="' + esc(o.subject) + '">');
+
+    h.push('<div class="ss-chead">');
+    if (edit) {
+      h.push('<select class="ss-csel">');
+      Object.keys(SUBJECTS).forEach(function (k) {
+        h.push('<option value="' + esc(k) + '"' + (k === o.subject ? ' selected' : '') + '>'
+          + esc(SUBJECTS[k]) + '</option>');
+      });
+      h.push('</select>');
+    } else {
+      h.push('<span class="ss-cs">' + esc(SUBJECTS[o.subject] || o.subject) + '</span>');
+      h.push('<button type="button" class="ss-cx" data-act="rm" aria-label="この教科をけす">×</button>');
+    }
+    h.push('</div>');
+
+    if (edit) {
+      h.push('<div class="ss-spans">');
+      Object.keys(TYPES).forEach(function (k) {
+        h.push('<button type="button" class="ss-tpill' + (k === o.type ? ' on' : '')
+          + '" data-type="' + esc(k) + '">' + esc(TYPES[k]) + '</button>');
+      });
+      h.push('</div>');
+    }
+
+    // 短期／長期は「忘れない勉強」のカードだけに出す
+    h.push('<div class="ss-spans ss-spanrow"' + (o.type === 'retain' ? '' : ' hidden') + '>');
+    Object.keys(SPANS).forEach(function (k) {
+      h.push('<button type="button" class="ss-span' + (k === o.span ? ' on' : '')
+        + '" data-span="' + esc(k) + '">' + esc(SPANS[k])
+        + '<small>' + esc(SPAN_DESCS[k]) + '</small></button>');
+    });
+    h.push('</div>');
+
+    // 「なにを」と「どこを」は1つの欄にまとめる（カードが教科ぶん並ぶので手数を減らす）。
+    // 保存先は material 1列（range_text は列としては残るが、新しい入力では使わない）
+    h.push('<div class="ss-row">'
+      + '<div><label class="ss-lbl">なにを・どこを</label>'
+      + '<input type="text" data-f="material" list="ssMaterials" placeholder="学校のワーク p.24〜27"'
+      + ' maxlength="100" value="' + esc(o.material) + '"></div>'
+      + '<div style="flex:0 0 96px;"><label class="ss-lbl">時間（分）</label>'
+      + '<input type="number" data-f="minutes" min="0" max="600" step="5" inputmode="numeric"'
+      + ' placeholder="30" value="' + esc(o.minutes) + '"></div></div>');
+
+    h.push('<div class="ss-row"><div><label class="ss-lbl">手ごたえ</label><div class="ss-feels">');
+    Object.keys(FEELS).forEach(function (v) {
+      h.push('<button type="button" class="ss-feel' + (Number(v) === Number(o.feeling) ? ' on' : '')
+        + '" data-v="' + esc(v) + '"><span class="face">' + esc(FEELS[v]) + '</span>'
+        + esc(FEEL_LABELS[v]) + '</button>');
+    });
+    h.push('</div></div></div>');
+
+    // ひとことは書いた人だけが開く（カードが何枚も並ぶので既定は畳んでおく）
+    var hasMemo = !!o.memo;
+    h.push('<button type="button" class="ss-memo-btn" data-act="memo"'
+      + (hasMemo ? ' hidden' : '') + '>＋ ひとこと・質問を書く</button>');
+    h.push('<div class="ss-row ss-memo-row"' + (hasMemo ? '' : ' hidden') + '><div>'
+      + '<label class="ss-lbl">ひとこと・質問（先生が読みます）</label>'
+      + '<textarea data-f="memo" maxlength="500" placeholder="ここが分からなかった、など">'
+      + esc(o.memo) + '</textarea></div></div>');
+
+    h.push('</div>');
+    return h.join('');
+  }
+
+  function blankCard(type, subject) {
+    // 忘れない勉強の既定は「短期」（1週間以内のほうが回数が多い）。長期はタップで切り替える
+    return { type: type, span: 'short', subject: subject,
+             material: '', minutes: '', feeling: null, memo: '' };
+  }
+
+  // カードから保存用の1件を読む（値はDOMが持つ＝JS側に二重の状態を持たない）
+  function readCard(card) {
+    var type = card.getAttribute('data-type');
+    var sel = card.querySelector('.ss-csel');
+    var spanOn = card.querySelector('.ss-spanrow .ss-span.on');
+    var feelOn = card.querySelector('.ss-feel.on');
+    function v(name) {
+      var el = card.querySelector('[data-f="' + name + '"]');
+      return el ? el.value.trim() : '';
+    }
+    return {
+      subject: sel ? sel.value : card.getAttribute('data-subject'),
+      study_type: type,
+      retain_span: (type === 'retain' && spanOn) ? spanOn.getAttribute('data-span') : '',
+      material: v('material'),
+      range_text: '',            // 「なにを・どこを」を1欄にしたので範囲は分けて持たない
+      minutes: v('minutes'),
+      feeling: feelOn ? Number(feelOn.getAttribute('data-v')) : null,
+      memo: v('memo')
+    };
+  }
+
+  function clearErr() {
+    elForm.querySelectorAll('.ss-card.err').forEach(function (c) { c.classList.remove('err'); });
+    elMsg.textContent = '';
+  }
+  function markErr(card, text) {
+    clearErr();
+    if (card) {
+      card.classList.add('err');
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    elMsg.textContent = text;
+  }
+
+  // 何件まとめて保存されるのかをボタンに出す（教科を足すたびに変わる）
+  function updateSaveLabel() {
+    if (elForm.classList.contains('editing')) {
+      elSave.textContent = 'なおした内容で保存する';
+      return;
+    }
+    var n = elForm.querySelectorAll('.ss-card').length;
+    elSave.textContent = n > 1 ? ('この' + n + '件を記録する') : 'この内容で記録する';
   }
 
   function resetForm() {
-    f.id.value = '';
-    f.date.value = today;
-    f.subject.selectedIndex = 0;
-    f.material.value = '';
-    f.range.value = '';
-    f.minutes.value = '';
-    f.memo.value = '';
-    elFeels.querySelectorAll('.ss-feel').forEach(function (b) { b.classList.remove('on'); });
-    elSave.textContent = 'この内容で記録する';
+    elLogId.value = '';
+    elDate.value = today;
+    elForm.classList.remove('editing');
+    elEdit.innerHTML = '';
+    elForm.querySelectorAll('.ss-cards').forEach(function (w) { w.innerHTML = ''; });
     elMsg.textContent = '';
+    updateSaveLabel();
   }
 
   function openForm(open) {
@@ -1101,7 +1244,7 @@ document.querySelectorAll('.today-q').forEach(function (el) {
       ? 'この期間の記録はまだありません'
       : '<b>' + n + '</b>件 ・ <b>' + min + '</b>分';
 
-    // 教材名の入力候補（過去に自分が書いたもの）
+    // 教材名の入力候補（過去に自分が書いたもの）。カード何枚でもこの1つを共有する
     document.getElementById('ssMaterials').innerHTML =
       (data.materials || []).map(function (m) { return '<option value="' + esc(m) + '">'; }).join('');
 
@@ -1116,6 +1259,11 @@ document.querySelectorAll('.today-q').forEach(function (el) {
       h.push('<div class="ss-item" data-id="' + it.log_id + '">');
       h.push('<div class="ss-line1">');
       h.push('<span class="ss-date">' + esc(mmdd(it.study_date)) + '</span>');
+      // 区別を付ける前に書かれた記録には study_type が無い＝バッジを出さない
+      if (it.study_type_label) {
+        h.push('<span class="ss-type ' + (it.study_type === 'retain' ? 'ret' : 'mem') + '">'
+          + esc(it.study_type_label) + '</span>');
+      }
       h.push('<span class="ss-chip">' + esc(it.subject_label) + '</span>');
       if (it.minutes) h.push('<span>' + it.minutes + '分</span>');
       if (it.feeling) h.push('<span title="' + esc(FEEL_LABELS[it.feeling] || '') + '">' + esc(FEELS[it.feeling] || '') + '</span>');
@@ -1127,8 +1275,8 @@ document.querySelectorAll('.today-q').forEach(function (el) {
         + (it.range_text ? '<small>' + esc(it.range_text) + '</small>' : '') + '</div>');
       if (it.memo) h.push('<div class="ss-memo">' + esc(it.memo) + '</div>');
       if (it.teacher_comment) {
-        h.push('<div class="ss-cmt"><b>' + esc(it.teacher_name || '先生') + 'から</b>'
-          + esc(it.teacher_comment) + '</div>');
+        // 生徒・保護者に講師の個人名は出さない（誰が書いたかは講師画面だけで分かればよい）
+        h.push('<div class="ss-cmt"><b>講師から</b>' + esc(it.teacher_comment) + '</div>');
       }
       // 確認印が押された記録はもう直せない（先生のコメントと食い違うため）
       if (!checked) {
@@ -1152,42 +1300,114 @@ document.querySelectorAll('.today-q').forEach(function (el) {
 
   elOpen.addEventListener('click', function () { openForm(!elForm.classList.contains('open')); });
 
-  elFeels.addEventListener('click', function (e) {
-    var btn = e.target.closest('.ss-feel');
-    if (!btn) return;
-    var was = btn.classList.contains('on');
-    elFeels.querySelectorAll('.ss-feel').forEach(function (b) { b.classList.remove('on'); });
-    if (!was) btn.classList.add('on');   // もう一度押すと選び直せる（未選択に戻す）
+  // フォーム内のボタンは1か所で受ける（カードは後から増えるので個別に付けない）
+  elForm.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+
+    var sbtn = t.closest('.ss-sbtn');
+    if (sbtn) {
+      var block = sbtn.closest('.ss-block');
+      block.querySelector('.ss-cards').insertAdjacentHTML(
+        'beforeend',
+        cardHtml(blankCard(block.getAttribute('data-type'), sbtn.getAttribute('data-subject')), false)
+      );
+      clearErr();
+      updateSaveLabel();
+      return;
+    }
+
+    var rm = t.closest('.ss-cx');
+    if (rm) { rm.closest('.ss-card').remove(); updateSaveLabel(); return; }
+
+    var memoBtn = t.closest('.ss-memo-btn');
+    if (memoBtn) {
+      var row = memoBtn.closest('.ss-card').querySelector('.ss-memo-row');
+      memoBtn.hidden = true;
+      row.hidden = false;
+      var ta = row.querySelector('textarea');
+      if (ta) ta.focus();
+      return;
+    }
+
+    var span = t.closest('.ss-span');
+    if (span) {
+      span.parentNode.querySelectorAll('.ss-span').forEach(function (b) { b.classList.remove('on'); });
+      span.classList.add('on');
+      return;
+    }
+
+    // 「覚える／忘れない」の切替（なおすときだけ出る）。短期／長期の行を出し入れする
+    var tp = t.closest('.ss-tpill');
+    if (tp) {
+      var card = tp.closest('.ss-card');
+      var newType = tp.getAttribute('data-type');
+      card.querySelectorAll('.ss-tpill').forEach(function (b) { b.classList.toggle('on', b === tp); });
+      card.setAttribute('data-type', newType);
+      var srow = card.querySelector('.ss-spanrow');
+      if (srow) {
+        srow.hidden = (newType !== 'retain');
+        if (newType === 'retain' && !srow.querySelector('.ss-span.on')) {
+          srow.querySelector('.ss-span').classList.add('on');
+        }
+      }
+      return;
+    }
+
+    var feel = t.closest('.ss-feel');
+    if (feel) {
+      var was = feel.classList.contains('on');
+      feel.parentNode.querySelectorAll('.ss-feel').forEach(function (b) { b.classList.remove('on'); });
+      if (!was) feel.classList.add('on');   // もう一度押すと選び直せる（未選択に戻す）
+      return;
+    }
   });
 
   var ERRORS = {
     invalid_date: '日付を選んでください',
     date_out_of_range: '書けるのは今日から1か月前までの日付です',
-    invalid_material: '教材名を入れてください',
+    invalid_subject: '教科をえらんでください',
+    invalid_type: '「覚える」「忘れない」のどちらかにしてください',
+    invalid_span: '短期か長期をえらんでください',
+    invalid_material: '「なにを・どこを」を100文字までで入れてください',
+    invalid_range: '範囲は100文字までです',
     invalid_minutes: '時間は0〜600分で入れてください',
+    invalid_memo: 'ひとことは500文字までです',
+    no_items: '教科のボタンをおして、やったことを書いてください',
+    too_many_items: '一度に書けるのは20件までです',
     already_checked: '先生が確認した記録は直せません',
     not_found: 'その記録は見つかりませんでした'
   };
 
   elForm.addEventListener('submit', function (e) {
     e.preventDefault();
-    if (f.date.value < minDay || f.date.value > today) {
+    clearErr();
+    if (elDate.value < minDay || elDate.value > today) {
       elMsg.textContent = ERRORS.date_out_of_range;
       return;
     }
-    elSave.disabled = true;
-    elMsg.textContent = '';
-    var body = {
-      study_date: f.date.value,
-      subject: f.subject.value,
-      material: f.material.value.trim(),
-      range_text: f.range.value.trim(),
-      minutes: f.minutes.value,
-      feeling: feeling(),
-      memo: f.memo.value.trim()
-    };
-    if (f.id.value) body.log_id = Number(f.id.value);
 
+    var cards = Array.prototype.slice.call(elForm.querySelectorAll('.ss-card'));
+    if (cards.length === 0) {
+      elMsg.textContent = ERRORS.no_items;
+      return;
+    }
+    var items = cards.map(readCard);
+    // 教材名の空欄はサーバーへ行く前にその場で知らせる（どのカードかを赤くする）
+    for (var i = 0; i < items.length; i++) {
+      if (!items[i].material) { markErr(cards[i], ERRORS.invalid_material); return; }
+    }
+
+    var body;
+    if (elLogId.value) {
+      body = items[0];                       // なおすときは1件だけ
+      body.log_id = Number(elLogId.value);
+      body.study_date = elDate.value;
+    } else {
+      body = { study_date: elDate.value, items: items };
+    }
+
+    elSave.disabled = true;
     fetch('/api/save_self_study.php', {
       method: 'POST',
       credentials: 'same-origin',
@@ -1198,7 +1418,9 @@ document.querySelectorAll('.today-q').forEach(function (el) {
       .then(function (d) {
         elSave.disabled = false;
         if (d && d.ok) { openForm(false); load(); return; }
-        elMsg.textContent = (d && ERRORS[d.error]) || 'うまく保存できませんでした';
+        // サーバーが何件目で落ちたかを返すので、そのカードだけを赤くする
+        var bad = (d && typeof d.index === 'number') ? cards[d.index] : null;
+        markErr(bad, (d && ERRORS[d.error]) || 'うまく保存できませんでした');
       })
       .catch(function () {
         elSave.disabled = false;
@@ -1214,16 +1436,25 @@ document.querySelectorAll('.today-q').forEach(function (el) {
     if (!it) return;
 
     if (btn.getAttribute('data-act') === 'edit') {
-      f.id.value = it.log_id;
-      f.date.value = it.study_date;
-      f.subject.value = it.subject;
-      f.material.value = it.material;
-      f.range.value = it.range_text || '';
-      f.minutes.value = it.minutes || '';
-      f.memo.value = it.memo || '';
-      elFeels.querySelectorAll('.ss-feel').forEach(function (b) {
-        b.classList.toggle('on', Number(b.getAttribute('data-v')) === it.feeling);
-      });
+      // なおすのは1件だけ＝カードを1枚出す編集モード（教科ボタンの2欄は隠れる）。
+      // 書きかけのカードは消えるので、あるときだけ確認する
+      if (!elForm.classList.contains('editing')
+          && elForm.querySelectorAll('.ss-cards .ss-card').length > 0
+          && !window.confirm('書きかけの入力を消して、この記録をなおしますか？')) return;
+      resetForm();
+      elLogId.value = it.log_id;
+      elDate.value = it.study_date;
+      elForm.classList.add('editing');
+      elEdit.innerHTML = cardHtml({
+        type: it.study_type || 'memorize',
+        span: it.retain_span || 'short',
+        subject: it.subject,
+        // 欄を1つにする前の記録は範囲が別列にあるので、つないで1欄に出す
+        material: (it.material || '') + (it.range_text ? ' ' + it.range_text : ''),
+        minutes: it.minutes || '',
+        feeling: it.feeling,
+        memo: it.memo || ''
+      }, true);
       elSave.textContent = 'なおした内容で保存する';
       elForm.classList.add('open');
       elOpen.textContent = '× 入力をやめる';

@@ -77,13 +77,12 @@ if ($setTeacher) {
 $stmt = $pdo->prepare('UPDATE self_study_logs SET ' . implode(', ', $sets) . ' WHERE log_id = :id');
 $stmt->execute($params);
 
+$cols = self_study_select_columns($pdo);
 $stmt = $pdo->prepare(
-    'SELECT sslog.log_id, sslog.study_date, sslog.subject, sslog.material, sslog.range_text,
-            sslog.minutes, sslog.feeling, sslog.memo, sslog.checked_at, sslog.teacher_comment,
-            t.teacher_name
+    "SELECT {$cols}
      FROM self_study_logs sslog
      LEFT JOIN teachers t ON t.teacher_id = sslog.teacher_id
-     WHERE sslog.log_id = :id'
+     WHERE sslog.log_id = :id"
 );
 $stmt->execute(['id' => $logId]);
 $row = $stmt->fetch();
