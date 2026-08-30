@@ -1494,6 +1494,236 @@ function buildBaneTable(p){
 }
 function genBaneTable(){ return buildBaneTable({L0:pick([4,5,10,12,25]),k:pick([2,2.5,4,5]),m:pick([20,40,60,80,100])}); }
 
+/* ── ばね：グラフを読む ──
+   横軸＝力の大きさ〔N〕（0〜2.0N、0.25Nごとの方眼）、縦軸＝のび または ばねの長さ。
+   グラフ問題は「方眼から読み取れること」が命なので、聞く点が必ず方眼の交点に
+   のるようにパラメータを選ぶ（1Nあたりのび k は偶数、自然長 L0 は整数、
+   聞く力 F は k×F が整数になるものだけ）。 */
+var BANE_G_K=[2,4,6];
+var BANE_G_L0=[4,6,8,10];
+function baneGraphF(k){
+  var out=[],i,F;
+  for(i=1;i<8;i++){ F=i*0.25; if(Math.abs(k*F-Math.round(k*F))<1e-9) out.push(F); }
+  return out;
+}
+function baneGraphSVG(o){
+  var W=360,H=262,gx0=50,gx1=344,gy0=30,gy1=216;
+  var s=svgOpen(W,H,'ばねのグラフ');
+  s+=figRect(0,0,W,H,FIG.shiro);
+  var i,j,x,y;
+  for(i=0;i<=o.xdiv;i++){
+    x=gx0+(gx1-gx0)*i/o.xdiv;
+    s+=figLine(x,gy0,x,gy1,FIG.grid,1);
+    if(i%o.xlabEvery===0) s+=figText(x,gy1+16,numStr(o.xmax*i/o.xdiv),FIG.sub,10.5);
+  }
+  for(j=0;j<=o.ydiv;j++){
+    y=gy1-(gy1-gy0)*j/o.ydiv;
+    s+=figLine(gx0,y,gx1,y,FIG.grid,1);
+    if(j%o.ylabEvery===0) s+=figText(gx0-7,y+4,numStr(o.ymax*j/o.ydiv),FIG.sub,10.5,'end');
+  }
+  s+=figLine(gx0,gy0-6,gx0,gy1,FIG.ink,1.8);
+  s+=figLine(gx0,gy1,gx1+6,gy1,FIG.ink,1.8);
+  s+=figText(6,gy0-12,o.ylab,FIG.ink,11,'start');
+  s+=figText((gx0+gx1)/2,H-6,o.xlab,FIG.ink,11);
+  function PX(F){ return gx0+(gx1-gx0)*F/o.xmax; }
+  function PY(v){ return gy1-(gy1-gy0)*v/o.ymax; }
+  /* 2本あるとき、上に来ている線の名前は線の上に、もう一方は下に置く */
+  var maxEnd=Math.max.apply(null,o.lines.map(function(l){return l.b+l.k*o.xmax;}));
+  o.lines.forEach(function(ln,idx){
+    var col=idx?FIG.ai:FIG.shu, x2=PX(o.xmax), y2=PY(ln.b+ln.k*o.xmax), t;
+    s+=figLine(PX(0),PY(ln.b),x2,y2,col,2.4);
+    for(t=0;t<=o.xdiv;t+=o.xlabEvery){
+      var F=o.xmax*t/o.xdiv;
+      s+=figCircle(PX(F),PY(ln.b+ln.k*F),2.8,col);
+    }
+    if(ln.name) s+=figHalo(x2-8,y2+((ln.b+ln.k*o.xmax)>=maxEnd?-9:18),ln.name,col,13,'end');
+  });
+  return s+'</svg>';
+}
+function baneGraphConf(p){
+  var base={xmax:2,xdiv:8,xlabEvery:2,xlab:'力の大きさ〔N〕'};
+  if(p.t==='shizen'||p.t==='katamuki'||p.t==='length'||p.t==='outlen'||p.t==='nobilen'||p.t==='forcelen'){
+    base.ymax=p.L0+2*p.k; base.ydiv=base.ymax; base.ylabEvery=2;
+    base.ylab='ばねの長さ〔cm〕'; base.lines=[{k:p.k,b:p.L0}];
+  }else if(p.t==='twolen'){
+    /* 自然長がちがう2本を「長さ」でならべる。自然長が長いほうの傾きを小さくして、
+       切片（自然長）と傾き（のびやすさ）が別ものだと分かる形にする */
+    base.ymax=Math.max(p.L0+2*p.k, p.L0b+2*p.kb); base.ydiv=base.ymax; base.ylabEvery=2;
+    base.ylab='ばねの長さ〔cm〕';
+    base.lines=[{k:p.k,b:p.L0,name:'A'},{k:p.kb,b:p.L0b,name:'B'}];
+  }else if(p.t.indexOf('two')===0){
+    base.ymax=2*Math.max(p.k,p.kb); base.ydiv=base.ymax; base.ylabEvery=2;
+    base.ylab='ばねののび〔cm〕'; base.lines=[{k:p.k,b:0,name:'A'},{k:p.kb,b:0,name:'B'}];
+  }else{
+    base.ymax=2*p.k; base.ydiv=base.ymax; base.ylabEvery=(2*p.k>6)?2:1;
+    base.ylab='ばねののび〔cm〕'; base.lines=[{k:p.k,b:0}];
+  }
+  return base;
+}
+/* 2本のばねで「どちらの直線も方眼の交点にのる」力の大きさ */
+function baneGraphF2(k,kb){
+  return baneGraphF(k).filter(function(F){ return baneGraphF(kb).indexOf(F)>=0; });
+}
+var TWO_HEAD='グラフは、2本のばねA・Bに加えた力の大きさとばねののびの関係を表したものである。';
+function buildBaneGraph(p){
+  var tbl=baneGraphSVG(baneGraphConf(p)), k=p.k, a, q, exp, cat='k_bane';
+  var head='グラフは、あるばねに加えた力の大きさと';
+  if(p.t==='nobi'){
+    var nobi=k*p.F;
+    a=assemble(nobi,[p.F, k, nobi*2, nobi/2, k/p.F],function(n){return numStr(n)+'cm';});
+    q=head+'ばねののびの関係を表したものである。このばねに '+numStr(p.F)+'N の力を加えたとき、ばねののびは何cmか。';
+    exp='横軸の '+numStr(p.F)+'N から真上にたどり、直線とぶつかった点から真横に読むと '+numStr(nobi)+'cm。グラフが原点を通る直線なので、のびは力に比例している（フックの法則）。1Nで '+numStr(k)+'cm のびるので '+numStr(k)+'×'+numStr(p.F)+'＝'+numStr(nobi)+'cm と計算してもよい。';
+  }else if(p.t==='force'){
+    var nb=k*p.F;
+    a=assemble(p.F,[nb, k, p.F*2, p.F/2, nb*k],function(n){return numStr(n)+'N';});
+    q=head+'ばねののびの関係を表したものである。このばねののびを '+numStr(nb)+'cm にするには、何Nの力を加えればよいか。';
+    exp='縦軸の '+numStr(nb)+'cm から真横にたどり、直線とぶつかった点から真下に読むと '+numStr(p.F)+'N。グラフから1Nで '+numStr(k)+'cm のびると分かるので、'+numStr(nb)+'÷'+numStr(k)+'＝'+numStr(p.F)+'N と計算してもよい。';
+  }else if(p.t==='length'){
+    var L=p.L0+k*p.F;
+    a=assemble(L,[k*p.F, p.L0, p.L0+k, L+k, p.L0+2*k],function(n){return numStr(n)+'cm';});
+    q=head+'ばねの長さの関係を表したものである。このばねに '+numStr(p.F)+'N の力を加えたとき、ばねの長さは何cmか。';
+    exp='横軸の '+numStr(p.F)+'N から真上にたどり、直線とぶつかった点から真横に読むと '+numStr(L)+'cm。自然長 '+numStr(p.L0)+'cm ＋ のび '+numStr(k)+'×'+numStr(p.F)+'＝'+numStr(k*p.F)+'cm と計算してもよい。「のび」の '+numStr(k*p.F)+'cm と答えないこと。';
+  }else if(p.t==='shizen'){
+    cat='c_bane';
+    a=assemble(p.L0,[p.L0+k, p.L0+2*k, k, p.L0/2, 2*k],function(n){return numStr(n)+'cm';});
+    q=head+'ばねの長さの関係を表したものである。何もつるさないとき（力が0Nのとき）のばねの長さ（自然長）は何cmか。';
+    exp='グラフが縦軸と交わっている点、つまり力が0Nのときの値を読む。'+numStr(p.L0)+'cm。このグラフが原点を通らないのは、力が0でもばねにはもとの長さ（自然長）があるから。縦軸が「のび」ではなく「長さ」であることに気をつける。';
+  }else if(p.t==='katamuki'){
+    cat='c_bane';
+    a=assemble(k,[p.L0, p.L0+k, 2*k, p.L0+2*k, k/2],function(n){return numStr(n)+'cm';});
+    q=head+'ばねの長さの関係を表したものである。このばねは1Nの力で何cmのびるか。';
+    exp='1Nのときのばねの長さ '+numStr(p.L0+k)+'cm から、0Nのときの長さ（自然長）'+numStr(p.L0)+'cm を引く。'+numStr(p.L0+k)+'−'+numStr(p.L0)+'＝'+numStr(k)+'cm。グラフの傾きが「1Nあたりのび」を表している。長さの '+numStr(p.L0+k)+'cm をそのまま答えないこと。';
+  }else if(p.t==='twodiff'){
+    var da=k*p.F, db=p.kb*p.F, d=Math.abs(da-db);
+    a=assemble(d,[da, db, da+db, Math.abs(k-p.kb), d*2],function(n){return numStr(n)+'cm';});
+    q=TWO_HEAD+'ばねA・Bのそれぞれに '+numStr(p.F)+'N の力を加えたとき、ばねAとばねBののびの差は何cmか。';
+    exp='横軸の '+numStr(p.F)+'N から真上にたどり、2本の直線それぞれを読む。ばねA '+numStr(da)+'cm、ばねB '+numStr(db)+'cm。大きいほうから小さいほうを引いて '+numStr(d)+'cm。同じ力のところで2本の直線に縦にはさまれた長さが、そのまま「のびの差」になる。';
+  }else if(p.t==='twoab'){
+    var na=k*p.F, nb2=p.kb*p.F;
+    a=assemble(nb2,[na, na+nb2, p.kb, Math.abs(na-nb2), nb2*2],function(n){return numStr(n)+'cm';});
+    q=TWO_HEAD+'ばねAに力を加えたところ '+numStr(na)+'cm のびた。このとき、同じ大きさの力をばねBに加えると、ばねBは何cmのびるか。';
+    exp='まず縦軸の '+numStr(na)+'cm から真横にたどり、ばねAの直線とぶつかった点から真下に読むと '+numStr(p.F)+'N。次にその '+numStr(p.F)+'N のところでばねBの直線を真上にたどり、真横に読むと '+numStr(nb2)+'cm。「のび→力→もう一方ののび」の二段階で読む。';
+  }else if(p.t==='twoforce'){
+    var kw=(p.w==='A')?k:p.kb, ko=(p.w==='A')?p.kb:k, nw=kw*p.F;
+    a=assemble(p.F,[nw, kw, p.F*2, p.F/2, ko*p.F],function(n){return numStr(n)+'N';});
+    q=TWO_HEAD+'ばね'+p.w+' ののびを '+numStr(nw)+'cm にするには、何Nの力を加えればよいか。';
+    exp='縦軸の '+numStr(nw)+'cm から真横にたどり、「ばね'+p.w+'」の直線とぶつかった点から真下に読むと '+numStr(p.F)+'N。2本あるので、どちらの直線を読むかをまちがえないこと（もう一方で読むと '+numStr(nw/ko)+'N になってしまう）。';
+  }else if(p.t==='nobilen'){
+    /* 縦軸が「長さ」のグラフで「のび」を聞く。読み取った長さをそのまま答えるのが最多の誤答 */
+    var nl=k*p.F, Lnl=p.L0+nl;
+    a=assemble(nl,[Lnl, p.L0, k, p.L0+k, nl*2],function(n){return numStr(n)+'cm';});
+    q=head+'ばねの長さの関係を表したものである。このばねに '+numStr(p.F)+'N の力を加えたとき、ばねの「のび」は何cmか。';
+    exp='縦軸が「のび」ではなく「ばねの長さ」であることに注意。'+numStr(p.F)+'N のときの長さはグラフから '+numStr(Lnl)+'cm と読めるが、これは自然長をふくんだ長さ。のび＝長さ−自然長＝'+numStr(Lnl)+'−'+numStr(p.L0)+'＝'+numStr(nl)+'cm。グラフから読んだ '+numStr(Lnl)+'cm をそのまま答えるのが、いちばん多い間違い。';
+  }else if(p.t==='lennobi'){
+    /* 縦軸が「のび」のグラフで「長さ」を聞く。自然長は問題文で与える（グラフには出ない） */
+    var ln1=k*p.F, Lln=p.L0+ln1;
+    a=assemble(Lln,[ln1, p.L0, p.L0+k, p.L0+2*k, ln1*2],function(n){return numStr(n)+'cm';});
+    q=head+'ばねののびの関係を表したものである。このばねは、何もつるさないときの長さが '+numStr(p.L0)+'cm である。'+numStr(p.F)+'N の力を加えたとき、ばねの「長さ」は何cmか。';
+    exp='グラフの縦軸は「のび」なので、読み取った '+numStr(ln1)+'cm には自然長がふくまれていない。ばねの長さ＝自然長＋のび＝'+numStr(p.L0)+'＋'+numStr(ln1)+'＝'+numStr(Lln)+'cm。グラフから読んだ '+numStr(ln1)+'cm をそのまま答えないこと。「のびのグラフ→長さを聞く」「長さのグラフ→のびを聞く」のどちらも出るので、まず縦軸を確認する。';
+  }else if(p.t==='forcelen'){
+    /* 縦軸が「長さ」のグラフで、「のび」を指定して力を聞く。縦軸でのびの値を読むと外れる */
+    var fn=k*p.F, Lfn=p.L0+fn;
+    a=assemble(p.F,[fn, Lfn, k, p.F*2, p.F/2],function(n){return numStr(n)+'N';});
+    q=head+'ばねの長さの関係を表したものである。このばねの「のび」を '+numStr(fn)+'cm にするには、何Nの力を加えればよいか。';
+    exp='縦軸は「長さ」なので、'+numStr(fn)+'cm のところを読んではいけない。のびが '+numStr(fn)+'cm ということは、ばねの長さは 自然長 '+numStr(p.L0)+'cm ＋ '+numStr(fn)+'cm ＝ '+numStr(Lfn)+'cm。縦軸の '+numStr(Lfn)+'cm から真横にたどり、直線とぶつかった点から真下に読むと '+numStr(p.F)+'N。'+((fn>p.L0)?('縦軸で '+numStr(fn)+'cm を読んでしまうと '+numStr((fn-p.L0)/k)+'N になってしまう。'):'のびの値をそのまま縦軸で読まないこと。');
+  }else if(p.t==='outf'){
+    /* グラフの範囲（0〜2.0N）の外を聞く。グラフから1Nあたりのびを読み取って計算させる型 */
+    var of1=k*p.F;
+    a=assemble(of1,[k, p.F, k*2, of1/2, k+p.F],function(n){return numStr(n)+'cm';});
+    q=head+'ばねののびの関係を表したものである。グラフにはかかれていないが、このばねに '+numStr(p.F)+'N の力を加えたとき、ばねののびは何cmか。（このばねは、グラフの範囲をこえても比例の関係がなりたつものとする）';
+    exp='グラフから「1Nの力で '+numStr(k)+'cm のびる」と読み取る（1Nのところの値。2Nのところの値の半分でもよい）。のびは力に比例するので '+numStr(k)+'×'+numStr(p.F)+'＝'+numStr(of1)+'cm。グラフの線を目分量でのばして読むのではなく、読み取った「1Nあたりのび」を使って計算する。';
+  }else if(p.t==='outmass'){
+    var mF=p.m/100, om=k*mF;
+    a=assemble(om,[k, mF, om*2, om/2, k*2],function(n){return numStr(n)+'cm';});
+    q=head+'ばねののびの関係を表したものである。このばねに '+numStr(p.m)+'g のおもりをつるしたとき、ばねののびは何cmか。（100gの物体にはたらく重力の大きさを1Nとする。グラフの範囲をこえても比例の関係がなりたつものとする）';
+    exp='まず質量を力になおす。'+numStr(p.m)+'÷100＝'+numStr(mF)+'N。グラフから「1Nで '+numStr(k)+'cm のびる」と読み取れるので、'+numStr(k)+'×'+numStr(mF)+'＝'+numStr(om)+'cm。グラフの横軸は「力〔N〕」なので、'+numStr(p.m)+'g をそのまま横軸で読まないこと。';
+  }else if(p.t==='outlen'){
+    var Lt=p.L0+k*p.F, need=k*p.F;
+    a=assemble(p.F,[Lt/k, need, k, p.F*2, p.L0/k],function(n){return numStr(n)+'N';});
+    q=head+'ばねの長さの関係を表したものである。グラフにはかかれていないが、このばねの長さを '+numStr(Lt)+'cm にするには、何Nの力を加えればよいか。（グラフの範囲をこえても比例の関係がなりたつものとする）';
+    exp='グラフから、自然長（0Nのときの長さ）が '+numStr(p.L0)+'cm、1Nで '+numStr(k)+'cm のびる、と2つ読み取る。必要な「のび」は '+numStr(Lt)+'−'+numStr(p.L0)+'＝'+numStr(need)+'cm。力＝'+numStr(need)+'÷'+numStr(k)+'＝'+numStr(p.F)+'N。長さの '+numStr(Lt)+'cm をそのまま '+numStr(k)+' で割らないこと（自然長を引くのが先）。';
+  }else if(p.t==='twoout'){
+    var oa=k*p.F, ob=p.kb*p.F, od=Math.abs(oa-ob);
+    a=assemble(od,[oa, ob, oa+ob, Math.abs(k-p.kb), od*2],function(n){return numStr(n)+'cm';});
+    q=TWO_HEAD+'グラフにはかかれていないが、ばねA・Bのそれぞれに '+numStr(p.F)+'N の力を加えたとき、ばねAとばねBののびの差は何cmか。（グラフの範囲をこえても比例の関係がなりたつものとする）';
+    exp='グラフから1Nあたりのびを読み取ると、ばねA '+numStr(k)+'cm、ばねB '+numStr(p.kb)+'cm。'+numStr(p.F)+'N のときは ばねA '+numStr(oa)+'cm、ばねB '+numStr(ob)+'cm なので、差は '+numStr(od)+'cm。1Nあたりの差 '+numStr(Math.abs(k-p.kb))+'cm に '+numStr(p.F)+' をかけても同じ答えになる。';
+  }else if(p.t==='twolen'){
+    cat='c_bane';
+    var lg=(p.L0>p.L0b)?'A':'B', nba=(p.k>p.kb)?'A':'B';
+    a={c:['自然長が長いのはA、のびやすいのはB','自然長が長いのはB、のびやすいのはA',
+          '自然長が長いのはA、のびやすいのはA','自然長が長いのはB、のびやすいのはB'],
+       a:'自然長が長いのは'+lg+'、のびやすいのは'+nba};
+    q='グラフは、2本のばねA・Bに加えた力の大きさとばねの長さの関係を表したものである。何もつるさないときの長さ（自然長）が長いのはどちらか。また、同じ大きさの力を加えたときによくのびる（のびやすい）のはどちらか。';
+    exp='自然長はグラフが縦軸と交わる点（0Nのときの長さ）で、ばね'+lg+'のほうが上から出発しているので自然長が長い。のびやすさはグラフの傾きで、傾きが急なばね'+nba+'のほうが同じ力でよくのびる（ばねA 1Nで '+numStr(p.k)+'cm、ばねB 1Nで '+numStr(p.kb)+'cm）。切片（自然長）と傾き（のびやすさ）は別のことがらなので、グラフが上にあるほうがのびやすい、と決めつけないこと。';
+  }else{
+    cat='c_bane';
+    var big=(p.k>p.kb)?'A':'B', sml=(p.k>p.kb)?'B':'A';
+    var bk=Math.max(p.k,p.kb), sk=Math.min(p.k,p.kb);
+    q=TWO_HEAD+'同じ大きさの力を加えたとき のび が大きい（のびやすい）のはどちらのばねか。また、そのばねは1Nの力で何cmのびるか。';
+    /* bk-sk が sk と同じ値になる組（例 4と2）があるので、重複を落としてから6つに切る */
+    var cc=[], seen={};
+    [[big,bk],[sml,sk],[big,sk],[sml,bk],[big,bk+sk],[sml,bk+sk],[big,bk-sk],[sml,bk-sk]].forEach(function(v){
+      var t='ばね'+v[0]+'・'+numStr(v[1])+'cm';
+      if(!seen[t] && cc.length<6){ seen[t]=1; cc.push(t); }
+    });
+    a={c:cc, a:'ばね'+big+'・'+numStr(bk)+'cm'};
+    exp='同じ力のところで縦にくらべると、傾きが大きいばね'+big+'のほうがのびが大きい。ばね'+big+'は1Nのところで '+numStr(bk)+'cm のびているので、1Nあたり '+numStr(bk)+'cm。グラフの傾きが大きいばねほど「のびやすい（やわらかい）ばね」。';
+  }
+  return {cat:cat,q:q,tbl:tbl,c:a.c,a:a.a,exp:exp,
+    params:{gen:'baneGraph',t:p.t,k:p.k,L0:p.L0,F:p.F,kb:p.kb,L0b:p.L0b,w:p.w,m:p.m}};
+}
+function genBaneGraphNobi(){ var k=pick(BANE_G_K); return buildBaneGraph({t:'nobi',k:k,F:pick(baneGraphF(k))}); }
+function genBaneGraphForce(){ var k=pick(BANE_G_K); return buildBaneGraph({t:'force',k:k,F:pick(baneGraphF(k))}); }
+function genBaneGraphLength(){ var k=pick(BANE_G_K); return buildBaneGraph({t:'length',k:k,L0:pick(BANE_G_L0),F:pick(baneGraphF(k))}); }
+function genBaneGraphShizen(){ return buildBaneGraph({t:'shizen',k:pick(BANE_G_K),L0:pick(BANE_G_L0)}); }
+function genBaneGraphKatamuki(){ return buildBaneGraph({t:'katamuki',k:pick(BANE_G_K),L0:pick(BANE_G_L0)}); }
+function baneGraphPair(){
+  var k=pick(BANE_G_K), rest=BANE_G_K.filter(function(v){return v!==k;});
+  return {k:k, kb:pick(rest)};
+}
+function genBaneGraphTwo(){
+  var pr=baneGraphPair();
+  return buildBaneGraph({t:'two',k:pr.k,kb:pr.kb});
+}
+function genBaneGraphTwoDiff(){
+  var pr=baneGraphPair();
+  return buildBaneGraph({t:'twodiff',k:pr.k,kb:pr.kb,F:pick(baneGraphF2(pr.k,pr.kb))});
+}
+function genBaneGraphTwoAB(){
+  var pr=baneGraphPair();
+  return buildBaneGraph({t:'twoab',k:pr.k,kb:pr.kb,F:pick(baneGraphF2(pr.k,pr.kb))});
+}
+function genBaneGraphTwoForce(){
+  var pr=baneGraphPair();
+  return buildBaneGraph({t:'twoforce',k:pr.k,kb:pr.kb,F:pick(baneGraphF2(pr.k,pr.kb)),w:pick(['A','B'])});
+}
+/* 自然長が長いほうを「のびにくい」側にした組 [長い自然長, その傾き, 短い自然長, その傾き]。
+   切片（自然長）と傾き（のびやすさ）を取りちがえていると必ず落とす形 */
+var BANE_G_TWOLEN=[[10,2,4,6],[12,2,6,4],[10,2,6,6],[8,2,4,6],[12,4,6,6],[10,4,4,6]];
+function genBaneGraphTwoLen(){
+  var t=pick(BANE_G_TWOLEN);
+  return (ri(0,1)===1) ? buildBaneGraph({t:'twolen',k:t[3],L0:t[2],kb:t[1],L0b:t[0]})
+                       : buildBaneGraph({t:'twolen',k:t[1],L0:t[0],kb:t[3],L0b:t[2]});
+}
+
+/* グラフの範囲（横軸は2.0Nまで）の外を聞く型で使う力・質量。
+   1Nあたりのびをグラフから読み取ってから計算する練習なので、軸の外の値だけを使う */
+var BANE_G_OUTF=[2.5,3,4,5];
+var BANE_G_OUTM=[250,300,400,500];
+function genBaneGraphOutF(){ return buildBaneGraph({t:'outf',k:pick(BANE_G_K),F:pick(BANE_G_OUTF)}); }
+function genBaneGraphOutMass(){ return buildBaneGraph({t:'outmass',k:pick(BANE_G_K),m:pick(BANE_G_OUTM)}); }
+function genBaneGraphOutLen(){ return buildBaneGraph({t:'outlen',k:pick(BANE_G_K),L0:pick(BANE_G_L0),F:pick(BANE_G_OUTF)}); }
+function genBaneGraphTwoOut(){
+  var pr=baneGraphPair();
+  return buildBaneGraph({t:'twoout',k:pr.k,kb:pr.kb,F:pick(BANE_G_OUTF)});
+}
+
+/* 「のび」と「全体の長さ」の取りちがえをねらう型。縦軸と聞かれているものを
+   わざとずらしてあるので、必ず反対のほう（長さ／のび）を選択肢に入れておく */
+function genBaneGraphNobiFromLen(){ var k=pick(BANE_G_K); return buildBaneGraph({t:'nobilen',k:k,L0:pick(BANE_G_L0),F:pick(baneGraphF(k))}); }
+function genBaneGraphLenFromNobi(){ var k=pick(BANE_G_K); return buildBaneGraph({t:'lennobi',k:k,L0:pick(BANE_G_L0),F:pick(baneGraphF(k))}); }
+function genBaneGraphForceFromNobi(){ var k=pick(BANE_G_K); return buildBaneGraph({t:'forcelen',k:k,L0:pick(BANE_G_L0),F:pick(baneGraphF(k))}); }
+
 /* ========== 重さと質量の計算 ========== */
 function buildJuryokuN(p){
   var N=p.m/100;
@@ -1906,6 +2136,89 @@ function genKagamiKaku(){
   return buildKagamiKaku({th:pick([25,30,35,40,50,55,60]),ask:pick(['in','ref']),perm:ri(0,KAKU_PERM[4].length-1)});
 }
 
+/* ========== 半円形ガラス（どちらへ屈折するか・直進するか）==========
+   半円の「中心O」に向かう光は曲面に垂直に当たる＝曲面では屈折しない、が要点。
+   dir 0 … 平らな面の中心Oへ空気中から入射。平面で法線に近づく向きに屈折し、
+           そのあとは曲面から直進して出ていく。
+   dir 1 … 曲面側から中心Oへ入射。曲面は直進、平面（ガラス→空気）で
+           法線から遠ざかる向きに屈折して出ていく。
+   dir 2 … 同じく曲面側からだが入射角が臨界角（ガラスは約42°）より大きく、
+           平面で全反射して空気中へ出られない。
+   候補（ア〜カ）の散らし方は平らな境界面の図と同じ kussetsuCands を使い、
+   見た目と難易度をそろえる。 */
+function halfDiscPoly(px,by,r){
+  var pts=[],i,n=40,p;
+  for(i=0;i<=n;i++){ p=figPolar(px,by,-90+180*i/n,r,false); pts.push(n1(p.x)+','+n1(p.y)); }
+  return '<polygon points="'+pts.join(' ')+'" fill="'+FIG.lens+'" stroke="'+FIG.mizuD+'" stroke-width="1.8"/>';
+}
+function hanenSVG(dir,th,cands,rev){
+  var W=360,H=300,px=180,r=72;
+  var fromUp=(dir===0);
+  var by=fromUp?124:150, R=98, LR=R+18, Rin=104;
+  var s=svgOpen(W,H,'半円形ガラスに光を当てた図');
+  s+=figRect(0,0,W,H,FIG.shiro);
+  s+=halfDiscPoly(px,by,r);
+  s+=figLine(px,30,px,by+(fromUp?106:92),FIG.sub,1.3,'5 4');
+  s+=figText(px-34,20,'法線',FIG.sub,11,'end');
+  s+=figText(18,30,'空気',FIG.sub,12,'start');
+  s+=figText(18,H-14,'ガラス',FIG.mizuD,12,'start');
+  /* 候補の光（Oから放射状）。半円の中心から出る光は曲面に垂直に当たるので、
+     弧をこえてもそのまま直進する＝弧の外まで引いてよい。
+     記号は弧のすぐ外に置くが、となりと近すぎるときだけ外へ逃がす
+     （kussetsuCands には 8° しか離れていない組があり、そのままだと重なる）。 */
+  var i,c,p,q,pt,prev=null,add;
+  for(i=0;i<cands.length;i++){
+    c=cands[i];
+    p=figPolar(px,by,c.ang,R,c.up);
+    for(add=0;;add+=17){
+      q=figPolar(px,by,c.ang,LR+add,c.up);
+      pt={x:q.x,y:q.y+(c.up?-2:11)};
+      if(!prev) break;
+      if(Math.sqrt((pt.x-prev.x)*(pt.x-prev.x)+(pt.y-prev.y)*(pt.y-prev.y))>=22) break;
+      /* 逃がすと図からはみ出すなら、そのままの位置であきらめる */
+      var n2=figPolar(px,by,c.ang,LR+add+17,c.up), ny=n2.y+(c.up?-2:11);
+      if(n2.x<14||n2.x>W-14||ny<18||ny>H-10||add>=51) break;
+    }
+    s+=figArrow(px,by,p.x,p.y,FIG.ai,1.8,8);
+    s+=figHalo(pt.x,pt.y,MARU_FIG[rev?cands.length-1-i:i],FIG.ai,13);
+    prev=pt;
+  }
+  /* 入射光（太い朱）。曲面側から入れるときは弧の外から引く＝曲面では曲がらないことが図で分かる */
+  var ip=figPolar(px,by,-th,Rin,fromUp);
+  s+=figArrow(ip.x,ip.y,px,by,FIG.shu,2.8,11);
+  s+=figHalo(ip.x-8,ip.y+(fromUp?-4:14),'入射光',FIG.shu,12,'end');
+  s+=figArc(px,by,30,-th,0,fromUp,FIG.shu);
+  s+=figHalo(px-11,by+(fromUp?15:-8),'O',FIG.ink,12,'end');
+  s+=figCircle(px,by,3,FIG.ink);
+  return s+'</svg>';
+}
+function buildHanenGlass(p){
+  var cands=kussetsuCands(p.dir,p.th,p.pat), i, ans='ア';
+  /* 記号を左まわり／右まわりで入れかえる。kussetsuCands は正解の位置が
+     ア以外にかたよる並びなので、逆順もまぜてアも正解になるようにする。 */
+  for(i=0;i<cands.length;i++) if(cands[i].ok) ans=MARU_FIG[p.rev?cands.length-1-i:i];
+  var q,exp,cat;
+  if(p.dir===0){
+    cat='h_kussetsu';
+    q='図のように、半円形ガラスの平らな面の中心Oに向かって、空気中から入射角 '+p.th+'° で光を当てた。Oを通ったあと、ガラスの中を進んで曲面から空気中へ出ていくまでの光の道すじとして正しいものを、図のア〜カから選べ。';
+    exp='まず平らな面（空気→ガラス）で、法線に近づく向きに屈折する（入射角＞屈折角）。そのあとの光は半円の中心Oから出た光なので、曲面には垂直に当たる。垂直に当たる光は屈折しないので、曲面ではそのまま直進して空気中へ出ていく。だから「Oで少しだけ法線側へ曲がって、あとはまっすぐ」が正しい道すじ。';
+  }else if(p.dir===1){
+    cat='h_kussetsu';
+    q='図のように、半円形ガラスの曲面側から、半円の中心Oに向かって光を当てた（平らな面での入射角は '+p.th+'°）。Oに達したあとの光の進み方として正しいものを、図のア〜カから選べ。';
+    exp='中心Oに向かう光は曲面に垂直に当たるので、曲面では屈折せずに直進してOに達する（ここで曲がると思わないこと）。Oでは「ガラス→空気」なので、平らな面で法線から遠ざかる向きに屈折して空気中へ出ていく（入射角＜屈折角）。';
+  }else{
+    cat='h_zenhansha';
+    q='図のように、半円形ガラスの曲面側から、半円の中心Oに向かって光を当てた（平らな面での入射角は '+p.th+'°）。このときの光の進み方として正しいものを、図のア〜カから選べ。';
+    exp='中心Oに向かう光は曲面に垂直に当たるので、屈折せずに直進してOに達する。ガラスから空気へ出ようとする光は、入射角が約42°より大きくなると空気中へ出られず、すべて平らな面で反射する。これが全反射で、反射角は入射角と等しく '+p.th+'° になる。';
+  }
+  return {cat:cat,q:q,tbl:hanenSVG(p.dir,p.th,cands,p.rev),
+    c:MARU_FIG.slice(),a:ans,exp:exp,
+    params:{gen:'hanenGlass',dir:p.dir,th:p.th,pat:p.pat,rev:p.rev}};
+}
+function genHanenIn(){  return buildHanenGlass({dir:0,th:pick([40,45,50,55]),pat:ri(0,2),rev:ri(0,1)}); }
+function genHanenOut(){ return buildHanenGlass({dir:1,th:pick([20,25,30,35]),pat:ri(0,2),rev:ri(0,1)}); }
+function genHanenZen(){ return buildHanenGlass({dir:2,th:pick([50,55,60]),pat:ri(0,2),rev:ri(0,1)}); }
+
 /* ========== 凸レンズ：光の道すじ（図からえらぶ）========== */
 function lensMichiCands(v,f,h,pat){
   var mm;
@@ -2036,15 +2349,21 @@ function genLensHankakushi(){
 var GENERATORS={
   h_hansha:[genHanshaMirror, genHanshaSum, genKagamiKaku],
   h_kagami:[genKagamiZenshin, genKagamiShitan],
-  h_kussetsu:[genKussetsuIn, genKussetsuOut, genKussetsuGlass, genKakuKigouAngle, genKakuKigouKussetsu],
-  h_zenhansha:[genZenhanshaMichi],
+  h_kussetsu:[genKussetsuIn, genKussetsuOut, genKussetsuGlass, genKakuKigouAngle, genKakuKigouKussetsu,
+              genHanenIn, genHanenOut],
+  h_zenhansha:[genZenhanshaMichi, genHanenZen],
+  c_bane:[genBaneGraphShizen, genBaneGraphKatamuki, genBaneGraphTwo, genBaneGraphTwoLen],
   l_seishitsu:[genLensHankakushi],
   l_michisuji:[genLensMichiPara, genLensMichiFocus],
   l_ichi:[genLensZouKind],
   k_oto:[genOtoSpeed, genOtoDist, genOtoTime, genOtoEcho, genOtoEchoSpeed,
          genOtoHzCount, genOtoHzPeriod, genOtoHzFrac, genOtoWaveHz, genOtoWavePeriod, genOtoWaveCompare,
          genOtoKaitei, genOtoKaiteiTime],
-  k_bane:[genBaneNobi, genBaneForce, genBaneMass, genBaneLength, genBaneMassForLen, genBaneTable],
+  k_bane:[genBaneNobi, genBaneForce, genBaneMass, genBaneLength, genBaneMassForLen, genBaneTable,
+          genBaneGraphNobi, genBaneGraphForce, genBaneGraphLength,
+          genBaneGraphTwoDiff, genBaneGraphTwoAB, genBaneGraphTwoForce,
+          genBaneGraphOutF, genBaneGraphOutMass, genBaneGraphOutLen, genBaneGraphTwoOut,
+          genBaneGraphNobiFromLen, genBaneGraphLenFromNobi, genBaneGraphForceFromNobi],
   k_juryoku:[genJuryokuN, genMassFromN, genMoonSpring, genMoonBalance],
   k_atsu:[genAtsuPa, genAtsuForce, genAtsuArea, genAtsuBlockCm, genAtsuBlockFace],
   k_lens:[genLensHeight, genLensFocusSame, genLensSameDist, genLensFocusGrid,
@@ -2059,11 +2378,11 @@ var REBUILDERS={
   otoHzCount:buildOtoHzCount, otoHzPeriod:buildOtoHzPeriod, otoHzFrac:buildOtoHzFrac,
   otoKaitei:buildOtoKaitei, otoKaiteiTime:buildOtoKaiteiTime,
   kussetsuMichi:buildKussetsuMichi, kussetsuGlass:buildKussetsuGlass,
-  kakuKigou:buildKakuKigou, kagamiKaku:buildKagamiKaku,
+  kakuKigou:buildKakuKigou, kagamiKaku:buildKagamiKaku, hanenGlass:buildHanenGlass,
   lensMichisuji:buildLensMichisuji, lensZouKind:buildLensZouKind,
   lensZouIchi:buildLensZouIchi, lensZouBai:buildLensZouBai, lensHankakushi:buildLensHankakushi,
   otoWaveHz:buildOtoWaveHz, otoWavePeriod:buildOtoWavePeriod, otoWaveCompare:buildOtoWaveCompare,
-  baneNobi:buildBaneNobi, baneForce:buildBaneForce, baneMass:buildBaneMass,
+  baneNobi:buildBaneNobi, baneForce:buildBaneForce, baneMass:buildBaneMass, baneGraph:buildBaneGraph,
   baneLength:buildBaneLength, baneMassForLen:buildBaneMassForLen, baneTable:buildBaneTable,
   juryokuN:buildJuryokuN, massFromN:buildMassFromN, moonSpring:buildMoonSpring, moonBalance:buildMoonBalance,
   atsuPa:buildAtsuPa, atsuForce:buildAtsuForce, atsuArea:buildAtsuArea,
