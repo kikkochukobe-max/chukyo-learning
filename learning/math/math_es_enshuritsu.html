@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#2C5F8A">
+<title>円周率チャレンジ｜π 何桁まで言える？｜中京個別指導学院</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F7FA; --grid:#E5EAF1; --panel:#FFFFFF; --line:#D8DFE8;
+  --ink:#17202B; --sub:#6C7A89; --mute:#A3AEBB;
+  --blue:#2C5F8A; --blue-lt:#E9F1F8; --teal:#0E7C66; --red:#C73E2E; --gold:#C9A227;
+  /* 見出しも数字も全部まるゴシック（等幅は使わない）。
+     数字が並ぶところは font-variant-numeric:tabular-nums で幅を揃える */
+  --font:'Zen Maru Gothic',system-ui,-apple-system,'Hiragino Maru Gothic ProN','Yu Gothic',sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;color:var(--ink);font-family:var(--font);font-variant-numeric:tabular-nums;
+  background-color:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;
+  display:flex;flex-direction:column;
+  -webkit-text-size-adjust:100%;
+}
+button{font-family:inherit;color:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+@media print{.divp-header{display:none!important}}
+
+#app{flex:1;display:flex;flex-direction:column;min-height:0;width:100%;max-width:720px;margin:0 auto;padding:10px 12px 14px}
+.screen{display:none;flex:1;min-height:0;flex-direction:column}
+.screen.on{display:flex}
+
+/* ---------- 共通パーツ ---------- */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px}
+.eyebrow{font-size:11px;letter-spacing:.18em;color:var(--blue);font-weight:500}
+.btn{
+  display:block;width:100%;padding:15px 18px;border:1px solid var(--blue);border-radius:5px;
+  background:var(--blue);color:#fff;font-size:17px;font-weight:700;letter-spacing:.04em;cursor:pointer;
+  transition:transform .06s ease,filter .12s ease;
+}
+.btn:active{transform:translateY(1px);filter:brightness(1.08)}
+.btn.ghost{background:var(--panel);color:var(--blue)}
+
+/* ---------- スタート画面 ---------- */
+#scr-start{justify-content:center;gap:14px;padding:6px 0 10px}
+.hero{text-align:center;padding:26px 16px 24px}
+.hero .pi{font-size:clamp(58px,20vw,92px);line-height:1;color:var(--blue);font-weight:500}
+.hero h1{margin:10px 0 4px;font-size:clamp(20px,5.4vw,26px);font-weight:700;letter-spacing:.04em}
+.hero .lead{margin:0;color:var(--sub);font-size:13px}
+.rules{padding:14px 16px}
+.rules ul{margin:8px 0 0;padding-left:1.15em;font-size:13.5px;line-height:1.95;color:var(--ink)}
+.rules li::marker{color:var(--blue)}
+.bestline{text-align:center;font-size:13px;color:var(--sub);margin:2px 0}
+.bestline b{font-size:20px;color:var(--gold);margin:0 3px}
+
+/* ---------- プレイ画面 ---------- */
+.hud{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:8px}
+.hud-count{display:flex;align-items:baseline;gap:2px;min-width:0}
+.hud-count #count{font-weight:700;font-size:clamp(34px,10vw,46px);line-height:1;color:var(--blue);font-variant-numeric:tabular-nums}
+/* 打鍵ごとに拍動させる。同じ名前のクラスを付け外しするとアニメが再生されず、
+   再生のために offsetWidth を読むと1打鍵ごとに同期レイアウトが走るので、
+   同じ動きの2クラスを交互に付け替えて再生させる（強制リフロー無し） */
+.hud-count #count.pulseA{animation:pulseA .22s ease}
+.hud-count #count.pulseB{animation:pulseB .22s ease}
+@keyframes pulseA{0%{transform:scale(1)}45%{transform:scale(1.16)}100%{transform:scale(1)}}
+@keyframes pulseB{0%{transform:scale(1)}45%{transform:scale(1.16)}100%{transform:scale(1)}}
+.hud-count .unit{font-size:14px;color:var(--sub);font-weight:700}
+.hud-next{flex:1;min-width:0}
+.hud-next .lbl{font-size:11px;color:var(--sub);letter-spacing:.06em;margin-bottom:5px}
+.hud-next .lbl b{color:var(--ink);font-size:13px}
+.bar{height:5px;background:#EDF1F5;border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--blue);border-radius:3px;transition:width .18s ease}
+.quit{
+  flex:0 0 auto;padding:8px 11px;font-size:12px;background:transparent;
+  border:1px solid var(--line);border-radius:4px;color:var(--sub);cursor:pointer;
+}
+
+.sheet{flex:1;min-height:120px;overflow-y:auto;padding:12px 10px 16px;-webkit-overflow-scrolling:touch}
+.sheet .lead,.peek .lead{font-size:14px;color:var(--sub);margin-bottom:8px;letter-spacing:.06em}
+.rows{display:flex;flex-direction:column;gap:5px}
+.row{display:flex;align-items:center;gap:5px}
+/* 左は「3.」だけ（1行目のみ）。行番号を置くと 3.14… の1桁目と紛らわしいので、
+   位置は右端に「10桁」「20桁」と単位つきで出す＝数字の並びと読み違えない */
+.idx{flex:0 0 1.9em;text-align:right;font-size:13px;color:var(--sub)}
+.cnt{
+  /* 「120桁」で折り返さない幅を確保する（桁は全角なので数字3文字ぶんより広い） */
+  flex:0 0 3.9em;text-align:right;white-space:nowrap;
+  font-size:10.5px;color:var(--mute);
+  border-left:1px solid var(--line);padding-left:5px;line-height:1.2;
+}
+.cnt.reached{color:var(--blue)}
+.cells{flex:1;display:grid;grid-template-columns:repeat(10,1fr);gap:2px}
+.cell{
+  height:1.75em;display:grid;place-items:center;border-radius:3px;
+  font-size:clamp(14px,4.1vw,20px);font-weight:500;
+  color:var(--ink);background:#F1F4F8;
+}
+.cell:nth-child(5){margin-right:4px}
+.cell.filled{background:var(--blue-lt);color:var(--blue);font-weight:700;animation:drop .16s ease}
+@keyframes drop{from{transform:translateY(-4px);opacity:.3}to{transform:none;opacity:1}}
+.cell.cur{background:#fff;box-shadow:inset 0 -2px 0 var(--blue);animation:blink 1.05s steps(1,end) infinite}
+@keyframes blink{0%,55%{box-shadow:inset 0 -2px 0 var(--blue)}56%,100%{box-shadow:inset 0 -2px 0 #D3DDE7}}
+.cell.miss{background:#FBE9E7;color:var(--red);font-weight:700;animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+
+.pad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
+.key{
+  padding:14px 0;border:1px solid var(--line);border-radius:5px;background:var(--panel);
+  font-size:clamp(19px,5.6vw,24px);font-weight:500;cursor:pointer;
+  box-shadow:0 1px 0 #E4E9EF;
+}
+.key.down{background:var(--blue);color:#fff;border-color:var(--blue);transform:translateY(1px);box-shadow:none}
+.kbdhint{text-align:center;font-size:11px;color:var(--mute);margin-top:8px}
+@media (hover:none){.kbdhint{display:none}}
+
+/* ---------- ごほうびトースト ---------- */
+#toast{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:50}
+.tmsg{text-align:center;animation:pop 1.9s cubic-bezier(.2,.9,.3,1) forwards}
+.tmsg .tnum{font-size:13px;letter-spacing:.2em;color:var(--sub);margin-bottom:8px}
+.tmsg .ttxt{
+  display:inline-block;font-size:clamp(20px,6.2vw,34px);font-weight:700;color:#fff;
+  background:var(--blue);padding:13px 24px;border-radius:5px;box-shadow:0 12px 34px rgba(20,45,75,.28);
+}
+.tmsg.lv3 .ttxt{background:var(--teal)}
+.tmsg.lv4 .ttxt{background:var(--teal)}
+.tmsg.lv5 .ttxt{background:var(--gold)}
+.tmsg.lv6 .ttxt{background:#1D2A38}
+@keyframes pop{
+  0%{opacity:0;transform:scale(.86)}
+  12%{opacity:1;transform:scale(1.04)}
+  20%{transform:scale(1)}
+  75%{opacity:1;transform:scale(1)}
+  100%{opacity:0;transform:scale(1) translateY(-10px)}
+}
+
+/* ---------- 結果画面 ---------- */
+#scr-result{justify-content:center;gap:12px;padding:6px 0 10px}
+.result{padding:22px 18px;text-align:center}
+.result .rlabel{font-size:11px;letter-spacing:.26em;color:var(--sub)}
+.rdigits{display:flex;align-items:baseline;justify-content:center;gap:4px;margin:6px 0 2px}
+.rdigits #rCount{font-size:clamp(56px,17vw,80px);font-weight:700;line-height:1;color:var(--blue)}
+.rdigits .unit{font-size:18px;font-weight:700;color:var(--sub)}
+.rcomment{font-size:clamp(16px,4.6vw,20px);font-weight:700;margin:10px 0 0;min-height:1.4em}
+.rmiss{
+  margin-top:16px;padding:11px 12px;border:1px solid var(--line);border-radius:5px;background:#FBFCFD;
+  font-size:13px;color:var(--sub);line-height:1.9;
+}
+.rmiss .you{color:var(--red);font-weight:700}
+.rmiss .ans{color:var(--teal);font-weight:700}
+.rbest{margin-top:12px;font-size:13px;color:var(--sub)}
+.rbest b{font-size:18px;color:var(--gold);margin:0 3px}
+.rbest.new{color:var(--gold);font-weight:700}
+.rbtns{display:flex;flex-direction:column;gap:8px;margin-top:18px}
+details.peek{padding:0 16px}
+details.peek summary{
+  cursor:pointer;font-size:13px;color:var(--blue);padding:12px 0;list-style:none;
+  display:flex;align-items:center;gap:6px;
+}
+details.peek summary::-webkit-details-marker{display:none}
+details.peek summary::before{content:'\25B8';font-size:11px}
+details.peek[open] summary::before{content:'\25BE'}
+details.peek .body{padding:0 0 14px}
+</style>
+</head>
+<body>
+
+<!-- 共通ヘッダー（ロゴ・校名・ログイン窓）。script は body 開始直後に置くこと -->
+<script src="/assets/divp-header.js"></script>
+
+<div id="app">
+
+  <!-- ============ スタート ============ -->
+  <section id="scr-start" class="screen on">
+    <div class="panel hero">
+      <div class="pi">&pi;</div>
+      <h1>円周率チャレンジ</h1>
+      <p class="lead">小数第何位まで言える？</p>
+    </div>
+    <div class="panel rules">
+      <div class="eyebrow">RULES</div>
+      <ul>
+        <li>「3.」の続きを、数字キーで1桁ずつ入力します</li>
+        <li>合っていれば桁が伸び、<b>1回でもまちがえたら終了</b></li>
+      </ul>
+    </div>
+    <p class="bestline" id="startBest">&nbsp;</p>
+    <button class="btn" id="btnStart">スタート</button>
+  </section>
+
+  <!-- ============ プレイ ============ -->
+  <section id="scr-play" class="screen">
+    <div class="panel hud">
+      <div class="hud-count"><span id="count">0</span><span class="unit">桁</span></div>
+      <div class="hud-next">
+        <div class="lbl">NEXT <b id="nextTarget">20</b> 桁</div>
+        <div class="bar"><i id="barFill"></i></div>
+      </div>
+      <button class="quit" id="btnQuit">やめる</button>
+    </div>
+
+    <div class="panel sheet" id="sheet">
+      <div class="lead">&pi; =</div>
+      <div class="rows" id="rows"></div>
+    </div>
+
+    <div class="pad" id="pad"></div>
+    <div class="kbdhint">キーボードの数字キーでも入力できます</div>
+  </section>
+
+  <!-- ============ 結果 ============ -->
+  <section id="scr-result" class="screen">
+    <div class="panel result">
+      <div class="rlabel">RESULT</div>
+      <div class="rdigits"><span id="rCount">0</span><span class="unit">桁</span></div>
+      <div class="rcomment" id="rComment"></div>
+      <div class="rmiss" id="rMiss"></div>
+      <div class="rbest" id="rBest"></div>
+      <div class="rbtns">
+        <button class="btn" id="btnAgain">もう一度チャレンジ</button>
+        <button class="btn ghost" id="btnTop">タイトルへ</button>
+      </div>
+    </div>
+    <details class="panel peek">
+      <summary>円周率を見る（120桁）</summary>
+      <div class="body">
+        <div class="lead">&pi; =</div>
+        <div class="rows" id="peekRows"></div>
+      </div>
+    </details>
+  </section>
+
+</div>
+
+<div id="toast" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ===========================================================
+   円周率の生成（unbounded spigot / Gibbons）
+   桁を直書きすると転記ミスに誰も気づけないので、必要になった分だけ
+   その場で計算する。s[0]='3'、s[i] が小数第 i 位。
+   =========================================================== */
+var Pi = (function(){
+  var q=1n, r=0n, t=1n, k=1n, n=3n, l=3n, s='';
+  function ensure(len){
+    while(s.length < len){
+      if(4n*q + r - t < n*t){
+        s += n.toString();
+        var nr = 10n*(r - n*t);
+        n = ((10n*(3n*q + r)) / t) - 10n*n;
+        q *= 10n; r = nr;
+      }else{
+        var nr2 = (2n*q + r) * l;
+        var nn  = (q*(7n*k) + 2n + r*l) / (t*l);
+        q *= k; t *= l; l += 2n; k += 1n; n = nn; r = nr2;
+      }
+    }
+  }
+  return {
+    /* 小数第 i 位（1始まり）の数字を文字で返す */
+    digit:function(i){ ensure(i+1); return s.charAt(i); },
+    /* 小数第 a 位〜第 b 位（両端含む） */
+    slice:function(a,b){ ensure(b+1); return s.slice(a, b+1); }
+  };
+})();
+
+/* ===========================================================
+   ごほうびコメント（20桁ごと）
+   =========================================================== */
+var MILESTONES = {
+  20:  'いい調子！',
+  40:  'すごい！',
+  60:  'すごいぞ！すごいぞ！',
+  80:  '素晴らしい暗記力！',
+  100: '100桁おめでとう！円周率博士！',
+  120: '無限の彼方へ！'
+};
+function milestoneText(n){
+  if(MILESTONES[n]) return MILESTONES[n];
+  return '無限の彼方へ！ ' + n + '桁！';   /* 120桁より先も20桁ごとに出す */
+}
+/* 到達桁数に対する「称号」＝そこまでで最後に出たコメント */
+function rankText(n){
+  var reached = Math.floor(n / 20) * 20;
+  if(reached < 20) return n === 0 ? 'まずは1桁から！' : 'まだまだこれから！';
+  return milestoneText(reached);
+}
+
+/* ===========================================================
+   状態
+   =========================================================== */
+var BEST_KEY = 'divp_pi_best';
+var state = 'start';   /* start | play | result */
+var pos   = 0;         /* 何桁正解したか */
+var cells = [];        /* マスのDOM（cells[i] = 小数第(i+1)位） */
+var rowCounts = [];    /* 各行の右端「◯桁」（rowCounts[r] は (r+1)*10 桁目） */
+var curCell = null;    /* いま入力待ちのマス */
+var pulseFlip = false;
+var toastTimer = null;
+
+function $(id){ return document.getElementById(id); }
+var elRows  = $('rows'),  elSheet = $('sheet'), elCount = $('count');
+var elNext  = $('nextTarget'), elBar = $('barFill'), elToast = $('toast');
+
+function readBest(){
+  try{ return parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0; }catch(e){ return 0; }
+}
+function writeBest(v){
+  try{ localStorage.setItem(BEST_KEY, String(v)); }catch(e){}
+}
+function show(name){
+  state = name;
+  var ids = ['start','play','result'];
+  for(var i=0;i<ids.length;i++){
+    $('scr-' + ids[i]).classList.toggle('on', ids[i] === name);
+  }
+}
+
+/* ===========================================================
+   マス目（10桁で1行）
+   =========================================================== */
+/* 1行=10桁。左の「3.」は1行目だけ、右の「◯桁」はその行を打ち終えたときに入れる */
+function buildRow(parent, first){
+  var row = document.createElement('div');
+  row.className = 'row';
+  var lab = document.createElement('span');
+  lab.className = 'idx';
+  lab.textContent = first ? '3.' : '';
+  var box = document.createElement('span');
+  box.className = 'cells';
+  var cnt = document.createElement('span');
+  cnt.className = 'cnt';
+  row.appendChild(lab);
+  row.appendChild(box);
+  row.appendChild(cnt);
+  parent.appendChild(row);
+  return { box:box, cnt:cnt };
+}
+function cellAt(i){
+  while(cells.length <= i){
+    var r = buildRow(elRows, cells.length === 0);
+    rowCounts.push(r.cnt);
+    for(var j=0;j<10;j++){
+      var c = document.createElement('span');
+      c.className = 'cell';
+      r.box.appendChild(c);
+      cells.push(c);
+    }
+  }
+  return cells[i];
+}
+function moveCursor(){
+  if(curCell) curCell.classList.remove('cur');
+  curCell = cellAt(pos);
+  curCell.classList.add('cur');
+  /* 行が変わったときだけ最下部へ追従（scrollHeight の読み出しは同期レイアウトを起こす） */
+  if(pos % 10 === 0) elSheet.scrollTop = elSheet.scrollHeight;
+}
+function updateHud(){
+  elCount.textContent = String(pos);
+  pulseFlip = !pulseFlip;
+  elCount.classList.toggle('pulseA', pulseFlip);
+  elCount.classList.toggle('pulseB', !pulseFlip);
+  elNext.textContent = String((Math.floor(pos / 20) + 1) * 20);
+  elBar.style.width = ((pos % 20) / 20 * 100) + '%';
+}
+
+/* ===========================================================
+   ごほうびトースト
+   =========================================================== */
+function toast(n){
+  var lv = Math.min(6, n / 20);
+  elToast.innerHTML = '';
+  var wrap = document.createElement('div');
+  wrap.className = 'tmsg lv' + lv;
+  var num = document.createElement('div');
+  num.className = 'tnum';
+  num.textContent = n + ' DIGITS';
+  var txt = document.createElement('div');
+  txt.className = 'ttxt';
+  txt.textContent = milestoneText(n);
+  wrap.appendChild(num);
+  wrap.appendChild(txt);
+  elToast.appendChild(wrap);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ elToast.innerHTML = ''; }, 1900);
+}
+
+/* ===========================================================
+   入力
+   =========================================================== */
+function press(d){
+  if(state !== 'play') return;
+  var correct = Pi.digit(pos + 1);
+  var cell = cellAt(pos);
+  cell.classList.remove('cur');
+  cell.textContent = d;
+  if(d === correct){
+    cell.classList.add('filled');
+    pos++;
+    updateHud();
+    moveCursor();
+    if(pos % 10 === 0){
+      var rc = rowCounts[pos / 10 - 1];
+      if(rc){ rc.textContent = pos + '桁'; rc.classList.add('reached'); }
+    }
+    if(pos % 20 === 0) toast(pos);
+  }else{
+    cell.classList.add('miss');
+    finish({ wrong:d, correct:correct });
+  }
+}
+
+function startGame(){
+  pos = 0;
+  cells = [];
+  rowCounts = [];
+  curCell = null;
+  elRows.innerHTML = '';
+  elToast.innerHTML = '';
+  clearTimeout(toastTimer);
+  updateHud();
+  show('play');
+  elSheet.scrollTop = 0;
+  moveCursor();
+}
+
+function finish(miss){
+  state = 'result';
+  /* 直前に出た称号トーストが結果画面に重なって残るので消す */
+  clearTimeout(toastTimer);
+  elToast.innerHTML = '';
+  var best = readBest();
+  var isNew = pos > best;
+  if(isNew){ writeBest(pos); best = pos; }
+
+  $('rCount').textContent = String(pos);
+  $('rComment').textContent = rankText(pos);
+
+  var m = $('rMiss');
+  if(miss){
+    var from = Math.max(1, pos - 4);
+    var lead = (from > 1 ? '…' : '3.') + (pos >= from ? Pi.slice(from, pos) : '');
+    m.innerHTML = '第 ' + (pos + 1) + ' 位でストップ<br>' +
+                  lead + ' <span class="you">' + miss.wrong + '</span>' +
+                  '&nbsp; &rarr; &nbsp;正解は <span class="ans">' + miss.correct + '</span>';
+  }else{
+    m.textContent = '途中でやめました';
+  }
+
+  var b = $('rBest');
+  b.classList.toggle('new', isNew);
+  b.innerHTML = (isNew ? '自己ベスト更新！ <b>' : '自己ベスト <b>') + best + '</b> 桁';
+
+  show('result');
+}
+
+/* ===========================================================
+   キーパッド
+   タップの取りこぼし対策として touch 系は passive で登録し、
+   タッチ直後にブラウザが出す合成 click は捨てる（二重入力の防止）。
+   =========================================================== */
+var pad = $('pad');
+'1234567890'.split('').forEach(function(d){
+  var b = document.createElement('button');
+  b.className = 'key';
+  b.type = 'button';
+  b.textContent = d;
+  b.setAttribute('data-d', d);
+  pad.appendChild(b);
+});
+(function bindPad(){
+  var lastTouch = 0;
+  function hit(e){
+    var el = e.target;
+    while(el && el !== pad){
+      if(el.className && String(el.className).indexOf('key') >= 0) return el;
+      el = el.parentNode;
+    }
+    return null;
+  }
+  function up(){
+    var ds = pad.querySelectorAll('.key.down');
+    for(var i=0;i<ds.length;i++) ds[i].classList.remove('down');
+  }
+  pad.addEventListener('touchstart', function(e){
+    var b = hit(e); if(!b) return;
+    lastTouch = Date.now();
+    b.classList.add('down');
+    press(b.getAttribute('data-d'));
+  }, {passive:true});
+  pad.addEventListener('touchend', up, {passive:true});
+  pad.addEventListener('touchcancel', up, {passive:true});
+  pad.addEventListener('mousedown', function(e){
+    var b = hit(e); if(b) b.classList.add('down');
+  });
+  document.addEventListener('mouseup', up);
+  pad.addEventListener('click', function(e){
+    var b = hit(e); if(!b) return;
+    if(Date.now() - lastTouch < 700) return;   /* タッチ由来の click は捨てる */
+    press(b.getAttribute('data-d'));
+  });
+})();
+
+document.addEventListener('keydown', function(e){
+  if(e.metaKey || e.ctrlKey || e.altKey) return;
+  if(state === 'play' && e.key.length === 1 && e.key >= '0' && e.key <= '9'){
+    e.preventDefault();
+    var b = pad.querySelector('.key[data-d="' + e.key + '"]');
+    if(b){
+      b.classList.add('down');
+      setTimeout(function(){ b.classList.remove('down'); }, 90);
+    }
+    press(e.key);
+  }else if(state !== 'play' && (e.key === 'Enter' || e.key === ' ')){
+    e.preventDefault();
+    startGame();
+  }
+});
+
+/* ===========================================================
+   画面遷移
+   =========================================================== */
+function refreshStartBest(){
+  var best = readBest();
+  $('startBest').innerHTML = best > 0 ? '自己ベスト <b>' + best + '</b> 桁' : '&nbsp;';
+}
+$('btnStart').addEventListener('click', startGame);
+$('btnAgain').addEventListener('click', startGame);
+$('btnQuit').addEventListener('click', function(){ if(state === 'play') finish(null); });
+$('btnTop').addEventListener('click', function(){ show('start'); refreshStartBest(); });
+refreshStartBest();
+
+/* 結果画面の「円周率を見る」（120桁） */
+(function buildPeek(){
+  var parent = $('peekRows');
+  for(var r=0;r<12;r++){
+    var row = buildRow(parent, r === 0);
+    var str = Pi.slice(r * 10 + 1, r * 10 + 10);
+    for(var j=0;j<10;j++){
+      var c = document.createElement('span');
+      c.className = 'cell filled';
+      c.style.animation = 'none';
+      c.textContent = str.charAt(j);
+      row.box.appendChild(c);
+    }
+    row.cnt.textContent = (r * 10 + 10) + '桁';
+    row.cnt.className = 'cnt reached';
+  }
+})();
+
+})();
+</script>
+</body>
+</html>
