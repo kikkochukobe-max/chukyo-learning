@@ -14,9 +14,15 @@ $requesterRole = $stmt->fetchColumn();
 // siblings は「自分以外」の同一保護者の子（コード＋氏名）。保護者が未発行なら両方 NULL。
 // ⚠ SQL内に ' ' と '、' を書くので、この文字列はダブルクォートで囲む（シングルだと
 //   PHPの文字列がそこで終わって parse error → 一覧が「取得に失敗しました」になる）。
-//   中に $ や { が無いことを確認済み＝補間の心配はない。list_guardians.php も同じ形。
+//   補間しているのは下の {$deactivateCol}（このファイル内で決めた固定文字列）だけで、
+//   外から来た値は入らない。list_guardians.php も同じ形。
+
+// 退会予約(deactivate_on)は後付けの列。ALTER 未実行の環境でも一覧を落とさないよう存在を見てから選ぶ
+$deactivateCol = table_has_column($pdo, 'students', 'deactivate_on') ? 's.deactivate_on' : 'NULL';
+
 $baseSql =
-    "SELECT s.login_id, s.student_name, s.grade, c.classroom_name, s.is_active, s.created_at,
+    "SELECT s.login_id, s.student_name, s.grade, c.classroom_name, s.is_active,
+            {$deactivateCol} AS deactivate_on, s.created_at,
             s.target_private_id, tpv.name AS target_private_name,
             s.target_public_id,  tpb.name AS target_public_name,
             (SELECT g.login_id FROM guardian_students gs

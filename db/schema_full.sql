@@ -93,10 +93,12 @@ CREATE TABLE IF NOT EXISTS students (
   target_public_id  INT UNSIGNED DEFAULT NULL,      -- 公立志望校 1校
   created_by    INT UNSIGNED DEFAULT NULL,
   is_active     TINYINT(1)   NOT NULL DEFAULT 1,
+  deactivate_on DATE         DEFAULT NULL,          -- 退会予約: この日までは使える（翌日から自動でis_active=0）
   created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (student_id),
   UNIQUE KEY uq_student_login (login_id),
   KEY idx_st_classroom (classroom_id),
+  KEY idx_st_deactivate_on (deactivate_on),
   CONSTRAINT fk_st_classroom FOREIGN KEY (classroom_id) REFERENCES classrooms (classroom_id)
     ON UPDATE CASCADE,
   CONSTRAINT fk_st_created_by FOREIGN KEY (created_by) REFERENCES teachers (teacher_id)

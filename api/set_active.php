@@ -46,7 +46,12 @@ if ($kind === 'student') {
             json_response(['ok' => false, 'error' => 'forbidden_classroom'], 403);
         }
     }
-    $stmt = $pdo->prepare('UPDATE students SET is_active = :a WHERE student_id = :id');
+    // 「有効に戻す」ときは退会予約(deactivate_on)も一緒に取り消す。
+    // 残したままだと、戻した翌日に run_deactivation.php がまた無効にしてしまう。
+    $clearSchedule = ($active === 1 && table_has_column($pdo, 'students', 'deactivate_on'));
+    $stmt = $pdo->prepare($clearSchedule
+        ? 'UPDATE students SET is_active = :a, deactivate_on = NULL WHERE student_id = :id'
+        : 'UPDATE students SET is_active = :a WHERE student_id = :id');
     $stmt->execute(['a' => $active, 'id' => $row['student_id']]);
 
 } elseif ($kind === 'guardian') {

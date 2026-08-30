@@ -121,6 +121,9 @@ function try_remember_login(): ?array
     if ($token['actor_type'] !== 'student') {
         return null;
     }
+    // 自動ログインはPIN入力を通らないので、ここでも退会予約の期日切れを反映してから確認する
+    // （これが無いと、cronが止まっている間は自動ログインだけがすり抜ける）
+    sweep_due_deactivations($pdo);
     $stmt = $pdo->prepare('SELECT student_id, student_name FROM students WHERE student_id = :id AND is_active = 1');
     $stmt->execute(['id' => (int)$token['actor_id']]);
     $student = $stmt->fetch();
@@ -254,4 +257,68 @@ function params_hash($params): string
 {
     $normalized = canonicalize($params ?? []);
     return hash('sha256', json_encode($normalized, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+}
+
+// ===== 退会の予約（students.deactivate_on） =====
+// deactivate_on は「この日までは使える」最終利用日。**翌日から** 無効にする。
+// 期日を過ぎた予約をまとめて is_active=0 にする。
+// 呼ぶ場所は3つ: api/run_deactivation.php(cron) / api/auth.php(ログイン) /
+//   admin.php・teacher.php(講師が画面を開いたとき)。cron が止まっても、
+//   その生徒がログインしようとした瞬間に締まる。
+// 予約日そのものは消さない＝一覧に「8/31で退会」と履歴を出せる。
+// 「有効に戻す」(set_active.php) 側で NULL に戻すので、戻した生徒がここで再び無効になることはない。
+function sweep_due_deactivations(PDO $pdo): int
+{
+    try {
+        $stmt = $pdo->query(
+            'UPDATE students SET is_active = 0
+              WHERE is_active = 1 AND deactivate_on IS NOT NULL AND deactivate_on < CURDATE()'
+        );
+        return $stmt->rowCount();
+    } catch (PDOException $e) {
+        // deactivate_on 列がまだ無い環境（PHPだけ先に上げてALTER未実行）でも
+        // ログインや講師ページを巻き添えで止めない。
+        error_log('[deactivate] sweep skipped: ' . $e->getMessage());
+        return 0;
+    }
+}
+
+// 列の有無を1リクエスト1回だけ調べる（ALTER 未実行の本番でも画面が真っ白にならないように）。
+// ⚠ 判定は「その列を1行も取らずに読んでみる」＝実際の使い方そのもので行う。
+//   最初 SHOW COLUMNS ... LIKE :col で書いたが、db.php が EMULATE_PREPARES=false
+//   （ネイティブのプリペアド）なので SHOW にプレースホルダを渡すと環境によっては
+//   例外になり、「列が無い」と誤判定する（本番で踏んだ）。
+// ⚠ $table / $column はコード内の固定値だけを渡すこと（識別子は連結するので、
+//   外から来た値は絶対に入れない）。念のため英数字とアンダースコアだけに限定する。
+function table_has_column(PDO $pdo, string $table, string $column): bool
+{
+    static $cache = [];
+    $key = $table . '.' . $column;
+    if (array_key_exists($key, $cache)) {
+        return $cache[$key];
+    }
+    if (!preg_match('/^[A-Za-z0-9_]+$/', $table) || !preg_match('/^[A-Za-z0-9_]+$/', $column)) {
+        return false;
+    }
+    try {
+        $pdo->query("SELECT `{$column}` FROM `{$table}` LIMIT 0");
+        $cache[$key] = true;
+        schema_probe_error('');
+    } catch (PDOException $e) {
+        $cache[$key] = false;
+        schema_probe_error($e->getMessage());
+        error_log('[schema] ' . $key . ': ' . $e->getMessage());
+    }
+    return $cache[$key];
+}
+
+// 直前の table_has_column が false になった理由（画面に出して原因を切り分けるため）。
+// 「列が無い」のか「別の理由で確認できなかった」のかを黙って同じ扱いにしない。
+function schema_probe_error(?string $set = null): string
+{
+    static $last = '';
+    if ($set !== null) {
+        $last = $set;
+    }
+    return $last;
 }

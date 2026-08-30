@@ -23,6 +23,11 @@ if (!isset($tables[$actorType]) || $loginId === '' || $password === '') {
 
 $t = $tables[$actorType];
 $pdo = db();
+
+// 退会予約(students.deactivate_on)の期日を過ぎた生徒をここで無効にする。
+// cron(api/run_deactivation.php)が止まっていても、本人がログインしようとした瞬間に締まる。
+sweep_due_deactivations($pdo);
+
 $stmt = $pdo->prepare(
     "SELECT * FROM {$t['table']} WHERE login_id = :login_id AND is_active = 1 LIMIT 1"
 );

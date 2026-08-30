@@ -86,6 +86,9 @@ document.getElementById('lpw').addEventListener('keydown', (e) => {
 $teacherId = $actor['id'];
 $pdo = db();
 
+// 退会予定日を過ぎた生徒をここでも無効にする（cronが止まっていても一覧・集計から外れる）
+sweep_due_deactivations($pdo);
+
 $stmt = $pdo->prepare('SELECT role, teacher_name, login_id, must_change_password FROM teachers WHERE teacher_id = :id');
 $stmt->execute(['id' => $teacherId]);
 $me = $stmt->fetch();
@@ -195,6 +198,21 @@ if ($role === 'super_admin') {
   .sib-gid{font-weight:700;white-space:nowrap}
   .sib-none{color:var(--shu);font-weight:700;white-space:nowrap}
   .sib-names{display:block;font-size:11px;color:var(--ink-soft);margin-top:2px}
+  /* 退会予約: 「この日までは使える」最終利用日。翌日から自動で無効になる */
+  .plan-badge{display:block;width:fit-content;margin-top:3px;font-size:10px;font-weight:900;
+    color:var(--white);background:var(--shu);font-family:'Zen Maru Gothic',sans-serif;
+    border-radius:999px;padding:1px 7px;white-space:nowrap}
+  .plan-badge.done{background:var(--ink-soft)}
+  /* 退会予約の入力窓（日付＋「今月末」「翌月末」のワンタップ） */
+  .modal-back{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(51,49,43,.45);
+    display:flex;align-items:center;justify-content:center;padding:16px;z-index:60}
+  .modal{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
+    border-top:4px solid var(--ai);padding:20px;width:100%;max-width:390px}
+  .modal h3{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:15px;color:var(--ai)}
+  .modal p.note{font-size:12px;color:var(--ink-soft);margin-top:4px}
+  .modal .quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .modal .acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px}
+  .modal .acts button.go{margin-top:0}
   button.mini{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:11px;
     border-radius:999px;padding:2px 12px;cursor:pointer;white-space:nowrap;background:var(--white)}
   button.mini.off{color:var(--shu);border:1.5px solid var(--shu)}
@@ -598,6 +616,28 @@ if ($role === 'super_admin') {
 
   <footer>中京個別指導学院 アカウント管理</footer>
 </div>
+
+<!-- 退会の予約（生徒一覧の「退会予約」ボタンで開く。既定は非表示） -->
+<div class="modal-back" id="plan-modal" style="display:none">
+  <div class="modal">
+    <h3 id="plan-title">退会の予約</h3>
+    <p class="note">入力した日<b>までは使えます</b>。その翌日から自動でログインできなくなり、一覧・集計からも外れます。学習記録は消えません。</p>
+    <label>最終利用日
+      <input type="date" id="plan-date">
+    </label>
+    <div class="quick">
+      <button type="button" class="mini on" data-quick="eom">今月末</button>
+      <button type="button" class="mini on" data-quick="neom">翌月末</button>
+      <button type="button" class="mini on" data-quick="today">今日</button>
+    </div>
+    <div class="msg" id="plan-msg"></div>
+    <div class="acts">
+      <button type="button" class="go" id="plan-save">予約する</button>
+      <button type="button" class="go sub" id="plan-close">閉じる</button>
+      <button type="button" class="mini off" id="plan-clear" style="margin-left:auto">予約を取り消す</button>
+    </div>
+  </div>
+</div>
 <script>
 document.getElementById('logout-btn').addEventListener('click', async () => {
   await fetch('/api/logout.php', { method: 'POST', credentials: 'same-origin' });
@@ -635,6 +675,11 @@ const ERROR_TEXT = {
   invalid_name: '学校名が不正です（80文字以内）',
   duplicate_name: 'その種別に同じ名前の学校が既にあります',
   not_found: '対象が見つかりません',
+  invalid_date: '日付の指定が正しくありません',
+  past_date: '今日より前の日は指定できません',
+  too_far: '先すぎる日付です（1年ちょっと先まで）',
+  already_inactive: 'すでに停止中の生徒です（予約するなら先に「有効に戻す」を押してください）',
+  schema_not_ready: 'DBの準備がまだです（db/migrations/migrate_student_deactivate_schedule.sql を実行してください）',
 };
 
 const MY_LOGIN_ID = <?= json_encode($me['login_id']) ?>;
@@ -647,6 +692,8 @@ function errText(data, status) {
     let t = ERROR_TEXT[data.error] || data.error;
     if (data.student_code) t += '（' + data.student_code + '）';
     if (data.guardian_login_id) t += '［登録済みの保護者: ' + data.guardian_login_id + '］';
+    // detail はサーバー側が原因の切り分け用に添える補足（接続先DB名・SQLのエラーなど）
+    if (data.detail) t += '\n' + data.detail;
     return t;
   }
   return '失敗しました（HTTP ' + status + '）';
@@ -888,6 +935,22 @@ function siblingCell(td, r) {
   }
 }
 
+// '2026-09-30' → '9/30'
+function planLabel(iso) {
+  const p = String(iso).split('-');
+  return p.length === 3 ? Number(p[1]) + '/' + Number(p[2]) : String(iso);
+}
+
+// 状態セルに退会予約を出す（fillRow が入れた「✓ 有効」の下に「9/30で退会予定」）。
+// 予約日は無効になった後も残すので、停止中の行では「9/30で退会」と灰色で履歴になる。
+function planCell(td, r) {
+  if (!r.deactivate_on) return;
+  const badge = document.createElement('span');
+  badge.className = 'plan-badge' + (r.is_active ? '' : ' done');
+  badge.textContent = planLabel(r.deactivate_on) + (r.is_active ? 'で退会予定' : 'で退会');
+  td.appendChild(badge);
+}
+
 // 操作セル: 有効なら「無効」、停止中なら「有効に戻す」ボタン
 function actionCell(tr, kind, loginId, name, isActive, row) {
   const td = document.createElement('td');
@@ -900,6 +963,17 @@ function actionCell(tr, kind, loginId, name, isActive, row) {
     edit.style.marginRight = '6px';
     edit.addEventListener('click', () => fillEditForm(row));
     td.appendChild(edit);
+  }
+  // 退会予約: 退会が決まった時点で最終利用日を入れておくと、その翌日から自動で無効になる
+  // （月末に無効化の操作をしなくてよくなる＝操作忘れの防止）
+  if (kind === 'students' && CAN_MANAGE && isActive) {
+    const plan = document.createElement('button');
+    plan.type = 'button';
+    plan.className = 'mini ' + (row && row.deactivate_on ? 'warn' : 'on');
+    plan.textContent = row && row.deactivate_on ? '予約変更' : '退会予約';
+    plan.style.marginRight = '6px';
+    plan.addEventListener('click', () => openPlanModal(loginId, name, row ? row.deactivate_on : null));
+    td.appendChild(plan);
   }
   // 講師は「編集」で修正フォームに現在値を読み込む（氏名・役割・担当教室）。統括のみ・自分以外
   if (kind === 'teachers' && IS_SUPER && loginId !== MY_LOGIN_ID) {
@@ -1131,7 +1205,7 @@ async function deleteStudent(loginId, name) {
 async function toggleActive(kind, loginId, name, toActive) {
   const who = KIND_JA[kind] + '「' + name + '（' + loginId + '）」';
   const message = toActive
-    ? who + ' を有効に戻しますか？\nまたログインできるようになります。'
+    ? who + ' を有効に戻しますか？\nまたログインできるようになります。\n（退会の予約が入っている場合は一緒に取り消します）'
     : who + ' を無効にしますか？\n\n・ログインできなくなります\n・学習記録は消えません\n・「有効に戻す」でいつでも元に戻せます';
   if (!confirm(message)) return;
   try {
@@ -1150,6 +1224,83 @@ async function toggleActive(kind, loginId, name, toActive) {
     alert('通信エラー: ' + err);
   }
 }
+
+// ---- 退会の予約（students.deactivate_on） ----
+// 入れた日「までは使える」＝翌日から自動で無効。月末の無効化操作を忘れても止まる。
+// 実際に無効にするのは api/run_deactivation.php(cron) と、ログイン時・この画面を開いた時の掃除。
+const planModal = document.getElementById('plan-modal');
+const planDate = document.getElementById('plan-date');
+let planTarget = null;   // { loginId, name }
+
+function ymd(d) {
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return d.getFullYear() + '-' + m + '-' + day;
+}
+// offset=0 で今月末、1 で翌月末（翌月の0日目＝当月の末日）
+function endOfMonth(offset) {
+  const now = new Date();
+  return ymd(new Date(now.getFullYear(), now.getMonth() + 1 + offset, 0));
+}
+
+function openPlanModal(loginId, name, current) {
+  planTarget = { loginId: loginId, name: name };
+  document.getElementById('plan-title').textContent = '退会の予約：' + name + '（' + loginId + '）';
+  planDate.value = current || endOfMonth(0);
+  planDate.min = ymd(new Date());
+  showMsg('plan-msg', true, '');
+  document.getElementById('plan-clear').style.display = current ? '' : 'none';
+  planModal.style.display = '';
+  planDate.focus();
+}
+function closePlanModal() {
+  planModal.style.display = 'none';
+  planTarget = null;
+}
+document.getElementById('plan-close').addEventListener('click', closePlanModal);
+// 背景（黒い部分）のクリックでも閉じる
+planModal.addEventListener('click', (e) => { if (e.target === planModal) closePlanModal(); });
+document.querySelectorAll('#plan-modal .quick button').forEach((b) => {
+  b.addEventListener('click', () => {
+    planDate.value = b.dataset.quick === 'today' ? ymd(new Date())
+      : endOfMonth(b.dataset.quick === 'eom' ? 0 : 1);
+  });
+});
+
+// date に日付文字列で予約、null で予約の取り消し
+async function savePlan(date) {
+  if (!planTarget) return;
+  if (date && date < ymd(new Date())) {
+    showMsg('plan-msg', false, '今日より前の日は指定できません');
+    return;
+  }
+  try {
+    const { res, data } = await post('/api/schedule_deactivate.php', {
+      login_id: planTarget.loginId,
+      deactivate_on: date,
+    });
+    if (res.ok && data && data.ok) {
+      recent.students.add(planTarget.loginId);
+      closePlanModal();
+      loadList('students');
+    } else {
+      showMsg('plan-msg', false, errText(data, res.status));
+    }
+  } catch (err) {
+    showMsg('plan-msg', false, '通信エラー: ' + err);
+  }
+}
+document.getElementById('plan-save').addEventListener('click', () => {
+  if (!planDate.value) {
+    showMsg('plan-msg', false, '日付を入れてください');
+    return;
+  }
+  savePlan(planDate.value);
+});
+document.getElementById('plan-clear').addEventListener('click', () => {
+  if (!confirm('退会の予約を取り消しますか？\nこの生徒は自動で無効にならなくなります。')) return;
+  savePlan(null);
+});
 
 // 生徒一覧・保護者一覧の教室絞り込み（複数教室の権限がある講師のみタブが表示される）
 // 一覧ごとに独立した絞り込み（保護者は「お子さまの教室」で絞る）
@@ -1272,6 +1423,7 @@ function renderRows(kind) {
         r.target_private_name ?? '', r.target_public_name ?? '', '', r.created_at],
         recent.students.has(r.login_id), r.is_active);
       siblingCell(tr.children[4], r);
+      planCell(tr.children[7], r);
     } else if (kind === 'guardians') {
       name = r.guardian_name;
       fillRow(tr, [r.login_id, r.guardian_name, r.classroom_names || '', r.children, '', r.created_at, r.last_login_at || '未ログイン'],
