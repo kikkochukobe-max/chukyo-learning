@@ -187,7 +187,7 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
 | 確認テスト | paper_tests / paper_test_results | アナログ確認テスト。attempt_no=1が本試、2以降が追試。合格率・追試数は集計で算出 |
 | XP | xp_events / xp_logs | イベント期間の倍率。**XPは付与時点で確定値を記録**(再計算禁止)。レベルはカラムに持たず累計XPから式で算出: floor(sqrt(totalXp/100))+1 |
 | カタログ | question_catalog | (unit_key,question_key)→日本語ラベル+base_xp。平方根8モードシード済み。当面は難易度を分けずbase_xp=1で統一 |
-| コンテンツ | vocab_words / vocab_hints | 語彙クロスワード(japanese_goi_crossword)の語3350件と段階ヒント。**schema_full.sql には無い**（db/migrations/migrate_vocab_crossword.sql + db/seeds/seed_japanese_goi_crossword.sql を phpMyAdmin で実行）。**問題データをDBに置く最初のツール**で、先生が /vocab_admin.php から語とヒントを増やせる（API=api/vocab_admin.php）。正誤は既存 answer_logs に集約＝専用ログ表は作らない |
+| コンテンツ | vocab_words / vocab_hints | 語彙クロスワード(japanese_goi_crossword)の語3350件と段階ヒント。**schema_full.sql には無い**（db/migrations/migrate_vocab_crossword.sql + db/seeds/seed_japanese_goi_crossword.sql を phpMyAdmin で実行）。重複判定は `(level, yomi, hyoki)` の UNIQUE で、**漢字表記が同音異義語（ホショウ＝保証／保障／補償）の唯一の区別材料**（旧 `(level,yomi)` だと同じレベルに1語しか置けなかった。既存DBは db/migrations/migrate_vocab_homonym.sql を実行）。**問題データをDBに置く最初のツール**で、先生が /vocab_admin.php から語とヒントを増やせる（API=api/vocab_admin.php）。正誤は既存 answer_logs に集約＝専用ログ表は作らない |
 | 自習 | self_study_logs | 生徒が自分で書く「家でやった自習」の記録（日付・教科・教材・範囲・時間・手ごたえ・メモ）＋講師の確認印(checked_at)とコメント。**schema_full.sql には無い**（db/migrations/migrate_self_study.sql を実行）。自己申告なので**XPも学習時間集計も付けない**（ロードマップ 5g） |
 
 ## 主要な設計判断（確定事項）
@@ -354,6 +354,19 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    生徒一覧（期間タブ+教室タブ+教科タブ、学習時間/解答数/正答率/解き直し数/最終学習）→
    生徒名クリックで詳細（教科別にグループ化した単元カルテ・直近の誤答30件・学習セッション20件+端末）。
    教科は unit_key の先頭要素（math/english/…）で判定。
+   **自習報告ビュー（?view=selfstudy）**: 担当教室の生徒が書いた自習記録を
+   **生徒名だけの一覧**にして、押した生徒の記録だけを開く（details/summary、既定は全部閉じる）。
+   記録を全部フラットに並べると読めないため。生徒を1人ずつ詳細ページで開かなくても
+   確認印とひとことを返せる（期間/教室/教科タブ＋「未確認だけ」トグル。新しい順に200件まで）。
+   未確認がある生徒は見出しに金の帯と「未確認 N」が出る＝開かなくても押すべき相手が分かる。
+   並び順はSQLの「未確認→日付の新しい順」をそのままグループ化するので、
+   未確認を持つ生徒が自然に上に来る。
+   生徒一覧の「自習報告」タブ（緑・未確認があれば件数つき）から入る。
+   ⚠ **教科タブはここだけ自習用の一覧**（SELF_STUDY_SUBJECTS＝社会・その他を含む）で、
+   生徒一覧の教科タブ（unit_key の先頭）とは別物。行き来するリンクでは subject を落とす。
+   ⚠ 1行のHTMLは **ssl_row_html()** が生徒詳細の「自習の記録」カードと共用する
+   （確認印のJS paint() が .ssl-state / .ssl-body を書き替えるので構造をそろえる必要がある）。
+   生徒名は行に出さない＝畳んだ見出し(summary)側にあるため。
    ランキングビュー（?view=ranking）: 解答数/正答率/XPの3表、教室チェックボックスで
    教室別・複数教室混合のどちらも可。権限: super_admin=全教室 / それ以外=teacher_classroomsの担当教室のみ。
    基調色は藍(#2C5F8A)。誤答詳細・端末情報はこのページのみ（マイページには出さない）。
@@ -411,6 +424,27 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    login_logs / auth_tokens は残す（生徒がログインし直さずに済むように）。
    question_catalog の stat_total/stat_correct は update_xp.php が全件再集計するので手当て不要。
    phpMyAdmin から直接やる同内容のSQLが db/maintenance/reset_student_records.sql にある。
+   **退会の予約（自動無効化）→ 完了**: 退会が月の途中で決まったとき、その場で
+   「最終利用日」を入れておくと**その翌日から自動で is_active=0** になる
+   （月末に無効化操作をする必要が無い＝操作忘れの防止）。
+   列は students.deactivate_on（db/migrations/migrate_student_deactivate_schedule.sql を
+   phpMyAdmin で1回実行。schema_full.sql にも反映済み）。
+   予約・取り消しは api/schedule_deactivate.php（権限は set_active.php と同じ）、
+   admin.php の生徒一覧に「退会予約」ボタン（日付＋「今月末」「翌月末」のワンタップ）と
+   「9/30で退会予定」バッジ。**予約日は無効化後も残す**（一覧で退会日が分かる）。
+   実際に落とすのは api/run_deactivation.php（Hetemlのcronで1日1回。update_xp.php と
+   同じトークン方式で、config の `batch_token`、無ければ `xp_batch_token` を見る）。
+   ⚠ **cron が止まっていても締まるよう二重にしてある**: helpers.php の
+   `sweep_due_deactivations()` が api/auth.php（PIN入力・自動ログインの両方）と
+   admin.php / teacher.php の表示時にも走る。cron は「一覧やレポートの人数も当日中に
+   正しくする」ためのもの。
+   ⚠ **「有効に戻す」は予約も一緒に取り消す**（set_active.php が deactivate_on を NULL に。
+   残したままだと戻した翌日にまた無効になる）。
+   ⚠ 学習記録は一切消えない（is_active を落とすだけ。解答数・正答率もそのまま残り、
+   完全削除 delete_student.php とは別物）。
+   ⚠ ALTER 未実行のまま PHP だけ上げても壊れない作りにしてある
+   （sweep は try/catch で黙って skip、一覧は table_has_column() で列を出し分け、
+   予約APIは schema_not_ready を返す）。とはいえ**先にSQLを流すこと**。
 5e. **講師パスワード → 完了**: password.php + api/change_password.php（現PW照合必須・**講師専用**）。
    must_change_password=1 の講師は teacher.php/admin.php から password.php へ強制リダイレクト。
    統括は登録一覧の「PW初期化」で仮PWを自動生成発行（api/reset_teacher_password.php、自分自身は不可）。
@@ -424,12 +458,37 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    講師が確認印とひとことを返す。テーブルは db/migrations/migrate_self_study.sql
    （schema_full.sql には無い。phpMyAdmin で1回実行する）。
    ラベル・権限判定の共通定義は **api/self_study_common.php**（SELF_STUDY_SUBJECTS /
-   SELF_STUDY_FEELINGS / SELF_STUDY_FEELING_FACES / SELF_STUDY_BACKDATE_DAYS）で、
+   SELF_STUDY_TYPES / SELF_STUDY_TYPE_DESCS / SELF_STUDY_RETAIN_SPANS /
+   SELF_STUDY_RETAIN_SPAN_DESCS / SELF_STUDY_FEELINGS / SELF_STUDY_FEELING_FACES /
+   SELF_STUDY_BACKDATE_DAYS / SELF_STUDY_MAX_ITEMS）で、
    生徒側API・講師側API・mypage.php・teacher.php の4か所が読む＝文言を1箇所で直せる。
+   **SELECT する列も self_study_select_columns() にまとめてある**
+   （list_self_study / check_self_study / teacher.php が同じ形で読むため。
+   列を足したときの入れ忘れを防ぐ。表の別名は sslog / t 固定）。
    API: save_self_study.php（生徒・新規/修正）/ list_self_study.php（生徒=自分・
    講師=担当教室の生徒・保護者=ひもづく子）/ delete_self_study.php /
    check_self_study.php（講師の確認印・コメント）。
-   入力項目は 日付・教科・教材名・範囲・時間(分)・手ごたえ(1〜5)・メモ の7つ。
+   入力項目は 日付・**勉強の種類**・教科・「なにを・どこを」・時間(分)・手ごたえ(1〜5)・メモ。
+   **教材名と範囲は1つの欄**（カードが教科ぶん並ぶので手数を減らす）＝新しい入力は
+   material 1列に入る。range_text 列は残っているが**新規入力では使わない**
+   （欄が分かれていた頃の記録が入っており、一覧は material に続けて薄く表示する。
+   なおすときは1欄につないで出すので、保存し直すと material 側に寄る）。
+   **勉強の種類は塾で使っている言葉をそのまま出す**（言い換えない）:
+   `study_type` = memorize「覚える勉強」(最近習ったこと・思い出したばかりの復習) /
+   retain「忘れない勉強」(前に正解した問題の再確認)。retain のときだけ
+   `retain_span` = short「短期」(1週間以内に正解した問題) / long「長期」(1か月以内)。
+   列は db/migrations/migrate_self_study_type.sql を phpMyAdmin で1回実行
+   （**既存行は両方 NULL = 区別を付ける前の記録**。画面はバッジを出さないだけで記録は残る）。
+   **入力画面は「覚える勉強」「忘れない勉強」の2欄に分かれ、各欄の教科ボタンを押すと
+   その教科の入力カードが1枚増える**（生徒はほとんどの日に複数教科を書くため）。
+   何教科ぶんでも1回の送信でまとめて保存するが、**保存は1教科=1行のまま**
+   （講師の確認印とコメントを教科ごとに押せる粒度を保つ。1行に複数教科を詰めると
+   「英語だけ確認」ができなくなる）。save_self_study.php は
+   `{study_date, items:[…]}` を1トランザクションで入れ、1件でも弾かれたら全件保存しない
+   （「英語だけ入った」状態にすると生徒が二重に書き直す）。エラーは `index` で
+   何件目かを返し、画面はそのカードだけを赤くする。
+   ⚠ **「なおす」は1件ずつ**（画面は .editing でカード1枚だけの編集モードに切り替わる）。
+   API も log_id 付きの単件パスのままなので、まとめ書きのパスと混ぜないこと。
    ⚠ **XPは付けない。answer_logs / study_sessions / time_records にも一切書かない**
    （自己申告なので水増しできる。がんばりカードの学習時間・正答率とは別枠のまま保つ）。
    ⚠ **確認印が押された記録は生徒側から編集・削除できない**（api が already_checked=409 で弾く）。
@@ -515,6 +574,10 @@ GROUP BY al.question_key;
   かな・濁点の揺れを吸収できる（UNIQUE制約は列の照合順序のままなので厳密）
 - HetemlのMySQL/PHPはUTC → `api/db.php` で `date_default_timezone_set('Asia/Tokyo')` と
   接続時 `SET time_zone = '+09:00'` を必ず通す（NOW()/CURDATE()が9時間ずれるため）
+- **`SHOW COLUMNS ... LIKE ?` のようにSHOW文へプレースホルダを渡さない**。`api/db.php` は
+  `PDO::ATTR_EMULATE_PREPARES => false`（ネイティブのプリペアド）なので環境によっては例外になる。
+  列の有無は `SELECT 列 FROM 表 LIMIT 0`（実際に読んでみる）で判定する＝helpers.php の
+  `table_has_column()`。本番で踏んだ（列はあるのに「無い」と誤判定した）
 - .html はPHPを実行しない → ヘッダーはJS注入方式（divp-header.js）
 - キャッシュは ?v= ではなく .htaccess の ETag 固定URL方式
 - フォントはCDN不可、自前ホスティング必須
