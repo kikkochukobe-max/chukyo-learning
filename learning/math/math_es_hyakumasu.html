@@ -1377,23 +1377,86 @@ body{
     else if(e.key==='Backspace')press('B');
     else if(e.key==='Escape')press('C');
   });
-  $('modePick').addEventListener('click',function(e){
-    var b=e.target.closest('.mode-btn'); if(!b)return;
+  // ── ボタンのタップ：合成クリックに頼らない ─────────────────────────
+  // テンキーを passive 経路にして preventDefault をやめた結果、キーのタップでも
+  // 合成クリックが出るようになった。その直後にボタンを押すと、iOS が直前のタップとの
+  // ダブルタップ候補として扱い、click を出さないことがある。
+  // 症状は「押した見た目(:active)は出るのに何も起きない」＝原因が分かりにくい形で出る
+  // （100マスのホームボタンで多発した。連打のあとに押すボタンほど踏みやすい）。
+  // テンキーと同じ「touch イベントで自分で判定する」形に寄せて click 依存をやめる。
+  // ⚠ 発火は touchend。touchstart で動かすと、画面上部に指がかすっただけで
+  //    プレイ中に離脱してしまう。
+  // ⚠ click も残す（マウス・キーボード操作・iPadのトラックパッド用）。
+  //    両方来た時は後から来たほうを time で捨てる＝二重発火しない。
+  // 「その指の touchstart が JS まで届いたか」の控え。
+  // 届いていない指＝ジェスチャー審査に握りつぶされた接地なので、touchend しか来ない
+  // （テンキーの2打目と同じ現象。:active は WebKit のヒットテストで出るため、
+  //   見た目だけ反応して何も起きない、という同じ症状になる）。
+  // capture で記録し、bubble で消す＝要素側の touchend が読む時点ではまだ残っている。
+  var seenTs={};
+  if(TOUCH){
+    document.addEventListener('touchstart',function(e){
+      for(var i=0;i<e.changedTouches.length;i++) seenTs[e.changedTouches[i].identifier]=1;
+    },{passive:true,capture:true});
+    var clearSeen=function(e){
+      for(var i=0;i<e.changedTouches.length;i++) delete seenTs[e.changedTouches[i].identifier];
+    };
+    document.addEventListener('touchend',clearSeen,{passive:true});
+    document.addEventListener('touchcancel',clearSeen,{passive:true});
+  }
+
+  function onTap(el, fn){
+    if(!el) return;
+    // ⚠ 0 で初期化しないこと。nowMs() は performance.now() ＝ページ読み込みからの経過msなので、
+    //    0 にすると「読み込み後500ms以内の最初のタップ」が二重発火とみなされて丸ごと消える
+    //    （読み込みが速いとスタートボタンが 無反応になる。回帰テストで踏んだ）。
+    var last=-1e9;
+    var run=function(e){
+      var n=nowMs();
+      if(n-last<500) return;      // 直前に別経路で発火済み
+      last=n;
+      fn.call(el, e);
+    };
+    el.addEventListener('click', run);
+    if(!TOUCH) return;
+    var armed=false;
+    el.addEventListener('touchstart',function(){ armed=true; },{passive:true});
+    el.addEventListener('touchcancel',function(){ armed=false; },{passive:true});
+    el.addEventListener('touchend',function(e){
+      var t=e.changedTouches && e.changedTouches[0];
+      // armed=false でも、その指の touchstart がそもそも届いていないなら受ける
+      // （握りつぶされた接地。届いた上でよそから流れてきた指だけを弾く）
+      if(!armed && !(t && !seenTs[t.identifier])) return;
+      armed=false;
+      // 指がボタンの外へ流れていたら取り消す（押し間違いの逃げ道を残す）
+      if(t){
+        var r=el.getBoundingClientRect();
+        if(t.clientX<r.left-8 || t.clientX>r.right+8 ||
+           t.clientY<r.top-8  || t.clientY>r.bottom+8) return;
+      }
+      run(e);
+    },{passive:true});
+  }
+
+  onTap($('modePick'),function(e){
+    var b=e.target.closest && e.target.closest('.mode-btn'); if(!b)return;
     mode=b.dataset.mode;
     this.setAttribute('data-sel', mode);
     var btns=this.querySelectorAll('.mode-btn');
     for(var i=0;i<btns.length;i++)btns[i].classList.toggle('on',btns[i]===b);
   });
-  $('btnStart').addEventListener('click',start);
-  $('btnRetry').addEventListener('click',start);
-  $('btnPrint').addEventListener('click',doPrint);
-  $('btnHomePlay').addEventListener('click',goHome);
-  $('btnHomeEnd').addEventListener('click',goHome);
+  onTap($('btnStart'),start);
+  onTap($('btnRetry'),start);
+  onTap($('btnPrint'),doPrint);
+  onTap($('btnHomePlay'),goHome);
+  onTap($('btnHomeEnd'),goHome);
 
   // 記録一覧モーダル
-  $('btnRecords').addEventListener('click',openRecords);
-  $('btnRecordsEnd').addEventListener('click',openRecords);
-  $('recordsClose').addEventListener('click',closeRecords);
+  onTap($('btnRecords'),openRecords);
+  onTap($('btnRecordsEnd'),openRecords);
+  onTap($('recordsClose'),closeRecords);
+  // 背景タップで閉じるのは click のまま。onTap にすると、カード内で始めた指が
+  // 背景の上で離れただけで閉じてしまう（誤爆のほうが困る）。
   $('recordsOverlay').addEventListener('click',function(e){ if(e.target===this) closeRecords(); });
   document.addEventListener('keydown',function(e){
     if(e.key==='Escape' && $('recordsOverlay').classList.contains('show')) closeRecords();

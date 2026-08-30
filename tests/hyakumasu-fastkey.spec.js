@@ -114,13 +114,18 @@ const DRIVER = () => {
 
   // 答えが2桁になる問題まで、1桁の問題は正答して進める。
   window.__seekTwoDigit = async function (mode) {
+    const seen = [];
     for (let guard = 0; guard < 30; guard++) {
       const a = window.__ans();
       if (a >= 10) return a;
+      seen.push(a + '@' + window.__idx());
       window.__hit(String(a), mode);
       await sleep(120);   // ANS_HOLD_MS(90ms) を跨いで次問の描画を確定させる
     }
-    throw new Error('2桁の答えの問題に到達できなかった');
+    // 進まなかった原因が分かるように、見た答えと問題番号を添える
+    throw new Error('2桁の答えの問題に到達できなかった: ' + seen.join(',') +
+                    ' / scrPlay=' + document.getElementById('scrPlay').classList.contains('show') +
+                    ' disp=' + JSON.stringify(window.__disp()));
   };
 
   // 正解直後（答えを見せている ANS_HOLD_MS の保留中）に1発打ち、それが次問の1桁目として
@@ -138,6 +143,10 @@ const DRIVER = () => {
       if (String(window.__ans()).length === 2) {
         return { ok: true, advanced: advanced, disp: window.__disp() };
       }
+      // ⚠ 打った '7' を消してから次の周回へ。残したまま回すと、答えが1桁の問題で
+      //    入力欄が '7x' の2文字になり（1桁の答えとは長さが合わないので判定が走らない）、
+      //    以降どのキーも「2桁で満杯」で無視されて永久に進まなくなる。
+      window.__hit('C', mode);
       await sleep(120);
     }
     return { ok: false };
@@ -311,6 +320,54 @@ test.describe('100マス テンキー高速入力', () => {
       await page.evaluate(() => window.__frame());
       expect(await page.evaluate(() => window.__disp())).toBe('7');   // '77' になっていない
     }
+  });
+
+  // T8 ホームボタンは合成クリックに依存しない
+  // passive 経路にして preventDefault をやめた副作用で、テンキー連打の直後に押した
+  // ボタンの click が iOS から出ないこと（:active は出るのに何も起きない）があった。
+  // click / touchstart のどちらが欠けてもボタンが効くことを見る。
+  for (const drop of ['click', 'touchstart']) {
+    test(`T8 ${drop} が来なくてもホームボタンで開始画面に戻る`, async ({ page }, testInfo) => {
+      test.skip(modeFor(testInfo) !== 'touch', 'タッチのある環境のみ');
+      await open(page);
+      await page.evaluate(() => window.__seekTwoDigit('touch'));   // 何問か打ってから押す
+      await page.waitForTimeout(120);
+      await page.evaluate((d) => {
+        const b = document.getElementById('btnHomePlay');
+        const r = b.getBoundingClientRect();
+        const x = r.left + r.width / 2, y = r.top + r.height / 2;
+        const t = new Touch({ identifier: 4242, target: b, clientX: x, clientY: y });
+        const fire = (type, touches) => b.dispatchEvent(new TouchEvent(type, {
+          bubbles: true, cancelable: true,
+          touches: touches, targetTouches: touches, changedTouches: [t],
+        }));
+        if (d !== 'touchstart') fire('touchstart', [t]);   // 握りつぶされた接地を模擬
+        fire('touchend', []);
+        // click は一切出さない（iOS が出さなかった状況を模擬）
+      }, drop);
+      await expect(page.locator('#scrStart')).toHaveClass(/show/, { timeout: 2000 });
+      await expect(page.locator('#topBar')).toBeHidden();
+    });
+  }
+
+  // T8b よそから流れてきた指ではボタンが発火しない（誤爆で離脱しないこと）
+  test('T8b テンキーで始めた指がホームボタンの上で離れても戻らない', async ({ page }, testInfo) => {
+    test.skip(modeFor(testInfo) !== 'touch', 'タッチのある環境のみ');
+    await open(page);
+    await page.evaluate(() => {
+      const key = document.querySelector('#tenkey button[data-k="7"]');
+      const home = document.getElementById('btnHomePlay');
+      const kr = key.getBoundingClientRect(), hr = home.getBoundingClientRect();
+      const mk = (el, x, y) => new Touch({ identifier: 777, target: el, clientX: x, clientY: y });
+      const t0 = mk(key, kr.left + kr.width / 2, kr.top + kr.height / 2);
+      const t1 = mk(home, hr.left + hr.width / 2, hr.top + hr.height / 2);
+      key.dispatchEvent(new TouchEvent('touchstart', {
+        bubbles: true, cancelable: true, touches: [t0], targetTouches: [t0], changedTouches: [t0] }));
+      home.dispatchEvent(new TouchEvent('touchend', {
+        bubbles: true, cancelable: true, touches: [], targetTouches: [], changedTouches: [t1] }));
+    });
+    await page.waitForTimeout(200);
+    await expect(page.locator('#scrPlay')).toHaveClass(/show/);   // プレイ中のまま
   });
 
   // T6 物理キーボード（同じ press() を通る）
