@@ -204,7 +204,7 @@ tr.off td{opacity:.45;}
       <div class="field">
         <label>漢字表記（任意）</label>
         <input type="text" id="fmHyoki" maxlength="16" placeholder="規制">
-        <div class="hint">ひらがな語・慣用句はそのまま／空でも可</div>
+        <div class="hint">ひらがな語・慣用句はそのまま／空でも可。<b>同音異義語（保証・保障・補償）はここで区別する</b></div>
       </div>
     </div>
     <div class="field">

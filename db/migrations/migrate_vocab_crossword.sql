@@ -37,7 +37,12 @@ CREATE TABLE IF NOT EXISTS vocab_words (
   KEY idx_level_active (level, is_active),
   KEY idx_level_len (level, length),
   KEY idx_category (category),
-  UNIQUE KEY uniq_level_yomi (level, yomi)
+  -- ⚠ 漢字表記まで含めた3列の UNIQUE。(level, yomi) の2列だけにすると
+  --   「ホショウ＝保証／保障／補償」のような**同音異義語が同じレベルに登録できない**
+  --   （実際に /vocab_admin.php で弾かれた）。表記が違えば別の語として持てる。
+  --   同じレベルに同じ読み・同じ表記を2回入れるのは今までどおり弾く＝打ち間違い防止。
+  --   既存DBへの適用は db/migrations/migrate_vocab_homonym.sql。
+  UNIQUE KEY uniq_level_yomi_hyoki (level, yomi, hyoki)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2) 段階ヒント（語に対して0〜複数） ---------------------------

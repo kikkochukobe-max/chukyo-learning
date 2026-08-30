@@ -54,6 +54,28 @@ function vocab_len(string $s): int
     return mb_strlen($s, 'UTF-8');
 }
 
+// 読みの重複で弾かれたときの案内文。同音異義語（保証／保障／補償）を通せるかどうかは
+// UNIQUE キーが旧 (level, yomi) のままか新 (level, yomi, hyoki) かで変わるので、
+// 実際のキーを見てから文言を決める（db/migrations/migrate_vocab_homonym.sql が
+// 未適用の本番がありうる。「表記を変えれば通ります」と案内して通らないのが一番困る）。
+function vocab_dup_message(PDO $pdo, ?string $hyoki): string
+{
+    $legacy = false;
+    try {
+        $legacy = (bool)$pdo->query("SHOW INDEX FROM vocab_words WHERE Key_name = 'uniq_level_yomi'")->fetch();
+    } catch (Throwable $e) {
+        // キーを見られなくても案内自体は返す
+    }
+    if ($legacy) {
+        return 'このレベルに同じ読みの語がすでにあります'
+             . '（同音異義語を登録するには db/migrations/migrate_vocab_homonym.sql を実行してください）';
+    }
+    if ($hyoki === '') {
+        return 'このレベルに同じ読みの語がすでにあります。同音異義語なら漢字表記を入れて区別してください';
+    }
+    return 'このレベルに同じ読み・同じ漢字表記の語がすでにあります';
+}
+
 // 頭文字ヒントを読みから作り直す（step=9 固定＝いちばん最後に出る）
 function vocab_sync_firstchar(PDO $pdo, int $wordId): void
 {
@@ -112,7 +134,7 @@ switch ($action) {
             $args[] = (string)$in['category'];
         }
         if (!empty($in['q'])) {
-            // yomi は濁点を区別するため utf8mb4_bin（uniq_level_yomi のため）。
+            // yomi は濁点を区別するため utf8mb4_bin（uniq_level_yomi_hyoki のため）。
             // ただし検索窓は「にじ」「ニシ」と打っても見つかってほしいので、
             // 比較のときだけ utf8mb4_unicode_ci に寄せる（かな・濁点の揺れを吸収する）。
             // ※ UNIQUE 制約は列の照合順序で効くので、ここを緩めても重複判定は厳密なまま
@@ -198,7 +220,8 @@ switch ($action) {
                 'INSERT INTO vocab_words (yomi, hyoki, gloss, level, category, length, created_by)
                  VALUES (?, ?, ?, ?, ?, ?, ?)'
             );
-            // 同一レベル内の読み重複は UNIQUE キー uniq_level_yomi で弾かれる
+            // 同一レベル内の重複は UNIQUE キー uniq_level_yomi_hyoki（読み＋漢字表記）で弾かれる。
+            // 表記が違えば同音異義語として登録できる＝ホショウ（保証／保障／補償）が並べられる
             $ins->execute([
                 $yomi, mb_substr($hyoki, 0, 16, 'UTF-8'), mb_substr($gloss, 0, 255, 'UTF-8'),
                 $level, $cat, vocab_len($yomi), (int)$actor['id'],
@@ -209,7 +232,7 @@ switch ($action) {
         } catch (Throwable $e) {
             $pdo->rollBack();
             if ($e instanceof PDOException && $e->getCode() === '23000') {
-                vocab_fail('このレベルに同じ読みの語がすでにあります', 409);
+                vocab_fail(vocab_dup_message($pdo, mb_substr($hyoki, 0, 16, 'UTF-8')), 409);
             }
             throw $e;
         }
@@ -278,7 +301,7 @@ switch ($action) {
             $stmt->execute($args);
         } catch (PDOException $e) {
             if ($e->getCode() === '23000') {
-                vocab_fail('そのレベルに同じ読みの語がすでにあります', 409);
+                vocab_fail(vocab_dup_message($pdo, isset($in['hyoki']) ? trim((string)$in['hyoki']) : null), 409);
             }
             throw $e;
         }

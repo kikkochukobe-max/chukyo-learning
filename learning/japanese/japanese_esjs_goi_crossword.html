@@ -3754,7 +3754,7 @@ function makePuzzle(levelKey, requireIds){
 
 /* ============ 状態 ============ */
 var level='l1', puz=null, cellEl={}, val={}, fixed={},
-    words=[], active=-1, activeCell=0, hintCount=0, startedAt=0;
+    words=[], active=-1, activeCell=0, hintCount=0, startedAt=0, finished=false;
 
 var $=function(id){return document.getElementById(id);};
 
@@ -3833,7 +3833,7 @@ function levelChips(){
 
 function newPuzzle(requireIds){
   puz=makePuzzle(level, requireIds);
-  val={}; fixed={}; cellEl={}; active=-1; activeCell=0; hintCount=0;
+  val={}; fixed={}; cellEl={}; active=-1; activeCell=0; hintCount=0; finished=false;
   startedAt=Date.now();
   words=puz.placed.map(function(p){
     var cells=[];
@@ -4128,6 +4128,12 @@ $('btnCheck').onclick=function(){
 };
 
 function finish(){
+  /* 盤面が完成した瞬間に1回だけ。finish() は paint() から呼ばれ、paint() は
+     renderBoard() のたびに走る＝スマホは画面をスクロールするとURLバーが伸縮して
+     resize が飛ぶので、この番人が無いと結果画面を見ている間じゅう星エフェクトが
+     出つづける（実機で発生）。次の盤面は newPuzzle() が false に戻す。 */
+  if(finished) return;
+  finished=true;
   var sec=Math.round((Date.now()-startedAt)/1000);
   var m=Math.floor(sec/60), s=sec%60;
   $('doneSub').textContent = words.length+'語 ／ '+m+'分'+(s<10?'0':'')+s+'秒 ／ ヒント'+hintCount+'回';
@@ -4146,7 +4152,15 @@ function finish(){
   setTimeout(function(){ $('doneWrap').classList.remove('hidden'); }, 750);
 }
 
-window.addEventListener('resize',function(){ if(puz) renderBoard(); });
+/* 盤面のマス目は横幅だけで決まるので、幅が変わったときだけ組み直す。
+   スマホはスクロールでURLバーが伸縮して「高さだけの resize」が連発するため、
+   そのたびに盤面を作り直すと重いうえに入力中のマスの選択も飛ぶ。 */
+var lastResizeW=window.innerWidth;
+window.addEventListener('resize',function(){
+  if(window.innerWidth===lastResizeW) return;
+  lastResizeW=window.innerWidth;
+  if(puz) renderBoard();
+});
 
 /* ============ 起動 ============
    1) divp-core があれば Divp.init（未ログイン/file:// では内部でスキップ）
