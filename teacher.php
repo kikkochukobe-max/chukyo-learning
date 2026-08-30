@@ -125,6 +125,9 @@ document.getElementById('lpw').addEventListener('keydown', (e) => {
 $teacherId = $actor['id'];
 $pdo = db();
 
+// 退会予定日を過ぎた生徒をここでも無効にする（cronが止まっていても一覧・集計から外れる）
+sweep_due_deactivations($pdo);
+
 // ---- 講師の権限と担当教室 ----
 $stmt = $pdo->prepare('SELECT role, teacher_name, must_change_password FROM teachers WHERE teacher_id = :id');
 $stmt->execute(['id' => $teacherId]);
@@ -565,10 +568,9 @@ if ($detailStudentId > 0) {
         $wSubj = ' AND sslog.subject = :subjss';
         $params['subjss'] = $filterSubject;
     }
+    $sslCols = self_study_select_columns($pdo);
     $stmt = $pdo->prepare(
-        "SELECT sslog.log_id, sslog.study_date, sslog.subject, sslog.material, sslog.range_text,
-                sslog.minutes, sslog.feeling, sslog.memo, sslog.checked_at, sslog.teacher_comment,
-                t.teacher_name
+        "SELECT {$sslCols}
          FROM self_study_logs sslog
          LEFT JOIN teachers t ON t.teacher_id = sslog.teacher_id
          WHERE sslog.student_id = :id{$wSubj}
@@ -588,10 +590,101 @@ if ($detailStudentId > 0) {
 }
 
 // ============================================================
+// 自習報告ビュー（担当教室の生徒が書いた自習記録をまとめて見る）
+// 生徒を1人ずつ開かなくても確認印とひとことを返せるようにするための画面。
+// 「未確認は期間タブに関係なく必ず出す」方針は生徒詳細のカードと同じ（押し忘れ防止）。
+// ============================================================
+$selfView = ((string)($_GET['view'] ?? '')) === 'selfstudy' && $detailStudentId === 0;
+$selfRows = [];
+$selfGroups = [];
+$selfUnchecked = 0;
+$selfOnlyNew = false;
+if ($selfView) {
+    $selfOnlyNew = isset($_GET['unchecked']);
+    $showTest = isset($_GET['showtest']);
+    $filterClassroom = isset($_GET['classroom_id']) ? (int)$_GET['classroom_id'] : 0;
+    if ($filterClassroom > 0 && $role !== 'super_admin' && !in_array($filterClassroom, $allowedClassroomIds, true)) {
+        $filterClassroom = 0;
+    }
+
+    // 権限・教室・テスト生の絞り込みは一覧と未確認件数の両方で使うので文字列にまとめる
+    // （$filterClassroom は int 確定、教室IDリストも int なのでそのまま埋め込む）
+    $scope = ' AND s.is_active = 1';
+    if ($role !== 'super_admin') {
+        $scope .= count($allowedClassroomIds) === 0
+            ? ' AND 1=0'
+            : ' AND s.classroom_id IN (' . implode(',', $allowedClassroomIds) . ')';
+    }
+    if ($filterClassroom > 0) {
+        $scope .= ' AND s.classroom_id = ' . $filterClassroom;
+    }
+    if (!$showTest) {
+        $scope .= " AND s.student_name NOT LIKE '%テスト%'";
+    }
+
+    $params = [];
+    // 「未確認だけ」のときは期間で絞らない（使わないプレースホルダを作らない）
+    $wPeriod = $selfOnlyNew ? '' : pf('sslog.study_date', $fromStr, 'sv', $params);
+    $wSubj = '';
+    if ($filterSubject !== '') {
+        $wSubj = ' AND sslog.subject = :subjsv';
+        $params['subjsv'] = $filterSubject;
+    }
+    $wState = $selfOnlyNew
+        ? ' AND sslog.checked_at IS NULL'
+        : " AND (sslog.checked_at IS NULL OR (1=1{$wPeriod}))";
+
+    $stmt = $pdo->prepare(
+        'SELECT ' . self_study_select_columns($pdo) . ",
+                s.student_id, s.student_name, s.grade, c.classroom_name
+         FROM self_study_logs sslog
+         JOIN students s ON s.student_id = sslog.student_id
+         JOIN classrooms c ON c.classroom_id = s.classroom_id
+         LEFT JOIN teachers t ON t.teacher_id = sslog.teacher_id
+         WHERE 1=1{$scope}{$wSubj}{$wState}
+         ORDER BY sslog.checked_at IS NULL DESC, sslog.study_date DESC, sslog.log_id DESC
+         LIMIT 200"
+    );
+    $stmt->execute($params);
+    $selfRows = $stmt->fetchAll();
+
+    // 生徒ごとにまとめる。画面は生徒名だけを並べ、押した生徒の記録だけを開く。
+    // SQL が「未確認→日付の新しい順」なので、未確認を持つ生徒が自然に上に来る。
+    $selfGroups = [];
+    foreach ($selfRows as $r) {
+        $sid = (int)$r['student_id'];
+        if (!isset($selfGroups[$sid])) {
+            $selfGroups[$sid] = [
+                'student_id'   => $sid,
+                'student_name' => (string)$r['student_name'],
+                'classroom'    => (string)($r['classroom_name'] ?? ''),
+                'grade'        => (string)($r['grade'] ?? ''),
+                'rows'         => [],
+                'unchecked'    => 0,
+                'minutes'      => 0,
+            ];
+        }
+        $selfGroups[$sid]['rows'][] = $r;
+        if ($r['checked_at'] === null) {
+            $selfGroups[$sid]['unchecked']++;
+        }
+        $selfGroups[$sid]['minutes'] += (int)$r['minutes'];
+    }
+
+    // 未確認の総数は期間・教科に関係なく数える（残っている To-Do の数なので隠さない）
+    $selfUnchecked = (int)$pdo->query(
+        'SELECT COUNT(*) FROM self_study_logs sslog
+         JOIN students s ON s.student_id = sslog.student_id
+         WHERE sslog.checked_at IS NULL' . $scope
+    )->fetchColumn();
+}
+
+// ============================================================
 // 生徒一覧ビュー
 // ============================================================
 $students = [];
-if (!$detail && !$rankView) {
+$selfNewTotal = 0;
+if (!$detail && !$rankView && !$selfView) {
     $filterClassroom = isset($_GET['classroom_id']) ? (int)$_GET['classroom_id'] : 0;
     if ($filterClassroom > 0 && $role !== 'super_admin' && !in_array($filterClassroom, $allowedClassroomIds, true)) {
         $filterClassroom = 0;
@@ -673,6 +766,11 @@ if (!$detail && !$rankView) {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $students = $stmt->fetchAll();
+
+    // 「自習報告」タブに出す未確認バッジ（いま一覧に出ている生徒ぶんの合計）
+    foreach ($students as $st) {
+        $selfNewTotal += (int)$st['self_new'];
+    }
 }
 
 function qtab(array $extra): string
@@ -691,6 +789,61 @@ function sp_select(string $label, array $options): string
             . h($o[0]) . '</option>';
     }
     return $h . '</select></label>';
+}
+
+// 自習記録1行のHTML。生徒詳細の「自習の記録」カードと自習報告ビューで同じ形を使う
+// （確認印のJS paint() が .ssl-state / .ssl-body を書き替えるので、構造をそろえておく）。
+// 生徒名は行には出さない＝自習報告ビューは生徒ごとに畳むので、名前は見出し(summary)側にある。
+function ssl_row_html(array $ssl): string
+{
+    $checked = $ssl['checked_at'] !== null;
+    $fee = $ssl['feeling'] !== null ? (int)$ssl['feeling'] : 0;
+    // 区別を付ける前に書かれた記録は study_type が無い＝バッジを出さない
+    $type = self_study_type_label($ssl['study_type'] ?? null, $ssl['retain_span'] ?? null);
+
+    $o  = '<div class="ssl' . ($checked ? '' : ' yet') . '" data-id="' . (int)$ssl['log_id'] . '">';
+    $o .= '<div class="ssl-l1">';
+    $o .= '<span class="ssl-date">' . h(substr((string)$ssl['study_date'], 5)) . '</span>';
+
+    if ($type !== null) {
+        $o .= '<span class="ssl-type ' . (($ssl['study_type'] ?? '') === 'retain' ? 'ret' : 'mem')
+            . '">' . h($type) . '</span>';
+    }
+    $o .= '<span class="ssl-chip">'
+        . h(SELF_STUDY_SUBJECTS[$ssl['subject']] ?? (string)$ssl['subject']) . '</span>';
+    if ($ssl['minutes'] !== null) {
+        $o .= '<span>' . (int)$ssl['minutes'] . '分</span>';
+    }
+    if ($fee) {
+        $o .= '<span title="' . h(SELF_STUDY_FEELINGS[$fee]) . '">'
+            . h(SELF_STUDY_FEELING_FACES[$fee]) . ' ' . h(SELF_STUDY_FEELINGS[$fee]) . '</span>';
+    }
+    $o .= '<span class="ssl-state">'
+        . ($checked
+            ? '<span class="ssl-ok">✓ ' . h((string)($ssl['teacher_name'] ?? '')) . ' 確認済み</span>'
+            : '<span class="ssl-yet">未確認</span>')
+        . '</span></div>';
+
+    $o .= '<div class="ssl-l2">' . h((string)$ssl['material'])
+        . ($ssl['range_text'] ? '<small>' . h((string)$ssl['range_text']) . '</small>' : '') . '</div>';
+    if ($ssl['memo']) {
+        $o .= '<div class="ssl-memo">' . h((string)$ssl['memo']) . '</div>';
+    }
+
+    $o .= '<div class="ssl-body">';
+    if ($checked) {
+        if ($ssl['teacher_comment']) {
+            $o .= '<div class="ssl-cmt"><b>先生から</b>' . h((string)$ssl['teacher_comment']) . '</div>';
+        }
+        $o .= '<div class="ssl-form">'
+            . '<button type="button" class="ssl-btn undo" data-act="undo">確認を取り消す</button></div>';
+    } else {
+        $o .= '<div class="ssl-form">'
+            . '<textarea data-role="comment" maxlength="500"'
+            . ' placeholder="ひとこと返す（任意・生徒のマイページに出ます）"></textarea>'
+            . '<button type="button" class="ssl-btn" data-act="check">確認しました</button></div>';
+    }
+    return $o . '</div></div>';
 }
 ?><!DOCTYPE html>
 <html lang="ja">
@@ -808,10 +961,33 @@ function sp_select(string $label, array $options): string
     font-feature-settings:'tnum'}
   .ssl-chip{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
     background:var(--ai-soft);color:var(--ai);font-family:'Zen Maru Gothic',sans-serif}
+  /* 覚える勉強＝朱 / 忘れない勉強＝緑。教科(藍)とは別の軸なので色を分ける */
+  .ssl-type{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
+    font-family:'Zen Maru Gothic',sans-serif}
+  .ssl-type.mem{background:#F6E3DF;color:var(--shu)}
+  .ssl-type.ret{background:#E9F2EC;color:#3E7A5E}
   .ssl-yet{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
     background:#FFF3D0;color:#8A6D12;font-family:'Zen Maru Gothic',sans-serif}
   .ssl-ok{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
     background:#EAF3EC;color:#3E8E5A;font-family:'Zen Maru Gothic',sans-serif}
+  /* 自習報告ビュー: 生徒名だけを並べ、押した生徒の記録だけを開く（details/summary） */
+  .ssg{border-top:1px solid #F3F0E8}
+  .ssg:first-of-type{border-top:none}
+  .ssg>summary{list-style:none;cursor:pointer;padding:8px 4px;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .ssg>summary::-webkit-details-marker{display:none}
+  .ssg>summary::before{content:'▶';font-size:9px;color:var(--ink-soft);flex:0 0 auto}
+  .ssg[open]>summary::before{content:'▼'}
+  .ssg>summary:hover{background:var(--paper)}
+  /* 未確認がある生徒は見出しに金の帯を出す（開かなくても押すべき相手が分かる） */
+  .ssg.yet>summary{border-left:3px solid var(--kin);padding-left:8px;margin-left:-3px}
+  /* 生徒名は一覧の a.sname と同じ見た目にそろえる（丸ゴ700・13px・藍）。
+     900 や 14px にすると、同じ画面の他の生徒名より太く大きくなって書体が違って見える */
+  .ssg-name{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;color:var(--ai)}
+  .ssg-meta{font-size:11px;color:var(--ink-soft)}
+  .ssg-num{font-size:11px;color:var(--ink-soft);margin-left:auto;font-feature-settings:'tnum'}
+  .ssg-body{padding:2px 0 12px 16px}
+  .ssg-more{display:inline-block;margin-top:8px;font-size:12px;color:var(--ai)}
   .ssl-l2{font-size:14px;font-weight:700;margin-top:2px;word-break:break-word}
   .ssl-l2 small{color:var(--ink-soft);font-weight:400;margin-left:6px}
   .ssl-memo{font-size:12px;margin-top:3px;white-space:pre-wrap;word-break:break-word;
@@ -1341,44 +1517,8 @@ function sp_select(string $label, array $options): string
 <?php if (count($dSelfStudy) === 0): ?>
     <p style="font-size:13px;color:var(--ink-soft);">この期間の自習記録はありません</p>
 <?php else: ?>
-<?php foreach ($dSelfStudy as $ssl):
-    $checked = $ssl['checked_at'] !== null;
-    $fee = $ssl['feeling'] !== null ? (int)$ssl['feeling'] : 0;
-?>
-    <div class="ssl<?= $checked ? '' : ' yet' ?>" data-id="<?= (int)$ssl['log_id'] ?>">
-      <div class="ssl-l1">
-        <span class="ssl-date"><?= h(substr((string)$ssl['study_date'], 5)) ?></span>
-        <span class="ssl-chip"><?= h(SELF_STUDY_SUBJECTS[$ssl['subject']] ?? $ssl['subject']) ?></span>
-<?php if ($ssl['minutes'] !== null): ?><span><?= (int)$ssl['minutes'] ?>分</span><?php endif; ?>
-<?php if ($fee): ?><span title="<?= h(SELF_STUDY_FEELINGS[$fee]) ?>"><?= h(SELF_STUDY_FEELING_FACES[$fee]) ?> <?= h(SELF_STUDY_FEELINGS[$fee]) ?></span><?php endif; ?>
-        <span class="ssl-state">
-<?php if ($checked): ?>
-          <span class="ssl-ok">✓ <?= h($ssl['teacher_name'] ?? '') ?> 確認済み</span>
-<?php else: ?>
-          <span class="ssl-yet">未確認</span>
-<?php endif; ?>
-        </span>
-      </div>
-      <div class="ssl-l2"><?= h($ssl['material']) ?><?php if ($ssl['range_text']): ?><small><?= h($ssl['range_text']) ?></small><?php endif; ?></div>
-<?php if ($ssl['memo']): ?>
-      <div class="ssl-memo"><?= h($ssl['memo']) ?></div>
-<?php endif; ?>
-      <div class="ssl-body">
-<?php if ($checked): ?>
-<?php if ($ssl['teacher_comment']): ?>
-        <div class="ssl-cmt"><b>先生から</b><?= h($ssl['teacher_comment']) ?></div>
-<?php endif; ?>
-        <div class="ssl-form">
-          <button type="button" class="ssl-btn undo" data-act="undo">確認を取り消す</button>
-        </div>
-<?php else: ?>
-        <div class="ssl-form">
-          <textarea data-role="comment" maxlength="500" placeholder="ひとこと返す（任意・生徒のマイページに出ます）"></textarea>
-          <button type="button" class="ssl-btn" data-act="check">確認しました</button>
-        </div>
-<?php endif; ?>
-      </div>
-    </div>
+<?php foreach ($dSelfStudy as $ssl): ?>
+    <?= ssl_row_html($ssl) ?>
 <?php endforeach; ?>
 <?php endif; ?>
   </div>
@@ -1677,6 +1817,107 @@ function sp_select(string $label, array $options): string
   </div>
 <?php endif; ?>
 
+<?php elseif ($selfView): ?>
+  <!-- ============ 自習報告（担当教室の生徒が書いた自習記録をまとめて見る） ============ -->
+<?php
+    $selfBackUrl = qtab(['view' => null, 'unchecked' => null, 'subject' => null]);
+    $selfScopeLabel = $selfOnlyNew ? '未確認だけ' : $periodLabels[$period];
+?>
+  <div class="bar-row sp-hide">
+    <a class="back" href="<?= h($selfBackUrl) ?>">← 生徒一覧へ</a>
+<?php foreach ($periodLabels as $key => $label): ?>
+    <a class="ptab<?= !$selfOnlyNew && $period === $key ? ' active' : '' ?>" href="<?= h(qtab(['period' => $key, 'unchecked' => null])) ?>"><?= h($label) ?></a>
+<?php endforeach; ?>
+    <a class="ptab<?= $selfOnlyNew ? ' active' : '' ?>"
+       style="<?= $selfOnlyNew ? 'background:var(--kin);border-color:var(--kin);' : 'border-color:var(--kin);color:var(--kin);' ?>"
+       href="<?= h(qtab(['unchecked' => $selfOnlyNew ? null : '1'])) ?>">未確認だけ</a>
+    <span style="flex:1"></span>
+    <a class="ptab<?= $showTest ? ' active' : '' ?>" href="<?= h(qtab(['showtest' => $showTest ? null : '1'])) ?>"><?= $showTest ? 'テスト生を隠す' : 'テスト生を表示' ?></a>
+  </div>
+
+<?php if (count($classrooms) > 1): ?>
+  <div class="bar-row sp-hide">
+    <a class="ptab<?= empty($_GET['classroom_id']) ? ' active' : '' ?>" href="<?= h(qtab(['classroom_id' => null])) ?>">全教室</a>
+<?php foreach ($classrooms as $c): ?>
+    <a class="ptab<?= (int)($_GET['classroom_id'] ?? 0) === (int)$c['classroom_id'] ? ' active' : '' ?>"
+       href="<?= h(qtab(['classroom_id' => $c['classroom_id']])) ?>"><?= h($c['classroom_name']) ?></a>
+<?php endforeach; ?>
+  </div>
+<?php endif; ?>
+
+  <!-- 教科は自習で選べるもの（社会・その他を含む＝学習ツールの教科タブとは別の一覧） -->
+  <div class="bar-row sp-hide">
+    <a class="ptab stab<?= $filterSubject === '' ? ' active' : '' ?>" href="<?= h(qtab(['subject' => null])) ?>">全教科</a>
+<?php foreach (SELF_STUDY_SUBJECTS as $skey => $slabel): ?>
+    <a class="ptab stab<?= $filterSubject === $skey ? ' active' : '' ?>" href="<?= h(qtab(['subject' => $skey])) ?>"><?= h($slabel) ?></a>
+<?php endforeach; ?>
+  </div>
+
+  <!-- スマホ用: フィルタはドロップダウンにまとめる -->
+  <div class="bar-row sp-only row">
+    <a class="back" href="<?= h($selfBackUrl) ?>">← 一覧</a>
+<?php
+    $spOpt = [];
+    foreach ($periodLabels as $key => $label) $spOpt[] = [$label, qtab(['period' => $key, 'unchecked' => null]), !$selfOnlyNew && $period === $key];
+    echo sp_select('期間', $spOpt);
+
+    $spOpt = [['全教科', qtab(['subject' => null]), $filterSubject === '']];
+    foreach (SELF_STUDY_SUBJECTS as $skey => $slabel) $spOpt[] = [$slabel, qtab(['subject' => $skey]), $filterSubject === $skey];
+    echo sp_select('教科', $spOpt);
+
+    if (count($classrooms) > 1) {
+        $curCid = (int)($_GET['classroom_id'] ?? 0);
+        $spOpt = [['全教室', qtab(['classroom_id' => null]), empty($_GET['classroom_id'])]];
+        foreach ($classrooms as $c) $spOpt[] = [$c['classroom_name'], qtab(['classroom_id' => $c['classroom_id']]), $curCid === (int)$c['classroom_id']];
+        echo sp_select('教室', $spOpt);
+    }
+?>
+    <a class="ptab<?= $selfOnlyNew ? ' active' : '' ?>"
+       style="<?= $selfOnlyNew ? 'background:var(--kin);border-color:var(--kin);' : 'border-color:var(--kin);color:var(--kin);' ?>"
+       href="<?= h(qtab(['unchecked' => $selfOnlyNew ? null : '1'])) ?>">未確認だけ</a>
+    <a class="ptab<?= $showTest ? ' active' : '' ?>" href="<?= h(qtab(['showtest' => $showTest ? null : '1'])) ?>"><?= $showTest ? 'テスト生を隠す' : 'テスト生を表示' ?></a>
+  </div>
+
+  <?php // 見出しは必ず .card の中に置く（.card h1 でしか整形していないので、外に出すと
+        //       ブラウザ既定の h1＝約32px・本文書体になって1つだけ浮く） ?>
+  <div class="card" id="selfStudyCard">
+    <h1>自習報告 <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">（<?= h($selfScopeLabel) ?><?= $filterSubject !== '' ? '・' . h(SELF_STUDY_SUBJECTS[$filterSubject] ?? $filterSubject) : '' ?>）</span>
+      <?php if ($selfUnchecked > 0): ?><span class="ssl-yet">未確認 <?= $selfUnchecked ?>件</span><?php endif; ?>
+    </h1>
+    <p style="font-size:12px;color:var(--ink-soft);">
+      生徒の自己申告です（XPや正答率には入りません）。
+      <?= $selfOnlyNew ? '確認印がまだの記録だけを出しています。' : '未確認の記録は期間タブに関係なく常に表示します。' ?>
+      生徒名を押すと、その生徒の記録が開きます。
+      <?php if (count($selfGroups) > 0): ?><?= count($selfGroups) ?>人・<?= count($selfRows) ?>件。<?php endif; ?>
+    </p>
+<?php if (count($selfGroups) === 0): ?>
+    <p style="font-size:13px;color:var(--ink-soft);">この条件の自習記録はありません</p>
+<?php else: ?>
+<?php foreach ($selfGroups as $g): ?>
+    <details class="ssg<?= $g['unchecked'] > 0 ? ' yet' : '' ?>">
+      <summary>
+        <span class="ssg-name"><?= h($g['student_name']) ?></span>
+        <span class="ssg-meta"><?= h($g['classroom']) ?>教室<?= $g['grade'] !== '' ? '・' . h(grade_label($g['grade'])) : '' ?></span>
+<?php if ($g['unchecked'] > 0): ?>
+        <span class="ssl-yet">未確認 <?= $g['unchecked'] ?></span>
+<?php endif; ?>
+        <span class="ssg-num"><?= count($g['rows']) ?>件<?= $g['minutes'] > 0 ? '・' . $g['minutes'] . '分' : '' ?></span>
+      </summary>
+      <div class="ssg-body">
+<?php foreach ($g['rows'] as $ssl): ?>
+        <?= ssl_row_html($ssl) ?>
+<?php endforeach; ?>
+        <a class="ssg-more" href="<?= h(qtab(['student_id' => $g['student_id'], 'view' => null, 'unchecked' => null, 'subject' => null])) ?>"><?= h($g['student_name']) ?>さんの詳細を見る →</a>
+      </div>
+    </details>
+<?php endforeach; ?>
+<?php if (count($selfRows) >= 200): ?>
+    <p style="font-size:12px;color:var(--ink-soft);margin-top:10px;">
+      ※ 新しい順に200件まで表示しています。古い記録は期間タブか教室で絞ってください</p>
+<?php endif; ?>
+<?php endif; ?>
+  </div>
+
 <?php else: ?>
   <!-- ============ 生徒一覧 ============ -->
 <?php
@@ -1695,6 +1936,8 @@ function sp_select(string $label, array $options): string
 <?php endforeach; ?>
 <?php endif; ?>
     <a class="ptab" style="border-color:var(--kin);color:var(--kin);" href="<?= h(qtab(['view' => 'ranking'])) ?>">ランキング</a>
+    <?php // 自習報告はここから。教科タブは自習用の一覧に変わるので持ち越さない ?>
+    <a class="ptab" style="border-color:#3E7A5E;color:#3E7A5E;" href="<?= h(qtab(['view' => 'selfstudy', 'subject' => null])) ?>">自習報告<?= $selfNewTotal > 0 ? '（未確認' . $selfNewTotal . '）' : '' ?></a>
     <a class="ptab<?= $showTest ? ' active' : '' ?>" href="<?= h(qtab(['showtest' => $showTest ? null : '1'])) ?>"><?= $showTest ? 'テスト生を隠す' : 'テスト生を表示' ?></a>
   </div>
 
@@ -1743,6 +1986,8 @@ function sp_select(string $label, array $options): string
     }
 ?>
     <a class="ptab" style="border-color:var(--kin);color:var(--kin);" href="<?= h(qtab(['view' => 'ranking'])) ?>">ランキング</a>
+    <?php // 自習報告はここから。教科タブは自習用の一覧に変わるので持ち越さない ?>
+    <a class="ptab" style="border-color:#3E7A5E;color:#3E7A5E;" href="<?= h(qtab(['view' => 'selfstudy', 'subject' => null])) ?>">自習報告<?= $selfNewTotal > 0 ? '（未確認' . $selfNewTotal . '）' : '' ?></a>
     <a class="ptab<?= $showTest ? ' active' : '' ?>" href="<?= h(qtab(['showtest' => $showTest ? null : '1'])) ?>"><?= $showTest ? 'テスト生を隠す' : 'テスト生を表示' ?></a>
   </div>
 
