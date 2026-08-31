@@ -4,6 +4,8 @@ declare(strict_types=1);
 // 利用状況レポート（会議・共有用の1枚資料）
 //   ① 教室別利用状況: 1問以上解いた生徒 ÷ 在籍生徒 × 100 を「小」「中」に分けて出す
 //   ② 人気のサイトランキング: 利用生徒数の多い順（解答数・正答率つき）
+//   ③ 教室別 保護者ログイン率: ログインした保護者 ÷ 保護者アカウントを発行した家庭 × 100
+//      （③だけは学年を問わない。高校生の保護者も「家庭」として数える）
 // 除外: 高校生 / 学年未設定 / テスト生（氏名に「テスト」）/ 退塾（is_active=0）
 //   → 高校生と学年未設定は「除外した人数」だけ注記に出す（分母がずれていたら気づけるように）
 // 権限: super_admin=全教室 / classroom_admin・teacher=担当教室のみ（teacher.php と同じ）
@@ -161,7 +163,8 @@ $toStr   = $to   ? $to->format('Y-m-d 00:00:00')   : null;
 // ============================================================
 $allowedIds = array_map(fn($c) => (int)$c['classroom_id'], $classrooms);
 
-$students = [];   // student_id => ['classroom_id'=>, 'stage'=>]
+$students = [];   // student_id => ['classroom_id'=>, 'stage'=>]（①②用: 小中のみ）
+$studentsAll = []; // student_id => classroom_id（③の保護者用: 学年を問わない在籍生徒）
 $excluded = ['高' => 0, '未設定' => 0];
 if ($allowedIds) {
     $in = implode(',', array_fill(0, count($allowedIds), '?'));
@@ -171,6 +174,7 @@ if ($allowedIds) {
     );
     $stmt->execute($allowedIds);
     foreach ($stmt->fetchAll() as $r) {
+        $studentsAll[(int)$r['student_id']] = (int)$r['classroom_id'];
         $stage = stage_of($r['grade']);
         if ($stage === '小' || $stage === '中') {
             $students[(int)$r['student_id']] = ['classroom_id' => (int)$r['classroom_id'], 'stage' => $stage];
@@ -277,6 +281,83 @@ foreach ($STAGES as $st) {
     $rankByStage[$st] = $list;
 }
 
+// ============================================================
+// ③ 保護者ログイン率（教室別）
+//   分母（家庭）: 有効な保護者アカウントのうち、ひもづく在籍生徒（テスト生除く）が1人以上いる家庭。
+//                 ①②と違い**学年は問わない**（高校生の保護者も家庭として数える）
+//   教室        : 代表の子（ひもづく在籍生徒のうち student_id が最小＝最初に登録した子）の教室。
+//                 兄弟が別教室の家庭は代表の子の教室に1回だけ数える（重複計上を避ける）
+//   分子        : login_logs に actor_type='guardian' / success=1 の記録が期間内に1件以上ある保護者
+//   ※ 保護者は自動ログイン（divp_remember）を発行しない＝訪問のたびに login_logs が残るので、
+//     ログイン回数がそのまま「見に来た回数」になる（生徒は自動ログインで記録が残らない場合がある）
+// ============================================================
+$gHome = [];        // guardian_id => 代表の子の student_id
+$hasGuardian = [];  // student_id => true（保護者アカウントがひもづいている子）
+if ($studentsAll) {
+    $stmt = $pdo->query(
+        'SELECT g.guardian_id, gs.student_id
+         FROM guardians g
+         JOIN guardian_students gs ON gs.guardian_id = g.guardian_id
+         WHERE g.is_active = 1'
+    );
+    foreach ($stmt->fetchAll() as $r) {
+        $sid = (int)$r['student_id'];
+        if (!isset($studentsAll[$sid])) continue;   // 退塾・テスト生・権限外の教室の子は無視
+        $gid = (int)$r['guardian_id'];
+        if (!isset($gHome[$gid]) || $sid < $gHome[$gid]) $gHome[$gid] = $sid;
+        $hasGuardian[$sid] = true;
+    }
+}
+
+$gLogin = [];   // guardian_id => ['period'=>期間内のログイン回数, 'all'=>累計]
+if ($gHome) {
+    $params = [];
+    if ($fromStr !== null) {
+        $periodExpr = 'SUM(logged_in_at >= :from AND logged_in_at < :to)';
+        $params = ['from' => $fromStr, 'to' => $toStr];
+    } else {
+        $periodExpr = 'COUNT(*)';   // 全期間タブなら期間内＝累計
+    }
+    $stmt = $pdo->prepare(
+        "SELECT actor_id, COUNT(*) AS n_all, {$periodExpr} AS n_period
+         FROM login_logs
+         WHERE actor_type = 'guardian' AND success = 1
+         GROUP BY actor_id"
+    );
+    $stmt->execute($params);
+    foreach ($stmt->fetchAll() as $r) {
+        $gLogin[(int)$r['actor_id']] = ['period' => (int)$r['n_period'], 'all' => (int)$r['n_all']];
+    }
+}
+
+// 教室別: [classroom_id] => ['homes'=>家庭数, 'period'=>期間内ログイン家庭, 'ever'=>一度でもログイン, 'visits'=>期間内の回数]
+$gCell = [];
+$gNone = [];   // 保護者アカウントが未発行の生徒数（教室別）
+foreach ($allowedIds as $cid) {
+    $gCell[$cid] = ['homes' => 0, 'period' => 0, 'ever' => 0, 'visits' => 0];
+    $gNone[$cid] = 0;
+}
+foreach ($gHome as $gid => $sid) {
+    $cid = $studentsAll[$sid];
+    $gCell[$cid]['homes']++;
+    $l = $gLogin[$gid] ?? null;
+    if ($l === null) continue;
+    if ($l['period'] > 0) $gCell[$cid]['period']++;
+    if ($l['all'] > 0)    $gCell[$cid]['ever']++;
+    $gCell[$cid]['visits'] += $l['period'];
+}
+foreach ($studentsAll as $sid => $cid) {
+    if (!isset($hasGuardian[$sid])) $gNone[$cid]++;
+}
+
+$gSum = ['homes' => 0, 'period' => 0, 'ever' => 0, 'visits' => 0, 'none' => 0];
+foreach ($allowedIds as $cid) {
+    foreach (['homes', 'period', 'ever', 'visits'] as $k) $gSum[$k] += $gCell[$cid][$k];
+    $gSum['none'] += $gNone[$cid];
+}
+// 「一度でも」列は期間を絞ったときだけ意味がある（全期間タブでは期間内と同じ値になる）
+$showEver = ($fromStr !== null);
+
 function pct(int $used, int $total): ?float
 {
     return $total > 0 ? round(100 * $used / $total, 1) : null;
@@ -336,6 +417,9 @@ $today = (new DateTimeImmutable('today'))->format('Y年n月j日');
   h2 .no{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--ai);color:#fff;
     align-items:center;justify-content:center;font-size:12px}
   section.rank h2 .no{background:var(--kin)}
+  section.guardian{border-top-color:var(--shu)}
+  section.guardian h2{color:var(--shu)}
+  section.guardian h2 .no{background:var(--shu)}
   h3{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;margin:18px 0 6px;color:var(--ink)}
   p.note{font-size:11px;color:var(--ink-soft);margin-top:6px}
 
@@ -388,7 +472,7 @@ $today = (new DateTimeImmutable('today'))->format('Y年n月j日');
 <header class="rep">
   <div>
     <h1>学習サイト 利用状況レポート</h1>
-    <div class="meta" style="text-align:left">対象期間: <b><?= h($periodLabel) ?></b> ／ 小学生・中学生のみ（高校生・テスト生は除外）</div>
+    <div class="meta" style="text-align:left">対象期間: <b><?= h($periodLabel) ?></b> ／ ①②は小学生・中学生のみ（高校生・テスト生は除外）／ ③は学年を問わない全家庭</div>
   </div>
   <div class="meta">
     作成日 <?= h($today) ?><br>
@@ -556,12 +640,109 @@ $today = (new DateTimeImmutable('today'))->format('Y年n月j日');
 <?php endif; ?>
 </section>
 
+<!-- ================= ③ 保護者ログイン率 ================= -->
+<section class="guardian">
+  <h2><span class="no">3</span>教室別 保護者ログイン率</h2>
+  <p class="note">
+    ログイン率 ＝ 期間内にログインした保護者 ÷ 保護者アカウントを発行した家庭 × 100
+    <?php if ($showEver): ?>／「一度でも」は全期間で1回でもログインしたことがある家庭<?php endif; ?>
+  </p>
+
+<?php if (!$classrooms): ?>
+  <div class="empty">担当教室が設定されていません。</div>
+<?php elseif ($gSum['homes'] === 0): ?>
+  <div class="empty">
+    保護者アカウントがまだ発行されていません。
+    <a href="/admin.php" style="color:var(--ai)">アカウント管理</a>の「保護者登録」から発行できます。
+  </div>
+<?php else: ?>
+  <table>
+    <thead>
+      <tr>
+        <th>教室</th>
+        <th class="g">保護者<br>アカウント</th>
+        <th>ログイン</th>
+        <th>ログイン率</th>
+<?php if ($showEver): ?>
+        <th class="g">一度でも</th>
+        <th>その率</th>
+<?php endif; ?>
+        <th class="g">ログイン回数</th>
+        <th class="g">保護者<br>未発行の生徒</th>
+      </tr>
+    </thead>
+    <tbody>
+<?php
+    $gRows = [];
+    foreach ($classrooms as $c) {
+        $cid = (int)$c['classroom_id'];
+        $gRows[] = ['name' => (string)$c['classroom_name'], 'cid' => $cid,
+                    'rate' => pct($gCell[$cid]['period'], $gCell[$cid]['homes'])];
+    }
+    usort($gRows, fn($a, $b) => [$b['rate'] === null ? -1 : $b['rate'], $gCell[$b['cid']]['homes']]
+                            <=> [$a['rate'] === null ? -1 : $a['rate'], $gCell[$a['cid']]['homes']]);
+
+    // 家庭数・ログイン数・率＋バー（①の $cellHtml と同じ見せ方だが、先頭列の罫線位置が違うので別に組む）
+    $gRateCell = function (int $used, int $total): string {
+        $r = pct($used, $total);
+        $cls = rate_class($r);
+        $bar = $r === null ? '' : '<span class="bar"><i class="' . $cls . '" style="width:' . $r . '%"></i></span>';
+        $txt = $r === null ? '—' : number_format($r, 1) . '%';
+        return '<td>' . $used . '</td><td><span class="rate ' . $cls . '">' . $txt . '</span>' . $bar . '</td>';
+    };
+
+    foreach ($gRows as $r):
+        $cid = $r['cid'];
+        $g = $gCell[$cid];
+?>
+      <tr>
+        <td><?= h($r['name']) ?></td>
+        <td class="g"><?= $g['homes'] ?></td>
+        <?= $gRateCell($g['period'], $g['homes']) ?>
+<?php if ($showEver): ?>
+        <td class="g"><?= $g['ever'] ?></td>
+        <td><?php $er = pct($g['ever'], $g['homes']); ?><span class="rate <?= rate_class($er) ?>"><?= $er === null ? '—' : number_format($er, 1) . '%' ?></span></td>
+<?php endif; ?>
+        <td class="g"><?= number_format($g['visits']) ?></td>
+        <td class="g"><?= $gNone[$cid] > 0 ? '<b style="color:var(--shu)">' . $gNone[$cid] . '</b>' : '0' ?></td>
+      </tr>
+<?php endforeach; ?>
+    </tbody>
+    <tbody>
+      <tr class="sum">
+        <td>全体</td>
+        <td class="g"><?= $gSum['homes'] ?></td>
+        <?= $gRateCell($gSum['period'], $gSum['homes']) ?>
+<?php if ($showEver): ?>
+        <td class="g"><?= $gSum['ever'] ?></td>
+        <td><?php $er = pct($gSum['ever'], $gSum['homes']); ?><span class="rate <?= rate_class($er) ?>"><?= $er === null ? '—' : number_format($er, 1) . '%' ?></span></td>
+<?php endif; ?>
+        <td class="g"><?= number_format($gSum['visits']) ?></td>
+        <td class="g"><?= $gSum['none'] ?></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="note">
+    「保護者未発行の生徒」は保護者アカウントがまだ無い在籍生徒の数（全体で <b><?= $gSum['none'] ?></b> 人）。
+    ここが0でないうちは、ログイン率の分母にその家庭が入っていません。
+    <?php if ($gSum['none'] > 0): ?>
+      <a href="/admin.php" style="color:var(--ai)">アカウント管理</a>の「保護者登録（一括）」でまとめて発行できます。
+    <?php endif; ?>
+  </p>
+<?php endif; ?>
+</section>
+
 <div class="foot">
   <b>この資料の集計ルール</b><br>
   ・分母（在籍）＝ 在籍中（アカウント有効）で、氏名に「テスト」を含まない小学生・中学生。<b>高校生と退塾者は分母・分子とも除外</b>。<br>
   ・分子（利用）＝ 対象期間内に answer_logs に記録が1件以上ある生徒。ログインしただけ・見ただけの生徒は入りません。<br>
   ・学年は生徒アカウントの学年欄（es4 / js1 など）から判定。空欄の生徒はどちらにも入らず、上の注記に人数が出ます。<br>
   ・ツール名は api/units.php の台帳から表示。台帳に無い unit_key はキーのまま出ます（＝台帳に1行足すと名前が出ます）。<br>
+  <b>③ 保護者ログイン率について</b><br>
+  ・分母（家庭）＝ 有効な保護者アカウントのうち、在籍中のお子さまが1人以上いる家庭。<b>③だけは学年を問いません</b>（高校生の保護者も1家庭として数えます）。<br>
+  ・兄弟がいる家庭は保護者IDが1つなので1家庭。教室は代表のお子さま（最初に登録した子）の教室に数えます（兄弟が別教室でも二重計上しません）。<br>
+  ・保護者は自動ログインを発行していないため、見に来るたびにログインが記録されます（＝「ログイン回数」＝見に来た回数）。<br>
   ・同じ集計を phpMyAdmin で確認する SQL: db/reports/kadouritsu_by_classroom.sql
 </div>
 
