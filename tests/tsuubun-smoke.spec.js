@@ -14,6 +14,14 @@ async function readExpr(page) {
     const g = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) { const t = a % b; a = b; b = t; } return a || 1; };
     const red = f => { const k = g(f.n, f.d); return { n: f.n / k, d: f.d / k }; };
     const root = document.querySelector('#qText .expr');
+    // ①通分モードは カードに 式を 出さないので、円の絵の ラベル（もとの分数）から 読む
+    if (!root) {
+      const ts = [...document.querySelectorAll('#pieWrap .pieBox .pieLab')].map(l => {
+        const f = l.querySelector('.fr');   // 先頭が もとの分数（後ろの .after は 通分後）
+        return red({ n: +f.querySelector('.fn').textContent, d: +f.querySelector('.fd').textContent });
+      });
+      return { terms: ts, ops: [], ans: ts[0] };
+    }
     const terms = [], ops = [];
     for (const el of root.children) {
       if (el.classList.contains('op')) { const t = el.textContent.trim(); if (t === '＋') ops.push('+'); else if (t === '－') ops.push('-'); continue; }
@@ -52,7 +60,9 @@ test('11モードすべて 出題→入力→採点→次の問題 が通る', a
   expect(modes.length).toBe(11);
   for (const m of modes) {
     await page.click(`.m-card[data-mode="${m}"]`);
-    await expect(page.locator('#qText .expr')).toBeVisible();
+    // ①だけは カードに 式を 出さない（下のアニメーションを 初期表示に 入れるため）＝円の絵で 出題を 確認する
+    const shown = m === 'tsuubun' ? page.locator('#pieArea .pieWrap') : page.locator('#qText .expr');
+    await expect(shown).toBeVisible();
     const slots = await page.$$eval('.nbox', els => els.map(e => e.dataset.slot));
     expect(slots.length).toBeGreaterThan(1);
     for (const s of slots) await typeInto(page, s, 1);
@@ -60,7 +70,7 @@ test('11モードすべて 出題→入力→採点→次の問題 が通る', a
     await expect(page.locator('#feedback')).toHaveClass(/show/);
     await expect(page.locator('#expl')).not.toBeEmpty();
     await page.click('#nextBtn');
-    await expect(page.locator('#qText .expr')).toBeVisible();
+    await expect(shown).toBeVisible();
     await page.click('#homeBtn');
   }
   expect(errs).toEqual([]);

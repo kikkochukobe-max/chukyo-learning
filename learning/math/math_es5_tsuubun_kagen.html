@@ -239,6 +239,10 @@
   .addpie.sw .pfill2{ fill:var(--pieA); }
   .cA{ color:var(--pieAink); }
   .cB{ color:var(--pieBink); }
+  /* かけらが 持ってきた 「もとの 円の めもり」。土台の 黒い めもりと 合わないのが 見どころ */
+  .addpie .pl.own{ stroke:var(--pieBink); stroke-width:1.4; }
+  .addpie .pl.own.out{ stroke-width:1.8; opacity:.55; }
+  .addpie.sw .pl.own{ stroke:var(--pieAink); }
   /* たせない ほうは、めもりの線が かけらを またいでいるのが 見えるように 朱の点線で ふちどる */
   .addBox.ng .addpie .pfill2{ stroke:var(--shu); stroke-width:2; stroke-dasharray:4 3; }
   .addExpr, .addNote{ opacity:0; transition:opacity .4s ease .95s; }
@@ -942,6 +946,11 @@ function _spoke(cx,cy,r,deg,cls,style){
   return '<line class="'+cls+'" x1="'+cx+'" y1="'+cy+'" x2="'+p.x+'" y2="'+p.y+'"'
     + (style ? ' style="'+style+'"' : '') + '/>';
 }
+/* ふちの 短い めもり（中心まで 引かずに 外がわだけ） */
+function _tick(cx,cy,r,deg,inset,cls){
+  var p0 = _pt(cx,cy,r-inset,deg), p1 = _pt(cx,cy,r,deg);
+  return '<line class="'+cls+'" x1="'+p0.x+'" y1="'+p0.y+'" x2="'+p1.x+'" y2="'+p1.y+'"/>';
+}
 /* f を d 等分で描き、L 等分の線を あとから ふやす（L は d の倍数） */
 function pieSvg(f, L){
   var R = 44, CX = 50, CY = 50, i, ang, k = 0;
@@ -1011,7 +1020,20 @@ function addPieSvg(a, b, grid, sw){
   var s = '<svg viewBox="0 0 100 100" class="pie addpie'+(sw ? " sw" : "")+'" aria-hidden="true">';
   s += '<circle class="pbg" cx="50" cy="50" r="'+R+'"/>';
   s += '<path class="pfill" d="'+_sector(50,50,R,-90,-90+a1)+'"/>';
-  s += '<g class="fly"><path class="pfill2" d="'+_sector(50,50,R,-90+a1,-90+a1+a2)+'"/></g>';
+  /* かけらは 「もとの 円の めもり」を つけたまま 飛んでくる。
+     土台の めもり（grid 等分）と 合わないのが 見どころなので、
+     分母が ちがう ときだけ 出す（通分した あとの 右の 円では 重なるだけなので 出さない）。
+     かけらの 中 … 中心までの 線（もとの 円の 1めもり ぶんが 見える）
+     かけらの 外 … ふちの 短い めもり（もとの 円が どう 分かれていたか の 名ごり） */
+  var st = -90 + a1, own = "";
+  if(b.d !== grid){
+    for(i=0;i<b.d;i++){
+      var ang = st + 360*i/b.d;
+      if(i === 0 || i === b.n) continue;      /* かけらの ふち（＝朱の点線で もう 引いてある）*/
+      own += (i < b.n) ? _spoke(50,50,R,ang,"pl own") : _tick(50,50,R,ang,9,"pl own out");
+    }
+  }
+  s += '<g class="fly"><path class="pfill2" d="'+_sector(50,50,R,st,st+a2)+'"/>'+own+'</g>';
   for(i=0;i<grid;i++) s += _spoke(50,50,R,-90+360*i/grid,"pl base");
   s += '<circle class="pring" cx="50" cy="50" r="'+R+'"/>';
   s += '</svg>';
