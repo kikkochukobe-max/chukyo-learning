@@ -227,6 +227,28 @@ test.describe('100マス テンキー高速入力', () => {
     expect(await page.evaluate(() => window.__idx())).toBe(before);   // 進んでいない
   });
 
+  // T3b 不正解でも打った数字は消えずに残る
+  // 「2桁目を押した瞬間に答え欄が空になる」＝取りこぼしと見分けがつかない、を防ぐ。
+  // タイマーでは消さず、次の数字を打つまで残ること。
+  test('T3b 不正解の入力は次の数字を打つまで残る', async ({ page }, testInfo) => {
+    const mode = modeFor(testInfo);
+    await open(page);
+    const ans = await page.evaluate((m) => window.__seekTwoDigit(m), mode);
+    const wrong = String(ans === 19 ? 18 : ans + 1);   // 2桁を保ったまま外す
+    const before = await page.evaluate(() => window.__idx());
+    await page.evaluate(([w, m]) => window.__type(String(w), 0, m), [wrong, mode]);
+    await page.evaluate(() => window.__frame());
+    expect(await page.evaluate(() => window.__disp())).toBe(wrong);   // 打った2桁が出ている
+    expect(await page.evaluate(() => window.__idx())).toBe(before);   // 進んでいない
+    // 放っておいても消えない（正解時の ANS_HOLD_MS のようなタイマーを持たない）
+    await page.waitForTimeout(600);
+    expect(await page.evaluate(() => window.__disp())).toBe(wrong);
+    // 次の数字を打つと、それが新しい1桁目として上書きする（訂正に余分なタップは不要）
+    await page.evaluate((m) => window.__hit('7', m), mode);
+    await page.evaluate(() => window.__frame());
+    expect(await page.evaluate(() => window.__disp())).toBe('7');
+  });
+
   // T4 正解遷移中（答えを見せている90ms）の打鍵が捨てられない
   test('T4 正解直後に打った数字が次問の1桁目になる', async ({ page }, testInfo) => {
     const mode = modeFor(testInfo);
