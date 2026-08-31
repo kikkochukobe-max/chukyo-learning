@@ -121,6 +121,8 @@ db/                    DB用SQL（phpMyAdminで手動実行。本番へは配信
   seeds/                question_catalog等のシード（ミラー環境の再構築で再利用）
   maintenance/          運用SQL（生徒1人の記録だけ消す等。テストデータ掃除用）
   reports/              集計SQL（教室別稼働率など。phpMyAdminで実行して読む参照専用）
+others/                塾内業務用の単独HTML（月次報告書の入力フォームなど）。
+                       学習ツールではないので learning/ には置かない（＝index.php の一覧にも出ない）
 ```
 
 ファイル名規則: `教科_校種学年_単元(_製作者コード).html`
