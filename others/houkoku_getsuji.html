@@ -77,7 +77,7 @@ section{margin-bottom:26px}
   background:var(--card);border:1px solid var(--rule);
   overflow-x:auto;-webkit-overflow-scrolling:touch;
 }
-table{border-collapse:collapse;width:100%;min-width:620px}
+table{border-collapse:collapse;width:100%;min-width:880px}
 thead th{
   font-size:10px;font-weight:600;letter-spacing:.12em;color:var(--ink-2);
   padding:8px 6px;border-bottom:1px solid var(--rule);
@@ -98,14 +98,23 @@ tbody tr.sub td{background:#F3F4F0;font-weight:700}
 tbody tr.sub td.g{background:#F3F4F0}
 tbody tr.total td{background:var(--ink);color:#fff;font-weight:700;border-bottom:0}
 tbody tr.total td.g{background:var(--ink);color:#fff;letter-spacing:.2em}
-td.sep{border-left:1px solid var(--rule-2)}
+td.sep,thead th.sep{border-left:1px solid var(--rule-2)}
 input.num{
   width:56px;text-align:right;font-family:var(--gothic);font-size:14px;
   font-variant-numeric:tabular-nums;
   border:0;background:var(--fill);color:var(--ink);padding:5px 4px;border-radius:2px;
 }
+input.num.s{width:40px}
+input.num.goal::placeholder{color:#B9BDB5}
 input.num:focus{outline:none;background:var(--fill-focus);box-shadow:inset 0 0 0 1px var(--accent)}
 .ro{font-variant-numeric:tabular-nums;padding-right:8px}
+.ro.zero{color:#AFB5AC;font-weight:400}
+tr.total .ro.zero{color:#8E99A6}
+.ro.up{color:var(--up)}
+.ro.down{color:var(--down)}
+/* 前月＋入会−退会 と 当月 が合わないときの印 */
+.mm{color:var(--up);font-weight:700;margin-left:5px;cursor:help;display:none}
+.mm.on{display:inline}
 
 /* ---------- delta ---------- */
 .delta{display:flex;align-items:center;justify-content:flex-end;gap:8px}
@@ -120,6 +129,64 @@ tr.total .dbar::before{background:#6C7885}
 .dbar i{position:absolute;top:0;bottom:0;display:block}
 .dbar i.up{left:50%;background:var(--up)}
 .dbar i.down{right:50%;background:var(--down)}
+
+/* ---------- file bar ---------- */
+.filebar{
+  display:none;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--fill);border:1px solid var(--fill-line);border-left:3px solid var(--accent);
+  padding:9px 12px;margin-bottom:18px;font-size:12px;line-height:1.6;
+}
+.filebar.on{display:flex}
+.filebar .fb-msg{flex:1 1 240px;color:var(--ink)}
+.filebar button{font-size:12px;padding:5px 10px}
+.filebar.warn{border-left-color:var(--up)}
+
+/* ---------- chart ---------- */
+.chartcard{background:var(--card);border:1px solid var(--rule);border-top:0;padding:12px 14px 10px}
+.chart-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:2px}
+.chart-head h3{
+  margin:0;font-size:13px;font-weight:700;letter-spacing:.1em;
+  display:flex;align-items:center;gap:7px;
+}
+.chart-head h3::before{content:"";width:14px;height:2px;background:var(--accent);flex:0 0 auto}
+.chart-head .range{font-size:11px;color:var(--ink-2);letter-spacing:.04em}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:6px 0 2px}
+.legend button{
+  border:0;background:transparent;padding:0;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;letter-spacing:.06em;color:var(--ink-2);
+}
+.legend button:hover{background:transparent;color:var(--ink)}
+.legend button .key{width:14px;height:0;border-top-width:2px;border-top-style:solid;flex:0 0 auto}
+.legend button[aria-pressed="false"]{opacity:.38}
+.legend button[aria-pressed="false"] .key{border-top-style:dotted}
+.chartbox{position:relative;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.chartbox svg{display:block;width:100%;min-width:640px;height:auto;touch-action:pan-y}
+.chartbox svg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chart-empty{
+  font-size:12px;color:var(--ink-2);background:var(--fill);
+  border:1px dashed var(--fill-line);padding:14px;text-align:center;letter-spacing:.04em;
+}
+.tip{
+  position:absolute;pointer-events:none;z-index:5;display:none;
+  background:#fff;border:1px solid var(--ink);padding:7px 9px;
+  font-size:12px;line-height:1.5;box-shadow:0 2px 8px rgba(22,32,43,.14);min-width:112px;
+}
+.tip.on{display:block}
+.tip .tip-h{font-size:10px;letter-spacing:.14em;color:var(--ink-2);margin-bottom:3px}
+.tip .tip-r{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.tip .tip-r .key{width:12px;height:0;border-top-width:2px;border-top-style:solid;flex:0 0 auto}
+.tip .tip-r .v{font-variant-numeric:tabular-nums;font-weight:700;min-width:34px;text-align:right}
+.tip .tip-r .n{color:var(--ink-2);font-size:11px}
+details.numtable{margin-top:8px;font-size:12px}
+details.numtable summary{cursor:pointer;color:var(--ink-2);letter-spacing:.06em;font-size:11px}
+details.numtable table{min-width:0;margin-top:6px}
+details.numtable th,details.numtable td{
+  font-size:11px;padding:2px 8px 2px 0;text-align:right;white-space:nowrap;
+  border-bottom:1px solid var(--rule-2);font-variant-numeric:tabular-nums;
+}
+details.numtable th{color:var(--ink-2);font-weight:600;letter-spacing:.06em}
+details.numtable td:first-child,details.numtable th:first-child{text-align:left}
 
 /* ---------- cards ---------- */
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -194,6 +261,14 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .modal header{padding:12px 14px;border-bottom:1px solid var(--rule);font-weight:700;letter-spacing:.08em;font-size:13px}
 .modal textarea{flex:1;min-height:320px;border:0;background:#fff;padding:14px;font-size:13px;line-height:1.7;white-space:pre}
 .modal footer{padding:10px 14px;border-top:1px solid var(--rule);display:flex;gap:8px;justify-content:flex-end}
+.modal .fbody{padding:14px;font-size:13px;line-height:1.8;overflow-y:auto}
+.modal .fbody p{margin:0 0 10px}
+.modal .fbody .now{
+  background:var(--fill);border:1px solid var(--fill-line);padding:8px 10px;margin-bottom:12px;
+  font-size:12px;word-break:break-all;
+}
+.modal .fbody .acts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.modal .fbody .note{font-size:11px;color:var(--ink-2);line-height:1.7;margin:0}
 
 @media(max-width:700px){
   .cards{grid-template-columns:1fr}
@@ -206,8 +281,20 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media print{
   body{background:#fff;font-size:11px}
   .wrap{max-width:none;padding:0}
-  .toolbar,.overlay,details.memo,.sec-note,button,.print-hide{display:none !important}
-  .tablewrap,.card,.decide{border:1px solid #999;break-inside:avoid}
+  .toolbar,.overlay,details.memo,details.numtable,.sec-note,.filebar,.tip,button,.print-hide{display:none !important}
+  .legend button{display:inline-flex !important;color:#333 !important}
+  .tablewrap,.card,.decide,.chartcard{border:1px solid #999;break-inside:avoid}
+  .chartcard{border-top:0}
+  /* 11列をA4縦に収める */
+  thead th{padding:4px 3px}
+  tbody td{padding:1px 3px}
+  input.num{width:34px;padding:2px 3px;font-size:11px}
+  input.num.s{width:26px}
+  .dnum{min-width:22px}
+  .dbar{width:32px}
+  .delta{gap:4px}
+  .chartbox{overflow:visible}
+  .chartbox svg{min-width:0}
   table{min-width:0}
   textarea{border-top:1px solid #ccc;resize:none;min-height:0;height:auto}
   input.num,.rec input,.field input{color:#000}
@@ -219,6 +306,11 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </head>
 <body>
 <div class="wrap">
+
+  <div class="filebar" id="filebar">
+    <span class="fb-msg" id="fb-msg"></span>
+    <button id="fb-act"></button>
+  </div>
 
   <div class="masthead">
     <div class="mast-left">
@@ -237,24 +329,38 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <div class="sec-head">
       <span class="sec-no">1</span>
       <h2 class="sec-title">在籍・体験の推移</h2>
-      <span class="sec-note">増加は赤、減少は青</span>
+      <span class="sec-note">増加は赤、減少は青／増減＝当月−前月、目標差＝当月−目標</span>
     </div>
     <div class="tablewrap">
       <table>
         <thead>
           <tr class="grp-row">
             <th></th>
-            <th class="grp" colspan="3">会員数</th>
+            <th class="grp" colspan="7">会員数</th>
             <th class="grp" colspan="3">体験者数</th>
           </tr>
           <tr>
             <th></th>
-            <th>前月</th><th>当月</th><th>増減</th>
-            <th>前月</th><th>当月</th><th>増減</th>
+            <th>前月</th><th>入会</th><th>退会</th><th>当月</th><th>増減</th><th>目標</th><th>目標差</th>
+            <th class="sep">前月</th><th>当月</th><th>増減</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
       </table>
+    </div>
+    <div class="chartcard" id="chartcard">
+      <div class="chart-head">
+        <h3>会員数の推移</h3>
+        <span class="range" id="chart-range"></span>
+      </div>
+      <div class="legend" id="chart-legend"></div>
+      <div class="chartbox" id="chartbox">
+        <div class="tip" id="chart-tip"></div>
+      </div>
+      <details class="numtable" id="chart-numtable">
+        <summary>数値で見る</summary>
+        <div style="overflow-x:auto"><table id="chart-table"></table></div>
+      </details>
     </div>
   </section>
 
@@ -329,6 +435,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 <div class="toolbar">
   <button class="primary" id="btn-text">テキストで書き出す</button>
   <button id="btn-print">印刷 / PDF</button>
+  <button id="btn-file">保存先ファイル…</button>
   <button class="ghost" id="btn-carry">翌月へ繰り越す</button>
   <button class="ghost" id="btn-clear">この月をクリア</button>
   <span class="status" id="status"></span>
@@ -345,6 +452,30 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   </div>
 </div>
 
+<div class="overlay" id="fileovl">
+  <div class="modal">
+    <header>保存先ファイル</header>
+    <div class="fbody">
+      <div class="now" id="f-now"></div>
+      <p>入力した内容を、パソコン（または OneDrive・共有フォルダ）のファイルに保存します。
+         ファイルを持っていけば、別のパソコンでも続きから書けます。</p>
+      <div class="acts">
+        <button class="primary" id="f-new">新しいファイルを作る</button>
+        <button id="f-open">あるファイルを開く</button>
+        <button class="ghost" id="f-detach">つなぐのをやめる</button>
+      </div>
+      <p class="note">
+        ・保存先はこのファイル1つで、月をまたいだ記録がすべて入ります（会員数の推移グラフもここから作ります）。<br>
+        ・ファイルにつないでいない間も、この端末の中には自動保存されます。つないだ時点で合流します。<br>
+        ・この機能が使えるのは Chrome / Edge です。ほかのブラウザでは端末内の保存だけになります。
+      </p>
+    </div>
+    <footer>
+      <button class="ghost" id="f-close">閉じる</button>
+    </footer>
+  </div>
+</div>
+
 <script>
 (function(){
   "use strict";
@@ -356,7 +487,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     {k:"hs1",n:"高1",b:"hs"},{k:"hs2",n:"高2",b:"hs"},{k:"hs3",n:"高3",b:"hs"}
   ];
   var BLOCKS = [{b:"es",n:"小学生 小計"},{b:"jh",n:"中学生 小計"},{b:"hs",n:"高校生 小計"}];
-  var COLS = ["mp","mc","tp","tc"]; // 会員前月/会員当月/体験前月/体験当月
+  // 会員 前月/入会/退会/当月 ・ 体験 前月/当月（目標は学年ごとではなく小・中・高の3つ = state.goals）
+  var COLS = ["mp","mi","mo","mc","tp","tc"];
 
   /* ---------- storage adapter (window.storage → localStorage → memory) ---------- */
   var mem = {};
@@ -380,10 +512,304 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   var KEY = function(m){ return "houkoku:" + m; };
   var META = "houkoku:meta";
 
+  /* ---------- book（全月ぶんの記録＝保存先ファイルの中身） ---------- */
+  var APP_ID = "chukyo-houkoku-getsuji";
+  var book = {app:APP_ID, version:1, updated:"", meta:{school:"",author:""}, months:{}};
+
+  function isMonthKey(k){ return /^\d{4}-\d{2}$/.test(k); }
+
+  function newBook(){ return {app:APP_ID, version:1, updated:"", meta:{school:"",author:""}, months:{}}; }
+
+  function normalizeBook(raw){
+    var b = newBook();
+    if(!raw || typeof raw !== "object") return b;
+    if(typeof raw.updated === "string") b.updated = raw.updated;
+    if(raw.meta && typeof raw.meta === "object"){
+      b.meta.school = String(raw.meta.school || "");
+      b.meta.author = String(raw.meta.author || "");
+    }
+    var ms = (raw.months && typeof raw.months === "object") ? raw.months : {};
+    Object.keys(ms).forEach(function(k){
+      if(isMonthKey(k) && ms[k] && typeof ms[k] === "object") b.months[k] = ms[k];
+    });
+    return b;
+  }
+
+  // この端末に残っている全月を拾う（ファイルにつないだときの合流用）
+  function localBook(){
+    var b = newBook();
+    try{
+      for(var i=0;i<window.localStorage.length;i++){
+        var k = window.localStorage.key(i);
+        if(!k || k.indexOf("houkoku:") !== 0) continue;
+        var m = k.slice(8);
+        if(!isMonthKey(m)) continue;
+        var o = null;
+        try{ o = JSON.parse(window.localStorage.getItem(k)); }catch(e){}
+        if(o && typeof o === "object") b.months[m] = o;
+      }
+      var mt = window.localStorage.getItem(META);
+      if(mt){ try{ var t = JSON.parse(mt); b.meta.school = t.school || ""; b.meta.author = t.author || ""; }catch(e){} }
+    }catch(e){}
+    return b;
+  }
+
+  function mergeInto(base, extra){ // base優先。baseに無い月だけextraから足す
+    Object.keys(extra.months).forEach(function(m){
+      if(!base.months[m]) base.months[m] = extra.months[m];
+    });
+    if(!base.meta.school) base.meta.school = extra.meta.school;
+    if(!base.meta.author) base.meta.author = extra.meta.author;
+    return base;
+  }
+
+  function mirrorAll(){ // ファイル側の全月をこの端末にも複製（ファイルを失っても残るように）
+    Object.keys(book.months).forEach(function(m){
+      try{ store.set(KEY(m), JSON.stringify(book.months[m])); }catch(e){}
+    });
+  }
+
+  function stamp(){
+    var d = new Date(), p = function(n){ return String(n).padStart(2,"0"); };
+    var tz = -d.getTimezoneOffset(), s = tz >= 0 ? "+" : "-", a = Math.abs(tz);
+    return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())
+         + "T"+p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds())
+         + s+p(Math.floor(a/60))+":"+p(a%60);
+  }
+
+  /* ---------- 保存先ファイル（File System Access） ---------- */
+  var fileHandle = null;   // つないでいるファイル
+  var pendingHandle = null;// 前回のファイル（許可待ち）
+  var fileStamp = "";      // 最後に読み書きしたファイルの updated
+  var baseMonths = {};     // 最後にファイルへ書いた（または読んだ）各月の内容＝突き合わせの基準
+  var overwriteOK = false; // 競合を1度確認したら以後は聞かない
+  var fileErr = "";
+  var FS_OK = !!(window.showSaveFilePicker && window.showOpenFilePicker && window.isSecureContext);
+  var IS_FILE_URL = location.protocol === "file:";
+
+  function idbOpen(){
+    return new Promise(function(res, rej){
+      var r = indexedDB.open("houkoku-getsuji", 1);
+      r.onupgradeneeded = function(){ r.result.createObjectStore("kv"); };
+      r.onsuccess = function(){ res(r.result); };
+      r.onerror = function(){ rej(r.error); };
+    });
+  }
+  function idbDo(mode, fn){
+    if(!window.indexedDB) return Promise.resolve(null);
+    return idbOpen().then(function(db){
+      return new Promise(function(res, rej){
+        var tx = db.transaction("kv", mode), req = fn(tx.objectStore("kv"));
+        tx.oncomplete = function(){ db.close(); res(req ? req.result : null); };
+        tx.onerror = function(){ db.close(); rej(tx.error); };
+      });
+    }).catch(function(){ return null; });
+  }
+  function handleStore(h){ return idbDo("readwrite", function(st){ return st.put(h, "file"); }); }
+  function handleLoad(){ return idbDo("readonly", function(st){ return st.get("file"); }); }
+  function handleClear(){ return idbDo("readwrite", function(st){ return st["delete"]("file"); }); }
+
+  function perm(h, request){
+    var o = {mode:"readwrite"};
+    if(!h || !h.queryPermission) return Promise.resolve(!!h);
+    return h.queryPermission(o).then(function(p){
+      if(p === "granted") return true;
+      if(!request) return false;
+      return h.requestPermission(o).then(function(p2){ return p2 === "granted"; });
+    }).catch(function(){ return false; });
+  }
+
+  function isEmptyState(st){
+    if(!st) return true;
+    if(["naibu","hasshin","housaku","sonota"].some(function(k){ return String(st[k] || "").trim(); })) return false;
+    if(st.goals && ["es","jh","hs"].some(function(b){ return String(st.goals[b] || "").trim(); })) return false;
+    var rows = st.rows || {};
+    if(GRADES.some(function(g){
+      var r = rows[g.k] || {};
+      return COLS.some(function(c){ return num(r[c]) !== 0; });
+    })) return false;
+    return !(st.dec || []).some(function(d){
+      return ((d.gidai||"") + (d.a||"") + (d.b||"") + (d.why||"")).trim();
+    });
+  }
+
+  function snapMonths(){
+    var s = {};
+    Object.keys(book.months).forEach(function(m){ s[m] = JSON.stringify(book.months[m]); });
+    return s;
+  }
+
+  function readFileBook(){
+    return fileHandle.getFile().then(function(f){ return f.text(); }).then(function(t){
+      if(!t || !t.trim()) return null;
+      return normalizeBook(JSON.parse(t));
+    });
+  }
+
+  function writeFileBook(){
+    if(!fileHandle) return Promise.resolve(false);
+    return fileHandle.getFile().then(function(f){ return f.text(); })
+      .catch(function(){ return ""; })
+      .then(function(t){
+        if(t && t.trim() && fileStamp){
+          var d = null;
+          try{ d = JSON.parse(t); }catch(e){}
+          if(d && d.updated && d.updated !== fileStamp){
+            // 別の端末が書いたファイル。こちらに無い月はそのまま取り込む（消さない）
+            var remote = normalizeBook(d), added = 0, clash = false;
+            Object.keys(remote.months).forEach(function(m){
+              if(!book.months[m]){ book.months[m] = remote.months[m]; added++; return; }
+              var rj = JSON.stringify(remote.months[m]);
+              // 相手側が「こちらが前回書いた内容そのもの」なら、こちらの方が新しい＝競合ではない
+              if(rj !== JSON.stringify(book.months[m]) && rj !== baseMonths[m]) clash = true;
+            });
+            if(added){ mirrorAll(); renderChart(); }
+            // 同じ月が両方で書き替えられているときだけ確認する
+            if(clash && !overwriteOK){
+              var ok = window.confirm(
+                "同じ月の内容が、別の端末（または別のタブ）でも書き替えられています。\n\n" +
+                "いま画面に出ている内容で上書きしますか。\n" +
+                "「キャンセル」を押すと、この内容はこの端末の中にだけ保存されます。");
+              if(!ok) return false;
+              overwriteOK = true;
+            }
+            book.updated = stamp();
+          }
+        }
+        return fileHandle.createWritable().then(function(w){
+          return Promise.resolve(w.write(JSON.stringify(book, null, 2))).then(function(){ return w.close(); });
+        }).then(function(){
+          fileStamp = book.updated;
+          baseMonths = snapMonths();
+          return true;
+        });
+      });
+  }
+
+  function connectFile(h){
+    fileHandle = h; overwriteOK = false; fileErr = "";
+    stateToBook();
+    var mine = book;
+    return readFileBook().catch(function(){ return null; }).then(function(fb){
+      if(fb){
+        var cur = mine.months[month], theirs = fb.months[month];
+        book = mergeInto(fb, mine); // 同じ月はファイル側を採用
+        fileStamp = fb.updated || "";
+        // ただし画面に書きかけがあり、ファイル側と違うときは消さずに聞く
+        if(cur && theirs && !isEmptyState(cur) && JSON.stringify(cur) !== JSON.stringify(theirs)){
+          var keepMine = window.confirm(
+            mLabelFull(month) + "の内容が、この端末とファイルの両方にあり、中身が違います。\n\n" +
+            "「OK」＝いま画面に出ている内容を残す（ファイル側を上書きします）\n" +
+            "「キャンセル」＝ファイルの内容を使う（画面はファイルの内容に変わります）");
+          if(keepMine) book.months[month] = cur;
+        }
+      }
+      else { fileStamp = ""; }
+      return handleStore(h);
+    }).then(function(){
+      mirrorAll();
+      book.updated = stamp();
+      return writeFileBook();
+    }).then(function(){
+      showFileState();
+      return loadMonth(month);
+    }).then(function(){
+      renderChart();
+      setStatus();
+    }).catch(function(e){
+      fileErr = "ファイルにつなげませんでした";
+      showFileState();
+      throw e;
+    });
+  }
+
+  function pickNewFile(){
+    var name = "月次報告_" + (state.school || "校舎").replace(/[\\\/:*?"<>|]/g,"") + ".json";
+    return window.showSaveFilePicker({
+      suggestedName: name,
+      types: [{description:"月次報告データ", accept:{"application/json":[".json"]}}]
+    }).then(connectFile);
+  }
+  function pickExistingFile(){
+    return window.showOpenFilePicker({
+      multiple: false,
+      types: [{description:"月次報告データ", accept:{"application/json":[".json"]}}]
+    }).then(function(list){
+      var h = list && list[0];
+      if(!h) return;
+      return perm(h, true).then(function(ok){
+        if(!ok){ fileErr = "ファイルへの書き込みが許可されませんでした"; showFileState(); return; }
+        return connectFile(h);
+      });
+    });
+  }
+  function detachFile(){
+    fileHandle = null; pendingHandle = null; fileStamp = ""; fileErr = ""; baseMonths = {};
+    return handleClear().then(function(){ showFileState(); setStatus(); });
+  }
+
+  /* ---------- 上部の案内バー ---------- */
+  function fileName(){
+    var h = fileHandle || pendingHandle;
+    return h && h.name ? h.name : "";
+  }
+  function showFileState(){
+    var bar = $("filebar"), msg = $("fb-msg"), act = $("fb-act");
+    if(!bar) return;
+    bar.classList.remove("warn");
+    act.style.display = "";
+    if(!FS_OK){
+      bar.classList.add("on","warn");
+      msg.textContent = IS_FILE_URL
+        ? "このページをパソコンのファイルから直接開いているため、保存先ファイルが使えません。中京個別のURL（https://…）から開いてください。今はこの端末の中にだけ保存されます。"
+        : "このブラウザは保存先ファイルに対応していません（Chrome / Edge をお使いください）。今はこの端末の中にだけ保存されます。";
+      act.style.display = "none";
+      return;
+    }
+    if(fileHandle){
+      bar.classList.add("on");
+      if(fileErr) bar.classList.add("warn");
+      msg.textContent = (fileErr ? fileErr + "／" : "") + "保存先ファイル：" + fileName();
+      act.textContent = "変更…";
+      act.onclick = openFileModal;
+      return;
+    }
+    bar.classList.add("on","warn");
+    if(pendingHandle){
+      msg.textContent = "前回のファイル（" + fileName() + "）につなぐと、続きから書けます。";
+      act.textContent = "つなぐ";
+      act.onclick = function(){
+        perm(pendingHandle, true).then(function(ok){
+          if(!ok){ fileErr = "アクセスが許可されませんでした"; showFileState(); return; }
+          return connectFile(pendingHandle);
+        });
+      };
+      return;
+    }
+    msg.textContent = "保存先ファイルが未設定です。いまの入力はこの端末の中にだけ保存されます（別のパソコンでは見られません）。";
+    act.textContent = "保存先ファイルを選ぶ";
+    act.onclick = openFileModal;
+  }
+
+  function openFileModal(){
+    $("f-now").textContent = fileHandle
+      ? "いまの保存先：" + fileName()
+      : "いまの保存先：なし（この端末の中だけ）";
+    $("f-detach").style.display = fileHandle ? "" : "none";
+    $("f-new").disabled = $("f-open").disabled = !FS_OK;
+    $("fileovl").classList.add("on");
+  }
+
   /* ---------- state ---------- */
+  function blankRow(){
+    var r = {};
+    COLS.forEach(function(c){ r[c] = ""; });
+    return r;
+  }
   function blank(){
-    var s = {school:"",author:"",rows:{},naibu:"",hasshin:"",housaku:"",sonota:"",dec:[]};
-    GRADES.forEach(function(g){ s.rows[g.k] = {mp:"",mc:"",tp:"",tc:""}; });
+    var s = {school:"",author:"",rows:{},goals:{es:"",jh:"",hs:""},
+             naibu:"",hasshin:"",housaku:"",sonota:"",dec:[]};
+    GRADES.forEach(function(g){ s.rows[g.k] = blankRow(); });
     s.dec.push({gidai:"",a:"",b:"",rec:"A",why:""});
     return s;
   }
@@ -397,8 +823,12 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
   /* ---------- table ---------- */
   function deltaCell(id){
-    return '<div class="delta"><span class="dnum" id="'+id+'-n">0</span>'
+    return '<div class="delta">' + (arguments.length > 1 ? arguments[1] : "")
+         + '<span class="dnum" id="'+id+'-n">0</span>'
          + '<span class="dbar"><i id="'+id+'-b"></i></span></div>';
+  }
+  function mmMark(id){
+    return '<span class="mm" id="'+id+'" title="前月＋入会−退会が当月と合っていません">!</span>';
   }
   function buildTable(){
     var html = "";
@@ -408,8 +838,11 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
         html += '<tr data-row="'+g.k+'">'
           + '<td class="g">'+g.n+'</td>'
           + '<td><input class="num" inputmode="numeric" data-g="'+g.k+'" data-c="mp"></td>'
+          + '<td><input class="num s" inputmode="numeric" data-g="'+g.k+'" data-c="mi"></td>'
+          + '<td><input class="num s" inputmode="numeric" data-g="'+g.k+'" data-c="mo"></td>'
           + '<td><input class="num" inputmode="numeric" data-g="'+g.k+'" data-c="mc"></td>'
-          + '<td>'+deltaCell("d-"+g.k+"-m")+'</td>'
+          + '<td>'+deltaCell("d-"+g.k+"-m", mmMark("mm-"+g.k))+'</td>'
+          + '<td></td><td></td>'
           + '<td class="sep"><input class="num" inputmode="numeric" data-g="'+g.k+'" data-c="tp"></td>'
           + '<td><input class="num" inputmode="numeric" data-g="'+g.k+'" data-c="tc"></td>'
           + '<td>'+deltaCell("d-"+g.k+"-t")+'</td>'
@@ -418,16 +851,24 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       var lbl = BLOCKS.filter(function(x){ return x.b===b; })[0].n;
       html += '<tr class="sub" data-sub="'+b+'">'
         + '<td class="g">'+lbl+'</td>'
-        + '<td class="ro" id="s-'+b+'-mp">0</td><td class="ro" id="s-'+b+'-mc">0</td>'
+        + '<td class="ro" id="s-'+b+'-mp">0</td>'
+        + '<td class="ro" id="s-'+b+'-mi">0</td><td class="ro" id="s-'+b+'-mo">0</td>'
+        + '<td class="ro" id="s-'+b+'-mc">0</td>'
         + '<td>'+deltaCell("d-s"+b+"-m")+'</td>'
+        + '<td><input class="num s goal" inputmode="numeric" data-goal="'+b+'" placeholder="—"></td>'
+        + '<td class="ro" id="gd-s'+b+'">—</td>'
         + '<td class="ro sep" id="s-'+b+'-tp">0</td><td class="ro" id="s-'+b+'-tc">0</td>'
         + '<td>'+deltaCell("d-s"+b+"-t")+'</td>'
         + '</tr>';
     });
     html += '<tr class="total">'
       + '<td class="g">合計</td>'
-      + '<td class="ro" id="s-all-mp">0</td><td class="ro" id="s-all-mc">0</td>'
+      + '<td class="ro" id="s-all-mp">0</td>'
+      + '<td class="ro" id="s-all-mi">0</td><td class="ro" id="s-all-mo">0</td>'
+      + '<td class="ro" id="s-all-mc">0</td>'
       + '<td>'+deltaCell("d-sall-m")+'</td>'
+      + '<td class="ro" id="s-all-mg">0</td>'
+      + '<td class="ro" id="gd-sall">—</td>'
       + '<td class="ro sep" id="s-all-tp">0</td><td class="ro" id="s-all-tc">0</td>'
       + '<td>'+deltaCell("d-sall-t")+'</td>'
       + '</tr>';
@@ -444,6 +885,19 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     b.style.width = (d === 0 ? 0 : Math.max(mag, 6)) + "%";
   }
 
+  // 目標差（当月−目標）。目標が入っていない行は「—」
+  function setGoalDiff(id, hasGoal, d){
+    var el = $(id);
+    if(!el) return;
+    if(!hasGoal){ el.textContent = "—"; el.className = "ro zero"; return; }
+    el.textContent = d > 0 ? "+"+d : String(d);
+    el.className = "ro " + (d > 0 ? "up" : d < 0 ? "down" : "zero");
+  }
+  function setMismatch(id, on){
+    var el = $(id);
+    if(el) el.className = "mm" + (on ? " on" : "");
+  }
+
   function recalc(){
     var sums = {es:{},jh:{},hs:{},all:{}};
     ["es","jh","hs","all"].forEach(function(b){ COLS.forEach(function(c){ sums[b][c]=0; }); });
@@ -456,16 +910,29 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       });
       setDelta("d-"+g.k+"-m", num(r.mc)-num(r.mp), 8);
       setDelta("d-"+g.k+"-t", num(r.tc)-num(r.tp), 5);
+      // 入会・退会を書いたときだけ、前月＋入会−退会＝当月 を確かめる
+      var moved = String(r.mi || "").trim() !== "" || String(r.mo || "").trim() !== "";
+      setMismatch("mm-"+g.k, moved && (num(r.mp) + num(r.mi) - num(r.mo)) !== num(r.mc));
     });
 
+    // 目標は小・中・高の3つだけ（学年ごとには置かない）
+    var goalAll = 0, anyGoal = false;
     ["es","jh","hs"].forEach(function(b){
       COLS.forEach(function(c){ $("s-"+b+"-"+c).textContent = sums[b][c]; });
       setDelta("d-s"+b+"-m", sums[b].mc-sums[b].mp, 15);
       setDelta("d-s"+b+"-t", sums[b].tc-sums[b].tp, 10);
+      var raw = String((state.goals && state.goals[b]) || "").trim();
+      var gv = num(raw);
+      if(raw !== ""){ goalAll += gv; anyGoal = true; }
+      sums[b].mg = raw === "" ? 0 : gv;
+      setGoalDiff("gd-s"+b, raw !== "", sums[b].mc - gv);
     });
     COLS.forEach(function(c){ $("s-all-"+c).textContent = sums.all[c]; });
     setDelta("d-sall-m", sums.all.mc-sums.all.mp, 25);
     setDelta("d-sall-t", sums.all.tc-sums.all.tp, 15);
+    sums.all.mg = goalAll;
+    $("s-all-mg").textContent = anyGoal ? goalAll : "—";
+    setGoalDiff("gd-sall", anyGoal, sums.all.mc - goalAll);
     return sums;
   }
 
@@ -503,8 +970,12 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     GRADES.forEach(function(g){
       COLS.forEach(function(c){
         var el = document.querySelector('input[data-g="'+g.k+'"][data-c="'+c+'"]');
-        if(el) el.value = state.rows[g.k][c];
+        if(el) el.value = state.rows[g.k][c] || "";
       });
+    });
+    ["es","jh","hs"].forEach(function(b){
+      var el = document.querySelector('input[data-goal="'+b+'"]');
+      if(el) el.value = (state.goals && state.goals[b]) || "";
     });
     $("t-naibu").value = state.naibu;
     $("t-hasshin").value = state.hasshin;
@@ -519,15 +990,59 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     if(saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(save, 500);
   }
+  function stateToBook(){
+    if(!month) return;
+    book.months[month] = state;
+    book.meta.school = state.school;
+    book.meta.author = state.author;
+    book.updated = stamp();
+  }
+
+  function setStatus(){
+    var t = new Date(), hm = String(t.getHours()).padStart(2,"0") + ":" + String(t.getMinutes()).padStart(2,"0");
+    $("status").textContent = (fileHandle && !fileErr ? "ファイルに保存 " : "この端末に保存 ") + hm;
+  }
+
+  var fileTimer = null;
   function save(){
+    stateToBook();
     store.set(KEY(month), JSON.stringify(state));
     store.set(META, JSON.stringify({last:month, school:state.school, author:state.author}));
-    var t = new Date();
-    $("status").textContent = "保存済み " + String(t.getHours()).padStart(2,"0") + ":" + String(t.getMinutes()).padStart(2,"0");
+    renderChart();
+    setStatus();
+    if(fileHandle){
+      if(fileTimer) clearTimeout(fileTimer);
+      fileTimer = setTimeout(flushFile, 700);
+    }
   }
+
+  function flushFile(){
+    if(!fileHandle) return Promise.resolve();
+    return writeFileBook().then(function(ok){
+      fileErr = ok ? "" : "この端末の中にだけ保存しました";
+      showFileState(); setStatus();
+    }).catch(function(){
+      fileErr = "ファイルに保存できませんでした（つなぎ直してください）";
+      showFileState(); setStatus();
+    });
+  }
+  function flushNow(){
+    if(!fileHandle) return Promise.resolve();
+    if(fileTimer){ clearTimeout(fileTimer); fileTimer = null; }
+    return flushFile();
+  }
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "hidden") flushNow();
+  });
+  window.addEventListener("pagehide", flushNow);
 
   document.addEventListener("input", function(e){
     var el = e.target;
+    if(el.hasAttribute && el.hasAttribute("data-goal")){
+      if(!state.goals) state.goals = {es:"",jh:"",hs:""};
+      state.goals[el.getAttribute("data-goal")] = el.value;
+      recalc(); touch(); return;
+    }
     if(el.classList && el.classList.contains("num")){
       state.rows[el.getAttribute("data-g")][el.getAttribute("data-c")] = el.value;
       recalc(); touch(); return;
@@ -562,23 +1077,48 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   });
 
   /* ---------- month ---------- */
+  function applyState(obj){
+    try{ state = JSON.parse(JSON.stringify(obj)); }catch(e){ state = blank(); }
+    if(!state || typeof state !== "object") state = blank();
+    if(!state.rows || typeof state.rows !== "object") state.rows = {};
+    if(!state.dec || !state.dec.length) state.dec = [{gidai:"",a:"",b:"",rec:"A",why:""}];
+    ["school","author","naibu","hasshin","housaku","sonota"].forEach(function(k){
+      if(typeof state[k] !== "string") state[k] = "";
+    });
+    // 古い記録には入会・退会・目標の欄が無いので埋める
+    if(!state.goals || typeof state.goals !== "object") state.goals = {es:"",jh:"",hs:""};
+    ["es","jh","hs"].forEach(function(b){
+      if(typeof state.goals[b] !== "string") state.goals[b] = "";
+    });
+    GRADES.forEach(function(g){
+      if(!state.rows[g.k]) state.rows[g.k] = blankRow();
+      COLS.forEach(function(c){
+        if(typeof state.rows[g.k][c] !== "string") state.rows[g.k][c] = "";
+      });
+    });
+    fill();
+    renderChart();
+    $("status").textContent = "読み込み済み";
+  }
+
+  function newState(){
+    state = blank();
+    state.school = book.meta.school || "";
+    state.author = book.meta.author || "";
+    fill();
+    renderChart();
+    $("status").textContent = "新規";
+  }
+
   function loadMonth(m){
     month = m;
+    if(book.months[m]){ applyState(book.months[m]); return Promise.resolve(); }
+    // book に無い月は端末内の記録も見る（ファイル未接続の環境や旧データ用）
     return store.get(KEY(m)).then(function(raw){
-      if(raw){
-        try{ state = JSON.parse(raw); }catch(e){ state = blank(); }
-        if(!state.dec || !state.dec.length) state.dec = [{gidai:"",a:"",b:"",rec:"A",why:""}];
-        GRADES.forEach(function(g){ if(!state.rows[g.k]) state.rows[g.k]={mp:"",mc:"",tp:"",tc:""}; });
-        fill();
-        $("status").textContent = "読み込み済み";
-      }else{
-        state = blank();
-        return store.get(META).then(function(mraw){
-          if(mraw){ try{ var mt=JSON.parse(mraw); state.school=mt.school||""; state.author=mt.author||""; }catch(e){} }
-          fill();
-          $("status").textContent = "新規";
-        });
-      }
+      var o = null;
+      if(raw){ try{ o = JSON.parse(raw); }catch(e){} }
+      if(o && typeof o === "object"){ book.months[m] = o; applyState(o); return; }
+      newState();
     });
   }
   $("f-month").addEventListener("change", function(){
@@ -606,8 +1146,14 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     var next = blank();
     next.school = state.school; next.author = state.author;
     GRADES.forEach(function(g){
-      next.rows[g.k] = {mp:String(num(state.rows[g.k].mc) || ""), mc:"",
-                        tp:String(num(state.rows[g.k].tc) || ""), tc:""};
+      var r = state.rows[g.k], nx = blankRow();
+      nx.mp = String(num(r.mc) || "");
+      nx.tp = String(num(r.tc) || "");
+      next.rows[g.k] = nx;
+    });
+    // 目標は前月の値を初期値として引き継ぐ（必要なら書き替える）
+    ["es","jh","hs"].forEach(function(b){
+      next.goals[b] = (state.goals && state.goals[b]) || "";
     });
     month = shift(month, 1);
     state = next;
@@ -636,7 +1182,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     var any1 = false;
     GRADES.forEach(function(g){
       var r = state.rows[g.k];
-      var empty = !num(r.mp) && !num(r.mc) && !num(r.tp) && !num(r.tc);
+      var empty = !COLS.some(function(c){ return num(r[c]); });
       var tr = document.querySelector('tr[data-row="'+g.k+'"]');
       if(empty) hide(tr); else any1 = true;
     });
@@ -644,11 +1190,13 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       var live = GRADES.some(function(g){
         if(g.b !== b) return false;
         var r = state.rows[g.k];
-        return num(r.mp) || num(r.mc) || num(r.tp) || num(r.tc);
+        return COLS.some(function(c){ return num(r[c]); });
       });
       if(!live) hide(document.querySelector('tr[data-sub="'+b+'"]'));
     });
     if(!any1) hide($("sec1"));
+    hideTip();
+    if(CD.axis.length < 2) hide($("chartcard"));
 
     // ② 書いたカードだけ残す
     var any2 = false;
@@ -704,21 +1252,26 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     L.push("【月次報告】" + mm[0] + "年" + (+mm[1]) + "月　" + (state.school||"") + "　" + (state.author||""));
     L.push("");
     L.push("■1. 在籍・体験");
-    L.push("　　　　会員 前→当(増減)　　体験 前→当(増減)");
+    L.push("　　　　会員 前→当(増減) 入/退  目標(差)　　体験 前→当(増減)");
+    var line1 = function(label, mp, mi, mo, mc, mg, hasGoal, tp, tc){
+      return "  " + label + " " + pad(mp,3) + "→" + pad(mc,3) + " (" + pad(sgn(mc-mp),3) + ")"
+           + " " + pad(mi,2) + "/" + pad(mo,2)
+           + "  " + (hasGoal ? pad(mg,3) + "(" + pad(sgn(mc-mg),3) + ")" : "        ")
+           + "   " + pad(tp,3) + "→" + pad(tc,3) + " (" + pad(sgn(tc-tp),3) + ")";
+    };
     GRADES.forEach(function(g){
       var r = state.rows[g.k];
-      var dm = num(r.mc)-num(r.mp), dt = num(r.tc)-num(r.tp);
-      if(num(r.mp)===0 && num(r.mc)===0 && num(r.tp)===0 && num(r.tc)===0) return;
-      L.push("  " + g.n + "  " + pad(num(r.mp),3) + "→" + pad(num(r.mc),3) + " (" + pad(sgn(dm),3) + ")   "
-             + pad(num(r.tp),3) + "→" + pad(num(r.tc),3) + " (" + pad(sgn(dt),3) + ")");
+      if(!COLS.some(function(c){ return num(r[c]); })) return;
+      L.push(line1(g.n + " ", num(r.mp), num(r.mi), num(r.mo), num(r.mc),
+                   0, false, num(r.tp), num(r.tc)));
     });
+    var hasG = function(b){ return String((state.goals && state.goals[b]) || "").trim() !== ""; };
     ["es","jh","hs"].forEach(function(b){
-      var lbl = {es:"小計 小",jh:"小計 中",hs:"小計 高"}[b];
-      L.push("  " + lbl + " " + pad(sums[b].mp,3) + "→" + pad(sums[b].mc,3) + " (" + pad(sgn(sums[b].mc-sums[b].mp),3) + ")   "
-             + pad(sums[b].tp,3) + "→" + pad(sums[b].tc,3) + " (" + pad(sgn(sums[b].tc-sums[b].tp),3) + ")");
+      var lbl = {es:"小計 小",jh:"小計 中",hs:"小計 高"}[b], s = sums[b];
+      L.push(line1(lbl, s.mp, s.mi, s.mo, s.mc, s.mg, hasG(b), s.tp, s.tc));
     });
-    L.push("  合計   " + pad(sums.all.mp,3) + "→" + pad(sums.all.mc,3) + " (" + pad(sgn(sums.all.mc-sums.all.mp),3) + ")   "
-           + pad(sums.all.tp,3) + "→" + pad(sums.all.tc,3) + " (" + pad(sgn(sums.all.tc-sums.all.tp),3) + ")");
+    L.push(line1("合計  ", sums.all.mp, sums.all.mi, sums.all.mo, sums.all.mc,
+                 sums.all.mg, ["es","jh","hs"].some(hasG), sums.all.tp, sums.all.tc));
     L.push("");
     L.push("■2. 実施したことと結果");
     L.push("〔内部〕");   L.push(state.naibu || "（記載なし）");
@@ -763,15 +1316,331 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     setTimeout(function(){ self.textContent = "コピー"; }, 1800);
   });
 
+  /* ---------- 会員数の推移（折れ線） ---------- */
+  var CH = {W:760, H:236, L:44, R:106, T:16, B:30};
+  // 表の朱＝増／藍＝減とぶつからない色にする（線の色が増減の意味に読まれないように）
+  var SERIES = [
+    {k:"all", n:"合計",   c:"#16202B", w:2.6},
+    {k:"es",  n:"小学生", c:"#4A3AA7", w:2},
+    {k:"jh",  n:"中学生", c:"#EB6834", w:2},
+    {k:"hs",  n:"高校生", c:"#1BAF7A", w:2}
+  ];
+  var chartHidden = {};
+  var CD = {axis:[], vals:{}, series:[], X:function(){return 0;}, Y:function(){return 0;}};
+  var chIdx = -1;
+
+  function mLabel(m){ var p = m.split("-"); return p[0].slice(2) + "/" + (+p[1]); }
+  function mLabelFull(m){ var p = m.split("-"); return p[0] + "年" + (+p[1]) + "月"; }
+  function fmtN(v){ return String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+
+  // 各月の記録から「当月の会員数」を拾う。前月欄しか無い月は、その1つ前の点として使う
+  function buildChartData(){
+    var map = {}, derived = {};
+    Object.keys(book.months).forEach(function(m){
+      if(!isMonthKey(m)) return;
+      var st = book.months[m];
+      if(!st || !st.rows) return;
+      var cur = {es:0,jh:0,hs:0,all:0}, prev = {es:0,jh:0,hs:0,all:0}, ac = 0, ap = 0;
+      GRADES.forEach(function(g){
+        var r = st.rows[g.k] || {};
+        var c = num(r.mc), p = num(r.mp);
+        cur[g.b] += c; cur.all += c; ac += c;
+        prev[g.b] += p; prev.all += p; ap += p;
+      });
+      if(ac > 0) map[m] = cur;
+      if(ap > 0) derived[shift(m,-1)] = prev;
+    });
+    Object.keys(derived).forEach(function(m){ if(!map[m]) map[m] = derived[m]; });
+
+    var keys = Object.keys(map).sort(), axis = [];
+    if(keys.length){
+      var m2 = keys[0], last = keys[keys.length-1], guard = 0;
+      while(guard++ < 240){ axis.push(m2); if(m2 === last) break; m2 = shift(m2, 1); }
+    }
+    var live = ["es","jh","hs"].filter(function(b){
+      return axis.some(function(m){ return map[m] && map[m][b] > 0; });
+    });
+    var use = [];
+    if(live.length !== 1) use.push(SERIES[0]); // 区分が1つだけなら合計は同じ線なので出さない
+    SERIES.slice(1).forEach(function(s){ if(live.indexOf(s.k) >= 0) use.push(s); });
+    if(!use.length && axis.length) use.push(SERIES[0]);
+
+    CD.axis = axis; CD.vals = map; CD.series = use;
+    return CD;
+  }
+
+  function niceScale(max){
+    if(!(max > 0)) return {max:10, step:5};
+    var raw = max / 4, mag = Math.pow(10, Math.floor(Math.log(raw)/Math.LN10)), n = raw / mag;
+    var step = (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * mag;
+    return {max: Math.ceil(max/step) * step, step: step};
+  }
+
+  function renderChart(){
+    var box = $("chartbox");
+    if(!box) return;
+    var d = buildChartData();
+    hideTip();
+    var old = box.querySelector("svg"); if(old) box.removeChild(old);
+    var oldEmpty = box.querySelector(".chart-empty"); if(oldEmpty) box.removeChild(oldEmpty);
+
+    if(d.axis.length < 2){
+      $("chart-range").textContent = "";
+      $("chart-legend").innerHTML = "";
+      $("chart-numtable").style.display = "none";
+      var p = document.createElement("div");
+      p.className = "chart-empty";
+      p.textContent = d.axis.length === 1
+        ? "会員数の「前月」も入れると、推移が線になります。"
+        : "会員数を入れると、ここに月ごとの推移が出ます。";
+      box.appendChild(p);
+      return;
+    }
+    $("chart-numtable").style.display = "";
+    $("chart-range").textContent = mLabelFull(d.axis[0]) + " 〜 " + mLabelFull(d.axis[d.axis.length-1])
+                                + "（" + d.axis.length + "か月）";
+
+    var vis = d.series.filter(function(s){ return !chartHidden[s.k]; });
+    var basis = vis.length ? vis : d.series;
+    var max = 0;
+    d.axis.forEach(function(m){
+      var v = d.vals[m]; if(!v) return;
+      basis.forEach(function(s){ if(v[s.k] > max) max = v[s.k]; });
+    });
+    var sc = niceScale(max);
+    var n = d.axis.length, iw = CH.W - CH.L - CH.R, ih = CH.H - CH.T - CH.B;
+    var X = function(i){ return n === 1 ? CH.L + iw/2 : CH.L + iw * i / (n - 1); };
+    var Y = function(v){ return CH.T + ih * (1 - v / sc.max); };
+    CD.X = X; CD.Y = Y;
+
+    var g = [];
+    // グリッドと目盛り
+    for(var t = 0; t <= sc.max + 1e-9; t += sc.step){
+      var gy = Y(t);
+      g.push('<line x1="'+CH.L+'" y1="'+gy.toFixed(1)+'" x2="'+(CH.W-CH.R)+'" y2="'+gy.toFixed(1)
+           + '" stroke="'+(t === 0 ? "#C8CCC4" : "#EBEDE7")+'" stroke-width="1"/>');
+      g.push('<text x="'+(CH.L-8)+'" y="'+(gy+3.5).toFixed(1)+'" text-anchor="end" font-size="10" fill="#8B877C">'+fmtN(t)+'</text>');
+    }
+    // 月ラベル
+    var step = Math.max(1, Math.ceil(n / 12));
+    for(var i = 0; i < n; i++){
+      if(i !== n-1 && (i % step !== 0 || (n-1-i) < step * 0.6)) continue;
+      g.push('<text x="'+X(i).toFixed(1)+'" y="'+(CH.H-9)+'" text-anchor="middle" font-size="10" fill="#8B877C">'+mLabel(d.axis[i])+'</text>');
+    }
+    // 十字線（線の下に置く）
+    g.push('<line id="ch-cross" x1="0" y1="'+CH.T+'" x2="0" y2="'+(CH.H-CH.B)+'" stroke="#16202B" stroke-width="1" opacity="0" pointer-events="none"/>');
+
+    // 折れ線
+    vis.forEach(function(s){
+      var dd = "", pen = false;
+      d.axis.forEach(function(m, i){
+        var v = d.vals[m];
+        if(!v){ pen = false; return; }
+        dd += (pen ? "L" : "M") + X(i).toFixed(1) + "," + Y(v[s.k]).toFixed(1) + " ";
+        pen = true;
+      });
+      g.push('<path d="'+dd.trim()+'" fill="none" stroke="'+s.c+'" stroke-width="'+s.w+'" stroke-linejoin="round" stroke-linecap="round"/>');
+    });
+    // 点（多い月数のときは端だけ）
+    var lastIdx = -1;
+    for(var j = n-1; j >= 0; j--){ if(d.vals[d.axis[j]]){ lastIdx = j; break; } }
+    vis.forEach(function(s){
+      d.axis.forEach(function(m, i){
+        var v = d.vals[m];
+        if(!v) return;
+        if(n > 14 && i !== lastIdx) return;
+        g.push('<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(v[s.k]).toFixed(1)+'" r="3.6" fill="'+s.c+'" stroke="#fff" stroke-width="2"/>');
+      });
+    });
+    // 線の右端に名前と数字（重なるときは引き出し線でずらす）
+    if(lastIdx >= 0){
+      var labs = vis.map(function(s){
+        var v = d.vals[d.axis[lastIdx]][s.k];
+        return {s:s, x:X(lastIdx), y:Y(v), v:v};
+      }).sort(function(a,b){ return a.y - b.y; });
+      var prevY = -1e9;
+      labs.forEach(function(L){ L.ly = Math.max(L.y, prevY + 15); prevY = L.ly; });
+      if(labs.length){
+        var over = labs[labs.length-1].ly - (CH.H - CH.B);
+        if(over > 0) labs.forEach(function(L){ L.ly = Math.max(CH.T + 6, L.ly - over); });
+      }
+      labs.forEach(function(L){
+        var lx = L.x + 13;
+        if(Math.abs(L.ly - L.y) > 1.5){
+          g.push('<path d="M'+(L.x+5).toFixed(1)+','+L.y.toFixed(1)+' L'+(lx-4).toFixed(1)+','+L.ly.toFixed(1)
+               + '" fill="none" stroke="#C8CCC4" stroke-width="1"/>');
+        }
+        g.push('<text x="'+lx.toFixed(1)+'" y="'+(L.ly+3.5).toFixed(1)+'" font-size="11" fill="#4A5765">'+L.s.n
+             + '<tspan font-size="12" font-weight="700" fill="#16202B" dx="5">'+fmtN(L.v)+'</tspan></text>');
+      });
+    }
+    g.push('<g id="ch-focus" pointer-events="none"></g>');
+    g.push('<rect id="ch-hit" x="'+CH.L+'" y="'+CH.T+'" width="'+iw+'" height="'+ih+'" fill="transparent"/>');
+
+    box.insertAdjacentHTML("afterbegin",
+      '<svg viewBox="0 0 '+CH.W+' '+CH.H+'" role="img" tabindex="0" aria-label="会員数の推移（月ごと）">' + g.join("") + '</svg>');
+
+    // 凡例（1本だけのときは線の名前が右端に出ているので出さない）
+    var lg = $("chart-legend");
+    lg.innerHTML = "";
+    if(d.series.length > 1) d.series.forEach(function(s){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("aria-pressed", chartHidden[s.k] ? "false" : "true");
+      var key = document.createElement("span");
+      key.className = "key";
+      key.style.borderTopColor = s.c;
+      if(s.k === "all") key.style.borderTopWidth = "3px";
+      b.appendChild(key);
+      b.appendChild(document.createTextNode(s.n));
+      b.addEventListener("click", function(){
+        chartHidden[s.k] = !chartHidden[s.k];
+        if(d.series.every(function(x){ return chartHidden[x.k]; })) chartHidden[s.k] = false;
+        renderChart();
+      });
+      lg.appendChild(b);
+    });
+
+    // 数値表
+    var tb = $("chart-table");
+    tb.innerHTML = "";
+    var thead = document.createElement("thead"), htr = document.createElement("tr");
+    var th0 = document.createElement("th"); th0.textContent = "月"; htr.appendChild(th0);
+    d.series.forEach(function(s){ var th = document.createElement("th"); th.textContent = s.n; htr.appendChild(th); });
+    thead.appendChild(htr); tb.appendChild(thead);
+    var tbody = document.createElement("tbody");
+    d.axis.forEach(function(m){
+      var v = d.vals[m], tr = document.createElement("tr");
+      var td0 = document.createElement("td"); td0.textContent = mLabelFull(m); tr.appendChild(td0);
+      d.series.forEach(function(s){
+        var td = document.createElement("td");
+        td.textContent = v ? fmtN(v[s.k]) : "—";
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    tb.appendChild(tbody);
+
+    // ホバー・キーボード
+    var svgEl = box.querySelector("svg"), hit = svgEl.querySelector("#ch-hit");
+    var pick = function(e){
+      var r = svgEl.getBoundingClientRect(), k = r.width / CH.W;
+      if(!k) return;
+      var ux = (e.clientX - r.left) / k;
+      var i = n === 1 ? 0 : Math.round((ux - CH.L) / (iw / (n - 1)));
+      showTipAt(Math.max(0, Math.min(n - 1, i)));
+    };
+    hit.addEventListener("pointermove", pick);
+    hit.addEventListener("pointerdown", pick);
+    hit.addEventListener("pointerleave", hideTip);
+    svgEl.addEventListener("blur", hideTip);
+    svgEl.addEventListener("keydown", function(e){
+      var i = chIdx < 0 ? n - 1 : chIdx;
+      if(e.key === "ArrowRight"){ e.preventDefault(); showTipAt(Math.min(n-1, i+1)); }
+      else if(e.key === "ArrowLeft"){ e.preventDefault(); showTipAt(Math.max(0, i-1)); }
+      else if(e.key === "Escape"){ hideTip(); }
+    });
+  }
+
+  function showTipAt(i){
+    var box = $("chartbox"), svgEl = box.querySelector("svg"), tip = $("chart-tip");
+    if(!svgEl || i < 0 || i >= CD.axis.length) return;
+    var m = CD.axis[i], v = CD.vals[m], x = CD.X(i);
+    var cross = svgEl.querySelector("#ch-cross"), focus = svgEl.querySelector("#ch-focus");
+    cross.setAttribute("x1", x); cross.setAttribute("x2", x);
+    cross.setAttribute("opacity", "0.25");
+    while(focus.firstChild) focus.removeChild(focus.firstChild);
+    var vis = CD.series.filter(function(s){ return !chartHidden[s.k]; });
+    if(v){
+      vis.forEach(function(s){
+        var c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        c.setAttribute("cx", x); c.setAttribute("cy", CD.Y(v[s.k]));
+        c.setAttribute("r", "4.5"); c.setAttribute("fill", s.c);
+        c.setAttribute("stroke", "#fff"); c.setAttribute("stroke-width", "2");
+        focus.appendChild(c);
+      });
+    }
+    tip.innerHTML = "";
+    var h = document.createElement("div");
+    h.className = "tip-h"; h.textContent = mLabelFull(m);
+    tip.appendChild(h);
+    if(!v){
+      var e = document.createElement("div");
+      e.className = "tip-r"; e.textContent = "記録なし";
+      tip.appendChild(e);
+    }else{
+      vis.forEach(function(s){
+        var r = document.createElement("div"); r.className = "tip-r";
+        var k = document.createElement("span");
+        k.className = "key"; k.style.borderTopColor = s.c;
+        if(s.k === "all") k.style.borderTopWidth = "3px";
+        var val = document.createElement("span"); val.className = "v"; val.textContent = fmtN(v[s.k]);
+        var nm = document.createElement("span"); nm.className = "n"; nm.textContent = s.n;
+        r.appendChild(k); r.appendChild(val); r.appendChild(nm);
+        tip.appendChild(r);
+      });
+    }
+    tip.classList.add("on");
+    var rect = svgEl.getBoundingClientRect(), k2 = rect.width / CH.W;
+    var px = x * k2, tw = tip.offsetWidth;
+    var left = px + 14;
+    if(left + tw > rect.width) left = px - tw - 14;
+    if(left < 0) left = 0;
+    tip.style.left = left + "px";
+    tip.style.top = (CH.T * k2 + 4) + "px";
+    chIdx = i;
+  }
+
+  function hideTip(){
+    var box = $("chartbox");
+    if(!box) return;
+    var svgEl = box.querySelector("svg");
+    if(svgEl){
+      var c = svgEl.querySelector("#ch-cross"); if(c) c.setAttribute("opacity", "0");
+      var f = svgEl.querySelector("#ch-focus"); while(f && f.firstChild) f.removeChild(f.firstChild);
+    }
+    var tip = $("chart-tip"); if(tip) tip.classList.remove("on");
+    chIdx = -1;
+  }
+
+  /* ---------- 保存先ファイルのボタン ---------- */
+  $("btn-file").addEventListener("click", openFileModal);
+  $("f-close").addEventListener("click", function(){ $("fileovl").classList.remove("on"); });
+  $("fileovl").addEventListener("click", function(e){ if(e.target === this) this.classList.remove("on"); });
+  $("f-new").addEventListener("click", function(){
+    $("fileovl").classList.remove("on");
+    pickNewFile().catch(function(e){ if(e && e.name !== "AbortError"){ fileErr = "ファイルを作れませんでした"; showFileState(); } });
+  });
+  $("f-open").addEventListener("click", function(){
+    $("fileovl").classList.remove("on");
+    pickExistingFile().catch(function(e){ if(e && e.name !== "AbortError"){ fileErr = "ファイルを開けませんでした"; showFileState(); } });
+  });
+  $("f-detach").addEventListener("click", function(){
+    if(!confirm("このファイルとのつながりを切ります。\nファイル自体は消えません。以後の入力はこの端末の中にだけ保存されます。")) return;
+    $("fileovl").classList.remove("on");
+    detachFile();
+  });
+
   /* ---------- init ---------- */
   buildTable();
+  book = localBook();
   var now = new Date();
   var thisMonth = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,"0");
   store.get(META).then(function(raw){
     var m = thisMonth;
     if(raw){ try{ var mt = JSON.parse(raw); if(mt.last) m = mt.last; }catch(e){} }
     $("f-month").value = m;
-    loadMonth(m);
+    return loadMonth(m);
+  }).then(function(){
+    if(!FS_OK){ showFileState(); return; }
+    return handleLoad().then(function(h){
+      if(!h){ showFileState(); return; }
+      pendingHandle = h;
+      return perm(h, false).then(function(ok){
+        if(ok) return connectFile(h).catch(function(){});
+        showFileState();
+      });
+    }).catch(function(){ showFileState(); });
   });
 })();
 </script>
