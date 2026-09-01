@@ -85,12 +85,18 @@ body{
 }
 .answer-box{
   min-width:2.4em;padding:0 .15em;text-align:center;
-  font-weight:900;font-size:min(17vw,68px);font-variant-numeric:tabular-nums;
+  font-weight:900;font-size:calc(min(17vw,68px) * var(--ansk,1));font-variant-numeric:tabular-nums;
   line-height:1.25;padding-bottom:8px;
   border-bottom:6px solid var(--line);color:var(--sakura-deep);
   transition:border-color .12s;
 }
 .answer-box.on{border-color:var(--sakura)}
+/* 打った数字は3桁目以降も消さずに並べる（間違えたひと組がそのまま残る）ので、
+   桁数によっては文字を縮めないと入らない。倍率は --ansk で渡す。
+   ⚠ font-size を直接上書きしないこと。100マスモードは .q-grid .cell の方が
+   詳細度が高くて勝ってしまう（下の .q-grid .cell.answer-box を参照）。
+   横しきは答え欄が1行を独り占めしていて6桁でも余る（実測 ink 152px / 幅 402px）ので
+   あえて縮めない。打っている途中で文字の大きさが変わる方が気が散るため。 */
 
 /* ---- grid (masu) mode ---- */
 .q-grid{display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;
@@ -99,6 +105,14 @@ body{
 .stage[data-mode="grid"] .q-grid{display:grid;transform:translate(-16%,-2%)}
 .q-grid .cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
   font-weight:900;font-size:min(8vw,38px)}
+/* 答えのマスだけ上の --ansk を効かせる（.q-grid .cell より詳細度を1つ上げてある） */
+.q-grid .cell.answer-box{font-size:calc(min(8vw,38px) * var(--ansk,1))}
+/* こちらは幅がマス1つ分しか無いので、横しきより強く縮める必要がある
+   （実測: 38px のまま4桁を入れるとマスから溢れる）。 */
+.q-grid .cell.answer-box[data-len="3"]{--ansk:.8}
+.q-grid .cell.answer-box[data-len="4"]{--ansk:.68}
+.q-grid .cell.answer-box[data-len="5"]{--ansk:.58}
+.q-grid .cell.answer-box[data-len="6"]{--ansk:.5}
 .q-grid .head{border:4px solid var(--ink-soft);color:var(--ink);background:#fff}
 .q-grid .head.n{border-radius:0 4px 0 0;color:var(--leaf)}
 .q-grid .head.m{border-radius:0 0 0 4px;color:var(--sakura-deep)}
@@ -543,6 +557,7 @@ body{
   // この2つは意図的に別物にしてある。
   var dispInput='';
   var rafId=null, lastShown='';
+  var lastLen=-1;                    // 答え欄に出している桁数（data-len の書き込みを間引く）
 
   // ── 正解した答えを一瞬だけ見せる（ニニマス方式）────────────────────
   // 従来は正解した瞬間に renderQ() が走って答え欄を空にしていたため、
@@ -553,6 +568,11 @@ body{
   // 速く打つ生徒の入力は1つも待たされない＝タイムに影響しない。
   var ANS_HOLD_MS=90;                // 見せる長さ。ここだけ触れば調整できる
   var qHoldTimer=null, qPending=false;
+
+  // 答え欄に並べておく数字の上限（間違えたひと組を残すので伸びる）。
+  // 2桁の答えなら3回ぶん。超えたら古いひと組ぶんを頭から捨てる（press 参照）。
+  // 桁数が増えたぶんは CSS の [data-len] が文字を縮めて受け止める。
+  var MAX_SHOWN=6;
 
   // ── 描画はすべて次のフレームにまとめる ─────────────────────────────
   // タップの瞬間に走る処理は軽いほどよい。既定の passive 経路では
@@ -634,6 +654,25 @@ body{
     PASSIVE_TAP = localStorage.getItem('hm_tap')!=='n';
   }catch(e){ PASSIVE_TAP = !/[?&]tap=n/.test(String(location.search||'')); }
 
+  // ── 答え欄の入力の持ち方を切り替える（`?in=stack` / 戻すのは `?in=cap`）──────
+  // どちらも「打った数字を勝手に消さない」点は同じで、満杯のあとの扱いだけが違う。
+  //  cap（既定）… 答えの桁数で満杯にして、それ以上の数字キーは無反応にする。
+  //               答え欄は必ず答えの桁数ぶんに収まる＝「画面に出ている数字＝今の入力」が
+  //               桁数の増減なしで成り立つ。訂正は ⌫ か C（誤答1回あたり1〜2タップ増える）。
+  //  stack     … 打った数字を消さずに積む。3桁目以降もそのまま表示し、採点は
+  //               「答えの桁数ぶん打ち終わるごとに末尾のひと組」。間違えてもそのまま
+  //               正しい答えを打てばよい＝訂正に余分なタップが要らない。
+  //               ⚠ MAX_SHOWN まで伸びる＝答え欄が5〜6桁になる。
+  // localStorage に残るので、試したい端末で1回 `?in=stack` 付きURLを開かせれば継続する
+  // （PASSIVE_TAP と同じ方式。?debug=1 の計測パネルに今どちらかを表示する）。
+  var STACK_INPUT=false;
+  try{
+    var iq=String(location.search||''), ih=String(location.hash||'');
+    if(/[?&]in=stack/.test(iq) || /(^|#)in=stack\b/.test(ih)) localStorage.setItem('hm_in','stack');
+    else if(/[?&]in=cap/.test(iq) || /(^|#)in=cap\b/.test(ih)) localStorage.removeItem('hm_in');
+    STACK_INPUT = localStorage.getItem('hm_in')==='stack';
+  }catch(e){ STACK_INPUT = /[?&]in=stack/.test(String(location.search||'')); }
+
   var dbgRaw=0, dbgKey=0, dbgBox=null, dbgLast=0, dbgMulti=0, dbgMaxN=1;
   function dbgInit(){
     if(!DBG) return;
@@ -647,6 +686,7 @@ body{
   function dbgRender(){
     if(!dbgBox) return;
     dbgBox.textContent='経路:'+(PASSIVE_TAP?'passive(既定)':'旧(preventDefault)')
+      +'\n入力:'+(STACK_INPUT?'stack(積む)':'cap(既定・満杯で無反応)')
       +'\nraw(生タップ):'+dbgRaw+'\nkey(登録):'+dbgKey
       +'\nΔ(取りこぼし):'+(dbgRaw-dbgKey)
       +'\n同時2本以上:'+dbgMulti+' (最大'+dbgMaxN+'本)'
@@ -751,8 +791,16 @@ body{
     var t=dispInput===''?'\u00A0':dispInput;
     ansBox.textContent=t; ansBox.classList.toggle('on', dispInput!=='');
     ansBoxG.textContent=t; ansBoxG.classList.toggle('on', dispInput!=='');
+    // 3桁以上のときだけ data-len を付ける＝CSS が文字を縮める。
+    // 桁数が変わった時だけ書く（毎フレームの属性書き込みを増やさないため）。
+    var n=dispInput.length; if(n>MAX_SHOWN) n=MAX_SHOWN;
+    if(n!==lastLen){
+      lastLen=n;
+      var v=n>2?String(n):'';
+      ansBox.setAttribute('data-len',v); ansBoxG.setAttribute('data-len',v);
+    }
   }
-  // \u300C\u4ECA\u306E input \u3092\u7B54\u3048\u6B04\u306B\u51FA\u3059\u300D\u4E88\u7D04\u3002DOM \u306F\u6B21\u30D5\u30EC\u30FC\u30E0\u3067\u307E\u3068\u3081\u3066\u66F8\u304F\u3002
+  // 「今の input を答え欄に出す」予約。DOM は次フレームでまとめて書く。
   function paintInput(){ dispInput=input; needIn=true; schedulePaint(); }
 
   function start(){
@@ -1175,28 +1223,40 @@ body{
     if(k==='C'){ input=''; paintInput(); return; }
     if(k==='B'){ input=input.slice(0,-1); paintInput(); return; }
     if(!/^[0-9]$/.test(k))return;
-    if(input.length>=2){ if(DBG) dbgEv('  press '+k+' → 無視(2桁で満杯)'); return; }
-    input+=k;
-    paintInput();           // 打った数字は必ず出す（正解でもここで出した表示が一瞬残る）
+    // ── 打った数字は勝手に消さない ────────────────────────────────
+    // input =「この問題で打った分」。答え欄はこれをそのまま出す。
+    // 採点は「答えの桁数ぶん打ち終わるごとに、末尾のひと組」で行う。
+    // どちらのモードでも、途中で表示が消えたり差し替わったりしない
+    // ＝端末ごとの取りこぼし調査で、画面に出ている数字＝登録された入力 と読める。
+    //
+    // cap（既定）: 答えの桁数で満杯＝以降の数字キーは無反応。訂正は ⌫ か C。
+    //   例: 答え13 に 1,4 → 末尾"14"で不正解(miss++)。以降 14 のまま動かない。
+    // stack(?in=stack): 満杯にせず積む。
+    //   例: 答え13 に 1,4 → 不正解。続けて 1,3 → 表示 1413・末尾"13"で正解。
+    // 下の判定はどちらでも共通（cap では「満杯になった時にちょうど1回」動く）なので、
+    // モードの分岐はこの return 1本だけで済む。
     var ans=String(curAns());
-    if(input.length===ans.length){
-      if(input===ans){
+    if(!STACK_INPUT && input.length>=ans.length){
+      if(DBG) dbgEv('  press '+k+' → 無視('+ans.length+'桁で満杯)');
+      return;
+    }
+    input+=k;
+    // 長くなりすぎたら古いひと組ぶんだけ頭から捨てる。捨てるのが必ず答えの桁数の
+    // 倍数なので、下の「% ans.length」の区切りはずれない。
+    if(input.length>MAX_SHOWN) input=input.slice(ans.length);
+    paintInput();           // 打った数字は必ず出す（正解でもここで出した表示が一瞬残る）
+    if(input.length % ans.length === 0){
+      if(input.slice(-ans.length)===ans){
         if(DBG) dbgEv('  press '+k+' in='+input+' ○正解');
         correctNext();      // input だけ空にする＝答え欄は打ち終えた数字のまま
       }else{
         if(DBG) dbgEv('  press '+k+' in='+input+' ×不正解(答'+ans+')');
         miss++;
-        // 【不正解でも打った数字は消さない】
-        // 状態(input)だけ空に戻し、答え欄(dispInput)は打ち切った数字を残す
-        // ＝ここで paintInput() を呼ばないのがその意味。
-        // 以前は即座に空へ戻していたが、2桁目を打った瞬間に答え欄が空になるため
-        // 「2打目が反応しなかった」のと画面上まったく区別がつかなかった
-        // （2桁そろった表示は同じタスク内で消えるので一度も描画されない）。
-        // 実際、テンキーの取りこぼしを追っていたときにこれが混ざって切り分けを汚した。
-        // タイマーで消さないのは、消える瞬間を待つ理由が無いから。
-        // 次の数字を打てば paintInput() が上書きする＝訂正に余分なタップは要らない
-        // （input はもう空なので、次の1打がそのまま新しい1桁目になる）。
-        input='';
+        // 【不正解でも打った数字は消さない】input も dispInput もそのまま。
+        // 以前はここで input='' として答え欄だけ残していたが、次の1打で
+        // 表示が丸ごと差し替わるため「2打目が反応しなかった」のと区別がつかなかった
+        // （テンキーの取りこぼしを追っていたときに切り分けを汚した）。
+        // いまは積むだけなので、消える瞬間そのものが無い。
       }
     }else{
       if(DBG) dbgEv('  press '+k+' in='+input+' (答'+ans+'・待ち)');
