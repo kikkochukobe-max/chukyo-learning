@@ -682,6 +682,20 @@ body{
   }catch(e){ STACK_INPUT = /[?&]in=stack/.test(String(location.search||'')); }
 
   var dbgRaw=0, dbgKey=0, dbgBox=null, dbgLast=0, dbgMulti=0, dbgMaxN=1;
+  // ブラウザが投げてきた touch の数を、判定を通さずそのまま数える計器。
+  // dbgRaw は running 中かつ hit() まで来たものしか数えないので、
+  // 「届いているのにこちらが数え落としている」場合を切り分けられなかった。
+  var dbgTs=0, dbgTe=0, dbgMinGap=1e9, dbgPrevTs=0;
+  function dbgCountTouch(kind, n){
+    if(!DBG) return;
+    if(kind==='ts'){
+      dbgTs+=n;
+      var t=nowMs();
+      if(dbgPrevTs){ var g=t-dbgPrevTs; if(g<dbgMinGap) dbgMinGap=g; }
+      dbgPrevTs=t;
+    }else dbgTe+=n;
+    dbgRender();
+  }
   function dbgInit(){
     if(!DBG) return;
     dbgBox=document.createElement('div');
@@ -705,6 +719,12 @@ body{
     dbgBox.textContent='経路:'+(PASSIVE_TAP?'passive(既定)':'旧(preventDefault)')
       +'  採寸ズレ:'+drift
       +'\n入力:'+(STACK_INPUT?'stack(積む)':'cap(既定・満杯で無反応)')
+      // ts/te は「ブラウザが投げてきた数」そのもの。running もキー判定も通さずに数える。
+      // raw との差＝こちら側で数え落としている分なので、
+      //   ts が指の回数どおり → ブラウザは届けている（原因はこちら）
+      //   ts が足りない       → ブラウザ/OSの段階で消えている
+      // te だけ足りている場合は接地が握りつぶされて離した時だけ届いた形＝拾い直しが効く範囲。
+      +'\nts(接地):'+dbgTs+'  te(離す):'+dbgTe+'  最短間隔:'+(dbgMinGap<1e8?Math.round(dbgMinGap)+'ms':'-')
       +'\nraw(生タップ):'+dbgRaw+'\nkey(登録):'+dbgKey
       +'\nΔ(取りこぼし):'+(dbgRaw-dbgKey)
       +'\n同時2本以上:'+dbgMulti+' (最大'+dbgMaxN+'本)'
@@ -1380,7 +1400,8 @@ body{
     //    何も起きないので、呼ぶ側も必ずフラグで分岐させること。
     var TS_OPT = PASSIVE_TAP ? {passive:true,capture:true} : {passive:false,capture:true};
     document.addEventListener('touchstart',function(e){
-      if(DBG) dbgTouches(Math.max(e.touches?e.touches.length:1, e.changedTouches.length));
+      if(DBG){ dbgCountTouch('ts', e.changedTouches.length);
+               dbgTouches(Math.max(e.touches?e.touches.length:1, e.changedTouches.length)); }
       var onKey=false;
       for(var i=0;i<e.changedTouches.length;i++){
         // ※changedTouches の並び＝接地された順。同一フレームに2本着地しても
@@ -1421,6 +1442,7 @@ body{
     },TS_OPT);
 
     function lift(e){
+      if(DBG) dbgCountTouch('te', e.changedTouches.length);
       recover(e,'te');
       for(var i=0;i<e.changedTouches.length;i++) delete down[e.changedTouches[i].identifier];
       if(!e.touches || e.touches.length===0) down={};   // 全部離れた＝控えを空にする
