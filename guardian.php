@@ -8,6 +8,7 @@ declare(strict_types=1);
 // （認証は auth.php の actor_type=guardian が生徒側の password_hash と照合）。
 require_once __DIR__ . '/api/db.php';
 require_once __DIR__ . '/api/helpers.php';
+require_once __DIR__ . '/api/self_study_common.php';   // 自習の記録（教科・種類・手ごたえのラベル）
 
 $actor = current_actor();
 $isGuardian = $actor && $actor['type'] === 'guardian';
@@ -172,6 +173,46 @@ if ($isGuardian) {
             }
         }
 
+        // 自習の記録（生徒の自己申告）。保護者は読むだけ＝直す・けす・確認印は出さない。
+        // 期間タブのぶんと、足あとの日付タップで出すぶん（直近35日）の両方をここで取っておき、
+        // 表示の出し分けは data-属性 + JS の表示切替でやる（描画を2重に持たない）。
+        // migrate_self_study.sql 未適用の環境でもページ自体は落ちないよう、丸ごと try で囲む
+        $selfStudy = [];
+        $ssCount = 0;
+        $ssMinutes = 0;
+        try {
+            $ssCols = self_study_select_columns($pdo);
+            $ssParams = ['id' => $sid];
+            $ssWhere = '';
+            if ($from !== null) {
+                // 期間タブの始まりと足あとの始まり、早いほうから取る
+                $ssParams['from'] = min($from->format('Y-m-d'), substr($footFrom, 0, 10));
+                $ssWhere = ' AND sslog.study_date >= :from';
+            }
+            $st = $pdo->prepare(
+                "SELECT {$ssCols}
+                 FROM self_study_logs sslog
+                 LEFT JOIN teachers t ON t.teacher_id = sslog.teacher_id
+                 WHERE sslog.student_id = :id{$ssWhere}
+                 ORDER BY sslog.study_date DESC, sslog.log_id DESC
+                 LIMIT 200"
+            );
+            $st->execute($ssParams);
+            foreach ($st->fetchAll() as $row) {
+                $item = self_study_row($row);
+                $inPeriod = $from === null
+                    || ($item['study_date'] >= $from->format('Y-m-d') && $item['study_date'] < $to->format('Y-m-d'));
+                $item['in_period'] = $inPeriod;
+                if ($inPeriod) {
+                    $ssCount++;
+                    $ssMinutes += (int)$item['minutes'];
+                }
+                $selfStudy[] = $item;
+            }
+        } catch (PDOException $e) {
+            $selfStudy = [];
+        }
+
         $children[] = [
             'name' => $kid['student_name'],
             'classroom' => $kid['classroom_name'],
@@ -186,6 +227,9 @@ if ($isGuardian) {
             'units' => $units,
             'dailyUnits' => $dailyUnits,
             'dailyUnitTitles' => $dailyUnitTitles,
+            'selfStudy' => $selfStudy,
+            'ssCount' => $ssCount,
+            'ssMinutes' => $ssMinutes,
         ];
     }
 }
@@ -277,6 +321,38 @@ if ($isGuardian) {
   .rate-ok{color:var(--kin);font-weight:700}
   .rate-low{color:#D89A45}
   .empty{color:var(--ink-soft);font-size:14px;padding:6px 0}
+
+  /* 自習の記録（読むだけ。マイページの .ss-* と同じ見た目にそろえる） */
+  .ss{margin-top:14px;border-top:1px dashed var(--grid);padding-top:12px}
+  .ss-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .ss-title{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;color:var(--ink)}
+  .ss-title small{font-weight:500;font-size:11px;color:var(--ink-soft);margin-left:4px}
+  .ss-sum{font-size:12px;color:var(--ink-soft);font-feature-settings:'tnum';margin-left:auto}
+  .ss-sum b{color:var(--ink);font-weight:900}
+  .ss-list{margin-top:8px}
+  .ss-item{border-top:1px dashed var(--grid);padding:9px 0}
+  /* 期間外の記録は hidden で並んでいる（日付タップ用）ので、区切り線を消すのは
+     「いま見えている先頭」＝.ss-first。:first-child では隠れている行に当たってしまう */
+  .ss-item.ss-first{border-top:none}
+  .ss-line1{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--ink-soft)}
+  .ss-date{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--ink);font-feature-settings:'tnum'}
+  .ss-chip{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
+    background:var(--paper);color:var(--ink-soft);border:1px solid var(--grid);
+    font-family:'Zen Maru Gothic',sans-serif}
+  .ss-type{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
+    font-family:'Zen Maru Gothic',sans-serif}
+  .ss-type.mem{background:var(--shu-soft);color:var(--shu)}
+  .ss-type.ret{background:#E9F2EC;color:#3E7A5E}
+  .ss-mark{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
+    background:#EDF3F8;color:var(--ai);font-family:'Zen Maru Gothic',sans-serif}
+  .ss-mark.yet{background:var(--paper);color:#C7C2B6;border:1px dashed var(--grid)}
+  .ss-line2{font-size:14px;font-weight:500;margin-top:2px;word-break:break-word}
+  .ss-line2 small{color:var(--ink-soft);font-weight:400;margin-left:6px}
+  .ss-memo{font-size:12px;color:var(--ink-soft);margin-top:3px;white-space:pre-wrap;word-break:break-word}
+  .ss-cmt{margin-top:6px;padding:8px 10px;border-radius:8px;background:#FDF6F5;
+    border-left:3px solid var(--shu);font-size:12px;white-space:pre-wrap;word-break:break-word}
+  .ss-cmt b{display:block;font-family:'Zen Maru Gothic',sans-serif;font-size:10px;color:var(--shu)}
+  .ss-empty{font-size:13px;color:var(--ink-soft);padding:8px 0}
 
   /* ログインフォーム */
   .box{max-width:360px;margin:64px auto;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:26px 22px;border-top:4px solid var(--ai)}
@@ -399,6 +475,48 @@ document.getElementById('lpin').addEventListener('keydown', (e) => { if (e.key =
 <?php endforeach; ?>
 <?php endif; ?>
     </div><!-- /.js-karte-server -->
+
+    <!-- 自習の記録（お子さまが自分で書いた「おうちでの勉強」。保護者は読むだけ） -->
+    <div class="ss">
+      <div class="ss-head">
+        <span class="ss-title">自習の記録<small>おうちでの勉強</small></span>
+        <span class="ss-sum js-ss-sum"><?php if ($c['ssCount'] > 0): ?><b><?= $c['ssCount'] ?></b>件 ・ <b><?= $c['ssMinutes'] ?></b>分<?php endif; ?></span>
+      </div>
+      <div class="ss-list js-ss-list">
+<?php $ssShown = 0;   // 見えている先頭の1件だけ区切り線を消すためのカウンタ ?>
+<?php foreach ($c['selfStudy'] as $it):
+    $d = DateTimeImmutable::createFromFormat('!Y-m-d', $it['study_date']);
+    $dateLabel = $d ? $d->format('n/j') . '（' . ['日','月','火','水','木','金','土'][(int)$d->format('w')] . '）' : $it['study_date'];
+    $checked = !empty($it['checked_at']);
+?>
+        <div class="ss-item<?= ($it['in_period'] && !$ssShown++) ? ' ss-first' : '' ?>" data-date="<?= h($it['study_date']) ?>" data-min="<?= (int)$it['minutes'] ?>" data-inperiod="<?= $it['in_period'] ? '1' : '0' ?>"<?= $it['in_period'] ? '' : ' hidden' ?>>
+          <div class="ss-line1">
+            <span class="ss-date"><?= h($dateLabel) ?></span>
+<?php if ($it['study_type_label']): ?>
+            <span class="ss-type <?= $it['study_type'] === 'retain' ? 'ret' : 'mem' ?>"><?= h($it['study_type_label']) ?></span>
+<?php endif; ?>
+            <span class="ss-chip"><?= h($it['subject_label']) ?></span>
+<?php if ($it['minutes']): ?>
+            <span><?= (int)$it['minutes'] ?>分</span>
+<?php endif; ?>
+<?php if ($it['feeling']): ?>
+            <span title="<?= h($it['feeling_label']) ?>"><?= h(SELF_STUDY_FEELING_FACES[$it['feeling']] ?? '') ?></span>
+<?php endif; ?>
+            <span class="ss-mark<?= $checked ? '' : ' yet' ?>"><?= $checked ? '✓ 先生かくにん済み' : 'みてもらう前' ?></span>
+          </div>
+          <div class="ss-line2"><?= h($it['material']) ?><?php if (!empty($it['range_text'])): ?><small><?= h($it['range_text']) ?></small><?php endif; ?></div>
+<?php if (!empty($it['memo'])): ?>
+          <div class="ss-memo"><?= h($it['memo']) ?></div>
+<?php endif; ?>
+<?php if (!empty($it['teacher_comment'])): ?>
+          <!-- 講師の個人名は出さない（誰が書いたかは講師画面だけで分かればよい） -->
+          <div class="ss-cmt"><b>講師から</b><?= h($it['teacher_comment']) ?></div>
+<?php endif; ?>
+        </div>
+<?php endforeach; ?>
+      </div>
+      <p class="ss-empty js-ss-empty"<?= $c['ssCount'] > 0 ? ' hidden' : '' ?>>この期間の自習の記録はありません</p>
+    </div><!-- /.ss -->
   </section>
 <?php endforeach; ?>
 <?php endif; ?>
@@ -482,6 +600,32 @@ document.getElementById('logout').addEventListener('click', async (e) => {
       }
     }
 
+    // 自習の記録（読むだけ）。既定は期間タブぶんを出しておき、
+    // 日付タップのあいだだけその日の記録に絞る（描画はPHP側の1本きり＝表示の切替だけをやる）
+    var ssItems = section ? section.querySelectorAll('.ss-item') : [];
+    var ssSum = section && section.querySelector('.js-ss-sum');
+    var ssEmpty = section && section.querySelector('.js-ss-empty');
+    var ssSumDefault = ssSum ? ssSum.innerHTML : '';
+    function applySS() {
+      var n = 0, min = 0;
+      Array.prototype.forEach.call(ssItems, function (it) {
+        var show = selKey ? (it.getAttribute('data-date') === selKey)
+                          : (it.getAttribute('data-inperiod') === '1');
+        it.hidden = !show;
+        it.classList.toggle('ss-first', show && n === 0);
+        if (show) { n++; min += parseInt(it.getAttribute('data-min'), 10) || 0; }
+      });
+      if (ssSum) {
+        ssSum.innerHTML = selKey
+          ? (n ? '<b>' + n + '</b>件 ・ <b>' + min + '</b>分' : '')
+          : ssSumDefault;
+      }
+      if (ssEmpty) {
+        ssEmpty.textContent = selKey ? 'この日の自習の記録はありません' : 'この期間の自習の記録はありません';
+        ssEmpty.hidden = n > 0;
+      }
+    }
+
     var expanded = false, selKey = null;
 
     function dateList(n) {                       // 左上=今日、そこから過去へ（新しい→古い）
@@ -510,6 +654,7 @@ document.getElementById('logout').addEventListener('click', async (e) => {
         if (scopeEl) { scopeEl.textContent = periodLabel + 'のまとめ'; scopeEl.classList.remove('on'); }
       }
       applyKarte();
+      applySS();
     }
 
     function render() {
