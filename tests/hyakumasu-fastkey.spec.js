@@ -214,39 +214,49 @@ test.describe('100マス テンキー高速入力', () => {
   });
 
   // T3 不正解直後の打鍵が捨てられない
-  test('T3 不正解の直後に打った数字が次の1桁目になる', async ({ page }, testInfo) => {
+  // cap（既定）: 答えの桁数で満杯になったら、以降の数字キーは無反応。訂正は ⌫ か C。
+  // ⚠ この「満杯で無反応」は、余計なタップが1つ混ざるとその問題の入力が
+  //    行き止まりになるという性質を持つ（1桁目が二重に入ると2打目が死ぬ）。
+  //    取りこぼし調査中はここを疑うこと。逃げ道は stack モード（下の T3c）。
+  test('T3 不正解の入力は残り、満杯の間は数字キーが効かない', async ({ page }, testInfo) => {
     const mode = modeFor(testInfo);
     await open(page);
     const ans = await page.evaluate((m) => window.__seekTwoDigit(m), mode);
-    const wrong = String(ans === 19 ? 18 : ans + 1);   // 2桁を保ったまま外す
-    const before = await page.evaluate(() => window.__idx());
-    await page.evaluate(([w, m]) => window.__type(String(w), 0, m), [wrong, mode]);
-    await page.evaluate((m) => window.__hit('7', m), mode);
-    await page.evaluate(() => window.__frame());
-    expect(await page.evaluate(() => window.__disp())).toBe('7');
-    expect(await page.evaluate(() => window.__idx())).toBe(before);   // 進んでいない
-  });
-
-  // T3b 不正解でも打った数字は消えずに残る
-  // 「2桁目を押した瞬間に答え欄が空になる」＝取りこぼしと見分けがつかない、を防ぐ。
-  // タイマーでは消さず、次の数字を打つまで残ること。
-  test('T3b 不正解の入力は次の数字を打つまで残る', async ({ page }, testInfo) => {
-    const mode = modeFor(testInfo);
-    await open(page);
-    const ans = await page.evaluate((m) => window.__seekTwoDigit(m), mode);
-    const wrong = String(ans === 19 ? 18 : ans + 1);   // 2桁を保ったまま外す
+    const wrong = String(ans + 1);                     // 2桁を保ったまま外す
     const before = await page.evaluate(() => window.__idx());
     await page.evaluate(([w, m]) => window.__type(String(w), 0, m), [wrong, mode]);
     await page.evaluate(() => window.__frame());
-    expect(await page.evaluate(() => window.__disp())).toBe(wrong);   // 打った2桁が出ている
+    expect(await page.evaluate(() => window.__disp())).toBe(wrong);   // 打った2桁が残る
     expect(await page.evaluate(() => window.__idx())).toBe(before);   // 進んでいない
-    // 放っておいても消えない（正解時の ANS_HOLD_MS のようなタイマーを持たない）
+    // 放っておいても消えない（タイマーで消す仕組みを持たない）
     await page.waitForTimeout(600);
     expect(await page.evaluate(() => window.__disp())).toBe(wrong);
-    // 次の数字を打つと、それが新しい1桁目として上書きする（訂正に余分なタップは不要）
+    // 満杯なので数字キーは無反応
     await page.evaluate((m) => window.__hit('7', m), mode);
     await page.evaluate(() => window.__frame());
-    expect(await page.evaluate(() => window.__disp())).toBe('7');
+    expect(await page.evaluate(() => window.__disp())).toBe(wrong);
+    // ⌫ で1文字消せば、また打てる
+    await page.evaluate((m) => window.__hit('B', m), mode);
+    await page.evaluate((m) => window.__hit('7', m), mode);
+    await page.evaluate(() => window.__frame());
+    expect(await page.evaluate(() => window.__disp())).toBe(wrong[0] + '7');
+  });
+
+  // T3c stack（?in=stack）: 満杯にせず積み、末尾のひと組で採点する。
+  // 余計なタップが混ざっても、続けて正しい答えを打てばそのまま通る＝行き止まりが無い。
+  test('T3c stack なら間違えたあと打ち直すだけで正解になる', async ({ page }, testInfo) => {
+    const mode = modeFor(testInfo);
+    await open(page, '?in=stack&debug=1');
+    await expect(page.locator('body')).toContainText('入力:stack(積む)');
+    const ans = await page.evaluate((m) => window.__seekTwoDigit(m), mode);
+    const wrong = String(ans + 1);
+    const before = await page.evaluate(() => window.__idx());
+    await page.evaluate(([w, m]) => window.__type(String(w), 0, m), [wrong, mode]);
+    // 訂正キーを挟まずに、そのまま正しい答えを打つ
+    await page.evaluate(([a, m]) => window.__type(String(a), 0, m), [ans, mode]);
+    await expect
+      .poll(() => page.evaluate(() => window.__idx()), { timeout: 2000 })
+      .toBe(before + 1);
   });
 
   // T4 正解遷移中（答えを見せている90ms）の打鍵が捨てられない

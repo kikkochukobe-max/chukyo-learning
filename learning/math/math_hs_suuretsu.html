@@ -1,0 +1,2484 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数列完全マスター | 中京個別指導学院</title>
+<meta name="description" content="高校数学B 数列の練習ツール。等差数列・等差数列の和・等比数列・等比数列の和・Σと和の公式・階差数列・和Snと一般項・部分分数分解の和・群数列・漸化式・数学的帰納法の11タイプを、レベル1（基本）〜レベル3（発展）から選んで練習できます。公式がなぜ成り立つのかを1ステップずつ動かして見せる「証明モード」つき。中京個別指導学院。">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- ⚠ 共通モジュール（divp-header.js など）は <head> ではなく <body> 開始直後に置く。
+     ヘッダーは document.currentScript の位置に自分を挿し込むので、head に書くと
+     header 要素が head の中に入って画面に一切出ない（エラーは出ない）。 -->
+<style>
+/* ================================================================
+   数列完全マスター — 高校生向けなので「クール・スタイリッシュ」に振る。
+   小中ツールの和紙／方眼ノート路線とは別系統で、暗い紺地＋シアン／バイオレットの
+   ネオン配色・等幅数字（DM Mono）でまとめる。
+   共通モジュールの色は :root の変数で上書きする（var()のフォールバック方式なので
+   読み込み順に関係なくツール側が勝つ）。
+   ================================================================ */
+:root{
+  --bg:#070A12;
+  --bg2:#0C1120;
+  --panel:rgba(255,255,255,.045);
+  --panel2:rgba(255,255,255,.075);
+  --line:rgba(140,175,255,.16);
+  --line2:rgba(140,175,255,.30);
+  --ink:#E9EEFB;
+  --ink2:#B7C1DA;
+  --muted:#7C86A1;
+  --cy:#38E8FF;
+  --cy2:#0E9EC0;
+  --vi:#A78BFA;
+  --vi2:#7C5CFA;
+  --gold:#FFD166;
+  --ok:#7EE0A0;
+  --ng:#FF7A80;
+  --warn:#FFB35C;
+  --jp:"Zen Kaku Gothic New",system-ui,-apple-system,"Hiragino Kaku Gothic ProN",sans-serif;
+  --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  /* ── 答え合わせ表示（divp-choice-mark.js）────────────────────────
+     正解の緑は #3E8E5A に統一するのが原則だが、このツールは暗背景なので
+     science_js3_ionlab と同じ明るい緑の例外側にそろえる（緑の種類を増やさない）。
+     枠は明るい緑・文字は読める薄緑に分ける（--divp-mark-ok-text）。 */
+  --divp-mark-ok:#7ee0a0;
+  --divp-mark-ok-bg:rgba(126,224,160,.16);
+  --divp-mark-ok-bg-soft:rgba(126,224,160,.10);
+  --divp-mark-ok-text:#bfe6cf;
+  --divp-mark-ng:#ff7a80;
+  --divp-mark-ng-bg:rgba(255,122,128,.16);
+  --divp-mark-dim-opacity:.38;
+  /* ── 10問ごとの評価（divp-result.js）を暗配色に寄せる。
+     ランクの色（--divp-result-grade-*）は既定の派手な配色のままにする（ランクは目立ってよい） */
+  --divp-result-bg:#0C1222;
+  --divp-result-ink:#E9EEFB;
+  --divp-result-sub:#7C86A1;
+  --divp-result-accent:#38E8FF;
+  --divp-result-accent-ink:#04121A;
+  --divp-result-sub-btn:rgba(255,255,255,.07);
+  --divp-result-wrong-btn:#7C5CFA;
+  --divp-result-ok:#7ee0a0;
+  --divp-result-ok-bg:rgba(126,224,160,.14);
+  --divp-result-ng:#ff7a80;
+  --divp-result-ng-bg:rgba(255,122,128,.14);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{min-height:100%;}
+body{
+  background:
+    radial-gradient(1200px 760px at 82% -12%, rgba(56,232,255,.10), transparent 60%),
+    radial-gradient(900px 700px at 4% 6%, rgba(167,139,250,.11), transparent 58%),
+    linear-gradient(180deg,var(--bg2),var(--bg) 46%);
+  background-attachment:fixed;
+  color:var(--ink);
+  font-family:var(--jp);
+  font-feature-settings:"palt";
+  touch-action:manipulation;
+  -webkit-text-size-adjust:100%;
+}
+/* 方眼ではなく「製図の目地」。うっすら入れて紙感を消す */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    repeating-linear-gradient(90deg, rgba(140,175,255,.045) 0 1px, transparent 1px 56px),
+    repeating-linear-gradient(0deg,  rgba(140,175,255,.045) 0 1px, transparent 1px 56px);
+  mask-image:radial-gradient(1000px 700px at 50% 0%, #000 30%, transparent 78%);
+  -webkit-mask-image:radial-gradient(1000px 700px at 50% 0%, #000 30%, transparent 78%);
+}
+/* 余白は body ではなく中身側に持たせる（共通ヘッダーは画面幅いっぱいのバーなので、
+   body に padding があると左右と上にすき間ができて「ずれている」見え方になる） */
+.wrap{position:relative;z-index:1;padding:14px 12px 96px;}
+a{color:var(--cy);}
+
+/* ---------- ヘッダー ---------- */
+header.dv-head{
+  max-width:920px;margin:0 auto 12px;display:flex;align-items:flex-end;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;padding-bottom:10px;
+  border-bottom:1px solid var(--line);
+}
+h1{
+  font-size:1.42rem;font-weight:900;letter-spacing:.02em;line-height:1.18;
+  display:flex;flex-direction:column;gap:5px;
+}
+h1 .sub{
+  font-family:var(--mono);font-size:.62rem;font-weight:500;letter-spacing:.28em;
+  color:var(--cy);text-transform:uppercase;
+}
+h1 .ttl{background:linear-gradient(92deg,#fff 12%,var(--cy) 58%,var(--vi) 96%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.stats{display:flex;gap:8px;}
+.stat{
+  min-width:74px;text-align:center;border:1px solid var(--line);border-radius:12px;
+  background:var(--panel);padding:7px 10px;
+}
+.stat b{display:block;font-family:var(--mono);font-size:1.12rem;line-height:1.1;color:#fff;}
+.stat span{display:block;font-size:.56rem;letter-spacing:.18em;color:var(--muted);margin-top:3px;}
+#rankBadge b{background:linear-gradient(92deg,var(--gold),#FFF1C2);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+/* ---------- 上段タブ（演習 / 証明） ---------- */
+.viewtabs{max-width:920px;margin:0 auto 14px;display:flex;gap:8px;}
+.vtab{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  border:1px solid var(--line);border-radius:14px;background:var(--panel);
+  padding:10px 8px;color:var(--ink2);cursor:pointer;font-family:inherit;
+  transition:border-color .18s, box-shadow .18s, background .18s, color .18s;
+}
+.vtab b{font-size:.94rem;font-weight:700;}
+.vtab i{font-style:normal;font-family:var(--mono);font-size:.56rem;letter-spacing:.24em;color:var(--muted);}
+.vtab.on{
+  color:#fff;border-color:var(--cy);
+  background:linear-gradient(140deg,rgba(56,232,255,.16),rgba(167,139,250,.14));
+  box-shadow:0 0 0 1px rgba(56,232,255,.28), 0 14px 30px -18px rgba(56,232,255,.85);
+}
+.vtab.on i{color:var(--cy);}
+
+/* ---------- 出題タイプ / レベル ---------- */
+.pane{max-width:920px;margin:0 auto;}
+.selbox{
+  border:1px solid var(--line);border-radius:16px;background:var(--panel);
+  padding:12px;margin-bottom:12px;
+}
+.selhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px;}
+.selhead h2{
+  font-family:var(--mono);font-size:.62rem;font-weight:500;letter-spacing:.22em;
+  color:var(--cy);text-transform:uppercase;
+}
+.foldBtn{
+  border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink2);
+  font-family:inherit;font-size:.7rem;padding:4px 12px;cursor:pointer;
+}
+.selbox.folded .chips,.selbox.folded .mixbox{display:none;}
+.chips{display:flex;flex-wrap:wrap;gap:7px;}
+.chip{
+  border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.03);
+  color:var(--ink2);font-family:inherit;font-size:.76rem;padding:7px 13px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;line-height:1.2;
+  transition:border-color .16s, box-shadow .16s, background .16s, color .16s;
+}
+.chip small{font-family:var(--mono);font-size:.58rem;color:var(--muted);}
+.chip:hover{border-color:var(--line2);color:var(--ink);}
+.chip.on{
+  color:#fff;border-color:var(--cy);
+  background:linear-gradient(135deg,rgba(56,232,255,.20),rgba(167,139,250,.16));
+  box-shadow:0 0 0 1px rgba(56,232,255,.26), 0 10px 24px -16px rgba(56,232,255,.9);
+}
+.chip.on small{color:#CFF6FF;}
+.chip.mix{border-style:dashed;}
+.chip.mix.on{border-style:solid;border-color:var(--vi);
+  box-shadow:0 0 0 1px rgba(167,139,250,.3), 0 10px 24px -16px rgba(167,139,250,.9);}
+
+/* レベル（3段のセグメント） */
+.lvrow{display:flex;align-items:center;gap:10px;margin-top:11px;flex-wrap:wrap;}
+.lvlabel{font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;color:var(--muted);}
+.lvseg{display:flex;gap:4px;border:1px solid var(--line);border-radius:12px;padding:4px;background:rgba(0,0,0,.22);}
+.lvbtn{
+  border:0;border-radius:9px;background:transparent;color:var(--ink2);font-family:inherit;
+  font-size:.76rem;padding:6px 13px;cursor:pointer;display:flex;align-items:center;gap:6px;
+  transition:background .16s,color .16s;
+}
+.lvbtn u{text-decoration:none;font-family:var(--mono);font-size:.66rem;color:var(--muted);}
+.lvbtn.on{background:linear-gradient(135deg,var(--cy2),var(--vi2));color:#fff;}
+.lvbtn.on u{color:#DFF6FF;}
+#lvDesc{font-size:.74rem;color:var(--ink2);}
+#lvDesc b{color:var(--cy);font-weight:700;}
+
+/* ミックスの内訳 */
+.mixbox{margin-top:11px;border-top:1px dashed var(--line);padding-top:10px;}
+.mixgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(146px,1fr));gap:6px;}
+.mixgrid label{
+  display:flex;align-items:center;gap:7px;font-size:.74rem;color:var(--ink2);
+  border:1px solid transparent;border-radius:9px;padding:5px 7px;cursor:pointer;
+}
+.mixgrid label:hover{background:rgba(255,255,255,.04);}
+.mixgrid input{accent-color:var(--cy);width:15px;height:15px;}
+.mixbtns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.miniBtn{
+  border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink2);
+  font-family:inherit;font-size:.68rem;padding:5px 11px;cursor:pointer;
+}
+.miniBtn:hover{border-color:var(--line2);color:#fff;}
+
+/* ---------- 問題カード ---------- */
+/* ⚠ overflow は visible のまま（正解はんこは直径171pxで、hidden だと切れる） */
+#card{
+  position:relative;overflow:visible;
+  border:1px solid var(--line);border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.062),rgba(255,255,255,.018));
+  padding:16px 16px 18px;box-shadow:0 30px 60px -50px #000;
+}
+#card::before{
+  content:"";position:absolute;left:22px;right:22px;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cy),var(--vi),transparent);opacity:.75;
+}
+#card.shake{animation:shk .34s;}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.qmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.qmeta .tag{
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;color:var(--cy);
+  border:1px solid rgba(56,232,255,.34);border-radius:999px;padding:3px 9px;
+}
+.qmeta .tag.vi{color:var(--vi);border-color:rgba(167,139,250,.38);}
+.qmeta .tag.pl{color:var(--muted);border-color:var(--line);}
+.qmeta .grow{flex:1;}
+.qlead{font-size:.94rem;line-height:1.66;color:var(--ink);}
+.qsub{margin-top:9px;font-size:.82rem;color:var(--ink2);line-height:1.8;}
+.qdisp{
+  margin:14px 0 4px;padding:14px 8px;text-align:center;font-size:1.28rem;color:#fff;
+  border-radius:14px;background:rgba(0,0,0,.28);border:1px solid var(--line);
+  overflow-x:auto;
+}
+.qdisp .katex{color:#fff;}
+.seq{
+  font-family:var(--mono);font-size:1.02rem;letter-spacing:.02em;color:#fff;
+  display:flex;flex-wrap:wrap;gap:0 6px;justify-content:center;
+}
+.seq i{font-style:normal;color:var(--cy);}
+
+/* 選択肢 */
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;}
+@media (max-width:520px){.choices{grid-template-columns:1fr;}}
+.choiceBtn{
+  display:flex;align-items:center;gap:10px;text-align:left;
+  border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.035);
+  color:var(--ink);font-family:inherit;font-size:.98rem;padding:12px 12px;cursor:pointer;
+  min-height:56px;transition:border-color .15s,background .15s,transform .08s;
+}
+.choiceBtn:hover:not([disabled]){border-color:var(--line2);background:rgba(255,255,255,.06);}
+.choiceBtn:active:not([disabled]){transform:scale(.985);}
+.choiceBtn .cno{
+  flex:0 0 26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  font-family:var(--mono);font-size:.76rem;color:var(--cy);
+  border:1px solid rgba(56,232,255,.32);background:rgba(56,232,255,.08);
+}
+.choiceBtn.sel{border-color:var(--cy);background:rgba(56,232,255,.12);box-shadow:0 0 0 1px rgba(56,232,255,.3);}
+.choiceBtn .katex{color:inherit;}
+
+/* テンキー */
+.numwrap{margin-top:14px;}
+.numdisp{
+  height:58px;border-radius:13px;border:1px solid var(--line);background:rgba(0,0,0,.3);
+  display:flex;align-items:center;justify-content:flex-end;padding:0 16px;
+  font-family:var(--mono);font-size:1.62rem;color:#fff;letter-spacing:.04em;
+}
+.numdisp.empty{color:var(--muted);font-size:1rem;letter-spacing:.14em;}
+.numunit{font-size:.8rem;color:var(--muted);margin-left:8px;font-family:var(--jp);}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px;max-width:330px;}
+.key{
+  height:52px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.05);
+  color:#fff;font-family:var(--mono);font-size:1.2rem;cursor:pointer;
+  transition:background .12s,border-color .12s,transform .06s;
+}
+.key:hover{background:rgba(255,255,255,.09);border-color:var(--line2);}
+.key:active{transform:scale(.95);background:rgba(56,232,255,.2);}
+.key.fn{font-size:.92rem;color:var(--ink2);}
+
+/* 判定・解説 */
+.verdict{margin-top:13px;font-size:.9rem;font-weight:700;min-height:1.3em;}
+.verdict.ok{color:var(--ok);}
+.verdict.ng{color:var(--ng);}
+#explain{display:none;margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;}
+.exHead{
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;color:var(--vi);margin-bottom:8px;
+}
+.exLine{font-size:.86rem;line-height:1.95;color:var(--ink2);padding:1px 0;}
+.exLine .katex{color:#fff;}
+.exLine.key{color:#fff;}
+.exFml{
+  margin:8px 0;padding:9px 11px;border-left:2px solid var(--vi);
+  background:rgba(167,139,250,.08);border-radius:0 10px 10px 0;font-size:.86rem;color:var(--ink);
+}
+.exFml .katex{color:#fff;}
+.proofLink{
+  display:inline-flex;align-items:center;gap:6px;margin-top:10px;
+  border:1px solid rgba(167,139,250,.4);border-radius:999px;background:rgba(167,139,250,.1);
+  color:#D8CCFF;font-family:inherit;font-size:.74rem;padding:6px 13px;cursor:pointer;
+}
+.proofLink:hover{background:rgba(167,139,250,.2);}
+
+/* 操作ボタン */
+.actions{
+  max-width:920px;margin:14px auto 0;display:flex;gap:9px;
+}
+.btn{
+  flex:1;border:0;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:700;
+  padding:15px 12px;cursor:pointer;color:#04121A;
+  background:linear-gradient(135deg,var(--cy),#7FF0FF);
+  box-shadow:0 16px 34px -22px rgba(56,232,255,.95);
+}
+.btn.ghost{
+  background:transparent;color:var(--ink2);border:1px solid var(--line);box-shadow:none;
+}
+.btn.vi{background:linear-gradient(135deg,var(--vi2),var(--vi));color:#fff;
+  box-shadow:0 16px 34px -22px rgba(167,139,250,.95);}
+.btn[disabled]{opacity:.4;cursor:default;box-shadow:none;}
+#toast{
+  max-width:920px;margin:10px auto 0;text-align:center;font-size:.8rem;color:var(--cy);min-height:1.2em;
+  font-family:var(--mono);letter-spacing:.06em;
+}
+.banner{
+  max-width:920px;margin:0 auto 12px;border:1px solid rgba(255,209,102,.4);
+  background:rgba(255,209,102,.08);border-radius:12px;padding:10px 13px;
+  font-size:.79rem;color:#FFE9AE;line-height:1.6;
+}
+
+/* ---------- 証明モード ---------- */
+#view-proof{display:none;}
+.plead{
+  max-width:920px;margin:0 auto 12px;font-size:.84rem;color:var(--ink2);line-height:1.8;
+}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:10px;}
+.pcard{
+  text-align:left;border:1px solid var(--line);border-radius:16px;cursor:pointer;
+  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
+  padding:13px 14px 15px;color:var(--ink);font-family:inherit;
+  transition:border-color .16s,transform .12s,box-shadow .16s;
+}
+.pcard:hover{border-color:var(--line2);transform:translateY(-2px);
+  box-shadow:0 22px 40px -30px rgba(56,232,255,.8);}
+.pcard .ptag{
+  font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;color:var(--vi);
+}
+.pcard h3{font-size:.92rem;font-weight:700;margin:5px 0 9px;line-height:1.45;}
+.pcard .pfml{
+  padding:9px 6px;border-radius:10px;background:rgba(0,0,0,.3);border:1px solid var(--line);
+  text-align:center;font-size:.98rem;overflow-x:auto;
+}
+.pcard .pfml .katex{color:#fff;}
+.pcard .pgo{margin-top:9px;font-size:.7rem;color:var(--cy);font-family:var(--mono);letter-spacing:.1em;}
+
+#pview{display:none;}
+.pvhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.pvhead h2{font-size:1.06rem;font-weight:700;}
+.pvfml{
+  max-width:920px;margin:0 auto 12px;padding:12px;border-radius:14px;text-align:center;
+  border:1px solid rgba(167,139,250,.34);background:rgba(167,139,250,.08);font-size:1.14rem;
+}
+.pvfml .katex{color:#fff;}
+.stage{
+  border:1px solid var(--line);border-radius:18px;background:rgba(0,0,0,.3);
+  padding:14px 10px;overflow-x:auto;min-height:230px;display:flex;align-items:center;justify-content:center;
+}
+.stage svg{width:100%;height:auto;max-width:660px;display:block;}
+.pvcap{
+  margin-top:12px;border:1px solid var(--line);border-radius:14px;background:var(--panel);
+  padding:12px 14px;min-height:92px;
+}
+.pvno{font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;color:var(--cy);}
+.pvtxt{font-size:.86rem;line-height:1.8;color:var(--ink);margin-top:6px;}
+.pvtxt b{color:var(--cy);}
+/* 証明ステージの消し込み線（等比数列の和） */
+.strike{stroke:var(--ng);stroke-width:2.6;stroke-linecap:round;
+  stroke-dasharray:120;stroke-dashoffset:120;transition:stroke-dashoffset .5s ease;}
+.strike.on{stroke-dashoffset:0;}
+.dim{opacity:1;transition:opacity .45s ease;}
+.dim.off{opacity:.3;}
+.glow{filter:drop-shadow(0 0 10px rgba(56,232,255,.85));}
+.pvmath{margin-top:9px;text-align:center;font-size:1.04rem;overflow-x:auto;}
+.pvmath .katex{color:#fff;}
+.pvctrl{display:flex;align-items:center;gap:9px;margin-top:12px;}
+.pvdots{flex:1;display:flex;justify-content:center;gap:7px;}
+.pvdots i{
+  width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.16);display:block;
+  transition:background .2s,transform .2s;
+}
+.pvdots i.on{background:var(--cy);transform:scale(1.35);box-shadow:0 0 10px rgba(56,232,255,.9);}
+.pvdots i.done{background:rgba(56,232,255,.4);}
+
+/* 証明ステージ共通の見た目 */
+.sbox{fill:rgba(255,255,255,.06);stroke:var(--line2);stroke-width:1;}
+.sbox.hi{fill:rgba(56,232,255,.18);stroke:var(--cy);}
+.sbox.hi2{fill:rgba(167,139,250,.2);stroke:var(--vi);}
+.slabel{fill:#fff;font-family:"DM Mono",monospace;font-size:15px;text-anchor:middle;dominant-baseline:middle;}
+.ssub{fill:var(--muted);font-family:"DM Mono",monospace;font-size:11px;text-anchor:middle;}
+.spair{fill:var(--gold);font-family:"DM Mono",monospace;font-size:12px;text-anchor:middle;}
+.sline{stroke:var(--line2);stroke-width:1;fill:none;}
+.dot{fill:var(--cy);}
+.dot2{fill:var(--vi);}
+/* 出入りのアニメーション（クラス .on で入ってくる） */
+.fadeUp{opacity:0;transform:translateY(18px);transition:opacity .45s ease,transform .55s cubic-bezier(.2,.85,.25,1);}
+.fadeUp.on{opacity:1;transform:translateY(0);}
+.fadeIn{opacity:0;transition:opacity .45s ease;}
+.fadeIn.on{opacity:1;}
+.slideFit{transition:transform .85s cubic-bezier(.25,.9,.2,1),opacity .4s ease;}
+/* 消える項（部分分数・階差・Σk² の telescoping 用） */
+.cx{position:relative;display:inline-block;transition:opacity .4s ease,color .4s ease;padding:0 1px;}
+.cx::after{
+  content:"";position:absolute;left:-2px;right:-2px;top:52%;height:2px;border-radius:2px;
+  background:var(--ng);transform:scaleX(0);transform-origin:left center;transition:transform .38s ease;
+}
+.cx.gone{opacity:.3;}
+.cx.gone::after{transform:scaleX(1);}
+.cx.keep{color:var(--cy);}
+.mline{
+  display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;
+  font-size:1.02rem;padding:5px 2px;color:#fff;
+}
+.mline .op{color:var(--ink2);padding:0 2px;}
+.mrows{display:flex;flex-direction:column;gap:2px;width:100%;max-width:600px;}
+.mrows .mline{justify-content:center;}
+.mrows .mline.tot{border-top:1px solid var(--line2);margin-top:7px;padding-top:9px;}
+.mdots{text-align:center;color:var(--muted);font-family:var(--mono);letter-spacing:.3em;padding:2px 0;}
+/* 部分分数のかっこ1組（消える項をこの中に入れる） */
+.pr{display:inline-flex;align-items:center;gap:1px;}
+/* ドミノ（数学的帰納法） */
+.domino{
+  fill:rgba(56,232,255,.14);stroke:var(--cy);stroke-width:1.4;
+  transform-box:fill-box;transform-origin:bottom left;
+  transition:transform .5s cubic-bezier(.4,1.5,.5,1), fill .3s;
+}
+.domino.fall{transform:rotate(74deg);fill:rgba(167,139,250,.2);stroke:var(--vi);}
+.domino.first{stroke:var(--gold);fill:rgba(255,209,102,.18);}
+
+footer{
+  max-width:920px;margin:22px auto 0;text-align:center;
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.18em;color:var(--muted);
+}
+@media (max-width:560px){
+  h1{font-size:1.18rem;}
+  .qdisp{font-size:1.1rem;}
+  .stat{min-width:64px;padding:6px 8px;}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+}
+/* 紙に共通ヘッダーは出さない（モジュール側でも消しているが、HTMLだけ先に上げても
+   紙に出ないようツール側にも同じ1行を持たせる） */
+@media print{
+  .divp-header{display:none!important;}
+}
+</style>
+</head>
+<body data-unit-key="math_hs_suuretsu" data-theme="noir" data-effect="jh">
+
+<!-- 共通モジュール（file:// では divp-core が自動で黙る）
+     ・divp-header.js … 共通ヘッダー。この位置に挿し込まれる（body直後が定位置）
+     ・divp-core.js … 学習記録（Divp.init / Divp.answer）
+     ・divp-correct-jh.js … 正解=はんこ / 誤答=バッジ（中学・高校共通）
+     ・divp-choice-mark.js … 答え合わせ表示（正解=緑 / 選んだ誤答=朱）
+     ・divp-result.js … 10問ごとの評価（RESULT画面） -->
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-choice-mark.js" defer></script>
+<script src="/assets/divp-result.js"></script>
+
+<!-- 共通ヘッダーはこの div の外（body直下）に入る＝画面幅いっぱいのバーになる -->
+<div class="wrap">
+
+<header class="dv-head">
+  <h1><span class="sub">Mathematics B / Sequences</span><span class="ttl">数列完全マスター</span></h1>
+  <!-- LEVEL / XP はツール側で持たない。XPは save_answer.php が
+       question_catalog.base_xp × イベント倍率で確定し、レベルは累計XPからマイページが算出する -->
+  <div class="stats">
+    <div class="stat" id="rankBadge"><b id="rankVal">D</b><span>RANK</span></div>
+    <div class="stat"><b id="streakVal">0</b><span>STREAK</span></div>
+  </div>
+</header>
+
+<nav class="viewtabs">
+  <button class="vtab on" data-view="train"><b>演習モード</b><i>training</i></button>
+  <button class="vtab" data-view="proof"><b>証明モード</b><i>proof</i></button>
+</nav>
+
+<!-- ===================== 演習モード ===================== -->
+<div id="view-train" class="pane">
+
+  <div class="selbox" id="selbox">
+    <div class="selhead">
+      <h2>Type &amp; Level</h2>
+      <button class="foldBtn" id="foldBtn" aria-expanded="true">とじる</button>
+    </div>
+    <div class="chips" id="typeChips"></div>
+    <div class="lvrow">
+      <span class="lvlabel">LEVEL</span>
+      <div class="lvseg" id="lvSeg">
+        <button class="lvbtn on" data-lv="1"><u>1</u>基本</button>
+        <button class="lvbtn" data-lv="2"><u>2</u>標準</button>
+        <button class="lvbtn" data-lv="3"><u>3</u>発展</button>
+      </div>
+      <span id="lvDesc"></span>
+    </div>
+    <div class="mixbox" id="mixBox" style="display:none">
+      <div class="mixgrid" id="mixGrid"></div>
+      <div class="mixbtns">
+        <button class="miniBtn" id="mixAll">ぜんぶ選ぶ</button>
+        <button class="miniBtn" id="mixNone">ぜんぶ外す</button>
+        <button class="miniBtn" id="mixBasic">基本の6タイプ</button>
+      </div>
+    </div>
+  </div>
+
+  <section id="card">
+    <div class="qmeta">
+      <span class="tag" id="qType">等差数列</span>
+      <span class="tag vi" id="qLv">LV.1</span>
+      <span class="grow"></span>
+      <span class="tag pl" id="qNum">1 / 10</span>
+    </div>
+    <div class="qlead" id="qLead"></div>
+    <div class="qdisp" id="qDisp"></div>
+    <div class="qsub" id="qSub"></div>
+    <div id="ansArea"></div>
+    <div class="verdict" id="verdict"></div>
+    <div id="explain">
+      <div class="exHead">SOLUTION</div>
+      <div id="exBody"></div>
+    </div>
+  </section>
+
+  <div class="actions">
+    <button class="btn" id="checkBtn">答え合わせ</button>
+    <button class="btn ghost" id="nextBtn">次の問題 ➜</button>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<!-- ===================== 証明モード ===================== -->
+<div id="view-proof" class="pane">
+  <div id="plist">
+    <p class="plead">
+      公式は「覚える」より「1回作ってみる」ほうが速い。各カードは1ステップずつ動かして見られます。<br>
+      テストで公式を思い出せなくなったときに、ここで見た動きを頭の中で再生できるのが目標です。
+    </p>
+    <div class="pgrid" id="pGrid"></div>
+  </div>
+  <div id="pview">
+    <div class="pvhead">
+      <button class="foldBtn" id="pvBack">← 一覧にもどる</button>
+      <h2 id="pvTtl"></h2>
+    </div>
+    <div class="pvfml" id="pvFml"></div>
+    <div class="stage" id="pvStage"></div>
+    <div class="pvcap">
+      <div class="pvno" id="pvNo"></div>
+      <div class="pvtxt" id="pvTxt"></div>
+      <div class="pvmath" id="pvMath"></div>
+    </div>
+    <div class="pvctrl">
+      <button class="btn ghost" id="pvPrev" style="flex:0 0 auto;padding:11px 16px;font-size:.84rem">◀ もどる</button>
+      <div class="pvdots" id="pvDots"></div>
+      <button class="btn vi" id="pvNext" style="flex:0 0 auto;padding:11px 18px;font-size:.84rem">次へ ▶</button>
+    </div>
+  </div>
+</div>
+
+<footer>CHUKYO KOBETSU SHIDO GAKUIN</footer>
+</div><!-- /.wrap -->
+
+<script>
+"use strict";
+/* ================================================================
+   math_hs_suuretsu.html  数列完全マスター   unit_key = math_hs_suuretsu
+   modes(=question_key): touhi / touhiwa / hi / hiwa / sigma / kaisa /
+     sntoan / bubun / gun / zenka / kinou
+     ＋ mix（えらんだタイプからランダム。記録はその問題のタイプで残すので "mix" は飛ばない）
+   レベル(1基本/2標準/3発展)は question_key を増やさず question_params の lv に持つ
+     ＝カルテはタイプ単位で読める（レベルまで割ると11×3行で読めなくなる）。
+     params_hash には lv も種も入るので「同じ問題」の判定はレベルごとに成立する。
+   共通処理: 学習記録(Divp.answer) / 正解エフェクト(divp-correct-jh) /
+     解き直し(?retry=1 … question_params の種で同じ問題を作り直す：CLAUDE.md 2d) /
+     図 … 数列は問題文が全部テキスト（項の並び・群の区切りも文字）なので
+          question_figure は使わない。選択式は question_choices を渡して
+          解き直しプリントに選択肢ごと出す。
+   ================================================================ */
+
+/* ---------- 小道具 ---------- */
+const N_CHOICES=6;
+const UNIT_KEY="math_hs_suuretsu";
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+/* 本文中に数式を混ぜる用（KaTeXはあとで renderTexIn がまとめて描く） */
+function T(tex){return '<span class="tex" data-tex="'+esc(tex)+'"></span>';}
+function TD(tex){return '<span class="tex" data-d="1" data-tex="'+esc(tex)+'"></span>';}
+function renderTexIn(root){
+  if(!root)return;
+  root.querySelectorAll(".tex").forEach(el=>{
+    const s=el.dataset.tex;
+    if(s==null)return;
+    if(window.katex){
+      try{katex.render(s,el,{throwOnError:false,displayMode:el.dataset.d==="1"});}
+      catch(e){el.textContent=s;}
+    }else{
+      /* KaTeX が来る前でも読めるように、記号だけ落とした素の文字を出しておく */
+      el.textContent=s.replace(/\\[a-zA-Z]+/g," ").replace(/[{}]/g,"");
+    }
+  });
+}
+
+/* TeX → 記録用の平文。分数は CLAUDE.md 2a の F(分子/分母) マーカーで書き出す
+   （mypage.php / retry.php / teacher.php の renderMathToHTML が縦組みに戻す）。
+   ⚠ 入れ子の分数は変換できないので、記録に載せる TeX に \dfrac の入れ子を作らない */
+function texToPlain(s){
+  if(s==null)return "";
+  let t=String(s);
+  for(let i=0;i<3;i++){
+    t=t.replace(/\\[dt]?frac\{([^{}]*)\}\{([^{}]*)\}/g,(m,a,b)=>"F("+a+"/"+b+")");
+  }
+  t=t.replace(/\\left|\\right/g,"");
+  /* ⚠ \cdots を \cdot より先に処理する。逆にすると \cdots が「・s」になる
+     （カルテと解き直しプリントの問題文にそのまま出る。実際に踏んだ） */
+  t=t.replace(/\\cdots|\\dots|\\ldots/g,"…");
+  t=t.replace(/\\cdot/g,"・").replace(/\\times/g,"×").replace(/\\div/g,"÷");
+  t=t.replace(/\\displaystyle/g,"").replace(/\\quad|\\;|\\,|\\!/g," ");
+  t=t.replace(/\\sum/g,"Σ");
+  t=t.replace(/\\leqq|\\leq|\\le\b/g,"≦").replace(/\\geqq|\\geq|\\ge\b/g,"≧");
+  t=t.replace(/\\neq/g,"≠").replace(/\\pm/g,"±");
+  t=t.replace(/\^\{([^{}]*)\}/g,"^($1)");
+  t=t.replace(/_\{([^{}]*)\}/g,"_$1");
+  t=t.replace(/\\[a-zA-Z]+/g,"");
+  t=t.replace(/[{}]/g,"");
+  return t.replace(/\s+/g," ").trim();
+}
+function stripTags(html){
+  const d=document.createElement("div");d.innerHTML=String(html==null?"":html);
+  d.querySelectorAll(".tex").forEach(el=>{el.textContent=" "+texToPlain(el.dataset.tex)+" ";});
+  return (d.textContent||"").replace(/\s+/g," ").trim();
+}
+
+/* ---------- 数の見せ方 ---------- */
+function pm(x){return (x<0?"-":"+")+Math.abs(x);}        /* "+3" / "-3" */
+function par(x){return x<0?"("+x+")":String(x);}          /* "(-3)" / "3" */
+/* 整数係数の n の多項式。coefs は降べきの順 [an,…,a1,a0] */
+function polyTex(coefs){
+  const deg=coefs.length-1;let s="";
+  coefs.forEach((c,i)=>{
+    const p=deg-i;
+    if(c===0)return;
+    const sign=(c<0)?"-":(s?"+":"");
+    const a=Math.abs(c);
+    let body;
+    if(p===0)body=String(a);
+    else{
+      const cc=(a===1)?"":String(a);
+      body=cc+(p===1?"n":"n^"+p);
+    }
+    s+=sign+body;
+  });
+  return s||"0";
+}
+/* 係数つきの項。1 は書かず、-1 はマイナスだけにする（「1(n-1)^2」を出さないため） */
+function coefTex(c,body){
+  if(c===1)return body;
+  if(c===-1)return "-"+body;
+  return String(c)+body;
+}
+/* 符号つきで後ろに足す項。0 なら何も出さない（「+0」を出さないため） */
+function pmCoef(c,body){
+  if(c===0)return "";
+  const a=Math.abs(c);
+  return (c<0?"-":"+")+(a===1?"":String(a))+body;
+}
+/* a・r^(式)。a=1 のときは係数を書かない */
+function geoTex(a,r,expr){
+  const rb=(r<0)?"("+r+")":String(r);
+  let co="";
+  if(a===-1)co="-";
+  else if(a!==1)co=a+"\\cdot ";
+  return co+rb+"^{"+expr+"}";
+}
+/* a・r^(式) + k */
+function geoConstTex(a,r,expr,k){
+  let s=geoTex(a,r,expr);
+  if(k!==0)s+=pm(k);
+  return s;
+}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;}
+/* 約分した分数の TeX（分母1なら整数、負号は前に出す） */
+function fracTex(n,d){
+  if(d<0){n=-n;d=-d;}
+  const g=gcd(n,d);n/=g;d/=g;
+  if(d===1)return String(n);
+  return (n<0?"-":"")+"\\dfrac{"+Math.abs(n)+"}{"+d+"}";
+}
+/* 数列の項の並びを見せる（先頭のいくつか＋…） */
+function seqHtml(terms){
+  return '<div class="seq">'+terms.map(t=>esc(String(t))).join(",\u2003")+",\u2003<i>\u2026</i></div>";
+}
+function seqPlain(terms){return terms.join(", ")+", …";}
+
+/* ---------- 種(seed)から作る乱数 ----------
+   出題のたびに種を1つ引いて question_params に {m:タイプ, lv:レベル, s:種} で保存する。
+   解き直し(?retry=1)は同じ種で生成関数を回すだけで**まったく同じ問題**が出る
+   ＝生成関数が30個以上あっても復元経路を書かなくてよい（CLAUDE.md 2d）。
+   ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
+     （params_hash は同じなので解き直し自体は成立するが、問題文は別物になる）。
+   ⚠ 乱数はこの ri() 1か所に集める。Math.random を生成関数の中で直接呼ぶと種で再現できない。 */
+let _rng=1;
+function rngSeed(s){_rng=(s>>>0)||1;}
+function rngPick(){return (Math.floor(Math.random()*4294967296)>>>0)||1;}  /* 種そのものだけは真の乱数 */
+function rngNext(){let x=_rng;x^=x<<13;x>>>=0;x^=x>>>17;x^=x<<5;x>>>=0;_rng=x;return x/4294967296;}
+function ri(min,max){return Math.floor(rngNext()*(max-min+1))+min;}
+function pick(a){return a[ri(0,a.length-1)];}
+function shuffle(a){const b=a.slice();for(let i=b.length-1;i>0;i--){const j=ri(0,i);[b[i],b[j]]=[b[j],b[i]];}return b;}
+function nzi(min,max){let v=0;while(v===0)v=ri(min,max);return v;}
+
+/* 選択肢を作る。誤答候補から重複を除いて N_CHOICES-1 個ぶん使う。
+   ⚠ 誤答候補に「値としては正解と同じ式」を混ぜないこと（約分前の形など） */
+function mkChoice(cor,wrongs){
+  const seen=new Set([cor]);const w=[];
+  (wrongs||[]).forEach(x=>{if(x!=null&&!seen.has(x)){seen.add(x);w.push(x);}});
+  const all=shuffle([cor].concat(w.slice(0,N_CHOICES-1)));
+  return {kind:"choice",choices:all,correct:all.indexOf(cor)};
+}
+
+/* ---------- タイプ台帳 ----------
+   k = question_key（そのまま question_catalog に登録する）
+   lv = レベルごとの中身（画面の説明にも出す） */
+const MODES=[
+  {k:"touhi",  n:"等差数列",         s:"an=a1+(n-1)d",
+   lv:["第n項の値を求める","並びから一般項を求める","2つの項から一般項を求める"]},
+  {k:"touhiwa",n:"等差数列の和",     s:"Sn",
+   lv:["公式に代入する","項数・末項を逆算する","和が最大になるnを求める"]},
+  {k:"hi",     n:"等比数列",         s:"an=a1r^(n-1)",
+   lv:["第n項の値を求める","並びから一般項を求める","2つの項から初項と公比を求める"]},
+  {k:"hiwa",   n:"等比数列の和",     s:"Sn",
+   lv:["公式に代入する","公比が負の数のとき","S3・S6からS9を求める"]},
+  {k:"sigma",  n:"Σと和の公式",      s:"Σk, Σk²",
+   lv:["数値を求める","Σ(ak+b)を計算する","Σの応用（k²・等比）"]},
+  {k:"kaisa",  n:"階差数列",         s:"an=a1+Σbk",
+   lv:["次の項を求める","一般項（階差が等差）","一般項（階差が等比）"]},
+  {k:"sntoan", n:"和Snと一般項",     s:"an=Sn−Sn−1",
+   lv:["anを求める","a1の場合分け","Snが指数のとき"]},
+  {k:"bubun",  n:"部分分数分解の和", s:"消える和",
+   lv:["1/k(k+1)","1/k(k+2)","(2k−1)(2k+1)など"]},
+  {k:"gun",    n:"群数列",           s:"群に区切る",
+   lv:["第n群の最初の数","第M項は第何群か","第n群の和"]},
+  {k:"zenka",  n:"漸化式",           s:"an+1=…",
+   lv:["等差型・等比型","階差型 an+1=an+f(n)","an+1=pan+q"]},
+  {k:"kinou",  n:"数学的帰納法",     s:"証明の型",
+   lv:["証明の流れの穴うめ","n=k+1で示す式","仮定を使う変形"]}
+];
+const MODEMAP={};MODES.forEach(m=>{MODEMAP[m.k]=m;});
+/* 「基本の6タイプ」（ミックスの初期セット。数Bの授業で先に触る順） */
+const BASIC6=["touhi","touhiwa","hi","hiwa","sigma","kaisa"];
+
+/* ================================================================
+   問題ジェネレータ
+   返り値: {lead, disp, sub, ans, ex, plainQ, plainA}
+     lead   … 問題文（HTML。T() で数式を混ぜられる）
+     disp   … 中央に大きく出す式（TeX文字列。省略可）
+     sub    … 補足（HTML。項の並びなど。省略可）
+     ans    … {kind:"num", val, unit} | {kind:"choice", choices:[TeX], correct}
+     ex     … 解説行の配列（HTML）
+     plainQ … 記録用の問題文（省略時は lead/disp/sub から作る）
+     plainA … 記録用の正解（省略時は ans から作る）
+     proof  … 関連する証明カードのid（あれば解説に「証明を見る」ボタンが出る）
+   ================================================================ */
+
+/* ---------- 1. 等差数列 ---------- */
+function genTouhi(lv){
+  if(lv===1){
+    const a=nzi(-9,12),d=nzi(-7,9),n=ri(9,30);
+    const v=a+(n-1)*d;
+    return {
+      lead:"初項 "+T(String(a))+"、公差 "+T(String(d))+" の等差数列 "+T("\\{a_n\\}")+" の第 "+T(String(n))+" 項を求めよ。",
+      disp:"a_1="+a+",\\quad d="+d,
+      ans:{kind:"num",val:v},
+      ex:['<div class="exFml">'+T("a_n=a_1+(n-1)d")+"</div>",
+          T("a_{"+n+"}="+a+"+("+n+"-1)\\times"+par(d)+"="+a+pm((n-1)*d)+"="+v),
+          '<div class="exLine key">公差を足す回数は「n−1回」。'+T(String(n))+"項目なら "+T(String(n-1))+"回。</div>"],
+      plainQ:"初項 "+a+"、公差 "+d+" の等差数列の第 "+n+" 項を求めよ"
+    };
+  }
+  if(lv===2){
+    const d=nzi(-6,8),a=nzi(-9,11);
+    const terms=[0,1,2,3,4].map(i=>a+i*d);
+    const cor=polyTex([d,a-d]);
+    return {
+      lead:"次の等差数列の一般項 "+T("a_n")+" を求めよ。",
+      sub:seqHtml(terms),
+      ans:mkChoice(cor,[polyTex([d,a]),polyTex([d,a+d]),polyTex([d,a-2*d]),
+                        polyTex([a,d]),polyTex([-d,a-d]),polyTex([d,a-d+1]),polyTex([d+1,a-d])]),
+      ex:["公差は "+T("d="+terms[1]+"-"+par(terms[0])+"="+d)+"、初項は "+T("a_1="+a)+"。",
+          '<div class="exFml">'+T("a_n=a_1+(n-1)d="+a+"+(n-1)\\times"+par(d))+"</div>",
+          "展開して "+T("a_n="+cor)+"。",
+          '<div class="exLine key">検算は '+T("n=1")+" を代入して初項に戻るか。"+T(""+d+"\\times1"+pmCoef(a-d,"")+"="+a)+" でよい。</div>"],
+      plainQ:"次の等差数列の一般項 an を求めよ： "+seqPlain(terms)
+    };
+  }
+  /* lv3: 2つの項から / 初めて超える項 */
+  if(ri(1,2)===1){
+    const p=ri(2,6),q=p+ri(2,7),d=nzi(-6,8),a=nzi(-9,10);
+    const X=a+(p-1)*d,Y=a+(q-1)*d;
+    const cor=polyTex([d,a-d]);
+    return {
+      lead:"等差数列 "+T("\\{a_n\\}")+" の第 "+T(String(p))+" 項が "+T(String(X))+"、第 "+T(String(q))+" 項が "+T(String(Y))+" であるとき、一般項 "+T("a_n")+" を求めよ。",
+      disp:"a_{"+p+"}="+X+",\\quad a_{"+q+"}="+Y,
+      ans:mkChoice(cor,[polyTex([d,a]),polyTex([-d,a-d]),polyTex([d,X-d]),
+                        polyTex([d,a-d+d]),polyTex([d*2,a-d]),polyTex([d,a-2*d])]),
+      ex:['<div class="exFml">'+T("a_p=a_1+(p-1)d")+" を2本立てて連立する</div>",
+          T("a_1+"+(p-1)+"d="+X+" \\quad \\cdots ①"),
+          T("a_1+"+(q-1)+"d="+Y+" \\quad \\cdots ②"),
+          "②−① より "+T(""+(q-p)+"d="+(Y-X))+" なので "+T("d="+d)+"。",
+          "①に戻して "+T("a_1="+a)+"。よって "+T("a_n="+cor)+"。",
+          '<div class="exLine key">項の差 ÷ 番号の差 = 公差。'+T("d=\\dfrac{"+Y+"-"+par(X)+"}{"+q+"-"+p+"}="+d)+" と一気に出してもよい。</div>"],
+      plainQ:"等差数列で第"+p+"項が"+X+"、第"+q+"項が"+Y+"のとき一般項 an を求めよ"
+    };
+  }
+  const a=ri(3,20),d=ri(3,9);
+  let M=ri(8,25)*10;
+  if(M<=a)M=a+50;
+  let n=1;while(a+(n-1)*d<=M)n++;
+  return {
+    lead:"初項 "+T(String(a))+"、公差 "+T(String(d))+" の等差数列で、初めて "+T(String(M))+" より大きくなるのは第何項か。",
+    disp:"a_1="+a+",\\quad d="+d+",\\quad a_n>"+M,
+    ans:{kind:"num",val:n,unit:"項目"},
+    ex:['<div class="exFml">'+T("a_n="+a+"+(n-1)\\times"+d+"="+polyTex([d,a-d]))+"</div>",
+        T(polyTex([d,a-d])+">"+M)+" を解くと "+T("n>"+fracTex(M-(a-d),d)),
+        "これを満たす最小の自然数は "+T("n="+n)+"。第 "+T(String(n))+" 項が初めて超える。",
+        "確かめ: "+T("a_{"+(n-1)+"}="+(a+(n-2)*d))+" は超えず、"+T("a_{"+n+"}="+(a+(n-1)*d))+" で超える。",
+        '<div class="exLine key">「初めて〜」は不等式を解いて<b>最小の自然数</b>を取る。小数を四捨五入しない。</div>'],
+    plainQ:"初項 "+a+"、公差 "+d+" の等差数列で初めて "+M+" より大きくなるのは第何項か",
+    plainA:"第"+n+"項"
+  };
+}
+
+/* ---------- 2. 等差数列の和 ---------- */
+function genTouhiwa(lv){
+  if(lv===1){
+    const a=nzi(-8,12),d=nzi(-6,8),n=ri(8,26);
+    const S=n*(2*a+(n-1)*d)/2;
+    return {
+      lead:"初項 "+T(String(a))+"、公差 "+T(String(d))+" の等差数列の初項から第 "+T(String(n))+" 項までの和 "+T("S_{"+n+"}")+" を求めよ。",
+      disp:"a_1="+a+",\\quad d="+d+",\\quad n="+n,
+      ans:{kind:"num",val:S},
+      ex:['<div class="exFml">'+T("S_n=\\dfrac{n\\{2a_1+(n-1)d\\}}{2}")+"</div>",
+          T("S_{"+n+"}=\\dfrac{"+n+"\\{2\\times"+par(a)+"+"+(n-1)+"\\times"+par(d)+"\\}}{2}"),
+          T("=\\dfrac{"+n+"\\times"+par(2*a+(n-1)*d)+"}{2}="+S),
+          '<div class="exLine key">末項 '+T("a_{"+n+"}="+(a+(n-1)*d))+" を出してから "+T("S_n=\\dfrac{n(a_1+a_n)}{2}")+" でも同じ。</div>"],
+      plainQ:"初項 "+a+"、公差 "+d+" の等差数列の初項から第 "+n+" 項までの和",
+      proof:"touhiwa"
+    };
+  }
+  if(lv===2){
+    if(ri(1,2)===1){
+      const a=nzi(-8,10),l0=ri(2,9),n=ri(9,24),d=l0;
+      const last=a+(n-1)*d;
+      const S=n*(a+last)/2;
+      return {
+        lead:"初項 "+T(String(a))+"、末項 "+T(String(last))+"、項数 "+T(String(n))+" の等差数列の和を求めよ。",
+        disp:"a_1="+a+",\\quad a_{"+n+"}="+last+",\\quad n="+n,
+        ans:{kind:"num",val:S},
+        ex:['<div class="exFml">'+T("S_n=\\dfrac{n(a_1+a_n)}{2}")+"（初項と末項が分かっているときはこちらが速い）</div>",
+            T("S_{"+n+"}=\\dfrac{"+n+"\\times("+a+pm(last)+")}{2}=\\dfrac{"+n+"\\times"+par(a+last)+"}{2}="+S),
+            '<div class="exLine key">公差を使わずに解ける。'+T("\\dfrac{(\\text{初項}+\\text{末項})\\times\\text{項数}}{2}")+" は台形の面積と同じ形。</div>"],
+        plainQ:"初項 "+a+"、末項 "+last+"、項数 "+n+" の等差数列の和",
+        proof:"touhiwa"
+      };
+    }
+    const a=ri(1,9),d=ri(2,7),n=ri(8,20);
+    const S=n*(2*a+(n-1)*d)/2;
+    return {
+      lead:"初項 "+T(String(a))+"、公差 "+T(String(d))+" の等差数列で、初項から第 "+T("n")+" 項までの和が "+T(String(S))+" になるとき、"+T("n")+" の値を求めよ。",
+      disp:"a_1="+a+",\\quad d="+d+",\\quad S_n="+S,
+      ans:{kind:"num",val:n},
+      ex:['<div class="exFml">'+T("S_n=\\dfrac{n\\{2\\times"+a+"+(n-1)\\times"+d+"\\}}{2}="+S)+"</div>",
+          "両辺を2倍して "+T("n\\left("+polyTex([d,2*a-d])+"\\right)="+(2*S))+" つまり "+T(polyTex([d,2*a-d,-2*S])+"=0"),
+          T("n="+n)+" が解（もう1つの解は負なので不適）。",
+          '<div class="exLine key">項数 '+T("n")+" は自然数。2次方程式を解いて<b>負の解を捨てる</b>のがこの型のポイント。</div>"],
+      plainQ:"初項 "+a+"、公差 "+d+" の等差数列で Sn="+S+" となる n を求めよ",
+      proof:"touhiwa"
+    };
+  }
+  /* lv3: 和が最大 / 倍数の和 */
+  if(ri(1,2)===1){
+    const d=-ri(2,7);
+    let a=ri(20,90);
+    while(a%Math.abs(d)===0)a=ri(20,90);
+    let n=1;while(a+n*d>0)n++;              /* a_(n+1)>0 の間だけ進める＝最後の正の項が第n項 */
+    const S=n*(2*a+(n-1)*d)/2;
+    return {
+      lead:"初項 "+T(String(a))+"、公差 "+T(String(d))+" の等差数列で、初項から第 "+T("n")+" 項までの和 "+T("S_n")+" が最大になる "+T("n")+" を求めよ。",
+      disp:"a_1="+a+",\\quad d="+d,
+      ans:{kind:"num",val:n,unit:"のとき最大"},
+      ex:['<div class="exLine key">和が増えるのは<b>正の項を足している間</b>だけ。負の項を足し始めると減る。</div>',
+          '<div class="exFml">'+T("a_n="+a+"+(n-1)\\times"+par(d)+"="+polyTex([d,a-d]))+"</div>",
+          T("a_n>0")+" を解くと "+T("n<"+fracTex(a-d,-d)),
+          "これを満たす最大の自然数は "+T("n="+n)+"。よって "+T("S_n")+" は "+T("n="+n)+" のとき最大。",
+          "確かめ: "+T("a_{"+n+"}="+(a+(n-1)*d))+" は正、"+T("a_{"+(n+1)+"}="+(a+n*d))+" は負。最大値は "+T("S_{"+n+"}="+S)+"。"],
+      plainQ:"初項 "+a+"、公差 "+d+" の等差数列で Sn が最大になる n を求めよ",
+      plainA:"n="+n+"（最大値 "+S+"）",
+      proof:"touhiwa"
+    };
+  }
+  const k=pick([3,4,6,7,8,9,11,12,13]);
+  const M=pick([100,200,300,500,1000]);
+  const cnt=Math.floor(M/k);
+  const S=k*cnt*(cnt+1)/2;
+  return {
+    lead:T("1")+" から "+T(String(M))+" までの自然数のうち、"+T(String(k))+" の倍数の総和を求めよ。",
+    disp:k+",\\;"+(2*k)+",\\;"+(3*k)+",\\;\\cdots,\\;"+(cnt*k),
+    ans:{kind:"num",val:S},
+    ex:[T(String(k))+" の倍数は 初項 "+T(String(k))+"、公差 "+T(String(k))+" の等差数列。",
+        "末項は "+T(String(M))+" 以下で最大の "+T(String(k))+" の倍数 "+T(String(cnt*k))+"、項数は "+T(String(cnt))+" 個。",
+        '<div class="exFml">'+T("S=\\dfrac{"+cnt+"\\times("+k+"+"+(cnt*k)+")}{2}="+S)+"</div>",
+        '<div class="exLine key">項数は '+T("\\left[\\dfrac{"+M+"}{"+k+"}\\right]="+cnt)+"（割って小数を切り捨てる）。ここを間違えると全部ずれる。</div>"],
+    plainQ:"1 から "+M+" までの自然数のうち "+k+" の倍数の総和を求めよ",
+    proof:"touhiwa"
+  };
+}
+
+/* ---------- 3. 等比数列 ---------- */
+function genHi(lv){
+  if(lv===1){
+    const a=nzi(-5,6),r=pick([2,3,-2,-3]),n=ri(4,7);
+    const v=a*Math.pow(r,n-1);
+    return {
+      lead:"初項 "+T(String(a))+"、公比 "+T(String(r))+" の等比数列 "+T("\\{a_n\\}")+" の第 "+T(String(n))+" 項を求めよ。",
+      disp:"a_1="+a+",\\quad r="+r,
+      ans:{kind:"num",val:v},
+      ex:['<div class="exFml">'+T("a_n=a_1r^{n-1}")+"</div>",
+          T("a_{"+n+"}="+par(a)+"\\times"+par(r)+"^{"+n+"-1}="+par(a)+"\\times"+par(r)+"^{"+(n-1)+"}="+v),
+          '<div class="exLine key">かける回数も「n−1回」。'+(r<0?"公比が負なので符号は1つ飛びに入れかわる（偶数乗で正・奇数乗で負）。":"指数を n と書かないよう注意。")+"</div>"],
+      plainQ:"初項 "+a+"、公比 "+r+" の等比数列の第 "+n+" 項を求めよ"
+    };
+  }
+  if(lv===2){
+    const a=nzi(-4,6),r=pick([2,3,-2,-3,4]);
+    const terms=[0,1,2,3].map(i=>a*Math.pow(r,i));
+    const cor=geoTex(a,r,"n-1");
+    return {
+      lead:"次の等比数列の一般項 "+T("a_n")+" を求めよ。",
+      sub:seqHtml(terms),
+      ans:mkChoice(cor,[geoTex(a,r,"n"),geoTex(a,r,"n+1"),geoTex(a*r,r,"n-1"),
+                        geoTex(a,r,"2n-1"),polyTex([a*(r-1),a-a*(r-1)]),geoTex(a,-r,"n-1")]),
+      ex:["公比は "+T("r=\\dfrac{"+terms[1]+"}{"+terms[0]+"}="+r)+"、初項は "+T("a_1="+a)+"。",
+          '<div class="exFml">'+T("a_n=a_1r^{n-1}="+cor)+"</div>",
+          '<div class="exLine key">隣どうしを<b>割って</b>同じ数になれば等比、<b>引いて</b>同じ数なら等差。まずそこを見分ける。</div>',
+          "検算: "+T("n=1")+" のとき "+T(par(r)+"^0=1")+" なので初項 "+T(String(a))+" に戻る。"],
+      plainQ:"次の等比数列の一般項 an を求めよ： "+seqPlain(terms)
+    };
+  }
+  const r=pick([2,3,-2,-3]),a=nzi(-4,5);
+  const p=ri(2,3),q=p+3;
+  const X=a*Math.pow(r,p-1),Y=a*Math.pow(r,q-1);
+  const cor="a_1="+a+",\\;r="+r;
+  return {
+    lead:"等比数列 "+T("\\{a_n\\}")+" の第 "+T(String(p))+" 項が "+T(String(X))+"、第 "+T(String(q))+" 項が "+T(String(Y))+" であるとき、初項 "+T("a_1")+" と公比 "+T("r")+" を求めよ。",
+    disp:"a_{"+p+"}="+X+",\\quad a_{"+q+"}="+Y,
+    ans:mkChoice(cor,["a_1="+a+",\\;r="+(-r),"a_1="+(a*r)+",\\;r="+r,"a_1="+X+",\\;r="+r,
+                      "a_1="+a+",\\;r="+(r+1),"a_1="+(-a)+",\\;r="+r,"a_1="+a+",\\;r="+(r*r)]),
+    ex:[T("a_1r^{"+(p-1)+"}="+X)+" と "+T("a_1r^{"+(q-1)+"}="+Y)+" の2本。",
+        "辺々割ると "+T("r^{"+(q-p)+"}=\\dfrac{"+Y+"}{"+X+"}="+Math.pow(r,q-p))+" なので "+T("r="+r)+"。",
+        "これを1本目に戻して "+T("a_1="+a)+"。",
+        '<div class="exLine key">等比は<b>割る</b>と初項が消える（等差は引くと初項が消える）。'+
+          (q-p===3?"3乗して "+Math.pow(r,3)+" になる実数は "+r+" だけ（奇数乗は1つに決まる）。":"")+"</div>"],
+    plainQ:"等比数列で第"+p+"項が"+X+"、第"+q+"項が"+Y+"のとき初項と公比を求めよ",
+    plainA:"a1="+a+", r="+r
+  };
+}
+
+/* ---------- 4. 等比数列の和 ---------- */
+function genHiwa(lv){
+  if(lv===1){
+    const a=ri(1,6),r=pick([2,3]),n=ri(4,7);
+    const S=a*(Math.pow(r,n)-1)/(r-1);
+    return {
+      lead:"初項 "+T(String(a))+"、公比 "+T(String(r))+" の等比数列の初項から第 "+T(String(n))+" 項までの和を求めよ。",
+      disp:"a_1="+a+",\\quad r="+r+",\\quad n="+n,
+      ans:{kind:"num",val:S},
+      ex:['<div class="exFml">'+T("S_n=\\dfrac{a_1(r^n-1)}{r-1}\\quad(r\\neq1)")+"</div>",
+          T("S_{"+n+"}=\\dfrac{"+a+"("+r+"^{"+n+"}-1)}{"+r+"-1}=\\dfrac{"+a+"\\times"+(Math.pow(r,n)-1)+"}{"+(r-1)+"}="+S),
+          '<div class="exLine key">'+T("r>1")+" なら "+T("\\dfrac{a(r^n-1)}{r-1}")+"、"+T("r<1")+" なら "+T("\\dfrac{a(1-r^n)}{1-r}")+" が計算しやすい（どちらも同じ式）。</div>"],
+      plainQ:"初項 "+a+"、公比 "+r+" の等比数列の初項から第 "+n+" 項までの和",
+      proof:"hiwa"
+    };
+  }
+  if(lv===2){
+    const a=ri(1,6),r=pick([-2,-3]),n=ri(4,7);
+    const S=a*(1-Math.pow(r,n))/(1-r);
+    return {
+      lead:"初項 "+T(String(a))+"、公比 "+T(String(r))+" の等比数列の初項から第 "+T(String(n))+" 項までの和を求めよ。",
+      disp:"a_1="+a+",\\quad r="+r+",\\quad n="+n,
+      ans:{kind:"num",val:S},
+      ex:['<div class="exFml">'+T("S_n=\\dfrac{a_1(1-r^n)}{1-r}")+"</div>",
+          T("S_{"+n+"}=\\dfrac{"+a+"\\{1-"+par(r)+"^{"+n+"}\\}}{1-"+par(r)+"}=\\dfrac{"+a+"\\times"+par(1-Math.pow(r,n))+"}{"+(1-r)+"}="+S),
+          '<div class="exLine key">'+T(par(r)+"^{"+n+"}="+Math.pow(r,n))+"（"+(n%2===0?"偶数乗なので正":"奇数乗なので負")+"）。負の公比はここで符号を落としやすい。分母 "+T("1-"+par(r)+"="+(1-r))+" のかっこも忘れない。</div>"],
+      plainQ:"初項 "+a+"、公比 "+r+" の等比数列の初項から第 "+n+" 項までの和",
+      proof:"hiwa"
+    };
+  }
+  const r=pick([2,3,-2]),a=ri(1,5);
+  const S3=a*(Math.pow(r,3)-1)/(r-1);
+  const S6=a*(Math.pow(r,6)-1)/(r-1);
+  const S9=a*(Math.pow(r,9)-1)/(r-1);
+  return {
+    lead:"等比数列の初項から第3項までの和が "+T(String(S3))+"、第6項までの和が "+T(String(S6))+" であるとき、第9項までの和 "+T("S_9")+" を求めよ。",
+    disp:"S_3="+S3+",\\quad S_6="+S6,
+    ans:{kind:"num",val:S9},
+    ex:['<div class="exLine key">3項ずつ区切ると、後ろのかたまりは前のかたまりの '+T("r^3")+" 倍になる。</div>",
+        T("S_6=S_3+r^3S_3=S_3(1+r^3)")+" なので "+T("1+r^3=\\dfrac{"+S6+"}{"+S3+"}="+(S6/S3)),
+        "よって "+T("r^3="+(S6/S3-1))+"。",
+        T("S_9=S_3(1+r^3+r^6)="+S3+"\\times("+1+pm(S6/S3-1)+pm(Math.pow(S6/S3-1,2))+")="+S9),
+        '<div class="exLine key">'+T("r")+" を求めなくても "+T("r^3")+" のかたまりだけで解ける。公比を出そうとすると3乗根で詰まる型。</div>"],
+    plainQ:"等比数列で S3="+S3+"、S6="+S6+" のとき S9 を求めよ",
+    proof:"hiwa"
+  };
+}
+
+/* ---------- 5. Σと和の公式 ---------- */
+function genSigma(lv){
+  if(lv===1){
+    const v=ri(1,4);
+    if(v===1){
+      const N=ri(12,45);const S=N*(N+1)/2;
+      return {
+        lead:"次の和を求めよ。",disp:"\\displaystyle\\sum_{k=1}^{"+N+"}k",
+        ans:{kind:"num",val:S},
+        ex:['<div class="exFml">'+T("\\sum_{k=1}^{n}k=\\dfrac{n(n+1)}{2}")+"</div>",
+            T("=\\dfrac{"+N+"\\times"+(N+1)+"}{2}="+S)],
+        plainQ:"Σ(k=1〜"+N+") k を求めよ",proof:"sigmak"
+      };
+    }
+    if(v===2){
+      const N=ri(6,16);const S=N*(N+1)*(2*N+1)/6;
+      return {
+        lead:"次の和を求めよ。",disp:"\\displaystyle\\sum_{k=1}^{"+N+"}k^2",
+        ans:{kind:"num",val:S},
+        ex:['<div class="exFml">'+T("\\sum_{k=1}^{n}k^2=\\dfrac{n(n+1)(2n+1)}{6}")+"</div>",
+            T("=\\dfrac{"+N+"\\times"+(N+1)+"\\times"+(2*N+1)+"}{6}="+S),
+            '<div class="exLine key">6で割る前に約分すると計算が軽い。'+T("n,\\;n+1,\\;2n+1")+" のどれかが必ず2と3で割れる。</div>"],
+        plainQ:"Σ(k=1〜"+N+") k^2 を求めよ",proof:"sigmak2"
+      };
+    }
+    if(v===3){
+      const N=ri(4,9);const S=Math.pow(N*(N+1)/2,2);
+      return {
+        lead:"次の和を求めよ。",disp:"\\displaystyle\\sum_{k=1}^{"+N+"}k^3",
+        ans:{kind:"num",val:S},
+        ex:['<div class="exFml">'+T("\\sum_{k=1}^{n}k^3=\\left\\{\\dfrac{n(n+1)}{2}\\right\\}^2")+"</div>",
+            T("=\\left(\\dfrac{"+N+"\\times"+(N+1)+"}{2}\\right)^2="+(N*(N+1)/2)+"^2="+S),
+            '<div class="exLine key">'+T("\\sum k^3")+" は "+T("\\left(\\sum k\\right)^2")+"（1からnまでの和を2乗するだけ）。</div>"],
+        plainQ:"Σ(k=1〜"+N+") k^3 を求めよ"
+      };
+    }
+    const N=ri(8,30);const S=N*N;
+    return {
+      lead:"次の和を求めよ。",disp:"\\displaystyle\\sum_{k=1}^{"+N+"}(2k-1)",
+      ans:{kind:"num",val:S},
+      ex:["奇数 "+T("1,3,5,\\cdots")+" の和。",
+          T("\\sum_{k=1}^{"+N+"}(2k-1)=2\\sum_{k=1}^{"+N+"}k-\\sum_{k=1}^{"+N+"}1=2\\times\\dfrac{"+N+"\\times"+(N+1)+"}{2}-"+N+"="+S),
+          '<div class="exLine key">結果は '+T("n^2")+"。奇数を1から n 個足すと n の2乗になる（覚えておくと速い）。</div>",
+          '<div class="exLine key">'+T("\\sum_{k=1}^{n}1=n")+"（定数のΣは項数ぶん）。ここを1にしてしまうミスが多い。</div>"],
+      plainQ:"Σ(k=1〜"+N+") (2k-1) を求めよ",proof:"sigmak"
+    };
+  }
+  if(lv===2){
+    if(ri(1,2)===1){
+      const a=pick([2,4,6,-2,-4]);
+      let b=nzi(-6,7);
+      while(a+2*b===0)b=nzi(-6,7);
+      const A=a/2,B=(a+2*b)/2;
+      const cor="n\\left("+polyTex([A,B])+"\\right)";
+      return {
+        lead:"次の和を "+T("n")+" の式で表せ。",
+        disp:"\\displaystyle\\sum_{k=1}^{n}("+polyTex([a,b]).replace(/n/g,"k")+")",
+        ans:mkChoice(cor,["n\\left("+polyTex([A,B+1])+"\\right)","n\\left("+polyTex([A,B-1])+"\\right)",
+                          "n\\left("+polyTex([A+1,B])+"\\right)","(n+1)\\left("+polyTex([A,B])+"\\right)",
+                          "\\dfrac{n\\left("+polyTex([A,B])+"\\right)}{2}",polyTex([A,B])]),
+        ex:['<div class="exFml">'+T("\\sum_{k=1}^{n}(ak+b)=a\\sum k+b\\sum 1=a\\cdot\\dfrac{n(n+1)}{2}+bn")+"</div>",
+            T("="+a+"\\times\\dfrac{n(n+1)}{2}"+pmCoef(b,"n")+"="+coefTex(A,"n(n+1)")+pmCoef(b,"n")),
+            T("=n\\left("+coefTex(A,"(n+1)")+pmCoef(b,"")+"\\right)=n\\left("+polyTex([A,B])+"\\right)"),
+            '<div class="exLine key">Σは<b>足し算とかけ算の定数倍だけ</b>ばらせる。最後は '+T("n")+" でくくると答えの形になりやすい。</div>"],
+        plainQ:"Σ(k=1〜n) ("+polyTex([a,b]).replace(/n/g,"k")+") を n の式で表せ",proof:"sigmak"
+      };
+    }
+    const a=nzi(-4,5);
+    const cor="\\dfrac{n(n+1)\\left("+polyTex([2,1+3*a])+"\\right)}{6}";
+    return {
+      lead:"次の和を "+T("n")+" の式で表せ。",
+      disp:"\\displaystyle\\sum_{k=1}^{n}(k^2"+pm(a)+"k)",
+      ans:mkChoice(cor,["\\dfrac{n(n+1)\\left("+polyTex([2,1+3*a])+"\\right)}{3}",
+                        "\\dfrac{n(n+1)\\left("+polyTex([2,1+a])+"\\right)}{6}",
+                        "\\dfrac{n(n+1)\\left("+polyTex([2,1])+"\\right)}{6}"+pm(a)+"n",
+                        "\\dfrac{n(n+1)\\left("+polyTex([2,3+3*a])+"\\right)}{6}",
+                        "\\dfrac{n(n+1)(2n+1)}{6}\\cdot"+par(a),
+                        "\\dfrac{n^2(n+1)\\left("+polyTex([2,1+3*a])+"\\right)}{6}"]),
+      ex:['<div class="exFml">'+T("\\sum k^2=\\dfrac{n(n+1)(2n+1)}{6},\\quad \\sum k=\\dfrac{n(n+1)}{2}")+"</div>",
+          T("=\\dfrac{n(n+1)(2n+1)}{6}"+pm(a)+"\\cdot\\dfrac{n(n+1)}{2}"),
+          "共通因数 "+T("\\dfrac{n(n+1)}{6}")+" でくくると "+T("=\\dfrac{n(n+1)}{6}\\left\\{(2n+1)"+pm(3*a)+"\\right\\}"),
+          "よって "+T(cor)+"。",
+          '<div class="exLine key">分母をいきなり通分せず、<b>共通因数でくくる</b>と一気に片づく。</div>'],
+      plainQ:"Σ(k=1〜n) (k^2"+pm(a)+"k) を n の式で表せ",proof:"sigmak2"
+    };
+  }
+  /* lv3: k=1〜n-1 / 等比のΣ */
+  if(ri(1,2)===1){
+    const a=pick([2,4,6,-2]);
+    let b=nzi(-5,6);
+    while(a+2*b===0)b=nzi(-5,6);
+    /* Σ_{k=1}^{n-1}(ak+b) = a(n-1)n/2 + b(n-1) = (n-1)(An+B'), A=a/2, B'=b */
+    const A=a/2;
+    const cor="(n-1)\\left("+polyTex([A,b])+"\\right)";
+    return {
+      lead:"次の和を "+T("n")+" の式で表せ。ただし "+T("n\\geqq2")+" とする。",
+      disp:"\\displaystyle\\sum_{k=1}^{n-1}("+polyTex([a,b]).replace(/n/g,"k")+")",
+      ans:mkChoice(cor,["n\\left("+polyTex([A,b])+"\\right)","(n-1)\\left("+polyTex([A,b+1])+"\\right)",
+                        "(n+1)\\left("+polyTex([A,b])+"\\right)","(n-1)\\left("+polyTex([A,b-1])+"\\right)",
+                        "(n-1)\\left("+polyTex([A+1,b])+"\\right)","\\dfrac{(n-1)\\left("+polyTex([A,b])+"\\right)}{2}"]),
+      ex:['<div class="exLine key">上端が '+T("n-1")+" なので、公式の "+T("n")+" を全部 "+T("n-1")+" に置きかえる。</div>",
+          '<div class="exFml">'+T("\\sum_{k=1}^{n-1}k=\\dfrac{(n-1)n}{2},\\quad \\sum_{k=1}^{n-1}1=n-1")+"</div>",
+          T("="+a+"\\times\\dfrac{(n-1)n}{2}"+pmCoef(b,"(n-1)")+"="+coefTex(A,"n(n-1)")+pmCoef(b,"(n-1)")),
+          T("=(n-1)\\left("+coefTex(A,"n")+pmCoef(b,"")+"\\right)="+cor),
+          '<div class="exLine key">項数は '+T("n")+" 個ではなく "+T("n-1")+" 個。階差数列でこの形が必ず出る。</div>"],
+      plainQ:"Σ(k=1〜n-1) ("+polyTex([a,b]).replace(/n/g,"k")+") を n の式で表せ（n≧2）",proof:"kaisa"
+    };
+  }
+  const r=pick([2,3]);
+  const cor="\\dfrac{"+r+"("+r+"^n-1)}{"+(r-1)+"}";
+  const corAlt=(r===2)?"2^{n+1}-2":cor;
+  return {
+    lead:"次の和を "+T("n")+" の式で表せ。",
+    disp:"\\displaystyle\\sum_{k=1}^{n}"+r+"^k",
+    ans:mkChoice(corAlt,["\\dfrac{"+r+"^n-1}{"+(r-1)+"}","\\dfrac{"+r+"("+r+"^{n-1}-1)}{"+(r-1)+"}",
+                         r+"^n-1",(r===2?"2^n-2":"\\dfrac{"+r+"^{n+1}-1}{"+(r-1)+"}"),
+                         "\\dfrac{n("+r+"^n-1)}{"+(r-1)+"}","\\dfrac{"+r+"("+r+"^n+1)}{"+(r-1)+"}"]),
+    ex:['<div class="exLine key">Σの中が '+T("k")+" の多項式ではなく<b>指数</b>のときは、和の公式ではなく<b>等比数列の和</b>を使う。</div>",
+        T(r+"^1,\\;"+r+"^2,\\;\\cdots,\\;"+r+"^n")+" は 初項 "+T(String(r))+"、公比 "+T(String(r))+"、項数 "+T("n")+" の等比数列。",
+        '<div class="exFml">'+T("S=\\dfrac{a_1(r^n-1)}{r-1}="+cor)+"</div>",
+        (r===2?"分子を整理して "+T("=2^{n+1}-2")+"。":"これが答え。"),
+        '<div class="exLine key">初項は '+T(r+"^1="+r)+"（"+T("1")+" ではない）。ここを間違えると全体が "+T("\\dfrac{1}{"+(r-1)+"}")+" 倍ずれる。</div>"],
+    plainQ:"Σ(k=1〜n) "+r+"^k を n の式で表せ",proof:"hiwa"
+  };
+}
+
+/* ---------- 6. 階差数列 ---------- */
+function genKaisa(lv){
+  if(lv===1){
+    const a1=nzi(-6,9),p=nzi(2,6),q=nzi(-4,6);
+    const terms=[a1];
+    for(let k=1;k<=5;k++)terms.push(terms[k-1]+(p*k+q));
+    const show=terms.slice(0,5);
+    const v=terms[5];
+    return {
+      lead:"次の数列の第6項を求めよ。",
+      sub:seqHtml(show)+'<div style="margin-top:8px;font-size:.78rem;color:var(--muted)">※ 隣どうしの差に注目する</div>',
+      ans:{kind:"num",val:v},
+      ex:["隣どうしの差（階差数列 "+T("\\{b_n\\}")+"）は "+T([1,2,3,4].map(k=>p*k+q).join(",\\;"))+" で、公差 "+T(String(p))+" の等差数列。",
+          "次の差は "+T([1,2,3,4].map(k=>p*k+q).slice(-1)[0]+pm(p)+"="+(p*5+q)),
+          "よって 第6項は "+T(show[4]+pm(p*5+q)+"="+v)+"。",
+          '<div class="exLine key">差の数列がきれいに並ぶかを最初に確かめる。差が等差なら元の数列は '+T("n")+" の2次式になる。</div>"],
+      plainQ:"次の数列の第6項を求めよ： "+seqPlain(show),
+      proof:"kaisa"
+    };
+  }
+  if(lv===2){
+    const a1=nzi(-6,9),p=pick([2,4,6,-2,-4]),q=nzi(-5,6);
+    const terms=[a1];
+    for(let k=1;k<=4;k++)terms.push(terms[k-1]+(p*k+q));
+    const A=p/2,B=q-p/2,C=a1-q;
+    const cor=polyTex([A,B,C]);
+    return {
+      lead:"次の数列の一般項 "+T("a_n")+" を求めよ。",
+      sub:seqHtml(terms),
+      ans:mkChoice(cor,[polyTex([A,B,C+1]),polyTex([A,B+1,C]),polyTex([A+1,B,C]),
+                        polyTex([A,B,a1]),polyTex([A,-B,C]),polyTex([A,B+p,C])]),
+      ex:["階差数列は "+T("b_n="+polyTex([p,q]))+"（初項 "+T(String(p+q))+"、公差 "+T(String(p))+"）。",
+          '<div class="exFml">'+T("a_n=a_1+\\sum_{k=1}^{n-1}b_k\\quad(n\\geqq2)")+"</div>",
+          T("a_n="+a1+"+\\sum_{k=1}^{n-1}("+polyTex([p,q]).replace(/n/g,"k")+")="+a1+pmCoef(p,"\\cdot\\dfrac{(n-1)n}{2}")+pmCoef(q,"(n-1)")),
+          "整理して "+T("a_n="+cor)+"。",
+          '<div class="exLine key">Σの上端は '+T("n-1")+"（差は項数より1つ少ない）。ここが最大のミス源。</div>",
+          "検算: "+T("n=1")+" を入れて "+T(String(a1))+" に戻るかを必ず確認する（"+T("n\\geqq2")+" で作った式なので）。"],
+      plainQ:"次の数列の一般項 an を求めよ： "+seqPlain(terms),
+      proof:"kaisa"
+    };
+  }
+  const r=pick([2,3]);
+  const C=ri(1,4);
+  const c=C*(r-1);
+  const a1=nzi(-4,6);
+  const terms=[a1];
+  for(let k=1;k<=4;k++)terms.push(terms[k-1]+c*Math.pow(r,k-1));
+  const cor=geoConstTex(C,r,"n-1",a1-C);
+  return {
+    lead:"次の数列の一般項 "+T("a_n")+" を求めよ。",
+    sub:seqHtml(terms),
+    ans:mkChoice(cor,[geoConstTex(C,r,"n",a1-C),geoConstTex(C,r,"n-1",a1),
+                      geoConstTex(c,r,"n-1",a1-c),geoConstTex(C,r,"n+1",a1-C),
+                      polyTex([c,a1-c]),geoConstTex(C,r,"n-1",a1-C+1)]),
+    ex:["階差数列は "+T([0,1,2,3].map(i=>c*Math.pow(r,i)).join(",\\;"))+" で、初項 "+T(String(c))+"、公比 "+T(String(r))+" の<b>等比</b>数列。",
+        '<div class="exFml">'+T("a_n=a_1+\\sum_{k=1}^{n-1}b_k="+a1+"+\\dfrac{"+c+"("+r+"^{n-1}-1)}{"+r+"-1}")+"</div>",
+        T("="+a1+pmCoef(C,"("+r+"^{n-1}-1)")+"="+cor),
+        '<div class="exLine key">階差が等比のときも式は同じ。Σの中身が指数だから<b>等比の和の公式</b>で計算する。</div>',
+        "検算: "+T("n=1")+" で "+T(String(a1))+" に戻る。"],
+    plainQ:"次の数列の一般項 an を求めよ： "+seqPlain(terms),
+    proof:"kaisa"
+  };
+}
+
+/* ---------- 7. 和Snと一般項 ---------- */
+function genSntoan(lv){
+  if(lv===1){
+    const A=nzi(1,5),B=nzi(-6,7);
+    /* Sn は An²+Bn（定数項なし＝a1 が自動で合う型）。
+       ⚠ polyTex は降べきの順なので 2次式は [A,B,0] と3つ渡す。
+         [A,B] だと An+B（1次式）になり、答えの an と食い違う（実際に踏んだ） */
+    const sn=polyTex([A,B,0]);
+    const cor=polyTex([2*A,B-A]);
+    return {
+      lead:"初項から第 "+T("n")+" 項までの和が次の式で表される数列の一般項 "+T("a_n")+" を求めよ。",
+      disp:"S_n="+sn,
+      ans:mkChoice(cor,[polyTex([A,B]),polyTex([2*A,B]),polyTex([2*A,B+A]),
+                        polyTex([A,B-A]),polyTex([2*A,-B-A]),polyTex([2*A,B-A,1])]),
+      ex:['<div class="exFml">'+T("a_n=S_n-S_{n-1}\\quad(n\\geqq2)")+"</div>",
+          T("S_{n-1}="+coefTex(A,"(n-1)^2")+pmCoef(B,"(n-1)")),
+          T("a_n=\\left("+sn+"\\right)-\\left\\{"+coefTex(A,"(n-1)^2")+pmCoef(B,"(n-1)")+"\\right\\}="+cor),
+          T("n=1")+" のとき "+T(""+(2*A)+"\\times1"+pmCoef(B-A,"")+"="+(A+B))+" と "+T("S_1="+(A+B))+" が一致するので、この式は "+T("n=1")+" でも成り立つ。",
+          '<div class="exLine key">'+T("S_n")+" に<b>定数項が無い</b>ときは場合分けが要らない（"+T("S_1=a_1")+" が自動で合う）。</div>"],
+      plainQ:"Sn="+sn+" である数列の一般項 an を求めよ"
+    };
+  }
+  if(lv===2){
+    const A=nzi(1,5),B=nzi(-5,6),C=nzi(-8,9);
+    const a1=A+B+C;
+    return {
+      lead:"初項から第 "+T("n")+" 項までの和が次の式で表される数列について、初項 "+T("a_1")+" を求めよ。",
+      disp:"S_n="+polyTex([A,B,C]),
+      ans:{kind:"num",val:a1},
+      ex:['<div class="exFml">'+T("a_1=S_1")+"（第1項までの和＝第1項そのもの）</div>",
+          T("a_1=S_1="+A+"\\cdot1^2"+pm(B)+"\\cdot1"+pm(C)+"="+a1),
+          '<div class="exLine key">'+T("n\\geqq2")+" では "+T("a_n=S_n-S_{n-1}="+polyTex([2*A,B-A]))+" だが、これに "+T("n=1")+" を入れると "+T(String(2*A+B-A))+" で、"+T("a_1="+a1)+" と<b>一致しない</b>。</div>",
+          "つまり答えは "+T("a_1="+a1)+"、"+T("a_n="+polyTex([2*A,B-A])+"\\;(n\\geqq2)")+" の<b>場合分け</b>になる。",
+          '<div class="exLine key">'+T("S_n")+" に<b>定数項 "+T(String(C))+" がある</b>とこうなる。定数項の有無を最初に見る癖をつける。</div>"],
+      plainQ:"Sn="+polyTex([A,B,C])+" である数列の初項 a1 を求めよ"
+    };
+  }
+  const r=pick([2,3,4]),c=ri(1,4);
+  const C=c*(r-1);
+  const cor=geoTex(C,r,"n-1");
+  return {
+    lead:"初項から第 "+T("n")+" 項までの和が次の式で表される数列の一般項 "+T("a_n")+" を求めよ。",
+    disp:"S_n="+c+"\\cdot"+r+"^n-"+c,
+    ans:mkChoice(cor,[geoTex(C,r,"n"),geoTex(c,r,"n-1"),geoTex(c,r,"n"),
+                      geoTex(C,r,"n+1"),geoConstTex(C,r,"n-1",-c),geoTex(c*r,r,"n-1")]),
+    ex:[T("n\\geqq2")+" のとき "+T("a_n=S_n-S_{n-1}=\\left("+c+"\\cdot"+r+"^n-"+c+"\\right)-\\left("+c+"\\cdot"+r+"^{n-1}-"+c+"\\right)"),
+        T("="+c+"\\cdot"+r+"^{n-1}("+r+"-1)="+cor),
+        T("n=1")+" のとき "+T("a_1=S_1="+c+"\\cdot"+r+"-"+c+"="+C)+" で、上の式の "+T("n=1")+" と一致するので場合分け不要。",
+        '<div class="exLine key">指数の引き算は '+T(r+"^n-"+r+"^{n-1}="+r+"^{n-1}("+r+"-1)")+" と<b>小さい方でくくる</b>。ここが計算の山。</div>",
+        "できた数列は 初項 "+T(String(C))+"、公比 "+T(String(r))+" の等比数列。"],
+    plainQ:"Sn="+c+"・"+r+"^n-"+c+" である数列の一般項 an を求めよ"
+  };
+}
+
+/* ---------- 8. 部分分数分解の和 ---------- */
+function genBubun(lv){
+  if(lv===1){
+    if(ri(1,2)===1){
+      const cor="\\dfrac{n}{n+1}";
+      return {
+        lead:"次の和を "+T("n")+" の式で表せ。",
+        disp:"\\displaystyle\\sum_{k=1}^{n}\\dfrac{1}{k(k+1)}",
+        ans:mkChoice(cor,["\\dfrac{n+1}{n}","\\dfrac{1}{n+1}","\\dfrac{n}{2(n+1)}",
+                          "\\dfrac{n(n+1)}{2}","1-\\dfrac{1}{n}","\\dfrac{n-1}{n}"]),
+        ex:['<div class="exFml">'+T("\\dfrac{1}{k(k+1)}=\\dfrac{1}{k}-\\dfrac{1}{k+1}")+"</div>",
+            "書き並べると "+T("\\left(\\dfrac{1}{1}-\\dfrac{1}{2}\\right)+\\left(\\dfrac{1}{2}-\\dfrac{1}{3}\\right)+\\cdots+\\left(\\dfrac{1}{n}-\\dfrac{1}{n+1}\\right)"),
+            "隣どうしが消えて 最初と最後だけ残る: "+T("1-\\dfrac{1}{n+1}=\\dfrac{n}{n+1}"),
+            '<div class="exLine key">分母がかけ算の分数のΣは、<b>差の形に分解して消す</b>。公式を覚えるのではなく毎回この動きを再生する。</div>'],
+        plainQ:"Σ(k=1〜n) 1/(k(k+1)) を n の式で表せ",proof:"bubun"
+      };
+    }
+    const N=ri(5,12);
+    const cor=fracTex(N,N+1);
+    return {
+      lead:"次の和を求めよ。",
+      disp:"\\displaystyle\\sum_{k=1}^{"+N+"}\\dfrac{1}{k(k+1)}",
+      ans:mkChoice(cor,[fracTex(N+1,N),fracTex(1,N+1),fracTex(N,2*(N+1)),
+                        fracTex(N-1,N),fracTex(1,N),fracTex(N+1,N+2)]),
+      ex:[T("\\dfrac{1}{k(k+1)}=\\dfrac{1}{k}-\\dfrac{1}{k+1}")+" と分解する。",
+          T("=\\left(1-\\dfrac{1}{2}\\right)+\\left(\\dfrac{1}{2}-\\dfrac{1}{3}\\right)+\\cdots+\\left(\\dfrac{1}{"+N+"}-\\dfrac{1}{"+(N+1)+"}\\right)"),
+          "残るのは "+T("1-\\dfrac{1}{"+(N+1)+"}="+cor)+"。",
+          '<div class="exLine key">一般項が '+T("\\dfrac{n}{n+1}")+" なので "+T("n="+N)+" を入れるだけでもよい。</div>"],
+      plainQ:"Σ(k=1〜"+N+") 1/(k(k+1)) を求めよ",proof:"bubun"
+    };
+  }
+  if(lv===2){
+    const cor="\\dfrac{n(3n+5)}{4(n+1)(n+2)}";
+    return {
+      lead:"次の和を "+T("n")+" の式で表せ。",
+      disp:"\\displaystyle\\sum_{k=1}^{n}\\dfrac{1}{k(k+2)}",
+      ans:mkChoice(cor,["\\dfrac{n(3n+5)}{2(n+1)(n+2)}","\\dfrac{n}{2(n+2)}",
+                        "\\dfrac{n(3n+1)}{4(n+1)(n+2)}","\\dfrac{3}{4}-\\dfrac{1}{n+2}",
+                        "\\dfrac{n(n+5)}{4(n+1)(n+2)}","\\dfrac{n}{n+2}"]),
+      ex:['<div class="exFml">'+T("\\dfrac{1}{k(k+2)}=\\dfrac{1}{2}\\left(\\dfrac{1}{k}-\\dfrac{1}{k+2}\\right)")+"（分母の差が2なので "+T("\\dfrac{1}{2}")+" が前に出る）</div>",
+          "書き並べると "+T("\\dfrac{1}{2}\\left\\{\\left(\\dfrac{1}{1}-\\dfrac{1}{3}\\right)+\\left(\\dfrac{1}{2}-\\dfrac{1}{4}\\right)+\\left(\\dfrac{1}{3}-\\dfrac{1}{5}\\right)+\\cdots\\right\\}"),
+          "<b>1つ飛ばし</b>で消えるので、前から2つ・後ろから2つが残る:",
+          T("=\\dfrac{1}{2}\\left(1+\\dfrac{1}{2}-\\dfrac{1}{n+1}-\\dfrac{1}{n+2}\\right)"),
+          "通分して "+T(cor)+"。",
+          '<div class="exLine key">分母の差が '+T("m")+" のときは "+T("\\dfrac{1}{m}")+" が前に出て、<b>残るのは前後 "+T("m")+" 個ずつ</b>。</div>"],
+      plainQ:"Σ(k=1〜n) 1/(k(k+2)) を n の式で表せ",proof:"bubun"
+    };
+  }
+  if(ri(1,2)===1){
+    const cor="\\dfrac{n}{2n+1}";
+    return {
+      lead:"次の和を "+T("n")+" の式で表せ。",
+      disp:"\\displaystyle\\sum_{k=1}^{n}\\dfrac{1}{(2k-1)(2k+1)}",
+      ans:mkChoice(cor,["\\dfrac{2n}{2n+1}","\\dfrac{n}{2(2n+1)}","\\dfrac{1}{2}-\\dfrac{1}{2n+1}",
+                        "\\dfrac{n}{2n-1}","\\dfrac{n+1}{2n+1}","\\dfrac{2n+1}{n}"]),
+      ex:['<div class="exFml">'+T("\\dfrac{1}{(2k-1)(2k+1)}=\\dfrac{1}{2}\\left(\\dfrac{1}{2k-1}-\\dfrac{1}{2k+1}\\right)")+"</div>",
+          "分母の差は "+T("(2k+1)-(2k-1)=2")+" なので "+T("\\dfrac{1}{2}")+" が前に出る。",
+          T("=\\dfrac{1}{2}\\left\\{\\left(\\dfrac{1}{1}-\\dfrac{1}{3}\\right)+\\left(\\dfrac{1}{3}-\\dfrac{1}{5}\\right)+\\cdots+\\left(\\dfrac{1}{2n-1}-\\dfrac{1}{2n+1}\\right)\\right\\}"),
+          T("=\\dfrac{1}{2}\\left(1-\\dfrac{1}{2n+1}\\right)=\\dfrac{1}{2}\\cdot\\dfrac{2n}{2n+1}="+cor),
+          '<div class="exLine key">分解した係数 '+T("\\dfrac{1}{2}")+" を最後にかけ忘れるのが定番のミス。</div>"],
+      plainQ:"Σ(k=1〜n) 1/((2k-1)(2k+1)) を n の式で表せ",proof:"bubun"
+    };
+  }
+  const cor="\\dfrac{n}{2(3n+2)}";
+  return {
+    lead:"次の和を "+T("n")+" の式で表せ。",
+    disp:"\\displaystyle\\sum_{k=1}^{n}\\dfrac{1}{(3k-1)(3k+2)}",
+    /* ⚠ 誤答候補に「約分前の同じ値」を入れないこと。
+       \dfrac{1}{3}\left(\dfrac{1}{2}-\dfrac{1}{3n+2}\right) は正解と同値なので使えない
+       （正解が2つある問題になる）。係数の取りちがえ・分母のずれで作る。 */
+    ans:mkChoice(cor,["\\dfrac{n}{3(3n+2)}","\\dfrac{n}{3n+2}","\\dfrac{n}{6(3n+2)}",
+                      "\\dfrac{3n}{2(3n+2)}","\\dfrac{n}{2(3n-1)}","\\dfrac{n+1}{2(3n+2)}"]),
+    ex:['<div class="exFml">'+T("\\dfrac{1}{(3k-1)(3k+2)}=\\dfrac{1}{3}\\left(\\dfrac{1}{3k-1}-\\dfrac{1}{3k+2}\\right)")+"</div>",
+        "分母の差が "+T("3")+" なので "+T("\\dfrac{1}{3}")+" が前に出る。",
+        T("=\\dfrac{1}{3}\\left\\{\\left(\\dfrac{1}{2}-\\dfrac{1}{5}\\right)+\\left(\\dfrac{1}{5}-\\dfrac{1}{8}\\right)+\\cdots+\\left(\\dfrac{1}{3n-1}-\\dfrac{1}{3n+2}\\right)\\right\\}"),
+        T("=\\dfrac{1}{3}\\left(\\dfrac{1}{2}-\\dfrac{1}{3n+2}\\right)=\\dfrac{1}{3}\\cdot\\dfrac{3n}{2(3n+2)}="+cor),
+        '<div class="exLine key">残る先頭は '+T("\\dfrac{1}{2}")+"（"+T("k=1")+" のとき "+T("3k-1=2")+"）。"+T("1")+" ではないことに注意。</div>"],
+    plainQ:"Σ(k=1〜n) 1/((3k-1)(3k+2)) を n の式で表せ",proof:"bubun"
+  };
+}
+
+/* ---------- 9. 群数列 ---------- */
+/* 群の見せ方は「1 | 2,3 | 4,5,6 | …」の文字だけで済むので図は保存しない */
+function gunView(kind){
+  if(kind==="nat"){
+    return '<div class="seq" style="justify-content:flex-start">1 <i>|</i> 2, 3 <i>|</i> 4, 5, 6 <i>|</i> 7, 8, 9, 10 <i>|</i> 11, \u2026</div>';
+  }
+  return '<div class="seq" style="justify-content:flex-start">1 <i>|</i> 3, 5 <i>|</i> 7, 9, 11 <i>|</i> 13, 15, 17, 19 <i>|</i> 21, \u2026</div>';
+}
+function gunPlain(kind){
+  return kind==="nat" ? "1 | 2,3 | 4,5,6 | 7,8,9,10 | 11,… （第n群にn個）"
+                      : "1 | 3,5 | 7,9,11 | 13,15,17,19 | 21,… （第n群にn個の奇数）";
+}
+function genGun(lv){
+  const kind=(lv===3)?pick(["nat","odd"]):"nat";
+  const head="自然数を、第 "+T("n")+" 群に "+T("n")+" 個ずつ入るように区切った"+(kind==="odd"?"（奇数を並べた）":"")+"次の群数列について答えよ。";
+  if(lv===1){
+    const N=ri(9,24);
+    const v=N*(N-1)/2+1;
+    return {
+      lead:head+"<br>第 "+T(String(N))+" 群の最初の数を求めよ。",
+      sub:gunView(kind),
+      ans:{kind:"num",val:v},
+      ex:['<div class="exLine key">第 '+T("N")+" 群の最初の数は「第 "+T("N-1")+" 群までに何個あるか＋1」で決まる。</div>",
+          "第 "+T(String(N-1))+" 群までの個数は "+T("1+2+\\cdots+"+(N-1)+"=\\dfrac{"+(N-1)+"\\times"+N+"}{2}="+(N*(N-1)/2)),
+          "よって第 "+T(String(N))+" 群の最初の数は "+T(""+(N*(N-1)/2)+"+1="+v)+"。",
+          '<div class="exFml">'+T("\\text{第}n\\text{群の最初}=\\dfrac{(n-1)n}{2}+1")+"</div>"],
+      plainQ:gunPlain(kind)+" 第 "+N+" 群の最初の数を求めよ"
+    };
+  }
+  if(lv===2){
+    const M=ri(40,320);
+    let g=1;while(g*(g+1)/2<M)g++;
+    const idx=M-g*(g-1)/2;
+    return {
+      lead:head+"<br>もとの数列の第 "+T(String(M))+" 項は、第何群に入るか。",
+      sub:gunView(kind),
+      ans:{kind:"num",val:g,unit:"群"},
+      ex:["第 "+T("g")+" 群までの個数は "+T("1+2+\\cdots+g=\\dfrac{g(g+1)}{2}")+"。",
+          "第 "+T(String(M))+" 項が第 "+T("g")+" 群に入る条件は "+T("\\dfrac{(g-1)g}{2}<"+M+"\\leqq\\dfrac{g(g+1)}{2}"),
+          T("g="+(g-1))+" までで "+T(String(g*(g-1)/2))+" 個、"+T("g="+g)+" までで "+T(String(g*(g+1)/2))+" 個なので、第 "+T(String(g))+" 群。",
+          "そこで前から "+T(String(idx))+" 番目にあたる。",
+          '<div class="exLine key">「累積の個数」で挟むのが群数列の基本。'+T("\\dfrac{g(g+1)}{2}")+" が "+T(String(M))+" を初めて超える "+T("g")+" を探す。</div>"],
+      plainQ:gunPlain(kind)+" もとの数列の第 "+M+" 項は第何群に入るか",
+      plainA:"第"+g+"群（その中の"+idx+"番目）"
+    };
+  }
+  if(kind==="nat"){
+    const cor="\\dfrac{n(n^2+1)}{2}";
+    return {
+      lead:head+"<br>第 "+T("n")+" 群に入る数の和を "+T("n")+" の式で表せ。",
+      sub:gunView(kind),
+      ans:mkChoice(cor,["\\dfrac{n(n^2-1)}{2}","\\dfrac{n^2(n+1)}{2}","\\dfrac{n(n+1)}{2}",
+                        "n^3","\\dfrac{n(n^2+1)}{4}","\\dfrac{n(n^2+3)}{2}"]),
+      ex:["第 "+T("n")+" 群の最初の数は "+T("\\dfrac{(n-1)n}{2}+1=\\dfrac{n^2-n+2}{2}")+"、項数は "+T("n")+" 個、公差 "+T("1")+" の等差数列。",
+          '<div class="exFml">'+T("S=\\dfrac{n\\{2a+(n-1)d\\}}{2}=\\dfrac{n\\left\\{2\\cdot\\dfrac{n^2-n+2}{2}+(n-1)\\right\\}}{2}")+"</div>",
+          "中かっこは "+T("(n^2-n+2)+(n-1)=n^2+1")+" なので "+T("S="+cor)+"。",
+          '<div class="exLine key">「第n群だけを1つの等差数列と見る」。初項＝群の最初、項数＝'+T("n")+" を作れば普通の和の公式で終わる。</div>",
+          "検算: "+T("n=3")+" のとき "+T("4+5+6=15")+" で、式も "+T("\\dfrac{3\\times10}{2}=15")+"。"],
+      plainQ:gunPlain(kind)+" 第 n 群に入る数の和を n の式で表せ"
+    };
+  }
+  const cor="n^3";
+  return {
+    lead:head+"<br>第 "+T("n")+" 群に入る数の和を "+T("n")+" の式で表せ。",
+    sub:gunView(kind),
+    ans:mkChoice(cor,["n^2","\\dfrac{n(n^2+1)}{2}","n^2(n+1)","\\dfrac{n^2(n+1)}{2}",
+                      "n(n^2-n+1)","2n^3-n"]),
+    ex:["奇数列の第 "+T("m")+" 項は "+T("2m-1")+"。第 "+T("n")+" 群の最初は「第 "+T("\\dfrac{(n-1)n}{2}+1")+" 番目の奇数」なので "+T("n^2-n+1")+"。",
+        "第 "+T("n")+" 群は 初項 "+T("n^2-n+1")+"、公差 "+T("2")+"、項数 "+T("n")+" の等差数列。",
+        '<div class="exFml">'+T("S=\\dfrac{n\\{2(n^2-n+1)+(n-1)\\cdot2\\}}{2}=\\dfrac{n(2n^2-2n+2+2n-2)}{2}=\\dfrac{2n^3}{2}=n^3")+"</div>",
+        '<div class="exLine key">結果は '+T("n^3")+" というきれいな形。検算: "+T("n=3")+" なら "+T("7+9+11=27=3^3")+"。</div>"],
+    plainQ:gunPlain(kind)+" 第 n 群に入る数の和を n の式で表せ"
+  };
+}
+
+/* ---------- 10. 漸化式 ---------- */
+function genZenka(lv){
+  if(lv===1){
+    if(ri(1,2)===1){
+      const a1=nzi(-8,10),d=nzi(-6,8);
+      const cor=polyTex([d,a1-d]);
+      return {
+        lead:"次の条件で定まる数列 "+T("\\{a_n\\}")+" の一般項を求めよ。",
+        disp:"a_1="+a1+",\\quad a_{n+1}=a_n"+pm(d),
+        ans:mkChoice(cor,[polyTex([d,a1]),polyTex([d,a1+d]),geoTex(a1,d,"n-1"),
+                          polyTex([a1,d]),polyTex([d,a1-2*d]),polyTex([-d,a1-d])]),
+        ex:['<div class="exLine key">'+T("a_{n+1}=a_n+d")+" は「毎回 同じ数を足す」＝<b>等差数列</b>そのもの。</div>",
+            "初項 "+T(String(a1))+"、公差 "+T(String(d))+" なので",
+            '<div class="exFml">'+T("a_n=a_1+(n-1)d="+a1+"+(n-1)\\times"+par(d)+"="+cor)+"</div>"],
+        plainQ:"a1="+a1+", a(n+1)=an"+pm(d)+" で定まる数列の一般項を求めよ"
+      };
+    }
+    const a1=nzi(-4,6),r=pick([2,3,-2,4]);
+    const cor=geoTex(a1,r,"n-1");
+    return {
+      lead:"次の条件で定まる数列 "+T("\\{a_n\\}")+" の一般項を求めよ。",
+      disp:"a_1="+a1+",\\quad a_{n+1}="+par(r)+"a_n",
+      ans:mkChoice(cor,[geoTex(a1,r,"n"),geoTex(a1*r,r,"n-1"),polyTex([r,a1-r]),
+                        geoTex(a1,r,"n+1"),geoTex(a1,r,"2n-1"),polyTex([a1*(r-1),a1-a1*(r-1)])]),
+      ex:['<div class="exLine key">'+T("a_{n+1}=ra_n")+" は「毎回 同じ数をかける」＝<b>等比数列</b>そのもの。</div>",
+          "初項 "+T(String(a1))+"、公比 "+T(String(r))+" なので",
+          '<div class="exFml">'+T("a_n=a_1r^{n-1}="+cor)+"</div>",
+          '<div class="exLine key">足す型（等差）とかける型（等比）を、式を見た瞬間に見分けられるようにする。</div>'],
+      plainQ:"a1="+a1+", a(n+1)="+r+"an で定まる数列の一般項を求めよ"
+    };
+  }
+  if(lv===2){
+    const a1=nzi(-6,9),p=pick([2,4,6,-2,-4]),q=nzi(-5,6);
+    const A=p/2,B=q-p/2,C=a1-q;
+    const cor=polyTex([A,B,C]);
+    return {
+      lead:"次の条件で定まる数列 "+T("\\{a_n\\}")+" の一般項を求めよ。",
+      disp:"a_1="+a1+",\\quad a_{n+1}=a_n+"+polyTex([p,q]),
+      ans:mkChoice(cor,[polyTex([A,B,C+1]),polyTex([A,B+1,C]),polyTex([A,B,a1]),
+                        polyTex([A+1,B,C]),polyTex([p,q,C]),polyTex([A,B+p,C])]),
+      ex:['<div class="exLine key">'+T("a_{n+1}-a_n=f(n)")+" の形＝<b>階差数列が分かっている</b>ということ。</div>",
+          "階差は "+T("b_n="+polyTex([p,q]))+" なので",
+          '<div class="exFml">'+T("a_n=a_1+\\sum_{k=1}^{n-1}b_k="+a1+"+\\sum_{k=1}^{n-1}("+polyTex([p,q]).replace(/n/g,"k")+")")+"</div>",
+          T("="+a1+pmCoef(p,"\\cdot\\dfrac{(n-1)n}{2}")+pmCoef(q,"(n-1)")+"="+cor),
+          '<div class="exLine key">上端は '+T("n-1")+"。求めた式に "+T("n=1")+" を入れて "+T(String(a1))+" に戻るか検算する。</div>"],
+      plainQ:"a1="+a1+", a(n+1)=an+"+polyTex([p,q])+" で定まる数列の一般項を求めよ",
+      proof:"kaisa"
+    };
+  }
+  const p=pick([2,3]);
+  let q,alpha,a1;
+  if(p===2){q=nzi(-9,9);alpha=-q;}
+  else{q=nzi(-4,5)*2;alpha=-q/2;}
+  a1=nzi(-8,10);
+  if(a1===alpha)a1=alpha+ri(1,4);
+  const K=a1-alpha;
+  const cor=geoConstTex(K,p,"n-1",alpha);
+  return {
+    lead:"次の条件で定まる数列 "+T("\\{a_n\\}")+" の一般項を求めよ。",
+    disp:"a_1="+a1+",\\quad a_{n+1}="+p+"a_n"+pm(q),
+    ans:mkChoice(cor,[geoConstTex(K,p,"n",alpha),geoConstTex(a1,p,"n-1",alpha),
+                      geoConstTex(K,p,"n-1",-alpha),geoConstTex(K,p,"n-1",0),
+                      geoConstTex(K,p,"n+1",alpha),polyTex([q,a1-q])]),
+    ex:['<div class="exLine key">'+T("a_{n+1}=pa_n+q")+" は、まず<b>特性方程式</b>で「動かない値 "+T("\\alpha")+"」を探す。</div>",
+        T("\\alpha="+p+"\\alpha"+pm(q))+" を解いて "+T("\\alpha="+alpha),
+        "両辺から "+T(String(alpha))+" を引くと "+T("a_{n+1}"+pm(-alpha)+"="+p+"(a_n"+pm(-alpha)+")"),
+        "つまり "+T("\\{a_n"+pm(-alpha)+"\\}")+" は 初項 "+T(""+a1+pm(-alpha)+"="+K)+"、公比 "+T(String(p))+" の等比数列。",
+        '<div class="exFml">'+T("a_n"+pm(-alpha)+"="+geoTex(K,p,"n-1")+"\\quad\\Longrightarrow\\quad a_n="+cor)+"</div>",
+        "検算: "+T("n=1")+" で "+T(String(a1))+"、"+T("n=2")+" で "+T(String(p*a1+q))+"（漸化式からも "+T(""+p+"\\times"+par(a1)+pm(q)+"="+(p*a1+q))+"）。"],
+    plainQ:"a1="+a1+", a(n+1)="+p+"an"+pm(q)+" で定まる数列の一般項を求めよ"
+  };
+}
+
+/* ---------- 11. 数学的帰納法 ---------- */
+/* 証明の型そのものを問う。式の候補は手で書いた4本の等式プールから選ぶ */
+const KINOU_STMT=[
+  {lhs:"1+2+3+\\cdots+n", rhs:"\\dfrac{n(n+1)}{2}",
+   k1lhs:"1+2+3+\\cdots+k+(k+1)", k1rhs:"\\dfrac{(k+1)(k+2)}{2}",
+   krhs:"\\dfrac{k(k+1)}{2}", add:"(k+1)",
+   wrongs:["\\dfrac{(k+1)(k+2)}{2}+1","\\dfrac{(k+2)(k+3)}{2}","\\dfrac{k(k+1)}{2}+1",
+           "\\dfrac{(k+1)k}{2}","\\dfrac{(k+1)(k+2)}{6}","\\dfrac{(k+1)^2}{2}"]},
+  {lhs:"1^2+2^2+3^2+\\cdots+n^2", rhs:"\\dfrac{n(n+1)(2n+1)}{6}",
+   k1lhs:"1^2+2^2+\\cdots+k^2+(k+1)^2", k1rhs:"\\dfrac{(k+1)(k+2)(2k+3)}{6}",
+   krhs:"\\dfrac{k(k+1)(2k+1)}{6}", add:"(k+1)^2",
+   wrongs:["\\dfrac{(k+1)(k+2)(2k+1)}{6}","\\dfrac{(k+1)(k+2)(2k+5)}{6}",
+           "\\dfrac{k(k+1)(2k+1)}{6}+1","\\dfrac{(k+2)(k+3)(2k+5)}{6}",
+           "\\dfrac{(k+1)(k+2)(2k+3)}{3}","\\dfrac{(k+1)^2(2k+3)}{6}"]},
+  {lhs:"1+3+5+\\cdots+(2n-1)", rhs:"n^2",
+   k1lhs:"1+3+5+\\cdots+(2k-1)+(2k+1)", k1rhs:"(k+1)^2",
+   krhs:"k^2", add:"(2k+1)",
+   wrongs:["k^2+1","(k+2)^2","k^2+2k","(k+1)^2+1","2(k+1)^2","(2k+1)^2"]},
+  {lhs:"1\\cdot2+2\\cdot3+\\cdots+n(n+1)", rhs:"\\dfrac{n(n+1)(n+2)}{3}",
+   k1lhs:"1\\cdot2+\\cdots+k(k+1)+(k+1)(k+2)", k1rhs:"\\dfrac{(k+1)(k+2)(k+3)}{3}",
+   krhs:"\\dfrac{k(k+1)(k+2)}{3}", add:"(k+1)(k+2)",
+   wrongs:["\\dfrac{(k+1)(k+2)(k+3)}{6}","\\dfrac{k(k+1)(k+2)}{3}+1",
+           "\\dfrac{(k+2)(k+3)(k+4)}{3}","\\dfrac{(k+1)(k+2)^2}{3}",
+           "\\dfrac{(k+1)(k+2)(2k+3)}{3}","\\dfrac{(k+1)(k+2)(k+3)}{2}"]}
+];
+function genKinou(lv){
+  const st=pick(KINOU_STMT);
+  /* 命題の n を k に置きかえた左辺（仮定の左辺）。KINOU_STMT の lhs には
+     n 以外に文字 n を含む TeX コマンドが無いので、この置換で安全に作れる */
+  const lhsK=st.lhs.replace(/n/g,"k");
+  if(lv===1){
+    const v=ri(1,3);
+    if(v===1){
+      return {
+        lead:"数学的帰納法で自然数 "+T("n")+" についての命題を証明するとき、示すべきことは次の2つである。空欄 "+T("\\boxed{\\;?\\;}")+" に入るものを選べ。",
+        sub:'<div class="exFml">［I］'+T("n=1")+" のとき成り立つ<br>［II］"+T("n=k")+" のとき成り立つと仮定すると、"+T("n=\\boxed{\\;?\\;}")+" のときも成り立つ</div>",
+        ans:mkChoice("k+1",["k","k-1","2k","k+2","n+1","1"]),
+        ex:['<div class="exLine key">帰納法は「ドミノ倒し」。［I］で<b>1枚目を倒し</b>、［II］で<b>k枚目が倒れれば k+1 枚目も倒れる</b>ことを示す。</div>',
+            "この2つが揃うと、1→2→3→… と連鎖してすべての自然数で成り立つ。",
+            "［II］で示すのは "+T("n=k+1")+" のとき。"+T("n=k")+" は<b>仮定</b>する側なので、示す対象ではない。",
+            '<div class="exLine key">「仮定して よい式」と「示すべき式」を混同しないこと。ここを取り違えると証明が循環する。</div>'],
+        plainQ:"数学的帰納法：［II］n=k のとき成り立つと仮定すると n=□ のときも成り立つ。□に入るものを選べ",
+        proof:"kinou"
+      };
+    }
+    if(v===2){
+      return {
+        lead:"数学的帰納法による証明で、［II］のはじめに「"+T("n=k")+" のとき成り立つ」として書き下す式はどれか。",
+        sub:'<div class="exFml">証明したい命題: '+T(st.lhs+"="+st.rhs)+"</div>",
+        ans:mkChoice(lhsK+"="+st.krhs,
+                     [lhsK+"="+st.k1rhs,
+                      st.k1lhs+"="+st.k1rhs,st.lhs+"="+st.rhs,
+                      lhsK+"="+st.wrongs[0],
+                      st.k1lhs+"="+st.krhs,
+                      lhsK+"="+st.wrongs[2]]),
+        ex:["仮定は、命題の "+T("n")+" を<b>そのまま "+T("k")+" に置きかえた</b>式。",
+            '<div class="exFml">'+T(lhsK+"="+st.krhs)+"</div>",
+            "左辺・右辺の<b>両方</b>を置きかえるのがポイント。片方だけ変えた式は仮定になっていない。",
+            '<div class="exLine key">この仮定を［II］の変形で<b>1回だけ使う</b>のが帰納法の型。使わずに解けたら、それは帰納法になっていない。</div>'],
+        plainQ:"命題「"+texToPlain(st.lhs+"="+st.rhs)+"」の帰納法で、n=k のときの仮定の式を選べ",
+        proof:"kinou"
+      };
+    }
+    return {
+      lead:"数学的帰納法による証明で、［II］の最後に示すべき式はどれか。",
+      sub:'<div class="exFml">証明したい命題: '+T(st.lhs+"="+st.rhs)+"</div>",
+      ans:mkChoice(st.k1lhs+"="+st.k1rhs,
+                   [lhsK+"="+st.krhs,
+                    st.k1lhs+"="+st.krhs,
+                    st.k1lhs+"="+st.wrongs[0],
+                    st.lhs+"="+st.rhs,
+                    st.k1lhs+"="+st.wrongs[1],
+                    lhsK+"="+st.k1rhs]),
+      ex:["示すべきは、命題の "+T("n")+" を "+T("k+1")+" に置きかえた式。",
+          '<div class="exFml">'+T(st.k1lhs+"="+st.k1rhs)+"</div>",
+          "左辺は "+T("k")+" までの和に "+T(st.add)+" を足した形、右辺は "+T(st.rhs)+" の "+T("n")+" を "+T("k+1")+" にした形。",
+          '<div class="exLine key">先に<b>ゴールの式を書いてしまう</b>のがコツ。そこへ向けて仮定を使って変形する。</div>'],
+      plainQ:"命題「"+texToPlain(st.lhs+"="+st.rhs)+"」の帰納法で、n=k+1 のとき示すべき式を選べ",
+      proof:"kinou"
+    };
+  }
+  if(lv===2){
+    return {
+      lead:"次の命題を数学的帰納法で証明する。［II］で "+T("n=k+1")+" のとき示すべき等式の<b>右辺</b>はどれか。",
+      sub:'<div class="exFml">'+T(st.lhs+"="+st.rhs)+"</div>",
+      ans:mkChoice(st.k1rhs,st.wrongs.concat([st.krhs,st.rhs])),
+      ex:["右辺 "+T(st.rhs)+" の "+T("n")+" に "+T("k+1")+" を代入する。",
+          '<div class="exFml">'+T(st.rhs)+" の "+T("n\\to k+1")+" で "+T(st.k1rhs)+"</div>",
+          "代入した形をそのまま整理する（"+T("n+1\\to k+2")+"、"+T("2n+1\\to 2k+3")+" のように<b>中身ごと</b>置きかえる）。",
+          '<div class="exLine key">'+T("2n+1")+" に "+T("k+1")+" を入れて "+T("2k+1")+" にしてしまうミスが最多。"+T("2(k+1)+1=2k+3")+" が正しい。</div>",
+          "この右辺が［II］のゴール。左辺 "+T(st.k1lhs)+" を仮定を使って変形し、ここに一致させる。"],
+      plainQ:"命題「"+texToPlain(st.lhs+"="+st.rhs)+"」の帰納法で、n=k+1 のとき示すべき等式の右辺を選べ",
+      proof:"kinou"
+    };
+  }
+  return {
+    lead:"次の命題を数学的帰納法で証明している。仮定を使った次の1行で、□に入る式はどれか。",
+    sub:'<div class="exFml">命題: '+T(st.lhs+"="+st.rhs)+
+        "<br>仮定: "+T(st.lhs.replace(/n/g,"k")+"="+st.krhs)+
+        "<br><br>"+T(st.k1lhs)+" "+T("="+st.krhs+"+"+st.add)+" "+T("=\\boxed{\\;\\;\\;}")+"</div>",
+    ans:mkChoice(st.k1rhs,st.wrongs.concat([st.krhs,st.rhs])),
+    ex:["仮定を代入したあとは<b>ただの式の整理</b>。共通因数でくくるのが定石。",
+        '<div class="exFml">'+T(st.krhs+"+"+st.add+"="+st.k1rhs)+"</div>",
+        "こうして "+T(st.k1lhs+"="+st.k1rhs)+" が示せたので、"+T("n=k+1")+" のときも成り立つ。",
+        "［I］と［II］より、すべての自然数 "+T("n")+" について成り立つ。（証明終）",
+        '<div class="exLine key">最後は必ず<b>示すべき右辺と同じ形</b>になる。ならなければ計算ミス＝答え合わせが自分でできる型。</div>'],
+    plainQ:"命題「"+texToPlain(st.lhs+"="+st.rhs)+"」の帰納法：仮定を代入した "+texToPlain(st.krhs+"+"+st.add)+" を整理した式を選べ",
+    proof:"kinou"
+  };
+}
+
+const GENS={
+  touhi:genTouhi, touhiwa:genTouhiwa, hi:genHi, hiwa:genHiwa, sigma:genSigma,
+  kaisa:genKaisa, sntoan:genSntoan, bubun:genBubun, gun:genGun, zenka:genZenka, kinou:genKinou
+};
+
+/* ================================================================
+   証明モード
+   「公式を覚える」より「1回作る」。1ステップずつ class を付け替えるだけで
+   CSS の transition が動く形にしてある（画像・動画は使わないのでファイルは軽い）。
+   各証明: {id, tag, ttl, fml, steps:[{txt, math}], stage():HTML, apply(root,i)}
+     stage() … SVG でも HTML でもよい（図形の証明はSVG、式変形の証明はHTML）
+     apply() … その手順で見せる要素に class を付ける（戻る操作でも同じ結果になるよう
+               「i以下なら付ける・そうでなければ外す」の形で書く）
+   ================================================================ */
+function q(root,sel){return root.querySelector(sel);}
+function qa(root,sel){return Array.prototype.slice.call(root.querySelectorAll(sel));}
+function on(root,sel,cond,cls){
+  qa(root,sel).forEach(el=>el.classList.toggle(cls||"on",!!cond));
+}
+
+/* ---------- 証明1: 等差数列の和（逆順に足す） ---------- */
+function stageTouhiwa(){
+  const N=5,W=104,G=10,X0=40,YA=34,YB=112,H=44;
+  let a="",b="",p="",lines="";
+  const lab=["a_1","a_2","a_3","a_4","a_5"];
+  const txt=["a₁","a₂","a₃","a₄","a₅"];
+  for(let i=0;i<N;i++){
+    const x=X0+i*(W+G);
+    a+='<rect class="sbox bx" x="'+x+'" y="'+YA+'" width="'+W+'" height="'+H+'" rx="10"/>'
+      +'<text class="slabel" x="'+(x+W/2)+'" y="'+(YA+H/2+1)+'">'+txt[i]+'</text>';
+    b+='<rect class="sbox bx" x="'+x+'" y="'+YB+'" width="'+W+'" height="'+H+'" rx="10"/>'
+      +'<text class="slabel" x="'+(x+W/2)+'" y="'+(YB+H/2+1)+'">'+txt[N-1-i]+'</text>';
+    p+='<text class="spair" x="'+(x+W/2)+'" y="196">a₁+a₅</text>';
+    lines+='<line class="sline" x1="'+(x+W/2)+'" y1="'+(YA+H)+'" x2="'+(x+W/2)+'" y2="'+YB+'"/>';
+  }
+  return '<svg viewBox="0 0 640 250" role="img" aria-label="等差数列の和を逆順に足す図">'
+    +'<text class="ssub" x="320" y="18">S = a₁ + a₂ + a₃ + a₄ + a₅　（n = 5 の場合）</text>'
+    +'<g class="rowA">'+a+'</g>'
+    +'<g class="rowB fadeUp">'+b+'</g>'
+    +'<g class="pairs fadeIn">'+lines+p+'</g>'
+    +'<g class="tot fadeIn"><text class="slabel" x="320" y="232" style="font-size:17px">'
+    +'2S = 5 × (a₁ + a₅)</text></g>'
+    +'</svg>';
+}
+function applyTouhiwa(root,i){
+  on(root,".rowB",i>=1);
+  on(root,".pairs",i>=2);
+  on(root,".bx",i>=2,"hi");
+  on(root,".tot",i>=3);
+}
+
+/* ---------- 証明2: 等比数列の和（S − rS） ---------- */
+function stageHiwa(){
+  const W=92,G=8,X0=30,YS=42,YR=122,H=44;
+  const top=["a","ar","ar²","ar³","ar⁴"];
+  const bot=["ar","ar²","ar³","ar⁴","ar⁵"];
+  let s="",r="",st="";
+  for(let i=0;i<5;i++){
+    const x=X0+i*(W+G);
+    s+='<g class="dim c'+i+'"><rect class="sbox" x="'+x+'" y="'+YS+'" width="'+W+'" height="'+H+'" rx="10"/>'
+      +'<text class="slabel" x="'+(x+W/2)+'" y="'+(YS+H/2+1)+'">'+top[i]+'</text></g>';
+  }
+  for(let i=0;i<5;i++){
+    const x=X0+(i+1)*(W+G);
+    r+='<g class="dim d'+(i+1)+'"><rect class="sbox" x="'+x+'" y="'+YR+'" width="'+W+'" height="'+H+'" rx="10"/>'
+      +'<text class="slabel" x="'+(x+W/2)+'" y="'+(YR+H/2+1)+'">'+bot[i]+'</text></g>';
+  }
+  /* 消えるのは重なった4列（上段の1〜4列目と下段の1〜4列目） */
+  for(let i=1;i<=4;i++){
+    const x=X0+i*(W+G);
+    st+='<line class="strike" x1="'+(x+6)+'" y1="'+(YS+H/2)+'" x2="'+(x+W-6)+'" y2="'+(YS+H/2)+'"/>';
+    st+='<line class="strike" x1="'+(x+6)+'" y1="'+(YR+H/2)+'" x2="'+(x+W-6)+'" y2="'+(YR+H/2)+'"/>';
+  }
+  return '<svg viewBox="0 0 680 250" role="img" aria-label="等比数列の和をSとrSの差で求める図">'
+    +'<text class="ssub" x="20" y="30" style="text-anchor:start">S ＝</text>'
+    +'<text class="ssub" x="20" y="112" style="text-anchor:start">rS ＝</text>'
+    +'<g class="rowS">'+s+'</g>'
+    +'<g class="rowR fadeUp">'+r+'</g>'
+    +'<g class="strikes">'+st+'</g>'
+    +'<g class="tot fadeIn"><text class="slabel" x="340" y="222" style="font-size:17px">'
+    +'(1 − r)S = a − ar⁵</text></g>'
+    +'</svg>';
+}
+function applyHiwa(root,i){
+  on(root,".rowR",i>=1);
+  on(root,".strike",i>=2);
+  for(let c=1;c<=4;c++){
+    on(root,".c"+c,i>=2,"off");
+    on(root,".d"+c,i>=2,"off");
+  }
+  on(root,".c0",i>=2,"glow");
+  on(root,".d5",i>=2,"glow");
+  on(root,".tot",i>=3);
+}
+
+/* ---------- 証明3: Σk（三角形2つで長方形） ---------- */
+function stageSigmaK(){
+  const N=6,S=36,X0=64,Y0=40,R=9;
+  let t="",c="";
+  for(let row=1;row<=N;row++){
+    for(let i=0;i<row;i++){
+      t+='<circle class="dot" cx="'+(X0+i*S)+'" cy="'+(Y0+(row-1)*S)+'" r="'+R+'"/>';
+      c+='<circle class="dot2" cx="'+(X0+i*S)+'" cy="'+(Y0+(row-1)*S)+'" r="'+R+'"/>';
+    }
+  }
+  const Cx=X0+3*S, Cy=Y0+2.5*S;
+  const rx=X0-20, ry=Y0-20, rw=6*S+40, rh=5*S+40;
+  return '<svg viewBox="0 0 560 300" role="img" aria-label="1からnまでの和を長方形にする図">'
+    +'<text class="ssub" x="280" y="18">1 + 2 + 3 + 4 + 5 + 6　（n = 6 の場合）</text>'
+    +'<rect class="rectout fadeIn" x="'+rx+'" y="'+ry+'" width="'+rw+'" height="'+rh+'" rx="14" '
+    +'fill="none" stroke="#FFD166" stroke-width="1.6" stroke-dasharray="6 5"/>'
+    +'<g class="tri">'+t+'</g>'
+    +'<g class="copy slideFit"><g transform="rotate(180,'+Cx+','+Cy+')">'+c+'</g></g>'
+    +'<g class="tot fadeIn">'
+    +'<text class="slabel" x="280" y="284" style="font-size:17px">6 × 7 = 42 　→ 　S = 42 ÷ 2 = 21</text>'
+    +'</g></svg>';
+}
+function applySigmaK(root,i){
+  const cp=q(root,".copy");
+  if(cp){
+    /* 0:隠す → 1:少しずれた位置で現れる → 2:回して長方形にはめ込む */
+    cp.style.opacity=(i>=1)?"1":"0";
+    cp.style.transform=(i>=2)?"translate(0px,0px)":"translate(46px,78px)";
+  }
+  on(root,".rectout",i>=2);
+  on(root,".tot",i>=3);
+}
+
+/* ---------- 証明4: Σk²（(k+1)³ − k³ を足し上げる） ---------- */
+function stageSigmaK2(){
+  /* 左辺が telescoping する様子を見せる。cx で囲んだ項に .gone を付けて消す */
+  function row(g,a,b,rhs){
+    return '<div class="mline r'+g+' fadeUp">'
+      +'<span class="ssubtxt" style="color:var(--muted);font-family:var(--mono);font-size:.72rem;'
+      +'min-width:44px;display:inline-block">k='+g+'</span>'
+      +'<span class="cx a'+g+'">'+T(a)+"</span>"
+      +'<span class="op">−</span><span class="cx b'+g+'">'+T(b)+"</span>"
+      +'<span class="op">=</span>'+T(rhs)+"</div>";
+  }
+  return '<div class="mrows">'
+    +'<div class="mline" style="color:var(--cy)">'+T("(k+1)^3-k^3=3k^2+3k+1")+"</div>"
+    +'<div class="mdots" style="letter-spacing:0;font-size:.7rem">k に 1, 2, 3, …, n を入れて縦に足す</div>'
+    +row(1,"2^3","1^3","3\\cdot1^2+3\\cdot1+1")
+    +row(2,"3^3","2^3","3\\cdot2^2+3\\cdot2+1")
+    +row(3,"4^3","3^3","3\\cdot3^2+3\\cdot3+1")
+    +'<div class="mdots rn fadeUp">\u22ee</div>'
+    +'<div class="mline rn fadeUp">'
+      +'<span style="min-width:44px;display:inline-block;color:var(--muted);font-family:var(--mono);font-size:.72rem">k=n</span>'
+      +'<span class="cx an">'+T("(n+1)^3")+"</span>"
+      +'<span class="op">−</span><span class="cx bn">'+T("n^3")+"</span>"
+      +'<span class="op">=</span>'+T("3n^2+3n+1")+"</div>"
+    +'<div class="mline tot fadeIn">'+T("(n+1)^3-1=3\\sum_{k=1}^{n}k^2+3\\cdot\\dfrac{n(n+1)}{2}+n")+"</div>"
+    +"</div>";
+}
+function applySigmaK2(root,i){
+  on(root,".r1",i>=1);on(root,".r2",i>=1);on(root,".r3",i>=1);on(root,".rn",i>=1);
+  /* 隣の行と打ち消し合う項を消す（a_j と b_(j+1) が同じ数） */
+  ["a1","b2","a2","b3"].forEach(c=>on(root,"."+c,i>=2,"gone"));
+  ["a3","bn"].forEach(c=>on(root,"."+c,i>=3,"gone"));
+  on(root,".b1",i>=3,"keep");
+  on(root,".an",i>=3,"keep");
+  on(root,".tot",i>=3);
+}
+
+/* ---------- 証明5: 階差数列（差を縦に足す） ---------- */
+function stageKaisa(){
+  function row(g,a,b,rhs){
+    return '<div class="mline r'+g+' fadeUp">'
+      +'<span class="cx a'+g+'">'+T(a)+"</span>"
+      +'<span class="op">−</span><span class="cx b'+g+'">'+T(b)+"</span>"
+      +'<span class="op">=</span>'+T(rhs)+"</div>";
+  }
+  return '<div class="mrows">'
+    +'<div class="mline" style="color:var(--cy)">'+T("b_n=a_{n+1}-a_n")+"（階差数列の定義）</div>"
+    +'<div class="mdots" style="letter-spacing:0;font-size:.7rem">n に 1, 2, 3, …, n−1 を入れて縦に足す</div>'
+    +row(1,"a_2","a_1","b_1")
+    +row(2,"a_3","a_2","b_2")
+    +row(3,"a_4","a_3","b_3")
+    +'<div class="mdots rn fadeUp">\u22ee</div>'
+    +'<div class="mline rn fadeUp">'
+      +'<span class="cx an">'+T("a_n")+"</span>"
+      +'<span class="op">−</span><span class="cx bn">'+T("a_{n-1}")+"</span>"
+      +'<span class="op">=</span>'+T("b_{n-1}")+"</div>"
+    +'<div class="mline tot fadeIn">'+T("a_n-a_1=\\sum_{k=1}^{n-1}b_k")+"</div>"
+    +'<div class="mline tot2 fadeIn" style="color:var(--gold)">'+T("a_n=a_1+\\sum_{k=1}^{n-1}b_k\\quad(n\\geqq2)")+"</div>"
+    +"</div>";
+}
+function applyKaisa(root,i){
+  on(root,".r1",i>=1);on(root,".r2",i>=1);on(root,".r3",i>=1);on(root,".rn",i>=1);
+  ["a1","b2","a2","b3"].forEach(c=>on(root,"."+c,i>=2,"gone"));
+  ["a3","bn"].forEach(c=>on(root,"."+c,i>=3,"gone"));
+  on(root,".an",i>=3,"keep");
+  on(root,".b1",i>=3,"keep");
+  on(root,".tot",i>=3);
+  on(root,".tot2",i>=4);
+}
+
+/* ---------- 証明6: 部分分数分解（隣が消える） ---------- */
+function stageBubun(){
+  const t=[];
+  for(let k=1;k<=4;k++){
+    t.push('<span class="pr p'+k+' fadeUp">'
+      +'<span class="op">(</span><span class="cx L'+k+'">'+T("\\dfrac{1}{"+k+"}")+"</span>"
+      +'<span class="op">−</span><span class="cx R'+k+'">'+T("\\dfrac{1}{"+(k+1)+"}")+"</span>"
+      +'<span class="op">)</span></span>');
+  }
+  return '<div class="mrows">'
+    +'<div class="mline" style="color:var(--cy)">'+T("\\dfrac{1}{k(k+1)}=\\dfrac{1}{k}-\\dfrac{1}{k+1}")+"</div>"
+    +'<div class="mdots" style="letter-spacing:0;font-size:.7rem">k = 1, 2, 3, … と書き並べる</div>'
+    +'<div class="mline" style="gap:2px">'+t.join('<span class="op">+</span>')
+      +'<span class="op pn fadeUp">+ \u22ef +</span>'
+      +'<span class="pr pn fadeUp"><span class="op">(</span><span class="cx Ln">'+T("\\dfrac{1}{n}")+"</span>"
+      +'<span class="op">−</span><span class="cx Rn">'+T("\\dfrac{1}{n+1}")+'</span><span class="op">)</span></span></div>'
+    +'<div class="mline tot fadeIn">'+T("=1-\\dfrac{1}{n+1}=\\dfrac{n}{n+1}")+"</div>"
+    +"</div>";
+}
+function applyBubun(root,i){
+  [1,2,3,4].forEach(k=>on(root,".p"+k,i>=1));
+  on(root,".pn",i>=1);
+  /* R_k と L_(k+1) が同じ数＝打ち消し合う */
+  ["R1","L2","R2","L3","R3","L4"].forEach(c=>on(root,"."+c,i>=2,"gone"));
+  ["R4","Ln"].forEach(c=>on(root,"."+c,i>=3,"gone"));
+  on(root,".L1",i>=3,"keep");
+  on(root,".Rn",i>=3,"keep");
+  on(root,".tot",i>=3);
+}
+
+/* ---------- 証明7: 数学的帰納法（ドミノ） ---------- */
+function stageKinou(){
+  const N=9,W=15,H=76,X0=42,GAP=62,GY=190;
+  let d="",lab="";
+  for(let i=0;i<N;i++){
+    const x=X0+i*GAP;
+    d+='<rect class="domino d'+i+(i===0?" first":"")+'" x="'+x+'" y="'+(GY-H)+'" width="'+W+'" height="'+H+'" rx="3"/>';
+    lab+='<text class="ssub" x="'+(x+W/2)+'" y="'+(GY+16)+'">'+(i===0?"1":(i===4?"k":(i===5?"k+1":String(i+1))))+"</text>";
+  }
+  return '<svg viewBox="0 0 640 220" role="img" aria-label="数学的帰納法をドミノ倒しで表した図">'
+    +'<text class="ssub" x="320" y="18">自然数 1, 2, 3, … を1枚ずつのドミノと思う</text>'
+    +'<g class="doms">'+d+"</g>"
+    +'<line x1="20" y1="190" x2="620" y2="190" stroke="rgba(140,175,255,.35)" stroke-width="1.5"/>'
+    +lab
+    +'<g class="arrow fadeIn">'
+    +'<path d="M292 96 Q322 62 352 96" fill="none" stroke="#A78BFA" stroke-width="2" marker-end="url(#ah)"/>'
+    +'<text class="spair" x="322" y="52" style="fill:#A78BFA">倒れる</text></g>'
+    +'<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">'
+    +'<path d="M0 0 L10 5 L0 10 z" fill="#A78BFA"/></marker></defs>'
+    +"</svg>";
+}
+function applyKinou(root,i){
+  const doms=qa(root,".domino");
+  doms.forEach((el,idx)=>{
+    /* 0:全部立つ / 1:1枚目だけ倒す / 2:kとk+1に注目 / 3:連鎖して全部倒れる */
+    let fall=false;
+    if(i===1)fall=(idx===0);
+    else if(i===2)fall=(idx===0||idx===4);
+    else if(i>=3)fall=true;
+    el.style.transitionDelay=(i>=3?(idx*0.1)+"s":"0s");
+    el.classList.toggle("fall",fall);
+    el.classList.toggle("glow",i===2&&(idx===4||idx===5));
+  });
+  on(root,".arrow",i===2);
+}
+
+const PROOFS=[
+  {id:"touhiwa",tag:"SUM OF A.P.",ttl:"等差数列の和はなぜ n(a₁+aₙ)/2 なのか",
+   fml:"S_n=\\dfrac{n(a_1+a_n)}{2}",stage:stageTouhiwa,apply:applyTouhiwa,
+   steps:[
+     {txt:"まず和をそのまま書き出す。これだけでは計算できない。",math:"S=a_1+a_2+\\cdots+a_n"},
+     {txt:"同じ和を<b>逆から</b>もう1本書く。順番を変えても和は同じ。",math:"S=a_n+a_{n-1}+\\cdots+a_1"},
+     {txt:"縦に見ると、どの組も和が同じになる。前が d 増えるぶん後ろが d 減るから。",math:"a_1+a_n=a_2+a_{n-1}=\\cdots"},
+     {txt:"同じ組が n 個できるので、2本ぶんの和は n(a₁+aₙ)。2で割れば公式になる。",math:"2S=n(a_1+a_n)\\;\\Longrightarrow\\;S=\\dfrac{n(a_1+a_n)}{2}"}
+   ]},
+  {id:"hiwa",tag:"SUM OF G.P.",ttl:"等比数列の和はなぜ引き算で出るのか",
+   fml:"S_n=\\dfrac{a(1-r^n)}{1-r}\\;(r\\neq1)",stage:stageHiwa,apply:applyHiwa,
+   steps:[
+     {txt:"和を書き出す。項が n 個あって、そのままでは足せない。",math:"S=a+ar+ar^2+\\cdots+ar^{n-1}"},
+     {txt:"全体を r 倍すると、各項が<b>1つ右にずれる</b>。ここが仕掛け。",math:"rS=ar+ar^2+\\cdots+ar^{n-1}+ar^n"},
+     {txt:"引き算すると、ずれて重なった項が全部消える。残るのは両端の2つだけ。",math:"S-rS=a-ar^n"},
+     {txt:"左辺を S でくくって割る。r = 1 だと 0 で割ることになるので別扱い。",math:"(1-r)S=a(1-r^n)\\;\\Longrightarrow\\;S=\\dfrac{a(1-r^n)}{1-r}"}
+   ]},
+  {id:"sigmak",tag:"SIGMA k",ttl:"Σk = n(n+1)/2 を長方形で見る",
+   fml:"\\sum_{k=1}^{n}k=\\dfrac{n(n+1)}{2}",stage:stageSigmaK,apply:applySigmaK,
+   steps:[
+     {txt:"1個・2個・3個…と積むと階段になる。この点の総数が求めたい和。",math:"S=1+2+3+\\cdots+n"},
+     {txt:"同じ階段をもう1つ用意する（色を変えたほう）。",math:"2S=(1+2+\\cdots+n)\\times2"},
+     {txt:"180°回してはめ込むと、すき間なく<b>長方形</b>になる。縦 n・横 n+1。",math:"2S=n(n+1)"},
+     {txt:"長方形の点の数を2で割れば階段1つぶん。これが公式。",math:"S=\\dfrac{n(n+1)}{2}"}
+   ]},
+  {id:"sigmak2",tag:"SIGMA k²",ttl:"Σk² = n(n+1)(2n+1)/6 の作り方",
+   fml:"\\sum_{k=1}^{n}k^2=\\dfrac{n(n+1)(2n+1)}{6}",stage:stageSigmaK2,apply:applySigmaK2,
+   steps:[
+     {txt:"出発点は 3乗の差の展開。右辺に k² が出てくるのがポイント。",math:"(k+1)^3-k^3=3k^2+3k+1"},
+     {txt:"k = 1, 2, 3, …, n を入れて縦に並べ、全部足す。",math:"\\sum_{k=1}^{n}\\{(k+1)^3-k^3\\}=\\sum_{k=1}^{n}(3k^2+3k+1)"},
+     {txt:"左辺は隣どうしが打ち消し合って、<b>両端だけ</b>が残る。",math:"(n+1)^3-1^3"},
+     {txt:"右辺をばらすと、知りたい Σk² と 既に分かっている Σk が出る。",math:"(n+1)^3-1=3\\sum k^2+3\\cdot\\dfrac{n(n+1)}{2}+n"},
+     {txt:"Σk² について解いて整理すると公式になる。",math:"\\sum_{k=1}^{n}k^2=\\dfrac{n(n+1)(2n+1)}{6}"}
+   ]},
+  {id:"kaisa",tag:"DIFFERENCE",ttl:"階差数列の公式 aₙ = a₁ + Σbₖ",
+   fml:"a_n=a_1+\\sum_{k=1}^{n-1}b_k\\;(n\\geqq2)",stage:stageKaisa,apply:applyKaisa,
+   steps:[
+     {txt:"階差数列 bₙ は「隣どうしの差」。定義をそのまま書き出す。",math:"b_n=a_{n+1}-a_n"},
+     {txt:"n = 1 から n−1 まで並べて、縦に全部足す。",math:"(a_2-a_1)+(a_3-a_2)+\\cdots+(a_n-a_{n-1})"},
+     {txt:"途中の項が打ち消し合って、<b>aₙ と a₁ だけ</b>が残る。",math:"a_n-a_1=b_1+b_2+\\cdots+b_{n-1}"},
+     {txt:"a₁ を移項すれば公式。足す個数が n−1 個なのは、差が項数より1つ少ないから。",math:"a_n=a_1+\\sum_{k=1}^{n-1}b_k\\quad(n\\geqq2)"}
+   ]},
+  {id:"bubun",tag:"TELESCOPING",ttl:"分母がかけ算の和はなぜ消えるのか",
+   fml:"\\sum_{k=1}^{n}\\dfrac{1}{k(k+1)}=\\dfrac{n}{n+1}",stage:stageBubun,apply:applyBubun,
+   steps:[
+     {txt:"まず1項を<b>差の形</b>に分解する。これができれば勝ち。",math:"\\dfrac{1}{k(k+1)}=\\dfrac{1}{k}-\\dfrac{1}{k+1}"},
+     {txt:"k = 1, 2, 3, … と書き並べる。かっこの中は必ず「引き算」。",math:"\\left(\\dfrac{1}{1}-\\dfrac{1}{2}\\right)+\\left(\\dfrac{1}{2}-\\dfrac{1}{3}\\right)+\\cdots"},
+     {txt:"となりのかっこの前半とうしろ半分が同じ数。次々に打ち消えて<b>両端だけ</b>残る。",math:"1-\\dfrac{1}{n+1}"},
+     {txt:"通分して整理すれば答え。公式を覚えるのではなく、この動きを再生する。",math:"1-\\dfrac{1}{n+1}=\\dfrac{n}{n+1}"}
+   ]},
+  {id:"kinou",tag:"INDUCTION",ttl:"数学的帰納法はなぜ「全部」を証明できるのか",
+   fml:"\\text{［I］}n=1\\text{ で成立}\\quad\\text{［II］}n=k\\Rightarrow n=k+1",stage:stageKinou,apply:applyKinou,
+   steps:[
+     {txt:"自然数 1, 2, 3, … を1枚ずつのドミノと思う。全部倒したい（＝全部で成り立つと示したい）。",math:""},
+     {txt:"［I］まず<b>1枚目を倒す</b>。n = 1 のときに成り立つことを直接確かめる作業。",math:"n=1\\text{ のとき成り立つ}"},
+     {txt:"［II］次に「k枚目が倒れれば k+1枚目も倒れる」を示す。<b>1枚ぶんの倒れ方</b>だけを調べる。",math:"n=k\\text{ で成立}\\;\\Longrightarrow\\;n=k+1\\text{ でも成立}"},
+     {txt:"この2つが揃うと、1が倒れ→2が倒れ→3が倒れ…と連鎖して<b>すべての自然数</b>に届く。",math:"\\text{すべての自然数 }n\\text{ について成り立つ}"}
+   ]}
+];
+const PROOFMAP={};PROOFS.forEach(p=>{PROOFMAP[p.id]=p;});
+
+/* ---------- Divp guard ---------- */
+function safeDivp(fn){
+  try{
+    if(window.Divp&&typeof Divp[fn]==="function"){
+      return Divp[fn].apply(Divp,[].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return undefined;
+}
+
+/* ---------- 状態 ----------
+   XP・レベルはツール側で持たない（save_answer.php が確定し、マイページが算出する）。
+   RANK と STREAK はその場の励ましなので画面だけで持つ（保存しない＝開き直すとD/0から） */
+let view="train";
+let mode="touhi", lv=1, cur=null, graded=false;
+let selChoice=-1, numStr="";
+/* 学習記録用: いま出ている問題のタイプ・レベル・種と開始時刻 */
+let curMode="touhi", curLv=1, curSeed=0, qStart=0;
+let streak=0, lastRank="D";
+const perfectRuns={};              /* タイプごとの「連続 全問正解セット」数 */
+let mixSet=new Set(BASIC6);
+/* 解き直しモード(?retry=1)のキュー。null = 通常出題
+   wrongRound=true のときは「10問の中でまちがえた分だけ」のミニラウンド */
+let retryQ=null, retryTotal=0, retryDone=0, wrongRound=false;
+
+/* ---------- 10問ごとの評価（共通モジュール divp-result.js）----------
+   終わりのない練習ツールなので、10問ごとにランク付きの結果画面を出す。
+   まちがえた問題は種を持っているので、そのまま解き直しラウンドにできる
+   （同じ種＝同じ問題＝params_hash も同じなので、2連続正解でマスターになる）。
+   ⚠ 結果画面は「10問目を解いた瞬間」ではなく、その次のボタンで出す（解説を隠さないため）。 */
+const ROUND_N=10;
+let roundMarks=[], roundTotal=ROUND_N, roundRetry=false;
+function hasResultCard(){return !!(window.Divp&&typeof Divp.resultPush==="function");}
+function roundStart(total,retry){
+  roundMarks=[];
+  roundTotal=(total>0)?total:ROUND_N;
+  roundRetry=!!retry;
+}
+function roundInit(){
+  safeDivp("resultInit",{
+    total:ROUND_N,
+    questionKey:mode,                 /* 連続全問正解はタイプごとに数える */
+    masterLabel:"数列マスター",
+    labels:{next:"つぎの%d問へ",wrong:"\u21bb まちがえた %n 問を解き直す",
+            modes:"タイプをえらび直す",home:"学習ツール一覧へ"},
+    onNext:function(){newQuestion();},
+    onRetryWrong:startWrongRound,
+    onModes:function(){try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){window.scrollTo(0,0);}},
+    home:"/learning/"
+  });
+  roundStart(ROUND_N,false);
+}
+function showRoundResult(){
+  if(!hasResultCard()){roundStart(ROUND_N,false);return false;}
+  const marks=roundMarks.slice();
+  updateRank(marks);
+  safeDivp("resultStart",{total:marks.length,retry:roundRetry,questionKey:mode});
+  marks.forEach(m=>safeDivp("resultPush",m.ok,m.item));
+  roundStart(ROUND_N,false);
+  return true;
+}
+/* HUD の RANK は divp-result と同じ判定で出す（画面の2箇所で違う評価が出ないように） */
+function updateRank(marks){
+  if(!marks.length)return;
+  /* 解き直しラウンドはランクを付けない（divp-result 側の判断と同じにそろえる。
+     ちょうど10問の解き直しでもランクを出さないよう roundRetry を先に見る） */
+  if(roundRetry||marks.length<ROUND_N){lastRank="—";updHUD();return;}
+  const ok=marks.filter(m=>m.ok).length;
+  const rate=ok/marks.length;
+  const key=mode;
+  if(ok===marks.length)perfectRuns[key]=(perfectRuns[key]||0)+1;
+  else perfectRuns[key]=0;
+  const run=perfectRuns[key]||0;
+  if(run>=3)lastRank="SSS";
+  else if(run===2)lastRank="SS";
+  else if(run===1)lastRank="S";
+  else if(rate>=0.9)lastRank="A";
+  else if(rate>=0.7)lastRank="B";
+  else if(rate>=0.5)lastRank="C";
+  else lastRank="D";
+  updHUD();
+}
+/* 「まちがえた N 問を解き直す」。10問の中の誤答を同じ種で出し直す */
+function startWrongRound(items){
+  const use=(items||[]).filter(it=>it&&GENS[it.m]);
+  if(!use.length){retryQ=null;newQuestion();return;}
+  retryQ=use.map(it=>({m:it.m,lv:it.lv||1,s:it.s}));
+  retryTotal=retryQ.length;retryDone=0;wrongRound=true;
+  roundStart(retryTotal,true);
+  newQuestion();
+}
+
+/* ---------- HUD / セレクタ ---------- */
+function updHUD(){
+  document.getElementById("rankVal").textContent=lastRank;
+  document.getElementById("streakVal").textContent=String(streak);
+}
+function buildTypeChips(){
+  const box=document.getElementById("typeChips");
+  box.innerHTML=MODES.map(m=>
+    '<button class="chip'+(m.k===mode?" on":"")+'" data-mode="'+m.k+'">'+esc(m.n)+"<small>"+esc(m.s)+"</small></button>"
+  ).join("")+'<button class="chip mix'+(mode==="mix"?" on":"")+'" data-mode="mix">ミックス<small>えらんだタイプから</small></button>';
+}
+function buildMixGrid(){
+  const g=document.getElementById("mixGrid");
+  g.innerHTML=MODES.map(m=>
+    '<label><input type="checkbox" data-mix="'+m.k+'"'+(mixSet.has(m.k)?" checked":"")+">"+esc(m.n)+"</label>"
+  ).join("");
+}
+function updLvDesc(){
+  const d=document.getElementById("lvDesc");
+  if(mode==="mix"){d.innerHTML="えらんだタイプから <b>レベル"+lv+"</b> の問題をランダムに出します";return;}
+  const m=MODEMAP[mode];
+  d.innerHTML="<b>"+esc(m.n)+"</b> ／ "+esc(m.lv[lv-1]);
+}
+function setMixAll(fn){
+  mixSet=new Set(MODES.filter(m=>fn(m.k)).map(m=>m.k));
+  buildMixGrid();
+}
+
+/* ---------- 出題 ---------- */
+function newQuestion(){
+  safeDivp("resultClose");
+  clearEffects();
+  graded=false;selChoice=-1;numStr="";
+  document.getElementById("verdict").textContent="";
+  document.getElementById("verdict").className="verdict";
+  document.getElementById("explain").style.display="none";
+  document.getElementById("toast").textContent="";
+  document.getElementById("checkBtn").disabled=false;
+  document.getElementById("nextBtn").textContent="次の問題 \u279c";
+
+  let m=null,l=lv,s=0;
+  if(retryQ){
+    if(retryQ.length){
+      const it=retryQ.shift();
+      m=it.m;l=it.lv;s=it.s;retryDone++;
+    }else{
+      /* 解き直しキューを解ききった */
+      retryQ=null;
+      if(wrongRound){wrongRound=false;}
+      banner("解き直しはここまで！ このまま通常の出題に戻ります");
+      roundStart(ROUND_N,false);
+    }
+  }
+  if(m===null){
+    if(mode==="mix"){
+      const list=Array.from(mixSet);
+      if(!list.length){noMix();return;}
+      /* ミックスのタイプ選びは種の外（記録はその問題のタイプで残す） */
+      m=list[Math.floor(Math.random()*list.length)];
+    }else{
+      m=mode;
+    }
+    l=lv;s=rngPick();
+  }
+  if(!GENS[m]){m="touhi";}
+  if(!(l>=1&&l<=3))l=1;
+
+  curMode=m;curLv=l;curSeed=s;
+  rngSeed(s);
+  cur=GENS[m](l);
+  qStart=Date.now();
+  renderQuestion();
+}
+function noMix(){
+  cur=null;
+  document.getElementById("qLead").innerHTML="出題するタイプが1つも選ばれていません。上の「ミックス」の内訳から、練習したいタイプにチェックを入れてください。";
+  document.getElementById("qDisp").style.display="none";
+  document.getElementById("qSub").innerHTML="";
+  document.getElementById("ansArea").innerHTML="";
+  document.getElementById("checkBtn").disabled=true;
+}
+function renderQuestion(){
+  const md=MODEMAP[curMode];
+  document.getElementById("qType").textContent=md?md.n:curMode;
+  document.getElementById("qLv").textContent="LV."+curLv;
+  const total=roundTotal||ROUND_N;
+  document.getElementById("qNum").textContent=
+    (retryQ?("解き直し "+retryDone+" / "+retryTotal):((roundMarks.length+1)+" / "+total));
+
+  document.getElementById("qLead").innerHTML=cur.lead||"";
+  const disp=document.getElementById("qDisp");
+  if(cur.disp){disp.style.display="";disp.innerHTML=TD(cur.disp);}
+  else{disp.style.display="none";disp.innerHTML="";}
+  document.getElementById("qSub").innerHTML=cur.sub||"";
+
+  const area=document.getElementById("ansArea");
+  if(cur.ans.kind==="choice"){
+    area.innerHTML='<div class="choices" id="choices">'+cur.ans.choices.map((c,i)=>
+      '<button class="choiceBtn" data-i="'+i+'"><span class="cno">'+"ABCDEF".charAt(i)+"</span>"+T(c)+"</button>"
+    ).join("")+"</div>";
+  }else{
+    const unit=cur.ans.unit?('<span class="numunit">'+esc(cur.ans.unit)+"</span>"):"";
+    area.innerHTML='<div class="numwrap">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<div class="numdisp empty" id="numDisp" style="flex:1">数字を入力</div>'+unit+"</div>"
+      +'<div class="keypad" id="keypad">'
+      +[7,8,9,4,5,6,1,2,3].map(n=>'<button class="key" data-k="'+n+'">'+n+"</button>").join("")
+      +'<button class="key fn" data-k="-">±</button>'
+      +'<button class="key" data-k="0">0</button>'
+      +'<button class="key fn" data-k="bs">\u232b</button>'
+      +"</div></div>";
+  }
+  renderTexIn(document.getElementById("card"));
+}
+function refreshNum(){
+  const d=document.getElementById("numDisp");
+  if(!d)return;
+  if(numStr===""){d.textContent="数字を入力";d.classList.add("empty");}
+  else{d.textContent=numStr;d.classList.remove("empty");}
+}
+
+/* ---------- 判定 ---------- */
+function check(){
+  if(graded||!cur)return;
+  const a=cur.ans;
+  let ok=false,userStr="";
+  if(a.kind==="choice"){
+    if(selChoice<0){toast("答えを1つ選んでください");return;}
+    ok=(selChoice===a.correct);
+    userStr=texToPlain(a.choices[selChoice]);
+    /* 答え合わせ表示（正解=緑 / 選んだ誤答=朱 / 選ばなかった正解に「正解」バッジ） */
+    safeDivp("markChoices","#ansArea .choiceBtn",{correct:a.correct,selected:selChoice,dimOthers:true});
+    document.querySelectorAll("#ansArea .choiceBtn").forEach(b=>{b.disabled=true;});
+  }else{
+    if(numStr===""||numStr==="-"){toast("答えを入力してください");return;}
+    ok=(parseInt(numStr,10)===a.val);
+    userStr=numStr;
+    document.querySelectorAll("#keypad .key").forEach(b=>{b.disabled=true;});
+  }
+  graded=true;
+  document.getElementById("checkBtn").disabled=true;
+
+  const v=document.getElementById("verdict");
+  const correctStr=cur.plainA||((a.kind==="choice")?texToPlain(a.choices[a.correct]):String(a.val)+(a.unit||""));
+  if(ok){
+    streak++;
+    v.className="verdict ok";v.textContent="正解";
+    toast(streak>=3?("連続 "+streak+" 問正解"):"");
+    correctEffect();
+  }else{
+    streak=0;
+    v.className="verdict ng";v.innerHTML="正解は "+esc(correctStr);
+    toast("");
+    incorrectEffect();
+    const card=document.getElementById("card");
+    card.classList.remove("shake");void card.offsetWidth;card.classList.add("shake");
+  }
+  updHUD();
+  showExplain();
+
+  /* ── 学習記録（判定直後に1行）──────────────────────────────
+     question_key はタイプ名そのまま(CLAUDE.md 設計判断3)。
+     question_params は {m:タイプ, lv:レベル, s:種} だけで、この3つがあれば
+     ?retry=1 で同じ問題を作り直せる（復元用のロジックはPHP側に置かない）。
+     未ログイン・file:// では divp-core が黙ってスキップする。 */
+  const qSec=qStart?Math.max(1,Math.round((Date.now()-qStart)/1000)):0;
+  safeDivp("answer",ok,{
+    question_key:curMode,
+    question_params:{m:curMode,lv:curLv,s:curSeed},
+    question_text:plainQuestion(),
+    /* 選択式は選択肢ごと解き直しプリントに出す（紙で同じ問題が解けるように） */
+    question_choices:(a.kind==="choice")?a.choices.map(c=>({t:"tex",v:texToPlain(c)})):null,
+    correct_answer:correctStr,
+    wrong_answer:userStr,
+    /* 離席ぶんを混ぜないよう10分超は記録しない（愛知大問1と同じ扱い） */
+    time_taken_sec:(qSec>0&&qSec<=600)?qSec:null
+  });
+
+  /* 10問ごとの評価用に1問ぶん記録。結果画面は解説を隠さないよう次のボタンで出す */
+  roundMarks.push({ok:ok,item:{m:curMode,lv:curLv,s:curSeed}});
+  if(hasResultCard()&&roundDone()){
+    document.getElementById("nextBtn").textContent="採点結果へ \u279c";
+  }
+}
+/* このラウンドを解き終わったか。
+   通常出題は10問そろったとき、解き直しはキューを出し切ったとき。
+   ⚠ retryQ は空配列でも truthy なので、length まで見ないと
+     解き直しラウンドの結果画面が一度も出ない */
+function roundDone(){
+  if(retryQ)return retryQ.length===0;
+  return roundMarks.length>=roundTotal;
+}
+/* 記録用の問題文。plainQ があればそれを使い、無ければ画面の文から作る */
+function plainQuestion(){
+  if(!cur)return "";
+  let s=cur.plainQ||"";
+  if(!s){
+    s=stripTags(cur.lead||"");
+    if(cur.disp)s+="  "+texToPlain(cur.disp);
+    if(cur.sub)s+="  "+stripTags(cur.sub);
+  }
+  s="【レベル"+curLv+"】"+s;
+  return s.replace(/\s+/g," ").trim();
+}
+function showExplain(){
+  const ex=document.getElementById("explain");
+  const body=document.getElementById("exBody");
+  let html=(cur.ex||[]).map(l=>(/^<div/.test(l)?l:'<div class="exLine">'+l+"</div>")).join("");
+  if(cur.proof&&PROOFMAP[cur.proof]){
+    html+='<button class="proofLink" data-proof="'+cur.proof+'">\u25b6 この公式の証明を見る（アニメーション）</button>';
+  }
+  body.innerHTML=html;
+  renderTexIn(body);
+  ex.style.display="block";
+}
+function toast(s){document.getElementById("toast").textContent=s||"";}
+function banner(msg){
+  const old=document.getElementById("noticeBanner");
+  if(old)old.remove();
+  const d=document.createElement("div");
+  d.id="noticeBanner";d.className="banner";d.textContent=msg;
+  const pane=document.getElementById("view-train");
+  pane.insertBefore(d,pane.firstChild);
+  setTimeout(()=>{if(d.parentNode)d.remove();},9000);
+}
+
+/* 正解=はんこ / 誤答=「ナイスチャレンジ！」バッジ（js/jh共通 divp-correct-jh.js）。
+   第1引数のセレクタは必須。#card は overflow:visible にしてある
+   （はんこは直径171pxで、hidden だと切れる）。
+   ⚠ はんこは既定で自動では消えない（カードを innerHTML で作り直すツール前提の作り）。
+     このツールは #card の中身だけ差し替えるので消えずに残る。
+     fadeMs を渡して自分で引っ込めさせ、次の問題でも clearEffects() で片付ける。 */
+function clearEffects(){
+  document.querySelectorAll("#card .divp-hanko,#card .divp-nice").forEach(e=>e.remove());
+}
+function correctEffect(){
+  if(window.Divp&&typeof Divp.correct==="function"){Divp.correct("#card",{fadeMs:1400});}
+}
+function incorrectEffect(){
+  if(window.Divp&&typeof Divp.incorrect==="function")Divp.incorrect("#card");
+}
+
+/* ---------- 解き直しモード(?retry=1) ----------
+   マイページの「解き直し」から ?retry=1 付きで開かれたときだけ動く。
+   question_params の {m:タイプ, lv:レベル, s:種} で生成関数を回すと同じ問題が出るので、
+   pending をその順に消化する。判定後は通常どおり Divp.answer が飛ぶ＝
+   params_hash も同じなので、2連続正解で save_answer.php が mastered にする。 */
+function initRetry(){
+  if(!(window.Divp&&typeof Divp.getRetries==="function"))return;
+  Divp.getRetries().then(items=>{
+    const use=(items||[]).filter(it=>{
+      const p=it&&it.question_params;
+      return p&&GENS[p.m]&&typeof p.s==="number";
+    }).map(it=>({m:it.question_params.m,lv:it.question_params.lv||1,s:it.question_params.s}));
+    if(!use.length){
+      banner("解き直せる問題はまだありません。これからまちがえた問題がここに入ります");
+      return;
+    }
+    retryQ=use.slice();retryTotal=retryQ.length;retryDone=0;wrongRound=false;
+    roundStart(retryTotal,true);          /* 解き直しはランクを付けないラウンド */
+    banner("解き直しモード: まちがえた "+retryTotal+" 問を、同じ問題で出し直します");
+    newQuestion();
+  }).catch(()=>{});
+}
+
+/* ---------- 証明モードの画面 ---------- */
+let pvId=null, pvStep=0;
+function buildProofGrid(){
+  const g=document.getElementById("pGrid");
+  g.innerHTML=PROOFS.map(p=>
+    '<button class="pcard" data-proof="'+p.id+'">'
+    +'<div class="ptag">'+esc(p.tag)+"</div>"
+    +"<h3>"+esc(p.ttl)+"</h3>"
+    +'<div class="pfml">'+T(p.fml)+"</div>"
+    +'<div class="pgo">STEP 1 \u2192 '+p.steps.length+"　\u25b6 見る</div></button>"
+  ).join("");
+  renderTexIn(g);
+}
+function openProof(id,step){
+  const p=PROOFMAP[id];if(!p)return;
+  pvId=id;pvStep=step||0;
+  document.getElementById("plist").style.display="none";
+  document.getElementById("pview").style.display="block";
+  document.getElementById("pvTtl").textContent=p.ttl;
+  document.getElementById("pvFml").innerHTML=TD(p.fml);
+  const stage=document.getElementById("pvStage");
+  stage.innerHTML=p.stage();
+  renderTexIn(document.getElementById("pview"));
+  const dots=document.getElementById("pvDots");
+  dots.innerHTML=p.steps.map(()=>"<i></i>").join("");
+  /* 1フレーム置いてから最初の状態を当てる（初期状態→step0 の transition を走らせるため） */
+  p.apply(stage,-1);
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{paintProof();});});
+}
+function paintProof(){
+  const p=PROOFMAP[pvId];if(!p)return;
+  const stage=document.getElementById("pvStage");
+  p.apply(stage,pvStep);
+  const st=p.steps[pvStep];
+  document.getElementById("pvNo").textContent="STEP "+(pvStep+1)+" / "+p.steps.length;
+  document.getElementById("pvTxt").innerHTML=st.txt;
+  const mm=document.getElementById("pvMath");
+  mm.innerHTML=st.math?TD(st.math):"";
+  renderTexIn(mm);
+  Array.prototype.forEach.call(document.getElementById("pvDots").children,(el,i)=>{
+    el.className=(i===pvStep)?"on":(i<pvStep?"done":"");
+  });
+  document.getElementById("pvPrev").disabled=(pvStep===0);
+  document.getElementById("pvNext").textContent=(pvStep>=p.steps.length-1)?"最初から \u21ba":"次へ \u25b6";
+}
+function closeProof(){
+  document.getElementById("pview").style.display="none";
+  document.getElementById("plist").style.display="block";
+  pvId=null;
+}
+function setView(v){
+  view=v;
+  document.getElementById("view-train").style.display=(v==="train")?"block":"none";
+  document.getElementById("view-proof").style.display=(v==="proof")?"block":"none";
+  document.querySelectorAll(".vtab").forEach(b=>b.classList.toggle("on",b.dataset.view===v));
+  if(v==="train")safeDivp("resultClose");
+  try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){window.scrollTo(0,0);}
+}
+
+/* ---------- イベント ---------- */
+document.querySelector(".viewtabs").addEventListener("click",e=>{
+  const b=e.target.closest(".vtab");if(!b)return;
+  setView(b.dataset.view);
+  if(b.dataset.view==="proof"&&!pvId)closeProof();
+});
+document.getElementById("typeChips").addEventListener("click",e=>{
+  const c=e.target.closest(".chip");if(!c)return;
+  mode=c.dataset.mode;
+  retryQ=null;wrongRound=false;                 /* タイプを選び直したら解き直しモードを抜ける */
+  document.querySelectorAll("#typeChips .chip").forEach(x=>x.classList.toggle("on",x===c));
+  document.getElementById("mixBox").style.display=(mode==="mix")?"block":"none";
+  roundStart(ROUND_N,false);                    /* ラウンドも数え直し（連続はタイプごと） */
+  safeDivp("resultClose");
+  updLvDesc();
+  newQuestion();
+});
+document.getElementById("lvSeg").addEventListener("click",e=>{
+  const b=e.target.closest(".lvbtn");if(!b)return;
+  lv=parseInt(b.dataset.lv,10)||1;
+  document.querySelectorAll(".lvbtn").forEach(x=>x.classList.toggle("on",x===b));
+  retryQ=null;wrongRound=false;
+  roundStart(ROUND_N,false);
+  safeDivp("resultClose");
+  updLvDesc();
+  newQuestion();
+});
+document.getElementById("mixGrid").addEventListener("change",e=>{
+  const cb=e.target.closest("input[data-mix]");if(!cb)return;
+  if(cb.checked)mixSet.add(cb.dataset.mix);else mixSet.delete(cb.dataset.mix);
+  if(mode==="mix"&&!cur)newQuestion();
+});
+document.getElementById("mixAll").addEventListener("click",()=>{setMixAll(()=>true);if(mode==="mix"&&!cur)newQuestion();});
+document.getElementById("mixNone").addEventListener("click",()=>{setMixAll(()=>false);});
+document.getElementById("mixBasic").addEventListener("click",()=>{
+  setMixAll(k=>BASIC6.indexOf(k)>=0);
+  if(mode==="mix"&&!cur)newQuestion();
+});
+document.getElementById("foldBtn").addEventListener("click",()=>{
+  const box=document.getElementById("selbox"),b=document.getElementById("foldBtn");
+  const fold=!box.classList.contains("folded");
+  box.classList.toggle("folded",fold);
+  b.textContent=fold?"ひらく":"とじる";
+  b.setAttribute("aria-expanded",fold?"false":"true");
+});
+/* 選択肢・テンキーはクリック委任だけで受ける（touch リスナーを足さない＝
+   高速連打のタッチミス対策。touch-action:manipulation は body に指定済み） */
+document.getElementById("ansArea").addEventListener("click",e=>{
+  const c=e.target.closest(".choiceBtn");
+  if(c&&!graded){
+    selChoice=parseInt(c.dataset.i,10);
+    document.querySelectorAll("#ansArea .choiceBtn").forEach(b=>b.classList.toggle("sel",b===c));
+    return;
+  }
+  const k=e.target.closest(".key");
+  if(k&&!graded){
+    const v=k.dataset.k;
+    if(v==="bs")numStr=numStr.slice(0,-1);
+    else if(v==="-")numStr=(numStr.charAt(0)==="-")?numStr.slice(1):("-"+numStr);
+    else if(numStr.replace("-","").length<9)numStr+=v;
+    refreshNum();
+  }
+});
+document.getElementById("checkBtn").addEventListener("click",check);
+document.getElementById("nextBtn").addEventListener("click",()=>{
+  /* ラウンドを解き終わっていたら、次の問題ではなく結果画面を先に出す */
+  if(graded&&roundDone()){
+    const drained=!!(retryQ&&retryQ.length===0);
+    if(showRoundResult()){
+      /* 解き直しを出し切ったので通常出題に戻す（結果画面の「つぎの10問へ」から続けられる） */
+      if(drained){retryQ=null;wrongRound=false;}
+      return;
+    }
+    if(drained){retryQ=null;wrongRound=false;}
+  }
+  newQuestion();
+});
+document.getElementById("exBody").addEventListener("click",e=>{
+  const b=e.target.closest("[data-proof]");if(!b)return;
+  setView("proof");openProof(b.dataset.proof,0);
+});
+document.getElementById("pGrid").addEventListener("click",e=>{
+  const b=e.target.closest(".pcard");if(!b)return;
+  openProof(b.dataset.proof,0);
+});
+document.getElementById("pvBack").addEventListener("click",closeProof);
+document.getElementById("pvPrev").addEventListener("click",()=>{
+  if(pvStep>0){pvStep--;paintProof();}
+});
+document.getElementById("pvNext").addEventListener("click",()=>{
+  const p=PROOFMAP[pvId];if(!p)return;
+  if(pvStep>=p.steps.length-1){openProof(pvId,0);return;}   /* 最後まで来たら最初から */
+  pvStep++;paintProof();
+});
+/* キーボード（PCで解く生徒向け）。数字・マイナス・BS・Enter だけ */
+document.addEventListener("keydown",e=>{
+  if(view!=="train")return;
+  if(e.target&&/^(INPUT|TEXTAREA)$/.test(e.target.tagName))return;
+  if(e.key==="Enter"){
+    e.preventDefault();
+    if(graded)document.getElementById("nextBtn").click();
+    else check();
+    return;
+  }
+  if(!cur||graded||cur.ans.kind!=="num")return;
+  if(/^[0-9]$/.test(e.key)){
+    if(numStr.replace("-","").length<9)numStr+=e.key;refreshNum();
+  }else if(e.key==="-"){
+    numStr=(numStr.charAt(0)==="-")?numStr.slice(1):("-"+numStr);refreshNum();
+  }else if(e.key==="Backspace"){
+    e.preventDefault();numStr=numStr.slice(0,-1);refreshNum();
+  }
+});
+/* KaTeX は defer 読み込みなので、来てからもう一度描き直す */
+window.addEventListener("load",()=>{
+  renderTexIn(document.body);
+  if(pvId)paintProof();
+});
+
+/* ---------- 起動 ---------- */
+/* 学習記録の開始（セッション・学習時間・ハートビートは divp-core にまかせる） */
+safeDivp("init",UNIT_KEY);
+buildTypeChips();
+buildMixGrid();
+buildProofGrid();
+roundInit();
+updLvDesc();
+updHUD();
+newQuestion();
+/* マイページの「解き直し」から来たときだけ、pending を同じ問題で出し直す */
+if(/[?&]retry=1/.test(location.search)){try{initRetry();}catch(e){}}
+/* ?proof=touhiwa のように直リンクで証明を開けるようにしておく（授業で見せる用） */
+(function(){
+  const m=/[?&]proof=([a-z0-9]+)/i.exec(location.search);
+  if(m&&PROOFMAP[m[1]]){setView("proof");openProof(m[1],0);}
+})();
+</script>
+</body>
+</html>

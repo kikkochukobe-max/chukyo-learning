@@ -21,6 +21,13 @@ return [
         // 解き直しに replay_json が必須の単元（retry.php がボタンの出し分けに使う）
         'replay' => true,
     ],
+    // 解き直しは question_params の {m:タイプ, lv:レベル, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
+    // レベルは question_key を増やさず params に持つ＝カルテはタイプ単位（11行）で読める
+    'math_hs_suuretsu' => [
+        'title' => '数列完全マスター',
+        'sub'   => '数学・高校（数学B 数列）',
+        'url'   => '/learning/math/math_hs_suuretsu.html',
+    ],
     // 解き直しは question_params の {m:サブモード, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
     'math_es5_baisu_yakusu' => [
         'title' => '倍数・約数マスター',

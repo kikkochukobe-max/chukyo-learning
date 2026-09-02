@@ -590,6 +590,14 @@ body{
   }
   function paintNow(){
     paintReq=false;
+    // 【採寸し直しはここでやる】タップのたびに1フレーム後の位置へ追従する。
+    // rAF の入口＝前フレームのレイアウトが確定した直後なので、ここでの
+    // getBoundingClientRect は再レイアウトを起こさない（下の書き込みより前に読むこと）。
+    // 以前は resize / 回転 / フォント適用 などイベントの一覧に頼っていたが、
+    // 共通ヘッダー(divp-header)が whoami.php の応答でログイン窓⇔氏名に描き変わると
+    // ヘッダーの高さが変わり、.wrap ごとテンキーが動く。これを知らせるイベントは無く、
+    // 「1回タップを失ってから remeasureSoon で直る」形になっていた。
+    measureKeys();
     if(needQ){ needQ=false; paintQ(); }
     if(needIn){ needIn=false; renderInput(); }
     for(var i=0;i<flashQueue.length;i++) flashKeyNow(flashQueue[i]);
@@ -685,7 +693,17 @@ body{
   }
   function dbgRender(){
     if(!dbgBox) return;
+    // 採寸ズレ＝「持っているキー位置」と「今の実際の位置」の差。
+    // 0 以外が出ていたら、その瞬間のタップは隣のキーや圏外に落ちうる＝取りこぼしの正体。
+    var drift='-';
+    try{
+      if(KEYS.length){
+        var live=KEYS[0].el.getBoundingClientRect();
+        drift=Math.round(Math.max(Math.abs(live.top-KEYS[0].t), Math.abs(live.left-KEYS[0].l)))+'px';
+      }
+    }catch(e){}
     dbgBox.textContent='経路:'+(PASSIVE_TAP?'passive(既定)':'旧(preventDefault)')
+      +'  採寸ズレ:'+drift
       +'\n入力:'+(STACK_INPUT?'stack(積む)':'cap(既定・満杯で無反応)')
       +'\nraw(生タップ):'+dbgRaw+'\nkey(登録):'+dbgKey
       +'\nΔ(取りこぼし):'+(dbgRaw-dbgKey)
@@ -820,6 +838,10 @@ body{
       if(c===0){
         countdown.classList.remove('show');
         measureKeys();          // 「はじめ！」の直前＝レイアウトが確定した状態で採寸する
+        // 最初の1問目だけは「タップして直す」が間に合わない（その1打が失われる）。
+        // 開始直後はまだ動く要素がある（ヘッダーの描き変わり・Webフォントの適用）ので、
+        // 数回だけ測り直して追いつく。以降は paintNow が毎タップ追従する。
+        [80,200,500,1000,2000].forEach(function(ms){ setTimeout(measureKeys, ms); });
         startT=Date.now(); coolStart=startT; running=true;
         if(SHOW_TIMER){ cancelAnimationFrame(rafId); tick(); }
         return;
@@ -1426,6 +1448,11 @@ body{
     if(document.visibilityState==='visible') remeasureSoon();
   });
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(remeasureSoon).catch(function(){});
+  // .wrap の高さが変わる＝上の共通ヘッダーが伸び縮みした＝テンキーが動いた。
+  // イベントの一覧に頼らず、実際に動いたことを見て採寸し直す。
+  if(window.ResizeObserver){
+    try{ new ResizeObserver(remeasureSoon).observe(document.querySelector('.wrap')); }catch(e){}
+  }
 
   // 長押しメニュー・ダブルタップ拡大・ピンチ判定は、OSがタップをイベント化する前に
   // 次の1発を握りつぶす原因になる。この審査はページ単位で走る（iOS は
