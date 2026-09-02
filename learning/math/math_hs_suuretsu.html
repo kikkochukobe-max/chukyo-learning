@@ -68,6 +68,11 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{min-height:100%;}
+/* html 側にも地の色を置く。body の背景は background-attachment:fixed で
+   ビューポートに貼るため、iOS の慣性スクロールで端まで引っ張られたときや
+   印刷・全画面キャプチャで背景の外側が出ると、ここが無いと白地になる
+   （ほぼ白の文字 --ink が白地に乗ると読めなくなる） */
+html{background:#070A12;}
 body{
   background:
     radial-gradient(1200px 760px at 82% -12%, rgba(56,232,255,.10), transparent 60%),
@@ -348,6 +353,8 @@ h1 .ttl{background:linear-gradient(92deg,#fff 12%,var(--cy) 58%,var(--vi) 96%);
   text-align:center;font-size:.98rem;overflow-x:auto;
 }
 .pcard .pfml .katex{color:#fff;}
+/* display mode の KaTeX は上下に 1em の余白を持つ。箱側で padding を持っているので消す */
+.pcard .pfml .katex-display{margin:0;}
 .pcard .pgo{margin-top:9px;font-size:.7rem;color:var(--cy);font-family:var(--mono);letter-spacing:.1em;}
 
 #pview{display:none;}
@@ -427,7 +434,9 @@ h1 .ttl{background:linear-gradient(92deg,#fff 12%,var(--cy) 58%,var(--vi) 96%);
 /* ドミノ（数学的帰納法） */
 .domino{
   fill:rgba(56,232,255,.14);stroke:var(--cy);stroke-width:1.4;
-  transform-box:fill-box;transform-origin:bottom left;
+  /* 右へ倒れるドミノは「底辺の右端」を軸に回る。bottom left を軸にすると
+     右下の角が床線より下に沈んで、床にめり込んだ絵になる */
+  transform-box:fill-box;transform-origin:bottom right;
   transition:transform .5s cubic-bezier(.4,1.5,.5,1), fill .3s;
 }
 .domino.fall{transform:rotate(74deg);fill:rgba(167,139,250,.2);stroke:var(--vi);}
@@ -599,7 +608,11 @@ function renderTexIn(root){
     const s=el.dataset.tex;
     if(s==null)return;
     if(window.katex){
-      try{katex.render(s,el,{throwOnError:false,displayMode:el.dataset.d==="1"});}
+      /* ⚠ Σ は必ず displaystyle で組む。inline のままだと上端の n と下端の k=1 が
+         Σ の右肩・右下に落ちて、教科書と違う見た目になる（文中に混ぜた T() は
+         inline なので既定ではこうなる）。\dfrac は元から表示サイズなので影響しない。 */
+      const tex=(s.indexOf("\\sum")>=0 && s.indexOf("\\displaystyle")<0)?("\\displaystyle "+s):s;
+      try{katex.render(tex,el,{throwOnError:false,displayMode:el.dataset.d==="1"});}
       catch(e){el.textContent=s;}
     }else{
       /* KaTeX が来る前でも読めるように、記号だけ落とした素の文字を出しておく */
@@ -810,8 +823,9 @@ function genTouhi(lv){
       ans:mkChoice(cor,[polyTex([d,a]),polyTex([-d,a-d]),polyTex([d,X-d]),
                         polyTex([d,a-d+d]),polyTex([d*2,a-d]),polyTex([d,a-2*d])]),
       ex:['<div class="exFml">'+T("a_p=a_1+(p-1)d")+" を2本立てて連立する</div>",
-          T("a_1+"+(p-1)+"d="+X+" \\quad \\cdots ①"),
-          T("a_1+"+(q-1)+"d="+Y+" \\quad \\cdots ②"),
+          /* ⚠ ①② は KaTeX にフォントメトリクスが無く警告になる（TeXの外に置く） */
+          T("a_1+"+(p-1)+"d="+X)+"　…… ①",
+          T("a_1+"+(q-1)+"d="+Y)+"　…… ②",
           "②−① より "+T(""+(q-p)+"d="+(Y-X))+" なので "+T("d="+d)+"。",
           "①に戻して "+T("a_1="+a)+"。よって "+T("a_n="+cor)+"。",
           '<div class="exLine key">項の差 ÷ 番号の差 = 公差。'+T("d=\\dfrac{"+Y+"-"+par(X)+"}{"+q+"-"+p+"}="+d)+" と一気に出してもよい。</div>"],
@@ -1832,21 +1846,24 @@ function applyBubun(root,i){
 
 /* ---------- 証明7: 数学的帰納法（ドミノ） ---------- */
 function stageKinou(){
-  const N=9,W=15,H=76,X0=42,GAP=62,GY=190;
+  /* GY = 床の高さ。立っているドミノの上端は GY-H なので、見出し(y=18)との間が
+     空きすぎないよう viewBox の高さと合わせて詰めてある（倒れたドミノの先端は
+     床から 20px ほどしか上がらないので、上の余白は立ち姿ぶんだけあればよい） */
+  const N=9,W=15,H=76,X0=42,GAP=62,GY=152;
   let d="",lab="";
   for(let i=0;i<N;i++){
     const x=X0+i*GAP;
     d+='<rect class="domino d'+i+(i===0?" first":"")+'" x="'+x+'" y="'+(GY-H)+'" width="'+W+'" height="'+H+'" rx="3"/>';
     lab+='<text class="ssub" x="'+(x+W/2)+'" y="'+(GY+16)+'">'+(i===0?"1":(i===4?"k":(i===5?"k+1":String(i+1))))+"</text>";
   }
-  return '<svg viewBox="0 0 640 220" role="img" aria-label="数学的帰納法をドミノ倒しで表した図">'
+  return '<svg viewBox="0 0 640 182" role="img" aria-label="数学的帰納法をドミノ倒しで表した図">'
     +'<text class="ssub" x="320" y="18">自然数 1, 2, 3, … を1枚ずつのドミノと思う</text>'
     +'<g class="doms">'+d+"</g>"
-    +'<line x1="20" y1="190" x2="620" y2="190" stroke="rgba(140,175,255,.35)" stroke-width="1.5"/>'
+    +'<line x1="20" y1="152" x2="620" y2="152" stroke="rgba(140,175,255,.35)" stroke-width="1.5"/>'
     +lab
     +'<g class="arrow fadeIn">'
-    +'<path d="M292 96 Q322 62 352 96" fill="none" stroke="#A78BFA" stroke-width="2" marker-end="url(#ah)"/>'
-    +'<text class="spair" x="322" y="52" style="fill:#A78BFA">倒れる</text></g>'
+    +'<path d="M292 72 Q322 44 352 72" fill="none" stroke="#A78BFA" stroke-width="2" marker-end="url(#ah)"/>'
+    +'<text class="spair" x="322" y="38" style="fill:#A78BFA">倒れる</text></g>'
     +'<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">'
     +'<path d="M0 0 L10 5 L0 10 z" fill="#A78BFA"/></marker></defs>'
     +"</svg>";
@@ -1917,7 +1934,10 @@ const PROOFS=[
      {txt:"通分して整理すれば答え。公式を覚えるのではなく、この動きを再生する。",math:"1-\\dfrac{1}{n+1}=\\dfrac{n}{n+1}"}
    ]},
   {id:"kinou",tag:"INDUCTION",ttl:"数学的帰納法はなぜ「全部」を証明できるのか",
-   fml:"\\text{［I］}n=1\\text{ で成立}\\quad\\text{［II］}n=k\\Rightarrow n=k+1",stage:stageKinou,apply:applyKinou,
+   /* ⚠ ここだけ aligned で2行に組む。カードの幅が狭く、display mode の式は
+      折り返せないので1行だと右が切れる（inline に戻すと Σ の添字が横に落ちる） */
+   fml:"\\begin{aligned}&\\text{［I］}\\;n=1\\text{ で成立}\\\\&\\text{［II］}\\;n=k\\Rightarrow n=k+1\\end{aligned}",
+   stage:stageKinou,apply:applyKinou,
    steps:[
      {txt:"自然数 1, 2, 3, … を1枚ずつのドミノと思う。全部倒したい（＝全部で成り立つと示したい）。",math:""},
      {txt:"［I］まず<b>1枚目を倒す</b>。n = 1 のときに成り立つことを直接確かめる作業。",math:"n=1\\text{ のとき成り立つ}"},
@@ -2162,7 +2182,15 @@ function check(){
   document.getElementById("checkBtn").disabled=true;
 
   const v=document.getElementById("verdict");
+  /* 記録用（answer_logs.correct_answer）は平文。分数は F(分子/分母) マーカーになる */
   const correctStr=cur.plainA||((a.kind==="choice")?texToPlain(a.choices[a.correct]):String(a.val)+(a.unit||""));
+  /* ⚠ 画面に出す「正解は …」は記録用の文字列を使い回さない。
+     選択式の正解は分数を含むので、平文だと生徒に「F(n(3n+5)/4(n+1)(n+2))」と
+     マーカーのまま見えてしまう（F() は講師画面の renderMathToHTML 用の書式）。
+     画面は組んだ数式で出す。 */
+  const correctDisp=(a.kind==="choice")
+    ? T(a.choices[a.correct])
+    : esc(cur.plainA||(String(a.val)+(a.unit||"")));
   if(ok){
     streak++;
     v.className="verdict ok";v.textContent="正解";
@@ -2170,7 +2198,8 @@ function check(){
     correctEffect();
   }else{
     streak=0;
-    v.className="verdict ng";v.innerHTML="正解は "+esc(correctStr);
+    v.className="verdict ng";v.innerHTML="正解は "+correctDisp;
+    renderTexIn(v);
     toast("");
     incorrectEffect();
     const card=document.getElementById("card");
@@ -2292,7 +2321,9 @@ function buildProofGrid(){
     '<button class="pcard" data-proof="'+p.id+'">'
     +'<div class="ptag">'+esc(p.tag)+"</div>"
     +"<h3>"+esc(p.ttl)+"</h3>"
-    +'<div class="pfml">'+T(p.fml)+"</div>"
+    /* カードの式は display mode で組む。inline だと \quad や関係記号のところで
+       行が折れて、帰納法カードの「［I］n=1 で成立」が途中で分断される */
+    +'<div class="pfml">'+TD(p.fml)+"</div>"
     +'<div class="pgo">STEP 1 \u2192 '+p.steps.length+"　\u25b6 見る</div></button>"
   ).join("");
   renderTexIn(g);
