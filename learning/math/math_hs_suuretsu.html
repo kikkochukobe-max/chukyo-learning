@@ -403,6 +403,12 @@ h1 .ttl{background:linear-gradient(92deg,#fff 12%,var(--cy) 58%,var(--vi) 96%);
 .ssub{fill:var(--muted);font-family:"DM Mono",monospace;font-size:11px;text-anchor:middle;}
 .spair{fill:var(--gold);font-family:"DM Mono",monospace;font-size:12px;text-anchor:middle;}
 .sline{stroke:var(--line2);stroke-width:1;fill:none;}
+/* 等差数列の和：棒グラフ（各項の高さ）と、180°回して積む逆順ぶん */
+.sbar{fill:rgba(56,232,255,.20);stroke:var(--cy);stroke-width:1.2;}
+.sbar2{fill:rgba(167,139,250,.22);stroke:var(--vi);stroke-width:1.2;}
+.slabel2{fill:#DCD3FF;font-family:"DM Mono",monospace;font-size:15px;text-anchor:middle;dominant-baseline:middle;}
+/* 台形・長方形の輪郭（金の点線） */
+.outl{fill:none;stroke:var(--gold);stroke-width:1.8;stroke-dasharray:7 5;}
 .dot{fill:var(--cy);}
 .dot2{fill:var(--vi);}
 /* 出入りのアニメーション（クラス .on で入ってくる） */
@@ -410,6 +416,9 @@ h1 .ttl{background:linear-gradient(92deg,#fff 12%,var(--cy) 58%,var(--vi) 96%);
 .fadeUp.on{opacity:1;transform:translateY(0);}
 .fadeIn{opacity:0;transition:opacity .45s ease;}
 .fadeIn.on{opacity:1;}
+/* 上から降ってきて積まれる（等差数列の和の逆順ぶん） */
+.fadeDown{opacity:0;transform:translateY(-26px);transition:opacity .45s ease,transform .6s cubic-bezier(.2,.85,.25,1);}
+.fadeDown.on{opacity:1;transform:translateY(0);}
 .slideFit{transition:transform .85s cubic-bezier(.25,.9,.2,1),opacity .4s ease;}
 /* 消える項（部分分数・階差・Σk² の telescoping 用） */
 .cx{position:relative;display:inline-block;transition:opacity .4s ease,color .4s ease;padding:0 1px;}
@@ -1637,35 +1646,61 @@ function on(root,sel,cond,cls){
   qa(root,sel).forEach(el=>el.classList.toggle(cls||"on",!!cond));
 }
 
-/* ---------- 証明1: 等差数列の和（逆順に足す） ---------- */
+/* ---------- 証明1: 等差数列の和（棒グラフ＝台形の面積） ----------
+   各項を棒の高さにして並べると、頭が一直線に上がる階段＝台形になる。
+   同じ棒グラフを180°回して上に積むと、どの柱も高さ a_1+a_n の長方形になる
+   （柱 i に h[N-1-i] を載せると和が必ず一定になるのが仕掛け）。
+   → 2S = n(a_1+a_n) は台形の面積公式 (平行な2辺の和)×間の距離÷2 と同じ形。 */
 function stageTouhiwa(){
-  const N=5,W=104,G=10,X0=40,YA=34,YB=112,H=44;
-  let a="",b="",p="",lines="";
-  const lab=["a_1","a_2","a_3","a_4","a_5"];
-  const txt=["a₁","a₂","a₃","a₄","a₅"];
+  /* 棒は細く・本数は多く（階段が「台形」に見えるのは本数が多いほうが分かりやすい）。
+     ⚠ 細い棒に a₁〜aₙ を全部入れると読めないので、ラベルは両端の柱だけに付ける。
+       第1の柱が「下 a₁ ＋ 上 aₙ」、第nの柱が「下 aₙ ＋ 上 a₁」になっているのが
+       “どの柱も a₁+aₙ” の証拠なので、そこだけ見えれば足りる。
+       中の柱がどの項かは下の番号（1,2,3,…）で分かる。 */
+  const N=12,SW=40,BW=30,X0=85,BASE=230,U=12;
+  const h=[];for(let i=0;i<N;i++)h.push((2+i)*U);     /* 初項2・公差1 を 12px 単位で */
+  const TOT=h[0]+h[N-1];                              /* a_1+a_n ＝ 積んだ後の柱の高さ */
+  const XR=X0+(N-1)*SW+BW;                            /* 棒グラフの右端 */
+  let bars="",copy="",num="";
   for(let i=0;i<N;i++){
-    const x=X0+i*(W+G);
-    a+='<rect class="sbox bx" x="'+x+'" y="'+YA+'" width="'+W+'" height="'+H+'" rx="10"/>'
-      +'<text class="slabel" x="'+(x+W/2)+'" y="'+(YA+H/2+1)+'">'+txt[i]+'</text>';
-    b+='<rect class="sbox bx" x="'+x+'" y="'+YB+'" width="'+W+'" height="'+H+'" rx="10"/>'
-      +'<text class="slabel" x="'+(x+W/2)+'" y="'+(YB+H/2+1)+'">'+txt[N-1-i]+'</text>';
-    p+='<text class="spair" x="'+(x+W/2)+'" y="196">a₁+a₅</text>';
-    lines+='<line class="sline" x1="'+(x+W/2)+'" y1="'+(YA+H)+'" x2="'+(x+W/2)+'" y2="'+YB+'"/>';
+    const x=X0+i*SW, cx=x+BW/2;
+    const end=(i===0)?"a₁":((i===N-1)?"aₙ":null);      /* もとの棒：両端だけ */
+    const end2=(i===0)?"aₙ":((i===N-1)?"a₁":null);     /* 逆順ぶん：両端だけ（入れかわる） */
+    bars+='<rect class="sbar" x="'+x+'" y="'+(BASE-h[i])+'" width="'+BW+'" height="'+h[i]+'" rx="3"/>';
+    if(end)bars+='<text class="slabel" style="font-size:13px" x="'+cx+'" y="'+(BASE-h[i]/2)+'">'+end+'</text>';
+    /* 逆順ぶん。柱 i の上に h[N-1-i] を載せるので上端は必ず BASE-TOT でそろう */
+    copy+='<rect class="sbar2" x="'+x+'" y="'+(BASE-TOT)+'" width="'+BW+'" height="'+(TOT-h[i])+'" rx="3"/>';
+    if(end2)copy+='<text class="slabel2" style="font-size:13px" x="'+cx+'" y="'+(BASE-TOT+(TOT-h[i])/2)+'">'+end2+'</text>';
+    num+='<text class="ssub" x="'+cx+'" y="'+(BASE+17)+'">'+(i+1)+'</text>';
   }
-  return '<svg viewBox="0 0 640 250" role="img" aria-label="等差数列の和を逆順に足す図">'
-    +'<text class="ssub" x="320" y="18">S = a₁ + a₂ + a₃ + a₄ + a₅　（n = 5 の場合）</text>'
-    +'<g class="rowA">'+a+'</g>'
-    +'<g class="rowB fadeUp">'+b+'</g>'
-    +'<g class="pairs fadeIn">'+lines+p+'</g>'
-    +'<g class="tot fadeIn"><text class="slabel" x="320" y="232" style="font-size:17px">'
-    +'2S = 5 × (a₁ + a₅)</text></g>'
+  return '<svg viewBox="0 0 640 278" role="img" aria-label="等差数列の和を棒グラフの面積（台形）で表した図">'
+    +'<text class="ssub" x="320" y="18">棒の高さ＝各項　棒の面積の合計＝S　（n = 12 の場合）</text>'
+    +'<g class="barsG">'+bars+'</g>'
+    /* 台形の輪郭。平行な2辺（左右の縦の辺）は両端の棒そのものなので、
+       長さの表示は棒の中の a₁ / aₙ にまかせて、ここでは輪郭と横幅だけを出す
+       （外側にも a₁ / aₙ を書くと同じ文字が2つ並んでうるさい） */
+    +'<g class="tzG fadeIn">'
+      +'<polygon class="outl" points="'+X0+','+(BASE-h[0])+' '+XR+','+(BASE-h[N-1])+' '+XR+','+BASE+' '+X0+','+BASE+'"/>'
+      +'<text class="spair" x="320" y="'+(BASE+40)+'">平行な2辺の間の距離 ＝ 項数 n</text>'
+    +'</g>'
+    /* 180°回して上に積んだぶん */
+    +'<g class="copyG fadeDown">'+copy+'</g>'
+    /* できた長方形 */
+    +'<g class="rcG fadeIn">'
+      +'<rect class="outl" x="'+X0+'" y="'+(BASE-TOT)+'" width="'+(XR-X0)+'" height="'+TOT+'" rx="4"/>'
+      +'<text class="spair" x="'+(X0-30)+'" y="'+(BASE-TOT/2)+'">a₁+aₙ</text>'
+    +'</g>'
+    +'<line class="sline" x1="'+(X0-16)+'" y1="'+BASE+'" x2="'+(XR+16)+'" y2="'+BASE+'"/>'
+    +num
+    +'<g class="totG fadeIn"><text class="slabel" x="320" y="'+(BASE+40)+'" style="font-size:17px">'
+    +'2S ＝ n × (a₁+aₙ)</text></g>'
     +'</svg>';
 }
 function applyTouhiwa(root,i){
-  on(root,".rowB",i>=1);
-  on(root,".pairs",i>=2);
-  on(root,".bx",i>=2,"hi");
-  on(root,".tot",i>=3);
+  on(root,".tzG",i===1);          /* 台形は積む前だけ見せる（長方形とラベルが重なるため） */
+  on(root,".copyG",i>=2);
+  on(root,".rcG",i>=2);
+  on(root,".totG",i>=3);
 }
 
 /* ---------- 証明2: 等比数列の和（S − rS） ---------- */
@@ -1887,10 +1922,14 @@ const PROOFS=[
   {id:"touhiwa",tag:"SUM OF A.P.",ttl:"等差数列の和はなぜ n(a₁+aₙ)/2 なのか",
    fml:"S_n=\\dfrac{n(a_1+a_n)}{2}",stage:stageTouhiwa,apply:applyTouhiwa,
    steps:[
-     {txt:"まず和をそのまま書き出す。これだけでは計算できない。",math:"S=a_1+a_2+\\cdots+a_n"},
-     {txt:"同じ和を<b>逆から</b>もう1本書く。順番を変えても和は同じ。",math:"S=a_n+a_{n-1}+\\cdots+a_1"},
-     {txt:"縦に見ると、どの組も和が同じになる。前が d 増えるぶん後ろが d 減るから。",math:"a_1+a_n=a_2+a_{n-1}=\\cdots"},
-     {txt:"同じ組が n 個できるので、2本ぶんの和は n(a₁+aₙ)。2で割れば公式になる。",math:"2S=n(a_1+a_n)\\;\\Longrightarrow\\;S=\\dfrac{n(a_1+a_n)}{2}"}
+     {txt:"各項を<b>棒の高さ</b>にして順に並べる。公差 d ずつ増えるので、頭が一直線に上がる階段になる。求めたい S は<b>棒の面積の合計</b>。",
+      math:"S=a_1+a_2+\\cdots+a_n"},
+     {txt:"階段の輪郭は<b>台形</b>。平行な2辺が a₁ と aₙ で、その間の距離が項数 n。台形なら面積の公式が使えるはず。",
+      math:"\\text{台形の面積}=\\dfrac{(\\text{平行な2辺の和})\\times\\text{間の距離}}{2}"},
+     {txt:"ただし棒はガタガタで、はみ出す所と足りない所がある。本当に台形と同じ面積か確かめるため、<b>同じ棒グラフを180°回して上に積む</b>。",
+      math:"\\text{柱 }i\\text{ に }a_{n+1-i}\\text{ を載せる}"},
+     {txt:"どの柱もぴったり a₁+aₙ の高さにそろい、すき間なく<b>長方形</b>になる。縦 a₁+aₙ・横 n の長方形の半分が S ——台形の公式と同じ形。",
+      math:"2S=n(a_1+a_n)\\;\\Longrightarrow\\;S=\\dfrac{n(a_1+a_n)}{2}"}
    ]},
   {id:"hiwa",tag:"SUM OF G.P.",ttl:"等比数列の和はなぜ引き算で出るのか",
    fml:"S_n=\\dfrac{a(1-r^n)}{1-r}\\;(r\\neq1)",stage:stageHiwa,apply:applyHiwa,
