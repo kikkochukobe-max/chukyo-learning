@@ -156,6 +156,9 @@ h1 .ttl{background:linear-gradient(92deg,#fff 12%,var(--cy) 58%,var(--vi) 96%);
   border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink2);
   font-family:inherit;font-size:.7rem;padding:4px 12px;cursor:pointer;
 }
+.selacts{display:flex;align-items:center;gap:7px;}
+.foldBtn.prt{color:var(--gold);border-color:rgba(255,209,102,.38);}
+.foldBtn.prt:hover{background:rgba(255,209,102,.12);}
 .selbox.folded .chips,.selbox.folded .mixbox{display:none;}
 .chips{display:flex;flex-wrap:wrap;gap:7px;}
 .chip{
@@ -403,12 +406,27 @@ h1 .ttl{background:linear-gradient(92deg,#fff 12%,var(--cy) 58%,var(--vi) 96%);
 .ssub{fill:var(--muted);font-family:"DM Mono",monospace;font-size:11px;text-anchor:middle;}
 .spair{fill:var(--gold);font-family:"DM Mono",monospace;font-size:12px;text-anchor:middle;}
 .sline{stroke:var(--line2);stroke-width:1;fill:none;}
-/* 等差数列の和：棒グラフ（各項の高さ）と、180°回して積む逆順ぶん */
+/* 等差数列の和：棒グラフ（各項の高さ）と、180°回して重ねる逆順ぶん */
 .sbar{fill:rgba(56,232,255,.20);stroke:var(--cy);stroke-width:1.2;}
 .sbar2{fill:rgba(167,139,250,.22);stroke:var(--vi);stroke-width:1.2;}
 .slabel2{fill:#DCD3FF;font-family:"DM Mono",monospace;font-size:15px;text-anchor:middle;dominant-baseline:middle;}
-/* 台形・長方形の輪郭（金の点線） */
+/* 長方形の輪郭（金の点線） */
 .outl{fill:none;stroke:var(--gold);stroke-width:1.8;stroke-dasharray:7 5;}
+/* 等差数列の和：階段の下に置く和の式。列の中心を棒の中心にそろえてあるので、
+   「縦に足すとどの列も a₁+a₁₀」が図と式で同時に見える。
+   ⚠ 文字の大きさは viewBox の幅とセット。SVGは横幅いっぱい（最大660px）に
+     縮めて表示されるので、viewBox を広げると画面上の文字は逆に小さくなる。
+     3行目の a₁+a₁₀ は1文字ぶん約0.6em×6文字＝font-size×3.07 の幅を食うので、
+     大きくするときは stageTouhiwa 側の SW（列の間隔）も一緒に広げること。 */
+.seqt{font-family:"DM Mono",monospace;font-size:16px;text-anchor:middle;dominant-baseline:middle;}
+.seqt.up{fill:#9BEEFF;}
+.seqt.dn{fill:#DCD3FF;}
+.seqt.sum{fill:var(--gold);font-size:13px;}
+/* 3行目の a₁+a₁₀ を1組ずつ囲む札。同じ形が10個ならぶのが見せたいことなので、
+   区切りの「+」より札の輪郭でグループを作る（詰まって1本の帯に見えるのを防ぐ） */
+.seqchip{fill:rgba(255,209,102,.10);stroke:rgba(255,209,102,.30);stroke-width:1;}
+.seqop{fill:var(--muted);font-family:"DM Mono",monospace;font-size:13px;text-anchor:middle;dominant-baseline:middle;}
+.seqlb{font-family:"DM Mono",monospace;font-size:15px;text-anchor:end;dominant-baseline:middle;}
 .dot{fill:var(--cy);}
 .dot2{fill:var(--vi);}
 /* 出入りのアニメーション（クラス .on で入ってくる） */
@@ -477,12 +495,14 @@ footer{
      ・divp-core.js … 学習記録（Divp.init / Divp.answer）
      ・divp-correct-jh.js … 正解=はんこ / 誤答=バッジ（中学・高校共通）
      ・divp-choice-mark.js … 答え合わせ表示（正解=緑 / 選んだ誤答=朱）
-     ・divp-result.js … 10問ごとの評価（RESULT画面） -->
+     ・divp-result.js … 10問ごとの評価（RESULT画面）
+     ・print-watermark.js … 練習プリントのロゴ透かし（無くても透かし無しで印刷できる） -->
 <script src="/assets/divp-header.js"></script>
 <script src="/assets/divp-core.js"></script>
 <script src="/assets/divp-correct-jh.js"></script>
 <script src="/assets/divp-choice-mark.js" defer></script>
 <script src="/assets/divp-result.js"></script>
+<script src="/assets/print-watermark.js"></script>
 
 <!-- 共通ヘッダーはこの div の外（body直下）に入る＝画面幅いっぱいのバーになる -->
 <div class="wrap">
@@ -508,7 +528,11 @@ footer{
   <div class="selbox" id="selbox">
     <div class="selhead">
       <h2>Type &amp; Level</h2>
-      <button class="foldBtn" id="foldBtn" aria-expanded="true">とじる</button>
+      <div class="selacts">
+        <button class="foldBtn prt" id="prtBtn" type="button"
+                title="いま選んでいるタイプ・レベルで練習プリント（A4・問題＋解答）を作る">🖨 印刷</button>
+        <button class="foldBtn" id="foldBtn" aria-expanded="true">とじる</button>
+      </div>
     </div>
     <div class="chips" id="typeChips"></div>
     <div class="lvrow">
@@ -887,7 +911,7 @@ function genTouhiwa(lv){
         ans:{kind:"num",val:S},
         ex:['<div class="exFml">'+T("S_n=\\dfrac{n(a_1+a_n)}{2}")+"（初項と末項が分かっているときはこちらが速い）</div>",
             T("S_{"+n+"}=\\dfrac{"+n+"\\times("+a+pm(last)+")}{2}=\\dfrac{"+n+"\\times"+par(a+last)+"}{2}="+S),
-            '<div class="exLine key">公差を使わずに解ける。'+T("\\dfrac{(\\text{初項}+\\text{末項})\\times\\text{項数}}{2}")+" は台形の面積と同じ形。</div>"],
+            '<div class="exLine key">公差を使わずに解ける。'+T("\\dfrac{(\\text{初項}+\\text{末項})\\times\\text{項数}}{2}")+" は、同じ和を逆さに重ねて2で割った形。</div>"],
         plainQ:"初項 "+a+"、末項 "+last+"、項数 "+n+" の等差数列の和",
         proof:"touhiwa"
       };
@@ -1646,61 +1670,123 @@ function on(root,sel,cond,cls){
   qa(root,sel).forEach(el=>el.classList.toggle(cls||"on",!!cond));
 }
 
-/* ---------- 証明1: 等差数列の和（棒グラフ＝台形の面積） ----------
-   各項を棒の高さにして並べると、頭が一直線に上がる階段＝台形になる。
-   同じ棒グラフを180°回して上に積むと、どの柱も高さ a_1+a_n の長方形になる
-   （柱 i に h[N-1-i] を載せると和が必ず一定になるのが仕掛け）。
-   → 2S = n(a_1+a_n) は台形の面積公式 (平行な2辺の和)×間の距離÷2 と同じ形。 */
+/* ---------- 証明1: 等差数列の和（階段を2つ、逆さに重ねて2で割る） ----------
+   各項を棒の高さにして並べると、頭が一直線に上がる階段になる（面積の合計＝S）。
+   同じ階段をもう1つ用意して180°回し、上から重ねると、どの柱も高さ a₁+a₁₀ の
+   長方形になる（柱 i に h[N-1-i] を載せると和が必ず一定になるのが仕掛け）。
+   長方形＝2S なので 2 で割れば S。
+   ⚠ 台形の面積公式には寄せない。「(上底+下底)×高さ÷2 を思い出す」より
+     「同じものを逆さに重ねて2で割る」のほうが手順として再生しやすいため。
+   ⚠ 階段の下に和の式を、列の中心が棒の中心とそろう位置に置いてある
+     （上の行＝そのまま／下の行＝逆順／3行目＝縦に足した結果）。
+     図と式が同じ列で対応しているのが狙いなので、棒の本数 N を変えたら
+     式の3行も同じ N で回ること（列がずれると図の意味が消える）。 */
 function stageTouhiwa(){
-  /* 棒は細く・本数は多く（階段が「台形」に見えるのは本数が多いほうが分かりやすい）。
-     ⚠ 細い棒に a₁〜aₙ を全部入れると読めないので、ラベルは両端の柱だけに付ける。
-       第1の柱が「下 a₁ ＋ 上 aₙ」、第nの柱が「下 aₙ ＋ 上 a₁」になっているのが
-       “どの柱も a₁+aₙ” の証拠なので、そこだけ見えれば足りる。
-       中の柱がどの項かは下の番号（1,2,3,…）で分かる。 */
-  const N=12,SW=40,BW=30,X0=85,BASE=230,U=12;
-  const h=[];for(let i=0;i<N;i++)h.push((2+i)*U);     /* 初項2・公差1 を 12px 単位で */
-  const TOT=h[0]+h[N-1];                              /* a_1+a_n ＝ 積んだ後の柱の高さ */
-  const XR=X0+(N-1)*SW+BW;                            /* 棒グラフの右端 */
-  let bars="",copy="",num="";
-  for(let i=0;i<N;i++){
-    const x=X0+i*SW, cx=x+BW/2;
-    const end=(i===0)?"a₁":((i===N-1)?"aₙ":null);      /* もとの棒：両端だけ */
-    const end2=(i===0)?"aₙ":((i===N-1)?"a₁":null);     /* 逆順ぶん：両端だけ（入れかわる） */
-    bars+='<rect class="sbar" x="'+x+'" y="'+(BASE-h[i])+'" width="'+BW+'" height="'+h[i]+'" rx="3"/>';
-    if(end)bars+='<text class="slabel" style="font-size:13px" x="'+cx+'" y="'+(BASE-h[i]/2)+'">'+end+'</text>';
-    /* 逆順ぶん。柱 i の上に h[N-1-i] を載せるので上端は必ず BASE-TOT でそろう */
-    copy+='<rect class="sbar2" x="'+x+'" y="'+(BASE-TOT)+'" width="'+BW+'" height="'+(TOT-h[i])+'" rx="3"/>';
-    if(end2)copy+='<text class="slabel2" style="font-size:13px" x="'+cx+'" y="'+(BASE-TOT+(TOT-h[i])/2)+'">'+end2+'</text>';
-    num+='<text class="ssub" x="'+cx+'" y="'+(BASE+17)+'">'+(i+1)+'</text>';
+  /* 項数は10。式を1行に書き切れて、かつ階段に見える本数。
+     ⚠ 細い棒に a₁〜a₁₀ を全部入れると読めないので、棒の中のラベルは両端だけ。
+       第1の柱が「下 a₁ ＋ 上 a₁₀」、第10の柱が「下 a₁₀ ＋ 上 a₁」になっているのが
+       “どの柱も a₁+a₁₀” の証拠で、中の柱がどの項かは真下の式で分かる。 */
+  /* SW（列の間隔）は3行目の a₁+a₁₀ が「+」ごと入る幅で決めてある（詰めると読めない）。
+     VBW は「その10列がちょうど収まる幅」＝これ以上広げると画面上の文字が小さくなる。
+     ⚠ BW=SW（棒どうしをくっつける）。すき間を空けると階段が棒グラフに見えて、
+       重ねたときの「すき間なく長方形になる」が伝わらないため。
+       列の境目は棒の輪郭線どうしが重なって1本の線になるので、10列は数えられる。 */
+  const N=10,SW=56,BW=56,X0=50,BASE=200,VBW=620;
+  const XR=X0+N*SW;                                   /* 階段の右端（＝棒がくっついた幅） */
+  const YA=BASE+34, YB=YA+30, YR=YB+17, YC=YR+21;     /* 式3行と、その間の区切り線 */
+  const CX=VBW/2, LX=48;                              /* 中央／式の左肩（S＝ 2S＝）の右端 */
+  const sub="₀₁₂₃₄₅₆₇₈₉";
+  const nm=k=>"a"+String(k).replace(/[0-9]/g,d=>sub[+d]);   /* 1 → a₁ / 10 → a₁₀ */
+  /* 図の作りは1つだけ。ラベル(lab)と棒の高さ(h)を差し替えて、
+     ①文字の一般形 と ②同じ手順を実際の数でなぞる版 の2枚を同じ座標に作る
+     （手順が同じことを見せたいので、位置・色・並びは1文字も変えない）。 */
+  function fig(h,lab,pair,chipW,fsRow,fsSum){
+    const TOT=h[0]+h[N-1];                            /* 重ねた後の柱の高さ */
+    let bars="",copy="",up="",dn="",sum="";
+    for(let i=0;i<N;i++){
+      const x=X0+i*SW, cx=x+BW/2;
+      bars+='<rect class="sbar" x="'+x+'" y="'+(BASE-h[i])+'" width="'+BW+'" height="'+h[i]+'"/>';
+      /* 逆順ぶん。柱 i の上に h[N-1-i] を載せるので上端は必ず BASE-TOT でそろう */
+      copy+='<rect class="sbar2" x="'+x+'" y="'+(BASE-TOT)+'" width="'+BW+'" height="'+(TOT-h[i])+'"/>';
+      if(i===0||i===N-1){                             /* 棒の中のラベルは両端だけ */
+        bars+='<text class="slabel" style="font-size:15px" x="'+cx+'" y="'+(BASE-h[i]/2)+'">'+lab(i)+'</text>';
+        copy+='<text class="slabel2" style="font-size:15px" x="'+cx+'" y="'+(BASE-TOT+(TOT-h[i])/2)+'">'+lab(N-1-i)+'</text>';
+      }
+      up +='<text class="seqt up" style="font-size:'+fsRow+'px" x="'+cx+'" y="'+YA+'">'+lab(i)+'</text>';
+      dn +='<text class="seqt dn" style="font-size:'+fsRow+'px" x="'+cx+'" y="'+YB+'">'+lab(N-1-i)+'</text>';
+      sum+='<rect class="seqchip" x="'+(cx-chipW/2)+'" y="'+(YC-11)+'" width="'+chipW+'" height="22" rx="6"/>'
+          +'<text class="seqt sum" style="font-size:'+fsSum+'px" x="'+cx+'" y="'+YC+'">'+pair+'</text>';
+      if(i<N-1){                                      /* 列と列のあいだの + */
+        const ox=cx+SW/2;
+        up +='<text class="seqop" x="'+ox+'" y="'+YA+'">+</text>';
+        dn +='<text class="seqop" x="'+ox+'" y="'+YB+'">+</text>';
+        sum+='<text class="seqop" x="'+ox+'" y="'+YC+'" style="font-size:12px">+</text>';
+      }
+    }
+    return {
+      bars:'<g class="barsG">'+bars+'</g>'
+        +'<line class="sline" x1="'+(X0-10)+'" y1="'+BASE+'" x2="'+(XR+8)+'" y2="'+BASE+'"/>',
+      copy:copy,
+      /* 階段の下の式（上＝そのままの順／下＝逆順）。列が棒とそろう */
+      up:'<text class="seqlb" style="fill:#9BEEFF" x="'+LX+'" y="'+YA+'">S ＝</text>'+up,
+      dn:'<text class="seqlb" style="fill:#DCD3FF" x="'+LX+'" y="'+YB+'">S ＝</text>'+dn,
+      /* できた長方形 */
+      rect:'<rect class="outl" x="'+X0+'" y="'+(BASE-TOT)+'" width="'+(XR-X0)+'" height="'+TOT+'" rx="4"/>'
+        +'<text class="spair" style="font-size:11px" x="'+(X0-30)+'" y="'+(BASE-TOT/2)+'">'+pair+'</text>',
+      /* 縦に足した結果＝どの列も同じ */
+      sum:'<line class="sline" x1="8" y1="'+YR+'" x2="'+(XR+8)+'" y2="'+YR+'"/>'
+        +'<text class="seqlb" style="fill:var(--gold)" x="'+LX+'" y="'+YC+'">2S ＝</text>'+sum
+    };
   }
-  return '<svg viewBox="0 0 640 278" role="img" aria-label="等差数列の和を棒グラフの面積（台形）で表した図">'
-    +'<text class="ssub" x="320" y="18">棒の高さ＝各項　棒の面積の合計＝S　（n = 12 の場合）</text>'
-    +'<g class="barsG">'+bars+'</g>'
-    /* 台形の輪郭。平行な2辺（左右の縦の辺）は両端の棒そのものなので、
-       長さの表示は棒の中の a₁ / aₙ にまかせて、ここでは輪郭と横幅だけを出す
-       （外側にも a₁ / aₙ を書くと同じ文字が2つ並んでうるさい） */
-    +'<g class="tzG fadeIn">'
-      +'<polygon class="outl" points="'+X0+','+(BASE-h[0])+' '+XR+','+(BASE-h[N-1])+' '+XR+','+BASE+' '+X0+','+BASE+'"/>'
-      +'<text class="spair" x="320" y="'+(BASE+40)+'">平行な2辺の間の距離 ＝ 項数 n</text>'
+  const cap=(t)=>'<text class="ssub" style="font-size:12px" x="'+CX+'" y="18">'+t+'</text>';
+  const tot=(t)=>'<text class="slabel" x="'+CX+'" y="'+(YC+32)+'" style="font-size:17px">'+t+'</text>';
+  const ans=(t)=>'<text class="spair" x="'+CX+'" y="'+(YC+60)+'" style="font-size:17px">'+t+'</text>';
+
+  /* ① 文字の一般形。棒の高さは「初項2・公差1」を12px単位で描いた階段 */
+  const hg=[];for(let i=0;i<N;i++)hg.push((2+i)*12);
+  const PAIR=nm(1)+"+"+nm(N);
+  const G=fig(hg,i=>nm(i+1),PAIR,46,16,13);
+  /* ② 数の例。初項5・公差3 の10項（5,8,…,32）＝ 和は 10×37÷2＝185。
+     ⚠ 棒の高さは値に比例させること（V[i]*4.2）。ここを一般形の高さのまま
+       数字だけ差し替えると、図と数が食い違って「見て納得する」が壊れる。 */
+  const V=[];for(let i=0;i<N;i++)V.push(5+3*i);
+  const hn=V.map(v=>Math.round(v*4.2));
+  const PAIRN=V[0]+"+"+V[N-1], SUMN=V[0]+V[N-1];
+  const M=fig(hn,i=>String(V[i]),PAIRN,42,17,14);
+
+  return '<svg viewBox="0 0 '+VBW+' '+(YC+76)+'" role="img" aria-label="等差数列の和を、同じ階段を2つ逆さに重ねて長方形にする図">'
+    /* ① 一般形（STEP1〜4）。1ステップずつ出していく */
+    +'<g class="genG fadeIn">'
+      +cap("棒の高さ＝各項　棒の面積の合計＝S　（n = 10 の場合）")
+      +G.bars
+      +'<g class="upG fadeIn">'+G.up+'</g>'
+      +'<g class="copyG fadeDown">'+G.copy+'</g>'
+      +'<g class="dnG fadeIn">'+G.dn+'</g>'
+      +'<g class="rcG fadeIn">'+G.rect+'</g>'
+      +'<g class="sumG fadeIn">'+G.sum+'</g>'
+      +'<g class="totG fadeIn">'+tot("2S ＝ 10 ×("+PAIR+")")+'</g>'
+      +'<g class="ansG fadeIn">'+ans("S ＝ 10 ×("+PAIR+") ÷ 2")+'</g>'
     +'</g>'
-    /* 180°回して上に積んだぶん */
-    +'<g class="copyG fadeDown">'+copy+'</g>'
-    /* できた長方形 */
-    +'<g class="rcG fadeIn">'
-      +'<rect class="outl" x="'+X0+'" y="'+(BASE-TOT)+'" width="'+(XR-X0)+'" height="'+TOT+'" rx="4"/>'
-      +'<text class="spair" x="'+(X0-30)+'" y="'+(BASE-TOT/2)+'">a₁+aₙ</text>'
+    /* ② 数の例（STEP5〜6）。手順は済んでいるので重ねた形で一度に出す */
+    +'<g class="numG fadeIn">'
+      +cap("初項5・公差3 の10項　5, 8, 11, …, 32　の和")
+      +M.bars+M.copy+M.up+M.dn+M.rect+M.sum
+      +tot("2S ＝ 10 ×"+SUMN+" ＝ "+(SUMN*N))
+      +'<g class="numAnsG fadeIn">'+ans("S ＝ "+(SUMN*N)+" ÷ 2 ＝ "+(SUMN*N/2))+'</g>'
     +'</g>'
-    +'<line class="sline" x1="'+(X0-16)+'" y1="'+BASE+'" x2="'+(XR+16)+'" y2="'+BASE+'"/>'
-    +num
-    +'<g class="totG fadeIn"><text class="slabel" x="320" y="'+(BASE+40)+'" style="font-size:17px">'
-    +'2S ＝ n × (a₁+aₙ)</text></g>'
     +'</svg>';
 }
 function applyTouhiwa(root,i){
-  on(root,".tzG",i===1);          /* 台形は積む前だけ見せる（長方形とラベルが重なるため） */
-  on(root,".copyG",i>=2);
+  on(root,".genG",i>=0&&i<=3);   /* 一般形（STEP1〜4）と数の例（STEP5〜6）は入れかわる */
+  on(root,".upG",i>=0);
+  on(root,".copyG",i>=1);
+  on(root,".dnG",i>=1);
   on(root,".rcG",i>=2);
-  on(root,".totG",i>=3);
+  on(root,".sumG",i>=2);
+  on(root,".totG",i>=2);
+  on(root,".ansG",i>=3);
+  on(root,".numG",i>=4);
+  on(root,".numAnsG",i>=5);
 }
 
 /* ---------- 証明2: 等比数列の和（S − rS） ---------- */
@@ -1922,14 +2008,18 @@ const PROOFS=[
   {id:"touhiwa",tag:"SUM OF A.P.",ttl:"等差数列の和はなぜ n(a₁+aₙ)/2 なのか",
    fml:"S_n=\\dfrac{n(a_1+a_n)}{2}",stage:stageTouhiwa,apply:applyTouhiwa,
    steps:[
-     {txt:"各項を<b>棒の高さ</b>にして順に並べる。公差 d ずつ増えるので、頭が一直線に上がる階段になる。求めたい S は<b>棒の面積の合計</b>。",
+     {txt:"各項を<b>棒の高さ</b>にして順に並べる。公差 d ずつ増えるので、頭が一直線に上がる<b>階段</b>になる。求めたい S は棒の面積の合計＝下の式のとおり。",
       math:"S=a_1+a_2+\\cdots+a_n"},
-     {txt:"階段の輪郭は<b>台形</b>。平行な2辺が a₁ と aₙ で、その間の距離が項数 n。台形なら面積の公式が使えるはず。",
-      math:"\\text{台形の面積}=\\dfrac{(\\text{平行な2辺の和})\\times\\text{間の距離}}{2}"},
-     {txt:"ただし棒はガタガタで、はみ出す所と足りない所がある。本当に台形と同じ面積か確かめるため、<b>同じ棒グラフを180°回して上に積む</b>。",
-      math:"\\text{柱 }i\\text{ に }a_{n+1-i}\\text{ を載せる}"},
-     {txt:"どの柱もぴったり a₁+aₙ の高さにそろい、すき間なく<b>長方形</b>になる。縦 a₁+aₙ・横 n の長方形の半分が S ——台形の公式と同じ形。",
-      math:"2S=n(a_1+a_n)\\;\\Longrightarrow\\;S=\\dfrac{n(a_1+a_n)}{2}"}
+     {txt:"同じ階段をもう1つ用意し、<b>180°回して上から重ねる</b>。式でいえば、同じ和を<b>逆から</b>書き並べたもの（順番を変えただけなので、これも S）。",
+      math:"S=a_n+a_{n-1}+\\cdots+a_1"},
+     {txt:"重なった柱はどれも高さ a₁+aₙ にそろい、すき間なく<b>長方形</b>になる。式でも、縦に足すとどの列も a₁+aₙ。それが n 列ぶん。",
+      math:"2S=\\underbrace{(a_1+a_n)+\\cdots+(a_1+a_n)}_{n\\text{ 列}}=n(a_1+a_n)"},
+     {txt:"長方形は S を<b>2つぶん</b>並べたもの。だから<b>2で割れば</b>求めたい S になる。覚えるのは「逆さに重ねて2で割る」だけでよい。",
+      math:"S=\\dfrac{n(a_1+a_n)}{2}"},
+     {txt:"同じ手順を<b>実際の数</b>でやってみる。初項5・公差3 の10項 5, 8, 11, …, 32 の和。逆さに重ねると、どの列も <b>5+32＝37</b> でそろう。",
+      math:"2S=\\underbrace{37+37+\\cdots+37}_{10\\text{ 列}}=10\\times37=370"},
+     {txt:"あとは2で割るだけ。<b>公式を思い出せなくても、この手順そのものが答えを出す</b>。テストで不安になったら、階段を2つ書いて重ねればよい。",
+      math:"S=\\dfrac{10\\times37}{2}=185"}
    ]},
   {id:"hiwa",tag:"SUM OF G.P.",ttl:"等比数列の和はなぜ引き算で出るのか",
    fml:"S_n=\\dfrac{a(1-r^n)}{1-r}\\;(r\\neq1)",stage:stageHiwa,apply:applyHiwa,
@@ -2303,6 +2393,146 @@ function showExplain(){
   ex.style.display="block";
 }
 function toast(s){document.getElementById("toast").textContent=s||"";}
+/* ================================================================
+   練習プリント（A4・別ウィンドウ）
+   いま選んでいるタイプ×レベルで10問作り、「問題」→改ページ→「解答」を出す。
+   ⚠ 画面の出題を壊さないこと。GENS[] は cur を触らないが乱数は進むので、
+     1問作るごとに rngSeed(rngPick()) を張り直す（画面側は次の newQuestion で
+     どのみち種を引き直すので影響しないが、依存を残さないため明示する）。
+   ⚠ 数式は**親ウィンドウの KaTeX で HTML に焼いてから**流し込む。
+     子ウィンドウで katex を動かすと読み込み待ちが要る（印刷ダイアログのほうが
+     先に出て数式が生テキストのまま紙になる）。子には CSS だけ読ませる。
+   ⚠ 透かしは print-watermark.js を通す（直後に print すると画像のデコードが
+     間に合わず「ロゴだけ出ない」ことがある。モジュールが無ければ透かし無しで印刷）。
+   ⚠ 問題の高さはタイプで大きく変わる（帰納法は選択肢6本が長い）ので、
+     1ページに詰め込まずに自然に流す。透かしを position:fixed に上書きして
+     いるのは、2ページに流れても各ページに出すため。
+   ================================================================ */
+const PRT_N=10;
+/* T()/TD() のプレースホルダを、その場で KaTeX の HTML に置き換えて返す */
+function prtTex(html){
+  const box=document.createElement("div");
+  box.innerHTML=html||"";
+  renderTexIn(box);
+  return box.innerHTML;
+}
+/* 画面と同じ生成関数で n 問。ミックスなら選ばれているタイプから混ぜる。
+   ⚠ 同じ問題を2度出さないための照合は「画面に出る全部＋答え」で行う
+     （plainQ だけだと、群数列のように問題文が同じで数だけ違う型を取りこぼす）。
+   ⚠ そのレベルに n 通り無いタイプは、埋まらないまま少なく返る
+     （例: 群数列レベル3 は nat/odd の2通りしか無い）。水増しはしない。 */
+function prtPick(n){
+  const pool=(mode==="mix")?Array.from(mixSet):[mode];
+  const out=[],seen=new Set();
+  if(!pool.length)return out;
+  for(let t=0;t<n*40&&out.length<n;t++){
+    const m=pool[Math.floor(Math.random()*pool.length)];
+    if(!GENS[m])continue;
+    rngSeed(rngPick());
+    const q=GENS[m](lv);
+    const a=(q.ans.kind==="choice")?q.ans.choices[q.ans.correct]:String(q.ans.val);
+    const sig=[m,q.lead||"",q.disp||"",q.sub||"",a].join("");
+    if(seen.has(sig))continue;
+    seen.add(sig);out.push({m:m,q:q});
+  }
+  return out;
+}
+function prtAnsHtml(q){
+  if(q.ans.kind==="choice")
+    return '<span class="mk">'+"ABCDEF".charAt(q.ans.correct)+"</span>"+prtTex(T(q.ans.choices[q.ans.correct]));
+  return "<b>"+esc(String(q.ans.val))+"</b>"+(q.ans.unit?('<span class="un">'+esc(q.ans.unit)+"</span>"):"");
+}
+function prtHtml(items){
+  const md=MODEMAP[mode];
+  /* 問題数もラベルに出す。そのレベルに10通り無いタイプがあるので
+     （群数列レベル3＝2通り）、「少ない」のが仕様だと紙の上で分かるようにする */
+  const label=(mode==="mix"?"ミックス":(md?md.n:mode))+"　LEVEL "+lv+"　全"+items.length+"問";
+  const d=new Date();
+  const date=d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
+  const wmCss=(window.ChukyoPrint&&ChukyoPrint.css)?ChukyoPrint.css():"";
+  const wmImg=(window.ChukyoPrint&&ChukyoPrint.img)?ChukyoPrint.img():"";
+  const head=t=>'<div class="ph"><div><div class="pb">中京個別指導学院</div><div class="pt">'+t+"</div></div>"
+    +'<div class="pr"><div>名前：<span class="nm"></span></div><div class="dt">'+date+"</div></div></div>";
+  const probs=items.map((it,i)=>{
+    const q=it.q;
+    let s='<div class="p"><div class="q"><span class="no">('+(i+1)+")</span><span>"+prtTex(q.lead||"")+"</span></div>";
+    if(q.disp)s+='<div class="dp">'+prtTex(TD(q.disp))+"</div>";
+    if(q.sub)s+='<div class="sb">'+prtTex(q.sub)+"</div>";
+    if(q.ans.kind==="choice")
+      s+='<div class="ch">'+q.ans.choices.map((c,j)=>
+        "<span><i>"+"ABCDEF".charAt(j)+"</i>"+prtTex(T(c))+"</span>").join("")+"</div>";
+    s+='<div class="al">答'+(q.ans.kind==="choice"?'<span class="bx"></span>':'<span class="ln"></span>')+"</div>";
+    return s+"</div>";
+  }).join("");
+  const answ=items.map((it,i)=>
+    '<div class="a"><span class="no">('+(i+1)+")</span>"+prtAnsHtml(it.q)+"</div>").join("");
+  return '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">'
+    +'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">'
+    +"<title>数列完全マスター 練習プリント｜中京個別指導学院</title><style>"
+    +"@page{size:A4 portrait;margin:14mm 16mm;}"
+    +"*{box-sizing:border-box;margin:0;padding:0;}"
+    +'body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;color:#111;font-size:10pt;}'
+    /* ⚠ KaTeX の display 数式は既定で上下 1em の余白を持つ。1問ごとに 7mm 以上
+       食うので必ず 0 にする（これが無いと10問で1枚に収まらない） */
+    +".katex-display{margin:0;}"
+    +"@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}"
+    +wmCss
+    +".wm{position:fixed;}"   /* 2ページに流れても各ページに透かしを出す */
+    +".ph{display:flex;justify-content:space-between;align-items:flex-end;"
+      +"border-bottom:2.5px solid #0a1628;padding-bottom:7px;margin-bottom:10px;}"
+    +".pb{font-size:9pt;font-weight:700;color:#0a1628;margin-bottom:2px;}"
+    +".pt{font-size:16pt;font-weight:900;color:#0a1628;}"
+    +".pr{display:flex;flex-direction:column;gap:6px;align-items:flex-end;}"
+    +".nm{border-bottom:1px solid #111;display:inline-block;min-width:110px;}"
+    +".dt{font-size:9pt;color:#374151;}"
+    +".lb{font-size:11pt;font-weight:700;background:#0a1628;color:#fff;padding:3px 12px;"
+      +"border-radius:4px;display:inline-block;margin-bottom:6px;}"
+    +".lb.gy{background:#374151;}"
+    +".ins{font-size:9.5pt;color:#374151;margin-bottom:6px;}"
+    +".p{break-inside:avoid;page-break-inside:avoid;border-bottom:1px solid #d1d5db;padding:5px 2px 6px;}"
+    +".q{display:flex;gap:6px;align-items:baseline;line-height:1.5;}"
+    +".no{font-weight:700;min-width:26px;flex:0 0 auto;}"
+    +".dp{text-align:center;margin:4px 0 1px;}"
+    +".sb{margin:3px 0 1px;font-size:10pt;}"
+    +".seq i{font-style:normal;color:#6b7280;padding:0 3px;}"
+    +".exFml{background:#f3f4f6;border-radius:4px;padding:4px 8px;display:inline-block;line-height:1.7;}"
+    +".ch{display:flex;flex-wrap:wrap;gap:3px 14px;margin-top:5px;font-size:10pt;}"
+    +".ch span{display:inline-flex;align-items:center;gap:5px;}"
+    +".ch i{font-style:normal;font-weight:700;font-size:8pt;border:1px solid #6b7280;border-radius:50%;"
+      +"width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;}"
+    +".al{margin-top:6px;font-size:10pt;color:#374151;}"
+    +".ln{display:inline-block;min-width:50mm;border-bottom:1px solid #9ca3af;margin-left:7px;}"
+    +".bx{display:inline-block;width:20mm;height:6mm;border:1px solid #9ca3af;border-radius:3px;"
+      +"margin-left:7px;vertical-align:middle;}"
+    +".brk{page-break-before:always;break-before:page;}"
+    +".a{display:flex;gap:6px;align-items:baseline;border-bottom:1px solid #d1d5db;padding:7px 2px;}"
+    +".mk{font-weight:700;background:#0a1628;color:#fff;border-radius:3px;padding:0 6px;margin-right:7px;}"
+    +".un{margin-left:5px;font-size:9.5pt;color:#374151;}"
+    +"</style></head><body>"+wmImg
+    +"<section>"+head("数列完全マスター　練習プリント")
+      +'<div class="lb">'+esc(label)+"</div>"
+      +'<div class="ins">次の問いに答えなさい。</div>'+probs+"</section>"
+    +'<section class="brk">'+head("数列完全マスター　解答")
+      +'<div class="lb gy">解答</div>'+answ+"</section>"
+    +"</body></html>";
+}
+function printSheet(){
+  const items=prtPick(PRT_N);
+  if(!items.length){banner("出題するタイプが1つも選ばれていません。ミックスの内訳でチェックを入れてください");return;}
+  /* 生成関数の中身が1通りしかないタイプ・レベルがある（部分分数レベル2＝1通り、
+     群数列レベル3＝2通り など）。同じ問題を水増しせず、少ないことを先に伝える */
+  if(items.length<PRT_N)
+    banner("このタイプ・レベルは問題が "+items.length+" 通りしかないため、"+items.length+"問のプリントになります");
+  const w=window.open("","_blank","width=794,height=1123");
+  if(!w){banner("ポップアップがブロックされました。このサイトのポップアップを許可してから、もう一度お試しください");return;}
+  w.document.write(prtHtml(items));
+  w.document.close();
+  setTimeout(()=>{
+    if(window.ChukyoPrint&&ChukyoPrint.print)ChukyoPrint.print(w.document,w);
+    else{w.focus();w.print();}
+  },600);
+}
+
 function banner(msg){
   const old=document.getElementById("noticeBanner");
   if(old)old.remove();
@@ -2451,6 +2681,7 @@ document.getElementById("mixBasic").addEventListener("click",()=>{
   setMixAll(k=>BASIC6.indexOf(k)>=0);
   if(mode==="mix"&&!cur)newQuestion();
 });
+document.getElementById("prtBtn").addEventListener("click",printSheet);
 document.getElementById("foldBtn").addEventListener("click",()=>{
   const box=document.getElementById("selbox"),b=document.getElementById("foldBtn");
   const fold=!box.classList.contains("folded");
