@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="only light">
+<!-- 一覧(learning/index.php)は ｜ で「表示名｜サブタイトル」に割る。
+     1セグメントに「・」を3つ以上入れると地名リストと見なされて捨てられるので注意 -->
+<title>公倍数・公約数ラボ｜しきつめと切り分けを目で見る｜中京個別指導学院</title>
+<meta name="divp-device" content="スマホ／MAXHUB 切替">
+<!-- 本番(Heteml)ではサブセット自己ホストに差し替え -->
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBFAF6;
+    --grid:#ECE9E0;
+    --sumi:#33312B;
+    --usuzumi:#8B877C;
+    --shu:#C73E2E;
+    --ai:#2C5F8A;
+    --kin:#C9A227;
+    --midori:#3E8E5A;
+    --daidai:#D89A45;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:24px 24px;
+    color:var(--sumi);
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    min-height:100dvh;
+    touch-action:manipulation;
+  }
+
+  /* =====================================================================
+     表示切替（スマホ ／ MAXHUB）
+     ---------------------------------------------------------------------
+     寸法は原則すべて .lab の font-size に対する em で書く。
+     body[data-view] が「基準の1em」と「1カラム／2カラム」だけを差し替えると、
+     中身の指定を1つも増やさずに画面ぜんたいが拡大／再配置される。
+     ⚠ 判定はしない（手動トグルのみ）。MAXHub と PC は CSS 上の画面幅が
+       同じことがあり、幅で自動判定すると教室の PC まで巨大表示になるため。
+     ===================================================================== */
+  .lab{
+    font-size:16px;
+    max-width:600px;
+    margin:0 auto;
+    padding:.7em .8em 2.4em;
+    display:flex; flex-direction:column; gap:.7em;
+  }
+  body[data-view="maxhub"] .lab{
+    /* 1920px 幅で 約32px。CSS 上の幅が 4K のまま来る MAXHub でも 40px で止める */
+    font-size:clamp(20px, 1.65vw, 40px);
+    max-width:2100px;
+    padding:.5em .9em 1em;
+    gap:.5em;
+  }
+
+  /* ---- 見出し＋切替トグル ---- */
+  .labhead{ display:flex; align-items:center; gap:.6em; min-width:0; }
+  .labhead h1{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:1.1em; font-weight:700; margin:0; letter-spacing:.04em;
+    min-width:0;
+  }
+  .labhead h1 .sub{
+    display:block; font-size:.62em; font-weight:500;
+    color:var(--usuzumi); letter-spacing:.08em; margin-top:.15em;
+  }
+  .viewsw{
+    margin-left:auto; display:flex; flex-shrink:0;
+    border:2px solid var(--ai); border-radius:.55em; overflow:hidden; background:#fff;
+  }
+  .viewsw button{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:.72em; font-weight:700; color:var(--ai);
+    background:#fff; border:0; padding:.45em .7em; cursor:pointer; line-height:1.2;
+    white-space:nowrap;
+  }
+  .viewsw button[aria-pressed="true"]{ background:var(--ai); color:#fff; }
+
+  /* ---- モードのタブ ---- */
+  .tabs{ display:flex; gap:.4em; overflow-x:auto; padding-bottom:.15em; scrollbar-width:none; }
+  .tabs::-webkit-scrollbar{ display:none; }
+  body[data-view="maxhub"] .tabs{ overflow:visible; flex-wrap:wrap; }
+  .tab{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:.8em; font-weight:700; color:var(--sumi);
+    background:#fff; border:2px solid var(--grid); border-radius:.7em;
+    padding:.45em .7em; cursor:pointer; white-space:nowrap; flex-shrink:0;
+    display:flex; align-items:center; gap:.4em;
+  }
+  .tab .bd{
+    font-size:.72em; font-weight:700; border-radius:.4em; padding:.12em .4em;
+    background:#F0EDE3; color:var(--usuzumi);
+  }
+  .tab[aria-selected="true"]{ border-color:var(--ai); background:#EEF4F9; color:var(--ai); }
+  .tab[aria-selected="true"] .bd.bai{ background:var(--ai); color:#fff; }
+  .tab[aria-selected="true"] .bd.yaku{ background:var(--shu); color:#fff; }
+
+  /* ---- 本体（そうさパネル ＋ 図） ---- */
+  /* ⚠ 図の SVG は intrinsic な大きさ（viewBox のピクセル数＝1000超）を持つので、
+     途中の flex / grid アイテムに min-width:0 が無いと「縮められない箱」として
+     扱われ、ページ全体が画面幅より広くなって右側が切れる。
+     .stage / .figure / .card / svg のすべてに min-width:0 を入れておくこと。 */
+  .stage{ display:flex; flex-direction:column; gap:.7em; min-width:0; }
+  body[data-view="maxhub"] .stage{
+    display:grid; grid-template-columns:14.5em minmax(0,1fr); gap:.9em; align-items:start;
+  }
+
+  .card{
+    background:#fff; border:2px solid var(--grid); border-radius:.8em;
+    padding:.6em .7em; min-width:0;
+  }
+  .panel{ display:flex; flex-direction:column; gap:.55em; }
+  .grp{ display:flex; flex-direction:column; gap:.4em; }
+  .grp > .gt{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:.72em; font-weight:700; color:var(--usuzumi); letter-spacing:.08em;
+  }
+
+  /* 数の増減 */
+  .num{ display:flex; align-items:center; gap:.35em; }
+  .num-lb{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:.85em; font-weight:700; flex:1; min-width:0;
+  }
+  .num-v{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:1.15em; font-weight:700; color:var(--ai);
+    min-width:3.1em; text-align:center; flex:0 0 auto;
+  }
+  .num-v small{ font-size:.6em; color:var(--usuzumi); margin-left:.15em; }
+  .num-b{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:1em; font-weight:700; line-height:1;
+    width:2em; height:2em; flex-shrink:0;
+    background:#fff; color:var(--ai); border:2px solid var(--ai);
+    border-radius:.45em; cursor:pointer;
+  }
+  .num-b:active{ background:var(--ai); color:#fff; }
+  .num-b[disabled]{ opacity:.3; }
+
+  /* えらぶボタン（1辺の候補・人数の候補・プリセット） */
+  .chips{ display:flex; flex-wrap:wrap; gap:.3em; }
+  .chip{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:.8em; font-weight:700; color:var(--sumi);
+    background:#fff; border:2px solid var(--grid); border-radius:.45em;
+    padding:.3em .5em; cursor:pointer; min-width:2.3em;
+  }
+  .chip[aria-pressed="true"]{ border-color:var(--ai); background:#EEF4F9; color:var(--ai); }
+  .chip.ok{ border-color:var(--midori); color:var(--midori); background:#EFF6F1; }
+  .chip.ng{ border-color:var(--grid); color:#BDB8AC; }
+  .chip.ok[aria-pressed="true"]{ background:var(--midori); color:#fff; }
+  .chip.ng[aria-pressed="true"]{ background:#EDEAE2; color:var(--usuzumi); border-color:var(--usuzumi); }
+  .chip .mk{ font-size:.85em; margin-left:.15em; }
+
+  .tog{
+    display:flex; align-items:center; gap:.4em;
+    font-family:"Zen Maru Gothic", sans-serif; font-size:.78em; font-weight:700;
+    color:var(--usuzumi); cursor:pointer; background:none; border:0; padding:.15em 0; text-align:left;
+  }
+  .tog .box{
+    width:1.25em; height:1.25em; border:2px solid var(--usuzumi); border-radius:.3em;
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:.9em;
+  }
+  .tog[aria-pressed="true"]{ color:var(--ai); }
+  .tog[aria-pressed="true"] .box{ background:var(--ai); border-color:var(--ai); }
+
+  /* ---- 図 ---- */
+  .figure{ display:flex; flex-direction:column; gap:.5em; min-width:0; }
+  .figtitle{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:.92em; font-weight:700; line-height:1.4;
+    display:flex; align-items:center; gap:.4em; flex-wrap:wrap;
+  }
+  .badge{
+    font-size:.72em; font-weight:700; border-radius:.4em; padding:.15em .45em; color:#fff;
+  }
+  .badge.bai{ background:var(--ai); }
+  .badge.yaku{ background:var(--shu); }
+
+  .svgbox{ display:flex; justify-content:center; min-width:0; }
+  .svgbox svg{
+    width:auto; height:auto; max-width:100%; max-height:46vh; min-width:0; display:block;
+  }
+  body[data-view="maxhub"] .svgbox svg{ max-height:63vh; }
+
+  .readout{
+    display:flex; flex-direction:column; gap:.3em;
+    font-size:.88em; line-height:1.6;
+  }
+  .rd{ margin:0; }
+  .rd b{ color:var(--ai); }
+  .rd .kin{ color:var(--kin); font-weight:700; }
+  .rd .ok{ color:var(--midori); font-weight:700; }
+  .rd .ng{ color:var(--daidai); font-weight:700; }
+  .rd.lead{
+    font-family:"Zen Maru Gothic", sans-serif; font-weight:700; font-size:1.05em;
+  }
+  .rd.hint{
+    font-size:.86em; color:var(--usuzumi);
+    border-left:.25em solid var(--grid); padding-left:.5em;
+  }
+
+  /* ---- 図の下のそうさボタン ---- */
+  .steps{ display:flex; flex-wrap:wrap; gap:.4em; }
+  .sbtn{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:.88em; font-weight:700; color:#fff;
+    background:var(--ai); border:2px solid var(--ai); border-radius:.6em;
+    padding:.5em .8em; cursor:pointer; min-height:2.4em;
+  }
+  .sbtn.sub{ background:#fff; color:var(--ai); }
+  .sbtn.kin{ background:var(--kin); border-color:var(--kin); }
+  .sbtn[disabled]{ opacity:.35; }
+
+  @media print{
+    .divp-header{ display:none !important; }
+    .viewsw, .tabs, .panel, .steps{ display:none !important; }
+    body{ background:#fff; }
+  }
+</style>
+</head>
+<body data-view="phone">
+
+<!-- 共通ヘッダー(ロゴ・ログイン窓)の差し込み先。script は body 直後に置くこと -->
+<div class="divp-header"></div>
+<script src="/assets/divp-header.js" defer></script>
+
+<div class="lab">
+  <div class="labhead">
+    <h1>公倍数・公約数ラボ<span class="sub">小5 算数 ／ しきつめ・切り分けを 目で見る</span></h1>
+    <div class="viewsw" id="viewSw">
+      <button type="button" data-view="phone"  aria-pressed="true">スマホ</button>
+      <button type="button" data-view="maxhub" aria-pressed="false">MAXHUB</button>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs" role="tablist"></div>
+
+  <div class="stage">
+    <div class="card panel" id="panel"></div>
+    <div class="figure">
+      <div class="figtitle" id="figTitle"></div>
+      <div class="card svgbox" id="svgBox"></div>
+      <div class="readout" id="readout"></div>
+      <div class="steps" id="steps"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   公倍数・公約数ラボ（算数・小5）— 見る／見せるための教具
+   ---------------------------------------------------------------------
+   ■ 位置づけ
+     問題を解くドリルは math_es5_baisu_yakusu.html（倍数・約数マスター）に
+     あるので、こちらは「しくみを図で見せる」ことだけを担当する。
+     したがって学習記録（Divp.answer）・解き直し・XPは一切さわらない。
+     読み込む共通モジュールは divp-header.js だけ。
+
+   ■ 5つのモード
+     sq   しきつめて正方形をつくる      → 最小公倍数
+     cut  長方形を正方形に切り分ける    → 最大公約数（あまりが出る＝ダメ を見せる）
+     fit  長方形にタイルをしきつめる    → 公約数と枚数
+     wake 2つのものを同じ数ずつ分ける   → 文章題（あまりなく分けられる人数＝公約数）
+     time 電車とバスの同時出発          → 最小公倍数（数直線で重なりを見る）
+
+   ■ 表示切替
+     body[data-view] を "phone" / "maxhub" で手動トグルするだけ。
+     CSS 側は .lab の font-size と 1カラム／2カラムを変えるだけで済むように、
+     寸法をすべて em で書いてある（画面幅による自動判定はしない）。
+   ===================================================================== */
+
+/* ---------- ちいさなヘルパー ---------- */
+function $(id){ return document.getElementById(id); }
+function gcd(a,b){ while(b){ var t=a%b; a=b; b=t; } return a; }
+function lcm(a,b){ return a/gcd(a,b)*b; }
+function divisorsOf(n){
+  var d=[],i;
+  for(i=1;i*i<=n;i++){ if(n%i===0){ d.push(i); if(i!==n/i) d.push(n/i); } }
+  return d.sort(function(x,y){ return x-y; });
+}
+function commonDivisors(a,b){ return divisorsOf(gcd(a,b)); }
+function clamp(v,lo,hi){ return v<lo?lo:(v>hi?hi:v); }
+function r1(v){ return Math.round(v*10)/10; }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ---------- SVG を文字列で組み立てる ---------- */
+var HATCH =
+  '<defs>'
+  + '<pattern id="hat" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
+  + '<rect width="16" height="16" fill="#FDF4E6"/>'
+  + '<line x1="0" y1="0" x2="0" y2="16" stroke="#E3B978" stroke-width="7"/>'
+  + '</pattern>'
+  + '</defs>';
+
+function svgWrap(w,h,body){
+  return '<svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" '
+       + 'xmlns="http://www.w3.org/2000/svg" font-family="Zen Maru Gothic, sans-serif">'
+       + HATCH + body + '</svg>';
+}
+function rc(x,y,w,h,fill,stroke,sw,extra){
+  return '<rect x="'+r1(x)+'" y="'+r1(y)+'" width="'+r1(w)+'" height="'+r1(h)+'"'
+       + ' fill="'+(fill||'none')+'"'
+       + (stroke?' stroke="'+stroke+'" stroke-width="'+(sw||2)+'"':'')
+       + (extra||'') + '/>';
+}
+function ln(x1,y1,x2,y2,stroke,sw,extra){
+  return '<line x1="'+r1(x1)+'" y1="'+r1(y1)+'" x2="'+r1(x2)+'" y2="'+r1(y2)+'"'
+       + ' stroke="'+stroke+'" stroke-width="'+(sw||2)+'" stroke-linecap="round"'
+       + (extra||'') + '/>';
+}
+function ci(cx,cy,r,fill,stroke,sw,extra){
+  return '<circle cx="'+r1(cx)+'" cy="'+r1(cy)+'" r="'+r1(r)+'" fill="'+(fill||'none')+'"'
+       + (stroke?' stroke="'+stroke+'" stroke-width="'+(sw||2)+'"':'')
+       + (extra||'') + '/>';
+}
+function tx(x,y,s,o){
+  o = o || {};
+  return '<text x="'+r1(x)+'" y="'+r1(y)+'" font-size="'+(o.fs||26)+'"'
+       + ' fill="'+(o.c||'#33312B')+'" font-weight="'+(o.w||700)+'"'
+       + ' text-anchor="'+(o.a||'middle')+'"'
+       /* halo: 線の上に 数字を のせても 読めるよう 白フチを つける */
+       + (o.halo?' stroke="#fff" stroke-width="7" paint-order="stroke"':'')
+       + (o.tr?' transform="'+o.tr+'"':'')
+       + '>'+esc(s)+'</text>';
+}
+/* 両矢印つきの寸法線 */
+function dim(x1,y1,x2,y2,label,color,fs){
+  var s = ln(x1,y1,x2,y2,color,3);
+  var d = 12;
+  if(y1===y2){
+    s += ln(x1,y1-d,x1,y1+d,color,3) + ln(x2,y2-d,x2,y2+d,color,3);
+    s += tx((x1+x2)/2, y1-14, label, {fs:fs||28, c:color});
+  }else{
+    s += ln(x1-d,y1,x1+d,y1,color,3) + ln(x2-d,y2,x2+d,y2,color,3);
+    s += tx(0,0,label,{fs:fs||28,c:color,tr:'translate('+r1(x1-16)+','+r1((y1+y2)/2)+') rotate(-90)'});
+  }
+  return s;
+}
+
+/* =====================================================================
+   モード定義と状態
+   ===================================================================== */
+var MODES = [
+  { id:'sq',   tab:'正方形をつくる',    badge:'公倍数',
+    title:'タイルを ならべて いちばん小さい 正方形を つくろう' },
+  { id:'cut',  tab:'切り分ける',        badge:'公約数',
+    title:'長方形の 紙を あまりなく 正方形に 切り分けよう' },
+  { id:'fit',  tab:'しきつめる',        badge:'公約数',
+    title:'長方形の 中に 正方形の タイルを しきつめよう' },
+  { id:'wake', tab:'同じ数ずつ 分ける', badge:'公約数',
+    title:'2つの ものを あまりなく 同じ数ずつ 分けよう' },
+  { id:'time', tab:'電車とバス',        badge:'公倍数',
+    title:'つぎに 同時に 出発するのは 何分後？' }
+];
+
+var S = {
+  mode:'sq',
+  sq:  { a:4,  b:6,  placed:0, grid:false, mult:1 },
+  cut: { a:18, b:24, s:6,  tried:{}, reveal:false },
+  fit: { a:12, b:18, s:4,  placed:0 },
+  wake:{ a:18, b:24, n:6,  given:0, set:0 },
+  time:{ a:4,  b:6,  t:0,  span:1 }
+};
+
+/* 数の増減の範囲（キーは data-k と同じ "モード.項目"） */
+var RANGE = {
+  'sq.a':[2,12],  'sq.b':[2,12],
+  'cut.a':[2,24], 'cut.b':[2,24],
+  'fit.a':[2,24], 'fit.b':[2,24], 'fit.s':[1,24],
+  'wake.a':[2,48],'wake.b':[2,48],'wake.n':[1,24],
+  'time.a':[2,15],'time.b':[2,15]
+};
+
+/* 分けるもののセット（wake モード） */
+var ITEMS = [
+  { n1:'あめ',   e1:'🍬', n2:'ガム',     e2:'🍫' },
+  { n1:'りんご', e1:'🍎', n2:'みかん',   e2:'🍊' },
+  { n1:'えんぴつ', e1:'✏️', n2:'消しゴム', e2:'🧼' }
+];
+var COL_A = '#C73E2E', COL_B = '#2C5F8A';
+
+/* =====================================================================
+   ① sq — しきつめて正方形（最小公倍数）
+   ===================================================================== */
+/* mult=1 なら 最小公倍数の 正方形。2,3 なら その つぎに 大きい 公倍数の 正方形 */
+function sqInfo(){
+  var st=S.sq, L0=lcm(st.a,st.b), m=st.mult||1, L=L0*m;
+  return { a:st.a, b:st.b, L0:L0, mult:m, L:L,
+           cols:L/st.b, rows:L/st.a, total:(L/st.b)*(L/st.a) };
+}
+/* 大きくしすぎると タイルが 細かくなりすぎる＆描画が 重いので、枚数で 上限を 決める */
+function sqMaxMult(){
+  var L0=lcm(S.sq.a,S.sq.b), base=(L0/S.sq.a)*(L0/S.sq.b), m=3;
+  while(m>1 && base*m*m>600) m--;
+  return m;
+}
+function drawSq(){
+  var st=S.sq, f=sqInfo();
+  var ox=200, oy=130, SQ=900;
+  var W=ox+SQ+60, H=oy+SQ+150;
+  var cw=SQ*f.b/f.L, ch=SQ*f.a/f.L;
+  var done = st.placed>=f.total;
+  var s='', i, r, c, x, y;
+
+  /* 目ざす正方形の下地 */
+  s += rc(ox,oy,SQ,SQ,'#fff','none',0);
+
+  /* 1cm の マス目（数が小さいときだけ・うっすら） */
+  if(st.grid && f.L<=30){
+    var u=SQ/f.L;
+    for(i=1;i<f.L;i++){
+      s += ln(ox+i*u,oy,ox+i*u,oy+SQ,'#ECE9E0',1.5);
+      s += ln(ox,oy+i*u,ox+SQ,oy+i*u,'#ECE9E0',1.5);
+    }
+  }
+
+  /* 置いたタイル（左上から よこ方向に 1まいずつ） */
+  for(i=0;i<st.placed && i<f.total;i++){
+    r=Math.floor(i/f.cols); c=i%f.cols;
+    x=ox+c*cw; y=oy+r*ch;
+    s += rc(x,y,cw,ch, ((r+c)%2===0?'#A9CDE8':'#CFE5F4'), '#2C5F8A', 3);
+    if(cw>140 && ch>76) s += tx(x+cw/2, y+ch/2+11, f.a+'×'+f.b, {fs:30, c:'#2C5F8A'});
+  }
+  /* つぎに 置く ところ */
+  if(!done){
+    r=Math.floor(st.placed/f.cols); c=st.placed%f.cols;
+    s += rc(ox+c*cw, oy+r*ch, cw, ch, 'none', '#C73E2E', 4, ' stroke-dasharray="12 9"');
+  }
+
+  /* 最小の正方形の くぎり（mult>1 のとき）＝「小さい正方形の くり返し」だと 見せる */
+  var sub=SQ/f.mult;
+  for(i=1;i<f.mult;i++){
+    s += ln(ox+i*sub, oy, ox+i*sub, oy+SQ, '#C9A227', 5, ' stroke-dasharray="16 11"');
+    s += ln(ox, oy+i*sub, ox+SQ, oy+i*sub, '#C9A227', 5, ' stroke-dasharray="16 11"');
+  }
+
+  /* 目ざす正方形のわく（できあがったら 実線の 金わく） */
+  s += rc(ox,oy,SQ,SQ,'none','#C9A227', done?8:5, done?'':' stroke-dasharray="20 13"');
+
+  /* 上のものさし＝よこは b の倍数（数がふえたら 目もりの数字は 間引く） */
+  var stepC=Math.ceil(f.cols/12), stepR=Math.ceil(f.rows/12);
+  for(i=0;i<=f.cols;i++){
+    x = ox+i*cw;
+    s += ln(x,oy-8,x,oy-32, i===f.cols?'#C9A227':'#C73E2E', 4);
+    if(i%stepC===0 || i===f.cols){
+      s += tx(x, oy-46, String(i*f.b), {fs:34, c:(i===f.cols?'#C9A227':'#C73E2E')});
+    }
+  }
+  s += tx(ox-34, oy-46, 'よこ', {fs:30, c:'#8B877C', a:'end'});
+
+  /* 左のものさし＝たては a の倍数 */
+  for(i=0;i<=f.rows;i++){
+    y = oy+i*ch;
+    s += ln(ox-8,y,ox-32,y, i===f.rows?'#C9A227':'#2C5F8A', 4);
+    if(i%stepR===0 || i===f.rows){
+      s += tx(ox-44, y+12, String(i*f.a), {fs:34, c:(i===f.rows?'#C9A227':'#2C5F8A'), a:'end'});
+    }
+  }
+  s += tx(0,0,'たて',{fs:30,c:'#8B877C',tr:'translate('+(ox-134)+','+(oy+SQ/2)+') rotate(-90)'});
+
+  /* 下の寸法線（1辺の長さ） */
+  s += dim(ox, oy+SQ+56, ox+SQ, oy+SQ+56,
+           (done ? '1辺 ' : '目ざす 1辺 ') + f.L + 'cm'
+             + (f.mult>1 ? '（'+f.L0+'cm の '+f.mult+'ばい）' : ''),
+           done?'#C9A227':'#B9B3A6', 42);
+
+  /* タイル1まいの見本（寸法線より下に置く） */
+  var ly=oy+SQ+88, lw=58*f.b/Math.max(f.a,f.b), lh=58*f.a/Math.max(f.a,f.b);
+  s += rc(28, ly, lw, lh, '#A9CDE8','#2C5F8A',3);
+  s += tx(28+lw+16, ly+lh/2+12, 'タイル '+f.a+'cm×'+f.b+'cm', {fs:34,c:'#8B877C',a:'start'});
+  s += tx(W-40, ly+lh/2+12, st.placed+' / '+f.total+'まい',
+          {fs:36, c: done?'#3E8E5A':'#8B877C', a:'end'});
+
+  return svgWrap(W,H,s);
+}
+function readSq(){
+  var st=S.sq, f=sqInfo(), out='';
+  var mulA=[], mulB=[], i;
+  for(i=1;i<=f.rows;i++) mulA.push(i*f.a);
+  for(i=1;i<=f.cols;i++) mulB.push(i*f.b);
+
+  out += '<p class="rd lead">たて '+f.a+'cm・よこ '+f.b+'cm の タイルを '
+       + '<b>'+st.placed+'</b> まい ならべた</p>';
+  out += '<p class="rd">よこの ならび … '+mulB.join('、')+' <span class="kin">← '+f.b+'の 倍数</span></p>';
+  out += '<p class="rd">たての ならび … '+mulA.join('、')+' <span class="kin">← '+f.a+'の 倍数</span></p>';
+  if(st.placed>=f.total){
+    if(f.mult===1){
+      out += '<p class="rd">はじめて そろったのが <span class="kin">'+f.L+'cm</span>'
+           + ' ＝ '+f.a+'と'+f.b+'の <span class="kin">最小公倍数</span>。'
+           + 'よこに '+f.cols+'まい × たてに '+f.rows+'まい ＝ <b>'+f.total+'まい</b></p>';
+    }else{
+      out += '<p class="rd">1辺 <span class="kin">'+f.L+'cm</span> でも 正方形に なる'
+           + '（'+f.L0+'cm の 正方形が '+f.mult+'×'+f.mult+'＝'+(f.mult*f.mult)+'こ ぶん）。'
+           + 'よこに '+f.cols+'まい × たてに '+f.rows+'まい ＝ <b>'+f.total+'まい</b></p>';
+      out += '<p class="rd">'+f.L0+'、'+(f.L0*2)+'、'+(f.L0*3)+' … は ぜんぶ '+f.a+'と'+f.b+'の '
+           + '<b>公倍数</b>。いちばん 小さい <span class="kin">'+f.L0+'cm</span> が <b>最小公倍数</b>。</p>';
+    }
+  }else{
+    out += '<p class="rd">あと <b>'+(f.total-st.placed)+'</b> まいで 正方形（1辺 '+f.L+'cm）</p>';
+  }
+  out += '<p class="rd hint">正方形に なる ということは、'
+       + 'たて（'+f.a+'の倍数）と よこ（'+f.b+'の倍数）が '
+       + '同じ長さに なるということ。だから 1辺は '+f.a+'と'+f.b+'の 公倍数になる。</p>';
+  return out;
+}
+
+/* =====================================================================
+   ②③ cut / fit — 長方形を正方形で分ける（切り分ける／しきつめる）
+   ===================================================================== */
+function rectInfo(st){
+  var cols=Math.floor(st.b/st.s), rows=Math.floor(st.a/st.s);
+  return {
+    a:st.a, b:st.b, s:st.s, cols:cols, rows:rows,
+    n:cols*rows, remW:st.b-cols*st.s, remH:st.a-rows*st.s,
+    ok:(st.b%st.s===0 && st.a%st.s===0)
+  };
+}
+/* kind: 'cut'（切り取り線を入れる） / 'fit'（タイルを置く） */
+function drawRect(st, kind, placed){
+  var f=rectInfo(st);
+  var W=1180;
+  var ax=180, ay=140, aw=920, ah=540;
+  var sc=Math.min(aw/f.b, ah/f.a);
+  var w=f.b*sc, h=f.a*sc;
+  var x0=ax+(aw-w)/2, y0=ay;
+  /* 紙が うすい（よこ長）ときに 下が 大きく あかないよう、
+     viewBox の 高さを 中身に 合わせて つめる（MAXHUB で 図が 小さく見えるのを ふせぐ） */
+  var H=ay+h+140;
+  var cell=f.s*sc;
+  var s='', i, r, c, x, y;
+  var shown = (placed==null) ? f.n : Math.min(placed, f.n);
+
+  /* 紙／箱の本体 */
+  s += rc(x0,y0,w,h,'#fff','#33312B',5);
+
+  if(kind==='cut'){
+    /* 切り分けられる ところ（白いまま・朱の 切り取り線） */
+    for(c=1;c<f.cols;c++){
+      x=x0+c*cell;
+      s += ln(x,y0,x,y0+f.rows*cell,'#C73E2E',3,' stroke-dasharray="14 10"');
+    }
+    for(r=1;r<f.rows;r++){
+      y=y0+r*cell;
+      s += ln(x0,y,x0+f.cols*cell,y,'#C73E2E',3,' stroke-dasharray="14 10"');
+    }
+    /* 切り分けた 1まい目に 大きさを書く */
+    if(cell>110) s += tx(x0+cell/2, y0+cell/2+12, f.s+'cm', {fs:32, c:'#C73E2E'});
+  }else{
+    /* しきつめた タイル */
+    for(i=0;i<shown;i++){
+      r=Math.floor(i/f.cols); c=i%f.cols;
+      x=x0+c*cell; y=y0+r*cell;
+      s += rc(x,y,cell,cell, ((r+c)%2===0?'#A9CDE8':'#CFE5F4'), '#2C5F8A', 3);
+      if(cell>110) s += tx(x+cell/2, y+cell/2+11, f.s+'cm', {fs:30, c:'#2C5F8A'});
+    }
+    if(shown<f.n){
+      r=Math.floor(shown/f.cols); c=shown%f.cols;
+      s += rc(x0+c*cell, y0+r*cell, cell, cell, 'none','#C73E2E',4,' stroke-dasharray="12 9"');
+    }
+  }
+
+  /* あまり（分けられない ところ） */
+  var lbl = (kind==='cut') ? 'あまり' : 'タイルが 入らない';
+  if(f.remW>0){
+    x = x0+f.cols*cell;
+    s += rc(x, y0, f.remW*sc, h, 'url(#hat)', '#D89A45', 3);
+    s += tx(0,0, lbl+' '+f.remW+'cm',
+            {fs:32, c:'#B57B22', tr:'translate('+r1(x+f.remW*sc/2+11)+','+r1(y0+h/2)+') rotate(-90)'});
+  }
+  if(f.remH>0){
+    y = y0+f.rows*cell;
+    s += rc(x0, y, f.cols*cell, f.remH*sc, 'url(#hat)', '#D89A45', 3);
+    s += tx(x0+f.cols*cell/2, y+f.remH*sc/2+11, lbl+' '+f.remH+'cm', {fs:32, c:'#B57B22'});
+  }
+
+  /* ぴったりのときは 金のわく */
+  if(f.ok){
+    s += rc(x0,y0,w,h,'none','#C9A227',7);
+    s += tx(x0+w/2, y0-88, 'ぴったり！', {fs:48, c:'#C9A227'});
+  }
+
+  /* 寸法 */
+  s += dim(x0, y0-26, x0+w, y0-26, 'よこ '+f.b+'cm', '#33312B', 36);
+  s += dim(x0-30, y0, x0-30, y0+h, 'たて '+f.a+'cm', '#33312B', 36);
+
+  /* 下の見本（1辺◯cmの正方形） */
+  var lx=40, ly=H-104;
+  s += rc(lx, ly, 64, 64, kind==='cut'?'#fff':'#A9CDE8', kind==='cut'?'#C73E2E':'#2C5F8A', 3,
+          kind==='cut'?' stroke-dasharray="10 7"':'');
+  s += tx(lx+80, ly+44, '1辺 '+f.s+'cm の 正方形', {fs:34, c:'#8B877C', a:'start'});
+  s += tx(W-40, ly+44,
+          (kind==='cut'
+            ? (f.ok ? f.n+'まいに 切れる' : 'あまりが 出る（切り分けられない）')
+            : shown+' / '+f.n+'まい'),
+          {fs:36, c: f.ok?'#3E8E5A':'#B57B22', a:'end'});
+
+  return svgWrap(W,H,s);
+}
+function drawCut(){ return drawRect(S.cut,'cut',null); }
+function drawFit(){ return drawRect(S.fit,'fit',S.fit.placed); }
+
+function readCut(){
+  var st=S.cut, f=rectInfo(st), out='';
+  out += '<p class="rd lead">たて '+f.a+'cm・よこ '+f.b+'cm の 紙を、'
+       + '1辺 '+f.s+'cm の 正方形に 切ってみる</p>';
+  out += '<p class="rd">よこ '+f.b+' ÷ '+f.s+' ＝ '+f.cols
+       + (f.remW===0 ? ' <span class="ok">わりきれる</span>' : ' あまり '+f.remW+' <span class="ng">わりきれない</span>')
+       + '　／　たて '+f.a+' ÷ '+f.s+' ＝ '+f.rows
+       + (f.remH===0 ? ' <span class="ok">わりきれる</span>' : ' あまり '+f.remH+' <span class="ng">わりきれない</span>')
+       + '</p>';
+  if(f.ok){
+    out += '<p class="rd"><span class="ok">あまりなく 切り分けられた！</span>　'
+         + f.s+' は '+f.a+'と'+f.b+'の <b>公約数</b>。'
+         + 'ぜんぶで '+f.cols+' × '+f.rows+' ＝ <b>'+f.n+'まい</b></p>';
+    if(f.s===gcd(f.a,f.b)){
+      out += '<p class="rd"><span class="kin">これが いちばん大きい 正方形＝最大公約数 '+f.s+'cm</span>'
+           + '（このとき まい数は いちばん 少なくなる）</p>';
+    }
+  }else{
+    out += '<p class="rd"><span class="ng">あまりが 出るので この大きさでは 分けられない。</span>'
+         + ' たてと よこの <b>どちらも わりきれる 数</b>を さがそう。</p>';
+  }
+  var cds = commonDivisors(f.a,f.b);
+  if(S.cut.reveal){
+    out += '<p class="rd">'+f.a+'と'+f.b+'の 公約数 … <span class="ok">'+cds.join('、')+'</span>'
+         + '　いちばん大きいのは <span class="kin">'+cds[cds.length-1]+'</span></p>';
+  }
+  out += '<p class="rd hint">「あまりなく 切り分けられる 正方形の 1辺」＝ '
+       + 'たてと よこの 両方を わりきる 数 ＝ <b>公約数</b>。'
+       + 'その いちばん大きい ものが <b>最大公約数</b>。</p>';
+  return out;
+}
+function readFit(){
+  var st=S.fit, f=rectInfo(st), out='';
+  out += '<p class="rd lead">たて '+f.a+'cm・よこ '+f.b+'cm の 箱に、'
+       + '1辺 '+f.s+'cm の タイルを ならべる</p>';
+  out += '<p class="rd">よこに '+f.cols+'まい（'+f.b+'÷'+f.s+'）'
+       + '　たてに '+f.rows+'まい（'+f.a+'÷'+f.s+'）'
+       + '　→ ぜんぶで <b>'+f.n+'まい</b>　'
+       + '<span style="color:#8B877C">いま '+Math.min(st.placed,f.n)+'まい</span></p>';
+  if(f.ok){
+    out += '<p class="rd"><span class="ok">すきまなく しきつめられる！</span>　'
+         + f.s+' は '+f.a+'と'+f.b+'の <b>公約数</b></p>';
+  }else{
+    out += '<p class="rd"><span class="ng">すきまが のこる。</span>'
+         + (f.remW>0 ? ' よこに '+f.remW+'cm' : '')
+         + (f.remH>0 ? ' たてに '+f.remH+'cm' : '')
+         + ' あまるので、'+f.s+' は 公約数では ない。</p>';
+  }
+  var cds = commonDivisors(f.a,f.b);
+  out += '<p class="rd">すきまなく しきつめられる 1辺 … <span class="ok">'+cds.join('、')+'</span>'
+       + '（'+f.a+'と'+f.b+'の 公約数）</p>';
+  out += '<p class="rd hint">まい数は （よこ '+f.b+'÷1辺）×（たて '+f.a+'÷1辺）。'
+       + '1辺を 大きくするほど まい数は 少なくなる。</p>';
+  return out;
+}
+
+/* =====================================================================
+   ④ wake — 同じ数ずつ分ける（文章題）
+   ===================================================================== */
+function wakeInfo(){
+  var st=S.wake, n=st.n;
+  var perA=Math.floor(st.a/n), perB=Math.floor(st.b/n);
+  var dealA=perA*n, dealB=perB*n;
+  return {
+    a:st.a, b:st.b, n:n, perA:perA, perB:perB,
+    dealA:dealA, dealB:dealB, remA:st.a-dealA, remB:st.b-dealB,
+    steps:dealA+dealB, ok:(st.a%n===0 && st.b%n===0)
+  };
+}
+/* 長方形の中に count 個の丸を ならべる座標をつくる */
+function dotSpots(x,y,w,h,count){
+  if(count<=0) return [];
+  var cols=Math.max(1, Math.round(Math.sqrt(count*w/Math.max(h,1))));
+  if(cols>count) cols=count;
+  var rows=Math.ceil(count/cols);
+  var cw=w/cols, chh=h/rows;
+  var rad=Math.max(3, Math.min(cw,chh)*0.34);
+  var out=[],i,c,r;
+  for(i=0;i<count;i++){
+    c=i%cols; r=Math.floor(i/cols);
+    out.push({ x:x+cw*(c+0.5), y:y+chh*(r+0.5), r:rad });
+  }
+  return out;
+}
+function dotsSvg(x,y,w,h,count,color){
+  var sp=dotSpots(x,y,w,h,count), s='', i;
+  for(i=0;i<sp.length;i++) s+=ci(sp[i].x, sp[i].y, sp[i].r, color, '#fff', 1.5);
+  return s;
+}
+function drawWake(){
+  var st=S.wake, f=wakeInfo(), it=ITEMS[st.set];
+  var W=1180, H=860, s='';
+  var given=Math.min(st.given, f.steps);
+  var gotA=Math.min(given, f.dealA);
+  var gotB=Math.max(0, given-f.dealA);
+  var leftA=st.a-gotA, leftB=st.b-gotB;
+  var finished=(given>=f.steps);
+
+  /* ---- 上：もとの 山（配ると へっていく） ---- */
+  var tw=530, th=170, ty=54;
+  s += rc(40, ty, tw, th, '#fff', '#E0DACB', 3, ' rx="16"');
+  s += tx(56, ty+40, it.e1+' '+it.n1+'　'+leftA+'こ', {fs:36, c:COL_A, a:'start'});
+  s += dotsSvg(56, ty+56, tw-32, th-92, leftA, COL_A);   /* 下は「あまり」ラベルの場所 */
+  s += rc(610, ty, tw, th, '#fff', '#E0DACB', 3, ' rx="16"');
+  s += tx(626, ty+40, it.e2+' '+it.n2+'　'+leftB+'こ', {fs:36, c:COL_B, a:'start'});
+  s += dotsSvg(626, ty+56, tw-32, th-92, leftB, COL_B);
+  if(finished && (f.remA>0 || f.remB>0)){
+    if(f.remA>0){ s += rc(40,ty,tw,th,'none','#D89A45',5,' rx="16"');
+                  s += tx(40+tw-14, ty+th-16, 'あまり '+f.remA+'こ', {fs:34,c:'#B57B22',a:'end'}); }
+    if(f.remB>0){ s += rc(610,ty,tw,th,'none','#D89A45',5,' rx="16"');
+                  s += tx(610+tw-14, ty+th-16, 'あまり '+f.remB+'こ', {fs:34,c:'#B57B22',a:'end'}); }
+  }
+  s += tx(590, ty+th+46, '↓ '+f.n+'人に 同じ数ずつ 配る', {fs:36, c:'#8B877C'});
+
+  /* ---- 下：ふくろ（人）---- */
+  var gy=ty+th+66, gh=H-gy-40;
+  /* 人数ごとの ならべ方（できるだけ 行が そろう ように 決めうちする） */
+  var COLS_FOR_N=[0,1,2,3,2,3,3,4,4,3,5,4,4,5,5,5,4,6,6,5,5,6,6,6,6];
+  var cols = COLS_FOR_N[f.n] || 6;
+  var rows = Math.ceil(f.n/cols);
+  var bw=(1100-40)/cols, bh=Math.min(gh/rows, 230);
+  var i, r, c, bx, by, aIn, bIn;
+  for(i=0;i<f.n;i++){
+    c=i%cols; r=Math.floor(i/cols);
+    bx=40+c*bw+6; by=gy+r*bh+6;
+    aIn = Math.floor(gotA/f.n) + (i < gotA%f.n ? 1 : 0);
+    bIn = Math.floor(gotB/f.n) + (i < gotB%f.n ? 1 : 0);
+    s += rc(bx, by, bw-12, bh-12, '#FCFBF7', (finished&&f.ok)?'#3E8E5A':'#C9C3B4', 3, ' rx="14"');
+    s += tx(bx+12, by+34, (i+1)+'人目', {fs:28, c:'#8B877C', a:'start'});
+    s += dotsSvg(bx+8, by+42, (bw-28)*0.5, bh-80, aIn, COL_A);
+    s += dotsSvg(bx+(bw-28)*0.5+14, by+42, (bw-28)*0.5, bh-80, bIn, COL_B);
+    s += tx(bx+bw-24, by+bh-24, aIn+'・'+bIn, {fs:30, c:'#8B877C', a:'end'});
+  }
+  return svgWrap(W,H,s);
+}
+function readWake(){
+  var st=S.wake, f=wakeInfo(), it=ITEMS[st.set], out='';
+  out += '<p class="rd lead">'+it.n1+' '+f.a+'こ と '+it.n2+' '+f.b+'こ を '
+       + '<b>'+f.n+'人</b>で 同じ数ずつ 分ける</p>';
+  out += '<p class="rd">'+it.n1+'：'+f.a+' ÷ '+f.n+' ＝ '+f.perA
+       + (f.remA===0 ? ' <span class="ok">あまりなし</span>' : ' あまり '+f.remA+' <span class="ng">あまる</span>')
+       + '　／　'+it.n2+'：'+f.b+' ÷ '+f.n+' ＝ '+f.perB
+       + (f.remB===0 ? ' <span class="ok">あまりなし</span>' : ' あまり '+f.remB+' <span class="ng">あまる</span>')
+       + '</p>';
+  if(f.ok){
+    out += '<p class="rd"><span class="ok">分けられる！</span> 1人分は '
+         + it.n1+' <b>'+f.perA+'こ</b>・'+it.n2+' <b>'+f.perB+'こ</b>。'
+         + f.n+' は '+f.a+'と'+f.b+'の <b>公約数</b></p>';
+    if(f.n===gcd(f.a,f.b)){
+      out += '<p class="rd"><span class="kin">これが いちばん多い 人数＝最大公約数 '+f.n+'人</span></p>';
+    }
+  }else{
+    out += '<p class="rd"><span class="ng">'+f.n+'人では あまりが 出るので 分けられない。</span></p>';
+  }
+  var cds=commonDivisors(f.a,f.b);
+  out += '<p class="rd">分けられる 人数 … <span class="ok">'+cds.join('、')+'</span> 人'
+       + '（'+f.a+'と'+f.b+'の 公約数）</p>';
+  out += '<p class="rd hint">「あまりなく 同じ数ずつ 分けられる 人数」は、'
+       + '2つの 数の <b>どちらも わりきる 数</b>＝公約数。'
+       + '「できるだけ 多くの 人に」と 聞かれたら <b>最大公約数</b>。</p>';
+  return out;
+}
+
+/* =====================================================================
+   ⑤ time — 電車とバスの同時出発（最小公倍数）
+   ===================================================================== */
+function timeInfo(){
+  var st=S.time, T=lcm(st.a,st.b);
+  return { a:st.a, b:st.b, T:T, end:T*st.span };
+}
+function hhmm(m){
+  var h=8+Math.floor(m/60), mm=m%60;
+  return h+':'+(mm<10?'0':'')+mm;
+}
+function drawTime(){
+  var st=S.time, f=timeInfo();
+  /* よこ長の 図は スマホだと 文字が つぶれるので、
+     たてに ゆとりを 取って（＝viewBox を 縦長ぎみに して）文字を 大きく使う */
+  var W=1200, H=800, s='';
+  var x0=140, x1=1120, yT=300, yB=560;
+  function px(m){ return x0+(x1-x0)*(m/f.end); }
+  var m, x, on;
+
+  /* 目もり（1分 or 5分 or 10分きざみ） */
+  var step = (f.end<=30) ? 1 : ((f.end<=90) ? 5 : 10);
+  for(m=0;m<=f.end;m+=step){
+    x=px(m);
+    s += ln(x, yT+18, x, yT+32, '#D8D2C4', 3);
+    s += ln(x, yB+18, x, yB+32, '#D8D2C4', 3);
+  }
+  /* 時間の線 */
+  s += ln(x0-16, yT, x1+16, yT, '#C9C3B4', 5);
+  s += ln(x0-16, yB, x1+16, yB, '#C9C3B4', 5);
+  s += tx(x0-16, yT-78, '🚃 電車：'+f.a+'分おき', {fs:42, c:'#2C5F8A', a:'start'});
+  s += tx(x0-16, yB-78, '🚌 バス：'+f.b+'分おき', {fs:42, c:'#C73E2E', a:'start'});
+
+  /* 目もりの数字。読める間かく（56単位）に なる いちばん こまかい きざみを えらぶ。
+     出発の分（a・bの倍数）は 下の 出発マークの ループで 色つきで 書くので ここでは とばす */
+  var NICE=[1,2,5,10,15,30,60], labStep=NICE[NICE.length-1], li;
+  for(li=0;li<NICE.length;li++){
+    if(NICE[li]>=step && (x1-x0)*NICE[li]/f.end >= 56){ labStep=NICE[li]; break; }
+  }
+  /* 出発の数字（太字）と くっついて 読めなくなる 目もりは 出さない。
+     例) 5分おき×30分ぶんだと 4・5・6 が 重なるので 4と6 を 落とす */
+  var upm=(x1-x0)/f.end, needM=48/upm;
+  function farFromDep(mm, iv){
+    var d=mm%iv;
+    return Math.min(d, iv-d) >= needM;
+  }
+  for(m=0;m<=f.end;m+=labStep){
+    x=px(m);
+    if(m%f.a!==0 && farFromDep(m,f.a)) s += tx(x, yT+58, String(m), {fs:28, c:'#A9A396', halo:true});
+    if(m%f.b!==0 && farFromDep(m,f.b)) s += tx(x, yB+58, String(m), {fs:28, c:'#A9A396', halo:true});
+  }
+  s += tx(x1+50, yT+58, '分', {fs:28, c:'#A9A396'});
+  s += tx(x1+50, yB+58, '分', {fs:28, c:'#A9A396'});
+
+  /* そろう ところ（公倍数）の たて線 */
+  for(m=f.T;m<=f.end;m+=f.T){
+    x=px(m);
+    on = (m<=st.t);
+    s += ln(x, yT-52, x, yB+52, on?'#C9A227':'#EAE3CD', on?7:4, on?'':' stroke-dasharray="12 10"');
+    if(on){
+      s += tx(x, (yT+yB)/2+18, '★', {fs:60, c:'#C9A227'});
+      s += tx(x, yB+124, m+'分後', {fs:40, c:'#C9A227'});
+      s += tx(x, yB+168, hhmm(m), {fs:34, c:'#C9A227'});
+    }
+  }
+
+  /* 出発マーク（出発する 分の 数字は 目もりと 同じ位置に 色つき・太字で 出す
+     ＝「4、8、12 だけ 色がつく」＝倍数の ならびが そのまま 見える） */
+  for(m=0;m<=f.end;m+=f.a){
+    x=px(m); on=(m<=st.t);
+    s += ci(x, yT, 22, on?'#2C5F8A':'#fff', '#2C5F8A', on?0:4, on?'':' stroke-dasharray="6 5"');
+    s += tx(x, yT+60, String(m), {fs:34, c:on?'#2C5F8A':'#BDB7AA', halo:true});
+  }
+  for(m=0;m<=f.end;m+=f.b){
+    x=px(m); on=(m<=st.t);
+    s += ci(x, yB, 22, on?'#C73E2E':'#fff', '#C73E2E', on?0:4, on?'':' stroke-dasharray="6 5"');
+    s += tx(x, yB+60, String(m), {fs:34, c:on?'#C73E2E':'#BDB7AA', halo:true});
+  }
+
+  /* いまの時こく */
+  x=px(st.t);
+  s += ln(x, 150, x, yB+76, '#33312B', 3, ' stroke-dasharray="9 8"');
+  s += rc(clamp(x-150,10,W-310), 74, 300, 68, '#33312B', 'none', 0, ' rx="18"');
+  s += tx(clamp(x-150,10,W-310)+150, 122, hhmm(st.t)+'（'+st.t+'分後）', {fs:38, c:'#fff'});
+  return svgWrap(W,H,s);
+}
+function readTime(){
+  var st=S.time, f=timeInfo(), out='';
+  var tr=[], bs=[], m;
+  for(m=0;m<=f.end && m<=st.t;m+=f.a) tr.push(m);
+  for(m=0;m<=f.end && m<=st.t;m+=f.b) bs.push(m);
+  out += '<p class="rd lead">8:00 に 電車と バスが 同時に 出発した</p>';
+  out += '<p class="rd">🚃 電車 … '+tr.join('、')+(tr[tr.length-1]<f.end?'、…':'')
+       + ' <span class="kin">← '+f.a+'の 倍数</span></p>';
+  out += '<p class="rd">🚌 バス … '+bs.join('、')+(bs[bs.length-1]<f.end?'、…':'')
+       + ' <span class="kin">← '+f.b+'の 倍数</span></p>';
+  if(st.t>=f.T){
+    out += '<p class="rd">つぎに 同時に 出発するのは <span class="kin">'+f.T+'分後（'+hhmm(f.T)+'）</span>'
+         + ' ＝ '+f.a+'と'+f.b+'の <b>最小公倍数</b></p>';
+    if(st.t>=f.T*2){
+      var ks=[],k;
+      for(k=f.T;k<=Math.min(st.t,f.end);k+=f.T) ks.push(k);
+      out += '<p class="rd">その あとも '+ks.join('、')+' … と '+f.T+'分ごとに そろう'
+           + '（'+f.a+'と'+f.b+'の <b>公倍数</b>）</p>';
+    }
+  }else{
+    out += '<p class="rd">まだ そろっていない。すすめて みよう。</p>';
+  }
+  out += '<p class="rd hint">電車が 出るのは '+f.a+'の倍数の 分、バスが 出るのは '+f.b+'の倍数の 分。'
+       + '両方が 出るのは <b>どちらの 倍数にも なっている 分</b>＝公倍数。'
+       + 'いちばん はじめが 最小公倍数。</p>';
+  return out;
+}
+
+/* =====================================================================
+   そうさパネル（モードごと）
+   ===================================================================== */
+function grp(title, inner){
+  return '<div class="grp"><span class="gt">'+title+'</span>'+inner+'</div>';
+}
+function stepper(key, label, val, unit){
+  var rg=RANGE[key];
+  return '<div class="num">'
+    + '<span class="num-lb">'+label+'</span>'
+    + '<button type="button" class="num-b" data-act="num" data-k="'+key+'" data-d="-1"'
+    +   (val<=rg[0]?' disabled':'')+'>−</button>'
+    + '<span class="num-v">'+val+'<small>'+unit+'</small></span>'
+    + '<button type="button" class="num-b" data-act="num" data-k="'+key+'" data-d="1"'
+    +   (val>=rg[1]?' disabled':'')+'>＋</button>'
+    + '</div>';
+}
+function presetChips(list, cur){
+  var s='<div class="chips">', i, p;
+  for(i=0;i<list.length;i++){
+    p=list[i];
+    s += '<button type="button" class="chip" data-act="preset" data-v="'+p[0]+','+p[1]+'"'
+       + ' aria-pressed="'+(cur && cur[0]===p[0] && cur[1]===p[1] ? 'true':'false')+'">'
+       + p[0]+'・'+p[1]+'</button>';
+  }
+  return s+'</div>';
+}
+function togBtn(key, label, on){
+  return '<button type="button" class="tog" data-act="tog" data-k="'+key+'" aria-pressed="'+(on?'true':'false')+'">'
+       + '<span class="box">'+(on?'✓':'')+'</span>'+label+'</button>';
+}
+
+function panelSq(){
+  var st=S.sq;
+  return grp('タイルの 大きさ', stepper('sq.a','たて',st.a,'cm')+stepper('sq.b','よこ',st.b,'cm'))
+       + grp('よくある 組み合わせ', presetChips([[4,6],[6,8],[3,5],[8,12],[6,9]], [st.a,st.b]))
+       /* マス目は 図と 同じ 条件（1辺30cm以下）でだけ 出す＝押しても 出ない を なくす */
+       + (sqInfo().L<=30 ? togBtn('sq.grid','1cmの マス目を 見せる', st.grid) : '');
+}
+function sChips(a,b,cur,mode){
+  /* 1辺の候補ボタン。cut は「ためした ものだけ ○✕ が付く」＝先に答えを見せない */
+  var maxS=Math.min(a,b), s='<div class="chips">', i, isOk, cls, mk, tried;
+  for(i=1;i<=maxS;i++){
+    isOk = (a%i===0 && b%i===0);
+    tried = (mode==='cut') ? !!S.cut.tried[a+'-'+b+'-'+i] : true;
+    cls='chip'; mk='';
+    if(mode!=='cut' || S.cut.reveal || tried){
+      cls += isOk ? ' ok' : ' ng';
+      mk = isOk ? '<span class="mk">○</span>' : '<span class="mk">✕</span>';
+    }
+    s += '<button type="button" class="'+cls+'" data-act="sets" data-v="'+i+'"'
+       + ' aria-pressed="'+(cur===i?'true':'false')+'">'+i+mk+'</button>';
+  }
+  return s+'</div>';
+}
+function panelCut(){
+  var st=S.cut;
+  return grp('紙の 大きさ', stepper('cut.a','たて',st.a,'cm')+stepper('cut.b','よこ',st.b,'cm'))
+       + grp('よくある 組み合わせ', presetChips([[18,24],[12,18],[16,24],[15,20],[8,12]], [st.a,st.b]))
+       + grp('切る 正方形の 1辺（cm）', sChips(st.a,st.b,st.s,'cut'))
+       + togBtn('cut.reveal','わりきれる 数に 色を つける', st.reveal);
+}
+function panelFit(){
+  var st=S.fit;
+  return grp('箱の 大きさ', stepper('fit.a','たて',st.a,'cm')+stepper('fit.b','よこ',st.b,'cm'))
+       + grp('よくある 組み合わせ', presetChips([[12,18],[16,24],[20,15],[9,12]], [st.a,st.b]))
+       + grp('タイルの 1辺（cm）', sChips(st.a,st.b,st.s,'fit'));
+}
+function nChips(a,b,cur){
+  var maxN=Math.min(RANGE['wake.n'][1], Math.min(a,b)), s='<div class="chips">', i, isOk;
+  for(i=1;i<=maxN;i++){
+    isOk=(a%i===0 && b%i===0);
+    s += '<button type="button" class="chip '+(isOk?'ok':'ng')+'" data-act="setn" data-v="'+i+'"'
+       + ' aria-pressed="'+(cur===i?'true':'false')+'">'+i+'</button>';
+  }
+  return s+'</div>';
+}
+function panelWake(){
+  var st=S.wake, s='', i;
+  s += grp('ものの 数', stepper('wake.a', ITEMS[st.set].n1, st.a,'こ')
+                      + stepper('wake.b', ITEMS[st.set].n2, st.b,'こ'));
+  s += grp('よくある 組み合わせ', presetChips([[18,24],[24,36],[12,30],[20,45]], [st.a,st.b]));
+  s += grp('分ける 人数', nChips(st.a,st.b,st.n));
+  var c='<div class="chips">';
+  for(i=0;i<ITEMS.length;i++){
+    c += '<button type="button" class="chip" data-act="setitem" data-v="'+i+'"'
+       + ' aria-pressed="'+(st.set===i?'true':'false')+'">'+ITEMS[i].e1+ITEMS[i].e2+'</button>';
+  }
+  s += grp('分ける もの', c+'</div>');
+  return s;
+}
+function panelTime(){
+  var st=S.time;
+  return grp('出発の 間かく', stepper('time.a','🚃 電車',st.a,'分')+stepper('time.b','🚌 バス',st.b,'分'))
+       + grp('よくある 組み合わせ', presetChips([[4,6],[6,8],[5,12],[9,12],[10,15]], [st.a,st.b]));
+}
+
+/* =====================================================================
+   図の下の そうさボタン
+   ===================================================================== */
+function stepsSq(){
+  var f=sqInfo(), st=S.sq;
+  return btn('one','1まい ならべる', st.placed>=f.total)
+       + btn('all','ぜんぶ ならべる','', st.placed>=f.total)
+       + btn('reset','もどす','sub')
+       /* つぎに 何cm に なるかを ボタンに 出す（押す前に 分かるように） */
+       + btn('bigger',
+             f.mult>=sqMaxMult() ? 'これいじょう 大きくできません'
+                                 : 'つぎに 大きい 正方形（'+(f.L0*(f.mult+1))+'cm）',
+             'kin', f.mult>=sqMaxMult());
+}
+function stepsCut(){
+  return btn('best','いちばん 大きい 正方形','kin')
+       + btn('smaller','1つ 小さくして みる','sub')
+       + btn('reset','はじめから','sub');
+}
+function stepsFit(){
+  var f=rectInfo(S.fit);
+  return btn('one','1まい おく', S.fit.placed>=f.n)
+       + btn('all','ぜんぶ しきつめる','', S.fit.placed>=f.n)
+       + btn('reset','もどす','sub')
+       + btn('best','いちばん 大きい タイル','kin');
+}
+function stepsWake(){
+  var f=wakeInfo();
+  return btn('one','1こずつ 配る','', S.wake.given>=f.steps)
+       + btn('all','ぜんぶ 配る','', S.wake.given>=f.steps)
+       + btn('reset','もどす','sub')
+       + btn('best','いちばん 多い 人数','kin');
+}
+function stepsTime(){
+  var f=timeInfo();
+  return btn('one','つぎの 出発','', S.time.t>=f.end)
+       + btn('all','そろうまで すすめる','', S.time.t>=f.T)
+       + btn('reset','もどす','sub')
+       + btn('bigger','その つぎも 見る','kin', S.time.span>=3);
+}
+function btn(v, label, cls, dis){
+  if(cls===true){ dis=true; cls=''; }
+  return '<button type="button" class="sbtn'+(cls?' '+cls:'')+'" data-act="step" data-v="'+v+'"'
+       + (dis?' disabled':'')+'>'+label+'</button>';
+}
+
+/* =====================================================================
+   描画テーブル
+   ===================================================================== */
+var DRAW  = { sq:drawSq,  cut:drawCut,  fit:drawFit,  wake:drawWake,  time:drawTime  };
+var READ  = { sq:readSq,  cut:readCut,  fit:readFit,  wake:readWake,  time:readTime  };
+var PANEL = { sq:panelSq, cut:panelCut, fit:panelFit, wake:panelWake, time:panelTime };
+var STEPS = { sq:stepsSq, cut:stepsCut, fit:stepsFit, wake:stepsWake, time:stepsTime };
+
+function modeDef(id){
+  for(var i=0;i<MODES.length;i++) if(MODES[i].id===id) return MODES[i];
+  return MODES[0];
+}
+function paint(){                        /* 図と説明だけ（アニメ中はこれだけ回す） */
+  $('svgBox').innerHTML  = DRAW[S.mode]();
+  $('readout').innerHTML = READ[S.mode]();
+}
+function render(){                       /* 画面ぜんぶ */
+  var m=modeDef(S.mode), i, tabs=$('tabs').children;
+  for(i=0;i<tabs.length;i++){
+    tabs[i].setAttribute('aria-selected', tabs[i].getAttribute('data-id')===S.mode ? 'true':'false');
+  }
+  /* 「つぎに 大きい 正方形」を 押したあとは 見出しも 変える
+     （「いちばん小さい 正方形を つくろう」のままだと 図と 食いちがう） */
+  var ttl = m.title;
+  if(S.mode==='sq' && S.sq.mult>1) ttl = '1辺 '+sqInfo().L+'cm の 正方形も つくれる（公倍数）';
+  $('figTitle').innerHTML = '<span class="badge '+(m.badge==='公倍数'?'bai':'yaku')+'">'+m.badge+'</span>'
+                          + '<span>'+ttl+'</span>';
+  $('panel').innerHTML = PANEL[S.mode]();
+  paint();
+  $('steps').innerHTML = STEPS[S.mode]();
+}
+
+/* =====================================================================
+   アニメーション（1つずつ 置く／配る／すすめる を 自動でくり返す）
+   ===================================================================== */
+var timer=null;
+function stopAuto(){ if(timer){ clearInterval(timer); timer=null; } }
+function startAuto(stepFn, total){
+  stopAuto();
+  var ms = clamp(Math.round(1400/Math.max(total,1)), 24, 130);
+  timer = setInterval(function(){
+    if(stepFn()===false){ stopAuto(); render(); return; }
+    paint();
+  }, ms);
+}
+
+/* =====================================================================
+   そうさ
+   ===================================================================== */
+function resetAnim(mode){
+  if(mode==='sq'){  S.sq.placed=0; S.sq.mult=1; }
+  if(mode==='fit')  S.fit.placed=0;
+  if(mode==='wake') S.wake.given=0;
+  if(mode==='time'){ S.time.t=0; S.time.span=1; }
+}
+function setNum(key, d){
+  var rg=RANGE[key], p=key.split('.'), st=S[p[0]];
+  st[p[1]] = clamp(st[p[1]]+d, rg[0], rg[1]);
+  afterChange(p[0]);
+}
+function afterChange(mode){
+  stopAuto();
+  resetAnim(mode);
+  if(mode==='cut'){
+    S.cut.s = clamp(S.cut.s, 1, Math.min(S.cut.a,S.cut.b));
+    S.cut.tried = {};
+  }
+  if(mode==='fit'){
+    S.fit.s = clamp(S.fit.s, 1, Math.min(S.fit.a,S.fit.b));
+  }
+  if(mode==='wake'){
+    S.wake.n = clamp(S.wake.n, 1, Math.min(RANGE['wake.n'][1], Math.min(S.wake.a,S.wake.b)));
+  }
+  render();
+}
+function doStep(v){
+  var f;
+  stopAuto();
+  if(S.mode==='sq'){
+    f=sqInfo();
+    if(v==='one'  && S.sq.placed<f.total) S.sq.placed++;
+    if(v==='all') { startAuto(function(){ return (++S.sq.placed < f.total); }, f.total); return; }
+    if(v==='reset'){ S.sq.placed=0; S.sq.mult=1; }
+    if(v==='bigger'){
+      /* 1辺を 最小公倍数の 2ばい・3ばい に して、そこも 正方形に なる（＝公倍数）ことを
+         図で 見せる。押した とたんに 分かるよう、タイルは 置いた 状態で 出す */
+      S.sq.mult = Math.min(sqMaxMult(), S.sq.mult+1);
+      S.sq.placed = sqInfo().total;
+    }
+  }else if(S.mode==='cut'){
+    if(v==='best'){ S.cut.s=gcd(S.cut.a,S.cut.b); S.cut.tried[S.cut.a+'-'+S.cut.b+'-'+S.cut.s]=1; }
+    if(v==='smaller'){ S.cut.s=Math.max(1,S.cut.s-1); S.cut.tried[S.cut.a+'-'+S.cut.b+'-'+S.cut.s]=1; }
+    if(v==='reset'){ S.cut.s=Math.min(S.cut.a,S.cut.b); S.cut.tried={}; S.cut.reveal=false; }
+  }else if(S.mode==='fit'){
+    f=rectInfo(S.fit);
+    if(v==='one' && S.fit.placed<f.n) S.fit.placed++;
+    if(v==='all'){ startAuto(function(){ return (++S.fit.placed < f.n); }, f.n); return; }
+    if(v==='reset') S.fit.placed=0;
+    if(v==='best'){ S.fit.s=gcd(S.fit.a,S.fit.b); S.fit.placed=0; }
+  }else if(S.mode==='wake'){
+    f=wakeInfo();
+    if(v==='one' && S.wake.given<f.steps) S.wake.given++;
+    if(v==='all'){ startAuto(function(){ return (++S.wake.given < f.steps); }, f.steps); return; }
+    if(v==='reset') S.wake.given=0;
+    if(v==='best'){
+      S.wake.n=clamp(gcd(S.wake.a,S.wake.b),1,RANGE['wake.n'][1]);
+      S.wake.given=0;
+    }
+  }else if(S.mode==='time'){
+    f=timeInfo();
+    if(v==='one'){
+      S.time.t = nextDeparture(S.time.t, f);
+    }
+    if(v==='all'){
+      startAuto(function(){
+        S.time.t = nextDeparture(S.time.t, f);
+        return (S.time.t < f.T);
+      }, Math.ceil(f.T/Math.min(f.a,f.b)));
+      return;
+    }
+    if(v==='reset'){ S.time.t=0; S.time.span=1; }
+    if(v==='bigger'){ S.time.span=Math.min(3, S.time.span+1); }
+  }
+  render();
+}
+function nextDeparture(t, f){
+  var na = (Math.floor(t/f.a)+1)*f.a;
+  var nb = (Math.floor(t/f.b)+1)*f.b;
+  return Math.min(f.end, Math.min(na,nb));
+}
+/* =====================================================================
+   クリックの受け口（イベント委譲）
+   ===================================================================== */
+function actEl(node){
+  while(node && node!==document){
+    if(node.getAttribute && node.getAttribute('data-act')) return node;
+    node=node.parentNode;
+  }
+  return null;
+}
+document.addEventListener('click', function(e){
+  /* 表示切替 */
+  var vb=e.target;
+  while(vb && vb!==document && !(vb.parentNode && vb.parentNode.id==='viewSw')) vb=vb.parentNode;
+  if(vb && vb!==document && vb.getAttribute && vb.getAttribute('data-view')){
+    setView(vb.getAttribute('data-view'));
+    return;
+  }
+  /* モードのタブ */
+  var t=e.target;
+  while(t && t!==document && !(t.getAttribute && t.getAttribute('data-id'))) t=t.parentNode;
+  if(t && t!==document && t.className && String(t.className).indexOf('tab')>=0){
+    stopAuto();
+    S.mode=t.getAttribute('data-id');
+    render();
+    return;
+  }
+  /* パネル・ボタン */
+  var el=actEl(e.target);
+  if(!el) return;
+  var act=el.getAttribute('data-act');
+  if(act==='num'){ setNum(el.getAttribute('data-k'), parseInt(el.getAttribute('data-d'),10)); return; }
+  if(act==='preset'){
+    var v=el.getAttribute('data-v').split(',');
+    S[S.mode].a=parseInt(v[0],10); S[S.mode].b=parseInt(v[1],10);
+    afterChange(S.mode); return;
+  }
+  if(act==='tog'){
+    var p=el.getAttribute('data-k').split('.');
+    S[p[0]][p[1]] = !S[p[0]][p[1]];
+    render(); return;
+  }
+  if(act==='sets'){
+    var s=parseInt(el.getAttribute('data-v'),10);
+    if(S.mode==='cut'){ S.cut.s=s; S.cut.tried[S.cut.a+'-'+S.cut.b+'-'+s]=1; }
+    else{ S.fit.s=s; S.fit.placed=0; }
+    stopAuto(); render(); return;
+  }
+  if(act==='setn'){ S.wake.n=parseInt(el.getAttribute('data-v'),10); S.wake.given=0; stopAuto(); render(); return; }
+  if(act==='setitem'){ S.wake.set=parseInt(el.getAttribute('data-v'),10); render(); return; }
+  if(act==='step'){ doStep(el.getAttribute('data-v')); return; }
+}, false);
+
+/* =====================================================================
+   表示切替（手動トグルのみ・その端末に おぼえておく）
+   ===================================================================== */
+var VIEW_KEY='divp_kouyaku_lab_view';
+function setView(v){
+  document.body.setAttribute('data-view', v);
+  var bs=$('viewSw').children, i;
+  for(i=0;i<bs.length;i++){
+    bs[i].setAttribute('aria-pressed', bs[i].getAttribute('data-view')===v ? 'true':'false');
+  }
+  try{ localStorage.setItem(VIEW_KEY, v); }catch(e){}
+}
+
+/* =====================================================================
+   起動
+   ===================================================================== */
+(function init(){
+  var i, m, s='';
+  for(i=0;i<MODES.length;i++){
+    m=MODES[i];
+    s += '<button type="button" class="tab" role="tab" data-id="'+m.id+'"'
+       + ' aria-selected="'+(m.id===S.mode?'true':'false')+'">'
+       + '<span class="bd '+(m.badge==='公倍数'?'bai':'yaku')+'">'+m.badge+'</span>'
+       + m.tab+'</button>';
+  }
+  $('tabs').innerHTML = s;
+
+  var v='phone';
+  try{ v = localStorage.getItem(VIEW_KEY) || 'phone'; }catch(e){}
+  setView(v==='maxhub' ? 'maxhub' : 'phone');
+
+  render();
+})();
+</script>
+</body>
+</html>
