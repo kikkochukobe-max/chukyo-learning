@@ -26,6 +26,10 @@
   --sakura-deep:#c4526f;
   --leaf:#7ba05b;
   --line:#d9cfba;
+  /* 本文カラムの幅。テンキーはここから外へ張り出すので、値を .tenkey の
+     margin-left の計算と共有する（別々に書くと片方だけ直して横位置がずれる）。 */
+  --wrap-max:430px;
+  --wrap-pad:14px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 /* touch-action は html にも書く。iOS はタップのたびに「この座標の要素の touch-action は何か」を
@@ -44,7 +48,8 @@ body{
   display:flex;flex-direction:column;
   height:100svh;
 }
-.wrap{width:100%;max-width:430px;margin:0 auto;flex:1;min-height:0;display:flex;flex-direction:column;padding:6px 14px 12px}
+.wrap{width:100%;max-width:var(--wrap-max);margin:0 auto;flex:1;min-height:0;display:flex;flex-direction:column;
+  padding:6px var(--wrap-pad) 12px}
 
 /* ---- header ---- */
 .top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px}
@@ -137,14 +142,36 @@ body{
    タップがホームスワイプの開始と判定されて落ちることがある。
    Safari(下ツールバー表示中)は env が 0 なので指定どおり下がり、
    ホーム画面追加(standalone)の時だけ自動でホームバー分を戻す。 */
-.tenkey{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:32px;
+/* 【横幅は画面いっぱいまで使う】
+   .tenkey は .wrap（max-width:430px ＋ 左右 padding:14px）の内側に居るので、
+   放っておくと iPad のような広い画面でもキーが真ん中の 402px に縮んで打ちにくい。
+   ここだけ負の margin で .wrap の外へ張り出させる＝**DOMは動かさない**ので
+   入力経路（document で座標判定）と採寸(measureKeys)には一切手を入れない。
+   ・--tenkey-inset を上げると左右に余白が戻る。0 だと最外列のキーが画面の端に
+     届くので、iOS の画面端スワイプ（戻る/進む）にかすると感じたら 8px 程度にする。
+   ・キーの高さ・文字の大きさは幅から決める（下の --kh / --kf）。iPhone は幅の半分＝
+     約65pxで従来の padding:16px と同じ大きさ、iPad は上限の112pxまで大きくなる。 */
+.tenkey{
+  --tenkey-inset:0px;
+  --tenkey-w:calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)
+                  - var(--tenkey-inset) * 2);
+  --kw:calc(var(--tenkey-w) / 3);                       /* キー1つの幅 */
+  /* 高さは「幅の半分」。下限 64px は幅の狭い端末(320px幅など)で従来より低くならないため、
+     上限 12svh / 112px は iPad横向き・PCで縦にも巨大化して問題欄を潰さないため。 */
+  --kh:max(64px, min(calc(var(--kw) * .5), 12svh, 112px));
+  --kf:min(calc(var(--kh) * .42), 46px);                /* 数字の大きさ */
+  width:var(--tenkey-w);
+  /* .wrap の内側左端 = (100vw - min(--wrap-max,100vw))/2 + --wrap-pad。そのぶんを戻して画面左端へ */
+  margin-left:calc(env(safe-area-inset-left, 0px) + var(--tenkey-inset)
+                   - (100vw - min(var(--wrap-max), 100vw)) / 2 - var(--wrap-pad));
+  display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:32px;
   margin-bottom:calc(0.5vh + env(safe-area-inset-bottom, 0px));
   touch-action:none;border-radius:16px;overflow:hidden;
   border:2px solid var(--line);background:var(--line);}
 .tenkey button{
-  font-family:inherit;font-weight:900;font-size:28px;color:var(--ink);
+  font-family:inherit;font-weight:900;font-size:var(--kf);color:var(--ink);
   background:#fff;border:0.5px solid var(--line);border-radius:0;
-  padding:16px 0;box-shadow:none;cursor:pointer;
+  height:var(--kh);padding:0;box-shadow:none;cursor:pointer;
   transition:background-color .05s;
   touch-action:none;user-select:none;-webkit-user-select:none;
   /* 長押しコールアウト/選択を無効化。iOSはこれが出ると素早い次のタップを握りつぶすことがある */
@@ -154,7 +181,7 @@ body{
    隣と地続きなので枠色ではなく面で光らせる＝どのキーを押したか一目で分かる。 */
 .tenkey button:active,
 .tenkey button.pressed{background:#fdeef2;color:var(--sakura-deep)}
-.tenkey .fn{font-size:20px;color:var(--ink-soft);background:var(--washi-deep)}
+.tenkey .fn{font-size:calc(var(--kf) * .72);color:var(--ink-soft);background:var(--washi-deep)}
 .tenkey .fn:active,
 .tenkey .fn.pressed{background:#fdeef2;color:var(--sakura-deep)}
 
@@ -1472,8 +1499,14 @@ body{
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(remeasureSoon).catch(function(){});
   // .wrap の高さが変わる＝上の共通ヘッダーが伸び縮みした＝テンキーが動いた。
   // イベントの一覧に頼らず、実際に動いたことを見て採寸し直す。
+  // キーの大きさ自体も vw / svh から決まる（テンキーだけ画面幅いっぱいに張り出させている）ので、
+  // テンキー本体も見張る＝幅が変われば必ず測り直す。
   if(window.ResizeObserver){
-    try{ new ResizeObserver(remeasureSoon).observe(document.querySelector('.wrap')); }catch(e){}
+    try{
+      var ro=new ResizeObserver(remeasureSoon);
+      ro.observe(document.querySelector('.wrap'));
+      ro.observe($('tenkey'));
+    }catch(e){}
   }
 
   // 長押しメニュー・ダブルタップ拡大・ピンチ判定は、OSがタップをイベント化する前に
