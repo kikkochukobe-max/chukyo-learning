@@ -30,6 +30,7 @@
      margin-left の計算と共有する（別々に書くと片方だけ直して横位置がずれる）。 */
   --wrap-max:430px;
   --wrap-pad:14px;
+  --wrap-pad-b:12px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 /* touch-action は html にも書く。iOS はタップのたびに「この座標の要素の touch-action は何か」を
@@ -49,7 +50,7 @@ body{
   height:100svh;
 }
 .wrap{width:100%;max-width:var(--wrap-max);margin:0 auto;flex:1;min-height:0;display:flex;flex-direction:column;
-  padding:6px var(--wrap-pad) 12px}
+  padding:6px var(--wrap-pad) var(--wrap-pad-b)}
 
 /* ---- header ---- */
 .top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px}
@@ -137,11 +138,14 @@ body{
 /* gap を 0 にしてボタンを隙間なく敷き詰める＝キー間の“死角”をなくす。
    高速連打で指がズレても必ずどれかのキーに当たり、すき間タップの取りこぼしが消える。
    外枠だけ角丸＋overflow:hidden でパッド全体をまとめ、境界はボタンの1px枠で見せる。 */
-/* 下端の余白は「0.5vh＋ホームバー分」。viewport-fit=cover を指定しているため
+/* 下端の余白は「--tenkey-gap-b ＋ ホームバー分」。viewport-fit=cover を指定しているため
    コンテンツが iPhone のホームインジケータ領域まで伸びる＝そこに最下段(0/C/B)を置くと
    タップがホームスワイプの開始と判定されて落ちることがある。
    Safari(下ツールバー表示中)は env が 0 なので指定どおり下がり、
-   ホーム画面追加(standalone)の時だけ自動でホームバー分を戻す。 */
+   ホーム画面追加(standalone)の時だけ自動でホームバー分を戻す。
+   ⚠ .wrap の padding-bottom(--wrap-pad-b) はこの余白に足したくないので、
+   margin-bottom で引き算して打ち消している（テンキーだけ下端いっぱいまで使う）。
+   ホームバー分の逃げは env() で別に確保しているので、引いても安全側は崩れない。 */
 /* 【横幅は画面いっぱいまで使う】
    .tenkey は .wrap（max-width:430px ＋ 左右 padding:14px）の内側に居るので、
    放っておくと iPad のような広い画面でもキーが真ん中の 402px に縮んで打ちにくい。
@@ -149,23 +153,26 @@ body{
    入力経路（document で座標判定）と採寸(measureKeys)には一切手を入れない。
    ・--tenkey-inset を上げると左右に余白が戻る。0 だと最外列のキーが画面の端に
      届くので、iOS の画面端スワイプ（戻る/進む）にかすると感じたら 8px 程度にする。
-   ・キーの高さ・文字の大きさは幅から決める（下の --kh / --kf）。iPhone は幅の半分＝
-     約65pxで従来の padding:16px と同じ大きさ、iPad は上限の112pxまで大きくなる。 */
+   ・キーの高さ・文字の大きさは幅から決める（下の --kh / --kf）。iPhone は約72px、
+     iPad は上限の120pxまで大きくなる。
+   ・下端も画面いっぱいまで使う。.wrap の padding-bottom を margin-bottom で打ち消し、
+     残す隙間は --tenkey-gap-b だけ（ホームバー分は env() で別に確保）。 */
 .tenkey{
   --tenkey-inset:0px;
+  --tenkey-gap-b:2px;                                   /* 画面下端との隙間（＋ホームバー分） */
   --tenkey-w:calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)
                   - var(--tenkey-inset) * 2);
   --kw:calc(var(--tenkey-w) / 3);                       /* キー1つの幅 */
-  /* 高さは「幅の半分」。下限 64px は幅の狭い端末(320px幅など)で従来より低くならないため、
-     上限 12svh / 112px は iPad横向き・PCで縦にも巨大化して問題欄を潰さないため。 */
-  --kh:max(64px, min(calc(var(--kw) * .5), 12svh, 112px));
+  /* 高さは幅の .55 倍。下限 64px は幅の狭い端末(320px幅など)で従来より低くならないため、
+     上限 13svh / 120px は iPad横向き・PCで縦にも巨大化して問題欄を潰さないため。 */
+  --kh:max(64px, min(calc(var(--kw) * .55), 13svh, 120px));
   --kf:min(calc(var(--kh) * .42), 46px);                /* 数字の大きさ */
   width:var(--tenkey-w);
   /* .wrap の内側左端 = (100vw - min(--wrap-max,100vw))/2 + --wrap-pad。そのぶんを戻して画面左端へ */
   margin-left:calc(env(safe-area-inset-left, 0px) + var(--tenkey-inset)
                    - (100vw - min(var(--wrap-max), 100vw)) / 2 - var(--wrap-pad));
   display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:32px;
-  margin-bottom:calc(0.5vh + env(safe-area-inset-bottom, 0px));
+  margin-bottom:calc(var(--tenkey-gap-b) + env(safe-area-inset-bottom, 0px) - var(--wrap-pad-b));
   touch-action:none;border-radius:16px;overflow:hidden;
   border:2px solid var(--line);background:var(--line);}
 .tenkey button{
