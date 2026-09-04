@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>小4算数まるごとパック｜中京個別指導学院</title>
+<meta name="description" content="小学4年生の算数を16単元まるごと練習。大きい数・わり算の筆算・角の大きさ・垂直と平行・小数のしくみ・小数のひっ算・概数・計算のきまり・面積・分数・直方体と立方体・折れ線グラフ・変わり方・倍の見方。A4練習プリントの印刷つき。中京個別指導学院。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap" rel="stylesheet">
+<style id="appcss">
+:root{
+  --washi:#FBF6EC; --washi2:#F3EADA; --ink:#3A342C; --ink-l:#6E6558;
+  --orange:#FEB342; --sakura:#E39AA4; --sakura-d:#C86D7C;
+  --green:#6FA383; --line:#DED2BE; --white:#fff;
+  --shadow:0 2px 0 rgba(58,52,44,.12), 0 6px 18px rgba(58,52,44,.08);
+}
+/* touch-action:manipulation = ダブルタップ拡大を切る。テンキーを 速く 連打すると
+   2回目のタップが「ダブルタップ」と 判定されて 画面が ズームしてしまうのを ふせぐ。
+   ピンチでの拡大・スクロールは そのまま のこる（user-scalable=no は使わない） */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html,body{margin:0;padding:0}
+body{
+  min-height:calc(100svh + 1px);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(227,154,164,.10) 0 32%, transparent 33%),
+    radial-gradient(circle at 88% 92%, rgba(254,179,66,.12) 0 30%, transparent 31%),
+    repeating-linear-gradient(115deg, rgba(255,255,255,.5) 0 2px, transparent 2px 7px),
+    var(--washi);
+  color:var(--ink);
+  font-family:"Zen Maru Gothic","Zen Kaku Gothic New",-apple-system,sans-serif;
+  font-weight:700;
+  padding:0 0 40px;
+  overscroll-behavior-y:contain;
+}
+.wrap{max-width:760px;margin:0 auto;padding:0 14px}
+
+/* ---------- header ---------- */
+.hd{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;margin-bottom:12px;
+  border-bottom:3px solid var(--orange);
+  background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.25));
+  backdrop-filter:blur(6px);
+  /* 共通ヘッダー(divp-header)が position:sticky;top:0 で入るので、
+     ツール側のヘッダーは sticky にしない（2段のバーで画面をつぶさない） */
+}
+.hd h1{font-size:17px;margin:0;letter-spacing:.02em;font-weight:900}
+.hd .school{font-size:11px;color:var(--ink-l);font-weight:700;margin-top:1px}
+.hd .mst{margin-left:auto;text-align:right;font-size:10.5px;color:var(--ink-l);line-height:1.4}
+.hd .mst b{font-size:15px;color:var(--sakura-d)}
+
+/* ---------- menu ---------- */
+.lead{font-size:13px;color:var(--ink-l);margin:2px 0 12px;line-height:1.7}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px}
+.chip{
+  position:relative;text-align:left;cursor:pointer;
+  background:var(--white);border:2px solid var(--line);border-radius:14px;
+  padding:11px 12px 10px;box-shadow:var(--shadow);font-family:inherit;color:var(--ink);
+  transition:transform .12s ease, border-color .12s ease;
+}
+.chip:hover{transform:translateY(-2px);border-color:var(--orange)}
+.chip:focus-visible{outline:3px solid var(--sakura);outline-offset:2px}
+.chip .no{font-size:10px;color:var(--orange);font-weight:900;letter-spacing:.1em}
+.chip .nm{font-size:15px;font-weight:900;margin:2px 0 4px;line-height:1.25}
+.chip .sub{font-size:10.5px;color:var(--ink-l);font-weight:700;line-height:1.4}
+.bg{display:flex;gap:3px;margin-top:6px}
+.bg i{width:11px;height:11px;border-radius:50%;background:var(--washi2);border:1.5px solid var(--line)}
+.bg i.on{background:radial-gradient(circle at 35% 30%,#FFD98A,var(--orange));border-color:#D89321}
+.chip.done{border-color:var(--sakura)}
+.chip .crown{position:absolute;right:9px;top:8px;font-size:11px;color:var(--sakura-d);font-weight:900}
+/* 単元ボタンのかざり(正解エフェクトと同じ記号・色) */
+.chip .deco{position:absolute;right:10px;bottom:10px;font-size:26px;line-height:1;
+  opacity:.5;pointer-events:none;display:inline-block;
+  text-shadow:0 1px 2px rgba(58,52,44,.14)}
+.chip.mix .deco{font-size:30px;opacity:.7;letter-spacing:.12em}
+.chip:hover .deco{opacity:.8}
+.chip.pop{animation:chipPop .3s cubic-bezier(.2,1.6,.35,1)}
+@keyframes chipPop{0%{transform:scale(1)}32%{transform:scale(.94)}68%{transform:scale(1.045)}100%{transform:scale(1)}}
+.chip.pop .deco{animation:decoSpin .5s ease;opacity:.95}
+@keyframes decoSpin{0%{transform:rotate(0) scale(1)}45%{transform:rotate(200deg) scale(1.7)}100%{transform:rotate(360deg) scale(1)}}
+.spark{position:absolute;pointer-events:none;animation:sparkFly .55s ease-out forwards}
+@keyframes sparkFly{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(0)}
+  20%{opacity:1}
+  100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.25) rotate(220deg)}}
+.chip.mix{background:linear-gradient(135deg,#FFF3DE,#FCE7EA);border-color:var(--orange);grid-column:1/-1}
+.chip.mix .nm{font-size:17px}
+
+/* ---------- 練習プリント（メニューの下） ---------- */
+.pcard{
+  margin:16px 0 4px;background:var(--white);border:2px dashed var(--line);border-radius:16px;
+  padding:13px 14px 15px;box-shadow:var(--shadow);
+}
+.pcard .ptt{font-size:15px;font-weight:900;margin-bottom:3px}
+.pcard .pdesc{font-size:11.5px;color:var(--ink-l);line-height:1.6;margin:0 0 10px}
+.prow{display:flex;align-items:center;gap:9px;margin-bottom:9px;flex-wrap:wrap}
+.plb{font-size:12px;font-weight:900;color:var(--ink-l);min-width:5.5em}
+.psel{
+  flex:1;min-width:180px;font-family:inherit;font-weight:700;font-size:14px;color:var(--ink);
+  padding:9px 10px;border:2px solid var(--line);border-radius:11px;background:var(--washi);
+}
+.pchips{display:flex;gap:7px}
+.pchip{
+  font-family:inherit;font-weight:900;font-size:13px;color:var(--ink);cursor:pointer;
+  padding:8px 14px;border:2px solid var(--line);border-radius:11px;background:var(--washi);
+}
+.pchip.on{border-color:var(--orange);background:#FFF6E6;box-shadow:0 0 0 3px rgba(254,179,66,.18)}
+.pck{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--ink-l);margin:2px 0 11px}
+.pck input{width:19px;height:19px;accent-color:var(--sakura-d)}
+.pbtn{
+  width:100%;height:50px;border:2px solid #C08D3F;border-radius:13px;cursor:pointer;
+  background:linear-gradient(180deg,#FFE3AA,#FFC466);
+  font-family:inherit;font-weight:900;font-size:16px;color:#4A3411;box-shadow:0 3px 0 #C08D3F;
+}
+.pbtn:active{transform:translateY(2px);box-shadow:0 1px 0 #C08D3F}
+.pnote{font-size:10.5px;color:var(--ink-l);line-height:1.6;margin:9px 0 0}
+.pmsg{font-size:12px;font-weight:900;color:var(--sakura-d);margin:8px 0 0;min-height:1em}
+/* 出題中バーの プリントボタン */
+.pmini{
+  font-family:inherit;font-weight:900;font-size:12px;color:#4A3411;cursor:pointer;
+  border:2px solid #C08D3F;border-radius:10px;background:linear-gradient(180deg,#FFE3AA,#FFC466);
+  padding:5px 9px;box-shadow:0 2px 0 #C08D3F;
+}
+.pmini:active{transform:translateY(1px);box-shadow:0 1px 0 #C08D3F}
+
+/* ---------- quiz ---------- */
+.bar{display:flex;align-items:center;gap:8px;margin:2px 0 10px}
+.back{background:none;border:none;font-family:inherit;font-weight:900;font-size:13px;color:var(--ink-l);cursor:pointer;padding:6px 4px}
+.unitname{font-size:14px;font-weight:900}
+.count{margin-left:auto;font-size:12px;color:var(--ink-l)}
+.dots{display:flex;gap:4px;margin-bottom:10px}
+.dots i{flex:1;height:5px;border-radius:99px;background:var(--washi2)}
+.dots i.o{background:var(--green)}.dots i.x{background:var(--sakura)}
+
+.card{
+  background:var(--white);border:2px solid var(--line);border-radius:18px;
+  padding:16px 14px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.card::before{content:"";position:absolute;inset:0 0 auto;height:5px;background:linear-gradient(90deg,var(--orange),var(--sakura),var(--orange))}
+.qfig{display:flex;justify-content:center;margin:8px 0 4px}
+/* 分数の式(たて表示) */
+.fexp{display:flex;align-items:center;justify-content:center;gap:12px;
+  font-size:32px;font-weight:900;padding:6px 2px;flex-wrap:wrap}
+.fexp .op2{color:var(--sakura-d)}
+.fexp .sq{color:#C9BFAE}
+.fr{display:inline-flex;flex-direction:column;align-items:center;line-height:1.1}
+.fr .fbar{height:3px;background:var(--ink);border-radius:2px;margin:4px 0;
+  width:100%;min-width:1.5em}
+.fr .wh{font-size:1em}
+.mx{display:inline-flex;align-items:center;gap:5px}
+@media (max-width:400px){.fexp{font-size:28px;gap:9px}}
+
+/* ---------- わり算の筆算（たて書き） ----------
+   1桁=1セルの等幅グリッド(.dgrid)に右づめで入れるので、商とわられる数の位が必ずそろう。
+   商の段は かこいの罫線だけ透明にした 同じ器(.brk.nb)に入れる＝1pxもずれない */
+.dgrid{display:grid;grid-template-columns:repeat(var(--w),2ch);gap:3px;flex:none;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.c{box-sizing:border-box;display:flex;align-items:center;justify-content:center;
+  height:1.45em;text-align:center}
+.ic{border:1px dashed #CFC3AD;border-radius:7px;background:#fff;cursor:pointer;color:var(--orange)}
+.ic.foc{border:1px solid var(--orange);background:#FFF7EA;box-shadow:0 0 0 3px rgba(254,179,66,.28)}
+.ic.no{border:none;background:none;cursor:default}
+.wariwrap{display:inline-block;text-align:center}
+.wari{display:inline-block;font-size:32px;font-weight:900;line-height:1.25;padding:4px 2px 0}
+.wari .wrow{display:flex;align-items:flex-end}
+.wari .wl{flex:none;min-width:2.9ch;text-align:right;padding-right:.35ch}
+.wari .brk{flex:none;padding:2px 3px 0 5px;
+  border-top:4px solid var(--ink);border-left:4px solid var(--ink);
+  border-top-left-radius:18px 70%}
+.wari .brk.nb{border-color:transparent}
+.wam{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:9px;
+  font-size:16px;font-weight:900;color:var(--ink-l)}
+.wam .dgrid{font-size:30px;color:var(--ink)}
+@media (max-width:400px){.wari{font-size:27px}.wam .dgrid{font-size:26px}}
+
+/* ---------- 小数のたし算・ひき算の筆算 ----------
+   列は［整数の位…］［小数点］［小数の位…］。小数点だけ 細い列にするので
+   grid-template-columns は --tpl で 丸ごと 差しかえる（.dgrid.dp）。
+   ⚠ 入力は 右から 左（小さい位から）＝わり算の商とは 逆向き。
+     向きは grid.dir で 切りかえている */
+.hissan{display:inline-block;font-size:31px;font-weight:900;line-height:1.25;padding:4px 2px 0}
+.hissan .hrow{display:flex;align-items:flex-end;justify-content:flex-end}
+.hissan .hop{flex:none;width:1.5ch;text-align:center;color:var(--sakura-d)}
+.hissan .hrule{border-top:4px solid var(--ink);border-radius:2px;margin:4px 0 3px}
+.dgrid.dp{grid-template-columns:var(--tpl)}
+.c.dot{color:var(--ink)}
+@media (max-width:400px){.hissan{font-size:26px}}
+
+/* 変わり方・二次元表（図のかわりに 表を出す問題）。プリントにも同じCSSが効く */
+.ptbl{border-collapse:collapse;font-size:15px;font-weight:900;background:#fff}
+.ptbl th,.ptbl td{border:1.5px solid var(--line);padding:5px 9px;text-align:center;min-width:2.6em}
+.ptbl th{background:var(--washi2);color:var(--ink-l);font-size:13px}
+
+.qwrap{min-height:56px;display:flex;align-items:center;justify-content:center;margin:10px 0 6px;overflow:hidden}
+.q{font-size:23px;line-height:1.5;text-align:center;font-weight:900;white-space:pre-wrap;display:inline-block}
+.q .op{color:var(--sakura-d)}
+
+.ansrow{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin:8px 0 4px}
+.box{
+  min-width:78px;height:54px;padding:0 10px;border:3px solid var(--line);border-radius:12px;
+  background:var(--washi);display:flex;align-items:center;justify-content:center;
+  font-size:26px;font-weight:900;letter-spacing:.04em;cursor:pointer;max-width:100%;
+}
+.box.on{border-color:var(--orange);background:#FFFBF2;box-shadow:0 0 0 3px rgba(254,179,66,.22)}
+.box.lg{font-size:19px;letter-spacing:0}
+.box .ph{color:#C9BFAE}
+.suf{font-size:17px;font-weight:900;color:var(--ink-l)}
+.frac{display:inline-flex;flex-direction:column;align-items:center;gap:3px}
+.frac .fl{width:88px;height:3px;background:var(--ink);border-radius:2px}
+.frac .box{height:44px;min-width:70px;font-size:22px}
+
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 2px}
+.ch{
+  min-height:52px;border:3px solid var(--line);border-radius:12px;background:var(--washi);
+  font-family:inherit;font-weight:900;font-size:16px;color:var(--ink);cursor:pointer;
+  padding:8px 6px;overflow:hidden;
+}
+.ch.on{border-color:var(--orange);background:#FFF6E6}
+.ch.ok{border-color:var(--green);background:#EBF5EF}
+.ch.ng{border-color:var(--sakura-d);background:#FBEDEF}
+.ch:focus-visible{outline:3px solid var(--sakura);outline-offset:2px}
+.choices.w1{grid-template-columns:1fr}
+
+/* tenkey 3行 */
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}
+.key{
+  height:52px;border-radius:12px;background:var(--white);
+  border:2px solid var(--line);box-shadow:0 3px 0 rgba(58,52,44,.13);
+  font-family:inherit;font-weight:900;font-size:22px;color:var(--ink);cursor:pointer;
+}
+.key:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(58,52,44,.13)}
+.key.fn{background:var(--washi2);font-size:17px}
+
+.submit{
+  width:100%;margin-top:12px;height:54px;border-radius:14px;cursor:pointer;
+  background:linear-gradient(180deg,#FFC96A,var(--orange));border:2px solid #E79C27;
+  font-family:inherit;font-weight:900;font-size:18px;color:#4A3411;box-shadow:0 3px 0 #D08D1E;
+}
+.submit:active{transform:translateY(2px);box-shadow:0 1px 0 #D08D1E}
+.next{background:linear-gradient(180deg,#8FBFA1,var(--green));border-color:#548A6A;color:#fff;box-shadow:0 3px 0 #4C7C60}
+
+.fb{margin-top:12px;border-radius:14px;padding:12px 13px;font-size:14px;line-height:1.75;font-weight:700;display:none}
+.fb.show{display:block;animation:pop .22s ease}
+.fb.ok{background:#EFF7F2;border:2px solid var(--green)}
+.fb.ng{background:#FBEFF1;border:2px solid var(--sakura-d)}
+.fb .ttl{font-size:16px;font-weight:900;margin-bottom:4px}
+.fb.ok .ttl{color:#3F7B58}.fb.ng .ttl{color:var(--sakura-d)}
+.fb .exp{color:var(--ink);font-size:13.5px}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* result */
+.res{text-align:center;padding:26px 16px}
+.res .rank{font-size:60px;font-weight:900;letter-spacing:.04em;color:var(--orange);line-height:1;text-shadow:0 3px 0 rgba(58,52,44,.1)}
+.res .sc{font-size:20px;margin:10px 0 2px;font-weight:900}
+.res .sub{font-size:13px;color:var(--ink-l)}
+.res .btns{display:flex;gap:9px;margin-top:18px}
+.res .btns button{flex:1}
+
+/* 正解エフェクト（花火・積もる山）は共通モジュール divp-correct-firework.js。
+   山(pile)は z-index:5 の固定レイヤーで、モジュールが :where(button,h1,…) を
+   z-index:10 に持ち上げるが 詳細度0なので、そこから漏れる このツール固有の
+   要素は ここで前面に出す（div/span で組んだ入力マス・ふきだし・見出しなど） */
+.chip,.back,.submit,.box,.ch,.key,.ic,.fb,.qwrap,.qfig,.bar,.cellhint,.wam,
+.hd,.res,.dots,.lead,.pcard,.pmini{position:relative;z-index:10}
+
+/* 単元チップをタップしたときの 小さな きらめき用レイヤー */
+#fxlayer{position:fixed;inset:0;pointer-events:none;z-index:90;overflow:hidden}
+
+.cellhint{font-size:11.5px;font-weight:700;color:var(--ink-l);text-align:center;margin:6px 0 2px}
+/* プリントの お知らせ（メニューでも 出題中でも 同じ文を 出す） */
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(12px);
+  max-width:min(92vw,420px);background:rgba(58,52,44,.94);color:#fff;font-size:12.5px;font-weight:700;
+  line-height:1.6;padding:10px 14px;border-radius:12px;z-index:120;opacity:0;pointer-events:none;
+  transition:opacity .2s ease, transform .2s ease}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.foot{text-align:center;font-size:11px;color:var(--ink-l);margin-top:18px;line-height:1.7}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:400px){ .q{font-size:20px} .grid{grid-template-columns:1fr 1fr} }
+
+/* 練習プリントは別ウィンドウで組む（このページ自体は紙に出さない）。
+   紙に共通ヘッダーは出さない＝モジュール側でも消しているが、HTMLだけ先に
+   上げても紙に出ないようツール側にも同じ1行を持たせる */
+@media print{
+  .divp-header{display:none!important}
+  #fxlayer,[id^="divp-fw-"]{display:none!important}
+}
+</style>
+</head>
+<body data-unit-key="math_es4_all" data-theme="es" data-effect="firework">
+
+<!-- ===== サイトヘッダー（共通モジュール。ログイン窓もここに出る） =====
+     divp-header は「このscriptタグの位置」に描くので、body直後に同期で置くこと -->
+<script src="/assets/divp-header.js"></script>
+
+<header class="hd">
+  <div>
+    <h1>小4算数 まるごとパック</h1>
+    <div class="school">中京個別指導学院</div>
+  </div>
+  <div class="mst">
+    バッジ<br><b id="tot">0</b> / 85
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- メニュー -->
+  <section id="menu">
+    <p class="lead">やりたい単元を えらぼう。1回 10問、ミックスは 20問。<br>8問いじょう 正かいすると バッジが 1つ ふえるよ。</p>
+    <div class="grid" id="grid"></div>
+
+    <!-- 練習プリント（A4・別ウィンドウ） -->
+    <section class="pcard">
+      <div class="ptt">🖨 練習プリントを つくる</div>
+      <p class="pdesc">画面と同じ問題を A4（たて）の プリントにします。<br>えんぴつで 解いてから、うら面の こたえで 丸つけできます。</p>
+      <div class="prow">
+        <span class="plb">単元</span>
+        <select class="psel" id="psel" aria-label="プリントにする単元"></select>
+      </div>
+      <div class="prow">
+        <span class="plb">もんだいの数</span>
+        <div class="pchips" id="pnum">
+          <button type="button" class="pchip on" data-n="6">6問（1まい）</button>
+          <button type="button" class="pchip" data-n="12">12問（2まい）</button>
+        </div>
+      </div>
+      <label class="pck"><input type="checkbox" id="pwa" checked> こたえのページも つける</label>
+      <button type="button" class="pbtn" id="pgo">プリントを つくる</button>
+      <p class="pnote">印刷の画面が 新しいタブで ひらきます。出ないときは、このサイトの ポップアップを 許可してください。</p>
+      <p class="pmsg" id="pmsg" role="status"></p>
+    </section>
+
+    <p class="foot">小学4年生で習う算数を16単元に分けて収録しています。<br>中京個別指導学院</p>
+  </section>
+
+  <!-- 出題 -->
+  <section id="quiz" hidden>
+    <div class="bar">
+      <button class="back" id="back">← もどる</button>
+      <span class="unitname" id="uname"></span>
+      <button type="button" class="pmini" id="pnow" title="この単元の 練習プリントを つくる">🖨 プリント</button>
+      <span class="count" id="cnt"></span>
+    </div>
+    <div class="dots" id="dots"></div>
+    <div class="card">
+      <div class="qfig" id="fig"></div>
+      <div class="qwrap"><div class="q" id="q"></div></div>
+      <div id="ansarea"></div>
+      <div id="padarea"></div>
+      <button class="submit" id="go">こたえあわせ</button>
+      <div class="fb" id="fb"><div class="ttl" id="fbt"></div><div class="exp" id="fbe"></div></div>
+    </div>
+  </section>
+
+  <!-- 結果 -->
+  <section id="result" hidden>
+    <div class="card res">
+      <div class="rank" id="rk">A</div>
+      <div class="sc" id="sc"></div>
+      <div class="sub" id="rsub"></div>
+      <div class="btns">
+        <button class="submit" id="again">もう1回</button>
+        <button class="submit next" id="tomenu">メニューへ</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="fxlayer"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<!-- ===== 学習記録の共通クライアント（ログイン判定・解答ログ・学習時間） ===== -->
+<script src="/assets/divp-core.js"></script>
+<!-- ===== 小学生用 正解エフェクト「花火」 =====
+     data-effect="firework" なので読み込むだけで Divp.correct に結線される。
+     降った記号は画面下に積もる(pile)。単元を変えても消さず、ページを閉じる
+     (リロードする)まで ためつづける＝その日の がんばりが 目に見えて残る -->
+<script src="/assets/divp-correct-firework.js"></script>
+<!-- ===== 練習プリントのロゴ透かし（無くても透かし無しで印刷できる） ===== -->
+<script src="/assets/print-watermark.js"></script>
+
+<script>
+(function(){
+"use strict";
+/* ============ utils ============ */
+const $=id=>document.getElementById(id);
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=R(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+/* 小数の計算は 0.1+0.2=0.30000000000000004 のような誤差が出るので、
+   表示は必ず fmt() を通す（4けたで丸めてから 余分な0を落とす） */
+const fmt=n=>Number(Number(n).toFixed(4)).toString();
+const op=s=>s.replace(/([×÷＋+\-−=])/g,'<span class="op">$1</span>');
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+/* 3けたごとの区切りは 小4では まだ習わないので入れない（そのまま並べる） */
+
+/* ============ Divp 連携 ============ */
+const UNIT_KEY="math_es4_all";
+/* 正解演出は共通モジュール divp-correct-firework.js。無い環境では何も出さない */
+function fx(){try{if(typeof window.DivpFirework==="function")DivpFirework();}catch(e){}}
+
+/* ============ 問題の再生成（seedつき乱数） ============
+   生成関数は Math.random() 経由でしか乱数を使わないので、生成中だけ
+   Math.random を seed つきの ものに 差し替えれば「単元キー + seed」から
+   図まで含めて 全く同じ問題を 作り直せる。question_params {g,s} に入れておくと
+   マイページの解き直し(?retry=1)で 同一問題を 再出題できる
+   （params_hash が一致するので retry_queue の2連続正解マスター判定が成立する）。
+   ※JSON形式を変えると 既存pending行の ハッシュと 合わなくなる点に注意 */
+function newSeed(){return Math.floor(Math.random()*2147483646)+1;}
+function genSeeded(u,seed){
+  let st=seed>>>0;const orig=Math.random;
+  Math.random=()=>{st=(st*1664525+1013904223)>>>0;return st/4294967296;};
+  let p;try{p=u.g();}finally{Math.random=orig;}
+  p.unit=u.k;p.unitName=u.n;p.seed=seed;
+  if(!p.boxes)p.boxes=(p.type==="num2")?[{s:""},{s:""}]:[{s:""}];
+  return p;
+}
+
+/* ============ 分数の式(たて表示) ============ */
+function fracTerm(n,d,w){
+  const f=`<span class="fr"><span>${n}</span><span class="fbar"></span><span>${d}</span></span>`;
+  return (w==null)?f:`<span class="mx"><span class="wh">${w}</span>${f}</span>`;
+}
+function fracExp(items){
+  return `<div class="fexp">`+items.map(x=>
+    (typeof x==="object")?fracTerm(x.n,x.d,x.w)
+    :(x==="□")?`<span class="sq">□</span>`
+    :`<span class="op2">${x}</span>`).join("")+`</div>`;
+}
+
+/* ============ わり算の筆算(たて書き) ============ */
+/* 1桁=1セル。右づめ(=位ぞろえ)で入れる */
+function digitCells(str,w){
+  str=String(str);
+  const start=w-str.length;
+  let h="";
+  for(let i=0;i<w;i++){
+    const k=i-start;
+    h+=`<span class="c">${(k>=0&&k<str.length)?str[k]:""}</span>`;}
+  return h;
+}
+/* 入力マス（1マス=1つの位）。data-r=だん / data-c=左からの位置。
+   from より 左は 入力できないマス(.no)にする＝わり算の商は 位が 決まっているので、
+   「商が 立つ 位」だけを 箱に して 教科書の 筆算と 同じ 見た目に する。
+   ⚠ 入力は 左から 右（上の位から）。たし算の筆算(一の位から)とは 向きが 逆で、
+     ここを そろえると わり算の 手順と 合わなくなる */
+function icCells(r,w,from){
+  from=from||0;let h="";
+  for(let i=0;i<w;i++)
+    h+=`<span class="c ic${i<from?" no":""}" data-r="${r}" data-c="${i}"></span>`;
+  return h;
+}
+/* わり算の筆算。商のだんは かこいの罫線を透明にした 同じ器に入れて 位をそろえる。
+   返り値の fig=空欄（画面と問題プリント用） / figA=答え入り（こたえプリント用） */
+function wariPair(a,b,withRem){
+  const q=Math.floor(a/b), r=a%b;
+  const w=String(a).length, rw=String(b).length;
+  const qFrom=w-String(q).length;      // 商の いちばん 上の 位が 立つ ところ
+  const form=(top,btm)=>`<div class="wari" style="--w:${w}">`
+    +`<div class="wrow"><span class="wl"></span><span class="brk nb"><span class="dgrid">${top}</span></span></div>`
+    +`<div class="wrow"><span class="wl">${b}</span><span class="brk"><span class="dgrid">${digitCells(a,w)}</span></span></div>`
+    +`</div>`;
+  const rem=(inner)=>withRem?`<div class="wam">あまり<span class="dgrid" style="--w:${rw}">${inner}</span></div>`:"";
+  /* 筆算と あまりは 1つの 箱に 入れる。入れないと 親が display:flex なので
+     （画面の #fig / プリントの .pfig）あまりが 筆算の 右横に 並んでしまう */
+  const wrap=(inner)=>`<div class="wariwrap">${inner}</div>`;
+  return {
+    fig:  wrap(form(icCells(0,w,qFrom))+rem(icCells(1,rw))),
+    figA: wrap(form(digitCells(q,w))+rem(digitCells(r,rw))),
+    /* プリントの問題面は かこいの下に 手書きの計算スペースを 取るので、
+       あまりのマスは 置かず「こたえ」の行で 書かせる（下に 書き下していく
+       筆算の じゃまに ならないように） */
+    figP: wrap(form(icCells(0,w,qFrom))),
+    /* 記録・講師画面用の 文字だけの 問題文。筆算の図は このページのCSSに
+       たよっているので 紙には 出さず（logAnswer の figForLog 参照）、
+       代わりに この式を question_text として 送る */
+    qtext:`${a} ÷ ${b}`,
+    grid:{w:w,dir:1,rows:withRem
+      ?[{ans:q,label:"商",from:qFrom},{ans:r,label:"あまり",w:rw}]
+      :[{ans:q,label:"商",from:qFrom}]}
+  };
+}
+
+/* ============ 小数のたし算・ひき算の筆算 ============ */
+const decsOf=v=>{const s=fmt(v),i=s.indexOf(".");return (i<0)?0:s.length-i-1;};
+const intLen=v=>{const s=fmt(v),i=s.indexOf(".");return (i<0)?s.length:i;};
+/* 小数点で 位をそろえて 1桁=1セルに 置く。
+   整数（7 など）は 小数点も 小数の位も 空にする＝教科書と同じ見た目
+   （「7を7.00と考えて」は 解説で 補う） */
+function decNumCells(v,wi,dec){
+  const s=fmt(v), i=s.indexOf(".");
+  const ip=(i<0)?s:s.slice(0,i), dp=(i<0)?"":s.slice(i+1);
+  let h="";
+  for(let k=0;k<wi;k++){const idx=k-(wi-ip.length);h+=`<span class="c">${idx>=0?ip[idx]:""}</span>`;}
+  h+=`<span class="c dot">${dp?".":""}</span>`;
+  for(let k=0;k<dec;k++)h+=`<span class="c">${k<dp.length?dp[k]:""}</span>`;
+  return h;
+}
+/* 答えの段。小数点は 打ってあり（位をそろえる話は 上の2段で 見せている）、
+   数字のマスだけを 入力させる */
+function decInputCells(r,wi,dec){
+  let h="";
+  for(let k=0;k<wi;k++)h+=`<span class="c ic" data-r="${r}" data-c="${k}"></span>`;
+  h+=`<span class="c dot">.</span>`;
+  for(let k=0;k<dec;k++)h+=`<span class="c ic" data-r="${r}" data-c="${wi+1+k}"></span>`;
+  return h;
+}
+function decHissanPair(a,b,sign){
+  const ans=(sign==="+")?a+b:a-b;
+  const dec=Math.max(decsOf(a),decsOf(b),decsOf(ans));
+  const wi=Math.max(intLen(a),intLen(b),intLen(ans));
+  const w=wi+1+dec;
+  const tpl=`repeat(${wi},2ch) 1.1ch repeat(${dec},2ch)`;
+  const row=(o,inner)=>`<div class="hrow"><span class="hop">${o}</span>`
+    +`<span class="dgrid dp" style="--tpl:${tpl}">${inner}</span></div>`;
+  const form=(inner)=>`<div class="hissan">`
+    +row("",decNumCells(a,wi,dec))
+    +row(sign,decNumCells(b,wi,dec))
+    +`<div class="hrule"></div>`
+    +row("",inner)+`</div>`;
+  const cols=[];
+  for(let i=0;i<wi;i++)cols.push(i);
+  for(let i=0;i<dec;i++)cols.push(wi+1+i);
+  const blank=form(decInputCells(0,wi,dec));
+  return {
+    fig:blank, figP:blank, figA:form(decNumCells(ans,wi,dec)),
+    qtext:`${fmt(a)} ${sign} ${fmt(b)}`,
+    // point=小数点の列 / dir=-1 → 小さい位から 左へ すすむ
+    grid:{w:w,point:wi,dir:-1,rows:[{ans:ans,cols:cols,w:w}]}
+  };
+}
+
+/* ============ 図形SVG ============
+   ⚠ プリント（別ウィンドウ）にも この同じ文字列を そのまま流し込む。
+     画面用CSSを 子ウィンドウへ コピーしているので、図の見た目は 紙でも同じ。
+     SVGは 幅を px で持つもの（分度器・展開図など）と 100% で持つもの
+     （数直線・テープ図）があり、後者だけは プリントの 2列に 入れると
+     つぶれるので 生成関数側で wide:true を付けて 1行ぶち抜きにする。
+     ⚠ 表・展開図・折れ線グラフには 付けない。1問が 縦に 長くなって
+       6問が A4 1枚に 収まらなくなる（横半分でも 読める大きさに 収まる） */
+const INK="#3A342C", SUB="#6E6558", RED="#C86D7C", ORG="#FEB342", PAPER="#FFFDF8";
+const rad=d=>d*Math.PI/180;
+const px=(cx,cy,r,d)=>[cx+Math.cos(rad(d))*r, cy-Math.sin(rad(d))*r];
+const f1=n=>Number(n).toFixed(1);
+
+/* 分度器で 角度を 読む図。0のめもりを 右にそろえ、反時計まわりに deg の辺をひく */
+function svgBundoki(deg){
+  const cx=124,cy=132,r=106;let s="";
+  // 半円のふち
+  const L=px(cx,cy,r,180),Rt=px(cx,cy,r,0);
+  s+=`<path d="M${f1(L[0])},${f1(L[1])} A${r},${r} 0 0 1 ${f1(Rt[0])},${f1(Rt[1])} Z" fill="#F7FAFF" stroke="${INK}" stroke-width="2"/>`;
+  for(let d=0;d<=180;d+=5){
+    const big=d%30===0, mid=d%10===0, len=big?15:(mid?10:6);
+    const p1=px(cx,cy,r,d),p2=px(cx,cy,r-len,d);
+    s+=`<line x1="${f1(p1[0])}" y1="${f1(p1[1])}" x2="${f1(p2[0])}" y2="${f1(p2[1])}" stroke="${big?INK:"#8C93A0"}" stroke-width="${big?2:1}"/>`;
+    if(big){const t=px(cx,cy,r-28,d);
+      // 0と180の 数字は そのままだと 底の 線に かぶるので すこし 上げる
+      const dy=(d===0||d===180)?-4:4;
+      s+=`<text x="${f1(t[0])}" y="${f1(t[1]+dy)}" font-size="12" font-weight="700" text-anchor="middle" fill="${INK}">${d}</text>`;}
+  }
+  // 角の2辺（分度器より すこし 外まで のばす）
+  const e0=px(cx,cy,r+16,0), e1=px(cx,cy,r+16,deg);
+  s+=`<line x1="${cx}" y1="${cy}" x2="${f1(e0[0])}" y2="${f1(e0[1])}" stroke="${RED}" stroke-width="3.5" stroke-linecap="round"/>`;
+  s+=`<line x1="${cx}" y1="${cy}" x2="${f1(e1[0])}" y2="${f1(e1[1])}" stroke="${RED}" stroke-width="3.5" stroke-linecap="round"/>`;
+  const a1=px(cx,cy,40,0),a2=px(cx,cy,40,deg);
+  s+=`<path d="M${f1(a1[0])},${f1(a1[1])} A40,40 0 0 ${deg>180?1:0} ${f1(a2[0])},${f1(a2[1])}" fill="none" stroke="${RED}" stroke-width="2"/>`;
+  const lb=px(cx,cy,58,deg/2);
+  s+=`<text x="${f1(lb[0])}" y="${f1(lb[1]+5)}" font-size="16" font-weight="900" text-anchor="middle" fill="${RED}">ア</text>`;
+  s+=`<circle cx="${cx}" cy="${cy}" r="4" fill="${INK}"/>`;
+  return `<svg viewBox="0 0 248 152" width="100%" style="max-width:248px" role="img" aria-label="分度器と角">${s}</svg>`;
+}
+/* 一直線の上の角（180°−x） */
+function svgStraight(x){
+  const cx=130,cy=112,r=104;let s="";
+  s+=`<line x1="${cx-r-14}" y1="${cy}" x2="${cx+r+14}" y2="${cy}" stroke="${INK}" stroke-width="3"/>`;
+  const e=px(cx,cy,r,x);
+  s+=`<line x1="${cx}" y1="${cy}" x2="${f1(e[0])}" y2="${f1(e[1])}" stroke="${INK}" stroke-width="3"/>`;
+  const a1=px(cx,cy,42,0),a2=px(cx,cy,42,x),a3=px(cx,cy,42,180);
+  s+=`<path d="M${f1(a1[0])},${f1(a1[1])} A42,42 0 0 0 ${f1(a2[0])},${f1(a2[1])}" fill="none" stroke="${SUB}" stroke-width="2"/>`;
+  s+=`<path d="M${f1(a2[0])},${f1(a2[1])} A42,42 0 0 0 ${f1(a3[0])},${f1(a3[1])}" fill="none" stroke="${RED}" stroke-width="2.5"/>`;
+  const t1=px(cx,cy,62,x/2), t2=px(cx,cy,62,(x+180)/2);
+  s+=`<text x="${f1(t1[0])}" y="${f1(t1[1]+5)}" font-size="15" font-weight="700" text-anchor="middle" fill="${SUB}">${x}°</text>`;
+  s+=`<text x="${f1(t2[0])}" y="${f1(t2[1]+5)}" font-size="17" font-weight="900" text-anchor="middle" fill="${RED}">ア</text>`;
+  s+=`<circle cx="${cx}" cy="${cy}" r="4" fill="${INK}"/>`;
+  return `<svg viewBox="0 0 260 130" width="100%" style="max-width:260px" role="img" aria-label="一直線の上の角">${s}</svg>`;
+}
+/* 1回転の角（360°−x） */
+function svgRound(x){
+  const cx=100,cy=100,r=78;let s="";
+  s+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#E3D9C7" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+  const e0=px(cx,cy,r,0), e1=px(cx,cy,r,x);
+  s+=`<line x1="${cx}" y1="${cy}" x2="${f1(e0[0])}" y2="${f1(e0[1])}" stroke="${INK}" stroke-width="3"/>`;
+  s+=`<line x1="${cx}" y1="${cy}" x2="${f1(e1[0])}" y2="${f1(e1[1])}" stroke="${INK}" stroke-width="3"/>`;
+  // 内側の弧=わかっている角 / 外側の弧=もとめる角ア（半径ちがいの点を つながないよう
+  // それぞれ 同じ半径で 始点と終点を とる）
+  const a1=px(cx,cy,34,0),a2=px(cx,cy,34,x);
+  const b1=px(cx,cy,54,x),b2=px(cx,cy,54,360);
+  s+=`<path d="M${f1(a1[0])},${f1(a1[1])} A34,34 0 ${x>180?1:0} 0 ${f1(a2[0])},${f1(a2[1])}" fill="none" stroke="${SUB}" stroke-width="2"/>`;
+  s+=`<path d="M${f1(b1[0])},${f1(b1[1])} A54,54 0 ${360-x>180?1:0} 0 ${f1(b2[0])},${f1(b2[1])}" fill="none" stroke="${RED}" stroke-width="2.5"/>`;
+  /* 数字の 置きどころは 角の 広さで 変える（せまい側に 大きい半径で 置くと
+     2本の 辺に かぶって 読めなくなる） */
+  const t1=px(cx,cy,x<80?20:44,x/2), t2=px(cx,cy,(360-x)<80?70:52,(x+360)/2);
+  s+=`<text x="${f1(t1[0])}" y="${f1(t1[1]+5)}" font-size="14" font-weight="700" text-anchor="middle" fill="${SUB}">${x}°</text>`;
+  s+=`<text x="${f1(t2[0])}" y="${f1(t2[1]+5)}" font-size="17" font-weight="900" text-anchor="middle" fill="${RED}">ア</text>`;
+  s+=`<circle cx="${cx}" cy="${cy}" r="4" fill="${INK}"/>`;
+  return `<svg viewBox="0 0 200 200" width="176" height="176" role="img" aria-label="1回転の角">${s}</svg>`;
+}
+/* 四角形（名前あて用）。tick=true で 等しい辺に しるしを 入れる */
+const QUADS={
+  dai:  {n:"台形",     p:[[24,116],[164,116],[128,26],[62,26]]},
+  hei:  {n:"平行四辺形",p:[[20,116],[142,116],[178,26],[56,26]]},
+  hishi:{n:"ひし形",   p:[[96,16],[176,74],[96,132],[16,74]]},
+  cho:  {n:"長方形",   p:[[24,32],[176,32],[176,116],[24,116]]},
+  sei:  {n:"正方形",   p:[[38,20],[152,20],[152,134],[38,134]]}
+};
+function svgQuad(kind){
+  const q=QUADS[kind];
+  const d=q.p.map(p=>p.join(",")).join(" ");
+  return `<svg viewBox="0 0 200 152" width="188" height="143" role="img" aria-label="四角形">
+    <polygon points="${d}" fill="${PAPER}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/></svg>`;
+}
+/* 平行四辺形（辺の長さと 角の大きさ つき） */
+function svgHeikou(a,b,ang,mode){
+  const P=[[24,120],[24+124,120],[24+124+40,34],[24+40,34]];
+  const d=P.map(p=>p.join(",")).join(" ");
+  let s=`<polygon points="${d}" fill="${PAPER}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`;
+  s+=`<text x="${(P[0][0]+P[1][0])/2}" y="139" font-size="15" font-weight="900" text-anchor="middle" fill="${RED}">${a}cm</text>`;
+  s+=`<text x="${(P[1][0]+P[2][0])/2+22}" y="82" font-size="15" font-weight="900" text-anchor="middle" fill="${RED}">${b}cm</text>`;
+  if(mode==="kaku"){
+    s+=`<text x="${P[0][0]+30}" y="112" font-size="14" font-weight="700" text-anchor="middle" fill="${SUB}">${ang}°</text>`;
+    s+=`<text x="${P[1][0]-16}" y="112" font-size="16" font-weight="900" text-anchor="middle" fill="${RED}">ア</text>`;
+  }
+  return `<svg viewBox="0 0 210 148" width="100%" style="max-width:210px" role="img" aria-label="平行四辺形">${s}</svg>`;
+}
+/* 長方形・正方形（面積用） */
+function svgRect(w,h,unit){
+  const sc=Math.min(160/w,96/h), W=Math.max(46,w*sc), H=Math.max(34,h*sc);
+  return `<svg viewBox="0 0 ${W+70} ${H+44}" width="100%" style="max-width:${W+70}px" role="img" aria-label="長方形">
+    <rect x="10" y="10" width="${f1(W)}" height="${f1(H)}" fill="${PAPER}" stroke="${INK}" stroke-width="3"/>
+    <text x="${f1(10+W/2)}" y="${f1(H+32)}" font-size="15" font-weight="900" text-anchor="middle" fill="${RED}">${w}${unit}</text>
+    <text x="${f1(W+22)}" y="${f1(14+H/2)}" font-size="15" font-weight="900" text-anchor="start" fill="${RED}">${h}${unit}</text></svg>`;
+}
+/* L字型の 複合図形。よこ W・たて H の 長方形から 右上を たて d・よこ (W-t) 切り取った形 */
+function svgL(W,H,t,d){
+  const sc=Math.min(150/W,104/H);
+  const x0=12,y0=12, w=W*sc,h=H*sc, tw=t*sc, dh=d*sc;
+  const pts=[[x0,y0+dh],[x0+tw,y0+dh],[x0+tw,y0],[x0+w,y0],[x0+w,y0+h],[x0,y0+h]];
+  // 上辺 t / 下辺 W / 左辺 H-d / 段の たて d
+  const d2=pts.map(p=>[f1(p[0]),f1(p[1])].join(",")).join(" ");
+  let s=`<polygon points="${d2}" fill="${PAPER}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`;
+  s+=`<text x="${f1(x0+tw/2)}" y="${f1(y0+dh-6)}" font-size="13" font-weight="900" text-anchor="middle" fill="${RED}">${t}cm</text>`;
+  s+=`<text x="${f1(x0+w/2)}" y="${f1(y0+h+18)}" font-size="13" font-weight="900" text-anchor="middle" fill="${RED}">${W}cm</text>`;
+  s+=`<text x="${f1(x0-6)}" y="${f1(y0+dh+(h-dh)/2)}" font-size="13" font-weight="900" text-anchor="end" fill="${RED}">${H-d}cm</text>`;
+  s+=`<text x="${f1(x0+tw+6)}" y="${f1(y0+dh/2+5)}" font-size="13" font-weight="900" text-anchor="start" fill="${RED}">${d}cm</text>`;
+  s+=`<text x="${f1(x0+w+6)}" y="${f1(y0+h/2)}" font-size="13" font-weight="900" text-anchor="start" fill="${RED}">${H}cm</text>`;
+  return `<svg viewBox="0 0 ${f1(w+64)} ${f1(h+34)}" width="100%" style="max-width:${f1(w+64)}px" role="img" aria-label="L字の図形">${s}</svg>`;
+}
+/* 立方体の展開図（十字型）。イウエオの4つが 横1れつ、アが ウの上、カが ウの下
+   ＝向かい合う面は (イ,エ) (ウ,オ) (ア,カ) の3組 */
+const NET_FACES=["ア","イ","ウ","エ","オ","カ"];
+const NET_PAIR={"ア":"カ","カ":"ア","イ":"エ","エ":"イ","ウ":"オ","オ":"ウ"};
+function svgNet(){
+  const u=44,x0=10,y0=10;
+  const cell=(cx,cy,t)=>`<rect x="${x0+cx*u}" y="${y0+cy*u}" width="${u}" height="${u}" fill="${PAPER}" stroke="${INK}" stroke-width="2"/>`
+    +`<text x="${x0+cx*u+u/2}" y="${y0+cy*u+u/2+6}" font-size="17" font-weight="900" text-anchor="middle" fill="${INK}">${t}</text>`;
+  let s=cell(1,0,"ア")+cell(0,1,"イ")+cell(1,1,"ウ")+cell(2,1,"エ")+cell(3,1,"オ")+cell(1,2,"カ");
+  return `<svg viewBox="0 0 ${x0*2+u*4} ${y0*2+u*3}" width="100%" style="max-width:${x0*2+u*4}px" role="img" aria-label="立方体の展開図">${s}</svg>`;
+}
+/* 直方体（見取図）。a=よこ b=たて c=高さ */
+function svgBox(a,b,c){
+  const W=132,H=84,dx=38,dy=-26,x0=14,y0=52;
+  const A=[x0,y0],B=[x0+W,y0],C=[x0+W,y0+H],D=[x0,y0+H];
+  const A2=[A[0]+dx,A[1]+dy],B2=[B[0]+dx,B[1]+dy],C2=[C[0]+dx,C[1]+dy];
+  const D2=[D[0]+dx,D[1]+dy];
+  const ln=(p,q)=>`<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" stroke="${SUB}" stroke-width="2" stroke-dasharray="5 4"/>`;
+  // 見えないかどの3本を 点線で先に、見える3面を あとから かぶせる
+  let s=ln(D,D2)+ln(D2,A2)+ln(D2,C2);
+  s+=`<polygon points="${[A,B,C,D].map(p=>p.join(",")).join(" ")}" fill="${PAPER}" stroke="${INK}" stroke-width="2.5"/>`;
+  s+=`<polygon points="${[A,B,B2,A2].map(p=>p.join(",")).join(" ")}" fill="#F3EADA" stroke="${INK}" stroke-width="2.5"/>`;
+  s+=`<polygon points="${[B,C,C2,B2].map(p=>p.join(",")).join(" ")}" fill="#EFE6D6" stroke="${INK}" stroke-width="2.5"/>`;
+  s+=`<text x="${x0+W/2}" y="${y0+H+20}" font-size="14" font-weight="900" text-anchor="middle" fill="${RED}">${a}cm</text>`;
+  s+=`<text x="${x0-6}" y="${y0+H/2+5}" font-size="14" font-weight="900" text-anchor="end" fill="${RED}">${b}cm</text>`;
+  // 3本目（おくへ のびる辺）は 立体の 中に 書くと 面の色と かさなって 読めないので、
+  // 右下の 何もない ところ（C→C2 の 辺のとなり）に 置く
+  s+=`<text x="${C2[0]+6}" y="${(C[1]+C2[1])/2+5}" font-size="14" font-weight="900" text-anchor="start" fill="${RED}">${c}cm</text>`;
+  const VW=x0*2+W+dx+46;
+  return `<svg viewBox="0 0 ${VW} ${y0+H+30}" width="100%" style="max-width:${VW}px" role="img" aria-label="直方体">${s}</svg>`;
+}
+/* 数直線（suffix は「億」など。base/step は suffix 単位の数） */
+function svgNumberLine(base,step,val,suffix){
+  const x0=34,x1=486;let s="";
+  for(let i=0;i<=10;i++){const x=x0+(x1-x0)*i/10, big=i%5===0;
+    s+=`<line x1="${x}" y1="44" x2="${x}" y2="${big?22:32}" stroke="${INK}" stroke-width="${big?2:1}"/>`;
+    if(big)s+=`<text x="${x}" y="62" font-size="13" font-weight="700" text-anchor="middle" fill="${INK}">${fmt(base+step*i)}${suffix||""}</text>`;}
+  const p=x0+(x1-x0)*((val-base)/(step*10));
+  s+=`<polygon points="${f1(p)},18 ${f1(p-8)},4 ${f1(p+8)},4" fill="${RED}"/>`;
+  return `<svg viewBox="0 0 520 70" width="100%" style="max-width:520px" role="img" aria-label="数直線">
+    <line x1="24" y1="44" x2="496" y2="44" stroke="${INK}" stroke-width="2"/>${s}</svg>`;
+}
+/* 2本のテープ図（倍の見方） */
+function svgTape2(a,b,ua,ub){
+  const x0=64,W=380,unit=W/Math.max(a,b);
+  const bar=(y,len,col,lb)=>`<rect x="${x0}" y="${y}" width="${f1(len*unit)}" height="30" fill="${col}" stroke="${INK}" stroke-width="2"/>`
+    +`<text x="${x0-8}" y="${y+21}" font-size="13" font-weight="900" text-anchor="end" fill="${INK}">${lb}</text>`
+    +`<text x="${f1(x0+len*unit+8)}" y="${y+21}" font-size="13" font-weight="900" text-anchor="start" fill="${RED}">${len}m</text>`;
+  return `<svg viewBox="0 0 520 92" width="100%" style="max-width:520px" role="img" aria-label="テープ図">
+    ${bar(10,a,"#FBDDE1",ua)}${bar(52,b,"#FDE8C4",ub)}</svg>`;
+}
+/* 折れ線グラフ */
+function svgOre(labels,vals,step,unit){
+  const x0=54,y0=14,H=150,W=x0+labels.length*54;
+  const mx=Math.max(...vals),mn=Math.min(...vals);
+  const top=Math.ceil(mx/step)*step, btm=Math.max(0,Math.floor(mn/step)*step-step);
+  const sy=v=>H-((v-btm)/(top-btm))*(H-y0-8);
+  const sx=i=>x0+i*54+27;
+  let s="";
+  for(let v=btm;v<=top;v+=step){
+    s+=`<line x1="${x0}" y1="${f1(sy(v))}" x2="${W}" y2="${f1(sy(v))}" stroke="#E3D9C7" stroke-width="1"/>`;
+    s+=`<text x="${x0-8}" y="${f1(sy(v)+4)}" font-size="11" font-weight="700" text-anchor="end" fill="${SUB}">${v}</text>`;}
+  labels.forEach((L,i)=>{
+    s+=`<text x="${sx(i)}" y="${H+18}" font-size="12" font-weight="900" text-anchor="middle" fill="${INK}">${L}</text>`;});
+  let d="";
+  vals.forEach((v,i)=>{d+=(i?" L":"M")+f1(sx(i))+","+f1(sy(v));});
+  s+=`<path d="${d}" fill="none" stroke="${RED}" stroke-width="3" stroke-linejoin="round"/>`;
+  vals.forEach((v,i)=>{s+=`<circle cx="${f1(sx(i))}" cy="${f1(sy(v))}" r="4.5" fill="#fff" stroke="${RED}" stroke-width="2.5"/>`;});
+  s+=`<text x="${x0-8}" y="10" font-size="10.5" font-weight="700" text-anchor="end" fill="${SUB}">(${unit})</text>`;
+  return `<svg viewBox="0 0 ${W+14} ${H+26}" width="100%" style="max-width:${W+14}px" role="img" aria-label="折れ線グラフ">
+    <line x1="${x0}" y1="${y0-6}" x2="${x0}" y2="${H}" stroke="${INK}" stroke-width="2"/>
+    <line x1="${x0}" y1="${H}" x2="${W}" y2="${H}" stroke="${INK}" stroke-width="2"/>${s}</svg>`;
+}
+/* 2つの数量の 表（変わり方・二次元表）。rows[0] が 見出しの行。
+   ⚠ ここだけ SVG ではなく table のHTML。図と同じく プリントにも そのまま流すので、
+     .ptbl のCSSは 画面用CSS（子ウィンドウへコピーされる）側に置いてある */
+function tblHtml(rows){
+  let h='<table class="ptbl"><tbody>';
+  rows.forEach((r,ri)=>{
+    h+="<tr>"+r.map(c=>(ri===0)?`<th>${c}</th>`:`<td>${c}</td>`).join("")+"</tr>";
+  });
+  return h+"</tbody></table>";
+}
+
+/* ============ 単元ジェネレータ ============
+   返り値: {q, fig, figA, type:'num'|'num2'|'frac'|'mixed'|'choice'|'cells',
+            ans, boxes, choices, ai, grid, exp, key, dec, wide}
+   ・dec  … テンキーに 小数点キーを 出す（答えが 小数に なりうる単元）
+   ・wide … 練習プリントで 横1行ぶち抜きにする（数直線・グラフ・テープ図）
+   ・key  … 出題パターンの名前（question_key は単元キーなので カルテには出ないが、
+             どのパターンで まちがえたかを 追えるように 残す） */
+
+/* ---- 1. 大きい数 ---- */
+function gOokii(){
+  const t=R(1,7);
+  if(t===1){const a=R(11,99);
+    return {q:`${a}億は 1億を 何こ 集めた数ですか。`,type:"num",boxes:[{s:"こ"}],ans:a,
+      exp:`1億が ${a}こ 集まった数を ${a}億と 書きます。`,key:"ookii_oku"};}
+  if(t===2){const o=pick([
+      {q:`1億は 1000万の 何倍ですか。`,a:10,e:`1000万を 10倍すると 1億です。`},
+      {q:`1億は 100万の 何倍ですか。`,a:100,e:`100万の 10倍が 1000万、その 10倍が 1億です。`},
+      {q:`1兆は 1億の 何倍ですか。`,a:10000,e:`1億の 10倍・100倍・1000倍・10000倍と ならんで 1兆です。`},
+      {q:`1兆は 1000億の 何倍ですか。`,a:10,e:`1000億を 10倍すると 1兆です。`}]);
+    return {q:o.q,type:"num",boxes:[{s:"倍"}],ans:o.a,exp:o.e,key:"ookii_bai"};}
+  if(t===3){const a=R(2,9),b=R(11,99)*100;      // a億 b万（bは百万の位までで そろえる）
+    const v=a*100000000+b*10000;
+    const cand=[v,v*10,Math.floor(v/10),a*100000000+b*1000];
+    const ch=shuffle(Array.from(new Set(cand.map(String))).slice(0,4));
+    return {q:`${a}億${b}万 を 数字で 書くと どれですか。`,type:"choice",choices:ch,ai:ch.indexOf(String(v)),
+      exp:`一億の位から 4けたずつ 区切って 考えます。${a}億${b}万 は ${v} です。`,key:"ookii_kaku"};}
+  if(t===4){const base=R(1,4)*10,step=pick([1,2,5]),k=R(1,9);
+    return {q:`↓の めもりが さす数は 何億ですか。`,fig:svgNumberLine(base,step,base+step*k,"億"),wide:true,
+      type:"num",boxes:[{s:"億"}],ans:base+step*k,
+      exp:`大きい めもりの間が 5等分なので 1めもりは ${step}億。${base}億から ${k}めもり すすんで ${base+step*k}億です。`,key:"ookii_line"};}
+  if(t===5){const a=R(11,99),b=R(11,99),m1=R(1,9)*1000,m2=R(1,9)*1000;
+    const A=a*100000000+m1*10000, B=b*100000000+m2*10000;
+    if(A===B)return gOokii();
+    const sa=`${a}億${m1}万`, sb=`${b}億${m2}万`;
+    const ch=shuffle([`${sa} > ${sb}`,`${sa} < ${sb}`]);
+    const right=(A>B)?`${sa} > ${sb}`:`${sa} < ${sb}`;
+    return {q:`正しい 式は どちらですか。`,type:"choice",choices:ch,ai:ch.indexOf(right),
+      exp:`上の位から くらべます。まず 億の 部分 ${a} と ${b} を くらべて、同じなら 万の 部分を くらべます。大きいのは ${A>B?sa:sb} です。`,
+      key:"ookii_daisho"};}
+  if(t===6){const a=R(12,98);
+    return pick([
+      {q:`${a}億を 10倍した数は 何億ですか。`,type:"num",boxes:[{s:"億"}],ans:a*10,
+        exp:`10倍すると 位が 1つ 上がります。${a}億の 10倍は ${a*10}億です。`,key:"ookii_10bai"},
+      {q:`${a*10}億を 10でわった数は 何億ですか。`,type:"num",boxes:[{s:"億"}],ans:a,
+        exp:`10でわると 位が 1つ 下がります。${a*10}億の 10分の1は ${a}億です。`,key:"ookii_10bai"}]);}
+  const a=R(11,99),b=R(11,99)*100;
+  return {q:`${a}億${b}万 の 一億の位の 数字は 何ですか。`,type:"num",ans:a%10,
+    exp:`「${a}億」の うち 一億の位は ${a}の 一の位なので ${a%10} です。`,key:"ookii_kurai"};
+}
+
+/* ---- 2. わり算の筆算（÷1けた） ---- */
+function gWari1(){
+  const t=R(1,5);
+  if(t===1){const b=R(3,9),q=R(12,99),r=R(0,b-1);
+    const a=q*b+r;
+    return Object.assign({q:"",type:"cells",dec:false,
+      exp:`大きい位から わっていきます。${a}÷${b}=${q}あまり${r}。たしかめは ${b}×${q}+${r}=${a}。`,
+      key:"wari1_3ke"},wariPair(a,b,true));}
+  if(t===2){const b=R(3,9),q=R(1,9)*100+R(0,9),r=R(0,b-1);   // 十の位に0が立つ商
+    const a=q*b+r;
+    return Object.assign({q:"",type:"cells",
+      exp:`十の位は わられないので 商に 0 を たてます。${a}÷${b}=${q}あまり${r}。`,
+      key:"wari1_zero"},wariPair(a,b,true));}
+  if(t===3){const b=R(3,9),q=R(120,999),r=R(0,b-1);
+    const a=q*b+r;
+    return Object.assign({q:"",type:"cells",
+      exp:`4けたでも やり方は 同じ。大きい位から じゅんに わって ${a}÷${b}=${q}あまり${r}。`,
+      key:"wari1_4ke"},wariPair(a,b,true));}
+  if(t===4){const b=R(2,9),k=pick([10,100]),q=R(2,9);
+    return {q:`${q*b*k} ÷ ${b} = □`,type:"num",ans:q*k,
+      exp:`${q*b*k} は ${k} が ${q*b}こ。${q*b}÷${b}=${q} なので ${k}が ${q}こで ${q*k} です。`,key:"wari1_anzan"};}
+  const b=R(3,9),q=R(12,60),r=R(1,b-1),a=q*b+r;
+  return {q:`あめが ${a}こ あります。\n${b}人で 同じ数ずつ 分けると\n1人分は 何こで 何こ あまりますか。`,
+    type:"num2",boxes:[{s:"こ、あまり"},{s:"こ"}],ans:[q,r],
+    exp:`${a}÷${b}=${q}あまり${r}。1人分は ${q}こで、${r}こ あまります。`,key:"wari1_bunsho"};
+}
+
+/* ---- 3. わり算の筆算（÷2けた） ---- */
+function gWari2(){
+  const t=R(1,5);
+  if(t===1){const b=R(12,48),q=R(3,20),r=R(0,b-1);
+    const a=q*b+r;
+    if(a>999)return gWari2();       // この型は 3けた÷2けた にそろえる
+    return Object.assign({q:"",type:"cells",
+      exp:`わる数を およその 数（${Math.round(b/10)*10}くらい）と 見て 商を たてます。${a}÷${b}=${q}あまり${r}。`,
+      key:"wari2_2ke"},wariPair(a,b,true));}
+  if(t===2){const b=R(12,39),q=R(21,45),r=R(0,b-1);
+    const a=q*b+r;
+    return Object.assign({q:"",type:"cells",
+      exp:`商が 2けたに なる型です。${a}÷${b}=${q}あまり${r}。たしかめは ${b}×${q}+${r}=${a}。`,
+      key:"wari2_shou2"},wariPair(a,b,true));}
+  if(t===3){const b=R(2,9),q=R(2,9);
+    return {q:`${q*b*10} ÷ ${b*10} = □`,type:"num",ans:q,
+      exp:`わられる数と わる数を 10でわっても 商は 同じ。${q*b}÷${b}=${q} です。`,key:"wari2_nanju"};}
+  if(t===4){const b=R(21,89),q=pick([R(2,9),R(11,40)]);
+    const a=q*b+R(0,b-1);
+    const ch=["1けた","2けた","3けた","4けた"];
+    return {q:`${a} ÷ ${b} の 商は 何けたに なりますか。`,type:"choice",choices:ch,
+      ai:ch.indexOf(String(q).length+"けた"),
+      exp:`${b}×10=${b*10} と くらべます。${a}は ${b*10}${a>=b*10?"より 大きい":"より 小さい"} ので 商は ${String(q).length}けたです。`,
+      key:"wari2_ketasuu"};}
+  const b=R(12,28),q=R(8,30),a=q*b;
+  return {q:`${a}ページの 本を\n1日 ${b}ページずつ 読みます。\n何日で 読み終わりますか。`,type:"num",boxes:[{s:"日"}],ans:q,
+    exp:`いくつ分を もとめるので わり算。${a}÷${b}=${q} で ${q}日です。`,key:"wari2_bunsho"};
+}
+
+/* ---- 4. 角の大きさ ---- */
+function gKaku(){
+  const t=R(1,6);
+  // 0°・180°の めもりに ぴったり 近い角は 出さない（分度器の 数字と 重なって 読めない）
+  if(t===1){const d=R(3,33)*5;
+    return {q:`分度器で 角アの 大きさを 読みましょう。`,fig:svgBundoki(d),type:"num",boxes:[{s:"度"}],ans:d,
+      exp:`0のめもりから 数えて ${d}°です。大きい めもり1つが 30°、小さい めもり1つが 5°。`,key:"kaku_yomu"};}
+  if(t===2){const x=R(3,33)*5;
+    return {q:`一直線の 角は 180°です。\n角アの 大きさは 何度ですか。`,fig:svgStraight(x),type:"num",boxes:[{s:"度"}],ans:180-x,
+      exp:`180−${x}=${180-x} で ${180-x}°です。`,key:"kaku_chokusen"};}
+  if(t===3){const x=R(5,66)*5;
+    return {q:`1回転の 角は 360°です。\n角アの 大きさは 何度ですか。`,fig:svgRound(x),type:"num",boxes:[{s:"度"}],ans:360-x,
+      exp:`360−${x}=${360-x} で ${360-x}°です。`,key:"kaku_ikkaiten"};}
+  if(t===4){const o=pick([
+      {q:`三角じょうぎの 30°の角と 45°の角を\nならべて つなげると 何度に なりますか。`,a:75,e:`30+45=75 で 75°です。`},
+      {q:`三角じょうぎの 60°の角と 45°の角を\nならべて つなげると 何度に なりますか。`,a:105,e:`60+45=105 で 105°です。`},
+      {q:`三角じょうぎの 90°の角から\n60°の角を のぞくと 何度に なりますか。`,a:30,e:`90−60=30 で 30°です。`},
+      {q:`三角じょうぎの 45°の角と 90°の角を\nならべて つなげると 何度に なりますか。`,a:135,e:`45+90=135 で 135°です。`}]);
+    return {q:o.q,type:"num",boxes:[{s:"度"}],ans:o.a,exp:o.e,key:"kaku_jougi"};}
+  if(t===5){const m=pick([5,10,15,20,25,30,40,45,50]);
+    return {q:`時計の 長い針が ${m}分で 回る 角の\n大きさは 何度ですか。`,type:"num",boxes:[{s:"度"}],ans:m*6,
+      exp:`1回転(60分)で 360°なので 1分で 6°。6×${m}=${m*6} で ${m*6}°です。`,key:"kaku_tokei"};}
+  const o=pick([
+    {q:`180°の 角は どんな 角ですか。`,c:["一直線の角","直角","1回転の角","直角より 小さい角"],a:"一直線の角",
+     e:`まっすぐに のびた 一直線の 角が 180°です。`},
+    {q:`1回転した 角の 大きさは 何度ですか。`,c:["360°","180°","90°","270°"],a:"360°",
+     e:`直角4つ分で 1回転。90×4=360 で 360°です。`},
+    {q:`${R(19,35)*5}°の 角は 直角と くらべて どうですか。`,c:["直角より 大きい","直角より 小さい","直角と 同じ","くらべられない"],a:"直角より 大きい",
+     e:`直角は 90°。それより 大きい 角です。`}]);
+  const ch=shuffle(o.c.slice());
+  return {q:o.q,type:"choice",choices:ch,ai:ch.indexOf(o.a),exp:o.e,key:"kaku_yougo"};
+}
+
+/* ---- 5. 垂直・平行と四角形 ---- */
+function gShikaku(){
+  const t=R(1,6);
+  if(t===1){const k=pick(["dai","hei","hishi","cho","sei"]);
+    const all=["台形","平行四辺形","ひし形","長方形","正方形"];
+    const right=QUADS[k].n;
+    const others=shuffle(all.filter(x=>x!==right)).slice(0,3);
+    const ch=shuffle(others.concat([right]));
+    return {q:`この 四角形の 名前は 何ですか。\n（いちばん くわしい 言い方で）`,fig:svgQuad(k),type:"choice",choices:ch,ai:ch.indexOf(right),
+      exp:{dai:`向かい合う 1組の 辺だけが 平行な 四角形は 台形です。`,
+           hei:`向かい合う 2組の 辺が どちらも 平行な 四角形は 平行四辺形です。`,
+           hishi:`4つの 辺の 長さが ぜんぶ 同じ 四角形は ひし形です。`,
+           cho:`4つの 角が ぜんぶ 直角の 四角形は 長方形です。`,
+           sei:`4つの 角が 直角で 4つの 辺も 同じ 長さなら 正方形です。`}[k],
+      key:"shikaku_namae"};}
+  if(t===2){const a=R(5,12),b=R(3,8),ang=R(5,17)*5;
+    return {q:`平行四辺形です。\n角アの 大きさは 何度ですか。`,fig:svgHeikou(a,b,ang,"kaku"),type:"num",boxes:[{s:"度"}],ans:180-ang,
+      exp:`となり合う 角を たすと 180°に なります。180−${ang}=${180-ang} で ${180-ang}°です。`,key:"shikaku_kaku"};}
+  if(t===3){const s=R(4,15);
+    return pick([
+      {q:`1辺が ${s}cm の ひし形の\nまわりの 長さは 何cmですか。`,type:"num",boxes:[{s:"cm"}],ans:s*4,
+        exp:`ひし形の 4つの 辺は 同じ 長さ。${s}×4=${s*4}cm です。`,key:"shikaku_hishi"},
+      {q:`まわりの 長さが ${s*4}cm の ひし形の\n1辺は 何cmですか。`,type:"num",boxes:[{s:"cm"}],ans:s,
+        exp:`4つの 辺が 同じ なので ${s*4}÷4=${s}cm です。`,key:"shikaku_hishi"}]);}
+  if(t===4){const a=R(5,14),b=R(3,9);
+    return {q:`となり合う 辺が ${a}cm と ${b}cm の\n平行四辺形の まわりの 長さは 何cmですか。`,fig:svgHeikou(a,b,0,""),
+      type:"num",boxes:[{s:"cm"}],ans:(a+b)*2,
+      exp:`向かい合う 辺は 同じ 長さ。(${a}+${b})×2=${(a+b)*2}cm です。`,key:"shikaku_mawari"};}
+  if(t===5){const o=pick([
+      {q:`1本の 直線に 垂直な 2本の 直線は\nどうなって いますか。`,c:["平行に なる","垂直に なる","交わる","わからない"],a:"平行に なる",
+       e:`同じ 直線に 垂直な 2本の 直線は、どこまで のばしても 交わりません＝平行です。`},
+      {q:`平行な 2本の 直線の はばは\nどうなって いますか。`,c:["どこも 同じ","はしに いくほど せまい","はしに いくほど 広い","ばらばら"],a:"どこも 同じ",
+       e:`平行な 直線の はばは どこを はかっても 同じです。`},
+      {q:`2本の 直線が 直角に 交わって いるとき\n2本の 直線は どんな かんけいですか。`,c:["垂直","平行","対角線","どちらでもない"],a:"垂直",
+       e:`直角に 交わって いる 2本の 直線は 垂直です。`}]);
+    const ch=shuffle(o.c.slice());
+    return {q:o.q,type:"choice",choices:ch,ai:ch.indexOf(o.a),exp:o.e,key:"shikaku_heisui"};}
+  const o=pick([
+    {q:`2本の 対角線が 垂直に 交わる 四角形は\nどれですか。`,c:["ひし形","台形","平行四辺形","どれでもない"],a:"ひし形",
+     e:`ひし形（と 正方形）は 対角線が 垂直に 交わります。`},
+    {q:`2本の 対角線の 長さが 同じに なる 四角形は\nどれですか。`,c:["長方形","ひし形","台形","平行四辺形"],a:"長方形",
+     e:`長方形（と 正方形）は 対角線の 長さが 同じです。`},
+    {q:`向かい合う 辺が 2組とも 平行で\n4つの 角が ぜんぶ 直角の 四角形は？`,c:["長方形","台形","ひし形","三角形"],a:"長方形",
+     e:`4つの 角が 直角なら 長方形。辺も ぜんぶ 同じ なら 正方形です。`}]);
+  const ch=shuffle(o.c.slice());
+  return {q:o.q,type:"choice",choices:ch,ai:ch.indexOf(o.a),exp:o.e,key:"shikaku_taikaku"};
+}
+
+/* ---- 6. 小数のしくみ ---- */
+/* 0.1・0.01の いくつ分 / 10倍・100倍・10でわる・100でわる / 数直線を 読む。
+   ⚠ 出る数は 小数第2位までに おさめる（÷10は 第1位の数から、÷100は 整数から
+     わる＝答えが 第3位まで いかないようにしている） */
+function gShou(){
+  const t=R(1,7);
+  if(t===1){const u=pick([10,100]);
+    const n=(u===10)?R(11,99):R(101,999);
+    return {q:`${u===10?"0.1":"0.01"}を ${n}こ 集めた数は いくつですか。`,type:"num",dec:true,ans:n/u,
+      exp:`${u===10?"0.1":"0.01"}が ${u}こで 1。${n}こ だから ${fmt(n/u)} です。`,key:"shou_atsume"};}
+  if(t===2){const u=pick([10,100]);
+    const n=(u===10)?R(11,99):R(105,995);
+    return {q:`${fmt(n/u)} は ${u===10?"0.1":"0.01"}を 何こ 集めた数ですか。`,type:"num",boxes:[{s:"こ"}],ans:n,
+      exp:`1は ${u===10?"0.1":"0.01"}が ${u}こ。${fmt(n/u)} は ${n}こ 集めた数です。`,key:"shou_ikutsu"};}
+  if(t===3){const n=R(105,995),v=n/100;
+    return {q:`${fmt(v)} を 10倍した数は いくつですか。`,type:"num",dec:true,ans:v*10,
+      exp:`10倍すると 小数点が 右へ 1つ うつります。${fmt(v)}→${fmt(v*10)}。`,key:"shou_10bai"};}
+  if(t===4){const n=R(105,995),v=n/100;
+    return {q:`${fmt(v)} を 100倍した数は いくつですか。`,type:"num",dec:true,ans:v*100,
+      exp:`100倍すると 小数点が 右へ 2つ うつります。${fmt(v)}→${fmt(v*100)}。`,key:"shou_100bai"};}
+  if(t===5){const n=R(105,995),v=n/10;
+    return {q:`${fmt(v)} を 10でわった数は いくつですか。`,type:"num",dec:true,ans:v/10,
+      exp:`10でわると 小数点が 左へ 1つ うつります。${fmt(v)}→${fmt(v/10)}。`,key:"shou_waru10"};}
+  if(t===6){const v=R(105,995);
+    return {q:`${v} を 100でわった数は いくつですか。`,type:"num",dec:true,ans:v/100,
+      exp:`100でわると 小数点が 左へ 2つ うつります。${v}→${fmt(v/100)}。`,key:"shou_waru100"};}
+  // 数直線（1めもり 0.1 または 0.01）。100分の1を 単位に した 整数で 計算して 誤差を 出さない
+  const fine=Math.random()<0.5;
+  const baseI=fine?R(10,88)*10:R(1,8)*100, stepI=fine?1:10, k=R(1,9);
+  const base=baseI/100, step=stepI/100, val=(baseI+stepI*k)/100;
+  return {q:`↓の めもりが さす数は いくつですか。`,fig:svgNumberLine(base,step,val,""),wide:true,
+    type:"num",dec:true,ans:val,
+    exp:`大きい めもりの 間が 5等分なので 1めもりは ${fmt(step)}。${fmt(base)}から ${k}めもり すすんで ${fmt(val)} です。`,
+    key:"shou_line"};
+}
+
+/* ---- 7. 小数のひっ算（たし算・ひき算 ランダム） ---- */
+/* 整数＋小数・整数−小数も 混ぜる（7+2.35 / 7−2.35）。
+   ⚠ 答えの 終わりが 0 に なる組み合わせ（3.4+1.6=5.0）は 出さない。
+     「終わりの0を消す」書き方の 話に なって、マスの数と 合わなくなるため */
+function decPair(a,b,sign){
+  const ans=(sign==="+")?a+b:a-b;
+  if(ans<=0)return null;
+  if(decsOf(ans)<Math.max(decsOf(a),decsOf(b)))return null;
+  return decHissanPair(a,b,sign);
+}
+function gShouHissan(){
+  const t=R(1,6);
+  const d1=()=>R(11,89)/10, d2=()=>R(105,895)/100;
+  for(let n=0;n<120;n++){
+    let a,b,sign,key;
+    if(t===1){a=d1();b=d1();sign="+";key="shouh_tasu1";}
+    else if(t===2){a=d2();b=(Math.random()<0.5)?d2():d1();sign="+";key="shouh_tasu2";}
+    else if(t===3){a=d1();b=d1();sign="−";key="shouh_hiku1";}
+    else if(t===4){a=R(200,995)/100;b=(Math.random()<0.5)?R(105,195)/100:R(11,19)/10;sign="−";key="shouh_hiku2";}
+    else if(t===5){a=R(2,19);b=(Math.random()<0.5)?d2():d1();sign="+";key="shouh_seitasu";}
+    else {a=R(3,19);b=(Math.random()<0.5)?R(105,295)/100:R(11,29)/10;sign="−";key="shouh_seihiku";}
+    if(sign==="−"&&a-b<=0)continue;
+    const o=decPair(a,b,sign);
+    if(!o)continue;
+    const ans=(sign==="+")?a+b:a-b;
+    const zeros="0".repeat(Math.max(decsOf(a),decsOf(b),decsOf(ans)));
+    const seisu=Number.isInteger(a);
+    const exp=(sign==="+")
+      ? (seisu
+        ? `${a} は ${a}.${zeros} と 考えて 小数点を たてに そろえます。${fmt(a)}+${fmt(b)}=${fmt(ans)}。`
+        : `小数点を たてに そろえて 書き、右の 小さい位から たします。${fmt(a)}+${fmt(b)}=${fmt(ans)}。答えの 小数点は 上と 同じ 位置に うちます。`)
+      : (seisu
+        ? `${a} は ${a}.${zeros} と 考えます。0からは ひけないので 上の位から くり下げて、${fmt(a)}−${fmt(b)}=${fmt(ans)}。`
+        : `小数点を たてに そろえて 書き、右の 小さい位から ひきます。${fmt(a)}−${fmt(b)}=${fmt(ans)}。`);
+    return Object.assign({q:"",type:"cells",exp:exp,key:key},o);
+  }
+  // ここには ほぼ 来ないが、無限に ためさず 決まった1問を 返す
+  return Object.assign({q:"",type:"cells",key:"shouh_tasu2",
+    exp:`小数点を たてに そろえて 書き、右の 小さい位から たします。3.24+1.5=4.74。`},decHissanPair(3.24,1.5,"+"));
+}
+
+/* ---- 7. 小数のかけ算・わり算（×整数・÷整数） ---- */
+function gShoukake(){
+  const t=R(1,6);
+  if(t===1){const a=R(11,99),b=R(2,9);
+    return {q:`${fmt(a/10)} × ${b} = □`,type:"num",dec:true,ans:a*b/10,
+      exp:`0.1の いくつ分で 考えます。${a}×${b}=${a*b}こ なので ${fmt(a*b/10)}。`,key:"shoukake_kake1"};}
+  if(t===2){const a=R(105,495),b=R(2,8);
+    return {q:`${fmt(a/100)} × ${b} = □`,type:"num",dec:true,ans:a*b/100,
+      exp:`整数と 同じように 計算して、小数点を 右から 2けたの ところに うちます。${a}×${b}=${a*b} → ${fmt(a*b/100)}。`,key:"shoukake_kake2"};}
+  if(t===3){const q=R(11,99),b=R(2,9);
+    return {q:`${fmt(q*b/10)} ÷ ${b} = □`,type:"num",dec:true,ans:q/10,
+      exp:`わられる数の 小数点に そろえて 商の 小数点を うちます。${q*b}÷${b}=${q} なので ${fmt(q/10)}。`,key:"shoukake_wari1"};}
+  if(t===4){const o=pick([
+      {a:9,b:4},{a:7,b:2},{a:3,b:4},{a:6,b:5},{a:9,b:2},{a:7,b:4},{a:13,b:4},{a:11,b:5}]);
+    return {q:`${o.a} ÷ ${o.b} = □\n（わりきれるまで 計算しましょう）`,type:"num",dec:true,ans:o.a/o.b,
+      exp:`${o.a}を ${o.a}.00 と 見て わりすすめます。${o.a}÷${o.b}=${fmt(o.a/o.b)}。`,key:"shoukake_warisusumu"};}
+  if(t===5){const a=R(11,49),b=R(2,6);
+    return {q:`1本 ${fmt(a/10)}L の ジュースが ${b}本 あります。\nぜんぶで 何Lですか。`,type:"num",boxes:[{s:"L"}],dec:true,ans:a*b/10,
+      exp:`1本分×本数 なので かけ算。${fmt(a/10)}×${b}=${fmt(a*b/10)}L です。`,key:"shoukake_bunsho"};}
+  const q=R(11,49),b=R(2,8);
+  return {q:`${fmt(q*b/10)}m の リボンを ${b}人で 同じ長さに 分けます。\n1人分は 何mですか。`,
+    type:"num",boxes:[{s:"m"}],dec:true,ans:q/10,
+    exp:`同じ長さに 分けるので わり算。${fmt(q*b/10)}÷${b}=${fmt(q/10)}m です。`,key:"shoukake_bunsho2"};
+}
+
+/* ---- 8. 概数（四捨五入・見積もり） ---- */
+function gGaisuu(){
+  const t=R(1,6);
+  if(t===1){const n=R(1234,98765);
+    const a=Math.round(n/1000)*1000;
+    return {q:`${n} を 四捨五入して\n千の位までの 概数に しましょう。`,type:"num",ans:a,
+      exp:`千の位までなので、その 1つ下の 百の位(${Math.floor(n/100)%10})を 見て ${Math.floor(n/100)%10>=5?"切り上げ":"切りすて"}ます。答えは ${a}。`,
+      key:"gaisuu_sen"};}
+  if(t===2){const n=R(1234,98765);
+    const d=String(n).length, u=Math.pow(10,d-2);
+    const a=Math.round(n/u)*u;
+    return {q:`${n} を 四捨五入して\n上から 2けたの 概数に しましょう。`,type:"num",ans:a,
+      exp:`上から 3けための 数字(${Math.floor(n/(u/10))%10})を 四捨五入します。答えは ${a}。`,key:"gaisuu_uekara"};}
+  if(t===3){const b=R(3,49)*10;
+    const ch=shuffle([`${b-5}以上 ${b+5}未満`,`${b-5}より 大きく ${b+5}以下`,`${b-4}以上 ${b+4}以下`,`${b-10}以上 ${b+10}未満`]);
+    return {q:`四捨五入して 十の位までの 概数に すると\n${b} に なる 整数の はんいは どれですか。`,type:"choice",choices:ch,
+      ai:ch.indexOf(`${b-5}以上 ${b+5}未満`),
+      exp:`${b-5}は 切り上げて ${b}、${b+4}は 切りすてて ${b}。${b+5}は ${b+10}に なるので 入りません＝${b-5}以上 ${b+5}未満。`,
+      key:"gaisuu_hani"};}
+  if(t===4){const a=R(11,49)*10+R(1,9),b=R(11,49)*10+R(1,9);
+    const ra=Math.round(a/100)*100, rb=Math.round(b/100)*100;
+    return {q:`${a} + ${b} を\n百の位までの 概数に して 見積もりましょう。`,type:"num",ans:ra+rb,
+      exp:`${a}→${ra}、${b}→${rb}。${ra}+${rb}=${ra+rb} と 見積もれます。`,key:"gaisuu_wa"};}
+  if(t===5){const a=R(21,89),b=R(21,89);
+    const ra=Math.round(a/10)*10, rb=Math.round(b/10)*10;
+    return {q:`${a} × ${b} を\n上から 1けたの 概数に して 見積もりましょう。`,type:"num",ans:ra*rb,
+      exp:`${a}→${ra}、${b}→${rb}。${ra}×${rb}=${ra*rb} と 見積もれます。`,key:"gaisuu_seki"};}
+  const n=R(11,98)*1000+R(100,999);
+  const a=Math.round(n/10000);
+  return {q:`${n}人 を 四捨五入して\n一万の位までの 概数に すると 約何万人ですか。`,type:"num",boxes:[{s:"万人"}],ans:a,
+    exp:`千の位(${Math.floor(n/1000)%10})を 四捨五入します。約${a}万人 です。`,key:"gaisuu_man"};
+}
+
+/* ---- 9. 計算のきまり（式と計算の順じょ） ---- */
+function gKimari(){
+  const t=R(1,6);
+  if(t===1){const a=R(11,60),b=R(2,9),c=R(2,9);
+    return {q:`${a} + ${b} × ${c} = □`,type:"num",ans:a+b*c,
+      exp:`×は +より 先に 計算します。${b}×${c}=${b*c}、${a}+${b*c}=${a+b*c}。`,key:"kimari_junjo"};}
+  if(t===2){const a=R(11,40),b=R(2,20),c=R(2,7);
+    return {q:`( ${a} + ${b} ) × ${c} = □`,type:"num",ans:(a+b)*c,
+      exp:`( )の 中を 先に 計算します。${a}+${b}=${a+b}、${a+b}×${c}=${(a+b)*c}。`,key:"kimari_kakko"};}
+  if(t===3){const b=R(2,9),c=R(2,9),a=R(50,200);
+    return {q:`${a} − ${b*c} ÷ ${b} = □`,type:"num",ans:a-c,
+      exp:`÷を 先に 計算します。${b*c}÷${b}=${c}、${a}−${c}=${a-c}。`,key:"kimari_junjo2"};}
+  if(t===4){const o=pick([
+      (()=>{const b=R(3,9);return {q:`98 × ${b} = □\n（くふうして 計算しましょう）`,a:98*b,
+        e:`98=100−2 と 見ます。100×${b}−2×${b}=${100*b}−${2*b}=${98*b}。`};})(),
+      (()=>{const b=R(3,9);return {q:`102 × ${b} = □\n（くふうして 計算しましょう）`,a:102*b,
+        e:`102=100+2 と 見ます。100×${b}+2×${b}=${100*b}+${2*b}=${102*b}。`};})(),
+      (()=>{const b=R(3,9);return {q:`25 × 4 × ${b} = □\n（くふうして 計算しましょう）`,a:100*b,
+        e:`25×4=100 を 先に すると らく。100×${b}=${100*b}。`};})(),
+      (()=>{const a=R(3,9),b=R(3,9);return {q:`${a} × ${b} × 5 × 2 = □\n（くふうして 計算しましょう）`,a:a*b*10,
+        e:`5×2=10 を 先に。${a}×${b}=${a*b}、${a*b}×10=${a*b*10}。`};})()]);
+    return {q:o.q,type:"num",ans:o.a,exp:o.e,key:"kimari_kufuu"};}
+  if(t===5){const p=R(80,160),n=R(2,6),d=R(90,250);
+    return {q:`1こ ${p}円の パンを ${n}こと\n${d}円の 牛にゅうを 1本 買います。\n代金は ぜんぶで 何円ですか。`,type:"num",boxes:[{s:"円"}],ans:p*n+d,
+      exp:`1つの 式に すると ${p}×${n}+${d}。${p*n}+${d}=${p*n+d}円 です。`,key:"kimari_hitotsu"};}
+  const o=pick([
+    {q:`+ と × が ならんだ 式では\nどちらを 先に 計算しますか。`,c:["×","+","左から じゅんに","どちらでも よい"],a:"×",
+     e:`×・÷は +・−より 先に 計算します。`},
+    {q:`( )の ある 式では\nどこを 先に 計算しますか。`,c:["( )の 中","左から じゅんに","×の ところ","右から じゅんに"],a:"( )の 中",
+     e:`( )の 中は いちばん 先に 計算します。`},
+    {q:`× と ÷ だけが ならんだ 式は\nどう 計算しますか。`,c:["左から じゅんに","×を 先に","÷を 先に","右から じゅんに"],a:"左から じゅんに",
+     e:`×と÷だけ、+と−だけの ときは 左から じゅんに 計算します。`}]);
+  const ch=shuffle(o.c.slice());
+  return {q:o.q,type:"choice",choices:ch,ai:ch.indexOf(o.a),exp:o.e,key:"kimari_kimari"};
+}
+
+/* ---- 10. 面積 ---- */
+function gMenseki(){
+  const t=R(1,6);
+  if(t===1){const w=R(4,15),h=R(3,12);
+    return {q:`この 長方形の 面積は 何cm²ですか。`,fig:svgRect(w,h,"cm"),type:"num",boxes:[{s:"cm²"}],ans:w*h,
+      exp:`長方形の 面積 = たて × よこ。${h}×${w}=${w*h}cm² です。`,key:"menseki_cho"};}
+  if(t===2){const s=R(3,14);
+    return {q:`1辺が ${s}cm の 正方形の\n面積は 何cm²ですか。`,fig:svgRect(s,s,"cm"),type:"num",boxes:[{s:"cm²"}],ans:s*s,
+      exp:`正方形の 面積 = 1辺 × 1辺。${s}×${s}=${s*s}cm² です。`,key:"menseki_sei"};}
+  if(t===3){const w=R(4,15),h=R(3,12);
+    return {q:`面積が ${w*h}cm² で たてが ${h}cm の\n長方形の よこの 長さは 何cmですか。`,type:"num",boxes:[{s:"cm"}],ans:w,
+      exp:`たて×よこ=面積 だから よこ=面積÷たて。${w*h}÷${h}=${w}cm です。`,key:"menseki_gyaku"};}
+  if(t===4){const W=R(8,14),H=R(6,11),tw=R(3,W-3),d=R(2,H-3);
+    // 図は よこW・たてH の 長方形から 左上を よこtw・たてd 切り取った L字
+    return {q:`この 図形の 面積は 何cm²ですか。`,fig:svgL(W,H,tw,d),type:"num",boxes:[{s:"cm²"}],ans:W*H-tw*d,
+      exp:`2つの 長方形に 分けます。${H}×${W-tw}=${H*(W-tw)} と ${H-d}×${tw}=${(H-d)*tw}。あわせて ${W*H-tw*d}cm²（大きい 長方形 ${H}×${W}=${W*H} から ${d}×${tw}=${tw*d} を ひいても 同じ）。`,
+      key:"menseki_fukugou"};}
+  if(t===5){const o=pick([
+      {q:`1m² は 何cm² ですか。`,a:10000,s:"cm²",e:`1m=100cm。100×100=10000 なので 1m²=10000cm² です。`},
+      {q:`1a は 何m² ですか。`,a:100,s:"m²",e:`1aは 1辺 10m の 正方形の 面積。10×10=100m² です。`},
+      {q:`1ha は 何m² ですか。`,a:10000,s:"m²",e:`1haは 1辺 100m の 正方形の 面積。100×100=10000m² です。`},
+      {q:`1km² は 何m² ですか。`,a:1000000,s:"m²",e:`1km=1000m。1000×1000=1000000m² です。`}]);
+    return {q:o.q,type:"num",boxes:[{s:o.s}],ans:o.a,exp:o.e,key:"menseki_tani"};}
+  const w=R(3,9),h=R(2,8);
+  return {q:`たて ${h}m、よこ ${w}m の 部屋の\n面積は 何m²ですか。`,fig:svgRect(w,h,"m"),type:"num",boxes:[{s:"m²"}],ans:w*h,
+    exp:`たて×よこ で もとめます。${h}×${w}=${w*h}m² です。`,key:"menseki_m2"};
+}
+
+/* ---- 11. 分数 ---- */
+/* ⚠ 分数の式は 図(.fexp)で 縦組みにして 画面に出すが、記録に残す question_text は
+   プレーンテキストなので「分数のつもりのスラッシュは F() で包む」規約に したがう
+   （CLAUDE.md 2a。mypage.php / retry.php / teacher.php の 3つの レンダラが
+   F(分子/分母) を 縦組みに 戻す）。画面用の q と 記録用の qtext が 別なのは このため */
+const F=(n,d)=>`F(${n}/${d})`;
+function gBunsuu(){
+  const t=R(1,7);
+  if(t===1){const d=R(3,9),w=R(1,4),n=R(1,d-1);
+    const kari=w*d+n;
+    return {q:`${kari}/${d} を 帯分数に なおしましょう。`,qtext:`${F(kari,d)} を 帯分数に なおしましょう。`,
+      fig:fracExp([{n:kari,d:d}]),type:"mixed",ans:[w,n,d],
+      exp:`${kari}÷${d}=${w}あまり${n} なので ${w}と${n}/${d} です。`,key:"bun_kari2tai"};}
+  if(t===2){const d=R(3,9),w=R(1,4),n=R(1,d-1);
+    return {q:`${w}と${n}/${d} を 仮分数に なおしましょう。`,qtext:`${w}と${F(n,d)} を 仮分数に なおしましょう。`,
+      fig:fracExp([{n:n,d:d,w:w}]),type:"frac",ans:[w*d+n,d],
+      exp:`1は ${d}/${d}。${w}×${d}+${n}=${w*d+n} なので ${w*d+n}/${d} です。`,key:"bun_tai2kari"};}
+  if(t===3){const d=R(4,9),a=R(1,d-1),b=R(1,d-1);
+    return {q:"",qtext:`${F(a,d)} + ${F(b,d)} = □`,
+      fig:fracExp([{n:a,d:d},"+",{n:b,d:d},"=","□"]),type:"frac",ans:[a+b,d],
+      exp:`分母が 同じ 分数の たし算は 分子どうしを たします。${a}+${b}=${a+b} で ${a+b}/${d}。`,key:"bun_tasu"};}
+  if(t===4){const d=R(4,9),a=R(d+1,d*2-1),b=R(1,d-1);
+    if(a-b<1)return gBunsuu();
+    return {q:"",qtext:`${F(a,d)} − ${F(b,d)} = □`,
+      fig:fracExp([{n:a,d:d},"−",{n:b,d:d},"=","□"]),type:"frac",ans:[a-b,d],
+      exp:`分子どうしを ひきます。${a}−${b}=${a-b} で ${a-b}/${d}。`,key:"bun_hiku"};}
+  if(t===5){const d=R(4,9),w1=R(1,3),n1=R(1,d-2),w2=R(1,3),n2=R(1,d-n1-1);
+    return {q:"",qtext:`${w1}と${F(n1,d)} + ${w2}と${F(n2,d)} = □`,
+      fig:fracExp([{n:n1,d:d,w:w1},"+",{n:n2,d:d,w:w2},"=","□"]),type:"mixed",ans:[w1+w2,n1+n2,d],
+      exp:`整数どうし、分数どうしを たします。${w1}+${w2}=${w1+w2}、${n1}/${d}+${n2}/${d}=${n1+n2}/${d} なので ${w1+w2}と${n1+n2}/${d}。`,
+      key:"bun_taitasu"};}
+  if(t===6){const d=R(3,9);
+    return {q:`1 を 分母が ${d} の 分数で 表しましょう。`,type:"frac",ans:[d,d],
+      exp:`1は ${d}/${d}。分母と 分子が 同じ 分数は 1に なります。`,key:"bun_ichi"};}
+  // 1との 大小（仮分数のときも 真分数のときも 出す＝「分数のほう」と 決め打ちできない）
+  const d=R(3,9);let a=R(1,d*2);
+  if(a===d)a=d+1;
+  const ch=shuffle([`${a}/${d}`,"1"]);
+  const big=(a>d)?`${a}/${d}`:"1";
+  return {q:`大きいのは どちらですか。`,qtext:`${F(a,d)} と 1 では 大きいのは どちらですか。`,
+    fig:fracExp([{n:a,d:d},"と","1"]),type:"choice",choices:ch,ai:ch.indexOf(big),
+    exp:`1は ${d}/${d} と 同じ。${a}/${d} と ${d}/${d} を くらべると 分子が ${a>d?"大きい":"小さい"} ので ${big} の ほうが 大きい。`,
+    key:"bun_daisho"};
+}
+
+/* ---- 12. 直方体と立方体 ---- */
+function gHako(){
+  const t=R(1,6);
+  if(t===1){const o=pick([
+      {q:`直方体の 面の 数は いくつですか。`,a:6,s:"つ",e:`向かい合う 面が 3組で 6つです。`},
+      {q:`直方体の 辺の 数は いくつですか。`,a:12,s:"本",e:`同じ 長さの 辺が 4本ずつ 3組で 12本です。`},
+      {q:`直方体の 頂点の 数は いくつですか。`,a:8,s:"こ",e:`上の 面に 4こ、下の 面に 4こで 8こです。`},
+      {q:`立方体の 面の 数は いくつですか。`,a:6,s:"つ",e:`立方体も 直方体の なかま。面は 6つです。`}]);
+    return {q:o.q,type:"num",boxes:[{s:o.s}],ans:o.a,exp:o.e,key:"hako_kazu"};}
+  if(t===2){const f=pick(NET_FACES),ans=NET_PAIR[f];
+    const others=shuffle(NET_FACES.filter(x=>x!==f&&x!==ans)).slice(0,3);
+    const ch=shuffle(others.concat([ans]));
+    return {q:`立方体の 展開図です。\n組み立てたとき 面${f} と 平行に なる 面は どれですか。`,fig:svgNet(),
+      type:"choice",choices:ch,ai:ch.indexOf(ans),
+      exp:`横1れつに ならんだ 4つの 面は 1つ おきに 向かい合います。面${f} と 向かい合う（平行な）面は ${ans} です。`,
+      key:"hako_tenkai"};}
+  if(t===3){return {q:`直方体の 1つの 面に 垂直な 面は\nいくつ ありますか。`,type:"num",boxes:[{s:"つ"}],ans:4,
+      exp:`向かい合う 1つの 面だけが 平行で、のこりの 4つの 面は ぜんぶ 垂直です。`,key:"hako_suichoku"};}
+  if(t===4){const a=R(3,12),b=R(2,9),c=R(2,9);
+    return {q:`この 直方体の 辺の 長さの 合計は 何cmですか。`,fig:svgBox(a,b,c),type:"num",boxes:[{s:"cm"}],ans:(a+b+c)*4,
+      exp:`同じ 長さの 辺が 4本ずつ。(${a}+${b}+${c})×4=${(a+b+c)*4}cm です。`,key:"hako_henwa"};}
+  if(t===5){const s=R(2,12);
+    return {q:`1辺が ${s}cm の 立方体の\n辺の 長さの 合計は 何cmですか。`,type:"num",boxes:[{s:"cm"}],ans:s*12,
+      exp:`立方体の 辺は 12本 ぜんぶ 同じ 長さ。${s}×12=${s*12}cm です。`,key:"hako_ritsu"};}
+  const o=pick([
+    {q:`立方体の 面は みんな どんな 形ですか。`,c:["正方形","長方形","ひし形","台形"],a:"正方形",
+     e:`立方体は 6つの 面が ぜんぶ 合同な 正方形です。`},
+    {q:`直方体で 1つの 面と 平行な 面は\nいくつ ありますか。`,c:["1つ","2つ","3つ","4つ"],a:"1つ",
+     e:`向かい合った 面 だけが 平行なので 1つです。`},
+    {q:`さいころのような 形で、面が ぜんぶ 正方形の\n立体の 名前は？`,c:["立方体","直方体","円柱","三角柱"],a:"立方体",
+     e:`面が ぜんぶ 正方形の 箱の 形を 立方体と いいます。`}]);
+  const ch=shuffle(o.c.slice());
+  return {q:o.q,type:"choice",choices:ch,ai:ch.indexOf(o.a),exp:o.e,key:"hako_yougo"};
+}
+
+/* ---- 13. 折れ線グラフと表 ---- */
+/* base は step の 倍数に そろえてある＝点が めもりの 線に ぴったり のる
+   （ずれると「1めもりは いくつ」の 問題が 読めなくなる） */
+const ORE_SETS=[
+  {ttl:"1日の 気温",unit:"度",L:["6時","9時","12時","15時","18時"],base:10},
+  {ttl:"1年間の 気温",unit:"度",L:["4月","6月","8月","10月","12月"],base:10},
+  {ttl:"プールの 水温",unit:"度",L:["月","火","水","木","金"],base:20}
+];
+function gGraph(){
+  const S=pick(ORE_SETS),step=pick([2,5]);
+  const vals=S.L.map(()=>S.base+R(0,4)*step);
+  // となり同士の 差が すべて ちがう ように ずらす（「変わり方が 大きいところ」を 一意にする）
+  for(let i=1;i<vals.length;i++){if(vals[i]===vals[i-1])vals[i]+=step;}
+  const fig=svgOre(S.L,vals,step,S.unit);
+  const t=R(1,5);
+  if(t===1){
+    return {q:`${S.ttl}の 折れ線グラフです。\nたてじくの 1めもりは 何度ですか。`,fig:fig,
+      type:"num",boxes:[{s:"度"}],ans:step,
+      exp:`数字の 間の めもりを 数えると 1めもりは ${step}度 です。`,key:"graph_memori"};}
+  if(t===2){const mx=Math.max(...vals);
+    if(vals.filter(v=>v===mx).length>1)vals[vals.indexOf(mx)]=mx+step;
+    const fig2=svgOre(S.L,vals,step,S.unit);
+    const hi=S.L[vals.indexOf(Math.max(...vals))];
+    const ch=shuffle(S.L.slice());
+    return {q:`${S.ttl}の 折れ線グラフです。\nいちばん 高いのは いつですか。`,fig:fig2,
+      type:"choice",choices:ch,ai:ch.indexOf(hi),
+      exp:`線が いちばん 上に ある ところを 読みます。${hi} の ${Math.max(...vals)}度 です。`,key:"graph_max"};}
+  if(t===3){let i=R(0,S.L.length-1),j=R(0,S.L.length-1);
+    if(i===j)j=(j+1)%S.L.length;
+    return {q:`${S.ttl}の 折れ線グラフです。\n${S.L[i]} と ${S.L[j]} の ちがいは 何度ですか。`,fig:fig,
+      type:"num",boxes:[{s:"度"}],ans:Math.abs(vals[i]-vals[j]),
+      exp:`${S.L[i]}は ${vals[i]}度、${S.L[j]}は ${vals[j]}度。ちがいは ${Math.abs(vals[i]-vals[j])}度 です。`,key:"graph_chigai"};}
+  if(t===4){
+    const dif=vals.slice(1).map((v,i)=>Math.abs(v-vals[i]));
+    const mx=Math.max(...dif);
+    if(dif.filter(d=>d===mx).length>1)return gGraph();
+    const k=dif.indexOf(mx);
+    const ch=shuffle(S.L.slice(1).map((L,i)=>`${S.L[i]}→${L}`));
+    return {q:`${S.ttl}の 折れ線グラフです。\n変わり方が いちばん 大きいのは どこですか。`,fig:fig,
+      type:"choice",choices:ch,ai:ch.indexOf(`${S.L[k]}→${S.L[k+1]}`),
+      exp:`線の かたむきが いちばん きゅうな ところ。${S.L[k]}→${S.L[k+1]} で ${mx}度 変わって います。`,key:"graph_kawari"};}
+  // 二次元の表（合計をもとめる）
+  const a=R(4,12),b=R(3,11),c=R(2,9),d=R(5,13);
+  const rows=[["","男子","女子","合計"],
+              ["すきな 犬",String(a),String(b),String(a+b)],
+              ["すきな ねこ",String(c),String(d),String(c+d)],
+              ["合計",String(a+c),String(b+d),"□"]];
+  return {q:`表の □に あてはまる 数を 書きましょう。`,fig:tblHtml(rows),type:"num",boxes:[{s:"人"}],ans:a+b+c+d,
+    exp:`たてに たしても 横に たしても 同じ。${a+b}+${c+d}=${a+b+c+d}（または ${a+c}+${b+d}=${a+b+c+d}）人 です。`,
+    key:"graph_hyou"};
+}
+
+/* ---- 14. 変わり方 ---- */
+function gKawari(){
+  const t=R(1,5);
+  if(t===1){const n=R(6,15);
+    const rows=[["1辺の 長さ □(cm)","1","2","3","4"],["まわりの 長さ ○(cm)","4","8","12","16"]];
+    return {q:`正方形の 1辺の 長さ □cm と\nまわりの 長さ ○cm の 表です。\n□が ${n} のとき ○は いくつですか。`,fig:tblHtml(rows),
+      type:"num",boxes:[{s:"cm"}],ans:n*4,
+      exp:`○=□×4 の かんけい。${n}×4=${n*4}cm です。`,key:"kawari_seihoukei"};}
+  if(t===2){const s=R(12,30),x=R(3,s-3);
+    const rows=[["□","1","2","3","4"],["○",String(s-1),String(s-2),String(s-3),String(s-4)]];
+    return {q:`□と○を たすと いつも ${s} に なります。\n□が ${x} のとき ○は いくつですか。`,fig:tblHtml(rows),
+      type:"num",ans:s-x,
+      exp:`□+○=${s} なので ○=${s}−□。${s}−${x}=${s-x} です。`,key:"kawari_wa"};}
+  if(t===3){const k=R(2,8);
+    const rows=[["□","1","2","3","4"],["○",String(k),String(k*2),String(k*3),String(k*4)]];
+    const ch=shuffle([`○=□×${k}`,`○=□+${k}`,`○=□×${k+1}`,`○=${k}÷□`]);
+    return {q:`表の □と○の かんけいを 式に 表すと\nどれに なりますか。`,fig:tblHtml(rows),
+      type:"choice",choices:ch,ai:ch.indexOf(`○=□×${k}`),
+      exp:`□が 1ふえると ○は ${k}ふえて、○は いつも □の ${k}倍。だから ○=□×${k} です。`,key:"kawari_shiki"};}
+  if(t===4){const n=R(5,15);
+    const rows=[["三角形の 数 □(こ)","1","2","3","4"],["ストロー ○(本)","3","5","7","9"]];
+    return {q:`ストローで 正三角形を 横に つなげて\nならべます。\n□が ${n}こ のとき ○は 何本ですか。`,fig:tblHtml(rows),
+      type:"num",boxes:[{s:"本"}],ans:2*n+1,
+      exp:`はじめに 3本、あとは 1こ ふえるたびに 2本。○=□×2+1 なので ${n}×2+1=${2*n+1}本 です。`,key:"kawari_straw"};}
+  const n=R(5,15);
+  const rows=[["正方形の 数 □(こ)","1","2","3","4"],["まわりの 長さ ○(cm)","4","6","8","10"]];
+  return {q:`1辺 1cm の 正方形を 横に ${n}こ\nならべて 長方形を 作りました。\nまわりの 長さは 何cmですか。`,fig:tblHtml(rows),
+    type:"num",boxes:[{s:"cm"}],ans:2*n+2,
+    exp:`○=□×2+2 の かんけい。${n}×2+2=${2*n+2}cm です。`,key:"kawari_narabe"};
+}
+
+/* ---- 15. 倍の見方 ---- */
+function gBai(){
+  const t=R(1,6);
+  if(t===1){const b=R(2,9),k=R(2,6);
+    return {q:`白い テープは ${b*k}m、赤い テープは ${b}m です。\n白い テープの 長さは 赤い テープの 何倍ですか。`,
+      fig:svgTape2(b,b*k,"赤","白"),wide:true,type:"num",boxes:[{s:"倍"}],ans:k,
+      exp:`何倍かを もとめるので わり算。${b*k}÷${b}=${k}倍 です。`,key:"bai_nanbai"};}
+  if(t===2){const b=R(3,15),k=R(2,8);
+    return {q:`${b}m の ${k}倍の 長さは 何mですか。`,type:"num",boxes:[{s:"m"}],ans:b*k,
+      exp:`もとにする 長さ × 倍。${b}×${k}=${b*k}m です。`,key:"bai_kake"};}
+  if(t===3){const b=R(3,15),k=R(2,8);
+    return {q:`□m の ${k}倍が ${b*k}m です。\n□に あてはまる 数は 何ですか。`,type:"num",boxes:[{s:"m"}],ans:b,
+      exp:`もとにする 大きさ = くらべる大きさ ÷ 倍。${b*k}÷${k}=${b}m です。`,key:"bai_moto"};}
+  if(t===4){const b=R(2,9)*2,k=pick([1.5,2.5,0.5]);
+    const a=b*k;
+    return {q:`${fmt(a)}m は ${b}m の 何倍ですか。`,type:"num",boxes:[{s:"倍"}],dec:true,ans:k,
+      exp:`${fmt(a)}÷${b}=${fmt(k)} なので ${fmt(k)}倍 です（1倍より ${k<1?"小さい":"大きい"}）。`,key:"bai_shousuu"};}
+  if(t===5){const b=R(2,9),k=R(2,5);
+    const ch=shuffle(["赤い テープ","白い テープ","どちらでも よい","くらべられない"]);
+    return {q:`「白い テープの 長さは 赤い テープの ${k}倍」\nと いうとき、もとに して いるのは どちらですか。`,
+      fig:svgTape2(b,b*k,"赤","白"),wide:true,type:"choice",choices:ch,ai:ch.indexOf("赤い テープ"),
+      exp:`「○の △倍」の ○が もとにする 大きさ。ここでは 赤い テープです。`,key:"bai_moto2"};}
+  const b=R(15,25),k=R(2,4);
+  return {q:`お父さんの 体重は ${b*k}kg、\nあなたの 体重は ${b}kg です。\nお父さんの 体重は 何倍ですか。`,type:"num",boxes:[{s:"倍"}],ans:k,
+    exp:`${b*k}÷${b}=${k} なので ${k}倍 です。`,key:"bai_bunsho"};
+}
+
+/* ============ 単元テーブル ============ */
+const UNITS=[
+ {k:"ookii",   n:"大きい数",        s:"億・兆・10倍・数直線",       g:gOokii},
+ {k:"wari1",   n:"わり算の筆算①",  s:"3・4けた ÷ 1けた",           g:gWari1},
+ {k:"wari2",   n:"わり算の筆算②",  s:"2けたでわる・商のけた数",    g:gWari2},
+ {k:"kaku",    n:"角の大きさ",      s:"分度器・一直線・1回転",      g:gKaku},
+ {k:"shikaku", n:"垂直・平行と四角形",s:"台形・平行四辺形・ひし形",  g:gShikaku},
+ {k:"shou",    n:"小数のしくみ",    s:"いくつ分・10倍100倍・数直線",g:gShou},
+ {k:"shouhissan",n:"小数のひっ算",  s:"たし算ひき算（整数もまざる）",g:gShouHissan},
+ {k:"shoukake",n:"小数のかけ算わり算",s:"×整数・÷整数・わり進む",   g:gShoukake},
+ {k:"gaisuu",  n:"概数",            s:"四捨五入・以上以下・見積もり",g:gGaisuu},
+ {k:"kimari",  n:"計算のきまり",    s:"計算の順じょ・( )・くふう",   g:gKimari},
+ {k:"menseki", n:"面積",            s:"長方形・L字・m²・a・ha",      g:gMenseki},
+ {k:"bunsuu",  n:"分数",            s:"仮分数・帯分数・たし算ひき算",g:gBunsuu},
+ {k:"hako",    n:"直方体と立方体",  s:"面・辺・頂点・展開図",        g:gHako},
+ {k:"graph",   n:"折れ線グラフと表",s:"めもり・変わり方・二次元表",  g:gGraph},
+ {k:"kawari",  n:"変わり方",        s:"表から きまりを 見つける",    g:gKawari},
+ {k:"bai",     n:"倍の見方",        s:"何倍・もとにする大きさ",      g:gBai}
+];
+
+/* ============ 状態 ============ */
+/* 達成度バッジ: 1単元 最大5こ / 全17枠(16単元+ミックス) = 85こ（端末ごとの localStorage 保存） */
+const SKEY="divp_es4_all_badge_v1", BMAX=5;
+let save={badge:{}};
+function loadSave(){
+  try{const j=localStorage.getItem(SKEY);if(j)save=Object.assign(save,JSON.parse(j));}catch(e){}
+}
+function persist(){
+  try{localStorage.setItem(SKEY,JSON.stringify(save));}catch(e){}
+}
+function badgeOf(k){return Math.min(BMAX,save.badge[k]||0);}
+function totalBadge(){return UNITS.concat([{k:"mix"}]).reduce((s,u)=>s+badgeOf(u.k),0);}
+function drawTotal(){$("tot").textContent=totalBadge();}
+function badgeRow(k){
+  let h='<div class="bg">';
+  for(let i=0;i<BMAX;i++)h+=`<i class="${i<badgeOf(k)?"on":""}"></i>`;
+  return h+"</div>";
+}
+loadSave();
+
+let S={unit:null,total:10,idx:0,ok:0,marks:[],p:null,inputs:[],cells:[],cf:{r:0,c:0},focus:0,answered:false,retry:[]};
+
+/* ============ 単元ボタンのかざり & タップ演出 ============ */
+/* チップのかざり・タップのきらめきで使う 記号と色
+   （花火・積もる山の本体は共通モジュール divp-correct-firework.js） */
+const MARKS=["★","✦","✧","❀","✿","❁","♪"];
+const HUES=["#FFD447","#FFB01F","#FF7EB6","#FF5FA2","#5FD8F0","#39C0E8","#8CE05B","#57C93E","#C79BFF","#A46BFF"];
+function decoFor(i,n){
+  n=n||1;let h="";
+  for(let k=0;k<n;k++){
+    const mk=MARKS[(i*3+k*2)%MARKS.length], hue=HUES[(i*3+k*4)%HUES.length];
+    h+=`<span style="color:${hue}">${mk}</span>`;}
+  return `<span class="deco">${h}</span>`;
+}
+function chipSparkle(el){
+  const b=$("fxlayer"),r=el.getBoundingClientRect();
+  const cx=r.left+r.width-24, cy=r.top+r.height-22;
+  for(let i=0;i<9;i++){
+    const sp=document.createElement("span");sp.className="spark";
+    sp.textContent=pick(MARKS);sp.style.color=pick(HUES);
+    sp.style.fontSize=R(13,22)+"px";
+    sp.style.left=cx+"px";sp.style.top=cy+"px";
+    const ang=(i/9*360+R(-14,14))*Math.PI/180,dist=R(34,78);
+    sp.style.setProperty("--dx",Math.round(Math.cos(ang)*dist)+"px");
+    sp.style.setProperty("--dy",Math.round(Math.sin(ang)*dist)+"px");
+    b.appendChild(sp);}
+  setTimeout(()=>{b.querySelectorAll(".spark").forEach(x=>x.remove());},600);
+}
+function tapChip(el,go){
+  if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches){go();return;}
+  el.classList.remove("pop");void el.offsetWidth;el.classList.add("pop");
+  chipSparkle(el);
+  setTimeout(go,210);
+}
+
+/* ============ メニュー ============ */
+function buildMenu(){
+  const g=$("grid");g.innerHTML="";
+  const mix=document.createElement("button");
+  mix.className="chip mix";
+  mix.innerHTML=`<div class="no">ALL</div>${badgeOf("mix")>=BMAX?'<div class="crown">マスター</div>':''}<div class="nm">ぜんぶ ミックス（20問）</div><div class="sub">16単元から ランダムに 出題</div>${badgeRow("mix")}${decoFor(1,3)}`;
+  mix.onclick=()=>tapChip(mix,()=>start("mix"));
+  g.appendChild(mix);
+  UNITS.forEach((u,i)=>{
+    const b=document.createElement("button");
+    b.className="chip"+(badgeOf(u.k)>=BMAX?" done":"");
+    b.innerHTML=`<div class="no">${String(i+1).padStart(2,"0")}</div>`
+      +(badgeOf(u.k)>=BMAX?`<div class="crown">マスター</div>`:``)
+      +`<div class="nm">${u.n}</div><div class="sub">${u.s}</div>`+badgeRow(u.k)+decoFor(i);
+    b.onclick=()=>tapChip(b,()=>start(u.k));
+    g.appendChild(b);
+  });
+  drawTotal();
+}
+function buildPrintSelect(){
+  const sel=$("psel");if(!sel||sel.options.length)return;
+  const add=(v,t)=>{const o=document.createElement("option");o.value=v;o.textContent=t;sel.appendChild(o);};
+  add("mix","ぜんぶ ミックス");
+  UNITS.forEach((u,i)=>add(u.k,`${String(i+1).padStart(2,"0")} ${u.n}`));
+}
+
+/* ============ 出題 ============ */
+function start(k){
+  S={unit:k,total:k==="mix"?20:10,idx:0,ok:0,marks:[],p:null,inputs:[],cells:[],cf:{r:0,c:0},focus:0,answered:false,retry:[]};
+  $("menu").hidden=true;$("result").hidden=true;$("quiz").hidden=false;
+  $("uname").textContent=k==="mix"?"ぜんぶミックス":UNITS.find(u=>u.k===k).n;
+  nextQ();
+}
+function genFor(k){
+  const u=(k==="mix")?pick(UNITS):UNITS.find(x=>x.k===k);
+  return genSeeded(u,newSeed());
+}
+function nextQ(){
+  if(S.queue){                       // 解き直し: 用意した問題だけを 順に出す
+    if(S.queue.length){S.p=S.queue.shift();}
+    else if(S.retry.length){S.p=S.retry.shift();}
+    else return finish();
+  }
+  else if(S.retry.length&&(S.idx>=S.total||Math.random()<0.28)){S.p=S.retry.shift();}
+  else if(S.idx<S.total){S.p=genFor(S.unit);}
+  else return finish();
+  hideMaru();          // 「せいかい！」は次の問題に進むまで出したままにする
+  S.answered=false;S.focus=0;
+  if(S.p.type==="cells"){
+    const g=S.p.grid;
+    S.cells=g.rows.map(()=>new Array(g.w).fill(""));
+    S.cf={r:0,c:startCol(0)};   // わり算=上の位から / 小数の筆算=小さい位から
+    S.inputs=[];
+  }else{
+    S.cells=[];
+    S.inputs=(S.p.type==="choice")?[null]
+      :(S.p.type==="frac")?["",""]
+      :(S.p.type==="mixed")?["","",""]
+      :S.p.boxes.map(()=>"");
+    if(S.p.type==="frac")S.focus=1;   // 分数は分母(下)から書く
+  }
+  render();
+}
+function render(){
+  const p=S.p;
+  $("cnt").textContent=p._r?"もう1回チャレンジ":`${Math.min(S.idx+1,S.total)} / ${S.total}`;
+  const d=$("dots");d.innerHTML="";
+  for(let i=0;i<S.total;i++){const e=document.createElement("i");
+    if(S.marks[i]==="o")e.className="o";if(S.marks[i]==="x")e.className="x";d.appendChild(e);}
+  $("fig").innerHTML=p.fig||"";
+  $("fig").style.display=(p.fig?"":"none");
+  const qh=(S.unit==="mix"?`<div style="font-size:11px;color:#6E6558;margin-bottom:4px">${p.unitName}</div>`:"")+op(p.q||"").replace(/\n/g,"<br>");
+  $("q").innerHTML=qh;
+  $("q").parentElement.style.display=qh.trim()?"":"none";   // 問題文が空なら行ごとつめる
+  fitText();
+  const A=$("ansarea"),P=$("padarea");
+  A.innerHTML="";P.innerHTML="";
+  if(p.type==="cells"){
+    A.innerHTML=`<div class="cellhint">${(p.grid.dir||1)>0
+      ?"上の位から 入れると 右へ すすみます"
+      :"右の 小さい位から 入れると 左へ すすみます"} / 入れなおすときは マスをタップ</div>`;
+    P.appendChild(tenkey(false));
+    document.querySelectorAll("#fig .ic").forEach(el=>{
+      if(el.classList.contains("no"))return;
+      el.onclick=()=>{if(S.answered)return;S.cf={r:+el.dataset.r,c:+el.dataset.c};drawCells();};});
+  }else if(p.type==="choice"){
+    const w=document.createElement("div");
+    w.className="choices"+(p.choices.some(c=>String(c).length>=9)?" w1":"");
+    p.choices.forEach((c,i)=>{
+      const b=document.createElement("button");b.className="ch";b.textContent=c;
+      b.onclick=()=>{if(S.answered)return;S.inputs[0]=i;[...w.children].forEach(x=>x.classList.remove("on"));b.classList.add("on");};
+      w.appendChild(b);});
+    A.appendChild(w);
+  }else if(p.type==="frac"){
+    const w=document.createElement("div");w.className="ansrow";
+    w.innerHTML=`<div class="frac"><div class="box" data-i="0"></div><div class="fl"></div><div class="box" data-i="1"></div></div>`;
+    A.appendChild(w);
+    const h=document.createElement("div");h.className="cellhint";h.textContent="分母(下)から 入れてね";
+    A.appendChild(h);
+    bindBoxes();P.appendChild(tenkey(false));
+  }else if(p.type==="mixed"){
+    const w=document.createElement("div");w.className="ansrow";
+    w.innerHTML=`<div class="box" data-i="0"></div><span class="suf">と</span>`
+      +`<div class="frac"><div class="box" data-i="1"></div><div class="fl"></div><div class="box" data-i="2"></div></div>`;
+    A.appendChild(w);
+    const h=document.createElement("div");h.className="cellhint";h.textContent="整数 → 分母(下) → 分子(上) の じゅんに 入るよ";
+    A.appendChild(h);
+    bindBoxes();P.appendChild(tenkey(false));
+  }else{
+    const w=document.createElement("div");w.className="ansrow";
+    p.boxes.forEach((b,i)=>{
+      const el=document.createElement("div");el.className="box";el.dataset.i=i;w.appendChild(el);
+      if(b.s){const sp=document.createElement("span");sp.className="suf";sp.textContent=b.s;w.appendChild(sp);}
+    });
+    A.appendChild(w);bindBoxes();
+    P.appendChild(tenkey(!!p.dec));
+  }
+  $("go").textContent="こたえあわせ";$("go").className="submit";
+  $("fb").className="fb";
+  if(p.type==="cells")drawCells();else drawBoxes();
+}
+/* そのだんで 入力できる 列の一覧（左から順）。
+   ・cols を持つだん（小数の筆算）… そのまま（小数点の列は 入っていない）
+   ・from を持つだん（わり算の商）… from 以降 */
+function rowCols(r){
+  const g=S.p.grid,row=g.rows[r];
+  if(row.cols)return row.cols;
+  const w=row.w||g.w,out=[];
+  for(let i=(row.from||0);i<w;i++)out.push(i);
+  return out;
+}
+/* 書きはじめの マス。わり算(dir=1)は 上の位から、小数の筆算(dir=-1)は 小さい位から */
+function startCol(r){
+  const c=rowCols(r);
+  return ((S.p.grid.dir||1)>0)?c[0]:c[c.length-1];
+}
+function endCol(r){
+  const c=rowCols(r);
+  return ((S.p.grid.dir||1)>0)?c[c.length-1]:c[0];
+}
+function drawCells(){
+  document.querySelectorAll("#fig .ic").forEach(el=>{
+    const r=+el.dataset.r,c=+el.dataset.c;
+    el.textContent=(S.cells[r]&&S.cells[r][c])||"";
+    el.classList.toggle("foc",!S.answered&&S.cf.r===r&&S.cf.c===c);});
+}
+/* step=+1:右へ / -1:左へ（画面で 見た向き）。入力できないマス（小数点の列・
+   商が立たない位）は とばす。だんの はしを 入力の 向きに こえたときだけ
+   次のだん（商→あまり）へ うつり、逆向きに こえたときは 前のだんへ もどる */
+function moveCell(step){
+  const g=S.p.grid,dir=g.dir||1;
+  const r=S.cf.r,cols=rowCols(r),i=cols.indexOf(S.cf.c)+step;
+  if(i>=0&&i<cols.length){S.cf={r:r,c:cols[i]};return;}
+  const fwd=(step===dir);
+  if(fwd&&r<g.rows.length-1){S.cf={r:r+1,c:startCol(r+1)};return;}
+  if(!fwd&&r>0){S.cf={r:r-1,c:endCol(r-1)};return;}
+  S.cf={r:r,c:cols[Math.max(0,Math.min(cols.length-1,i))]};
+}
+function fitText(){
+  const q=$("q"),c=q.parentElement;
+  q.style.transform="scale(1)";
+  const cw=c.clientWidth-6,w=q.scrollWidth;
+  const s=w>cw?Math.max(.4,cw/w):1;
+  q.style.transformOrigin="center";q.style.transform="scale("+s+")";
+}
+function bindBoxes(){
+  document.querySelectorAll("#ansarea .box").forEach(b=>{
+    b.onclick=()=>{if(S.answered)return;S.focus=+b.dataset.i;drawBoxes();};});
+}
+function drawBoxes(){
+  document.querySelectorAll("#ansarea .box").forEach(b=>{
+    const i=+b.dataset.i,v=S.inputs[i];
+    b.classList.toggle("on",i===S.focus);
+    b.classList.toggle("lg",String(v||"").length>=8);
+    b.innerHTML=(v===""||v==null)?`<span class="ph">?</span>`:v;});
+}
+function tenkey(dec){
+  const w=document.createElement("div");w.className="pad";
+  const keys=["7","8","9","4","5","6","1","2","3",dec?".":"clr","0","del"];
+  keys.forEach(k=>{
+    const b=document.createElement("button");b.className="key";
+    if(k==="del"){b.className="key fn";b.textContent="⌫";b.setAttribute("aria-label","1文字けす");}
+    else if(k==="clr"){b.className="key fn";b.textContent="C";b.setAttribute("aria-label","ぜんぶけす");}
+    else if(k==="."){b.className="key fn";b.textContent="・";b.setAttribute("aria-label","小数点");}
+    else b.textContent=k;
+    b.onclick=()=>press(k);
+    w.appendChild(b);});
+  return w;
+}
+function press(k){
+  if(S.answered)return;
+  if(S.p.type==="cells"){
+    const dir=S.p.grid.dir||1;
+    const r=S.cf.r,c=S.cf.c;
+    if(k==="del"){ if(S.cells[r][c]==="")moveCell(-dir); S.cells[S.cf.r][S.cf.c]=""; }
+    else if(k==="clr"){ S.cells[r]=new Array(S.p.grid.w).fill(""); S.cf={r:r,c:startCol(r)}; }
+    else if(k!=="."){ S.cells[r][c]=k; moveCell(dir); }
+    drawCells();return;
+  }
+  const i=S.focus;
+  if(k==="del"){S.inputs[i]=S.inputs[i].slice(0,-1);}
+  else if(k==="clr"){S.inputs[i]="";}
+  else if(k==="next"){S.focus=(S.focus+1)%S.inputs.length;}
+  else if(k==="."){if(!S.inputs[i].includes("."))S.inputs[i]+=".";}
+  else{
+    if(S.inputs[i].replace(".","").length<13)S.inputs[i]+=k;
+    /* 分数・帯分数は 書く じゅんに 入力欄が すすむ（下→上） */
+    if(S.p.type==="frac"&&i===1&&S.inputs[1]!=="")S.focus=0;
+    else if(S.p.type==="mixed"&&i===0&&S.inputs[0]!=="")S.focus=2;
+    else if(S.p.type==="mixed"&&i===2&&S.inputs[2]!=="")S.focus=1;
+  }
+  drawBoxes();
+}
+/* 正解の文字づら（フィードバック・記録・こたえプリントで 同じものを使う） */
+function ansText(p){
+  if(p.type==="cells")return p.grid.rows.map(r=>(r.label?r.label+" ":"")+fmt(r.ans)).join("　");
+  if(p.type==="choice")return String(p.choices[p.ai]);
+  if(p.type==="frac")return `${p.ans[0]}/${p.ans[1]}`;
+  if(p.type==="mixed")return `${p.ans[0]}と${p.ans[1]}/${p.ans[2]}`;
+  if(p.type==="num2")return `${fmt(p.ans[0])}${(p.boxes[0]&&p.boxes[0].s)||""} ${fmt(p.ans[1])}${(p.boxes[1]&&p.boxes[1].s)||""}`;
+  return fmt(p.ans)+((p.boxes&&p.boxes[0]&&p.boxes[0].s)||"");
+}
+function judge(){
+  const p=S.p;let ok=false,ua="";
+  const ca=ansText(p);
+  if(p.type==="cells"){
+    const g=p.grid,vals=[];
+    for(let r=0;r<g.rows.length;r++){
+      let str;
+      if(g.point!=null){
+        // 小数の筆算: ［整数の位］.［小数の位］に 組み立ててから 数として くらべる
+        const ip=S.cells[r].slice(0,g.point).join("");
+        const dp=S.cells[r].slice(g.point+1).join("");
+        const need=(g.rows[r].w||g.w)-g.point-1;
+        if(ip===""){flash("整数の 位も 入れてね（0のときは 0）");return;}
+        if(dp.length!==need){flash("小数点より 下の マスを ぜんぶ 入れてね");return;}
+        str=ip+"."+dp;
+      }else{
+        str=S.cells[r].join("").replace(/^0+(?=\d)/,"");
+        if(str===""){flash(g.rows.length>1?"商と あまりの 両方を 入れてね（あまりが ないときは 0）":"答えを 入れてね");return;}
+      }
+      vals.push(str);}
+    ok=vals.every((v,r)=>Math.abs(Number(v)-g.rows[r].ans)<1e-9);
+    ua=vals.map((v,r)=>(g.rows[r].label?g.rows[r].label+" ":"")+v).join("　");
+  }else if(p.type==="choice"){
+    if(S.inputs[0]==null){flash("答えを えらんでね");return;}
+    ok=S.inputs[0]===p.ai;ua=String(p.choices[S.inputs[0]]);
+  }else if(p.type==="frac"){
+    if(S.inputs[0]===""||S.inputs[1]===""){flash("分子と 分母を 入れてね");return;}
+    ok=Number(S.inputs[0])===p.ans[0]&&Number(S.inputs[1])===p.ans[1];
+    ua=`${S.inputs[0]}/${S.inputs[1]}`;
+  }else if(p.type==="mixed"){
+    if(S.inputs.some(v=>v==="")){flash("整数・分子・分母を ぜんぶ 入れてね");return;}
+    ok=Number(S.inputs[0])===p.ans[0]&&Number(S.inputs[1])===p.ans[1]&&Number(S.inputs[2])===p.ans[2];
+    ua=`${S.inputs[0]}と${S.inputs[1]}/${S.inputs[2]}`;
+  }else if(p.type==="num2"){
+    if(S.inputs.some(v=>v===""||v==="."))
+      {flash("2つとも 入れてね");return;}
+    ok=S.inputs.every((v,i)=>Math.abs(Number(v)-p.ans[i])<1e-9);
+    ua=S.inputs.join(" ");
+  }else{
+    if(S.inputs[0]===""||S.inputs[0]==="."){flash("答えを 入れてね");return;}
+    ok=Math.abs(Number(S.inputs[0])-p.ans)<1e-9;
+    ua=S.inputs[0];
+  }
+  S.answered=true;
+  if(p.type==="cells")drawCells();
+  logAnswer(p,ok,ua,ca);
+  if(!p._r){S.marks[S.idx]=ok?"o":"x";S.idx++;}
+  if(ok){
+    if(!p._r)S.ok++;
+    fx();
+  }else if(!p._r&&S.retry.length<6){
+    p._r=true;S.retry.push(p);
+  }
+  if(p.type==="choice"){
+    const chs=document.querySelectorAll("#ansarea .ch");
+    chs.forEach((c,i)=>{c.classList.remove("on");if(i===p.ai)c.classList.add("ok");
+      if(!ok&&i===S.inputs[0])c.classList.add("ng");});
+  }
+  const fb=$("fb");fb.className="fb show "+(ok?"ok":"ng");
+  $("fbt").textContent=ok?"せいかい！":`おしい！ 答えは ${ca}`;
+  $("fbe").innerHTML=op(p.exp||"");
+  $("go").textContent=(S.idx>=S.total&&S.retry.length===0)?"けっかを 見る":"つぎの問題 →";
+  $("go").className="submit next";
+}
+function flash(msg){
+  const fb=$("fb");fb.className="fb show ng";$("fbt").textContent=msg;$("fbe").textContent="";
+  setTimeout(()=>{if(!S.answered)fb.className="fb";},1600);
+}
+
+/* ---- 学習記録（divp-core連携） ----
+   question_key は 単元キー（カルテが16単元の行になるように）。
+   どの出題パターンかは p.key、再生成の種は seed として question_params に残す。
+   セット内の再挑戦(p._r)は 答えを見たあとなので 記録しない
+   （それで retry_queue の マスター判定が 進んでしまわないように）。
+   図が無いと解けない問題（分度器・展開図・グラフ・表など）は
+   question_figure に 画面と同じ図を そのまま渡す＝誤答のときだけ 保存され、
+   講師画面の 解き直しプリントに 図が出る。 */
+/* 紙に出す図は「それだけで 成り立つもの」に かぎる。
+   ・SVGと表 … 送る（講師の解き直しプリント側に .q-fig2 svg / table のCSSがある）
+   ・筆算(.wariwrap / .hissan)と 分数の式(.fexp) … 送らない。このページのCSSで 位や 横線を
+     組んでいるので、CSSの無い 別ページに 生HTMLだけ 置くと 数字の羅列に なる。
+     そのぶん qtext に「671 ÷ 8」「F(5/6) + F(4/6) = □」と 式を 入れてある。
+   ⚠ 送る図は save_answer.php の figure_is_safe() の ホワイトリスト
+     （FIG_TAGS / FIG_ATTRS）を 通る必要がある。通らないと 図だけ 黙って 捨てられる。
+     筆算のマスに 付けている data-r / data-c は 一覧に無いので、
+     これも「筆算は送らない」理由の1つ（新しい図で属性を増やすときは 要確認）。 */
+function figForLog(p){
+  const f=p.fig||"";
+  if(!f||/class="(wariwrap|hissan|fexp)"/.test(f))return "";
+  return f;
+}
+function logAnswer(p,ok,ua,ca){
+  if(p._r)return;
+  try{
+    const D=window.Divp;
+    if(!D||typeof D.answer!=="function")return;
+    D.answer(ok,{
+      question_key:p.unit,
+      question_params:{g:p.unit,s:p.seed},
+      question_text:String(p.qtext||p.q||p.unitName||"").replace(/<[^>]*>/g,"").replace(/\s*\n\s*/g,"　"),
+      question_figure:figForLog(p),
+      correct_answer:String(ca),
+      wrong_answer:String(ua),
+    });
+  }catch(e){/* オフラインでも演習はつづける */}
+}
+
+/* 解き直し（マイページ → retry.php → ?retry=1 でこのツールを開いたとき）。
+   question_params の {g,s} から 保存時と まったく同じ問題を 作り直して 順に出す。
+   ツール内に解き直しメニューは置かない（入口はマイページに一本化） */
+function startDbRetry(){
+  if(!/[?&]retry=1/.test(location.search))return;
+  const D=window.Divp;
+  if(!D||typeof D.getRetries!=="function")return;
+  D.getRetries().then(items=>{
+    const qs=[];
+    (items||[]).forEach(it=>{
+      if(qs.length>=10)return;
+      const pm=it.question_params;if(!pm||!pm.g||!pm.s)return;
+      const u=UNITS.find(x=>x.k===pm.g);if(!u)return;
+      try{ qs.push(genSeeded(u,pm.s)); }catch(e){}
+    });
+    if(!qs.length)return;
+    S={unit:"__retry",total:qs.length,idx:0,ok:0,marks:[],p:null,inputs:[],cells:[],
+       cf:{r:0,c:0},focus:0,answered:false,retry:[],queue:qs};
+    $("menu").hidden=true;$("result").hidden=true;$("quiz").hidden=false;
+    $("uname").textContent="まちがえた もんだい";
+    nextQ();
+  }).catch(()=>{});
+}
+/* 「せいかい！」の文字を すぐ 消す（画面を はなれるとき用。ふだんは 自動で消える） */
+function hideMaru(){try{if(window.DivpFirework&&DivpFirework.hide)DivpFirework.hide();}catch(e){}}
+function finish(){
+  hideMaru();
+  $("quiz").hidden=true;$("result").hidden=false;
+  const rate=S.ok/S.total;
+  const rk=rate>=1?"SSS":rate>=0.9?"SS":rate>=0.8?"S":rate>=0.7?"A":rate>=0.5?"B":rate>=0.3?"C":"D";
+  $("rk").textContent=rk;
+  $("sc").textContent=`${S.total}問中 ${S.ok}問 せいかい`;
+  if(S.unit==="__retry"){   // 解き直しはバッジの対象外
+    $("rsub").innerHTML=`2回 つづけて できたら マスター！ また ちょうせんしてね`;
+    $("again").hidden=true;
+    drawTotal();
+    return;
+  }
+  $("again").hidden=false;
+  const need=Math.ceil(S.total*0.8), before=badgeOf(S.unit);
+  let got=false;
+  if(S.ok>=need&&before<BMAX){save.badge[S.unit]=before+1;persist();got=true;}
+  const now=badgeOf(S.unit);
+  let h=`<div class="bg" style="justify-content:center;margin:10px 0 6px">`;
+  for(let i=0;i<BMAX;i++)h+=`<i class="${i<now?"on":""}" style="width:16px;height:16px"></i>`;
+  h+=`</div>`;
+  h+= got ? (now>=BMAX?`バッジ かんぜんコンプリート！ この単元は マスターだ`:`バッジを 1つ かくとく！ あと ${BMAX-now}こで マスター`)
+          : (now>=BMAX?`この単元は すでに マスター`:`${need}問 いじょうで バッジが 1つ ふえるよ`);
+  $("rsub").innerHTML=h;
+  drawTotal();
+}
+
+/* ================================================================
+   練習プリント（A4・別ウィンドウ）
+   画面と同じ生成関数で n 問つくり、「問題」→改ページ→「こたえ」を出す。
+   ⚠ 図(SVG・表)は 文字列を そのまま 子ウィンドウへ 流し込む。見た目を そろえるため
+     このページの <style id="appcss"> を 丸ごと コピーして 先に 読ませ、そのあとに
+     紙用の 上書きCSSを 足す（図のCSSを 2か所に 持たない＝直すのは 1か所）。
+   ⚠ 透かしは print-watermark.js を通す（直後に print すると 画像の デコードが
+     間に合わず「ロゴだけ 出ない」ことがある。モジュールが 無ければ 透かし無しで印刷）。
+   ⚠ 図の高さは max-height で 止める。分度器・グラフは そのままだと 1問で
+     半ページ 使ってしまい、1枚に 収まらない。
+   ⚠ 1枚 6問（2列×3段）。A4の 使える高さは 約1039px（96dpi・上下余白11mm）で、
+     図つき1問が 200〜240px あるため 8問だと あふれる（実測して 6問にした）。
+     器の高さを ぎりぎりに しないこと＝空の 2枚目が 出る原因になる。
+   ⚠ 問題と こたえは 6問ずつ 交互に 出す（表=問題 / 裏=こたえ の 両面印刷に なる）。
+   ================================================================ */
+const PRT_PER_SHEET=6;
+function toast(s){
+  const t=$("toast");if(!t)return;
+  t.textContent=s||"";t.classList.toggle("on",!!s);
+  if(toast._t)clearTimeout(toast._t);
+  if(s)toast._t=setTimeout(()=>{t.classList.remove("on");},7000);
+}
+function pmsg(s){const m=$("pmsg");if(m)m.textContent=s||"";toast(s);}
+/* n問つくる。同じ問題・同じ出題パターンに かたよらないよう 少し ばらす */
+function prtPick(k,n){
+  const out=[],seen=new Set(),cap=Math.max(2,Math.ceil(n/3));
+  for(let t=0;t<n*80&&out.length<n;t++){
+    const p=genFor(k);
+    const sig=[p.unit,p.key||"",p.q||"",p.fig||"",ansText(p)].join("|");
+    if(seen.has(sig))continue;
+    if(out.filter(x=>x.unit===p.unit&&x.key===p.key).length>=cap)continue;
+    seen.add(sig);out.push(p);
+  }
+  return out;
+}
+function prtAnsArea(p){
+  const box=`<span class="pln"></span>`;
+  if(p.type==="cells"){
+    // 小数の筆算は マスに 書きこんで 終わり。わり算は かこいの下に 計算する 余白と
+    // 「こたえ 商__ あまり__」の行を つける
+    if(p.grid.point!=null)return "";
+    return `<div class="pspace"></div><div class="pal">こたえ　`
+      +p.grid.rows.map(r=>`${r.label||""}<span class="pln s2"></span>`).join("　")+`</div>`;
+  }
+  if(p.type==="choice")
+    return `<div class="pch">`+p.choices.map((c,i)=>`<span><i>${"アイウエオ"[i]||(i+1)}</i>${esc(c)}</span>`).join("")
+      +`</div><div class="pal">こたえ<span class="pbx"></span></div>`;
+  if(p.type==="frac")
+    return `<div class="pal">こたえ<span class="pfr"><i></i><b></b></span></div>`;
+  if(p.type==="mixed")
+    return `<div class="pal">こたえ<span class="pln s2"></span><span class="pto">と</span><span class="pfr"><i></i><b></b></span></div>`;
+  if(p.type==="num2")
+    return `<div class="pal">こたえ${box}${esc((p.boxes[0]&&p.boxes[0].s)||"")}${box}${esc((p.boxes[1]&&p.boxes[1].s)||"")}</div>`;
+  return `<div class="pal">こたえ${box}${esc((p.boxes&&p.boxes[0]&&p.boxes[0].s)||"")}</div>`;
+}
+function prtItem(p,i,showUnit){
+  const fig=(p.type==="cells"&&p.figP)?p.figP:p.fig;
+  return `<div class="pit${p.wide?" wide":""}">`
+    +`<div class="pqh"><span class="pno">${i+1}</span>${showUnit?`<span class="put">${esc(p.unitName)}</span>`:""}</div>`
+    +(p.q?`<div class="pq">${op(esc(p.q)).replace(/\n/g,"<br>")}</div>`:"")
+    +(fig?`<div class="pfig">${fig}</div>`:"")
+    +prtAnsArea(p)
+    +`</div>`;
+}
+function prtAnsItem(p,i){
+  return `<div class="pa"><span class="pno">${i+1}</span><div class="pab">`
+    +`<div class="pav">${esc(ansText(p))}</div>`
+    +(p.figA?`<div class="pfig small">${p.figA}</div>`:"")
+    +`<div class="pae">${op(esc(p.exp||""))}</div>`
+    +`</div></div>`;
+}
+function prtCss(){
+  let app="";try{app=$("appcss").textContent||"";}catch(e){}
+  const wm=(window.ChukyoPrint&&ChukyoPrint.css)?ChukyoPrint.css({zIndex:0}):"";
+  return app+wm+`
+@page{size:A4 portrait;margin:11mm 10mm}
+html{background:#fff}
+/* 画面用CSSを そのまま 引きついでいるので、紙で じゃまに なるものだけ 上書きする */
+body{background:none!important;padding:0!important;min-height:0!important;
+  color:#231F1A;font-size:10.5pt;font-weight:700}
+.wm{position:fixed}
+.psheet{position:relative;z-index:1;page-break-after:always;break-after:page}
+.psheet:last-child{page-break-after:auto;break-after:auto}
+.phd{display:flex;justify-content:space-between;align-items:flex-end;
+  border-bottom:2.5px solid #C86D7C;padding-bottom:6px;margin-bottom:9px}
+.phd .pb{font-size:9pt;color:#8B877C}
+.phd .pt{font-size:15.5pt;font-weight:900;margin-top:1px}
+.phd .pr{text-align:right;font-size:9pt;line-height:1.9;white-space:nowrap}
+.phd .pnm{display:inline-block;min-width:32mm;border-bottom:1px solid #333;margin-left:4px}
+.plb{display:inline-block;background:#3A342C;color:#fff;font-size:10pt;font-weight:900;
+  padding:2px 11px;border-radius:5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.plb.gy{background:#6E6558}
+.pins{font-size:9.5pt;color:#555;margin:6px 0 8px}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:4mm 6mm}
+.pgrid.one{grid-template-columns:1fr;gap:0}
+/* 図の無い単元を 1面 12問で 刷るとき用。器を つめて A4に 余裕を 残す */
+.pgrid.tight{gap:3mm 6mm}
+.pgrid.tight .pit{padding:3px 7px 5px}
+.pgrid.tight .pal{margin-top:4px}
+.pit{break-inside:avoid;page-break-inside:avoid;border:1.2px solid #DED2BE;border-radius:7px;
+  padding:4px 7px 7px}
+.pit.wide{grid-column:1/-1}
+.pno{display:inline-block;background:#3A342C;color:#fff;border-radius:5px;font-size:9pt;
+  font-weight:900;padding:0 7px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.pqh{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.put{font-size:8.5pt;color:#8B877C}
+.pq{font-size:10.5pt;line-height:1.45}
+.psheet .op{color:#231F1A}
+.pfig{display:flex;justify-content:center;margin:3px 0 2px}
+/* 図の高さの 上限。ここを ゆるめると 6問が 1枚に 収まらなくなる */
+.pfig svg{max-width:100%;height:auto;max-height:31mm}
+.pit.wide .pfig svg{max-height:34mm}
+.pfig .wari{font-size:23px}
+.pfig .hissan{font-size:23px}
+.pfig .fexp{font-size:21px}
+.pfig .ptbl{font-size:9pt}
+.pfig .ptbl th,.pfig .ptbl td{padding:2px 5px;min-width:2.2em}
+.pfig .ic{border-color:#9A9284}
+.pspace{height:19mm}
+.pal{margin-top:6px;font-size:10pt}
+.pln{display:inline-block;min-width:22mm;border-bottom:1.2px solid #555;margin:0 3px}
+.pln.s2{min-width:12mm}
+.pto{margin:0 2px}
+.pbx{display:inline-block;width:15mm;height:7mm;border:1.2px solid #555;border-radius:3px;
+  margin-left:5px;vertical-align:middle}
+.pfr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 5px}
+.pfr i,.pfr b{display:block;width:15mm;height:5.5mm}
+.pfr i{border-bottom:1.2px solid #555}
+.pch{display:flex;flex-wrap:wrap;gap:1px 12px;margin-top:4px;font-size:10pt}
+.pch span{display:inline-flex;align-items:center;gap:4px}
+.pch i{font-style:normal;font-weight:900;font-size:8pt;border:1px solid #8B877C;border-radius:50%;
+  width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+.pa{display:flex;gap:7px;break-inside:avoid;page-break-inside:avoid;
+  border-bottom:1px dashed #DED2BE;padding:5px 2px}
+.pab{flex:1}
+.pav{font-size:11pt;font-weight:900}
+.pae{font-size:9pt;color:#555;line-height:1.55;font-weight:500}
+.pfig.small{justify-content:flex-start;margin:2px 0}
+.pfig.small svg{max-height:22mm}
+.pfig.small .wari{font-size:15px}
+.pfig.small .hissan{font-size:15px}
+.pfig.small .fexp{font-size:15px}
+.pfig.small .wam{font-size:9pt;gap:5px;margin-top:2px}
+.pfig.small .wam .dgrid{font-size:15px}
+.pfoot{margin-top:9px;font-size:8.5pt;color:#8B877C;text-align:right}
+`;
+}
+function prtHtml(items,label,withAns,showUnit){
+  const d=new Date();
+  const date=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+  const wmImg=(window.ChukyoPrint&&ChukyoPrint.img)?ChukyoPrint.img():"";
+  const head=(ttl,extra)=>`<div class="phd"><div>`
+    +`<div class="pb">中京個別指導学院</div><div class="pt">${ttl}</div></div>`
+    +`<div class="pr"><div>名前<span class="pnm"></span></div><div>${date}${extra||""}</div></div></div>`;
+  /* 1枚の 問題数。図（分度器・グラフ・筆算など）が 1つも 無い単元は
+     1問が 3行ほどで 収まるので 12問まで 入れる＝紙のむだを へらす。
+     図が 1つでも あると 高さが 読めないので 6問に する（A4の 1面に 収める）。 */
+  const per=items.some(p=>p.fig||p.type==="cells")?PRT_PER_SHEET:PRT_PER_SHEET*2;
+  // こたえは その1面ぶんを すぐ 次の面に 出す（両面印刷で 表=問題・裏=こたえ）
+  const sheets=[];
+  for(let i=0;i<items.length;i+=per)sheets.push(items.slice(i,i+per));
+  const foot=`<p class="pfoot">chukyokobetsu.com　小4算数 まるごとパック</p>`;
+  let body="";
+  sheets.forEach((chunk,si)=>{
+    const no=sheets.length>1?`（${si+1}/${sheets.length}）`:"";
+    const from=si*per;
+    body+=`<section class="psheet">`+head("小4算数 まるごとパック　練習プリント",no?`　${no}`:"")
+      +`<div class="plb">${esc(label)}${no}</div>`
+      +`<p class="pins">つぎの もんだいに 答えましょう。</p>`
+      +`<div class="pgrid${per>PRT_PER_SHEET?" tight":""}">`+chunk.map((p,j)=>prtItem(p,from+j,showUnit)).join("")+`</div>`
+      +foot+`</section>`;
+    if(withAns){
+      body+=`<section class="psheet">`+head("小4算数 まるごとパック　こたえ",no?`　${no}`:"")
+        +`<div class="plb gy">こたえ・${esc(label)}${no}</div>`
+        +`<p class="pins">丸つけを して、まちがえた もんだいは もう一度 やってみましょう。</p>`
+        +`<div class="pgrid one">`+chunk.map((p,j)=>prtAnsItem(p,from+j)).join("")+`</div>`
+        +foot+`</section>`;
+    }
+  });
+  return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">`
+    +`<title>小4算数まるごとパック 練習プリント｜中京個別指導学院</title>`
+    +`<link rel="preconnect" href="https://fonts.googleapis.com">`
+    +`<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">`
+    +`<style>${prtCss()}</style></head><body>${wmImg}${body}</body></html>`;
+}
+function printSheet(k,n,withAns){
+  try{
+    const label=(k==="mix")?"ぜんぶ ミックス":(UNITS.find(u=>u.k===k)||{n:""}).n;
+    const items=prtPick(k,n);
+    if(!items.length){pmsg("プリントを つくれませんでした。もう一度 おしてください。");return;}
+    const w=window.open("","_blank","width=820,height=1160");
+    if(!w){pmsg("印刷の タブが ひらけませんでした。ブラウザの ポップアップを 許可してから もう一度 おしてください。");return;}
+    w.document.write(prtHtml(items,label,withAns!==false,k==="mix"));
+    w.document.close();
+    pmsg(`「${label}」の プリント（${items.length}問${withAns!==false?"＋こたえ":""}）を つくりました。`);
+    /* 透かし画像の デコードを 待ってから 印刷ダイアログを 出す
+       （待たないと ロゴだけ 抜けることがある。モジュールが 無ければ そのまま印刷） */
+    setTimeout(()=>{
+      try{
+        if(window.ChukyoPrint&&ChukyoPrint.print)ChukyoPrint.print(w.document,w);
+        else{w.focus();w.print();}
+      }catch(e){try{w.focus();w.print();}catch(e2){}}
+    },700);
+  }catch(err){
+    pmsg("プリントの さくせいで エラーが 出ました。");
+    try{console.error("print error",err);}catch(e){}
+  }
+}
+
+/* ============ イベント ============ */
+$("go").onclick=()=>{ if(S.answered) nextQ(); else judge(); };
+$("back").onclick=()=>{hideMaru();$("quiz").hidden=true;$("menu").hidden=false;buildMenu();};
+$("again").onclick=()=>start(S.unit);
+$("tomenu").onclick=()=>{$("result").hidden=true;$("menu").hidden=false;buildMenu();};
+$("pnum").onclick=e=>{
+  const b=e.target.closest(".pchip");if(!b)return;
+  [...$("pnum").children].forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");
+};
+$("pgo").onclick=()=>{
+  const on=$("pnum").querySelector(".pchip.on");
+  printSheet($("psel").value,on?+on.dataset.n:PRT_PER_SHEET,$("pwa").checked);
+};
+$("pnow").onclick=()=>{
+  const k=(!S.unit||S.unit==="__retry")?"mix":S.unit;
+  printSheet(k,PRT_PER_SHEET,true);
+};
+window.addEventListener("resize",()=>{if(!$("quiz").hidden)fitText();});
+document.addEventListener("keydown",e=>{
+  if($("quiz").hidden)return;
+  if(e.key==="Enter"){e.preventDefault();$("go").click();return;}
+  if(S.p&&S.p.type!=="choice"){
+    if(/^[0-9]$/.test(e.key))press(e.key);
+    else if(e.key==="Backspace")press("del");
+    else if(e.key===".")press(".");
+    else if(e.key==="Tab"){e.preventDefault();press("next");}
+    else if(S.p.type==="cells"&&(e.key==="ArrowLeft"||e.key==="ArrowRight")){
+      e.preventDefault();moveCell(e.key==="ArrowLeft"?-1:1);drawCells();}
+  }
+});
+buildMenu();
+buildPrintSelect();
+window.addEventListener("load",()=>{loadSave();if(!$("menu").hidden)buildMenu();else drawTotal();});
+
+/* 学習記録（ログイン・学習時間・解答ログ）。未ログイン/file:// では黙って何もしない */
+try{ if(window.Divp&&Divp.init) Divp.init(UNIT_KEY); }catch(e){}
+startDbRetry();   // ?retry=1 で来たときだけ 解き直しに入る
+})();
+</script>
+</body>
+</html>

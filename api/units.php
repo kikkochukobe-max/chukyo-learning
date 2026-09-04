@@ -130,6 +130,13 @@ return [
         'sub'   => '算数・小3',
         'url'   => '/learning/math/math_es3_tokei.html',
     ],
+    // 解き直しは question_params の {g:単元, s:種} で同じ問題を作り直す
+    // （小2・小3のまるごとパックと同じ種方式 = CLAUDE.md 2d）
+    'math_es4_all' => [
+        'title' => '小4算数まるごとパック',
+        'sub'   => '算数・小4',
+        'url'   => '/learning/math/math_es4_all.html',
+    ],
     'math_es_hyakumasu' => [
         'title' => '100マス たし算れんしゅう',
         'sub'   => '算数・小学生',
