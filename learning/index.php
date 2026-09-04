@@ -34,6 +34,11 @@ $manual = [
     ['folder' => 'social', 'grade' => '中学', 'title' => '歴史2章対策',   'href' => 'https://rekishi2.chukyo.workers.dev/Rekishi2'],
     ['folder' => 'social', 'grade' => '中学', 'title' => '歴史3章対策',   'href' => 'https://rekishi3.chukyo.workers.dev/Rekishi3'],
     ['folder' => 'social', 'grade' => '中学', 'title' => '歴史6章対策',   'href' => 'https://rekishi6.chukyo.workers.dev/Rekishi6'],
+    ['folder' => 'social', 'grade' => '中学', 'title' => '公民1編対策',   'href' => 'https://koumin1.chukyo.workers.dev/Koumin1'],
+    ['folder' => 'social', 'grade' => '中学', 'title' => '公民2編対策',   'href' => 'https://koumin2.chukyo.workers.dev/Koumin2'],
+    ['folder' => 'social', 'grade' => '中学', 'title' => '公民3編対策',   'href' => 'https://koumin3.chukyo.workers.dev/Koumin3'],
+    ['folder' => 'social', 'grade' => '中学', 'title' => '公民4編対策',   'href' => 'https://koumin4.chukyo.workers.dev/Koumin4'],
+    ['folder' => 'social', 'grade' => '中学', 'title' => '公民5編対策',   'href' => 'https://koumin5.chukyo.workers.dev/Koumin5'],
     ['folder' => 'social', 'grade' => '中学', 'title' => '年号ミニゲーム', 'href' => 'https://nenngouminige-mu.chukyo.workers.dev/Nenngouminige-mu'],
 ];
 
