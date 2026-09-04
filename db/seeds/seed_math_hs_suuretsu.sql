@@ -3,7 +3,7 @@
 -- question_catalog への追加シードだけを行う増分スクリプト。
 --
 -- DBは既にHetemlに構築済みなので schema_full.sql を流し直す必要はない。
--- 講師・保護者画面のラベル表示のために、この11行だけ phpMyAdmin で実行する。
+-- 講師・保護者画面のラベル表示のために、この12行だけ phpMyAdmin で実行する。
 -- （未登録でも save_answer.php が既定XP=1を付与するのでXP自体は動くが、
 --  　カルテのラベルが question_key の生値（ローマ字）のままになるため必ず登録する）
 --
@@ -12,7 +12,7 @@
 -- "mix" という question_key は飛んでこない＝カタログにも登録しない。
 --
 -- ⚠ レベル（1基本 / 2標準 / 3発展）は question_key を増やさず
---   question_params の lv に持たせているので、この台帳はタイプ単位の11行だけ。
+--   question_params の lv に持たせているので、この台帳はタイプ単位の12行だけ。
 --   カルテを「等差数列(基本)」「等差数列(発展)」まで割りたくなったら、
 --   ツール側の question_key を変える必要がある（既存 pending の params_hash は
 --   そのままなので、解き直しリストは壊れない）。
@@ -25,6 +25,7 @@ INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('math_hs_suuretsu', 'hi',      '等比数列（一般項）',         1),
   ('math_hs_suuretsu', 'hiwa',    '等比数列の和',               1),
   ('math_hs_suuretsu', 'sigma',   'Σと和の公式',                1),
+  ('math_hs_suuretsu', 'touhihi', '等差×等比の和',              1),
   ('math_hs_suuretsu', 'kaisa',   '階差数列',                   1),
   ('math_hs_suuretsu', 'sntoan',  '和Snと一般項',               1),
   ('math_hs_suuretsu', 'bubun',   '部分分数分解の和',           1),

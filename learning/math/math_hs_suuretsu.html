@@ -410,8 +410,6 @@ h1 .ttl{background:linear-gradient(92deg,#fff 12%,var(--cy) 58%,var(--vi) 96%);
 .sbar{fill:rgba(56,232,255,.20);stroke:var(--cy);stroke-width:1.2;}
 .sbar2{fill:rgba(167,139,250,.22);stroke:var(--vi);stroke-width:1.2;}
 .slabel2{fill:#DCD3FF;font-family:"DM Mono",monospace;font-size:15px;text-anchor:middle;dominant-baseline:middle;}
-/* 長方形の輪郭（金の点線） */
-.outl{fill:none;stroke:var(--gold);stroke-width:1.8;stroke-dasharray:7 5;}
 /* 等差数列の和：階段の下に置く和の式。列の中心を棒の中心にそろえてあるので、
    「縦に足すとどの列も a₁+a₁₀」が図と式で同時に見える。
    ⚠ 文字の大きさは viewBox の幅とセット。SVGは横幅いっぱい（最大660px）に
@@ -615,8 +613,8 @@ footer{
 "use strict";
 /* ================================================================
    math_hs_suuretsu.html  数列完全マスター   unit_key = math_hs_suuretsu
-   modes(=question_key): touhi / touhiwa / hi / hiwa / sigma / kaisa /
-     sntoan / bubun / gun / zenka / kinou
+   modes(=question_key): touhi / touhiwa / hi / hiwa / sigma / touhihi /
+     kaisa / sntoan / bubun / gun / zenka / kinou
      ＋ mix（えらんだタイプからランダム。記録はその問題のタイプで残すので "mix" は飛ばない）
    レベル(1基本/2標準/3発展)は question_key を増やさず question_params の lv に持つ
      ＝カルテはタイプ単位で読める（レベルまで割ると11×3行で読めなくなる）。
@@ -784,6 +782,8 @@ const MODES=[
    lv:["公式に代入する","公比が負の数のとき","S3・S6からS9を求める"]},
   {k:"sigma",  n:"Σと和の公式",      s:"Σk, Σk²",
    lv:["数値を求める","Σ(ak+b)を計算する","Σの応用（k²・等比）"]},
+  {k:"touhihi",n:"等差×等比の和",    s:"Σ k・r^k",
+   lv:["数値の和を求める","Σ(ak+b)r^k を n の式で","公比が3のとき・ずらして引く形"]},
   {k:"kaisa",  n:"階差数列",         s:"an=a1+Σbk",
    lv:["次の項を求める","一般項（階差が等差）","一般項（階差が等比）"]},
   {k:"sntoan", n:"和Snと一般項",     s:"an=Sn−Sn−1",
@@ -1189,6 +1189,113 @@ function genSigma(lv){
         (r===2?"分子を整理して "+T("=2^{n+1}-2")+"。":"これが答え。"),
         '<div class="exLine key">初項は '+T(r+"^1="+r)+"（"+T("1")+" ではない）。ここを間違えると全体が "+T("\\dfrac{1}{"+(r-1)+"}")+" 倍ずれる。</div>"],
     plainQ:"Σ(k=1〜n) "+r+"^k を n の式で表せ",proof:"hiwa"
+  };
+}
+
+/* ---------- 5b. (等差)×(等比) の和 ----------
+   Σ k・r^k の型。公式を覚える単元ではなく「両辺を r 倍して1つずらし、引く」
+   手順の単元なので、解説は毎回その3行（S / rS / 引いた式）を出す。
+   ⚠ 公比2のときだけ 1-r=-1 で「最後に割る」が要らない。レベル1・2は r=2 中心、
+     レベル3で r=3（最後に2で割る）を出す＝割り算が出るのはレベル3だけ。
+   ⚠ 閉じた式は Σ(ak+b)r^k = (an+(b-a))r^{n+1} + (定数) の形になる。
+     r=3 で分数が出ないよう、レベル3の係数は (2k+b) の b を奇数に限る
+     （b が偶数だと分母2が残り、6択が読めない式になる）。 */
+function genTouhihi(lv){
+  const pw=(r,e)=>(e===0?"1":(e===1?String(r):r+"^{"+e+"}"));          /* r^e（1乗は指数を書かない） */
+  const tm=(c,r,e)=>(e===0?String(c):(c+"\\cdot "+pw(r,e)));           /* 「3・2³」の1項 */
+  /* 答えの形 (An+C)r^{ex} + K。C=0 のときはかっこを付けない */
+  const fin=(A,C,r,K,ex)=>{
+    const head=(C===0)?coefTex(A,"n"):("\\left("+polyTex([A,C])+"\\right)");
+    return head+"\\cdot "+r+"^{"+(ex||"n+1")+"}"+(K===0?"":pm(K));
+  };
+
+  if(lv===1){
+    /* 数値の和。sh=1 は 1+2r+3r²+… の形（指数が k-1）*/
+    const r=pick([2,3]), sh=ri(0,1), N=(r===2)?ri(4,7):ri(4,5);
+    let S=0;for(let k=1;k<=N;k++)S+=k*Math.pow(r,k-sh);
+    const head=[];for(let k=1;k<=3;k++)head.push(tm(k,r,k-sh));
+    const shown=head.join("+")+"+\\cdots+"+tm(N,r,N-sh);
+    /* 引いたあとに現れる等比数列とその和（係数が1になった部分） */
+    let G=0;for(let k=1;k<=N;k++)G+=Math.pow(r,k-sh);
+    const LT=N*Math.pow(r,N-sh+1);
+    return {
+      lead:"次の和を求めよ。",
+      disp:"S="+shown,
+      ans:{kind:"num",val:S},
+      ex:['<div class="exLine key">(等差)×(等比) の和は公式に当てはめない。<b>両辺を公比倍して1つずらし、引く</b>。</div>',
+          /* ⚠ 2行目は \phantom で1項ぶん右へ寄せる（「1つずらす」が目で見えないと手順が伝わらない） */
+          '<div class="exFml">'+T("S="+shown)+"<br>"
+            +T(r+"S=\\phantom{"+tm(1,r,1-sh)+"+}"+head.map((_,i)=>tm(i+1,r,i+1-sh+1)).join("+")+"+\\cdots+"+tm(N,r,N-sh+1))+"</div>",
+          "上下を引くと、重なった所は係数が "+T(String(1))+" になって<b>等比数列</b>が現れ、最後の項だけが残る。",
+          T("(1-"+r+")S=("+[0,1,2].map(i=>pw(r,i+1-sh)).join("+")+"+\\cdots+"+pw(r,N-sh)+")-"+tm(N,r,N-sh+1)),
+          T(coefTex(-(r-1),"S")+"="+G+"-"+LT+"="+(G-LT))+" なので "
+            +((r-1)===1?T("S="+S):T("S=\\dfrac{"+(LT-G)+"}{"+(r-1)+"}="+S))+"。",
+          '<div class="exLine key">最後に残る項の指数は '+T(pw(r,N-sh+1))+"（1つ上がる）。ここを "+T(pw(r,N-sh))+" と書くのが最頻出のミス。</div>"],
+      plainQ:"S="+head.join("+").replace(/\\cdot /g,"・").replace(/[{}]/g,"").replace(/\^/g,"^")+"+…+"+N+"・"+r+"^"+(N-sh)+" を求めよ",
+      proof:"touhihi"
+    };
+  }
+
+  if(lv===2){
+    /* Σ(ak+b)2^k。a=b だと定数項が 0 になり誤答候補と衝突するので避ける */
+    let a,b;do{a=ri(1,3);b=ri(-1,2);}while(a===b);
+    const A=a,C=b-a,K=2*(a-b);
+    const coef=polyTex([a,b]).replace(/n/g,"k");
+    const cor=fin(A,C,2,K);
+    return {
+      lead:"次の和を "+T("n")+" の式で表せ。",
+      disp:"\\displaystyle\\sum_{k=1}^{n}("+coef+")\\cdot 2^{k}",
+      ans:mkChoice(cor,[fin(A,C,2,K,"n"),fin(A,(C===0?1:-C),2,K),fin(A,C,2,-K),
+                        fin(A,C,2,0),fin(A,0,2,K),fin(A,C,2,2*K)]),
+      ex:['<div class="exLine key">(等差)×(等比) の和は<b>両辺を2倍して1つずらし、引く</b>。Σの公式は使えない。</div>',
+          '<div class="exFml">'+T("S="+tm(a+b,2,1)+"+"+tm(2*a+b,2,2)+"+\\cdots+\\left("+polyTex([a,b])+"\\right)\\cdot 2^{n}")+"<br>"
+            +T("2S=\\phantom{"+tm(a+b,2,1)+"+}"+tm(a+b,2,2)+"+\\cdots+\\left("+polyTex([a,b-a])+"\\right)\\cdot 2^{n}+\\left("+polyTex([a,b])+"\\right)\\cdot 2^{n+1}")+"</div>",
+          "重なった所の係数は "+T("("+coef+")-\\{"+coefTex(a,"(k-1)")+(b===0?"":pm(b))+"\\}="+a)
+            +" で<b>一定</b>。つまり公比2の等比数列 "+T(coefTex(a,"\\cdot 2^{k}"))+" が並ぶ。",
+          T("(1-2)S="+tm(a+b,2,1)+"+"+coefTex(a,"(2^2+2^3+\\cdots+2^n)")+"-\\left("+polyTex([a,b])+"\\right)\\cdot 2^{n+1}"),
+          "等比の部分は "+T("2^2+2^3+\\cdots+2^n=2^{n+1}-4")+"。整理すると "+T("-S=-\\left("+polyTex([A,C])+"\\right)\\cdot 2^{n+1}"+pm(-K))+"。",
+          '<div class="exLine key">'+T("1-2=-1")+" なので<b>符号を反転するだけ</b>で終わる。答は "+T("S="+cor)+"。</div>"],
+      plainQ:"Σ(k=1〜n) ("+coef+")・2^k を n の式で表せ",
+      proof:"touhihi"
+    };
+  }
+
+  if(ri(1,2)===1){
+    /* 公比3。(1-3)S=-2S になるので最後に2で割る＝r=2 との違いはここだけ */
+    const b=pick([-1,1,3]);
+    const A=1,C=(b-1)/2,K=(3-3*b)/2;
+    const coef=polyTex([2,b]).replace(/n/g,"k");
+    const cor=fin(A,C,3,K);
+    return {
+      lead:"次の和を "+T("n")+" の式で表せ。",
+      disp:"\\displaystyle\\sum_{k=1}^{n}("+coef+")\\cdot 3^{k}",
+      ans:mkChoice(cor,[fin(A,C,3,K,"n"),fin(A,(C===0?1:-C),3,K),fin(A,C,3,-K),
+                        fin(A,C,3,0),fin(2*A,2*C,3,2*K),fin(A,C,3,K+3)]),
+      ex:['<div class="exLine key">手順は公比2のときと同じ。<b>3倍して1つずらして引く</b>。</div>',
+          "重なった所の係数は "+T("(2k"+pm(b)+")-\\{2(k-1)"+pm(b)+"\\}=2")+" で一定なので、"+T("2\\cdot 3^{k}")+" の等比数列が並ぶ。",
+          '<div class="exFml">'+T("(1-3)S="+tm(2+b,3,1)+"+2(3^2+3^3+\\cdots+3^n)-\\left("+polyTex([2,b])+"\\right)\\cdot 3^{n+1}")+"</div>",
+          "等比の部分は "+T("3^2+3^3+\\cdots+3^n=\\dfrac{3^{n+1}-9}{2}")+"。整理すると "+T("-2S=-2\\left("+polyTex([A,C])+"\\right)\\cdot 3^{n+1}"+pm(-2*K))+"。",
+          '<div class="exLine key">最後に '+T("-2")+" で割る。<b>公比が2以外だとこの割り算が増える</b>（"+T("1-r")+" が "+T("-1")+" にならないため）。答は "+T("S="+cor)+"。</div>"],
+      plainQ:"Σ(k=1〜n) ("+coef+")・3^k を n の式で表せ",
+      proof:"touhihi"
+    };
+  }
+
+  /* 手順そのものを問う（引いたときに残る最後の項はどれか） */
+  const r=pick([2,3,4]);
+  const cor="n\\cdot "+r+"^{n+1}";
+  return {
+    lead:"次の和 "+T("S")+" について、両辺を "+T(String(r))+" 倍して引いたところ、下の形になった。"+T("\\boxed{\\;?\\;}")+" に入る式を選べ。",
+    sub:'<div class="exFml">'+T("S=1\\cdot "+r+"+2\\cdot "+r+"^2+3\\cdot "+r+"^3+\\cdots+n\\cdot "+r+"^n")+"</div>",
+    disp:"S-"+r+"S=("+r+"+"+r+"^2+\\cdots+"+r+"^n)-\\boxed{\\;?\\;}",
+    ans:mkChoice(cor,["n\\cdot "+r+"^{n}","(n+1)\\cdot "+r+"^{n+1}",r+"^{n+1}",
+                      "(n-1)\\cdot "+r+"^{n+1}","n\\cdot "+r+"^{n-1}","n^2\\cdot "+r+"^{n}"]),
+    ex:['<div class="exLine key">ずらして引くと、<b>先頭の1項</b>・<b>係数が1になった等比数列</b>・<b>最後の1項</b>の3つに分かれる。</div>',
+        T(r+"S=1\\cdot "+r+"^2+2\\cdot "+r+"^3+\\cdots+(n-1)\\cdot "+r+"^n+n\\cdot "+r+"^{n+1}")+" と1つずれる。",
+        "同じ指数どうしを引くと係数の差は "+T("k-(k-1)=1")+"。"+T(r+"^{n+1}")+" は下の行にしか無いので、そのまま残る。",
+        '<div class="exLine key">残るのは '+T(cor)+"。指数が "+T("n")+" ではなく "+T("n+1")+" になるのが要注意。</div>"],
+    plainQ:"S=1・"+r+"+2・"+r+"^2+…+n・"+r+"^n で、S-"+r+"S を計算したとき最後に残る項",
+    proof:"touhihi"
   };
 }
 
@@ -1652,7 +1759,8 @@ function genKinou(lv){
 
 const GENS={
   touhi:genTouhi, touhiwa:genTouhiwa, hi:genHi, hiwa:genHiwa, sigma:genSigma,
-  kaisa:genKaisa, sntoan:genSntoan, bubun:genBubun, gun:genGun, zenka:genZenka, kinou:genKinou
+  touhihi:genTouhihi, kaisa:genKaisa, sntoan:genSntoan, bubun:genBubun,
+  gun:genGun, zenka:genZenka, kinou:genKinou
 };
 
 /* ================================================================
@@ -1730,9 +1838,11 @@ function stageTouhiwa(){
       /* 階段の下の式（上＝そのままの順／下＝逆順）。列が棒とそろう */
       up:'<text class="seqlb" style="fill:#9BEEFF" x="'+LX+'" y="'+YA+'">S ＝</text>'+up,
       dn:'<text class="seqlb" style="fill:#DCD3FF" x="'+LX+'" y="'+YB+'">S ＝</text>'+dn,
-      /* できた長方形 */
-      rect:'<rect class="outl" x="'+X0+'" y="'+(BASE-TOT)+'" width="'+(XR-X0)+'" height="'+TOT+'" rx="4"/>'
-        +'<text class="spair" style="font-size:11px" x="'+(X0-30)+'" y="'+(BASE-TOT/2)+'">'+pair+'</text>',
+      /* できた長方形の「縦の長さ」だけを書く。
+         ⚠ 輪郭の点線では囲まない。棒どうしがくっついているので積み上がった形が
+           そのまま長方形に見えており、囲むと1本目の階段の輪郭と二重になって
+           かえって読みにくい（点線と棒の枠線が重なる） */
+      hlab:'<text class="spair" style="font-size:11px" x="'+(X0-30)+'" y="'+(BASE-TOT/2)+'">'+pair+'</text>',
       /* 縦に足した結果＝どの列も同じ */
       sum:'<line class="sline" x1="8" y1="'+YR+'" x2="'+(XR+8)+'" y2="'+YR+'"/>'
         +'<text class="seqlb" style="fill:var(--gold)" x="'+LX+'" y="'+YC+'">2S ＝</text>'+sum
@@ -1762,7 +1872,7 @@ function stageTouhiwa(){
       +'<g class="upG fadeIn">'+G.up+'</g>'
       +'<g class="copyG fadeDown">'+G.copy+'</g>'
       +'<g class="dnG fadeIn">'+G.dn+'</g>'
-      +'<g class="rcG fadeIn">'+G.rect+'</g>'
+      +'<g class="rcG fadeIn">'+G.hlab+'</g>'
       +'<g class="sumG fadeIn">'+G.sum+'</g>'
       +'<g class="totG fadeIn">'+tot("2S ＝ 10 ×("+PAIR+")")+'</g>'
       +'<g class="ansG fadeIn">'+ans("S ＝ 10 ×("+PAIR+") ÷ 2")+'</g>'
@@ -1770,7 +1880,7 @@ function stageTouhiwa(){
     /* ② 数の例（STEP5〜6）。手順は済んでいるので重ねた形で一度に出す */
     +'<g class="numG fadeIn">'
       +cap("初項5・公差3 の10項　5, 8, 11, …, 32　の和")
-      +M.bars+M.copy+M.up+M.dn+M.rect+M.sum
+      +M.bars+M.copy+M.up+M.dn+M.hlab+M.sum
       +tot("2S ＝ 10 ×"+SUMN+" ＝ "+(SUMN*N))
       +'<g class="numAnsG fadeIn">'+ans("S ＝ "+(SUMN*N)+" ÷ 2 ＝ "+(SUMN*N/2))+'</g>'
     +'</g>'
@@ -1830,6 +1940,51 @@ function applyHiwa(root,i){
   }
   on(root,".c0",i>=2,"glow");
   on(root,".d5",i>=2,"glow");
+  on(root,".tot",i>=3);
+}
+
+/* ---------- 証明2b: (等差)×(等比) の和（ずらして引くと係数が1になる） ----------
+   等比の和（証明2）と同じ「r倍してずらして引く」だが、消えるのではなく
+   **係数だけが1になって等比数列が残る**のが違い。そこが分かれば手順を思い出せる。
+   ⚠ 上段(S)は4項・下段(rS)は1列右にずらして4項＝全5列。列の対応が命なので、
+     項数を変えるときは両方の段とその下の結果行を同じ列数で回すこと。 */
+function stageTouhihi(){
+  /* X0 は左肩のラベルぶん空ける。いちばん長い「(1−r)S ＝」が入る幅が要る */
+  const W=92,G=8,X0=92,YS=44,YR=118,YD=196,H=44;
+  const top=["r","2r²","3r³","4r⁴"];       /* S   ＝ 1r + 2r² + 3r³ + 4r⁴ */
+  const bot=["r²","2r³","3r⁴","4r⁵"];      /* rS  ＝ 1列ぶん右へずれる */
+  const dif=["r","r²","r³","r⁴","−4r⁵"];   /* 引いた結果＝係数が1の等比＋最後の項 */
+  let s="",b="",d="";
+  for(let i=0;i<4;i++){
+    const x=X0+i*(W+G);
+    s+='<g><rect class="sbox" x="'+x+'" y="'+YS+'" width="'+W+'" height="'+H+'" rx="10"/>'
+      +'<text class="slabel" x="'+(x+W/2)+'" y="'+(YS+H/2+1)+'">'+top[i]+'</text></g>';
+    const x2=X0+(i+1)*(W+G);
+    b+='<g><rect class="sbox" x="'+x2+'" y="'+YR+'" width="'+W+'" height="'+H+'" rx="10"/>'
+      +'<text class="slabel" x="'+(x2+W/2)+'" y="'+(YR+H/2+1)+'">'+bot[i]+'</text></g>';
+  }
+  for(let i=0;i<5;i++){
+    const x=X0+i*(W+G);
+    /* 最後の1列だけは「消えずに残る項」なので色を変える（hi2＝紫） */
+    d+='<g class="dc'+i+' fadeIn"><rect class="sbox '+(i<4?"hi":"hi2")+'" x="'+x+'" y="'+YD+'" width="'+W+'" height="'+H+'" rx="10"/>'
+      +'<text class="slabel" x="'+(x+W/2)+'" y="'+(YD+H/2+1)+'">'+dif[i]+'</text></g>';
+  }
+  return '<svg viewBox="0 0 640 288" role="img" aria-label="等差×等比の和を、r倍してずらして引く図">'
+    +'<text class="ssub" x="12" y="'+(YS+H/2+4)+'" style="text-anchor:start">S ＝</text>'
+    +'<text class="ssub" x="12" y="'+(YR+H/2+4)+'" style="text-anchor:start">rS ＝</text>'
+    +'<g class="rowS">'+s+'</g>'
+    +'<g class="rowR fadeUp">'+b+'</g>'
+    +'<g class="rowD fadeIn">'
+      +'<text class="ssub" x="12" y="'+(YD+H/2+4)+'" style="text-anchor:start">(1−r)S ＝</text>'+d
+    +'</g>'
+    +'<g class="tot fadeIn"><text class="spair" x="320" y="278" style="font-size:15px">'
+    +'係数は消えず、1 にそろう ＝ 等比数列が現れる</text></g>'
+    +'</svg>';
+}
+function applyTouhihi(root,i){
+  on(root,".rowR",i>=1);
+  on(root,".rowD",i>=2);
+  for(let c=0;c<5;c++)on(root,".dc"+c,i>=2&&(i>=3||c<4));   /* 最後の項は3手目で見せる */
   on(root,".tot",i>=3);
 }
 
@@ -2028,6 +2183,18 @@ const PROOFS=[
      {txt:"全体を r 倍すると、各項が<b>1つ右にずれる</b>。ここが仕掛け。",math:"rS=ar+ar^2+\\cdots+ar^{n-1}+ar^n"},
      {txt:"引き算すると、ずれて重なった項が全部消える。残るのは両端の2つだけ。",math:"S-rS=a-ar^n"},
      {txt:"左辺を S でくくって割る。r = 1 だと 0 で割ることになるので別扱い。",math:"(1-r)S=a(1-r^n)\\;\\Longrightarrow\\;S=\\dfrac{a(1-r^n)}{1-r}"}
+   ]},
+  {id:"touhihi",tag:"AP × GP",ttl:"(等差)×(等比) の和はなぜ「ずらして引く」のか",
+   fml:"S=\\sum_{k=1}^{n}k\\,r^{k}",stage:stageTouhihi,apply:applyTouhihi,
+   steps:[
+     {txt:"係数が <b>1, 2, 3, …</b>（等差）、かけてある部分が <b>r, r², r³, …</b>（等比）。この形はΣの公式が使えない。まず S を並べる。",
+      math:"S=1\\cdot r+2\\cdot r^2+3\\cdot r^3+\\cdots+n\\cdot r^{n}"},
+     {txt:"等比数列の和と同じように、<b>両辺を r 倍して1つ右にずらす</b>。同じ指数どうしが上下でそろう。",
+      math:"rS=\\phantom{1\\cdot r+}1\\cdot r^2+2\\cdot r^3+\\cdots+(n-1)\\cdot r^{n}+n\\cdot r^{n+1}"},
+     {txt:"縦に引く。等比数列のときは項が<b>消えた</b>が、ここでは係数の差が "+"k−(k−1)=1"+" になるだけ——<b>消えずに係数が1にそろう</b>。つまり<b>等比数列が現れる</b>。",
+      math:"(1-r)S=(r+r^2+r^3+\\cdots+r^{n})-n\\cdot r^{n+1}"},
+     {txt:"下の行にしか無い <b>n·r<sup>n+1</sup></b> だけが最後に残る。あとは（　）を等比数列の和の公式で処理し、1−r で割れば終わり。",
+      math:"S=\\dfrac{1}{1-r}\\left\\{\\dfrac{r(r^{n}-1)}{r-1}-n\\,r^{n+1}\\right\\}"}
    ]},
   {id:"sigmak",tag:"SIGMA k",ttl:"Σk = n(n+1)/2 を長方形で見る",
    fml:"\\sum_{k=1}^{n}k=\\dfrac{n(n+1)}{2}",stage:stageSigmaK,apply:applySigmaK,

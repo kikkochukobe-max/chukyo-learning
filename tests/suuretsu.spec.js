@@ -1,12 +1,12 @@
 // @ts-check
 // 数列完全マスター（math_hs_suuretsu）の回帰テスト。
 // 守りたい仕様:
-//   ・11タイプ×3レベルすべてが描画され、選択式・テンキーの両方で採点できる
+//   ・12タイプ×3レベルすべてが描画され、選択式・テンキーの両方で採点できる
 //   ・種によって枝分かれする出題を多数描いても KaTeX が警告を出さない
 //     （TeX に和文や ①② を裸で入れると警告になり、和文が斜体の数式で組まれる）
 //   ・誤答時の答え合わせ表示（divp-choice-mark）が正解=緑・選んだ誤答=朱になる
 //   ・10問で「採点結果へ」→ 結果カード（divp-result）
-//   ・証明モード7本を全ステップ送れて、解説の「証明を見る」から該当の証明へ飛べる
+//   ・証明モード8本を全ステップ送れて、解説の「証明を見る」から該当の証明へ飛べる
 const { test, expect } = require('@playwright/test');
 
 const TOOL = '/learning/math/math_hs_suuretsu.html';
@@ -22,12 +22,12 @@ async function open(page, errors) {
   await page.waitForFunction(() => !!window.katex);
 }
 
-test('11タイプ×3レベルすべてが描画され、答えられる', async ({ page }) => {
+test('12タイプ×3レベルすべてが描画され、答えられる', async ({ page }) => {
   const errors = [];
   await open(page, errors);
 
   const keys = await page.evaluate(() => MODES.map((m) => m.k));
-  expect(keys.length).toBe(11);
+  expect(keys.length).toBe(12);
 
   for (const k of keys) {
     for (const lv of [1, 2, 3]) {
@@ -84,7 +84,7 @@ test('全タイプ×全レベル×多数の種を描いてもKaTeXが警告を�
     }
     return count;
   }, 12);
-  expect(n).toBe(11 * 3 * 12);
+  expect(n).toBe(12 * 3 * 12);
   expect(errors, 'KaTeXの警告・コンソールエラー').toEqual([]);
 });
 
@@ -125,12 +125,12 @@ test('10問解くと「採点結果へ」→ 結果カードが出る', async ({
   expect(errors).toEqual([]);
 });
 
-test('証明モード: 7本すべてを最後のステップまで送れる', async ({ page }) => {
+test('証明モード: 8本すべてを最後のステップまで送れる', async ({ page }) => {
   const errors = [];
   await open(page, errors);
   await page.click('.vtab[data-view="proof"]');
   const ids = await page.evaluate(() => PROOFS.map((p) => p.id));
-  expect(ids.length).toBe(7);
+  expect(ids.length).toBe(8);
 
   for (const id of ids) {
     await page.click(`.pcard[data-proof="${id}"]`);
