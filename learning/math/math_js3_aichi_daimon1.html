@@ -2382,6 +2382,93 @@ function gen19(){
   return q_('t19','a1_heikin',parts,ch,ex,1,tbl)}
  return gen19()}
 
+/* ── データの活用: 度数分布表(以上〜未満)の 相対度数・累積度数・累積相対度数 ──
+   t19「平均値(度数分布表)」と同じ表の型だが、階級が「◯以上◯未満」で
+   聞くのは平均ではなく割合。中1「データの活用」の累積相対度数まで含む。
+   誤答肢は本物と同じ取りちがえを並べてある(実物の 0.21/0.32/0.47/0.68 は
+   「その階級だけの相対度数 / 残りの割合 / 一つ前の階級まで / 正解」だった)。
+   ⚠ 度数の合計は 20/25/50/100 だけ使う。40人だと 1/40=0.025 で小数第3位が出て、
+     選択肢が本物の見た目(小数第2位)にならない。 */
+const FDT_THEMES=[
+ {what:'通学時間',unit:'分',who:'ある中学校の生徒',start:0,w:5,K:7,ns:[50,100]},
+ {what:'通学時間',unit:'分',who:'ある中学校の生徒',start:0,w:10,K:6,ns:[50,100]},
+ {what:'身長',unit:'cm',who:'ある中学校の3年生',start:140,w:5,K:7,ns:[50,100]},
+ {what:'握力',unit:'kg',who:'ある中学校の男子',start:20,w:5,K:6,ns:[25,50]},
+ {what:'ハンドボール投げの記録',unit:'m',who:'ある中学校の生徒',start:10,w:5,K:6,ns:[50,100]},
+ {what:'1週間の読書時間',unit:'分',who:'ある学級の生徒',start:0,w:60,K:5,ns:[25]}];
+/* 山なりの度数を作る(全階級1人以上・合計はぴったりN)。作れなければ null */
+function fdtFreqs(K,N){
+ const c=ri(1,K-2),ws=[];
+ for(let i=0;i<K;i++)ws.push(Math.max(1,K-Math.abs(i-c)*2+ri(0,1)));
+ const sw=ws.reduce((a,b)=>a+b,0);
+ const fs=ws.map(x=>Math.max(1,Math.round(N*x/sw)));
+ let d=N-fs.reduce((a,b)=>a+b,0);
+ for(let g=0;d!==0&&g<600;g++){const i=ri(0,K-1);
+  if(d>0){fs[i]++;d--}else if(fs[i]>1){fs[i]--;d++}}
+ if(d!==0)return null;
+ return fs.every(f=>f>=1)?fs:null}
+/* 度数分布表のHTML。以上/未満の見出しは実物と同じく階級の列にまとめ、
+   階級の3列(下限・～・上限)の内側の罫線を消して1列に見せる。
+   ⚠ 罫線消しはCSSクラスではなく style 属性で持たせる。この表は
+     ツールの画面・演習プリント・teacher.php の解き直しプリントの3か所で描かれ、
+     3つめのCSSは teacher.php 側にあるため(クラスを足すと3か所直しになる)。
+     style は save_answer.php の FIG_ATTRS で許可済み。 */
+function fdtTable(th,fs,N){
+ const L='style="border-right:0;padding-right:3px"',
+  M='style="border-left:0;border-right:0;padding:4px 1px"',
+  R='style="border-left:0;padding-left:3px"';
+ const rows=fs.map((f,i)=>{const lo=th.start+th.w*i;
+  return '<tr><td '+L+'>'+lo+'</td><td '+M+'>～</td><td '+R+'>'+(lo+th.w)+'</td><td>'+f+'</td></tr>'}).join('');
+ return '<table class="freq">'
+  +'<tr><th colspan="3">階級('+th.unit+')</th><th rowspan="2">度数(人)</th></tr>'
+  +'<tr><th '+L+'>以上</th><th '+M+'></th><th '+R+'>未満</th></tr>'
+  +rows+'<tr><th colspan="3">計</th><td>'+N+'</td></tr></table>'}
+/* 「15分以上20分未満」 */
+function fdtClass(th,i){const lo=th.start+th.w*i;
+ return lo+th.unit+'以上'+(lo+th.w)+th.unit+'未満'}
+function fx2(v){return v.toFixed(2)}
+function gen27(){
+ const pat=rc(['ruisekisotai','ruisekisotai','sotai','ruisekido']);
+ for(let t=0;t<300;t++){
+  const th=rc(FDT_THEMES),N=rc(th.ns),K=th.K;
+  const fs=fdtFreqs(K,N);if(!fs)continue;
+  const cum=[];let acc=0;for(let i=0;i<K;i++){acc+=fs[i];cum.push(acc)}
+  /* 両端の階級は聞かない(累積相対度数が「最初の階級の相対度数」や 1.00 で自明になる)。
+     誤答肢に前後の階級を使うので j±1 が必ず存在する範囲でもある */
+  const j=ri(1,K-2);
+  const head=[txtPart('表は、'+th.who+' '+N+' 人の'+th.what+'を調べ、度数分布表に整理したものである。')];
+  const tbl=fdtTable(th,fs,N);
+  const sumTex=fs.slice(0,j+1).join('+');
+  if(pat==='ruisekisotai'){
+   const c=cum[j]/N;
+   const ws=[cum[j-1]/N,fs[j]/N,1-c,cum[j+1]/N].map(fx2);
+   const ch=mkChoices(fx2(c),ws);if(!ch)continue;
+   const parts=head.concat([txtPart(fdtClass(th,j)+'の階級までの累積相対度数として正しいものを、次のアからエまでの中から一つ選びなさい。')]);
+   const ex=[jt('累積度数 = 最初の階級からその階級までの度数の合計'),
+    sumTex+'='+cum[j]+jt(' 人'),
+    jt('累積相対度数 = 累積度数 ÷ 度数の合計'),
+    '\\dfrac{'+cum[j]+'}{'+N+'}='+fx2(c)];
+   const qq=q_('t27','a1_ruisekisotai',parts,ch,ex,1,tbl);
+   qq._meta={fdtRs:[th.start,th.w,N,j].concat(fs)};return qq}
+  if(pat==='sotai'){
+   const c=fs[j]/N;
+   const ws=[cum[j]/N,fs[j-1]/N,fs[j+1]/N,(N-fs[j])/N].map(fx2);
+   const ch=mkChoices(fx2(c),ws);if(!ch)continue;
+   const parts=head.concat([txtPart(fdtClass(th,j)+'の階級の相対度数として正しいものを、次のアからエまでの中から一つ選びなさい。')]);
+   const ex=[jt('相対度数 = その階級の度数 ÷ 度数の合計'),
+    '\\dfrac{'+fs[j]+'}{'+N+'}='+fx2(c)];
+   const qq=q_('t27','a1_sotai',parts,ch,ex,1,tbl);
+   qq._meta={fdtSo:[th.start,th.w,N,j].concat(fs)};return qq}
+  const c=cum[j];
+  const ws=[fs[j],N-c,cum[j-1],cum[j+1]].map(x=>x+jt(' 人'));
+  const ch=mkChoices(c+jt(' 人'),ws);if(!ch)continue;
+  const parts=head.concat([txtPart(fdtClass(th,j)+'の階級までの累積度数として正しいものを、次のアからエまでの中から一つ選びなさい。')]);
+  const ex=[jt('累積度数 = 最初の階級からその階級までの度数の合計'),
+   sumTex+'='+c+jt(' 人')];
+  const qq=q_('t27','a1_ruisekido',parts,ch,ex,1,tbl);
+  qq._meta={fdtRk:[th.start,th.w,N,j].concat(fs)};return qq}
+ return gen27()}
+
 /* ── 割合の文章題 実物29B(8)型 ── */
 function gen20(){
  const pat=rc(['rensa','rensa','nebiki','nebiki','uriage']);
@@ -3057,6 +3144,7 @@ const TYPES=[
  {no:8, id:'t8', label:'標本調査', gen:gen8},
  {no:8, id:'t12',label:'ヒストグラム読み取り', gen:genHisto},
  {no:8, id:'t19',label:'平均値(度数分布表)', gen:gen19},
+ {no:8, id:'t27',label:'度数分布表(相対度数・累積)', gen:gen27},
  {no:9, id:'t9', label:'確率', gen:gen9},
  {no:9, id:'t11',label:'箱ひげ図', gen:genHako},
  {no:10,id:'t10',label:'関数・数の性質', gen:gen10},
@@ -3114,6 +3202,9 @@ function genAichiSet(){ // scopeでオフのタイプは代替(既出タイプ�
     (10) 相似1・三平方1・角度1・空間図形1
     ※(10)の「角度1」には円周角(t13)だけでなく、二等辺三角形＋長方形のような
       中2図形の角(t21)も実物に出るので、t13 と並べて (10) の候補に入れてある。
+    ※(8)の t27(度数分布表の相対度数・累積相対度数)はこの4年には出ていないが、
+      他県の入試では定番で愛知でも出る可能性がある型なので (8) の候補に入れてある
+      （2026-09 に判断。頻度を下げたいなら t12/t8/t10 を重複させて重みを付ける）。
     ⚠ この4年の大問1に一度も出ていない型は本番セットから外した
       (t14 式の展開 / t15 因数分解 / t17 連立方程式 / t19 平均値(度数分布表) /
        t26 平行線と角(錯角))。
@@ -3127,7 +3218,7 @@ function genAichiSet(){ // scopeでオフのタイプは代替(既出タイプ�
   slot(['t5','t5','t23'],['t5','t20']),         // (5) 二次方程式 / グラフ上の2点と傾き
   slot(['t10','t10','t10','t6','t6','t20','t24'],['t6','t10']), // (6) 関数 / 不等式 / 割合
   take('t7'),                                   // (7) 正誤(二つ選びなさい)
-  slot(['t12','t8','t10'],['t12']),             // (8) データの活用 / 数の性質
+  slot(['t12','t8','t10','t27'],['t12','t27']), // (8) データの活用 / 数の性質
   slot(['t10','t10','t9','t9','t11'],['t9']),   // (9) 関数・数の性質 / 確率 / 箱ひげ図
   slot(['t16','t16','t16','t13','t21','t25'],['t16','t10','t25'])]}// (10) 図形 / 空間図形
 

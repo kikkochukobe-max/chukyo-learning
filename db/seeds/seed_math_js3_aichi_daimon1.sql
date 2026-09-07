@@ -19,9 +19,15 @@
 --   （既存行はラベルが上書きされるだけ。answer_logs は触らない）。
 --   未実行のままでも記録は普通に入り、講師画面のラベルがキー名で出るだけ。
 --
+-- ★ 2026-09-07 追記: 度数分布表(以上〜未満)から割合を読む型 t27 を足したので
+--   a1_sotai / a1_ruisekido / a1_ruisekisotai の3行を追加した。
+--   このファイルは ON DUPLICATE KEY UPDATE なので、そのまま流し直せばよい。
+--   t27 は 2023〜2026 の大問1には出ていないが、他県では定番で愛知でも出る
+--   可能性がある型なので、本番セットの(8)の候補にも入れてある。
+--
 -- question_key は math_js3_aichi_daimon1.html 内の q_() 第2引数と一致。
--- ツールは1モード（TYPES[].id = t1〜t25）に対して複数の question_key を
--- 出し分けるため、TYPESの数(25)より多い36行になる。
+-- ツールは1モード（TYPES[].id = t1〜t27）に対して複数の question_key を
+-- 出し分けるため、TYPESの数(27)より多い39行になる。
 -- 例: t10「関数・数の性質」は henka/shizen/hanpirei/koten/heikou/kansuhan の6種、
 -- 　　t13「図形(角度)」は kakudo/enshukaku の2種。
 --
@@ -52,6 +58,9 @@ INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('math_js3_aichi_daimon1', 'a1_hyohon',       '(8)標本調査',                  1),
   ('math_js3_aichi_daimon1', 'a1_histo',        '(8)ヒストグラム読み取り',      1),
   ('math_js3_aichi_daimon1', 'a1_heikin',       '(8)平均値(度数分布表)',        1),
+  ('math_js3_aichi_daimon1', 'a1_sotai',        '(8)相対度数(度数分布表)',      1),
+  ('math_js3_aichi_daimon1', 'a1_ruisekido',    '(8)累積度数(度数分布表)',      1),
+  ('math_js3_aichi_daimon1', 'a1_ruisekisotai', '(8)累積相対度数(度数分布表)',  1),
   ('math_js3_aichi_daimon1', 'a1_kakuritsu',    '(9)確率',                      1),
   ('math_js3_aichi_daimon1', 'a1_hakohige',     '(9)箱ひげ図',                  1),
   ('math_js3_aichi_daimon1', 'a1_henka',        '(10)変化の割合',               1),
@@ -77,7 +86,7 @@ INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('math_js3_aichi_daimon1', 'set', '本番セット10問', 1)
 ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
 
--- 確認用（37行返り = a1_〜36行 + set、コロン入りが0件なら成功）
+-- 確認用（40行返り = a1_〜39行 + set、コロン入りが0件なら成功）
 -- SELECT question_key, label, base_xp FROM question_catalog
 --  WHERE unit_key = 'math_js3_aichi_daimon1' ORDER BY question_key;
 -- SELECT COUNT(*) AS colon_left FROM question_catalog
