@@ -93,6 +93,41 @@ test('12種類の生成関数が 選択肢・解説・図・種の再現性を�
   expect(res.total).toBe(0);
 });
 
+test('体積の問題は 底面が上下の向きと 手前むきの 両方が 出る', async ({ page }) => {
+  await page.goto(URL);
+  const res = await page.evaluate(() => {
+    /* 図の いちばん下の 注記で 向きを 見分ける
+       （standSVG は「上下の 色のこい面が 底面」、prismSVG は「色のこい面が底面」） */
+    const count = (key, n) => {
+      let stand = 0, lie = 0, cyl = 0;
+      for (let i = 0; i < n; i++) {
+        window.rngSeed((i * 2654435761 + 31) >>> 0 || 1);
+        const fig = window.GENS[key]().fig;
+        if (/上下の 色のこい面が 底面/.test(fig)) stand++;
+        else if (/色のこい面が底面/.test(fig)) lie++;
+        else cyl++;                       /* 円柱は 立てた向き専用の 図 */
+      }
+      return { stand, lie, cyl };
+    };
+    return {
+      kakuchu: count('kakuchu', 400),
+      gyaku: count('kakuchu_gyaku', 400),
+      kufuu: count('kufuu', 400),
+      enchu: count('enchu', 60)
+    };
+  });
+  /* 角柱は 半分ずつ。かたよっていたら 向きの ぬきさしを まちがえている */
+  for (const k of ['kakuchu', 'gyaku']) {
+    expect(res[k].stand, k + ' 底面が上下').toBeGreaterThan(120);
+    expect(res[k].lie, k + ' 底面が手前').toBeGreaterThan(120);
+  }
+  /* 工夫は 多角形の 底面（L字・へこんだ形・四角い穴）だけ 立てた向きにする */
+  expect(res.kufuu.stand, '工夫 底面が上下').toBeGreaterThan(40);
+  expect(res.kufuu.lie, '工夫 底面が手前').toBeGreaterThan(150);
+  /* 円柱は もともと 立てた向き（上下の円が底面）＝どちらの注記も 付かない */
+  expect(res.enchu.cyl).toBe(60);
+});
+
 test('キラキラの正解エフェクトが結線され、星が画面下に積もる', async ({ page }) => {
   await page.goto(URL);
   const wired = await page.evaluate(() => ({

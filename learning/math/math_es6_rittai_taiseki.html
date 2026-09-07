@@ -1114,6 +1114,300 @@ function prismSVG(shapeFn,depthCm,hLabel,opts){
   return svgWrap(W + pad*2, s.h + (-T.y) + PT + PB, g);
 }
 
+/* =====================================================================
+   立てた向きの 角柱（底面が 上下）
+   底面を「床」に おいて 斜投影で 描き、高さは まっすぐ 上へ のばす。
+   prismSVG（底面を 手前の面に する 向き）と 半分ずつ 出すことで、
+   「底面は 手前に あるもの」と 思いこまないようにする。
+
+   床の 座標は u=右 / v=奥 / z=上（ぜんぶ cm）。画面へは
+     x = ox + (u + ST_A*v)*k
+     y = oy - (ST_B*v + z)*k
+   ⚠ 寸法は ぜんぶ「上の面（高さ z=H のところ）」か「手前の 下のへり」に 書く。
+     下の面は よこの面に かくれて 見えないので、そこに 書くと 読めない。
+   ⚠ この向きは 底面が ななめに つぶれて 見えるので、底面の 寸法だけを
+     たしかめたい 面積の復習モードでは 使わない（flatSVG のまま）。
+   ===================================================================== */
+var ST_A = 0.55, ST_B = 0.38;   /* 奥へ1cm＝右へ0.55cm・上へ0.38cm（しくみの部屋と同じ） */
+
+/* 床の 辺 p→q から できる よこの面が 見えるか。
+   外向きの 法線を（辺の すこし外を 見て）決めて、視線と くらべる。
+   ここは 押し出し(extrude)と 同じ考え方だが、面が 立っている＝法線が
+   床の うえを むいているので、判定式が ちがう（上から 見おろすため） */
+function stVisible(loops,p,q){
+  var du = q.x-p.x, dv = q.y-p.y, len = Math.sqrt(du*du+dv*dv);
+  if(len < 1e-9) return false;
+  var nu = dv/len, nv = -du/len;
+  if(inLoops(loops, (p.x+q.x)/2 + nu*0.02, (p.y+q.y)/2 + nv*0.02)){ nu = -nu; nv = -nv; }
+  return (nv - ST_A*nu) < -1e-9;
+}
+/* よこの面 1枚（床の辺1本ぶん）。辺ごとに 描くので かどに 線が 入る */
+function stBandPath(lp,i,pt,H){
+  var m = lp.length, p = lp[i], q = lp[(i+1)%m];
+  var a = pt(p.x,p.y,0), b = pt(q.x,q.y,0), c = pt(q.x,q.y,H), d = pt(p.x,p.y,H);
+  return " M"+n2(a.x)+","+n2(a.y)+" L"+n2(b.x)+","+n2(b.y)
+       + " L"+n2(c.x)+","+n2(c.y)+" L"+n2(d.x)+","+n2(d.y)+" Z";
+}
+/* かくれた 下のへり（点線） */
+function stBackPath(lp,run,pt){
+  var m = lp.length, p = lp[run[0]], i, a = pt(p.x,p.y,0);
+  var s = " M"+n2(a.x)+","+n2(a.y);
+  for(i=0;i<run.length;i++){
+    p = lp[(run[i]+1)%m]; a = pt(p.x,p.y,0);
+    s += " L"+n2(a.x)+","+n2(a.y);
+  }
+  return s;
+}
+/* かくれた たての へり（点線） */
+function stVertPath(p,pt,H){
+  var a = pt(p.x,p.y,0), b = pt(p.x,p.y,H);
+  return " M"+n2(a.x)+","+n2(a.y)+" L"+n2(b.x)+","+n2(b.y);
+}
+function stFacePath(lp,pt,z){
+  var s = "", i, a;
+  for(i=0;i<lp.length;i++){
+    a = pt(lp[i].x,lp[i].y,z);
+    s += (i ? " L" : " M")+n2(a.x)+","+n2(a.y);
+  }
+  return s + " Z";
+}
+
+function standSVG(base,HCm,hLabel,opts){
+  opts = opts || {};
+  var loops = normLoops(base.loops), L, i, umax = 0, vmax = 0, lp, m, vis, hr;
+  for(L=0;L<loops.length;L++) for(i=0;i<loops[L].length;i++){
+    if(loops[L][i].x > umax) umax = loops[L][i].x;
+    if(loops[L][i].y > vmax) vmax = loops[L][i].y;
+  }
+  var wCm = umax + ST_A*vmax, hCm = ST_B*vmax + HCm;
+  var k = Math.max(7, Math.min(Math.min(206/wCm, 148/hCm), 26));
+  var PL = 46, PR = 68, PT = 36, PB = 54;
+  var W = wCm*k + PL + PR, pad = padX(W);
+  var ox = PL + pad, oy = PT + hCm*k;
+  function pt(u,v,z){ return { x: ox + (u + ST_A*v)*k, y: oy - (ST_B*v + z)*k }; }
+
+  var faces = [], hidden = "", p0, q0;
+  for(L=0;L<loops.length;L++){
+    lp = loops[L]; m = lp.length; vis = [];
+    for(i=0;i<m;i++) vis.push(stVisible(loops, lp[i], lp[(i+1)%m]));
+    for(i=0;i<m;i++) if(vis[i]){
+      p0 = lp[i]; q0 = lp[(i+1)%m];
+      /* 遠い面から 先に 描いて 近い面で うわがきする（画家のやり方）。
+         L字・へこんだ形・穴のあいた形では、へこみの 中の 面が
+         手前の面と 画面の上で かさなる。1枚の path に まとめて 描くと
+         りんかくだけが 手前の面の 上に 出て、あるはずのない 線に 見える。
+         奥ゆき ＝ 視線の むきに そった 位置（大きいほど 遠い） */
+      faces.push({ d: (p0.y+q0.y)/2 - ST_A*(p0.x+q0.x)/2,
+                   p: stBandPath(lp, i, pt, HCm) });
+    }
+    /* かくれた線は 外まわりだけ（穴の 奥の ふちまで 出すと 何の線か わからない） */
+    if(L === 0){
+      hr = runsOf(vis,false);
+      for(i=0;i<hr.length;i++) hidden += stBackPath(lp, hr[i], pt);
+      for(i=0;i<m;i++) if(!vis[(i-1+m)%m] && !vis[i]) hidden += stVertPath(lp[i], pt, HCm);
+    }
+  }
+  faces.sort(function(a,b){ return b.d - a.d; });
+  var band = faces.map(function(f){
+    return '<path d="'+f.p+'" fill="'+C.side+'" stroke="'+C.edge
+         + '" stroke-width="1.9" stroke-linejoin="round"/>';
+  }).join("");
+  var top = loops.map(function(l){ return stFacePath(l, pt, HCm); }).join(" ");
+
+  /* 高さの 寸法は いちばん 右の たてのへりの となりに 出す */
+  var bi = 0, bx = -Infinity, sx;
+  for(i=0;i<loops[0].length;i++){
+    sx = loops[0][i].x + ST_A*loops[0][i].y;
+    if(sx > bx){ bx = sx; bi = i; }
+  }
+  var hv = loops[0][bi], e0 = pt(hv.x,hv.y,0), e1 = pt(hv.x,hv.y,HCm);
+
+  /* 底面の 寸法を 書くための 道具。上の面と 手前の 下のへりにだけ 書く */
+  var D = {
+    top: function(u,v){ return pt(u,v,HCm); },
+    /* いちばん手前(v=0)の 下のへりの 下に 出す 寸法（立体の 外がわ） */
+    dimFront: function(u1,u2,label){
+      var a = pt(u1,0,0), c = pt(u2,0,0);
+      return dimH(a.x, c.x, a.y+15, label, 1);
+    },
+    /* 上の面の おくの へりの 上に 出す 寸法（台形の 上底など） */
+    dimTopBack: function(u1,u2,v,label){
+      var a = pt(u1,v,HCm), c = pt(u2,v,HCm);
+      return dimH(a.x, c.x, a.y-13, label, -1);
+    },
+    /* 上の面を 通る 点線（底面の 高さ・対角線）。
+       文字は 線の frac(既定 0.5)の ところから (dx,dy) ずらす＝
+       ひし形のように 2本 引くときに 文字を はなして おける */
+    dashTop: function(u1,v1,u2,v2,label,dx,dy,frac){
+      var a = pt(u1,v1,HCm), c = pt(u2,v2,HCm), f = (frac === undefined) ? 0.5 : frac;
+      return dashSeg(a.x,a.y,c.x,c.y)
+        + (label ? tx(a.x+(c.x-a.x)*f+(dx||0), a.y+(c.y-a.y)*f+(dy||0), label, C.dim) : "");
+    },
+    /* 立体の へりの 長さ。線は 立体の へりを そのまま つかい、文字だけ そばに 出す
+       （寸法線を かさねて 引くと 二重線に 見える）。
+       z を 省く（null）と 上の面の へり */
+    edgeLabel: function(u1,v1,u2,v2,z,label,dx,dy){
+      var zz = (z == null) ? HCm : z;
+      var a = pt(u1,v1,zz), c = pt(u2,v2,zz);
+      var mx = (a.x+c.x)/2, my = (a.y+c.y)/2;
+      return '<path d="M'+n2(mx)+','+n2(my)+' L'+n2(mx+dx*0.5)+','+n2(my+dy*0.5)+'"'
+        + ' stroke="'+C.dim+'" stroke-width="1.3" fill="none"/>'
+        + tx(mx+dx, my+dy, label, C.dim);
+    }
+  };
+
+  var g = '<g>'
+    /* ① よこの面（見えるものだけ・遠い順） */
+    + band
+    /* ② 上の面（底面のひとつ）。色をこくして 底面だと わかるようにする */
+    + '<path d="'+top+'" fill="'+C.base+'" stroke="'+C.edge+'" stroke-width="2.4"'
+    + ' stroke-linejoin="round"/>'
+    /* ③ かくれた線は 教科書と同じで 上から 点線で 見せる */
+    + (hidden ? '<path d="'+hidden+'" fill="none" stroke="'+C.hid
+                + '" stroke-width="1.5" stroke-dasharray="5 4"/>' : "")
+    /* ④ 立体の 高さ */
+    + dimV(e0.x+20, e1.y, e0.y, hLabel)
+    /* ⑤ 底面の 寸法 */
+    + base.deco(D)
+    /* ⑥ 図だけで 意味が わかるように（解き直しプリントには この図しか 出ない） */
+    + (opts.tag === false ? ""
+       : tx(ox + wCm*k/2, oy + 40, "上下の 色のこい面が 底面", C.edge, "middle", 11.5))
+    + '</g>';
+  return svgWrap(W + pad*2, hCm*k + PT + PB, g);
+}
+
+/* --- 立てた向きの 底面（床に おいた 形。u=右・v=奥、cm のまま） --- */
+/* 三角形（底辺 b・高さ h）。底辺を 手前に おく */
+function stTri(b,h,right){
+  var ax = right ? 0 : b*0.34;
+  return {
+    loops:[[P(0,0),P(b,0),P(ax,h)]],
+    deco:function(D){
+      return D.dimFront(0,b,"底辺 "+b+"cm")
+        + D.dashTop(ax,0,ax,h,"高さ "+h+"cm",10,15);
+    }
+  };
+}
+/* 長方形（縦 a＝奥行き・横 b） */
+function stRect(a,b){
+  return {
+    loops:[[P(0,0),P(b,0),P(b,a),P(0,a)]],
+    deco:function(D){
+      return D.dimFront(0,b,"横 "+b+"cm")
+        + D.edgeLabel(b,0,b,a,0,"縦 "+a+"cm",36,16);
+    }
+  };
+}
+/* 正方形（1辺 a） */
+function stSquare(a){
+  return {
+    loops:[[P(0,0),P(a,0),P(a,a),P(0,a)]],
+    deco:function(D){
+      return D.dimFront(0,a,"1辺 "+a+"cm")
+        + D.edgeLabel(a,0,a,a,0,a+"cm",30,16);
+    }
+  };
+}
+/* 平行四辺形（底辺 b・高さ h） */
+function stPara(b,h){
+  var s = b*0.28, hx = s + b*0.45;
+  return {
+    loops:[[P(0,0),P(b,0),P(s+b,h),P(s,h)]],
+    deco:function(D){
+      return D.dimFront(0,b,"底辺 "+b+"cm")
+        + D.dashTop(hx,h,hx,0,"高さ "+h+"cm",10,15);
+    }
+  };
+}
+/* ひし形（対角線 p・q）。手前は ちょう点なので 寸法は 上の面の 対角線に 書く。
+   上の面は せまいので、2つの 文字を 線の 反対がわの はしに 分けて 出す。
+   ⚠ 長いほうの 対角線を よこ(u)に する。奥(v)は 0.38倍に つぶれて 見えるので、
+     長いほうを 奥に すると 上の面が 細い刃のように なって 形が わからない
+     （ひし形は どちらの 対角線を よこに しても 同じ形なので 入れかえてよい） */
+function stRhombus(p,q){
+  var w = Math.max(p,q), d = Math.min(p,q);
+  return {
+    loops:[[P(w/2,0),P(w,d/2),P(w/2,d),P(0,d/2)]],
+    deco:function(D){
+      return D.dashTop(0,d/2,w,d/2,"対角線 "+w+"cm",-4,-15,0.3)
+        + D.dashTop(w/2,0,w/2,d,"対角線 "+d+"cm",36,16,0.35);
+    }
+  };
+}
+/* 台形（上底 a・下底 b・高さ h）。下底を 手前に おく */
+function stTrap(a,b,h){
+  var off = (b-a)*0.42, hx = off + a*0.5;
+  return {
+    loops:[[P(0,0),P(b,0),P(off+a,h),P(off,h)]],
+    deco:function(D){
+      return D.dimFront(0,b,"下底 "+b+"cm")
+        + D.dimTopBack(off,off+a,h,"上底 "+a+"cm")
+        + D.dashTop(hx,h,hx,0,"高さ "+h+"cm",10,15);
+    }
+  };
+}
+/* 底面積だけが わかっている 正多角形（五角柱・六角柱） */
+function stPolyArea(sides,areaLabel){
+  var R = 2.9, pts = [], i, a;
+  for(i=0;i<sides;i++){
+    a = -Math.PI/2 + Math.PI*2*i/sides;      /* 手前に ちょう点が くる */
+    pts.push(P(R + R*Math.cos(a), R + R*Math.sin(a)));
+  }
+  return {
+    loops:[pts],
+    deco:function(D){
+      /* 上の面は 文字より せまいので、面の 中ではなく すぐ上に 出す
+         （中に 入れると りんかくを またいで 読みにくい）。
+         右の 高さの 寸法と ぶつからないよう すこし 左に よせる */
+      var c = D.top(R*0.7, 2*R);
+      return tx(c.x, c.y - 13, areaLabel, C.edge, "middle", 12);
+    }
+  };
+}
+/* --- 工夫して求める 用の 立てた向きの 底面（shL / shU / shRectHole と 同じ形） --- */
+/* L字（外の横 a・外の奥 b・手前の おくゆき q・右の はば p）。
+   奥の 左を (a-p)×(b-q) だけ 切りとった 形＝shL(a,b,p,q) と 合同（面積も 同じ）。
+   ⚠ 切りとりを「奥の左」に するのは、そうすると へこみの 中の 面が
+     ぜんぶ 見えない向きに なって 図が すっきりするため */
+function stL(a,b,p,q){
+  return {
+    loops:[[P(0,0),P(a,0),P(a,b),P(a-p,b),P(a-p,q),P(0,q)]],
+    deco:function(D){
+      return D.dimFront(0,a,a+"cm")
+        + D.edgeLabel(a,0,a,b,0,b+"cm",38,16)
+        + D.dimTopBack(a-p,a,b,p+"cm")
+        + D.edgeLabel(0,0,0,q,null,q+"cm",32,8);
+    }
+  };
+}
+/* へこんだ形（外 a×b の おくの まん中を 横 c・深さ dd だけ 切りとる） */
+function stU(a,b,c,dd){
+  var m = (a-c)/2;
+  return {
+    loops:[[P(0,0),P(a,0),P(a,b),P(m+c,b),P(m+c,b-dd),P(m,b-dd),P(m,b),P(0,b)]],
+    deco:function(D){
+      return D.dimFront(0,a,a+"cm")
+        + D.edgeLabel(a,0,a,b,0,b+"cm",38,16)
+        + D.dimTopBack(m,m+c,b,c+"cm")
+        + D.edgeLabel(m,b-dd,m,b,null,dd+"cm",-34,2);
+    }
+  };
+}
+/* 四角い 穴が たてに つきぬけた 形（外 a×b・穴 c×dd） */
+function stRectHole(a,b,c,dd){
+  var hu = (a-c)/2, hv = (b-dd)/2;
+  return {
+    loops:[[P(0,0),P(a,0),P(a,b),P(0,b)],
+           [P(hu,hv),P(hu+c,hv),P(hu+c,hv+dd),P(hu,hv+dd)]],
+    deco:function(D){
+      return D.dimFront(0,a,"横 "+a+"cm")
+        + D.edgeLabel(a,0,a,b,0,"縦 "+b+"cm",38,16)
+        + D.dimTopBack(hu,hu+c,hv,c+"cm")
+        + D.edgeLabel(hu,hv,hu,hv+dd,null,dd+"cm",-32,4);
+    }
+  };
+}
+
 /* 円柱（立てた向き）。上下の 円は だ円で 表す。
    hLabel を わたすと 高さの 文字だけ 差しかえられる（「？cm」を 出す 逆算用） */
 function cylSVG(rCm,hCm,showD,hLabel){
@@ -1330,13 +1624,19 @@ function gen_menseki_en(){
    ===================================================================== */
 /* 底面の形を1つ つくる。
    → {sh:形の関数, area:底面積, s1:底面積の式, plain:文章, name:立体の名前, cands:まちがい} */
+/* 底面の 形を 1つ つくる。
+   sh = 底面を 手前の面に する 向き（prismSVG用）
+   st = 底面を 上下に する 向き（standSVG用）
+   どちらの 向きで 出すかは 呼ぶ側が 決める＝「底面は 手前に あるもの」と
+   思いこまないように 半分ずつ 出す */
 function makeKakuchuBase(){
-  var t = ri(1,7), a, b, h, p, q, area;
+  var t = ri(1,7), a, b, h, p, q, area, rt;
   if(t === 1){                       /* 三角形 */
     b = ri(4,12); h = ri(3,10);
     if((b*h) % 2) h += (h < 10 ? 1 : -1);
     area = b*h/2;
-    return { sh:shTri(b,h,ri(0,1)===1), area:area, name:"三角柱",
+    rt = ri(0,1) === 1;                /* 直角三角形にするか（両方の向きで そろえる） */
+    return { sh:shTri(b,h,rt), st:stTri(b,h,rt), area:area, name:"三角柱",
              s1:"底面積 ＝ 底辺 × 高さ ÷ 2 ＝ "+b+" × "+h+" ÷ 2 ＝ <b>"+area+" cm²</b>",
              plain:"底面が底辺"+b+"cm・高さ"+h+"cmの三角形",
              bad:[b*h] };
@@ -1345,21 +1645,21 @@ function makeKakuchuBase(){
     a = ri(3,9); b = ri(4,11);
     if(a === b) b += 1;
     area = a*b;
-    return { sh:shRect(a,b), area:area, name:"四角柱（底面は 長方形）",
+    return { sh:shRect(a,b), st:stRect(a,b), area:area, name:"四角柱（底面は 長方形）",
              s1:"底面積 ＝ 縦 × 横 ＝ "+a+" × "+b+" ＝ <b>"+area+" cm²</b>",
              plain:"底面が縦"+a+"cm・横"+b+"cmの長方形",
              bad:[a+b] };
   }
   if(t === 3){                       /* 正方形 */
     a = ri(3,9); area = a*a;
-    return { sh:shSquare(a), area:area, name:"四角柱（底面は 正方形）",
+    return { sh:shSquare(a), st:stSquare(a), area:area, name:"四角柱（底面は 正方形）",
              s1:"底面積 ＝ 1辺 × 1辺 ＝ "+a+" × "+a+" ＝ <b>"+area+" cm²</b>",
              plain:"底面が1辺"+a+"cmの正方形",
              bad:[a*4] };
   }
   if(t === 4){                       /* 平行四辺形 */
     b = ri(4,11); h = ri(3,9); area = b*h;
-    return { sh:shPara(b,h), area:area, name:"四角柱（底面は 平行四辺形）",
+    return { sh:shPara(b,h), st:stPara(b,h), area:area, name:"四角柱（底面は 平行四辺形）",
              s1:"底面積 ＝ 底辺 × 高さ ＝ "+b+" × "+h+" ＝ <b>"+area+" cm²</b>",
              plain:"底面が底辺"+b+"cm・高さ"+h+"cmの平行四辺形",
              bad:[b*h/2] };
@@ -1368,7 +1668,7 @@ function makeKakuchuBase(){
     p = ri(4,12); q = ri(4,10);
     if((p*q) % 2) q += (q < 10 ? 1 : -1);
     area = p*q/2;
-    return { sh:shRhombus(p,q), area:area, name:"四角柱（底面は ひし形）",
+    return { sh:shRhombus(p,q), st:stRhombus(p,q), area:area, name:"四角柱（底面は ひし形）",
              s1:"底面積 ＝ 対角線 × 対角線 ÷ 2 ＝ "+p+" × "+q+" ÷ 2 ＝ <b>"+area+" cm²</b>",
              plain:"底面が対角線"+p+"cmと"+q+"cmのひし形",
              bad:[p*q] };
@@ -1377,7 +1677,7 @@ function makeKakuchuBase(){
     a = ri(2,7); b = a + ri(2,6); h = ri(2,8);
     if(((a+b)*h) % 2) h += (h < 8 ? 1 : -1);
     area = (a+b)*h/2;
-    return { sh:shTrap(a,b,h), area:area, name:"四角柱（底面は 台形）",
+    return { sh:shTrap(a,b,h), st:stTrap(a,b,h), area:area, name:"四角柱（底面は 台形）",
              s1:"底面積 ＝ (上底 ＋ 下底) × 高さ ÷ 2 ＝ ("+a+" ＋ "+b+") × "+h+" ÷ 2 ＝ <b>"+area+" cm²</b>",
              plain:"底面が上底"+a+"cm・下底"+b+"cm・高さ"+h+"cmの台形",
              bad:[(a+b)*h] };
@@ -1385,7 +1685,8 @@ function makeKakuchuBase(){
   /* 底面積だけが わかっている 角柱（五角柱・六角柱） */
   var sides = ri(5,6);
   area = ri(3,12) * 2;
-  return { sh:shPolyArea(sides, "底面積 "+area+" cm²"), area:area,
+  return { sh:shPolyArea(sides, "底面積 "+area+" cm²"),
+           st:stPolyArea(sides, "底面積 "+area+" cm²"), area:area,
            name:(sides === 5 ? "五角柱" : "六角柱"),
            s1:"底面積 ＝ 図に 書いてある とおり <b>"+area+" cm²</b>",
            plain:"底面積"+area+"cm²の"+(sides === 5 ? "五角柱" : "六角柱"),
@@ -1396,17 +1697,28 @@ function makeKakuchuBase(){
    奥へ のびている 長さ ＝「柱の高さ」（2つの 底面の あいだ）＝ かけるほう */
 var PRISM_NOTE = "手前の 色のこい 面が 底面。奥へ のびている 長さが「柱の高さ」だよ。"
                + "底面の 中の「高さ」は 底面積を 出すための もの。";
+/* 立てた向き（底面が 上下）の 説明文 */
+var STAND_NOTE = "上下の 色のこい 面が 底面。たての 長さが「柱の高さ」だよ。"
+               + "底面の 中の「高さ」は 底面積を 出すための もの。";
+/* 底面が 上下の 向きで 描くか。角柱は 半分ずつ 出す
+   （円柱は もともと 立てた向き、工夫は 底面の 形を 読むのが ねらいなので
+   　手前むきの まま。ここを いじると 出る問題が 変わるので
+   　既存の 解き直し(種)から 出る図の 向きも 変わる＝CLAUDE.md 2d の ⚠ ） */
+function standOrient(){ return ri(0,1) === 1; }
+function prismFig(B,H,hLabel,stand){
+  return stand ? standSVG(B.st, H, hLabel) : prismSVG(B.sh, H, hLabel);
+}
 
 function gen_kakuchu(){
-  var B = makeKakuchuBase(), H = ri(3,12), vol = B.area*H;
+  var B = makeKakuchuBase(), H = ri(3,12), vol = B.area*H, stand = standOrient();
   var cands = [B.area, B.area*H/2, B.area+H].concat(
     B.bad.map(function(x){ return x*H; }));
   return mkVol({
     key:"kakuchu", tag:"角柱の 体積",
     q:"下の "+B.name+"の <b>体積</b>を もとめましょう。",
     plain:B.plain+"、柱の高さ"+H+"cm の角柱の体積",
-    fig: prismSVG(B.sh, H, "柱の高さ "+H+"cm"),
-    note: PRISM_NOTE,
+    fig: prismFig(B, H, "柱の高さ "+H+"cm", stand),
+    note: stand ? STAND_NOTE : PRISM_NOTE,
     vol: vol, cands: cands, hName:"柱の高さ",
     s1: B.s1,
     s2: B.area+" × "+H+" ＝ <b>"+vol+" cm³</b>",
@@ -1414,7 +1726,7 @@ function gen_kakuchu(){
   });
 }
 function gen_kakuchu_gyaku(){
-  var B = makeKakuchuBase(), H = ri(3,12), vol = B.area*H;
+  var B = makeKakuchuBase(), H = ri(3,12), vol = B.area*H, stand = standOrient();
   if(ri(0,1) === 1){
     /* 体積と 底面の 寸法 → 高さ */
     var ch = numChoices(H, [vol/(B.area*2), B.area, vol-B.area, H*2].concat(
@@ -1423,8 +1735,8 @@ function gen_kakuchu_gyaku(){
       key:"kakuchu_gyaku", tag:"角柱の 高さを もとめる",
       qHtml:"下の "+B.name+"の 体積は <b>"+vol+" cm³</b> です。<b>柱の高さ</b>を もとめましょう。",
       plainQ:B.plain+"、体積"+vol+"cm³ の角柱の柱の高さ",
-      fig: prismSVG(B.sh, H, "柱の高さ ？cm"),
-      note: PRISM_NOTE,
+      fig: prismFig(B, H, "柱の高さ ？cm", stand),
+      note: stand ? STAND_NOTE : PRISM_NOTE,
       label:"柱の高さは 何cm？", options:ch.options, correct:ch.correct,
       ansText: H + " " + U1,
       expl:'<span class="ttl">とき方</span>'
@@ -1443,8 +1755,10 @@ function gen_kakuchu_gyaku(){
     qHtml:"下の 角柱は 柱の高さが <b>"+H+" cm</b>、体積が <b>"+vol+" cm³</b> です。"
         + "<b>底面積</b>を もとめましょう。",
     plainQ:"柱の高さ"+H+"cm・体積"+vol+"cm³ の角柱の底面積",
-    fig: prismSVG(shPolyArea(ri(5,6), "底面積 ？cm²"), H, "柱の高さ "+H+"cm"),
-    note: PRISM_NOTE,
+    fig: (function(){ var n = ri(5,6);
+            return stand ? standSVG(stPolyArea(n, "底面積 ？cm²"), H, "柱の高さ "+H+"cm")
+                         : prismSVG(shPolyArea(n, "底面積 ？cm²"), H, "柱の高さ "+H+"cm"); })(),
+    note: stand ? STAND_NOTE : PRISM_NOTE,
     label:"底面積は 何cm²？", options:ch2.options, correct:ch2.correct,
     ansText: B.area + " " + U2,
     expl:'<span class="ttl">とき方</span>'
@@ -1523,11 +1837,15 @@ function gen_enchu_gyaku(){
    ===================================================================== */
 function gen_kufuu(){
   var t = ri(1,6), H = ri(3,10), a, b, p, q, c, dd, r, R, base, vol, sh, s1, plain, cands, name, kufu;
+  /* 多角形の 底面（L字・へこんだ形・四角い穴）は 立てた向きでも 描けるので
+     半分ずつ 出す。かまぼこ・パイプ・半円のった形は 底面が 手前むきのまま
+     （丸みの ある 底面を 床に ねかせると 何の形か 読めなくなる） */
+  var st = null, stand = (t <= 3) && (ri(0,1) === 1);
 
   if(t === 1){                                  /* L字の柱 */
     p = ri(3,7); a = p + ri(2,5); q = ri(2,5); b = q + ri(2,5);
     base = p*b + (a-p)*q;
-    sh = shL(a,b,p,q); name = "L字の 形の 柱";
+    sh = shL(a,b,p,q); st = stL(a,b,p,q); name = "L字の 形の 柱";
     s1 = "底面積（たてに 2つに 分ける）<br>"
        + "左 ＝ "+p+" × "+b+" ＝ "+(p*b)+"　／　右 ＝ "+(a-p)+" × "+q+" ＝ "+((a-p)*q)+"<br>"
        + (p*b)+" ＋ "+((a-p)*q)+" ＝ <b>"+base+" cm²</b>";
@@ -1540,7 +1858,7 @@ function gen_kufuu(){
     if(c > a-4) c = a-4;
     if(dd > b-2) dd = b-2;
     base = a*b - c*dd;
-    sh = shU(a,b,c,dd); name = "へこんだ 形の 柱";
+    sh = shU(a,b,c,dd); st = stU(a,b,c,dd); name = "へこんだ 形の 柱";
     s1 = "底面積（大きい 長方形から へこみを ひく）<br>"
        + a+" × "+b+" − "+c+" × "+dd+" ＝ "+(a*b)+" − "+(c*dd)+" ＝ <b>"+base+" cm²</b>";
     plain = "へこんだ底面("+a+"cm×"+b+"cm から "+c+"cm×"+dd+"cm を切りとる)・柱の高さ"+H+"cm の体積";
@@ -1549,7 +1867,7 @@ function gen_kufuu(){
   }else if(t === 3){                            /* 四角い穴のあいた柱 */
     a = ri(8,13); b = ri(6,10); c = ri(2,4); dd = ri(2,4);
     base = a*b - c*dd;
-    sh = shRectHole(a,b,c,dd); name = "四角い 穴の あいた 柱";
+    sh = shRectHole(a,b,c,dd); st = stRectHole(a,b,c,dd); name = "四角い 穴の あいた 柱";
     s1 = "底面積（外の 長方形から 穴を ひく）<br>"
        + a+" × "+b+" − "+c+" × "+dd+" ＝ "+(a*b)+" − "+(c*dd)+" ＝ <b>"+base+" cm²</b>";
     plain = "外"+a+"cm×"+b+"cm・穴"+c+"cm×"+dd+"cm の底面・柱の高さ"+H+"cm の体積";
@@ -1596,8 +1914,9 @@ function gen_kufuu(){
     q:"下の "+name+"の <b>体積</b>を もとめましょう。"
       + (t >= 4 ? "（円周率は 3.14）" : ""),
     plain: plain,
-    fig: prismSVG(sh, H, "柱の高さ "+H+"cm"),
-    note: PRISM_NOTE,
+    fig: (stand && st) ? standSVG(st, H, "柱の高さ "+H+"cm")
+                       : prismSVG(sh, H, "柱の高さ "+H+"cm"),
+    note: (stand && st) ? STAND_NOTE : PRISM_NOTE,
     vol: vol, cands: cands, hName:"柱の高さ",
     s1: s1,
     s2: base+" × "+H+" ＝ <b>"+vol+" cm³</b>",
