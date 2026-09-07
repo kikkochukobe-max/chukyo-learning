@@ -164,3 +164,35 @@ test('解説の「証明を見る」から該当する証明が開く', async ({
   await expect(page.locator('#pvTtl')).toContainText('等差数列の和');
   expect(errors).toEqual([]);
 });
+
+/* 部分分数は「差が1」と「差が2以上」で消え方が別物なので、証明カードも別。
+   レベル2・3が差が1の証明（隣で消える／係数なし）に飛んでいると、
+   実際にミスする 1/m と「前後2個ずつ」がどこにも出てこない。 */
+test('部分分数: レベル1は差が1の証明、レベル2・3は1つ飛ばしの証明に飛ぶ', async ({ page }) => {
+  const errors = [];
+  await open(page, errors);
+  const cases = [
+    { lv: 1, ttl: '分母がかけ算の和はなぜ消えるのか' },
+    { lv: 2, ttl: '何個残るのか' },
+    { lv: 3, ttl: '何個残るのか' },
+  ];
+  for (const c of cases) {
+    await page.click('.chip[data-mode="bubun"]');
+    await page.click(`.lvbtn[data-lv="${c.lv}"]`);
+    await page.evaluate(() => {
+      if (cur.ans.kind === 'choice') {
+        document.querySelectorAll('#ansArea .choiceBtn')[cur.ans.correct].click();
+      } else {
+        for (const ch of String(cur.ans.val)) {
+          document.querySelector(`#keypad .key[data-k="${ch}"]`).click();
+        }
+      }
+    });
+    await page.click('#checkBtn');
+    await page.click('#exBody .proofLink');
+    await expect(page.locator('#pvTtl'), `レベル${c.lv}の証明`).toContainText(c.ttl);
+    await page.click('#pvBack');
+    await page.click('.vtab[data-view="train"]');
+  }
+  expect(errors).toEqual([]);
+});
