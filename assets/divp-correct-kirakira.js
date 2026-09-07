@@ -85,6 +85,15 @@
     pileOpacity: 0.32,
     pileCol: 16,        // 列のはば px
     pileStep: 8,        // 1段の高さ px(星より小さくして重ねる)
+    // 山の「床」を 画面の下から どれだけ 上げるか。
+    // ⚠ ここが 0 のままだと、画面の下に はりついた 帯（「こたえあわせ」の
+    //   ボタンの列など）が 積もりはじめの 山を まるごと かくしてしまう。
+    //   山は 1回の正解で 画面の高さ ÷ pileFull ぶんしか 育たないので、
+    //   帯が 74px あると 9問ほど 正解するまで 何も 見えない＝
+    //   「積もらない」と 誤解する（実際に そう 見えた）。
+    // 数値(px)か、その帯の CSS セレクタ。セレクタなら 高さを 毎回 測るので
+    // 端末の セーフエリアぶんも ついてくる（隠れている帯は 0 とみなす）
+    pileBottom: 0,
     pileSizeMin: 6,     // 積もる星の半径 px
     pileSizeMax: 11,
     // 満タンのときの 高さ(画面の高さに対する割合)。1=画面いちばん上まで
@@ -338,8 +347,22 @@
      あとから 消せないので、満タン後は 消さずに 上から かさねつづける
      （もう 画面は うまっているので 見た目は 変わらない）。 */
   var pileCv = null, pileCtx = null, PILE = [], pileH = [], pileVW = 0;
-  var pileCfg = CFG, pileReflow = null;
+  var pileCfg = CFG, pileReflow = null, pileBase = 0;
   var pend = [], pQueued = 0, pPlaced = 0, pT = 0;
+
+  /* 山の 床の 高さ（画面の下からの px）。画面の下に はりついた 帯の 上に
+     積もらせるための もの。fire() と 画面サイズ変更の たびに 測りなおす */
+  function pileFloor(cfg) {
+    var v = cfg.pileBottom, el, r;
+    if (typeof v === "string") {
+      el = v ? d.querySelector(v) : null;
+      if (!el) return 0;
+      r = el.getBoundingClientRect();
+      if (!r.height) return 0;              // display:none の帯は 無いものとして あつかう
+      return Math.max(0, Math.min(w.innerHeight * 0.4, w.innerHeight - r.top));
+    }
+    return Math.max(0, Math.min(w.innerHeight * 0.4, Number(v) || 0));
+  }
 
   function pileCanvas() {
     if (pileCv) return;
@@ -376,9 +399,10 @@
     pileCtx.restore();
   }
   function pileCols(cfg) { return Math.max(1, Math.ceil(w.innerWidth / cfg.pileCol)); }
-  /* 満タンのときの 段数＝画面の高さぶん */
+  /* 満タンのときの 段数＝床から 画面の上までぶん */
   function pileRows(cfg) {
-    return Math.max(2, Math.floor((w.innerHeight * cfg.pileHeightMax - 6) / cfg.pileStep));
+    return Math.max(2, Math.floor(
+      (w.innerHeight * cfg.pileHeightMax - pileBase - 6) / cfg.pileStep));
   }
   function pileCap(cfg) { return pileCols(cfg) * pileRows(cfg); }
   /* 1回の正解で 積もる数。画面ぜんぶを pileFull 回で 埋めきる ペース */
@@ -402,7 +426,7 @@
     else pileH[c] = h + 1;
     var x = c * cfg.pileCol + cfg.pileCol / 2 + ((h % 2) ? cfg.pileCol / 2 : 0) + it.jx;
     it.x = Math.min(w.innerWidth - 5, Math.max(5, x));
-    it.bottom = 4 + h * cfg.pileStep + it.dy;
+    it.bottom = pileBase + 4 + h * cfg.pileStep + it.dy;
   }
   function pileAdd(it, cfg) {
     pileCanvas();
@@ -428,6 +452,7 @@
   /* 画面のはばが 変わったら 列の数も 変わるので、全部 置きなおして 描きなおす */
   function pileRender() {
     pileCanvas(); pileSize(); pileH = [];
+    pileBase = pileFloor(pileCfg);
     PILE.forEach(function (it) { pilePlace(it, pileCfg); pileDraw(it); });
   }
   /* 置きなおさず 描きなおすだけ。canvasは 大きさを変えると 中身が 消えるので、
@@ -469,6 +494,8 @@
     ensureLayer(cfg);
     showText(cfg);
 
+    // 床の 高さは 演出ごとに 測りなおす（帯が 出たり 消えたりする 画面もある）
+    pileBase = pileFloor(cfg);
     if (cfg.pile) { pendPush(cfg); pQueued = pend.length; pPlaced = 0; pT = 0; }
 
     // 動きをへらす設定のときは 文字だけ静かに出して、山は その場で 積む

@@ -147,16 +147,24 @@ test('キラキラの正解エフェクトが結線され、星が画面下に�
     await page.click('#nextBtn');
   }
   await page.waitForTimeout(3000);
-  /* 画面のいちばん下の帯に 星が 描かれていること（canvas 1枚に 積んでいる） */
-  const painted = await page.evaluate(() => {
+  /* 星が「こたえあわせ」の帯より 上に 積もっていること。
+     ⚠ 帯(#bottom)は 不透明で 74px あるので、山の床を 帯の上に していないと
+       ここが まっさらに なる＝生徒には「積もらない」ように 見える
+       （1回の正解で 育つのは 画面の高さの 100分の1 しかないため）。
+       だから「canvasに 描かれている」ではなく「帯より上に 見えている」を 見張る */
+  const seen = await page.evaluate(() => {
     const c = document.getElementById('divp-kk-pile');
-    if (!c) return -1;
-    const d = c.getContext('2d').getImageData(0, c.height - 40, c.width, 40).data;
+    if (!c) return { err: 'no canvas' };
+    const dpr = c.width / window.innerWidth;
+    const barTop = document.getElementById('bottom').getBoundingClientRect().top;
+    const y = Math.max(0, Math.round((barTop - 40) * dpr));
+    const h = Math.max(1, Math.round(40 * dpr));
+    const d = c.getContext('2d').getImageData(0, y, c.width, h).data;
     let n = 0;
     for (let i = 3; i < d.length; i += 4) if (d[i] > 8) n++;
-    return n;
+    return { aboveBar: n };
   });
-  expect(painted).toBeGreaterThan(1000);
+  expect(seen.aboveBar, JSON.stringify(seen)).toBeGreaterThan(1000);
 });
 
 test('5つのモードが 出題→採点→次の問題 まで通る', async ({ page }) => {
