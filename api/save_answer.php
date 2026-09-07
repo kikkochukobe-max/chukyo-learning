@@ -57,7 +57,10 @@ const FIG_ATTRS = ['x','y','x1','y1','x2','y2','cx','cy','r','rx','ry','d','poin
                    // グラデーション（理科のりん片の図など）
                    'id','offset','stop-color','stop-opacity','gradientunits','gradienttransform','spreadmethod',
                    // 読み上げ用。図の関数はほぼ全部 svg に付けているので、無いと図が丸ごと落ちる
-                   'role','aria-label'];
+                   'role','aria-label',
+                   // 文字の下に紙色のふちを敷いて線の上でも読めるようにする
+                   // （立体の体積マスターの寸法ラベル。値は列挙型で外部を読みに行かない）
+                   'paint-order'];
 function figure_is_safe(string $s): bool {
     if ($s === '' || strlen($s) > FIG_MAX_BYTES) return false;
     if (preg_match('/<!--|<!\[|<\?/', $s)) return false;   // コメント・CDATA・処理命令

@@ -35,6 +35,22 @@ assets/                共通モジュール（全ツールがscriptタグで読
                          この :where() は詳細度0なので**セレクタから漏れた要素は
                          ツール側CSSで前面に出すこと**（div/span だけで組んだ
                          ふきだし・ヘッダーが埋もれる。DivpFirework.clearPile() で消せる）
+  divp-correct-kirakira.js  小学生用 正解エフェクト「キラキラが積もる」。
+                         都道府県マスター(divp-correct.js)と同じ9色の星バースト＋金の
+                         「正解！」に、その星が画面下に積もる(pile)機能を足したもの。
+                         `<body data-effect="kirakira">` のときだけ Divp.correct を
+                         差し替える（単体では window.DivpKirakira()。既定値は読み込み前に
+                         window.DIVP_KIRAKIRA_OPTS で上書き）。divp-core.js より後ろに置くこと。
+                         ⚠ 星バーストの部分は divp-correct.js の写し（「都道府県と同じ見た目」が
+                         前提のモジュールなので、あちらの見た目を調整したらこちらもそろえる）。
+                         積もる山の置きかたは divp-correct-firework.js と同じ考え方だが、
+                         当たり(特大)の抽選は持たない＝canvasは1枚。
+                         ⚠ pile は z-index:5 の固定レイヤーで、pileRaiseUI が
+                         :where(button,h1,…) を z-index:10 に持ち上げて埋没を防ぐ。
+                         この :where() は詳細度0なので**セレクタから漏れた要素は
+                         ツール側CSSで前面に出すこと**（`.app > *` のようにまとめて
+                         上げておくのが安全。DivpKirakira.clearPile() で消せる）
+                         組み込み済み1本: math_es6_rittai_taiseki
   divp-correct-jh.js     中学・高校用 正解スタンプエフェクト（es用Divp.correctとは別物）
   divp-choice-mark.js    選択肢の「答え合わせ表示」。正解=緑 / 選んだ誤答=朱 /
                          選ばなかった正解=緑＋「正解」バッジ / 残り=薄く。
@@ -55,8 +71,9 @@ assets/                共通モジュール（全ツールがscriptタグで読
                          --divp-mark-ok-text は「正解」の文字色だけを分けたいとき用
                          (既定は枠と同色。イオンのしくみラボのような暗い背景の
                          ツールで、枠は明るい緑・文字は読める薄い色にするために使う)。
-                         組み込み済み7本: 一次関数・愛知県大問1・方程式の利用・
-                         連立方程式の利用・計算特集(中2)・二次方程式・イオンのしくみラボ。
+                         組み込み済み8本: 一次関数・愛知県大問1・方程式の利用・
+                         連立方程式の利用・計算特集(中2)・二次方程式・イオンのしくみラボ・
+                         立体の体積マスター。
                          回帰テスト tests/choice-mark.spec.js(仕様) と
                          tests/choice-mark-tools.spec.js(各ツールの配線)
                          ⚠ HTMLだけ先に上げるとツール側の採点CSSはもう無いので
@@ -230,11 +247,18 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    プリントに出る（正解分は保存しない＝容量の無駄）。question_text と同じ「人間用の
    表現」で、**question_params から図を復元する実装をPHPに持たせない**という
    2. の原則をそのまま守る形。組み込み済み: math_js3_aichi_daimon1（`q.tableHtml`）/
-   理科4本（`q.tbl`）。列の追加は db/migrations/migrate_question_figure.sql。
+   理科4本（`q.tbl`）/ math_es6_rittai_taiseki（`q.fig`）。
+   列の追加は db/migrations/migrate_question_figure.sql。
    ⚠ 講師画面に生HTMLとして描くので、save_answer.php の `figure_is_safe()` が
    タグ・属性のホワイトリストで検証し、**想定外なら図を丸ごと捨てる**（掃除はしない）。
    新しい図でタグ・属性を増やしたら FIG_TAGS / FIG_ATTRS にも足すこと。
    足し忘れても記録自体は普通に残り、図だけが落ちる（＝気づきにくい）。
+   2026-09に `paint-order`（文字の下に紙色のふちを敷いて線の上でも読めるようにする。
+   立体の体積マスターの寸法ラベル）を追加した。**assets/HTMLだけ上げて
+   api/save_answer.php を上げ忘れると、その単元の図だけが全部落ちる**。
+   tests/rittai-taiseki.spec.js に同じホワイトリストの写しがあるので、
+   PHP側を増やしたらテスト側も合わせること（合っていないと
+   「テストは通るが本番で図だけ落ちる」状態になる）。
    `fill="url(#…)"` は同じ図の中の defs 参照だけ許可。id は印刷シート側の
    `scopeFigIds()` が問題番号で名前空間化する（同じ図が2問並ぶと id が衝突するため）
 2c. **params から問題を復元できないツールは question_replay で「問題そのもの」を保存する**。
@@ -262,7 +286,8 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    2c の replay_json（画面に出した問題そのもの）も、生成関数ごとの復元経路も不要。
    条件は**ツール内の乱数が1か所に集まっていること**（`ri()` だけが乱数を使う形。
    `Math.random()` を各所で直接呼んでいると種で再現できない）。
-   組み込み済み: math_js2_ichijikansu（生成関数50個以上・モード13種）。
+   組み込み済み: math_js2_ichijikansu（生成関数50個以上・モード13種）/
+   math_es5_baisu_yakusu / math_es5_tsuubun_kagen / math_es6_rittai_taiseki。
    ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
    （params_hash は同じままなので解き直し自体は成立するが、出る問題は別物になる）。
    ⚠ 種は question_params に入る＝params_hash に効くので、

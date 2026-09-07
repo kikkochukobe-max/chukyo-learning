@@ -99,6 +99,16 @@ const TOOLS = [
     next: '#quizNextBtn',
     multiAnswer: true,   // 「あてはまるものを全部えらんでね」があるので正解は複数ありうる
   },
+  {
+    name: '立体の体積マスター',
+    url: '/learning/math/math_es6_rittai_taiseki.html',
+    start: async (page) => {
+      await page.locator('.m-card[data-mode="kakuchu"]').click();
+    },
+    choices: '.optBtn',
+    grade: '#checkBtn',
+    next: '#nextBtn',
+  },
 ];
 
 for (const t of TOOLS) {

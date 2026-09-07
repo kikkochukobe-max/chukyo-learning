@@ -1,0 +1,2065 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="only light">
+<title>立体の体積マスター｜中京個別指導学院</title>
+<meta name="description" content="小6算数の立体の体積を練習。面積の復習（三角形・平行四辺形・ひし形・台形・円）から角柱・円柱・工夫して求める体積まで。「なぜ高さをかけると体積になるのか」を高さ1cmの積み重ねのアニメーションで解説。中京個別指導学院(神丘)の学習ツール。">
+<!-- 本番(Heteml)ではサブセット自己ホストに差し替え -->
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBFAF6;
+    --grid:#ECE9E0;
+    --sumi:#33312B;
+    --usuzumi:#8B877C;
+    --shu:#C73E2E;
+    --kin:#C9A227;
+    --ai:#2C5F8A;
+    /* 答え合わせの色は共通モジュール(divp-choice-mark.js)の既定にそろえる */
+    --divp-mark-ok:#3E8E5A;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html{ scrollbar-gutter:stable; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:24px 24px;
+    color:var(--sumi);
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    touch-action:manipulation;
+  }
+  .app{
+    width:100%;
+    max-width:560px;
+    margin:0 auto;
+    padding:12px 14px calc(90px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    flex:1;
+  }
+
+  /* ---- ヘッダー ---- */
+  header{ display:flex; align-items:center; gap:8px; }
+  header h1{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700; margin:0;
+    letter-spacing:.04em;
+  }
+  header h1 .sub{
+    display:block;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    letter-spacing:.1em;
+  }
+  .mode-back{
+    margin-left:auto;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.5px solid var(--ai);
+    background:#fff;
+    border-radius:8px;
+    padding:5px 9px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+
+  /* ---- スコア ---- */
+  .score{
+    display:flex; align-items:baseline; gap:12px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700; color:var(--usuzumi);
+  }
+  .score b{ color:var(--shu); font-size:17px; }
+  .score .streak b{ color:var(--kin); }
+  .score .qno{ margin-left:auto; color:var(--ai); }
+
+  /* ---- 問題カード ---- */
+  .card{
+    position:relative;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:16px;
+    box-shadow:0 2px 0 rgba(51,49,43,.06);
+    padding:16px 16px 14px;
+  }
+  .card .qtag{
+    display:inline-block;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.2px solid var(--ai);
+    border-radius:999px;
+    padding:2px 10px;
+    margin-bottom:8px;
+    letter-spacing:.06em;
+  }
+  .card .qtext{
+    font-size:16px; line-height:1.85;
+    letter-spacing:.02em;
+  }
+  .card .qtext b{ color:var(--shu); }
+
+  /* ---- 問題の図 ---- */
+  .figwrap{
+    display:flex; justify-content:center;
+    margin:10px 0 0;
+  }
+  .figwrap svg{
+    width:100%; max-width:330px; height:auto;
+    /* 図は白地に置く。方眼の上だと寸法線が読みにくい */
+    background:#FFFDF7;
+    border-radius:10px;
+  }
+  .fignote{
+    text-align:center;
+    font-size:11.5px; color:var(--usuzumi);
+    margin-top:4px; line-height:1.6;
+  }
+
+  /* ---- 解答パーツ ---- */
+  .part{ display:flex; flex-direction:column; gap:8px; }
+  .p-label{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700;
+    color:var(--ai);
+    letter-spacing:.04em;
+  }
+  .p-label .hint{ color:var(--usuzumi); font-weight:500; font-size:11px; margin-left:6px; }
+  .opts{ display:flex; flex-wrap:wrap; gap:8px; }
+  .optBtn{
+    position:relative;          /* 「正解」バッジの基準（divp-choice-mark.js） */
+    flex:1 1 calc(50% - 4px);
+    min-width:120px;
+    min-height:54px;
+    padding:8px 12px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:11px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:19px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    line-height:1.4;
+  }
+  .opts.wide .optBtn{ flex:1 1 100%; font-size:17px; min-height:56px; }
+  .optBtn .u{ font-size:.72em; margin-left:2px; color:var(--usuzumi); }
+  .optBtn.on{
+    background:#FDECE9;
+    border-color:var(--shu);
+    border-bottom-color:var(--shu);
+    color:var(--shu);
+  }
+  .optBtn.on .u{ color:var(--shu); }
+  .optBtn:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .optBtn:disabled{ cursor:default; transform:none; }
+  .optBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- フィードバック ---- */
+  .feedback{ display:none; }
+  .feedback.show{ display:flex; flex-direction:column; gap:10px; }
+  .fb-msg{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    text-align:center;
+    letter-spacing:.06em;
+  }
+  .fb-msg.good{ color:var(--shu); }
+  .fb-msg.bad{ color:var(--ai); }
+  .expl{
+    background:#fff;
+    border:1.5px dashed var(--kin);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:14px; line-height:1.95;
+  }
+  .expl b{ color:var(--shu); }
+  .expl .ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--kin);
+    letter-spacing:.08em;
+    display:block; margin-bottom:4px;
+  }
+  .expl .step{ display:block; }
+  .expl .kufu{
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px dashed var(--grid);
+    font-size:13px; color:var(--ai);
+  }
+  .expl .naze{
+    display:inline-block;
+    margin-top:8px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700;
+    color:var(--ai);
+    border:1.2px solid var(--ai);
+    background:#F5F9FC;
+    border-radius:999px;
+    padding:4px 12px;
+    cursor:pointer;
+  }
+  .toast{
+    text-align:center;
+    font-size:13px; font-weight:700; color:var(--ai);
+    min-height:20px;
+  }
+
+  /* ---- 下の大きなボタン ---- */
+  .bottom{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--paper) 62%, rgba(251,250,246,0));
+    z-index:20;
+  }
+  .bottom .inner{ max-width:560px; margin:0 auto; }
+  .bigBtn{
+    width:100%;
+    height:54px;
+    border:none;
+    border-radius:13px;
+    background:var(--shu);
+    color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    letter-spacing:.2em; text-indent:.2em;
+    box-shadow:0 3px 0 #9E2F22;
+    cursor:pointer;
+  }
+  .bigBtn:active{ transform:translateY(2px); box-shadow:0 1px 0 #9E2F22; }
+  .bigBtn.next{ background:var(--ai); box-shadow:0 3px 0 #1E466A; }
+  .bigBtn.next:active{ box-shadow:0 1px 0 #1E466A; }
+  .bigBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- モード選択画面（倍数・約数マスターと同じ作り） ---- */
+  .mode-screen{ display:none; }
+  body.choosing .app,
+  body.choosing .bottom{ display:none; }
+  body.choosing .mode-screen{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:100%;
+    max-width:520px;
+    margin:0 auto;
+    padding:34px 18px 48px;
+  }
+  .m-logo{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:25px; font-weight:700;
+    text-align:center;
+    letter-spacing:.08em;
+  }
+  .m-sub{
+    text-align:center;
+    font-size:13px; color:var(--usuzumi);
+    margin-bottom:8px;
+  }
+  /* .m-link は「別の画面へのリンク」。見た目は .m-card と同じだが、
+     クリック処理(startMode)は .m-card だけに付いているので class は分けておく
+     （m-card を付けると data-mode が undefined で startMode が走る） */
+  .m-card,
+  .m-link{
+    display:flex; align-items:center; gap:13px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:4px solid #D8D4C8;
+    border-radius:16px;
+    padding:14px 16px;
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;
+    width:100%;
+  }
+  .m-card:active,
+  .m-link:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .m-card.review{ border-color:#BFD4C6; border-bottom-color:#8FB9A0; background:#F7FBF8; }
+  .m-card.mix{ border-color:var(--kin); border-bottom-color:var(--kin); }
+  .m-link{
+    text-decoration:none; color:inherit;
+    border-color:var(--ai); border-bottom-color:#1E466A;
+    background:#F5F9FC;
+  }
+  .m-link .m-name{ color:var(--ai); }
+  .m-sep{
+    display:flex; align-items:center; gap:8px;
+    margin-top:14px;
+    font-size:11.5px; color:var(--usuzumi); letter-spacing:.06em;
+  }
+  .m-sep::before, .m-sep::after{
+    content:""; flex:1; height:1px; background:var(--grid);
+  }
+  .m-body{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .m-name{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700;
+  }
+  .m-desc{ font-size:11.5px; color:var(--usuzumi); line-height:1.5; }
+
+  /* 解き直し(?retry=1)の案内帯 */
+  #retryBanner{
+    background:#FBF3E0;
+    border:1.5px solid var(--kin);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:12.5px; line-height:1.6;
+    color:#6E5518;
+  }
+
+  /* ---- しくみの部屋（なぜ 高さを かけると 体積に なるの？） ---- */
+  .lab{ display:none; }
+  body.labbing .app,
+  body.labbing .bottom,
+  body.labbing .mode-screen{ display:none !important; }
+  body.labbing .lab{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    width:100%;
+    max-width:560px;
+    margin:0 auto;
+    padding:14px 14px calc(28px + env(safe-area-inset-bottom));
+  }
+  .lab-head{ display:flex; align-items:center; gap:8px; }
+  .lab-head h2{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700; margin:0;
+    letter-spacing:.04em;
+  }
+  .lab-head h2 .sub{
+    display:block;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    letter-spacing:.1em;
+  }
+  .lab-card{
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:16px;
+    box-shadow:0 2px 0 rgba(51,49,43,.06);
+    padding:13px 14px 14px;
+  }
+  .lab-ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--ai);
+    letter-spacing:.06em;
+    margin-bottom:8px;
+  }
+  .lab-chips{ display:flex; flex-wrap:wrap; gap:7px; }
+  .lab-chip{
+    flex:1 1 auto;
+    min-width:96px; min-height:44px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:10px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:14px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+  }
+  .lab-chip.on{
+    background:#FDECE9; border-color:var(--shu);
+    border-bottom-color:var(--shu); color:var(--shu);
+  }
+  .lab-chip:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .lab-stage{ display:flex; justify-content:center; margin:2px 0 0; }
+  .lab-stage svg{
+    width:100%; max-width:340px; height:auto;
+    background:#FFFDF7; border-radius:10px;
+  }
+  .lab-row{
+    display:flex; align-items:center; gap:10px;
+    margin-top:10px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--usuzumi);
+  }
+  .lab-row input[type=range]{ flex:1; accent-color:var(--shu); height:28px; }
+  .lab-row .val{ color:var(--shu); font-size:16px; min-width:52px; text-align:right; }
+  .lab-shiki{
+    margin-top:10px;
+    background:var(--paper);
+    border:1.5px solid var(--grid);
+    border-radius:12px;
+    padding:10px 12px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:15px; font-weight:700;
+    text-align:center; line-height:1.9;
+    letter-spacing:.02em;
+  }
+  .lab-shiki .sq{ color:var(--ai); }
+  .lab-shiki .hh{ color:var(--kin); }
+  .lab-shiki .vv{ color:var(--shu); font-size:1.15em; }
+  .lab-play{
+    width:100%; height:48px; margin-top:10px;
+    border:none; border-radius:12px;
+    background:var(--ai); color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:16px; font-weight:700; letter-spacing:.12em;
+    box-shadow:0 3px 0 #1E466A; cursor:pointer;
+  }
+  .lab-play:active{ transform:translateY(2px); box-shadow:0 1px 0 #1E466A; }
+  .lab-steps{ counter-reset:st; }
+  .lab-step{
+    display:flex; gap:9px;
+    padding:9px 0;
+    border-top:1px dashed var(--grid);
+    font-size:13.5px; line-height:1.85;
+  }
+  .lab-step:first-child{ border-top:none; }
+  .lab-step .no{
+    flex:0 0 22px; height:22px;
+    border-radius:50%;
+    background:var(--ai); color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    margin-top:3px;
+  }
+  .lab-step.now .no{ background:var(--shu); }
+  .lab-step b{ color:var(--shu); }
+  .lab-matome{
+    background:#FBF3E0;
+    border:1.5px solid var(--kin);
+    border-radius:14px;
+    padding:12px 14px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:16px; font-weight:700;
+    text-align:center; line-height:1.9;
+    color:#6E5518;
+  }
+  .lab-matome .big{ display:block; font-size:19px; color:var(--shu); margin-top:2px; }
+
+  /* 積もったキラキラ(divp-correct-kirakira の pile, z-index:5)にうもれないように。
+     モジュール側の :where() は詳細度0で、div/span だけで組んだ帯は
+     セレクタから漏れるため、画面の直下の子をまとめて前面に出しておく */
+  .divp-header{ position:relative; z-index:11; }
+  .app > *, .mode-screen > *, .lab > *,
+  .feedback > *, .lab-card > *, .lab-row > *{ position:relative; z-index:10; }
+
+  @media print{
+    /* 共通ヘッダーは紙に出さない（assets/divp-header.js と同じ方針） */
+    .divp-header{ display:none !important; }
+    .bottom{ display:none !important; }
+  }
+</style>
+</head>
+<body class="choosing" data-theme="es" data-effect="kirakira">
+
+<!-- 共通ヘッダー(ロゴ・ログイン窓)の差し込み先。script は body 直後に置くこと -->
+<div class="divp-header"></div>
+<!-- 学習記録システム共通モジュール -->
+<script src="/assets/divp-core.js" defer></script>
+<script src="/assets/divp-header.js" defer></script>
+<!-- 小学生ツールなので正解演出は星バースト。
+     data-effect="kirakira" なので、都道府県マスターと同じ星が
+     そのまま画面の下に積もっていく（divp-core.js より後ろに置くこと） -->
+<script src="/assets/divp-correct-kirakira.js" defer></script>
+<!-- 選択肢の答え合わせ表示（正解=緑 / 選んだ誤答=朱） -->
+<script src="/assets/divp-choice-mark.js" defer></script>
+
+<div class="mode-screen" id="modeScreen">
+  <div class="m-logo">立体の体積マスター</div>
+  <div class="m-sub">小6 算数 ／ れんしゅうしたいものを えらんでね</div>
+  <div id="retryBannerSlot"></div>
+
+  <button type="button" class="m-card review" data-mode="menseki">
+    <span class="m-body"><span class="m-name">面積の 復習</span>
+    <span class="m-desc">三角形・長方形・正方形・平行四辺形・ひし形・台形・円。
+    体積の前に「底面積を 出す 力」を つける</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="kakuchu">
+    <span class="m-body"><span class="m-name">角柱の 体積</span>
+    <span class="m-desc">底面積 × 高さ。三角柱・四角柱・五角柱と、
+    体積から 高さを もとめる 問題</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="enchu">
+    <span class="m-body"><span class="m-name">円柱の 体積</span>
+    <span class="m-desc">半径 × 半径 × 3.14 × 高さ。
+    直径で 書かれた 問題と、体積から 高さを もとめる 問題</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="kufuu">
+    <span class="m-body"><span class="m-name">工夫して 求める</span>
+    <span class="m-desc">L字・へこんだ形・かまぼこ形・穴のあいた形。
+    底面を「分けて たす」か「大きいのから ひく」</span></span>
+  </button>
+
+  <button type="button" class="m-card mix" data-mode="mix">
+    <span class="m-body"><span class="m-name">ランダム</span>
+    <span class="m-desc">角柱・円柱・工夫を ごちゃまぜで 出題（しあげ用）。
+    面積の復習は 出ません</span></span>
+  </button>
+
+  <div class="m-sep">「なぜ そうなるの？」が 気になったら</div>
+
+  <button type="button" class="m-link" id="labBtn">
+    <span class="m-body"><span class="m-name">なぜ 高さを かけたら 体積に なるの？ →</span>
+    <span class="m-desc">高さ1cmの 板を 1まいずつ 積み重ねる アニメーションで、
+    底面積 × 高さ の いみを たしかめられる</span></span>
+  </button>
+</div>
+
+<div class="app" id="app">
+  <header>
+    <h1>立体の体積マスター<span class="sub" id="modeLabel">角柱の 体積</span></h1>
+    <button type="button" class="mode-back" id="homeBtn">ホームに戻る</button>
+  </header>
+
+  <div class="score">
+    <span>せいかい <b id="scoreOk">0</b> / <span id="scoreAll">0</span></span>
+    <span class="streak">れんぞく <b id="scoreStreak">0</b></span>
+    <span class="qno" id="qNo"></span>
+  </div>
+
+  <div class="card">
+    <span class="qtag" id="qTag">問題</span>
+    <div class="qtext" id="qText"></div>
+    <div class="figwrap" id="figArea"></div>
+    <div class="fignote" id="figNote"></div>
+  </div>
+
+  <div id="partArea" style="display:flex;flex-direction:column;gap:14px"></div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="feedback" id="feedback">
+    <div class="fb-msg" id="fbMsg"></div>
+    <div class="expl" id="expl"></div>
+  </div>
+</div>
+
+<div class="bottom" id="bottom">
+  <div class="inner">
+    <button type="button" class="bigBtn" id="checkBtn">こたえあわせ</button>
+    <button type="button" class="bigBtn next" id="nextBtn" style="display:none">つぎの問題 ➜</button>
+  </div>
+</div>
+
+<!-- しくみの部屋（なぜ 高さを かけたら 体積に なるの？） -->
+<div class="lab" id="lab">
+  <div class="lab-head">
+    <h2>なぜ 高さを かけたら 体積に なるの？<span class="sub">高さ1cmの 板の 積み重ねで 考える</span></h2>
+    <button type="button" class="mode-back" id="labBack">もどる</button>
+  </div>
+
+  <div class="lab-card">
+    <div class="lab-ttl">① 底面の 形を えらぶ</div>
+    <div class="lab-chips" id="labChips"></div>
+
+    <div class="lab-stage" id="labStage"></div>
+
+    <div class="lab-row">
+      <span>高さ</span>
+      <input type="range" id="labH" min="1" max="6" step="1" value="4" aria-label="高さ(cm)">
+      <span class="val" id="labHVal">4cm</span>
+    </div>
+
+    <div class="lab-shiki" id="labShiki"></div>
+    <button type="button" class="lab-play" id="labPlay">1cmずつ 積んでみる ▶</button>
+  </div>
+
+  <div class="lab-card lab-steps" id="labSteps"></div>
+
+  <div class="lab-matome">
+    どんな 形の 底面でも、高さ1cmの 板 1まいの 体積は 底面積と 同じ数。
+    それを 高さのぶん 積み重ねるから…
+    <span class="big">体積 ＝ 底面積 × 高さ</span>
+  </div>
+</div>
+<script>
+"use strict";
+/* =====================================================================
+   立体の体積マスター（算数・小6）
+   unit_key = math_es6_rittai_taiseki
+
+   ■ モードと question_key
+     面積の復習 → menseki_sankaku / _chouhou / _seihou / _heikou /
+                  _hishi / _daikei / _en
+     角柱       → kakuchu / kakuchu_gyaku（体積から高さ・底面積をもとめる）
+     円柱       → enchu   / enchu_gyaku
+     工夫       → kufuu
+     ランダム   → 上のうち面積の復習ぬきを ごちゃまぜ（question_key は実際に出た種類）
+     日本語ラベルは db/seeds/seed_math_es6_rittai_taiseki.sql で question_catalog へ。
+
+   ■ 解き直し（?retry=1）は「種(seed)方式」＝ CLAUDE.md 2d
+     乱数は ri()/pick()/shuffle() に一本化してあり、出題のたびに種を1つ引いて
+     question_params:{m:question_key, s:種} だけを保存する。?retry=1 では同じ種で
+     同じ生成関数を回すだけで まったく同じ問題が出るので、replay_json も
+     生成関数ごとの復元経路も要らない。
+     ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
+       （params_hash は同じままなので解き直し自体は成立する）。
+
+   ■ 図（question_figure）＝ CLAUDE.md 2b
+     立体の問題は 図が無いと解けないので、画面に出したSVGを そのまま
+     Divp.answer に渡す（誤答のときだけ保存され、解き直しプリントに出る）。
+     使っているタグ・属性は save_answer.php の FIG_TAGS / FIG_ATTRS の範囲内。
+     paint-order は そのために FIG_ATTRS へ足してある。
+
+   ■ 図の考え方
+     角柱は「底面を 手前の面として おく」斜投影で描く（三角柱を横に倒した形）。
+     手前の面が そのままの形＝底面の寸法が そのまま 読めるので、
+     「底面積を 出す → 高さを かける」の 手順が 図の上で 見える。
+     手前の面(2次元の輪郭)を 奥の むきへ ずらすだけなので、L字・へこんだ形・
+     半円・ドーナツまで 同じ1つの押し出し関数で 描ける。
+     円柱だけは 見なれた「立てた向き」で、上下の円を だ円で 描く。
+   ===================================================================== */
+
+var UNIT_KEY = "math_es6_rittai_taiseki";
+
+/* ---------- 共通モジュールの安全呼び出し（未読込でも壊れない） ---------- */
+function safeDivp(fn){
+  try{
+    if(window.Divp && typeof window.Divp[fn] === "function"){
+      return window.Divp[fn].apply(window.Divp, [].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return null;
+}
+
+/* ---------- RNG（xorshift32・種から決まった順に出る） ---------- */
+var _rngState = 1;
+function rngSeed(s){ _rngState = (s>>>0) || 1; }
+function rngPick(){ return (Math.floor(Math.random()*4294967296)>>>0) || 1; }  /* 種そのものだけ真の乱数 */
+function rngNext(){
+  var x = _rngState;
+  x ^= x<<13; x >>>= 0; x ^= x>>>17; x ^= x<<5; x >>>= 0;
+  _rngState = x;
+  return x/4294967296;
+}
+function ri(min,max){ return Math.floor(rngNext()*(max-min+1))+min; }
+function pick(arr){ return arr[ri(0,arr.length-1)]; }
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i=a.length-1;i>0;i--){ var j=ri(0,i); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+
+/* ---------- 数のあつかい ----------
+   3.14 のかけ算は 小数の 誤差が 出るので、いつも 整数に なおして 計算する */
+function mul314(x){ return Math.round(x*314)/100; }        /* x × 3.14 */
+function mulv(a,b){ return Math.round(a*b*100)/100; }      /* 小数どうしのかけ算 */
+function divv(a,b){ return Math.round(a/b*10000)/10000; }
+function fmt(x){ return String(Math.round(x*10000)/10000); }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* =====================================================================
+   図のためのSVG部品
+   ===================================================================== */
+var SVGFONT = "Zen Maru Gothic,Hiragino Maru Gothic ProN,HGMaruGothicMPRO,"
+            + "M PLUS Rounded 1c,Yu Gothic,sans-serif";
+var C = {
+  base:"#F6DCD6",     /* 底面（手前の面） */
+  side:"#FAEFE6",     /* よこの面 */
+  paper:"#FFFDF7",
+  edge:"#C73E2E",     /* りんかく（朱） */
+  hid:"#CBA9A1",      /* かくれた線 */
+  dim:"#2C5F8A",      /* 寸法（藍） */
+  guide:"#A9A498"     /* 直角マークなど */
+};
+
+function n2(x){ return Math.round(x*100)/100; }
+
+/* 文字。まわりに紙色のふちを付けて、線の上でも読めるようにする */
+function tx(x,y,s,color,anchor,size){
+  return '<text x="'+n2(x)+'" y="'+n2(y)+'" text-anchor="'+(anchor||"middle")+'"'
+    + ' dominant-baseline="middle" font-size="'+(size||13)+'" font-weight="700"'
+    + ' font-family="'+SVGFONT+'" fill="'+(color||C.dim)+'"'
+    + ' paint-order="stroke" stroke="'+C.paper+'" stroke-width="4.5"'
+    + ' stroke-linejoin="round">'+esc(s)+'</text>';
+}
+/* よこの寸法線。dir=1 で 文字は下、dir=-1 で 上 */
+function dimH(x1,x2,y,label,dir,color){
+  var c = color||C.dim, d = dir||1;
+  return '<g stroke="'+c+'" stroke-width="1.5" fill="none">'
+    + '<path d="M'+n2(x1)+','+n2(y-4)+' V'+n2(y+4)+'"/>'
+    + '<path d="M'+n2(x2)+','+n2(y-4)+' V'+n2(y+4)+'"/>'
+    + '<path d="M'+n2(x1)+','+n2(y)+' H'+n2(x2)+'"/></g>'
+    + (label ? tx((x1+x2)/2, y+14*d, label, c) : "");
+}
+/* たての寸法線。文字は線の中央にかさねる（左右のはみ出しをおさえるため） */
+function dimV(x,y1,y2,label,color){
+  var c = color||C.dim;
+  return '<g stroke="'+c+'" stroke-width="1.5" fill="none">'
+    + '<path d="M'+n2(x-4)+','+n2(y1)+' H'+n2(x+4)+'"/>'
+    + '<path d="M'+n2(x-4)+','+n2(y2)+' H'+n2(x+4)+'"/>'
+    + '<path d="M'+n2(x)+','+n2(y1)+' V'+n2(y2)+'"/></g>'
+    + (label ? tx(x, (y1+y2)/2, label, c) : "");
+}
+/* 図の中を通る「高さ」の点線（たて） */
+function hDashV(x,y1,y2,label){
+  return '<path d="M'+n2(x)+','+n2(y1)+' L'+n2(x)+','+n2(y2)+'" stroke="'+C.dim+'"'
+    + ' stroke-width="1.5" stroke-dasharray="4 3" fill="none"/>'
+    + (label ? tx(x, (y1+y2)/2, label, C.dim) : "");
+}
+/* 図の中を通る点線（ななめ・対角線） */
+function dashSeg(x1,y1,x2,y2){
+  return '<path d="M'+n2(x1)+','+n2(y1)+' L'+n2(x2)+','+n2(y2)+'" stroke="'+C.dim+'"'
+    + ' stroke-width="1.5" stroke-dasharray="4 3" fill="none"/>';
+}
+/* 中心からのばす半径線（中心に点）。ラベルは中点から (ox,oy) ずらす */
+function radLine(cx,cy,x2,y2,label,ox,oy){
+  return '<path d="M'+n2(cx)+','+n2(cy)+' L'+n2(x2)+','+n2(y2)+'" stroke="'+C.dim+'"'
+    + ' stroke-width="1.6" fill="none"/>'
+    + '<circle cx="'+n2(cx)+'" cy="'+n2(cy)+'" r="2.6" fill="'+C.dim+'"/>'
+    + tx((cx+x2)/2+(ox||0), (cy+y2)/2+(oy===undefined?-12:oy), label, C.dim);
+}
+/* 直角マーク。点(x,y)から 方向(ax,ay)と(bx,by)へ 小さい四角 */
+function sq90(x,y,ax,ay,bx,by){
+  var s = 8;
+  return '<path d="M'+n2(x+ax*s)+','+n2(y+ay*s)
+    + ' L'+n2(x+ax*s+bx*s)+','+n2(y+ay*s+by*s)
+    + ' L'+n2(x+bx*s)+','+n2(y+by*s)+'"'
+    + ' stroke="'+C.guide+'" stroke-width="1.3" fill="none"/>';
+}
+function svgWrap(W,H,inner){
+  return '<svg viewBox="0 0 '+n2(W)+' '+n2(H)+'" role="img" aria-label="問題の図">'
+    + inner + '</svg>';
+}
+
+/* =====================================================================
+   輪郭（loops）のあつかい
+   loops[0] = 外まわり / loops[1..] = 穴。点は {x,y,s}。
+   s:true は「なめらかな点」＝弧の途中なので、面のさかいの線を入れない
+   ===================================================================== */
+function pathOfLoop(loop){
+  var s = "M"+n2(loop[0].x)+","+n2(loop[0].y), i;
+  for(i=1;i<loop.length;i++) s += " L"+n2(loop[i].x)+","+n2(loop[i].y);
+  return s + " Z";
+}
+function loopsPath(loops){
+  return loops.map(pathOfLoop).join(" ");
+}
+function signedArea(loop){
+  var a = 0, i, j;
+  for(i=0,j=loop.length-1;i<loop.length;j=i++)
+    a += loop[j].x*loop[i].y - loop[i].x*loop[j].y;
+  return a/2;
+}
+/* 穴のある形は、外まわりと 内まわりの まわる むきを 逆にする＝
+   fill-rule の 既定(nonzero)で 穴が あく
+   （fill-rule は save_answer.php の 図の 許可属性に 無いので、むきで 表す） */
+function normLoops(loops){
+  return loops.map(function(l,i){
+    var want = (i===0) ? 1 : -1;
+    return ((signedArea(l)>0 ? 1 : -1) === want) ? l : l.slice().reverse();
+  });
+}
+/* 点が 形の中に あるか（even-odd。穴も 正しく あつかえる） */
+function inLoops(loops,x,y){
+  var c = false, L, p, i, j;
+  for(L=0;L<loops.length;L++){
+    p = loops[L];
+    for(i=0,j=p.length-1;i<p.length;j=i++){
+      if(((p[i].y>y) !== (p[j].y>y)) &&
+         (x < (p[j].x-p[i].x)*(y-p[i].y)/(p[j].y-p[i].y)+p[i].x)) c = !c;
+    }
+  }
+  return c;
+}
+/* 辺 p→q から できる よこの面が 見えるか。
+   外向きの 法線を（辺の すこし外を 見て）決めて、奥へのむき T と 内積をとる */
+function edgeVisible(loops,p,q,T){
+  var dx = q.x-p.x, dy = q.y-p.y, len = Math.sqrt(dx*dx+dy*dy);
+  if(len < 0.01) return false;
+  var nx = dy/len, ny = -dx/len;
+  var mx = (p.x+q.x)/2, my = (p.y+q.y)/2;
+  if(inLoops(loops, mx+nx*0.8, my+ny*0.8)){ nx = -nx; ny = -ny; }
+  return (nx*T.x + ny*T.y) > 0.001;
+}
+/* v[i]===want が つながっている ところを ひとまとめにする（1周ぶん） */
+function runsOf(v,want){
+  var m = v.length, out = [], i, t, all = true, cur = null, start = -1;
+  for(i=0;i<m;i++) if(v[i]!==want){ all = false; break; }
+  if(all){
+    if(!m) return out;
+    cur = []; for(i=0;i<m;i++) cur.push(i);
+    return [cur];
+  }
+  for(i=0;i<m;i++) if(v[i]!==want){ start = i; break; }
+  if(start < 0) return out;
+  for(t=1;t<=m;t++){
+    i = (start+t)%m;
+    if(v[i]===want){ if(!cur){ cur = []; out.push(cur); } cur.push(i); }
+    else cur = null;
+  }
+  return out;
+}
+/* ひとつづきの 辺の ならびを「かど」で 区切る＝平らな面ごとに 分ける */
+function splitAtCorners(loop,run){
+  var out = [], cur = [run[0]], i, shared;
+  for(i=1;i<run.length;i++){
+    shared = loop[run[i]];     /* 辺 run[i-1] と 辺 run[i] が 共有する ちょう点 */
+    if(shared && shared.s) cur.push(run[i]);
+    else { out.push(cur); cur = [run[i]]; }
+  }
+  out.push(cur);
+  return out;
+}
+/* 見える よこの面 1枚ぶんの パス（手前のふち → 奥のふちを もどる） */
+function bandPath(loop,sub,T){
+  var m = loop.length, pts = [], i, s;
+  for(i=0;i<sub.length;i++) pts.push(loop[sub[i]]);
+  pts.push(loop[(sub[sub.length-1]+1)%m]);
+  s = "M"+n2(pts[0].x)+","+n2(pts[0].y);
+  for(i=1;i<pts.length;i++) s += " L"+n2(pts[i].x)+","+n2(pts[i].y);
+  for(i=pts.length-1;i>=0;i--) s += " L"+n2(pts[i].x+T.x)+","+n2(pts[i].y+T.y);
+  return " " + s + " Z";
+}
+/* かくれた 奥のふち（点線） */
+function backPath(loop,run,T){
+  var m = loop.length, p = loop[run[0]], i;
+  var s = " M"+n2(p.x+T.x)+","+n2(p.y+T.y);
+  for(i=0;i<run.length;i++){
+    p = loop[(run[i]+1)%m];
+    s += " L"+n2(p.x+T.x)+","+n2(p.y+T.y);
+  }
+  return s;
+}
+/* 輪郭を 奥へ ずらして 立体にする */
+function extrude(loops,T){
+  var band = "", hidden = "", k, i, r, t;
+  loops = normLoops(loops);
+  for(k=0;k<loops.length;k++){
+    var loop = loops[k], m = loop.length, v = [];
+    for(i=0;i<m;i++) v.push(edgeVisible(loops, loop[i], loop[(i+1)%m], T));
+    var runs = runsOf(v,true);
+    for(r=0;r<runs.length;r++){
+      var subs = splitAtCorners(loop, runs[r]);
+      for(t=0;t<subs.length;t++) band += bandPath(loop, subs[t], T);
+    }
+    /* かくれた線は 外まわり(k===0)だけ 点線で 見せる。
+       穴(k>0)の かくれた線まで 出すと、穴の 奥の ふちが 手前の面を
+       ななめに よこぎって、小6には 何の線か わからない 図に なる
+       （パイプ・四角い穴の 柱で 実際に そう 見えた）。
+       穴の「見える 内がわの 面」の ふちは 帯の 輪郭として 出るので、
+       穴が つきぬけている ことは それで 伝わる。 */
+    if(k === 0){
+      var hruns = runsOf(v,false);
+      for(r=0;r<hruns.length;r++) hidden += backPath(loop, hruns[r], T);
+      /* かくれた たての 線。「かど」だけに 引く（!loop[i].s）。
+         弧の 途中の 点にも 引くと、点の 数だけ 線が 出て 扇のように なる
+         （半円・ドーナツを 押し出したとき、弧を 何十個の 点で 表しているため） */
+      for(i=0;i<m;i++){
+        if(!v[(i-1+m)%m] && !v[i] && !loop[i].s)
+          hidden += " M"+n2(loop[i].x)+","+n2(loop[i].y)
+                 +  " L"+n2(loop[i].x+T.x)+","+n2(loop[i].y+T.y);
+      }
+    }
+  }
+  return { band:band, hidden:hidden, front:loopsPath(loops) };
+}
+
+/* =====================================================================
+   平面の形（面積の復習に そのまま／角柱の 手前の面にも 使う）
+   shape(k) → {loops, deco, w, h, exact?}   k = 1cmあたりの px
+   ===================================================================== */
+function P(x,y,s){ return { x:x, y:y, s:!!s }; }
+/* 円・弧を 点の ならびに する。なめらかな点は s:true */
+function arcPts(cx,cy,r,a1,a2,seg){
+  var out = [], i, a;
+  for(i=0;i<=seg;i++){
+    a = a1 + (a2-a1)*i/seg;
+    out.push(P(cx + r*Math.cos(a), cy - r*Math.sin(a), i>0 && i<seg));
+  }
+  return out;
+}
+
+/* 三角形（底辺 b・高さ h）。right=true で 直角三角形 */
+function shTri(b,h,right){
+  return function(k){
+    var B = b*k, H = h*k, ax = right ? 0 : B*0.34;
+    var deco = dimH(0,B,H+16,"底辺 "+b+"cm");
+    if(right) deco += dimV(-15,0,H,"高さ "+h+"cm") + sq90(0,H,1,0,0,-1);
+    else      deco += hDashV(ax,0,H,"高さ "+h+"cm") + sq90(ax,H,1,0,0,-1);
+    return { loops:[[P(0,H),P(B,H),P(ax,0)]], deco:deco, w:B, h:H };
+  };
+}
+/* 長方形（縦 a・横 b） */
+function shRect(a,b,lab){
+  return function(k){
+    var A = a*k, B = b*k;
+    var deco = dimH(0,B,A+16,(lab?lab.w:"横 "+b+"cm"))
+             + dimV(-15,0,A,(lab?lab.h:"縦 "+a+"cm"));
+    return { loops:[[P(0,0),P(B,0),P(B,A),P(0,A)]], deco:deco, w:B, h:A };
+  };
+}
+/* 正方形（1辺 a） */
+function shSquare(a){
+  return function(k){
+    var A = a*k;
+    var deco = dimH(0,A,A+16,"1辺 "+a+"cm") + dimV(-15,0,A,a+"cm");
+    return { loops:[[P(0,0),P(A,0),P(A,A),P(0,A)]], deco:deco, w:A, h:A };
+  };
+}
+/* 平行四辺形（底辺 b・高さ h） */
+function shPara(b,h){
+  return function(k){
+    var B = b*k, H = h*k, sx = B*0.28, hx = sx + B*0.42;
+    var deco = dimH(0,B,H+16,"底辺 "+b+"cm")
+             + hDashV(hx,0,H,"高さ "+h+"cm") + sq90(hx,H,1,0,0,-1);
+    return { loops:[[P(sx,0),P(sx+B,0),P(B,H),P(0,H)]], deco:deco, w:sx+B, h:H };
+  };
+}
+/* ひし形（対角線 p・q） */
+function shRhombus(p,q){
+  return function(k){
+    var Pp = p*k, Q = q*k;
+    var deco = dashSeg(0,Q/2,Pp,Q/2) + dashSeg(Pp/2,0,Pp/2,Q)
+             + dimH(0,Pp,Q+16,"対角線 "+p+"cm")
+             + dimV(-15,0,Q,"対角線 "+q+"cm");
+    return { loops:[[P(Pp/2,0),P(Pp,Q/2),P(Pp/2,Q),P(0,Q/2)]], deco:deco, w:Pp, h:Q };
+  };
+}
+/* 台形（上底 a・下底 b・高さ h。b>a） */
+function shTrap(a,b,h){
+  return function(k){
+    var A = a*k, B = b*k, H = h*k, off = (B-A)*0.42, hx = off + A*0.5;
+    var deco = dimH(off,off+A,-13,"上底 "+a+"cm",-1)
+             + dimH(0,B,H+16,"下底 "+b+"cm")
+             + hDashV(hx,0,H,"高さ "+h+"cm") + sq90(hx,H,1,0,0,-1);
+    return { loops:[[P(off,0),P(off+A,0),P(B,H),P(0,H)]], deco:deco, w:B, h:H };
+  };
+}
+/* 円（半径 r。showD=true なら 直径で 書く） */
+function shCircle(r,showD){
+  return function(k){
+    var R = r*k;
+    var loops = [arcPts(R,R,R,0,Math.PI*2,108)];
+    var exact = '<circle cx="'+n2(R)+'" cy="'+n2(R)+'" r="'+n2(R)+'" fill="'+C.base
+              + '" stroke="'+C.edge+'" stroke-width="2.4"/>';
+    var deco = showD
+      ? '<path d="M0,'+n2(R)+' H'+n2(2*R)+'" stroke="'+C.dim+'" stroke-width="1.6" fill="none"/>'
+        + '<circle cx="'+n2(R)+'" cy="'+n2(R)+'" r="2.6" fill="'+C.dim+'"/>'
+        + tx(R, R-13, "直径 "+(2*r)+"cm", C.dim)
+      : radLine(R,R,2*R,R,"半径 "+r+"cm",0,-12);
+    return { loops:loops, deco:deco, w:2*R, h:2*R, exact:exact };
+  };
+}
+/* L字（外の横 a・外の縦 b・上のへん p・右のへん q）
+   右上を 四角く 切りとった 形。切りとりは (a-p)×(b-q) */
+function shL(a,b,p,q){
+  return function(k){
+    var A = a*k, B = b*k, Pp = p*k, Q = q*k;
+    var deco = dimH(0,Pp,-13,p+"cm",-1)
+             + dimH(0,A,B+16,a+"cm")
+             + dimV(-15,0,B,b+"cm")
+             + dimV(A+15,B-Q,B,q+"cm");
+    return { loops:[[P(0,0),P(Pp,0),P(Pp,B-Q),P(A,B-Q),P(A,B),P(0,B)]],
+             deco:deco, w:A, h:B };
+  };
+}
+/* へこんだ形（横 a・縦 b の 長方形の 上の まん中を 横 c・深さ d で 切りとる） */
+function shU(a,b,c,dd){
+  return function(k){
+    var A = a*k, B = b*k, Cc = c*k, D = dd*k, m = (A-Cc)/2;
+    var deco = dimH(0,A,B+16,a+"cm")
+             + dimV(-15,0,B,b+"cm")
+             + dimH(m,m+Cc,-13,c+"cm",-1)
+             + dimV(m+Cc/2,0,D,dd+"cm");
+    return { loops:[[P(0,0),P(m,0),P(m,D),P(m+Cc,D),P(m+Cc,0),P(A,0),P(A,B),P(0,B)]],
+             deco:deco, w:A, h:B };
+  };
+}
+/* 四角い穴のあいた 長方形（外 a×b、穴 c×d） */
+function shRectHole(a,b,c,dd){
+  return function(k){
+    var A = a*k, B = b*k, Cc = c*k, D = dd*k;
+    var hx = (A-Cc)/2, hy = (B-D)/2;
+    var deco = dimH(0,A,B+16,"横 "+a+"cm")
+             + dimV(-15,0,B,"縦 "+b+"cm")
+             + dimH(hx,hx+Cc,hy-11,c+"cm",-1)
+             + dimV(hx+Cc/2,hy,hy+D,dd+"cm");
+    return { loops:[[P(0,0),P(A,0),P(A,B),P(0,B)],
+                    [P(hx,hy),P(hx+Cc,hy),P(hx+Cc,hy+D),P(hx,hy+D)]],
+             deco:deco, w:A, h:B };
+  };
+}
+/* 半円（直径を 下に。半径 r） */
+function shSemi(r){
+  return function(k){
+    var R = r*k;
+    var loop = arcPts(R,R,R,0,Math.PI,80);   /* (2R,R) → 上 → (0,R) */
+    loop[0].s = false; loop[loop.length-1].s = false;
+    var deco = radLine(R,R,R,0,"半径 "+r+"cm",26,0)
+             + dimH(0,2*R,R+16,"直径 "+(2*r)+"cm");
+    return { loops:[loop], deco:deco, w:2*R, h:R };
+  };
+}
+/* ドーナツ（外の半径 R・内の半径 r） */
+function shAnnulus(R,r){
+  return function(k){
+    var Ro = R*k, Ri = r*k;
+    var deco = radLine(Ro,Ro,2*Ro,Ro,"外の半径 "+R+"cm",0,-12)
+             + '<path d="M'+n2(Ro)+','+n2(Ro)+' L'+n2(Ro-Ri)+','+n2(Ro)+'" stroke="'+C.dim
+             + '" stroke-width="1.6" fill="none"/>'
+             + tx(Ro-Ri/2, Ro+14, "内の半径 "+r+"cm", C.dim);
+    return { loops:[arcPts(Ro,Ro,Ro,0,Math.PI*2,108),
+                    arcPts(Ro,Ro,Ri,0,Math.PI*2,84)],
+             deco:deco, w:2*Ro, h:2*Ro };
+  };
+}
+/* 長方形の 上に 半円（かまぼこが のった 形）。長方形は 横 2r・縦 b */
+function shRectSemi(r,b){
+  return function(k){
+    var R = r*k, B = b*k;
+    var arc = arcPts(R,R,R,0,Math.PI,80);       /* (2R,R) → 上 → (0,R) */
+    arc[0].s = false; arc[arc.length-1].s = false;
+    var loop = [P(0,R+B),P(2*R,R+B)].concat(arc);
+    var deco = dashSeg(0,R,2*R,R)
+             + radLine(R,R,R,0,"半径 "+r+"cm",26,0)
+             + dimH(0,2*R,R+B+16,"横 "+(2*r)+"cm")
+             + dimV(-15,R,R+B,b+"cm");
+    return { loops:[loop], deco:deco, w:2*R, h:R+B };
+  };
+}
+/* 底面積だけが わかっている 多角形（五角形・六角形）。寸法は 出さない */
+function shPolyArea(sides,areaLabel){
+  return function(k){
+    var R = 5.2*k, i, pts = [], a;
+    for(i=0;i<sides;i++){
+      a = Math.PI/2 + Math.PI*2*i/sides;
+      pts.push(P(R + R*Math.cos(a), R - R*Math.sin(a)*0.92));
+    }
+    return { loops:[pts], deco:tx(R, R, areaLabel, C.edge), w:2*R, h:2*R*0.92 };
+  };
+}
+
+/* =====================================================================
+   立体の図
+   ===================================================================== */
+var DEPTH_X = 0.45, DEPTH_Y = 0.315;   /* 奥行き1cmを 画面で どれだけ ずらすか */
+
+/* どの図も 同じ はば(FIG_W)の 紙に のせる。
+   図は CSS で はば いっぱいに ひろげるので、viewBox が せまい図ほど
+   文字だけが 大きく 引きのばされる（小さい 立体で 寸法の 文字だけ
+   やけに 大きく 見えた）。足りないぶんは 左右に 足して 中央におく。 */
+var FIG_W = 330;
+function padX(W){ return Math.max(0, (FIG_W - W)/2); }
+
+/* 平面の形を そのまま 出す（面積の復習用） */
+function flatSVG(shapeFn){
+  var s0 = shapeFn(1);
+  var k = Math.max(7, Math.min(Math.min(210/s0.w, 148/s0.h), 30));
+  var s = shapeFn(k);
+  var PL = 44, PR = 46, PT = 34, PB = 38;
+  var W = s.w+PL+PR, pad = padX(W);
+  var g = '<g transform="translate('+n2(PL+pad)+','+PT+')">'
+    + (s.exact ? s.exact
+               : '<path d="'+loopsPath(normLoops(s.loops))+'" fill="'+C.base
+                 + '" stroke="'+C.edge+'" stroke-width="2.4" stroke-linejoin="round"/>')
+    + s.deco + '</g>';
+  return svgWrap(W+pad*2, s.h+PT+PB, g);
+}
+
+/* 奥行き（＝柱の高さ）の 寸法。いちばん 下、同じなら いちばん 右の ちょう点から のばす。
+   「いちばん右」を 先に すると、ひし形のように 右の とがりが 高さの まん中に
+   ある形で 右がわの 寸法(対角線など)と 文字が かさなる */
+function depthDeco(loops,T,label){
+  var loop = loops[0], best = loop[0], i;
+  for(i=1;i<loop.length;i++){
+    if(loop[i].y > best.y + 0.5 ||
+       (Math.abs(loop[i].y - best.y) <= 0.5 && loop[i].x > best.x)) best = loop[i];
+  }
+  var mx = best.x + T.x/2, my = best.y + T.y/2;
+  return '<path d="M'+n2(mx)+','+n2(my)+' L'+n2(mx+14)+','+n2(my+11)+'" stroke="'+C.dim
+    + '" stroke-width="1.3" fill="none"/>'
+    + tx(mx+22, my+17, label, C.dim);
+}
+
+/* 角柱。手前の面が 底面（＝shapeFn の 形）、depthCm が 高さ */
+function prismSVG(shapeFn,depthCm,hLabel,opts){
+  opts = opts || {};
+  var s0 = shapeFn(1);
+  var k = Math.min(232/(s0.w + depthCm*DEPTH_X), 150/(s0.h + depthCm*DEPTH_Y));
+  k = Math.max(6.5, Math.min(k, 26));
+  var s = shapeFn(k);
+  var T = { x: depthCm*DEPTH_X*k, y: -depthCm*DEPTH_Y*k };
+  var PL = 44, PR = 56, PT = 34, PB = 54;
+  var e = extrude(s.loops, T);
+  var W = s.w + T.x + PL + PR, pad = padX(W);
+  var g = '<g transform="translate('+n2(PL+pad)+','+n2(PT-T.y)+')">'
+    /* ① 見える よこの面 */
+    + '<path d="'+e.band+'" fill="'+C.side+'" stroke="'+C.edge+'" stroke-width="1.9"'
+    + ' stroke-linejoin="round"/>'
+    /* ② 手前の面（底面）。ぬりつぶして 奥の 線を おおう */
+    + '<path d="'+e.front+'" fill="'+C.base+'" stroke="'+C.edge+'" stroke-width="2.4"'
+    + ' stroke-linejoin="round"/>'
+    /* ③ かくれた線は 教科書と同じで 上から 点線で 見せる */
+    + (e.hidden ? '<path d="'+e.hidden+'" fill="none" stroke="'+C.hid
+                  + '" stroke-width="1.5" stroke-dasharray="5 4"/>' : "")
+    /* ④ 奥行き＝高さ */
+    + depthDeco(s.loops, T, hLabel)
+    /* ⑤ 底面の 寸法 */
+    + s.deco
+    /* ⑥ 図だけで 意味が わかるように（解き直しプリントには この図しか 出ない）。
+          上には 台形の 上底など 寸法が 来るので、いちばん下に 置く */
+    + (opts.tag === false ? "" : tx(s.w/2, s.h+46, "色のこい面が底面", C.edge, "middle", 11.5))
+    + '</g>';
+  return svgWrap(W + pad*2, s.h + (-T.y) + PT + PB, g);
+}
+
+/* 円柱（立てた向き）。上下の 円は だ円で 表す。
+   hLabel を わたすと 高さの 文字だけ 差しかえられる（「？cm」を 出す 逆算用） */
+function cylSVG(rCm,hCm,showD,hLabel){
+  var k = Math.min(150/(2*rCm), 138/(hCm + 2*rCm*0.34));
+  k = Math.max(7, Math.min(k, 26));
+  var R = rCm*k, H = hCm*k, ry = R*0.34;
+  var PL = 46, PR = 54, PT = 28, PB = 34;
+  var W = 2*R + PL + PR, pad = padX(W);
+  var cx = PL + pad + R, top = PT + ry, bot = top + H;
+  var g = "";
+  /* 胴体（手前）＋下の 円の 手前がわ */
+  g += '<path d="M'+n2(cx-R)+','+n2(top)+' V'+n2(bot)
+     + ' A'+n2(R)+','+n2(ry)+' 0 0,0 '+n2(cx+R)+','+n2(bot)
+     + ' V'+n2(top)+' Z" fill="'+C.side+'" stroke="none"/>';
+  /* 下の 円の 奥がわ（かくれ線） */
+  g += '<path d="M'+n2(cx-R)+','+n2(bot)+' A'+n2(R)+','+n2(ry)+' 0 0,1 '
+     + n2(cx+R)+','+n2(bot)+'" fill="none" stroke="'+C.hid
+     + '" stroke-width="1.5" stroke-dasharray="5 4"/>';
+  /* 胴体の りんかく */
+  g += '<path d="M'+n2(cx-R)+','+n2(top)+' V'+n2(bot)
+     + ' A'+n2(R)+','+n2(ry)+' 0 0,0 '+n2(cx+R)+','+n2(bot)
+     + ' V'+n2(top)+'" fill="none" stroke="'+C.edge+'" stroke-width="2.2"/>';
+  /* 上の 円（底面のひとつ） */
+  g += '<ellipse cx="'+n2(cx)+'" cy="'+n2(top)+'" rx="'+n2(R)+'" ry="'+n2(ry)
+     + '" fill="'+C.base+'" stroke="'+C.edge+'" stroke-width="2.2"/>';
+  /* 半径 or 直径 */
+  if(showD){
+    g += '<path d="M'+n2(cx-R)+','+n2(top)+' H'+n2(cx+R)+'" stroke="'+C.dim
+      +  '" stroke-width="1.6" fill="none"/>'
+      +  '<circle cx="'+n2(cx)+'" cy="'+n2(top)+'" r="2.6" fill="'+C.dim+'"/>'
+      +  tx(cx, top-15, "直径 "+(2*rCm)+"cm", C.dim);
+  }else{
+    g += radLine(cx,top,cx+R,top,"半径 "+rCm+"cm",0,-15);
+  }
+  /* 高さ */
+  g += dimV(cx+R+17, top, bot, hLabel || ("高さ "+hCm+"cm"));
+  /* 図だけで 意味が わかるように（解き直しプリントには この図しか 出ない）。
+     上は 半径・直径の 文字が 来るので、いちばん下に 置く */
+  g += tx(cx, bot+ry+18, "上下の 円が 底面", C.edge, "middle", 11.5);
+  return svgWrap(W+pad*2, H+2*ry+PT+PB, g);
+}
+
+/* =====================================================================
+   選択肢づくり
+   ===================================================================== */
+/* 数の4択。まぎらわしい数(cands)から えらび、足りなければ ずらした数でうめる。
+   cands は「よくある まちがい」＝÷2忘れ・高さをかけ忘れ・直径のまま など */
+function numChoices(correct, cands, unit){
+  var out = [correct], cs = shuffle(cands || []), i, c, k = 1;
+  function has(v){
+    for(var j=0;j<out.length;j++) if(Math.abs(out[j]-v) < 1e-6) return true;
+    return false;
+  }
+  for(i=0;i<cs.length && out.length<4;i++){
+    c = Math.round(cs[i]*10000)/10000;
+    if(c > 0 && !has(c)) out.push(c);
+  }
+  while(out.length < 4 && k <= 12){
+    c = Math.round(correct*(1 + k*0.25)*100)/100;
+    if(!has(c)) out.push(c);
+    else{
+      c = Math.round(correct/(1 + k*0.2)*100)/100;
+      if(c > 0 && !has(c)) out.push(c);
+    }
+    k++;
+  }
+  while(out.length < 4) out.push(Math.round((correct + out.length*7.5)*100)/100);
+  var arr = shuffle(out);
+  return {
+    options: arr.map(function(v){ return fmt(v) + " " + unit; }),
+    correct: arr.indexOf(correct)
+  };
+}
+var U2 = "cm²", U3 = "cm³", U1 = "cm";
+
+/* 面積の問題を くみたてる（面積の復習モード共通） */
+function mkArea(o){
+  var ch = numChoices(o.area, o.cands, U2);
+  return {
+    key: o.key, tag: o.tag,
+    qHtml: o.q, plainQ: o.plain, fig: o.fig, note: o.note || "",
+    label: "面積は 何cm²？", hint: "",
+    options: ch.options, correct: ch.correct,
+    ansText: fmt(o.area) + " " + U2,
+    expl: '<span class="ttl">とき方</span>'
+        + '<span class="step">' + o.shiki + '</span>'
+        + (o.kufu ? '<div class="kufu">💡 ' + o.kufu + '</div>' : "")
+  };
+}
+/* 体積の問題を くみたてる */
+function mkVol(o){
+  var ch = numChoices(o.vol, o.cands, U3);
+  return {
+    key: o.key, tag: o.tag,
+    qHtml: o.q, plainQ: o.plain, fig: o.fig, note: o.note || "",
+    label: "体積は 何cm³？", hint: "",
+    options: ch.options, correct: ch.correct,
+    ansText: fmt(o.vol) + " " + U3,
+    expl: '<span class="ttl">とき方</span>'
+        + '<span class="step">① ' + o.s1 + '</span>'
+        + '<span class="step">② 体積 ＝ 底面積 × ' + (o.hName || "高さ") + ' ＝ ' + o.s2 + '</span>'
+        + (o.kufu ? '<div class="kufu">💡 ' + o.kufu + '</div>' : "")
+        + '<button type="button" class="naze">なぜ 高さを かけるの？ →</button>'
+  };
+}
+
+/* =====================================================================
+   ① 面積の復習（底面積を 出す 力）
+   ===================================================================== */
+function gen_menseki_sankaku(){
+  var b = ri(4,14), h = ri(3,12), right = ri(0,1) === 1;
+  if((b*h) % 2) h += (h < 12 ? 1 : -1);
+  var area = b*h/2;
+  return mkArea({
+    key:"menseki_sankaku", tag:"三角形の 面積",
+    q:"下の 三角形の <b>面積</b>を もとめましょう。",
+    plain:"底辺"+b+"cm・高さ"+h+"cm の三角形の面積",
+    fig: flatSVG(shTri(b,h,right)),
+    area: area,
+    cands: [b*h, b+h, b*h/2+h, b*h/2-b, (b+h)*2],
+    shiki:"底辺 × 高さ ÷ 2 ＝ "+b+" × "+h+" ÷ 2 ＝ <b>"+area+" cm²</b>",
+    kufu:"三角形は「同じものを 2つ あわせると 平行四辺形」。だから ÷2 を わすれない。"
+  });
+}
+function gen_menseki_chouhou(){
+  var a = ri(3,12), b = ri(4,15);
+  if(a === b) b += 1;
+  var area = a*b;
+  return mkArea({
+    key:"menseki_chouhou", tag:"長方形の 面積",
+    q:"下の 長方形の <b>面積</b>を もとめましょう。",
+    plain:"縦"+a+"cm・横"+b+"cm の長方形の面積",
+    fig: flatSVG(shRect(a,b)),
+    area: area,
+    cands: [a+b, (a+b)*2, a*b/2, a*b+a],
+    shiki:"縦 × 横 ＝ "+a+" × "+b+" ＝ <b>"+area+" cm²</b>",
+    kufu:"(a+b)×2 は「まわりの 長さ」。面積は かけ算だけ。"
+  });
+}
+function gen_menseki_seihou(){
+  var a = ri(3,13), area = a*a;
+  return mkArea({
+    key:"menseki_seihou", tag:"正方形の 面積",
+    q:"下の 正方形の <b>面積</b>を もとめましょう。",
+    plain:"1辺"+a+"cm の正方形の面積",
+    fig: flatSVG(shSquare(a)),
+    area: area,
+    cands: [a*4, a*2, a*a/2, a*a+a],
+    shiki:"1辺 × 1辺 ＝ "+a+" × "+a+" ＝ <b>"+area+" cm²</b>",
+    kufu:"1辺×4 は「まわりの 長さ」。まちがえやすいので 気をつけよう。"
+  });
+}
+function gen_menseki_heikou(){
+  var b = ri(4,14), h = ri(3,11), area = b*h;
+  return mkArea({
+    key:"menseki_heikou", tag:"平行四辺形の 面積",
+    q:"下の 平行四辺形の <b>面積</b>を もとめましょう。",
+    plain:"底辺"+b+"cm・高さ"+h+"cm の平行四辺形の面積",
+    fig: flatSVG(shPara(b,h)),
+    area: area,
+    cands: [b*h/2, b+h, (b+h)*2, b*h+b],
+    shiki:"底辺 × 高さ ＝ "+b+" × "+h+" ＝ <b>"+area+" cm²</b>",
+    kufu:"平行四辺形は ÷2 を しない（はしを 切って うつすと 長方形に なるから）。"
+  });
+}
+function gen_menseki_hishi(){
+  var p = ri(4,14), q = ri(4,12);
+  if((p*q) % 2) q += (q < 12 ? 1 : -1);
+  var area = p*q/2;
+  return mkArea({
+    key:"menseki_hishi", tag:"ひし形の 面積",
+    q:"下の ひし形の <b>面積</b>を もとめましょう。",
+    plain:"対角線"+p+"cm と "+q+"cm のひし形の面積",
+    fig: flatSVG(shRhombus(p,q)),
+    area: area,
+    cands: [p*q, p+q, (p+q)*2, p*q/2+p],
+    shiki:"対角線 × 対角線 ÷ 2 ＝ "+p+" × "+q+" ÷ 2 ＝ <b>"+area+" cm²</b>",
+    kufu:"ひし形は「対角線を たてよこに した 長方形の 半分」。だから ÷2。"
+  });
+}
+function gen_menseki_daikei(){
+  var a = ri(2,9), b = a + ri(2,7), h = ri(2,10);
+  if(((a+b)*h) % 2) h += (h < 10 ? 1 : -1);
+  var area = (a+b)*h/2;
+  return mkArea({
+    key:"menseki_daikei", tag:"台形の 面積",
+    q:"下の 台形の <b>面積</b>を もとめましょう。",
+    plain:"上底"+a+"cm・下底"+b+"cm・高さ"+h+"cm の台形の面積",
+    fig: flatSVG(shTrap(a,b,h)),
+    area: area,
+    cands: [(a+b)*h, b*h/2, a*h/2, (a+b)+h, (a+b)*h/2+h],
+    shiki:"(上底 ＋ 下底) × 高さ ÷ 2 ＝ ("+a+" ＋ "+b+") × "+h+" ÷ 2 ＝ "
+        + (a+b)+" × "+h+" ÷ 2 ＝ <b>"+area+" cm²</b>",
+    kufu:"台形も「同じものを さかさに くっつけると 平行四辺形」。だから ÷2。"
+  });
+}
+function gen_menseki_en(){
+  var showD = ri(0,1) === 1, r = ri(2,8), area = mul314(r*r);
+  return mkArea({
+    key:"menseki_en", tag:"円の 面積",
+    q:"下の 円の <b>面積</b>を もとめましょう。（円周率は 3.14）",
+    plain:(showD ? "直径"+(2*r)+"cm" : "半径"+r+"cm")+" の円の面積",
+    fig: flatSVG(shCircle(r,showD)),
+    area: area,
+    cands: [mul314(2*r), mul314(4*r*r), r*r, mul314(r), mul314(r*r)/2],
+    shiki:(showD ? "半径 ＝ 直径 ÷ 2 ＝ "+(2*r)+" ÷ 2 ＝ "+r+" cm<br>" : "")
+        + "半径 × 半径 × 3.14 ＝ "+r+" × "+r+" × 3.14 ＝ <b>"+area+" cm²</b>",
+    kufu:"半径×2×3.14 は「円のまわりの 長さ」。面積は 半径×半径×3.14。"
+  });
+}
+
+/* =====================================================================
+   ② 角柱の 体積（底面積 × 高さ）
+   ===================================================================== */
+/* 底面の形を1つ つくる。
+   → {sh:形の関数, area:底面積, s1:底面積の式, plain:文章, name:立体の名前, cands:まちがい} */
+function makeKakuchuBase(){
+  var t = ri(1,7), a, b, h, p, q, area;
+  if(t === 1){                       /* 三角形 */
+    b = ri(4,12); h = ri(3,10);
+    if((b*h) % 2) h += (h < 10 ? 1 : -1);
+    area = b*h/2;
+    return { sh:shTri(b,h,ri(0,1)===1), area:area, name:"三角柱",
+             s1:"底面積 ＝ 底辺 × 高さ ÷ 2 ＝ "+b+" × "+h+" ÷ 2 ＝ <b>"+area+" cm²</b>",
+             plain:"底面が底辺"+b+"cm・高さ"+h+"cmの三角形",
+             bad:[b*h] };
+  }
+  if(t === 2){                       /* 長方形 */
+    a = ri(3,9); b = ri(4,11);
+    if(a === b) b += 1;
+    area = a*b;
+    return { sh:shRect(a,b), area:area, name:"四角柱（底面は 長方形）",
+             s1:"底面積 ＝ 縦 × 横 ＝ "+a+" × "+b+" ＝ <b>"+area+" cm²</b>",
+             plain:"底面が縦"+a+"cm・横"+b+"cmの長方形",
+             bad:[a+b] };
+  }
+  if(t === 3){                       /* 正方形 */
+    a = ri(3,9); area = a*a;
+    return { sh:shSquare(a), area:area, name:"四角柱（底面は 正方形）",
+             s1:"底面積 ＝ 1辺 × 1辺 ＝ "+a+" × "+a+" ＝ <b>"+area+" cm²</b>",
+             plain:"底面が1辺"+a+"cmの正方形",
+             bad:[a*4] };
+  }
+  if(t === 4){                       /* 平行四辺形 */
+    b = ri(4,11); h = ri(3,9); area = b*h;
+    return { sh:shPara(b,h), area:area, name:"四角柱（底面は 平行四辺形）",
+             s1:"底面積 ＝ 底辺 × 高さ ＝ "+b+" × "+h+" ＝ <b>"+area+" cm²</b>",
+             plain:"底面が底辺"+b+"cm・高さ"+h+"cmの平行四辺形",
+             bad:[b*h/2] };
+  }
+  if(t === 5){                       /* ひし形 */
+    p = ri(4,12); q = ri(4,10);
+    if((p*q) % 2) q += (q < 10 ? 1 : -1);
+    area = p*q/2;
+    return { sh:shRhombus(p,q), area:area, name:"四角柱（底面は ひし形）",
+             s1:"底面積 ＝ 対角線 × 対角線 ÷ 2 ＝ "+p+" × "+q+" ÷ 2 ＝ <b>"+area+" cm²</b>",
+             plain:"底面が対角線"+p+"cmと"+q+"cmのひし形",
+             bad:[p*q] };
+  }
+  if(t === 6){                       /* 台形 */
+    a = ri(2,7); b = a + ri(2,6); h = ri(2,8);
+    if(((a+b)*h) % 2) h += (h < 8 ? 1 : -1);
+    area = (a+b)*h/2;
+    return { sh:shTrap(a,b,h), area:area, name:"四角柱（底面は 台形）",
+             s1:"底面積 ＝ (上底 ＋ 下底) × 高さ ÷ 2 ＝ ("+a+" ＋ "+b+") × "+h+" ÷ 2 ＝ <b>"+area+" cm²</b>",
+             plain:"底面が上底"+a+"cm・下底"+b+"cm・高さ"+h+"cmの台形",
+             bad:[(a+b)*h] };
+  }
+  /* 底面積だけが わかっている 角柱（五角柱・六角柱） */
+  var sides = ri(5,6);
+  area = ri(3,12) * 2;
+  return { sh:shPolyArea(sides, "底面積 "+area+" cm²"), area:area,
+           name:(sides === 5 ? "五角柱" : "六角柱"),
+           s1:"底面積 ＝ 図に 書いてある とおり <b>"+area+" cm²</b>",
+           plain:"底面積"+area+"cm²の"+(sides === 5 ? "五角柱" : "六角柱"),
+           bad:[] };
+}
+/* 「高さ」が 2つ 出てくるので 言葉を 分ける。
+   底面の 中に 書いてある 高さ ＝ 底面積を 出すための もの
+   奥へ のびている 長さ ＝「柱の高さ」（2つの 底面の あいだ）＝ かけるほう */
+var PRISM_NOTE = "手前の 色のこい 面が 底面。奥へ のびている 長さが「柱の高さ」だよ。"
+               + "底面の 中の「高さ」は 底面積を 出すための もの。";
+
+function gen_kakuchu(){
+  var B = makeKakuchuBase(), H = ri(3,12), vol = B.area*H;
+  var cands = [B.area, B.area*H/2, B.area+H].concat(
+    B.bad.map(function(x){ return x*H; }));
+  return mkVol({
+    key:"kakuchu", tag:"角柱の 体積",
+    q:"下の "+B.name+"の <b>体積</b>を もとめましょう。",
+    plain:B.plain+"、柱の高さ"+H+"cm の角柱の体積",
+    fig: prismSVG(B.sh, H, "柱の高さ "+H+"cm"),
+    note: PRISM_NOTE,
+    vol: vol, cands: cands, hName:"柱の高さ",
+    s1: B.s1,
+    s2: B.area+" × "+H+" ＝ <b>"+vol+" cm³</b>",
+    kufu:"角柱は どんな 底面でも「底面積 × 柱の高さ」。まず 底面積を 出すのが 先。"
+  });
+}
+function gen_kakuchu_gyaku(){
+  var B = makeKakuchuBase(), H = ri(3,12), vol = B.area*H;
+  if(ri(0,1) === 1){
+    /* 体積と 底面の 寸法 → 高さ */
+    var ch = numChoices(H, [vol/(B.area*2), B.area, vol-B.area, H*2].concat(
+      B.bad.map(function(x){ return divv(vol,x); })), U1);
+    return {
+      key:"kakuchu_gyaku", tag:"角柱の 高さを もとめる",
+      qHtml:"下の "+B.name+"の 体積は <b>"+vol+" cm³</b> です。<b>柱の高さ</b>を もとめましょう。",
+      plainQ:B.plain+"、体積"+vol+"cm³ の角柱の柱の高さ",
+      fig: prismSVG(B.sh, H, "柱の高さ ？cm"),
+      note: PRISM_NOTE,
+      label:"柱の高さは 何cm？", options:ch.options, correct:ch.correct,
+      ansText: H + " " + U1,
+      expl:'<span class="ttl">とき方</span>'
+        + '<span class="step">① '+B.s1+'</span>'
+        + '<span class="step">② 体積 ＝ 底面積 × 柱の高さ なので、'
+        + '柱の高さ ＝ 体積 ÷ 底面積 ＝ '+vol+' ÷ '+B.area+' ＝ <b>'+H+' cm</b></span>'
+        + '<div class="kufu">💡 かけ算の 式を 「わり算」で もどすだけ。'
+        + '底面積を 先に 出すのは 同じ。</div>'
+        + '<button type="button" class="naze">なぜ 高さを かけるの？ →</button>'
+    };
+  }
+  /* 体積と 高さ → 底面積 */
+  var ch2 = numChoices(B.area, [vol*H, vol-H, divv(vol,H*2), divv(vol,2)/H], U2);
+  return {
+    key:"kakuchu_gyaku", tag:"角柱の 底面積を もとめる",
+    qHtml:"下の 角柱は 柱の高さが <b>"+H+" cm</b>、体積が <b>"+vol+" cm³</b> です。"
+        + "<b>底面積</b>を もとめましょう。",
+    plainQ:"柱の高さ"+H+"cm・体積"+vol+"cm³ の角柱の底面積",
+    fig: prismSVG(shPolyArea(ri(5,6), "底面積 ？cm²"), H, "柱の高さ "+H+"cm"),
+    note: PRISM_NOTE,
+    label:"底面積は 何cm²？", options:ch2.options, correct:ch2.correct,
+    ansText: B.area + " " + U2,
+    expl:'<span class="ttl">とき方</span>'
+      + '<span class="step">体積 ＝ 底面積 × 柱の高さ なので、'
+      + '底面積 ＝ 体積 ÷ 柱の高さ ＝ '+vol+' ÷ '+H+' ＝ <b>'+B.area+' cm²</b></span>'
+      + '<div class="kufu">💡 底面の 形が わからなくても、'
+      + '体積と 高さが あれば 底面積は 出せる。</div>'
+      + '<button type="button" class="naze">なぜ 高さを かけるの？ →</button>'
+  };
+}
+
+/* =====================================================================
+   ③ 円柱の 体積
+   ===================================================================== */
+function gen_enchu(){
+  var showD = ri(0,1) === 1, r = ri(2,6), h = ri(3,10);
+  var base = mul314(r*r), vol = mulv(base,h);
+  return mkVol({
+    key:"enchu", tag:"円柱の 体積",
+    q:"下の 円柱の <b>体積</b>を もとめましょう。（円周率は 3.14）",
+    plain:"底面の"+(showD ? "直径"+(2*r) : "半径"+r)+"cm・高さ"+h+"cm の円柱の体積",
+    fig: cylSVG(r,h,showD),
+    vol: vol,
+    cands: [base, mulv(mul314(2*r),h), mulv(mul314(4*r*r),h), mulv(r*r,h),
+            mulv(base,h)/2, mulv(mul314(r),h)],
+    s1:(showD ? "半径 ＝ 直径 ÷ 2 ＝ "+(2*r)+" ÷ 2 ＝ "+r+" cm<br>" : "")
+      + "底面積 ＝ 半径 × 半径 × 3.14 ＝ "+r+" × "+r+" × 3.14 ＝ <b>"+base+" cm²</b>",
+    s2: base+" × "+h+" ＝ <b>"+vol+" cm³</b>",
+    kufu:"円柱も 角柱と おなじ「底面積 × 高さ」。底面が 円に なっただけ。"
+  });
+}
+function gen_enchu_gyaku(){
+  var r = ri(2,6), h = ri(3,10);
+  var base = mul314(r*r), vol = mulv(base,h);
+  if(ri(0,1) === 1){
+    /* 体積と 半径 → 高さ */
+    var ch = numChoices(h, [divv(vol,mul314(2*r)), divv(vol,r*r), divv(vol,base*2),
+                            h*2, divv(vol,mul314(4*r*r))], U1);
+    return {
+      key:"enchu_gyaku", tag:"円柱の 高さを もとめる",
+      qHtml:"下の 円柱の 体積は <b>"+vol+" cm³</b> です。<b>高さ</b>を もとめましょう。"
+          + "（円周率は 3.14）",
+      plainQ:"底面の半径"+r+"cm・体積"+vol+"cm³ の円柱の高さ",
+      fig: cylSVG(r,h,false,"高さ ？cm"),
+      label:"高さは 何cm？", options:ch.options, correct:ch.correct,
+      ansText: h + " " + U1,
+      expl:'<span class="ttl">とき方</span>'
+        + '<span class="step">① 底面積 ＝ '+r+' × '+r+' × 3.14 ＝ <b>'+base+' cm²</b></span>'
+        + '<span class="step">② 高さ ＝ 体積 ÷ 底面積 ＝ '+vol+' ÷ '+base
+        + ' ＝ <b>'+h+' cm</b></span>'
+        + '<div class="kufu">💡 3.14 で わるのでは なく、'
+        + '「底面積」で わるのが ポイント。</div>'
+        + '<button type="button" class="naze">なぜ 高さを かけるの？ →</button>'
+    };
+  }
+  /* 体積と 高さ → 底面積 */
+  var ch2 = numChoices(base, [vol*h, divv(vol,h*2), vol-h, mul314(2*r)], U2);
+  return {
+    key:"enchu_gyaku", tag:"円柱の 底面積を もとめる",
+    qHtml:"下の 円柱は 高さが <b>"+h+" cm</b>、体積が <b>"+vol+" cm³</b> です。"
+        + "<b>底面積</b>を もとめましょう。",
+    plainQ:"高さ"+h+"cm・体積"+vol+"cm³ の円柱の底面積",
+    fig: cylSVG(r,h,false),
+    label:"底面積は 何cm²？", options:ch2.options, correct:ch2.correct,
+    ansText: base + " " + U2,
+    expl:'<span class="ttl">とき方</span>'
+      + '<span class="step">底面積 ＝ 体積 ÷ 高さ ＝ '+vol+' ÷ '+h
+      + ' ＝ <b>'+base+' cm²</b></span>'
+      + '<div class="kufu">💡 円柱でも やり方は 角柱と 同じ。</div>'
+      + '<button type="button" class="naze">なぜ 高さを かけるの？ →</button>'
+  };
+}
+
+/* =====================================================================
+   ④ 工夫して 求める（底面を 分けて たす／大きいのから ひく）
+   ===================================================================== */
+function gen_kufuu(){
+  var t = ri(1,6), H = ri(3,10), a, b, p, q, c, dd, r, R, base, vol, sh, s1, plain, cands, name, kufu;
+
+  if(t === 1){                                  /* L字の柱 */
+    p = ri(3,7); a = p + ri(2,5); q = ri(2,5); b = q + ri(2,5);
+    base = p*b + (a-p)*q;
+    sh = shL(a,b,p,q); name = "L字の 形の 柱";
+    s1 = "底面積（たてに 2つに 分ける）<br>"
+       + "左 ＝ "+p+" × "+b+" ＝ "+(p*b)+"　／　右 ＝ "+(a-p)+" × "+q+" ＝ "+((a-p)*q)+"<br>"
+       + (p*b)+" ＋ "+((a-p)*q)+" ＝ <b>"+base+" cm²</b>";
+    plain = "L字の底面(外"+a+"cm×"+b+"cm、上のへん"+p+"cm、右のへん"+q+"cm)・柱の高さ"+H+"cm の体積";
+    cands = [a*b*H, p*b*H, (a-p)*q*H, base, (a*b - (a-p)*(b-q))*H/2];
+    kufu = "「大きい 長方形から ひく」でも 同じ： "+a+" × "+b+" − "+(a-p)+" × "+(b-q)
+         + " ＝ "+(a*b)+" − "+((a-p)*(b-q))+" ＝ "+base+" cm²";
+  }else if(t === 2){                            /* へこんだ形の柱 */
+    a = ri(8,14); b = ri(5,9); c = ri(2,4)*2; dd = ri(2,4);
+    if(c > a-4) c = a-4;
+    if(dd > b-2) dd = b-2;
+    base = a*b - c*dd;
+    sh = shU(a,b,c,dd); name = "へこんだ 形の 柱";
+    s1 = "底面積（大きい 長方形から へこみを ひく）<br>"
+       + a+" × "+b+" − "+c+" × "+dd+" ＝ "+(a*b)+" − "+(c*dd)+" ＝ <b>"+base+" cm²</b>";
+    plain = "へこんだ底面("+a+"cm×"+b+"cm から "+c+"cm×"+dd+"cm を切りとる)・柱の高さ"+H+"cm の体積";
+    cands = [a*b*H, (a*b + c*dd)*H, base, c*dd*H];
+    kufu = "3つの 長方形に 分けて たしても 同じ 答えに なる。";
+  }else if(t === 3){                            /* 四角い穴のあいた柱 */
+    a = ri(8,13); b = ri(6,10); c = ri(2,4); dd = ri(2,4);
+    base = a*b - c*dd;
+    sh = shRectHole(a,b,c,dd); name = "四角い 穴の あいた 柱";
+    s1 = "底面積（外の 長方形から 穴を ひく）<br>"
+       + a+" × "+b+" − "+c+" × "+dd+" ＝ "+(a*b)+" − "+(c*dd)+" ＝ <b>"+base+" cm²</b>";
+    plain = "外"+a+"cm×"+b+"cm・穴"+c+"cm×"+dd+"cm の底面・柱の高さ"+H+"cm の体積";
+    cands = [a*b*H, (a*b + c*dd)*H, base, c*dd*H];
+    kufu = "穴も まっすぐ ぬけているので、「底面積 × 柱の高さ」が そのまま つかえる。";
+  }else if(t === 4){                            /* かまぼこ形（半円柱） */
+    r = ri(2,6);
+    base = Math.round(r*r*157)/100;             /* 半径×半径×3.14÷2 */
+    sh = shSemi(r); name = "かまぼこ形（半円柱）";
+    s1 = "底面積（円の 半分）<br>"
+       + r+" × "+r+" × 3.14 ÷ 2 ＝ "+mul314(r*r)+" ÷ 2 ＝ <b>"+base+" cm²</b>";
+    plain = "半径"+r+"cmの半円を底面とする・柱の高さ"+H+"cm の柱(かまぼこ形)の体積";
+    cands = [mulv(mul314(r*r),H), base, mulv(base,H)/2, mulv(mul314(2*r)/2,H)];
+    kufu = "円柱を まっすぐ 半分に 切った 形。円柱の 体積を 出して ÷2 でも 同じ。";
+  }else if(t === 5){                            /* パイプ（穴のあいた円柱） */
+    r = ri(1,3); R = r + ri(2,3);
+    base = mul314(R*R - r*r);
+    sh = shAnnulus(R,r); name = "穴の あいた 円柱（パイプ）";
+    s1 = "底面積（大きい 円から 小さい 円を ひく）<br>"
+       + R+" × "+R+" × 3.14 − "+r+" × "+r+" × 3.14 ＝ "+mul314(R*R)+" − "+mul314(r*r)
+       + " ＝ <b>"+base+" cm²</b>";
+    plain = "外の半径"+R+"cm・内の半径"+r+"cm の円を底面とする・柱の高さ"+H+"cm のパイプの体積";
+    cands = [mulv(mul314(R*R),H), mulv(mul314(R*R)+mul314(r*r),H), base,
+             mulv(mul314((R-r)*(R-r)),H)];
+    kufu = "(" + R + "×" + R + " − " + r + "×" + r + ") × 3.14 と、"
+         + "3.14 を あとに まとめると らく： " + (R*R-r*r) + " × 3.14 ＝ " + base + " cm²";
+  }else{                                        /* 長方形の上に半円 */
+    r = ri(2,5); b = ri(3,8);
+    base = Math.round((2*r*b*100 + r*r*157))/100;
+    sh = shRectSemi(r,b); name = "長方形の 上に 半円が のった 形の 柱";
+    s1 = "底面積（長方形 ＋ 半円）<br>"
+       + "長方形 ＝ "+(2*r)+" × "+b+" ＝ "+(2*r*b)+"<br>"
+       + "半円 ＝ "+r+" × "+r+" × 3.14 ÷ 2 ＝ "+(Math.round(r*r*157)/100)+"<br>"
+       + (2*r*b)+" ＋ "+(Math.round(r*r*157)/100)+" ＝ <b>"+base+" cm²</b>";
+    plain = "横"+(2*r)+"cm・縦"+b+"cmの長方形の上に半径"+r+"cmの半円がのった底面・柱の高さ"+H+"cm の体積";
+    cands = [mulv(2*r*b,H), mulv(2*r*b + mul314(r*r),H), base,
+             mulv(Math.round(r*r*157)/100,H)];
+    kufu = "「分けて たす」の 形。半円を わすれたり、÷2 を わすれたり しやすい。";
+  }
+
+  vol = mulv(base,H);
+  return mkVol({
+    key:"kufuu", tag:"工夫して 求める",
+    q:"下の "+name+"の <b>体積</b>を もとめましょう。"
+      + (t >= 4 ? "（円周率は 3.14）" : ""),
+    plain: plain,
+    fig: prismSVG(sh, H, "柱の高さ "+H+"cm"),
+    note: PRISM_NOTE,
+    vol: vol, cands: cands, hName:"柱の高さ",
+    s1: s1,
+    s2: base+" × "+H+" ＝ <b>"+vol+" cm³</b>",
+    kufu: kufu
+  });
+}
+
+/* =====================================================================
+   モードと出題の台どころ
+   ===================================================================== */
+var GENS = {
+  menseki_sankaku: gen_menseki_sankaku,
+  menseki_chouhou: gen_menseki_chouhou,
+  menseki_seihou:  gen_menseki_seihou,
+  menseki_heikou:  gen_menseki_heikou,
+  menseki_hishi:   gen_menseki_hishi,
+  menseki_daikei:  gen_menseki_daikei,
+  menseki_en:      gen_menseki_en,
+  kakuchu:         gen_kakuchu,
+  kakuchu_gyaku:   gen_kakuchu_gyaku,
+  enchu:           gen_enchu,
+  enchu_gyaku:     gen_enchu_gyaku,
+  kufuu:           gen_kufuu
+};
+/* モード → 出す question_key。同じキーを ならべた ぶんだけ 出やすくなる
+   （逆算は 4問に 1問くらい） */
+var MODE_KEYS = {
+  menseki: ["menseki_sankaku","menseki_chouhou","menseki_seihou","menseki_heikou",
+            "menseki_hishi","menseki_daikei","menseki_en"],
+  kakuchu: ["kakuchu","kakuchu","kakuchu","kakuchu_gyaku"],
+  enchu:   ["enchu","enchu","enchu","enchu_gyaku"],
+  kufuu:   ["kufuu"],
+  mix:     ["kakuchu","kakuchu","enchu","enchu","kufuu","kufuu",
+            "kakuchu_gyaku","enchu_gyaku"]
+};
+var MODE_LABEL = {
+  menseki:"面積の 復習",
+  kakuchu:"角柱の 体積",
+  enchu:"円柱の 体積",
+  kufuu:"工夫して 求める",
+  mix:"ランダム"
+};
+
+/* =====================================================================
+   出題エンジン
+   ===================================================================== */
+var MODE = "kakuchu";
+var cur = null, curKey = "", curSeed = 0;
+var sel = -1, graded = false;
+var score = 0, total = 0, streak = 0, qStart = 0;
+
+/* 解き直し（?retry=1） */
+var retryQ = null, retryTotal = 0, retryDone = 0;
+
+function $(id){ return document.getElementById(id); }
+
+function newQuestion(){
+  graded = false; sel = -1;
+  $("feedback").classList.remove("show");
+  $("toast").textContent = "";
+  $("checkBtn").style.display = "block";
+  $("nextBtn").style.display = "none";
+
+  var useKey, seed;
+  if(retryQ){
+    /* 解き直しを1周した。モード選択にもどって、案内帯を そこに 出す
+       （そのまま次の問題を出そうとすると MODE が "retry" のままで生成関数が無い） */
+    if(!retryQ.length){
+      retryQ = null;
+      backHome();
+      showRetryBanner("解き直し おつかれさま！ 同じ問題に 2回つづけて 正解すると リストから 消えるよ");
+      return;
+    }
+    var it = retryQ.shift();
+    retryDone++;
+    useKey = it.question_params.m;
+    seed = it.question_params.s>>>0;
+  }else{
+    useKey = pick(MODE_KEYS[MODE] || MODE_KEYS.kakuchu);
+    seed = rngPick();
+  }
+
+  curKey = useKey;
+  curSeed = seed;
+  rngSeed(seed);                       /* ここから先の乱数は種で決まる */
+  cur = GENS[useKey]();
+
+  /* 種類バッヂ。ランダムは 種類名が そのまま ヒントに なるので 出さない */
+  var tagText = retryQ ? ("解き直し "+retryDone+" / "+retryTotal+" ・ "+cur.tag)
+                       : (MODE === "mix" ? "" : cur.tag);
+  $("qTag").textContent = tagText;
+  $("qTag").style.display = tagText ? "" : "none";
+  $("qNo").textContent = retryQ ? "" : ("第 "+(total+1)+" 問");
+  $("qText").innerHTML = cur.qHtml;
+  $("figArea").innerHTML = cur.fig || "";
+  $("figNote").textContent = cur.note || "";
+  renderOptions();
+  qStart = Date.now();
+  try{ window.scrollTo({ top:0, behavior:"smooth" }); }catch(e){ window.scrollTo(0,0); }
+}
+
+function renderOptions(){
+  var host = $("partArea");
+  host.innerHTML = "";
+  var wrap = document.createElement("div");
+  wrap.className = "part";
+
+  var lab = document.createElement("div");
+  lab.className = "p-label";
+  lab.innerHTML = esc(cur.label) + (cur.hint ? '<span class="hint">'+cur.hint+'</span>' : "");
+  wrap.appendChild(lab);
+
+  var opts = document.createElement("div");
+  opts.className = "opts";
+  cur.options.forEach(function(txt, oi){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "optBtn";
+    b.dataset.idx = oi;
+    b.textContent = txt;
+    b.addEventListener("click", function(){ tapOption(oi, b); });
+    opts.appendChild(b);
+  });
+  wrap.appendChild(opts);
+  host.appendChild(wrap);
+}
+
+function tapOption(oi){
+  if(graded) return;
+  sel = oi;
+  $("toast").textContent = "";
+  document.querySelectorAll(".optBtn").forEach(function(b){
+    b.classList.toggle("on", Number(b.dataset.idx) === oi);
+  });
+}
+
+/* ---------- 答え合わせ ---------- */
+function check(){
+  if(graded || !cur) return;
+  if(sel < 0){ $("toast").textContent = "答えを えらんでね"; return; }
+
+  graded = true;
+  var ok = (sel === cur.correct);
+  var btns = document.querySelectorAll(".optBtn");
+  safeDivp("markChoices", btns, { correct:cur.correct, selected:sel,
+                                  dimOthers:true, label:"正解" });
+  btns.forEach(function(b){ b.disabled = true; });
+
+  total++;
+  if(ok){ score++; streak++; } else { streak = 0; }
+  renderScore();
+
+  var sec = Math.round((Date.now()-qStart)/1000);
+  /* 学習記録（未ログイン・ローカルでは黙ってスキップされる）。
+     立体は 図が無いと 解けないので question_figure も 渡す（誤答のときだけ保存され、
+     teacher.php の 解き直しプリントに 出る＝CLAUDE.md 2b） */
+  safeDivp("answer", ok, {
+    question_key: curKey,
+    question_params: { m: curKey, s: curSeed },     /* 種方式：この2つで同じ問題を作り直せる */
+    question_text: cur.plainQ,
+    question_figure: cur.fig || null,
+    correct_answer: cur.ansText,
+    wrong_answer: ok ? null : cur.options[sel],
+    time_taken_sec: (sec > 0 && sec < 600) ? sec : null
+  });
+
+  $("fbMsg").className = "fb-msg " + (ok ? "good" : "bad");
+  $("fbMsg").textContent = ok ? "せいかい！ よくできました" : "おしい！ とき方を 見てみよう";
+  $("expl").innerHTML = cur.expl;
+  $("feedback").classList.add("show");
+  $("checkBtn").style.display = "none";
+  $("nextBtn").style.display = "block";
+  $("toast").textContent = "";
+
+  if(ok) safeDivp("correct");
+}
+
+function renderScore(){
+  $("scoreOk").textContent = score;
+  $("scoreAll").textContent = total;
+  $("scoreStreak").textContent = streak;
+}
+
+/* ---------- モード選択 ---------- */
+function startMode(m){
+  if(!MODE_KEYS[m]) return;
+  MODE = m;
+  retryQ = null;
+  score = 0; total = 0; streak = 0;
+  renderScore();
+  $("modeLabel").textContent = MODE_LABEL[m] || "";
+  document.body.classList.remove("choosing");
+  newQuestion();
+}
+function backHome(){
+  document.body.classList.add("choosing");
+  retryQ = null;
+  cur = null;
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+
+/* ---------- 解き直し（?retry=1） ---------- */
+function showRetryBanner(msg){
+  var slot = $("retryBannerSlot");
+  var e = $("retryBanner");
+  if(!e){
+    e = document.createElement("div");
+    e.id = "retryBanner";
+    slot.appendChild(e);
+  }
+  e.textContent = msg;
+}
+function initRetry(){
+  if(!(window.Divp && typeof Divp.getRetries === "function")) return;
+  Divp.getRetries().then(function(items){
+    var use = (items||[]).filter(function(it){
+      var p = it && it.question_params;
+      return p && GENS[p.m] && typeof p.s === "number";
+    });
+    if(!use.length){
+      showRetryBanner("解き直せる 問題は まだ ありません。まちがえた 問題が ここに たまっていくよ。");
+      return;
+    }
+    retryQ = use.slice();
+    retryTotal = retryQ.length;
+    retryDone = 0;
+    MODE = "retry";
+    score = 0; total = 0; streak = 0;
+    renderScore();
+    $("modeLabel").textContent = "まちがえた問題の 解き直し";
+    document.body.classList.remove("choosing");
+    newQuestion();
+  }).catch(function(){});
+}
+
+/* =====================================================================
+   しくみの部屋「なぜ 高さを かけたら 体積に なるの？」
+   高さ1cm の 板を 1まいずつ 積み重ねる。板1まいの 体積は
+   「底面積と 同じ数」なので、高さのぶん 積めば 底面積 × 高さ に なる。
+   ===================================================================== */
+var LA = 0.55, LB = 0.38;      /* 奥へ1cm＝右へ0.55cm・上へ0.38cm（斜投影） */
+var LAB_HMAX = 6;              /* 台の 大きさを 決める 高さ（動かしても 図が はねない） */
+
+function labPt(u,v,z,k,ox,oy){
+  return { x: ox + (u + LA*v)*k, y: oy - (LB*v + z)*k };
+}
+/* 床の 形の 中に あるか（even-odd） */
+function labInside(poly,u,v){
+  var c = false, i, j;
+  for(i=0,j=poly.length-1;i<poly.length;j=i++){
+    if(((poly[i][1]>v) !== (poly[j][1]>v)) &&
+       (u < (poly[j][0]-poly[i][0])*(v-poly[i][1])/(poly[j][1]-poly[i][1])+poly[i][0])) c = !c;
+  }
+  return c;
+}
+/* 辺 p→q から できる よこの面が 見えるか（法線が 手前を むいているか） */
+function labFaceVisible(poly,p,q){
+  var du = q[0]-p[0], dv = q[1]-p[1], len = Math.sqrt(du*du+dv*dv);
+  if(len < 1e-9) return false;
+  var nu = dv/len, nv = -du/len;
+  if(labInside(poly, (p[0]+q[0])/2 + nu*0.02, (p[1]+q[1])/2 + nv*0.02)){ nu = -nu; nv = -nv; }
+  return (nv - LA*nu) < -1e-9;
+}
+function labBand(poly,run,z0,z1,k,ox,oy,fill){
+  var m = poly.length, pts = [], i, p, s = "";
+  for(i=0;i<run.length;i++) pts.push(poly[run[i]]);
+  pts.push(poly[(run[run.length-1]+1)%m]);
+  for(i=0;i<pts.length;i++){
+    p = labPt(pts[i][0],pts[i][1],z0,k,ox,oy);
+    s += (i ? " L" : "M")+n2(p.x)+","+n2(p.y);
+  }
+  for(i=pts.length-1;i>=0;i--){
+    p = labPt(pts[i][0],pts[i][1],z1,k,ox,oy);
+    s += " L"+n2(p.x)+","+n2(p.y);
+  }
+  return '<path d="'+s+' Z" fill="'+fill+'" stroke="'+C.edge+'" stroke-width="1.4"'
+       + ' stroke-linejoin="round"/>';
+}
+function labSides(poly,z0,z1,k,ox,oy,smooth,fill){
+  var m = poly.length, vis = [], out = "", i;
+  for(i=0;i<m;i++) vis.push(labFaceVisible(poly, poly[i], poly[(i+1)%m]));
+  runsOf(vis,true).forEach(function(run){
+    if(smooth){ out += labBand(poly,run,z0,z1,k,ox,oy,fill); }
+    else{ run.forEach(function(ei){ out += labBand(poly,[ei],z0,z1,k,ox,oy,fill); }); }
+  });
+  return out;
+}
+function labTop(poly,z,k,ox,oy,fill,sw){
+  var s = "", i, p;
+  for(i=0;i<poly.length;i++){
+    p = labPt(poly[i][0],poly[i][1],z,k,ox,oy);
+    s += (i ? " L" : "M")+n2(p.x)+","+n2(p.y);
+  }
+  return '<path d="'+s+' Z" fill="'+fill+'" stroke="'+C.edge+'" stroke-width="'+(sw||1.7)
+       + '" stroke-linejoin="round"/>';
+}
+/* 上の面に 1cm の ます目（1cm³ が 何こ ぶんか 見えるように） */
+function labGrid(gw,gd,z,k,ox,oy){
+  var s = "", i, a, b;
+  for(i=1;i<gw;i++){
+    a = labPt(i,0,z,k,ox,oy); b = labPt(i,gd,z,k,ox,oy);
+    s += "M"+n2(a.x)+","+n2(a.y)+" L"+n2(b.x)+","+n2(b.y)+" ";
+  }
+  for(i=1;i<gd;i++){
+    a = labPt(0,i,z,k,ox,oy); b = labPt(gw,i,z,k,ox,oy);
+    s += "M"+n2(a.x)+","+n2(a.y)+" L"+n2(b.x)+","+n2(b.y)+" ";
+  }
+  return s ? '<path d="'+s+'" stroke="'+C.guide+'" stroke-width="1" fill="none"/>' : "";
+}
+
+function labCircle(){
+  var out = [], i, a;
+  for(i=0;i<72;i++){
+    a = Math.PI*2*i/72;
+    out.push([2 + 2*Math.cos(a), 2 + 2*Math.sin(a)]);
+  }
+  return out;
+}
+var LAB_BASES = [
+  { id:"rect", name:"長方形", desc:"たて2cm・よこ3cm",
+    poly:[[0,0],[3,0],[3,2],[0,2]], area:6, smooth:false, grid:[3,2],
+    shiki:"よこ × たて ＝ 3 × 2 ＝ 6" },
+  { id:"tri", name:"三角形", desc:"底辺4cm・高さ3cm",
+    poly:[[0,0],[4,0],[1.4,3]], area:6, smooth:false,
+    shiki:"底辺 × 高さ ÷ 2 ＝ 4 × 3 ÷ 2 ＝ 6" },
+  { id:"circle", name:"円", desc:"半径2cm",
+    poly:labCircle(), area:12.56, smooth:true,
+    shiki:"半径 × 半径 × 3.14 ＝ 2 × 2 × 3.14 ＝ 12.56" }
+];
+var labIdx = 0, labH = 4, labShown = 4, labTimer = null;
+
+function labDraw(){
+  var B = LAB_BASES[labIdx], poly = B.poly, i;
+  var umax = 0, vmax = 0;
+  for(i=0;i<poly.length;i++){
+    if(poly[i][0] > umax) umax = poly[i][0];
+    if(poly[i][1] > vmax) vmax = poly[i][1];
+  }
+  var k = Math.max(14, Math.min(Math.min(224/(umax + LA*vmax),
+                                         192/(LB*vmax + LAB_HMAX)), 30));
+  var PL = 46, PR = 56, PT = 24, PB = 30;
+  var cw = (umax + LA*vmax)*k, chh = (LB*vmax + LAB_HMAX)*k;
+  var ox = PL, oy = PT + chh;
+  var g = "";
+
+  /* 床（高さ0の 面）＝底面 */
+  g += labTop(poly, 0, k, ox, oy, "#F1EDE4", 1.4);
+  if(labShown === 0){
+    g += labGrid(B.grid ? B.grid[0] : 0, B.grid ? B.grid[1] : 0, 0, k, ox, oy);
+    g += tx(ox + (umax/2 + LA*vmax/2)*k, oy - (LB*vmax/2)*k,
+            "底面積 "+B.area+"cm²", C.edge, "middle", 13);
+  }
+  /* 板を 下から 1まいずつ */
+  for(i=0;i<labShown;i++){
+    var last = (i === labShown-1);
+    g += labSides(poly, i, i+1, k, ox, oy, B.smooth, last ? "#F3DED4" : C.side);
+    g += labTop(poly, i+1, k, ox, oy, last ? C.base : "#F9F0E8");
+  }
+  if(labShown > 0 && B.grid) g += labGrid(B.grid[0], B.grid[1], labShown, k, ox, oy);
+
+  if(labShown > 0){
+    /* 積んだ 高さ（右がわ）と、いちばん上の 板の 厚さ＝1cm（左がわ）。
+       左右に 分けるのは、板が 1まいだけの ときに 2つの 寸法が 重なるため */
+    g += dimV(ox + cw + 20, oy - labShown*k, oy, labShown+"cm");
+    g += dimV(ox - 16, oy - labShown*k, oy - (labShown-1)*k, "1cm", "#C9A227");
+  }
+  $("labStage").innerHTML = svgWrap(cw+PL+PR, chh+PT+PB, g);
+
+  /* 式 */
+  var v = Math.round(B.area*labShown*100)/100;
+  $("labShiki").innerHTML =
+    '<span class="sq">底面積 '+B.area+'cm²</span> × <span class="hh">高さ '+labShown+'cm</span>'
+    + ' ＝ <span class="vv">'+v+'cm³</span>'
+    + (labShown === 0 ? '<br><span style="font-size:.8em;color:#8B877C">まだ 1まいも 積んでいないよ</span>'
+       : '<br><span style="font-size:.8em;color:#8B877C">'+B.area+'cm³ の 板が '
+         + labShown+'まい ＝ '+B.area+' × '+labShown+'</span>');
+
+  /* 手順（いま どこか を 朱色に する） */
+  var steps = [
+    ["底面積を もとめる", B.shiki + " → <b>" + B.area + "cm²</b>"],
+    ["厚さ 1cm の 板に する",
+     "底面の 形の まま 1cm ぶん 高くすると、体積は <b>" + B.area + "cm³</b>。"
+     + "数は 底面積と 同じ（1cm³ が " + B.area + "こ ぶん）"],
+    ["高さの ぶん 積み重ねる",
+     "板 1まいで " + B.area + "cm³ だから、" + labShown + "まいで <b>"
+     + B.area + " × " + labShown + " ＝ " + v + "cm³</b>"],
+    ["だから かけ算に なる",
+     "体積 ＝ <b>底面積 × 高さ</b>。高さは「板を 何まい 積んだか」を あらわしている"]
+  ];
+  var nowStep = labShown === 0 ? 0 : (labShown === 1 ? 1 : (labShown < labH ? 2 : 3));
+  $("labSteps").innerHTML = steps.map(function(s,ix){
+    return '<div class="lab-step'+(ix === nowStep ? " now" : "")+'">'
+      + '<span class="no">'+(ix+1)+'</span>'
+      + '<span><b style="color:#2C5F8A">'+s[0]+'</b><br>'+s[1]+'</span></div>';
+  }).join("");
+}
+function labStop(){
+  if(labTimer){ clearTimeout(labTimer); labTimer = null; }
+}
+function labAnimate(){
+  labStop();
+  labShown = 0; labDraw();
+  var step = function(){
+    if(labShown >= labH){ labTimer = null; return; }
+    labShown++; labDraw();
+    labTimer = setTimeout(step, 430);
+  };
+  labTimer = setTimeout(step, 340);
+}
+function labChips(){
+  $("labChips").innerHTML = LAB_BASES.map(function(b,i){
+    return '<button type="button" class="lab-chip'+(i === labIdx ? " on" : "")
+      + '" data-i="'+i+'">'+b.name+'<br><span style="font-size:.72em;font-weight:500">'
+      + b.desc+'</span></button>';
+  }).join("");
+  $("labChips").querySelectorAll(".lab-chip").forEach(function(b){
+    b.addEventListener("click", function(){
+      labIdx = Number(b.dataset.i);
+      labChips();
+      labAnimate();
+    });
+  });
+}
+/* 部屋を 出ると もとの 画面に もどる（モード選択から 入れば モード選択、
+   問題の 解説から 入れば その問題。body のクラスを 足す／外すだけ） */
+function showLab(){
+  document.body.classList.add("labbing");
+  labChips();
+  labAnimate();
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+function hideLab(){
+  labStop();
+  document.body.classList.remove("labbing");
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+
+/* ---------- イベント ---------- */
+document.querySelectorAll(".m-card").forEach(function(b){
+  b.addEventListener("click", function(){ startMode(b.dataset.mode); });
+});
+$("homeBtn").addEventListener("click", backHome);
+$("checkBtn").addEventListener("click", check);
+$("nextBtn").addEventListener("click", newQuestion);
+$("labBtn").addEventListener("click", function(){ showLab(); });
+$("labBack").addEventListener("click", hideLab);
+$("labPlay").addEventListener("click", labAnimate);
+$("labH").addEventListener("input", function(){
+  labStop();
+  labH = Number(this.value) || 1;
+  labShown = labH;
+  $("labHVal").textContent = labH + "cm";
+  labDraw();
+});
+/* 解説の中の「なぜ 高さを かけるの？」ボタン（innerHTML で 作りなおされるので 委任） */
+$("expl").addEventListener("click", function(ev){
+  if(ev.target && ev.target.classList.contains("naze")) showLab();
+});
+
+/* divp-core は defer で読まれるので、DOM構築後に初期化する */
+window.addEventListener("DOMContentLoaded", function(){
+  safeDivp("init", UNIT_KEY);
+  if(/[?&]retry=1/.test(location.search)){
+    try{ initRetry(); }catch(e){}
+  }
+});
+</script>
+</body>
+</html>
