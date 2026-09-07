@@ -3,14 +3,14 @@
 -- question_catalog への追加シードだけを行う増分スクリプト。
 --
 -- DBは既にHetemlに構築済みなので schema_full.sql を流し直す必要はない。
--- 講師・保護者画面のカルテを日本語ラベルで出すために、この10行を
+-- 講師・保護者画面のカルテを日本語ラベルで出すために、この11行を
 -- phpMyAdmin で実行する（未登録でもXPは既定1で付くが、ラベルが
 -- question_key の生値（add_tai 等）のままになる）。
 --
 -- question_key は math_es5_tsuubun_kagen.html の GENS のキーと一致。
 --
 -- ⚠ ①「通分のしくみ」(tsuubun) の行は **わざと入れていない**。①は練習問題では
---    なく参考書あつかいで、入力する前に「続きを見る」で答えを見られる作りに
+--    なく参考書あつかいで、入力する前に「スタート」で答えまで見られる作りに
 --    してあるため、ツール側が Divp.answer を呼ばない（＝記録が飛ばない）。
 --    カタログに行だけあると「記録されるはずなのに来ない」と誤読するので置かない。
 -- ⑩⑪のミックスは「別モードの問題を混ぜて出す」形式ではなく、
@@ -18,6 +18,7 @@
 -- question_key を自分で持つ（＝カルテにもそのまま出る）。
 -- ------------------------------------------------------------
 INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
+  ('math_es5_tsuubun_kagen', 'compare',   '大小くらべ（不等号）',             1),
   ('math_es5_tsuubun_kagen', 'add2',      'たし算（2つ）',                    1),
   ('math_es5_tsuubun_kagen', 'add3',      'たし算（3つ）',                    1),
   ('math_es5_tsuubun_kagen', 'add_tai',   '帯分数を含むたし算',               1),

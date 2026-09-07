@@ -4,9 +4,7 @@
      （＝ 判定（既約・帯分数の受け入れ）と 生成関数の 答えが 一致していること）
    ・印刷シートが 表12問＋裏こたえ の2ページで 作られること              */
 const { test, expect } = require('@playwright/test');
-// テストモード中はカギがかかっているので ?pass= で解除して開く（公開時はカギごと削除）
-const BASE = '/learning/math/math_es5_tsuubun_kagen.html';
-const URL = BASE + '?pass=testestes';
+const URL = '/learning/math/math_es5_tsuubun_kagen.html';
 
 /* 画面の式（.expr）を読んで 分数として 計算する */
 async function readExpr(page) {
@@ -51,13 +49,13 @@ async function typeInto(page, slot, num) {
   for (const ch of String(num)) await page.click(`.key[data-k="${ch}"]`);
 }
 
-test('11モードすべて 出題→入力→採点→次の問題 が通る', async ({ page }) => {
+test('12モードすべて 出題→入力→採点→次の問題 が通る', async ({ page }) => {
   const errs = [];
   page.on('pageerror', e => errs.push(String(e)));
   page.on('console', m => { if (m.type() === 'error') errs.push('console:' + m.text()); });
   await page.goto(URL);
   const modes = await page.$$eval('.m-card', els => els.map(e => e.dataset.mode));
-  expect(modes.length).toBe(11);
+  expect(modes.length).toBe(12);
   for (const m of modes) {
     await page.click(`.m-card[data-mode="${m}"]`);
     // ①だけは カードに 式を 出さない（下のアニメーションを 初期表示に 入れるため）＝円の絵で 出題を 確認する
@@ -66,6 +64,8 @@ test('11モードすべて 出題→入力→採点→次の問題 が通る', a
     const slots = await page.$$eval('.nbox', els => els.map(e => e.dataset.slot));
     expect(slots.length).toBeGreaterThan(1);
     for (const s of slots) await typeInto(page, s, 1);
+    // ②大小くらべは マスが メモらんなので、不等号を えらばないと 採点できない
+    if (m === 'compare') await page.click('.signBtn[data-sign=">"]');
     await page.click('#checkBtn');
     await expect(page.locator('#feedback')).toHaveClass(/show/);
     await expect(page.locator('#expl')).not.toBeEmpty();
@@ -138,11 +138,10 @@ test('通分モード: 最小公倍数で通分すると せいかい / 円の�
   await page.click('.m-card[data-mode="tsuubun"]');
   await expect(page.locator('#pieWrap .pie')).toHaveCount(2);
   await expect(page.locator('#pieWrap')).not.toHaveClass(/on/);   // 先に答えは見せない
-  // 通分する前は「たせない」1枚だけを見せて通分の必要性を作る（「たせる」はまだ出さない）
-  await expect(page.locator('#addWrap .addBox')).toHaveCount(1);
-  await expect(page.locator('#addWrap .addBox')).toHaveClass(/ng/);
-  await expect(page.locator('#addWrap')).toHaveClass(/on/);       // 採点前でも自動再生される
-  await expect(page.locator('#pieNote')).toHaveCount(0);          // 通分後の分母はまだ出さない
+  // スタートを押すまでは 何も動かない（アニメーションは 出しっぱなしにしない）
+  await expect(page.locator('#pieStart')).toBeVisible();
+  await expect(page.locator('#addWrap')).toHaveCount(0);
+  await expect(page.locator('#pieNote')).toHaveCount(0);          // まとめの ひとことは まだ出さない
   for (let i = 0; i < 4; i++) {
     const { terms } = await readExpr(page);
     const g = (a, b) => { while (b) { const t = a % b; a = b; b = t; } return a; };
@@ -193,6 +192,90 @@ test('こたえの約分もれは 専用のメッセージで 不正解になる
   await expect(page.locator('#fbMsg')).toContainText('約分');
 });
 
+/* ②大小くらべ: こたえるのは 不等号だけ。メモらんは 空でも 採点できる。
+   くらべる 2つは 分数どうし の ことも、整数と 仮分数 の ことも ある */
+async function readCompare(page) {
+  return await page.$$eval('.cmpRow > *', els => {
+    const out = [];
+    for (const e of els) {
+      if (e.classList.contains('fr')) {
+        out.push({ n: +e.querySelector('.fn').textContent, d: +e.querySelector('.fd').textContent });
+      } else if (e.classList.contains('wn')) {
+        out.push({ n: +e.textContent, d: 1 });     // 整数
+      }
+    }
+    return out;
+  });
+}
+
+test('大小くらべ: 正しい不等号を えらぶと せいかい（各8問）', async ({ page }) => {
+  await page.goto(URL);
+  await page.click('.m-card[data-mode="compare"]');
+  for (let i = 0; i < 8; i++) {
+    const [a, b] = await readCompare(page);
+    expect(a && b, `compare #${i + 1} の 2つが 読めた`).toBeTruthy();
+    const want = a.n * b.d > b.n * a.d ? '>' : '<';
+    await page.click(`.signBtn[data-sign="${want}"]`);
+    await page.click('#checkBtn');
+    await expect(page.locator('#fbMsg'), `compare #${i + 1}`).toHaveClass(/good/);
+    await expect(page.locator('.signBtn.ok')).toHaveCount(1);
+    await page.click('#nextBtn');
+  }
+});
+
+/* 出題そのものの 検証は 種を 固定して まとめて 回す（画面の 乱数だと まぐれで 通る）*/
+test('大小くらべ: 300通りの種で 不等号が 正しく、整数との くらべも 出る', async ({ page }) => {
+  await page.goto(URL);
+  const st = await page.evaluate(() => {
+    const r = { n: 0, wrong: 0, withInt: 0, equal: 0, gt: 0, intLeft: 0, badPie: 0, noPie: 0, samples: [] };
+    for (let i = 1; i <= 300; i++) {
+      rngSeed((i * 2654435761) >>> 0);
+      const q = gen_compare();
+      const c = q.cmp, va = c.a.f.n / c.a.f.d, vb = c.b.f.n / c.b.f.d;
+      r.n++;
+      if ((va > vb ? '>' : '<') !== c.sign) r.wrong++;
+      if (va === vb) r.equal++;
+      if (c.sign === '>') r.gt++;
+      if (c.a.f.d === 1 || c.b.f.d === 1) {
+        r.withInt++;
+        if (c.a.f.d === 1) r.intLeft++;
+        if (q.pies) r.badPie++;              // 整数・仮分数で 円の絵を 出すと うそに なる
+      } else if (!q.pies) {
+        r.noPie++;                           // 分数どうしは 採点後に 円の絵を 出す
+      }
+      if (r.samples.length < 6 && (c.a.f.d === 1 || c.b.f.d === 1)) r.samples.push(q.plainQ + ' -> ' + q.ansText);
+    }
+    return r;
+  });
+  console.log('compare stats ' + JSON.stringify(st));
+  expect(st.wrong).toBe(0);            // 不等号の 向きが 実際の 大小と 合っている
+  expect(st.equal).toBe(0);            // イコールに なる 問題は 出さない
+  expect(st.badPie).toBe(0);           // 整数の 回は 円の絵を 出さない
+  expect(st.noPie).toBe(0);            // 分数どうしの 回は 円の絵を 出す
+  expect(st.withInt).toBeGreaterThan(60);   // 整数との くらべが だいたい 3回に1回
+  expect(st.withInt).toBeLessThan(140);
+  expect(st.intLeft).toBeGreaterThan(20);   // 整数は 左にも 右にも 出る
+  expect(st.withInt - st.intLeft).toBeGreaterThan(20);
+  expect(st.gt).toBeGreaterThan(90);        // ＞と＜が かたよらない
+  expect(st.gt).toBeLessThan(210);
+});
+
+test('大小くらべ: 不等号を えらばないと 答えあわせできない / メモらんは 空でも 採点される', async ({ page }) => {
+  await page.goto(URL);
+  await page.click('.m-card[data-mode="compare"]');
+  await page.click('#checkBtn');
+  await expect(page.locator('#toast')).toContainText('えらんでね');
+  await expect(page.locator('#feedback')).not.toHaveClass(/show/);
+  // メモらん（c1n…）は 空のまま でも 不等号だけで 採点まで 進む
+  const [a, b] = await readCompare(page);
+  const wrong = a.n * b.d > b.n * a.d ? '<' : '>';
+  await page.click(`.signBtn[data-sign="${wrong}"]`);
+  await page.click('#checkBtn');
+  await expect(page.locator('#fbMsg')).toHaveClass(/bad/);
+  await expect(page.locator('.signBtn.ng')).toHaveCount(1);   // えらんだ まちがい＝朱
+  await expect(page.locator('.signBtn.ansmark')).toHaveCount(1); // えらばなかった 正解＝緑
+});
+
 test('印刷シートが 表12問＋裏こたえ で作られる', async ({ page }) => {
   await page.goto(URL);
   await page.click('.m-card[data-mode="add2"]');
@@ -238,40 +321,25 @@ for (const style of ['帯分数のまま', '仮分数']) {
   });
 }
 
-/* テストモードのカギ（公開時はツール側のブロックごと削除する。この2件も一緒に消す） */
-test('カギ: 合言葉なしでは 調整中の画面で止まる', async ({ page }) => {
-  await page.goto(BASE);
-  await expect(page.locator('#tmGate')).toBeVisible();
-  await expect(page.locator('.mode-screen')).not.toBeVisible();
-  await page.fill('#tmPass', 'chigau');
-  await page.click('#tmForm button');
-  await expect(page.locator('#tmErr')).toContainText('ちがいます');
-  await expect(page.locator('.mode-screen')).not.toBeVisible();
-});
-
-test('カギ: 合言葉を入れると開き、その端末では次から素通りになる', async ({ page }) => {
-  await page.goto(BASE);
-  await page.fill('#tmPass', 'testestes');
-  await page.click('#tmForm button');
-  await expect(page.locator('.mode-screen')).toBeVisible();
-  await expect(page.locator('#tmGate')).not.toBeVisible();
-  await page.goto(BASE);                       // 合言葉なしで開き直しても
-  await expect(page.locator('.mode-screen')).toBeVisible();
-});
-
-/* ①は「参考書」あつかい: 入力する前に続きを見られる / 学習記録は飛ばさない */
-test('①: 続きを見るで、入力する前に通分のしくみを見られる', async ({ page }) => {
+/* ①は「参考書」あつかい: 入力する前に しくみを 見られる / 学習記録は飛ばさない */
+test('①: スタートを押すと、しくみが さいごまで ひとつづきで 流れる', async ({ page }) => {
   await page.goto(URL);
   await page.click('.m-card[data-mode="tsuubun"]');
-  await expect(page.locator('#pieMore')).toBeVisible();
-  await expect(page.locator('#addWrap .addBox')).toHaveCount(1);
+  await expect(page.locator('#pieStart')).toBeVisible();
+  await expect(page.locator('#addWrap')).toHaveCount(0);           // 押すまでは 何も出さない
   await expect(page.locator('#pieWrap')).not.toHaveClass(/on/);
 
-  await page.click('#pieMore');
-  await expect(page.locator('#addWrap .addBox')).toHaveCount(2);   // 「たせる」が出る
-  await expect(page.locator('#pieNote')).toHaveCount(1);           // 通分後の分母も出る
-  await expect(page.locator('#pieWrap')).toHaveClass(/on/);        // 線が増えるアニメも走る
-  await expect(page.locator('#pieMore')).toHaveCount(0);           // ボタンは消える
+  await page.click('#pieStart');
+  await expect(page.locator('#pieStart')).toHaveCount(0);          // ボタンは消える
+  await expect(page.locator('#addWrap .addBox')).toHaveCount(2);   // 「たせない」と「たせる」
+  await expect(page.locator('#pieNote')).toHaveCount(1);           // まとめの ひとことも出る
+  // 途中で押すボタンは無く、じゅんばんに ひとりでに 進む
+  const ng = page.locator('#addWrap .addBox.ng'), ok = page.locator('#addWrap .addBox.ok');
+  await expect(ng).toHaveClass(/on/);                              // ①そのままでは たせない
+  await expect(ok).not.toHaveClass(/\bon\b/);                      // ③はまだ
+  await expect(page.locator('#pieWrap')).toHaveClass(/on/);        // ②線が増える
+  await expect(ok).toHaveClass(/\bon\b/);                          // ③通分すれば たせる
+  await expect(page.locator('#addLead')).toHaveClass(/on/);        // ④書いてみよう
 
   // 見たあとでも ふつうに答えられる（採点は動く）
   const { terms } = await readExpr(page);
@@ -283,10 +351,10 @@ test('①: 続きを見るで、入力する前に通分のしくみを見られ
   await typeInto(page, 'd2', L);
   await page.click('#checkBtn');
   await expect(page.locator('#fbMsg')).toHaveClass(/good/);
-  // 次の問題では また「続きを見る」から始まる
+  // 次の問題では また スタート待ちから 始まる
   await page.click('#nextBtn');
-  await expect(page.locator('#pieMore')).toBeVisible();
-  await expect(page.locator('#addWrap .addBox')).toHaveCount(1);
+  await expect(page.locator('#pieStart')).toBeVisible();
+  await expect(page.locator('#addWrap')).toHaveCount(0);
 });
 
 test('①は学習記録を飛ばさない / 計算モードは飛ばす', async ({ page }) => {

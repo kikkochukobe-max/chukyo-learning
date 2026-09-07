@@ -4,19 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="color-scheme" content="only light">
-<title>通分マスター（調整中）｜中京個別指導学院</title>
-<!-- ============================================================
-     ★ テストモード（開発途中・実機テスト用）
-     公開するときは、この2つを消すだけで通常公開になる:
-       ① <title> を「通分マスター（分数のたし算・ひき算）｜中京個別指導学院」に戻す
-       ② body 内の「テストモードのカギ」ブロック（HTML/CSS/JS）
-     パスワードは TESTMODE_PASS（JS内）。ブラウザ内の判定なので
-     「生徒がうっかり触らない」ためのカギであって、機密の保護ではない。
-
-     ※ learning/index.php の一覧には**出す**（実機テスト時に目次から
-       開けないと不便なため）。カギがあるので生徒が開いても
-       「調整中です」の画面で止まる。
-     ============================================================ -->
+<title>通分マスター（分数のたし算・ひき算）｜中京個別指導学院</title>
 <meta name="description" content="小学5年生の「通分してする分数のたし算・ひき算」練習ドリル。円の絵で通分のしくみがわかるアニメーション、2つ・3つの計算、帯分数、小数まじり、加減ミックスの11モード。印刷（A4プリント）にも対応。中京個別指導学院（焼山・長久手・吉根・志段味・高針台・神丘・一社・有松・貴船）。">
 <meta name="keywords" content="通分,分数,分数のたし算,分数のひき算,帯分数,小5,算数,無料ドリル,計算練習,プリント,塾,個別指導,焼山,長久手,吉根,志段味,高針台,神丘,一社,有松,貴船,名古屋,愛知,中京個別指導学院">
 <meta name="author" content="中京個別指導学院">
@@ -62,10 +50,10 @@
     width:100%;
     max-width:560px;
     margin:0 auto;
-    padding:12px 14px calc(104px + env(safe-area-inset-bottom));
+    padding:8px 12px calc(92px + env(safe-area-inset-bottom));
     display:flex;
     flex-direction:column;
-    gap:12px;
+    gap:8px;
     flex:1;
   }
   body.choosing .app, body.choosing .bottom{ display:none; }
@@ -80,7 +68,7 @@
   }
   header h1 .sub{
     display:block;
-    font-size:13px; font-weight:500; color:var(--usuzumi);
+    font-size:12px; font-weight:500; color:var(--usuzumi);
     letter-spacing:.1em;
   }
   .hbtns{ margin-left:auto; display:flex; gap:6px; }
@@ -113,19 +101,19 @@
     border:1.5px solid var(--grid);
     border-radius:16px;
     box-shadow:0 2px 0 rgba(51,49,43,.06);
-    padding:14px 16px 12px;
+    padding:10px 14px 10px;
   }
   .card .qtag{
     display:inline-block;
-    font-size:13px; font-weight:700;
+    font-size:12px; font-weight:700;
     color:var(--ai);
     border:1.2px solid var(--ai);
     border-radius:999px;
     padding:2px 10px;
-    margin-bottom:6px;
+    margin-bottom:3px;
     letter-spacing:.06em;
   }
-  .card .lead{ font-size:15px; color:var(--usuzumi); line-height:1.7; }
+  .card .lead{ font-size:13.5px; color:var(--usuzumi); line-height:1.55; }
 
   /* ---- 分数の表示（画面・印刷 共用） ---- */
   .fr{
@@ -139,9 +127,9 @@
   .expr{
     font-family:"Zen Maru Gothic", sans-serif;
     font-weight:700;
-    font-size:clamp(24px, 8vw, 34px);
+    font-size:clamp(19px, 6vw, 26px);
     text-align:center;
-    margin:6px 0 2px;
+    margin:2px 0 0;
     display:flex; align-items:center; justify-content:center; flex-wrap:wrap;
     row-gap:6px;
   }
@@ -149,9 +137,10 @@
     display:inline-block; min-width:1.5em; text-align:center;
     color:var(--shu);
   }
-  .expr.small{ font-size:clamp(20px, 6.4vw, 28px); }
+  .expr.small{ font-size:clamp(16px, 5vw, 22px); }
   /* 下の 入力欄（.ansRow.chain）の ＝ の右に そろえて 左づめにする */
   .expr.chain{ justify-content:flex-start; padding-left:28px; }
+  #pieArea:empty{ display:none; }
 
   /* ---- 円の絵（通分のアニメーション） ---- */
   .pieWrap{
@@ -199,18 +188,17 @@
   .addWrap{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:4px; }
   .addBox{ width:calc(50% - 6px); min-width:150px; max-width:180px; text-align:center; }
   .addBox .pie{ width:96px; height:96px; display:block; margin:0 auto; }
-  /* 通分する前は「たせない」1枚だけなので 大きく出す */
-  .addWrap.solo .addBox{ width:100%; max-width:250px; }
-  .addWrap.solo .addBox .pie{ width:112px; height:112px; }
-  .addWrap.solo .addExpr{ font-size:17px; }
-  .addWrap.solo .addNote{ font-size:14px; }
+  /* 2枚目（通分すれば たせる）は あとの 場面で 出す。
+     場所は はじめから 空けておく＝1枚目が 途中で 左に ずれない */
+  .addBox.late{ opacity:0; transition:opacity .45s ease; }
+  .addBox.late.on{ opacity:1; }
   .addLead{
     margin-top:8px; padding:9px 12px;
     background:#FFF8E6; border:1.5px solid var(--kin); border-radius:12px;
     font-size:15px; line-height:1.75; color:#7a6320; text-align:center;
-    opacity:0; transition:opacity .45s ease 1.2s;
+    opacity:0; transition:opacity .45s ease;
   }
-  .addWrap.on + .addLead{ opacity:1; }
+  .addLead.on{ opacity:1; }
   /* 「もう一度」で 頭から 流し直すとき、消える側が アニメーションしないように 一瞬 止める */
   #pieArea.reset *{ transition:none !important; }
   .addTtl{
@@ -231,7 +219,7 @@
     transform:rotate(120deg); opacity:0;
     transition:transform .9s cubic-bezier(.34,1.1,.64,1), opacity .35s ease;
   }
-  .addWrap.on .addpie .fly{ transform:rotate(0deg); opacity:1; }
+  .addBox.on .addpie .fly{ transform:rotate(0deg); opacity:1; }
   .addpie .pfill{ fill:var(--pieA); }
   .addpie .pfill2{ fill:var(--pieB); }
   /* 入れかえた ときは 色も 入れかえる（もとの円と 同じ色に そろえる） */
@@ -246,21 +234,26 @@
   /* たせない ほうは、めもりの線が かけらを またいでいるのが 見えるように 朱の点線で ふちどる */
   .addBox.ng .addpie .pfill2{ stroke:var(--shu); stroke-width:2; stroke-dasharray:4 3; }
   .addExpr, .addNote{ opacity:0; transition:opacity .4s ease .95s; }
-  .addWrap.on .addExpr, .addWrap.on .addNote{ opacity:1; }
+  .addBox.on .addExpr, .addBox.on .addNote{ opacity:1; }
   @media (prefers-reduced-motion: reduce){
     .addpie .fly{ transition:none; }
     .addExpr, .addNote{ transition:none; }
+    .addBox.late, .addLead{ transition:none; }
   }
-  .pieMore{
-    display:block; margin:8px auto 0;
+  /* 「▶ スタート」＝ ①の アニメーションは これを おすまで 動かさない
+     （開いたとたんに 始まると 見のがす）。押したら 最後まで ひとつづきで 流れる */
+  .pieStart{
+    display:block; margin:14px auto 0;
     font-family:"Zen Maru Gothic", sans-serif;
-    font-size:15px; font-weight:700; color:#fff;
+    font-size:19px; font-weight:700; color:#fff;
     border:none; background:var(--ai);
-    border-radius:999px; padding:9px 20px; cursor:pointer;
-    box-shadow:0 2px 0 #23496b;
-    opacity:0; transition:opacity .45s ease 1.4s;
+    border-radius:999px; padding:13px 34px; cursor:pointer;
+    box-shadow:0 3px 0 #23496b;
   }
-  .addWrap.on ~ .pieMore{ opacity:1; }
+  .pieStart:active{ transform:translateY(2px); box-shadow:0 1px 0 #23496b; }
+  .pieStartNote{
+    text-align:center; font-size:14px; color:var(--usuzumi); margin-top:6px;
+  }
   .pieReplay{
     display:block; margin:6px auto 0;
     font-family:"Zen Maru Gothic", sans-serif;
@@ -274,16 +267,16 @@
     background:#fff;
     border:1.5px solid var(--grid);
     border-radius:16px;
-    padding:12px 14px;
-    display:flex; flex-direction:column; gap:8px; align-items:center;
+    padding:10px 12px;
+    display:flex; flex-direction:column; gap:6px; align-items:center;
   }
   .ansHint{ font-size:14px; color:var(--usuzumi); text-align:center; line-height:1.6; }
-  .ansStep{ width:100%; display:flex; flex-direction:column; gap:6px; align-items:center; }
-  .ansStep + .ansStep{ margin-top:4px; padding-top:10px; border-top:1px dashed var(--grid); }
+  .ansStep{ width:100%; display:flex; flex-direction:column; gap:4px; align-items:center; }
+  .ansStep + .ansStep{ margin-top:2px; padding-top:6px; border-top:1px dashed var(--grid); }
   .stepTtl{
     align-self:flex-start;
     font-family:"Zen Maru Gothic", sans-serif;
-    font-size:15px; font-weight:700; color:var(--ai);
+    font-size:13.5px; line-height:1.2; font-weight:700; color:var(--ai);
     letter-spacing:.04em;
   }
   .midop{ font-size:20px; }
@@ -292,29 +285,29 @@
   .ansRow.chain{ align-self:stretch; justify-content:flex-start; gap:6px; padding-left:2px; }
   .eqlead{
     font-family:"Zen Maru Gothic", sans-serif;
-    font-size:24px; font-weight:700; color:var(--usuzumi);
-    min-width:24px; text-align:center;
+    font-size:20px; font-weight:700; color:var(--usuzumi);
+    min-width:20px; text-align:center;
   }
   .ansUnit{ display:flex; align-items:center; gap:4px; }
   .ansUnit .lbl{
     font-family:"Zen Maru Gothic", sans-serif;
     font-size:14px; font-weight:700; color:var(--ai); margin-right:2px;
   }
-  .fbox{ display:flex; flex-direction:column; align-items:center; gap:3px; }
-  .fbox .bar{ width:64px; height:2.5px; background:var(--sumi); border-radius:2px; }
-  .fbox .bar.small{ width:56px; }
+  .fbox{ display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .fbox .bar{ width:56px; height:2.5px; background:var(--sumi); border-radius:2px; }
+  .fbox .bar.small{ width:48px; }
   .nbox{
-    width:60px; height:50px;
+    width:54px; height:44px;
     border:2px solid var(--grid);
     border-radius:10px;
     background:var(--paper);
     font-family:"Zen Maru Gothic", sans-serif;
-    font-size:26px; font-weight:700;
+    font-size:23px; font-weight:700;
     color:var(--sumi);
     display:flex; align-items:center; justify-content:center;
     cursor:pointer; padding:0;
   }
-  .nbox.small{ width:52px; height:46px; font-size:22px; }
+  .nbox.small{ width:46px; height:38px; font-size:19px; }
   .nbox.focus{ border-color:var(--ai); background:#fff; box-shadow:0 0 0 3px rgba(44,95,138,.16); }
   .nbox.empty::after{ content:"　"; color:var(--usuzumi); }
   .nbox.ok{ border-color:var(--divp-mark-ok); background:#EAF5EE; color:var(--divp-mark-ok); }
@@ -322,20 +315,53 @@
   .wholeSlot .nbox, .nbox.wholeBox{ border-style:dashed; }
   .wholeSlot .nbox.focus, .nbox.wholeBox.focus{ border-style:solid; }
 
+  /* ---- ② 大小くらべ（不等号ボタン・メモらん） ---- */
+  .memoTag{
+    display:inline-block; margin-left:6px;
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    font-size:11px; font-weight:700; color:var(--usuzumi);
+    border:1px solid var(--grid); border-radius:999px; padding:1px 7px;
+    letter-spacing:0;
+  }
+  .memoAnd{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:16px; font-weight:700; color:var(--usuzumi); margin:0 2px;
+  }
+  /* もともとの 分数を そのまま 見せて、あいだの 不等号を えらぶ */
+  .cmpRow{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:26px; font-weight:700; gap:8px;
+  }
+  .signBtn{
+    width:56px; height:46px;
+    border:2px solid var(--ai); border-radius:10px;
+    background:#fff; color:var(--ai);
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:28px; font-weight:700; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; padding:0;
+  }
+  .signBtn.on{ background:var(--ai); color:#fff; }
+  .signBtn.ok{ border-color:var(--divp-mark-ok); background:var(--divp-mark-ok); color:#fff; }
+  .signBtn.ng{ border-color:var(--shu); background:var(--shu); color:#fff; }
+  /* えらばなかった 正解（＝まちがえた ときだけ 出る） */
+  .signBtn.ansmark{ border-color:var(--divp-mark-ok); background:#EAF5EE; color:var(--divp-mark-ok); }
+  body.graded .signBtn{ cursor:default; }
+
   /* ---- テンキー ---- */
   .keypad{
     display:grid;
     grid-template-columns:repeat(3, 1fr);
-    gap:8px;
+    gap:5px;
     max-width:330px; width:100%; margin:0 auto;
   }
   .key{
-    height:54px;
+    height:44px;
     border:1.5px solid var(--grid);
     border-radius:12px;
     background:#fff;
     font-family:"Zen Maru Gothic", sans-serif;
-    font-size:24px; font-weight:700;
+    font-size:22px; font-weight:700;
     color:var(--sumi);
     cursor:pointer;
     box-shadow:0 2px 0 rgba(51,49,43,.08);
@@ -397,16 +423,16 @@
     background:rgba(251,250,246,.94);
     backdrop-filter:blur(4px);
     border-top:1.5px solid var(--grid);
-    padding:8px 14px calc(8px + env(safe-area-inset-bottom));
+    padding:6px 14px calc(6px + env(safe-area-inset-bottom));
     z-index:20;
   }
   .bottom .inner{ max-width:560px; margin:0 auto; }
   .bigBtn{
-    width:100%; height:56px;
+    width:100%; height:50px;
     border:none; border-radius:14px;
     background:var(--ai); color:#fff;
     font-family:"Zen Maru Gothic", sans-serif;
-    font-size:18px; font-weight:700;
+    font-size:17px; font-weight:700;
     letter-spacing:.06em;
     cursor:pointer;
     box-shadow:0 3px 0 #23496b;
@@ -471,83 +497,6 @@
     padding:10px 12px; font-size:15px; line-height:1.7; color:#7a6320;
   }
 
-  /* ---- テストモードのカギ（公開時にこのブロックごと削除する） ---- */
-  body.locked .mode-screen,
-  body.locked .app,
-  body.locked .bottom,
-  body.locked .divp-header{ display:none !important; }
-  .tm-gate{ display:none; }
-  body.locked .tm-gate{
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:14px;
-    min-height:100dvh;
-    padding:24px 20px;
-    text-align:center;
-  }
-  .tm-card{
-    width:100%; max-width:380px;
-    background:#fff;
-    border:1.5px solid var(--grid);
-    border-top:6px solid var(--kin);
-    border-radius:18px;
-    box-shadow:0 10px 34px rgba(51,49,43,.14);
-    padding:30px 24px 26px;
-  }
-  .tm-emoji{ font-size:46px; line-height:1; }
-  .tm-ttl{
-    font-family:"Zen Maru Gothic", sans-serif;
-    font-size:20px; font-weight:700;
-    margin:8px 0 6px;
-  }
-  .tm-lead{ font-size:15px; line-height:1.8; color:var(--usuzumi); }
-  .tm-form{ display:flex; gap:8px; margin-top:18px; }
-  .tm-form input{
-    flex:1; min-width:0;
-    height:48px;
-    padding:0 12px;
-    border:1.5px solid var(--grid);
-    border-radius:10px;
-    background:var(--paper);
-    font-family:inherit;
-    font-size:16px;                /* iOSの自動ズーム回避のため16px以上 */
-    color:var(--sumi);
-  }
-  .tm-form input:focus{ outline:none; border-color:var(--ai); }
-  .tm-form button{
-    flex:0 0 auto;
-    height:48px; padding:0 20px;
-    border:none; border-radius:10px;
-    background:var(--ai); color:#fff;
-    font-family:"Zen Maru Gothic", sans-serif;
-    font-size:15px; font-weight:700;
-    cursor:pointer;
-  }
-  .tm-err{
-    min-height:20px; margin-top:10px;
-    font-size:15px; font-weight:700; color:var(--shu);
-  }
-  .tm-card.shake{ animation:tmShake .35s; }
-  @keyframes tmShake{
-    20%{ transform:translateX(-7px); } 40%{ transform:translateX(7px); }
-    60%{ transform:translateX(-4px); } 80%{ transform:translateX(4px); }
-  }
-  @media (prefers-reduced-motion: reduce){ .tm-card.shake{ animation:none; } }
-  /* 解除中だけ出る目印。本番公開だと勘違いしないように出しっぱなしにする */
-  .tm-badge{ display:none; }
-  body:not(.locked) .tm-badge{
-    display:block;
-    position:fixed; right:8px; bottom:74px; z-index:30;
-    background:var(--kin); color:#fff;
-    border:none; border-radius:999px;
-    padding:5px 12px;
-    font-family:"Zen Maru Gothic", sans-serif;
-    font-size:11px; font-weight:700;
-    letter-spacing:.08em;
-    box-shadow:0 2px 8px rgba(51,49,43,.25);
-    cursor:pointer;
-    opacity:.85;
-  }
-
   /* =====================================================================
      印刷エリア（画面では非表示。印刷のときだけ出す）
      ===================================================================== */
@@ -557,7 +506,6 @@
     /* 共通ヘッダーは紙に出さない（assets/divp-header.js と同じ方針） */
     .divp-header{ display:none !important; }
     .app, .bottom, .mode-screen{ display:none !important; }
-    .tm-gate, .tm-badge{ display:none !important; }
     html, body{ background:#fff !important; min-height:0 !important; }
     body{ background-image:none !important; }
     .print-area{ display:block !important; }
@@ -594,6 +542,8 @@
     }
     .p-expr .fr .fd{ border-top-width:2px; }
     .p-blank{ display:inline-block; border-bottom:1.4px solid #000; min-width:76px; height:1.1em; }
+    /* 大小くらべ ＝ 2つの分数の あいだに 不等号を 書く 四角 */
+    .p-cmpbox{ display:inline-block; width:11mm; height:7mm; border:1.4px solid #000; border-radius:2px; margin:0 3mm; }
     .p-space{ height:16mm; }
     .ans .p-space{ height:0; }
     .ans .p-expr{ font-size:16px; }
@@ -602,67 +552,7 @@
   }
 </style>
 </head>
-<body class="choosing locked">
-<!-- ============================================================
-     ★ テストモードのカギ（公開時はここから </script> までを削除）
-     ・body に locked が付いている間、ツール本体は表示しない
-     ・合言葉が合うと localStorage に印を残すので、その端末では次から素通り
-     ・?pass=… を付けたURLでも開ける（実機にURLを送るとき用）
-     ============================================================ -->
-<div class="tm-gate" id="tmGate">
-  <div class="tm-card" id="tmCard">
-    <div class="tm-emoji">🔧</div>
-    <div class="tm-ttl">ただいま 調整中です</div>
-    <div class="tm-lead">このページは 先生が テスト中の ページです。<br>合言葉を 入れると 開きます。</div>
-    <form class="tm-form" id="tmForm">
-      <input type="password" id="tmPass" placeholder="合言葉" autocomplete="off"
-             autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="合言葉">
-      <button type="submit">ひらく</button>
-    </form>
-    <div class="tm-err" id="tmErr"></div>
-  </div>
-</div>
-<button type="button" class="tm-badge" id="tmBadge" title="タップすると カギを かけ直します">テストモード</button>
-<script>
-(function(){
-  "use strict";
-  var TESTMODE_PASS = "testestes";
-  var KEY = "divp_testmode_math_es5_tsuubun_kagen";
-
-  function unlock(remember){
-    if(remember){ try{ localStorage.setItem(KEY, "1"); }catch(e){} }
-    document.body.classList.remove("locked");
-  }
-  /* 既に解除済みの端末 / URLに ?pass= が付いている場合はそのまま開く */
-  var already = false;
-  try{ already = localStorage.getItem(KEY) === "1"; }catch(e){}
-  var m = /[?&]pass=([^&]*)/.exec(location.search);
-  if(already) unlock(false);
-  else if(m && decodeURIComponent(m[1]) === TESTMODE_PASS) unlock(true);
-
-  document.addEventListener("DOMContentLoaded", function(){
-    var form = document.getElementById("tmForm");
-    var pass = document.getElementById("tmPass");
-    var err  = document.getElementById("tmErr");
-    var card = document.getElementById("tmCard");
-    form.addEventListener("submit", function(e){
-      e.preventDefault();
-      if(pass.value === TESTMODE_PASS){ err.textContent = ""; unlock(true); return; }
-      err.textContent = "合言葉が ちがいます";
-      pass.value = "";
-      card.classList.remove("shake");
-      void card.offsetWidth;              /* アニメーションを再生し直す */
-      card.classList.add("shake");
-    });
-    /* 目印をタップしたら、この端末のカギを かけ直す（解除の解除） */
-    document.getElementById("tmBadge").addEventListener("click", function(){
-      try{ localStorage.removeItem(KEY); }catch(e){}
-      location.href = location.pathname;  /* ?pass= を落としてから閉じる */
-    });
-  });
-})();
-</script>
-
+<body class="choosing">
 <!-- 共通ヘッダー(ロゴ・ログイン窓)の差し込み先。script は body 直後に置くこと -->
 <div class="divp-header"></div>
 <!-- 学習記録システム共通モジュール -->
@@ -682,62 +572,68 @@
     <span class="m-desc">円の絵で「なぜ 通分が いるのか」から わかる。記録には のこりません</span></span>
   </button>
 
-  <button type="button" class="m-card" data-mode="add2">
+  <button type="button" class="m-card" data-mode="compare">
     <span class="m-no">2</span>
+    <span class="m-body"><span class="m-name">大小くらべ<span class="m-tag">くらべる</span></span>
+    <span class="m-desc">分数どうし・分数と 整数を くらべて 不等号（＞・＜）で 答える。通分の 使いはじめ</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="add2">
+    <span class="m-no">3</span>
     <span class="m-body"><span class="m-name">たし算（2つ）<span class="m-tag">たし算</span></span>
     <span class="m-desc">分母が ちがう 分数どうしの たし算</span></span>
   </button>
 
   <button type="button" class="m-card" data-mode="add3">
-    <span class="m-no">3</span>
+    <span class="m-no">4</span>
     <span class="m-body"><span class="m-name">たし算（3つ）<span class="m-tag">たし算</span></span>
     <span class="m-desc">3つの 分数を いっぺんに 通分して たす</span></span>
   </button>
 
   <button type="button" class="m-card" data-mode="add_tai">
-    <span class="m-no">4</span>
+    <span class="m-no">5</span>
     <span class="m-body"><span class="m-name">帯分数を ふくむ たし算<span class="m-tag">帯分数</span></span>
     <span class="m-desc">帯分数のまま／仮分数に なおして、どちらの やり方でも OK</span></span>
   </button>
 
   <button type="button" class="m-card" data-mode="add_shou">
-    <span class="m-no">5</span>
+    <span class="m-no">6</span>
     <span class="m-body"><span class="m-name">小数を ふくむ たし算<span class="m-tag">小数</span></span>
     <span class="m-desc">小数を 分数に なおしてから 計算する</span></span>
   </button>
 
   <button type="button" class="m-card" data-mode="sub2">
-    <span class="m-no">6</span>
+    <span class="m-no">7</span>
     <span class="m-body"><span class="m-name">ひき算（2つ）<span class="m-tag">ひき算</span></span>
     <span class="m-desc">分母が ちがう 分数どうしの ひき算</span></span>
   </button>
 
   <button type="button" class="m-card" data-mode="sub3">
-    <span class="m-no">7</span>
+    <span class="m-no">8</span>
     <span class="m-body"><span class="m-name">ひき算（3つ）<span class="m-tag">ひき算</span></span>
     <span class="m-desc">3つの 分数を いっぺんに 通分して ひく</span></span>
   </button>
 
   <button type="button" class="m-card" data-mode="sub_tai">
-    <span class="m-no">8</span>
+    <span class="m-no">9</span>
     <span class="m-body"><span class="m-name">帯分数を ふくむ ひき算<span class="m-tag">帯分数</span></span>
     <span class="m-desc">くり下がりの ある ひき算も 出るよ</span></span>
   </button>
 
   <button type="button" class="m-card" data-mode="sub_shou">
-    <span class="m-no">9</span>
+    <span class="m-no">10</span>
     <span class="m-body"><span class="m-name">小数を ふくむ ひき算<span class="m-tag">小数</span></span>
     <span class="m-desc">小数を 分数に なおしてから 計算する</span></span>
   </button>
 
   <button type="button" class="m-card" data-mode="mix_bun">
-    <span class="m-no">10</span>
+    <span class="m-no">11</span>
     <span class="m-body"><span class="m-name">加減ミックス（分数だけ）<span class="m-tag">しあげ</span></span>
     <span class="m-desc">＋と－が まざった 3つの 分数の 計算</span></span>
   </button>
 
   <button type="button" class="m-card" data-mode="mix_all">
-    <span class="m-no">11</span>
+    <span class="m-no">12</span>
     <span class="m-body"><span class="m-name">加減ミックス（小数・分数・帯分数）<span class="m-tag">しあげ</span></span>
     <span class="m-desc">ぜんぶ まぜて 出題。しあげの かくにん用</span></span>
   </button>
@@ -980,26 +876,28 @@ function pieBox(f, L, idx){
     + '<div class="pieLab">'+frHtml(f)
     + '<span class="arw">→</span><span class="after">'+frHtml(fr(f.n*m, L))+'</span></div></div>';
 }
-/* fs: 分数の配列（2つか3つ）→ 円を横に ならべた HTML */
-function pieRow(fs, ops, addExtra, showNote){
+/* fs: 分数の配列（2つか3つ）→ 円を横に ならべた HTML
+   btnHtml … いちばん下の ボタン（省略すると「もう一度 見る」） */
+function pieRow(fs, ops, addExtra, showNote, btnHtml, noteText){
   var L = fs.reduce(function(a,x){ return lcm(a, x.d); }, 1);
   var h = '<div class="pieWrap" id="pieWrap">';
   fs.forEach(function(f, i){
     if(i > 0){
       var o = ops && ops[i-1];
-      h += '<div class="pieOp">'+(o === "-" ? "－" : (o === "と" ? "と" : "＋"))+'</div>';
+      /* "+"/"-" は 全角に なおし、それ以外（"と"・"＞"・"＜"）は そのまま 出す */
+      h += '<div class="pieOp">'+(o === "-" ? "－" : (o === "+" || !o ? "＋" : o))+'</div>';
     }
     h += pieBox(f, L, i);
   });
   h += '</div>';
-  /* 通分した分母 L は 答えそのものなので、答え合わせの あとだけ 出す */
+  /* まとめの ひとことは 答え合わせ（または しくみを 見おわった あと）だけ 出す */
   if(showNote){
-    h += '<div class="pieNote" id="pieNote">線が ふえても 色の ついた 大きさは 同じ。'
-      + '分母を <b>'+L+'</b> に そろえると くらべたり 計算したり できるね。</div>';
+    h += '<div class="pieNote" id="pieNote">'
+      + (noteText || '分母を そろえると 1つ分の 大きさが 同じに なって 計算できるね！') + '</div>';
   }
   h += addExtra || "";
-  h += '<button type="button" class="pieReplay" id="pieReplay">▶ '
-    + (showNote ? "はじめから もう一度 見る" : "もう一度 見る") + '</button>';
+  h += btnHtml
+    || '<button type="button" class="pieReplay" id="pieReplay">▶ はじめから もう一度 見る</button>';
   return h;
 }
 
@@ -1039,14 +937,16 @@ function addPieSvg(a, b, grid, sw){
   s += '</svg>';
   return s;
 }
-function addBoxHtml(a, b, grid, sw, ok, ttl, expr, note){
-  return '<div class="addBox '+(ok ? "ok" : "ng")+'">'
+function addBoxHtml(a, b, grid, sw, ok, ttl, expr, note, cls){
+  return '<div class="addBox '+(ok ? "ok" : "ng")+(cls ? " "+cls : "")+'">'
     + '<div class="addTtl">'+(ok ? "○ " : "✕ ")+ttl+'</div>'
     + addPieSvg(a, b, grid, sw)
     + '<div class="addExpr">'+expr+'</div>'
     + '<div class="addNote">'+note+'</div></div>';
 }
-function addRowHtml(f1, f2, withOk){
+/* 2枚とも はじめから 組み立てておき、出す じゅんばんは renderPies() の
+   タイマーが .on で 決める（2枚目は .late＝場所だけ 空けて 見えない状態）*/
+function addRowHtml(f1, f2, withLead){
   var L = lcm(f1.d, f2.d);
   var a = f1, b = f2, sw = false;
   if(f1.d % f2.d === 0){ a = f2; b = f1; sw = true; }
@@ -1058,30 +958,23 @@ function addRowHtml(f1, f2, withOk){
     return '<span class="'+cA+'">'+frHtml(x)+'</span><span class="op">＋</span>'
          + '<span class="'+cB+'">'+frHtml(y)+'</span><span class="op">＝</span>';
   };
-  var h = '<div class="addTtlRow">'
-    + (withOk ? "たしてみよう ─ 通分する前と あとで くらべよう" : "この2つ、そのままで たせるかな？")
-    + '</div>'
-    + '<div class="addWrap' + (withOk ? "" : " solo") + '" id="addWrap">'
+  return '<div class="addTtlRow">たしてみよう ─ 通分する前と あとで くらべよう</div>'
+    + '<div class="addWrap" id="addWrap">'
     + addBoxHtml(a, b, a.d, sw, false, "通分しないと たせない",
         ex(a, b) + '<span class="qm">？</span>',
-        "1めもりの 大きさが ちがうので、かけらが めもりに ぴったり あわない。ぜんぶで いくつ分か 数えられない。");
-  if(withOk){
-    h += addBoxHtml(aL, bL, L, sw, true, "通分すれば たせる",
-      ex(aL, bL) + frHtml(sum),
-      "1めもりが 同じ 大きさ。ぴったり はまるので、分子を たすだけ。");
-  }
-  h += '</div>';
-  if(!withOk){
-    /* 「だから 通分するんだ」という 気もちを 作ってから、
-       ・自分で 書いてみる（下の マス）
-       ・先に しくみを 見る（続きを見る）
-       の どちらでも 進めるようにする（①は 参考書あつかい＝記録なし） */
-    h += '<div class="addLead">たせるように するには、<b>1めもりの 大きさを そろえる</b>。'
-      + 'それが <b>通分</b>だよ。<br>下の マスに 書いてみよう。'
-      + 'わからなければ、先に しくみを 見ても いいよ。</div>'
-      + '<button type="button" class="pieMore" id="pieMore">▶ 通分の しくみを 続けて 見る</button>';
-  }
-  return h;
+        "1めもりの 大きさが ちがうので、かけらが めもりに ぴったり あわない。ぜんぶで いくつ分か 数えられない。")
+    + addBoxHtml(aL, bL, L, sw, true, "通分すれば たせる",
+        ex(aL, bL) + frHtml(sum),
+        "1めもりが 同じ 大きさ。ぴったり はまるので、分子を たすだけ。", "late")
+    + '</div>'
+    /* 「だから 通分するんだ」で 終わって、そのまま 下の マスに 手が いくようにする
+       （①は 参考書あつかい＝記録なしなので、答えを 見たあとに 書いても かまわない）。
+       答え合わせの あとは もう 書いた あとなので 出さない */
+    + (withLead
+        ? '<div class="addLead" id="addLead">たせるように するには、'
+          + '<b>1めもりの 大きさを そろえる</b>。それが <b>通分</b>だよ。'
+          + '<br>下の マスに、通分した 2つの 分数を 書いてみよう。</div>'
+        : '');
 }
 
 /* =====================================================================
@@ -1307,6 +1200,95 @@ function threeFracs(maxL){
 }
 var DECS = ["0.1","0.2","0.3","0.4","0.5","0.6","0.7","0.8","0.9","0.25","0.75","1.5","1.2","1.25","2.5"];
 
+/* =====================================================================
+   ② 大小くらべ（通分して 不等号で 答える）
+   ・こたえるのは 不等号だけ。通分は「メモらん」で 任意（判定しない）
+   ・分数どうしは 見ただけで わからない くらい 近い 2つを 出す
+     ＝通分しないと くらべられない
+   ・3回に1回くらいは「整数と 仮分数」。整数を 分母 d の 分数に なおす
+     （2 ＝ 8/4）練習に なるので、通分の 考え方は 同じ
+   ===================================================================== */
+var SIGN_CH = { ">":"＞", "<":"＜" };
+/* くらべる 片がわ（分数 でも 整数 でも 同じ形で 持つ） */
+function cmpFrac(f){ return { f:f, html:frHtml(f), text:frText(f) }; }
+function cmpInt(w){ return { f:fr(w,1), html:'<span class="wn">'+w+'</span>', text:String(w) }; }
+
+function explCompare(a, b, L, na, nb, sign){
+  var hasInt = (a.f.d === 1 || b.f.d === 1);
+  var conv = function(x, n){
+    var note = (x.f.d === 1) ? '（'+x.f.n+' × '+L+' ＝ '+n+'）'
+      : (L === x.f.d ? '（そのまま）' : '（上下に ×'+(L/x.f.d)+'）');
+    return '<div class="ex-line">'+x.html+'<span class="op">＝</span>'+frHtml(fr(n,L))
+      + '<span class="ex-note">'+note+'</span></div>';
+  };
+  return '<span class="ttl">かんがえ方</span>'
+    + (hasInt
+        ? '<b>① 整数を 分数に なおす</b><br>'
+          + '分母を <b>' + L + '</b> に そろえます。'
+        : '<b>① 分母を そろえる（通分）</b><br>'
+          + a.f.d + ' と ' + b.f.d + ' の 最小公倍数は <b>' + L + '</b>')
+    + conv(a, na) + conv(b, nb)
+    + '<b>② 分子を くらべる</b><br>'
+    + '分母が 同じなら、分子が 大きい ほうが 大きい。'
+    + '<span class="ex-note">'+na+' '+SIGN_CH[sign]+' '+nb+'</span>'
+    + '<div class="ex-ans">こたえ '+a.html
+    + '<span class="op">'+SIGN_CH[sign]+'</span>'+b.html
+    + '<span class="ex-note">　不等号の 口は 大きい ほうに ひらくよ</span></div>';
+}
+function gen_compare(){
+  var a, b, L, g = 0;
+  if(ri(1,3) === 3){
+    /* --- 整数と 仮分数 --- 整数ちょうどには ならない ように k で ずらす */
+    var w, d, n;
+    while(true){
+      w = ri(1,4); d = ri(2,12);
+      var k = pick([-3,-2,-1,1,2,3]);
+      n = w*d + k;
+      /* n>0 ／ 整数から 1 いない の ずれ ／ 既約（6/4 のような 形は 出さない）
+         ／ 整数を なおした 分子（w×d）が 30 まで＝小5が メモに 書ける 大きさ */
+      if(n > 0 && Math.abs(k) < d && gcd(n,d) === 1 && w*d <= 30) break;
+      if(++g > 600){ w = 2; d = 4; n = 7; break; }
+    }
+    L = d;
+    a = cmpInt(w); b = cmpFrac(fr(n,d));
+    if(ri(0,1)){ var t = a; a = b; b = t; }   /* 整数は 左にも 右にも 出る */
+  }else{
+    /* --- 分数どうし --- */
+    var f1, f2;
+    while(true){
+      f1 = properFrac(ri(2,12));
+      f2 = properFrac(ri(2,12));
+      L = lcm(f1.d, f2.d);
+      var diff = Math.abs(fval(f1) - fval(f2));
+      /* 分母が ちがう ／ 通分しても 24 まで ／ 目で 見ただけでは 決められない 近さ */
+      if(f1.d !== f2.d && L <= 24 && diff > 0.001 && diff <= 0.2) break;
+      if(++g > 600){ f1 = fr(2,3); f2 = fr(3,5); L = 15; break; }
+    }
+    a = cmpFrac(f1); b = cmpFrac(f2);
+  }
+  var na = a.f.n * (L/a.f.d), nb = b.f.n * (L/b.f.d);
+  var sign = (na > nb) ? ">" : "<";
+  var hasInt = (a.f.d === 1 || b.f.d === 1);
+  return {
+    key:"compare",
+    tag:"大小くらべ",
+    lead:"どちらが 大きいかな。あいだに 入る <b>不等号</b>を えらびましょう。",
+    ansKind:"compare",
+    cmp:{ a:a, b:b, L:L, na:na, nb:nb, sign:sign },
+    qHtml:'<div class="expr chain">'+a.html+'<span class="op">と</span>'+b.html+'</div>',
+    /* 印刷（表）用。□に 不等号を 書きこむ形なので ＝ と 答えの 線は 付けない */
+    exprHtml: a.html+'<span class="p-cmpbox"></span>'+b.html,
+    plainQ: a.text+" □ "+b.text,
+    ansText: a.text+" "+SIGN_CH[sign]+" "+b.text,
+    ansHtml: a.html+'<span class="op">'+SIGN_CH[sign]+'</span>'+b.html,
+    expl: explCompare(a, b, L, na, nb, sign),
+    /* 円の 絵は 1 より 小さい 分数どうしの ときだけ。
+       仮分数・整数は 円 1つに おさまらず、絵が うそに なるため 出さない */
+    pies: hasInt ? null : { fs:[a.f, b.f], ops:[SIGN_CH[sign]],
+           note:"分母を そろえると 1つ分の 大きさが 同じに なって くらべられるね！" }
+  };
+}
+
 function gen_add2(){
   var ts, g = 0;
   do{ ts = twoFracs(24); }while(fval(fadd(ts[0].f, ts[1].f)) > 1.9 && ++g < 200);
@@ -1450,6 +1432,7 @@ function gen_mix_all(){
    ===================================================================== */
 var GENS = {
   tsuubun:   gen_tsuubun,
+  compare:   gen_compare,
   add2:      gen_add2,
   add3:      gen_add3,
   add_tai:   gen_add_tai,
@@ -1463,6 +1446,7 @@ var GENS = {
 };
 var MODE_LABEL = {
   tsuubun:  "通分の しくみ",
+  compare:  "大小くらべ",
   add2:     "たし算（2つ）",
   add3:     "たし算（3つ）",
   add_tai:  "帯分数を ふくむ たし算",
@@ -1486,6 +1470,7 @@ var graded = false;
 var score = 0, total = 0, streak = 0;
 var qStart = 0;
 var slots = [];        /* [{id, el, val}] */
+var curSign = "";      /* ②大小くらべで えらんだ 不等号（">" / "<"） */
 var focusIdx = 0;
 
 /* 解き直し（?retry=1） */
@@ -1498,7 +1483,8 @@ function $(id){ return document.getElementById(id); }
    ===================================================================== */
 function newQuestion(){
   graded = false;
-  pieRevealed = false;
+  pieStarted = false;
+  pieShown = false;
   document.body.classList.remove("graded");
   $("feedback").classList.remove("show");
   $("toast").textContent = "";
@@ -1539,13 +1525,40 @@ function newQuestion(){
 
 /* ---------- 円の絵 ---------- */
 /* 再生中の タイマー。「もう一度」を 連打しても 前の 予約が 残らないように 消す */
-var pieRevealed = false;   /* ①で「続きを見る」を押した（問題が変わるまで 出しっぱなし） */
+var pieStarted = false;   /* ①で スタートを 押した（問題が変わるまで 出しっぱなし） */
+var pieShown   = false;   /* この問題で もう 最後まで 流した（答え合わせで 二度流ししない） */
 var pieTimers = [];
 function clearPieTimers(){
   pieTimers.forEach(function(t){ clearTimeout(t); });
   pieTimers = [];
 }
 function laterPie(fn, ms){ pieTimers.push(setTimeout(fn, ms)); }
+
+/* 画面の うち ほんとうに 見える たて幅。
+   ⚠ 上は 共通ヘッダー（.divp-header＝position:sticky）、
+      下は「こたえあわせ」の 帯（.bottom＝position:fixed）が かぶさっている。
+      これを 引かないと 円の 絵が ヘッダーの 下に もぐったり、
+      さいごの ひとことが 帯に かくれたりする。 */
+function safeBand(){
+  var head = document.querySelector(".divp-header");
+  var foot = document.querySelector(".bottom");
+  return {
+    top: (head ? head.getBoundingClientRect().height : 0) + 8,
+    bottom: window.innerHeight - (foot ? foot.getBoundingClientRect().height : 0) - 8
+  };
+}
+/* el の 下が かくれている ぶんだけ そっと 送る。
+   keepTop を 渡すと、その 要素の 上が ヘッダーの 下に もぐらない ところで 止める */
+function scrollNudge(el, keepTop){
+  try{
+    if(!el) return;
+    var b = safeBand();
+    var d = el.getBoundingClientRect().bottom - b.bottom;
+    if(d <= 4) return;
+    if(keepTop) d = Math.min(d, Math.max(0, keepTop.getBoundingClientRect().top - b.top));
+    if(d > 4) window.scrollBy({ top:d, behavior:"smooth" });
+  }catch(e){}
+}
 
 function renderPies(){
   var host = $("pieArea");
@@ -1556,46 +1569,59 @@ function renderPies(){
      計算モードは 答え合わせの あと（解説といっしょ）に 出す。 */
   if(!cur.pies.always && !graded) return;
 
-  /* ★見せる じゅんばん
-     はじめ … 「そのままでは たせない」だけ（＝通分が いる 理由を 先に 見せる）
-     「続きを見る」か 答え合わせの あと … 線が ふえる →
-        「たせない」と「たせる」を ならべて 見せる
+  /* ★①は 自動では 動かさない。開いたとたんに 始まると 見ていない うちに
+     終わってしまうので、「▶ スタート」を 押してから 流す。
+     押したら さいごまで ひとつづき＝途中で ボタンを 押させない。
      ⚠ ①は 参考書あつかいで 学習記録を つけない（check() 参照）ので、
-        入力する前に 続きを 見ても かまわない。                            */
-  var showAll = graded || pieRevealed;
-  var extra = cur.pies.add ? addRowHtml(cur.pies.fs[0], cur.pies.fs[1], showAll) : "";
-  host.innerHTML = pieRow(cur.pies.fs, cur.pies.ops, extra, showAll);
-
-  var wrap = $("pieWrap");
-  var addW = $("addWrap");
-  var more = $("pieMore");
-  if(more){
-    more.addEventListener("click", function(){
-      pieRevealed = true;
-      renderPies();                        /* 続き入りで 作り直して 頭から 再生 */
+        入力する前に 答えまで 見ても かまわない。                          */
+  if(cur.pies.add && !pieStarted && !graded){
+    host.innerHTML = pieRow(cur.pies.fs, cur.pies.ops, "", false,
+      '<button type="button" class="pieStart" id="pieStart">▶ スタート</button>'
+      + '<div class="pieStartNote">おすと 絵が うごいて、通分が いる わけが わかるよ</div>');
+    $("pieStart").addEventListener("click", function(){
+      pieStarted = true;
+      renderPies();
+      scrollNudge(host, host);     /* 流れを できるだけ 画面に 入れてから 始める */
     });
+    return;
   }
-  var play = function(){
+
+  var extra = cur.pies.add ? addRowHtml(cur.pies.fs[0], cur.pies.fs[1], !graded) : "";
+  host.innerHTML = pieRow(cur.pies.fs, cur.pies.ops, extra, true, "", cur.pies.note);
+
+  var boxes = [].slice.call(host.querySelectorAll(".addBox"));
+  /* ★見せる じゅんばん（①は 合計 約7秒で ひとまとまり）
+       ①そのままでは たせない → ②円の 線が ふえる＝通分（0.9秒あとに 下の 説明）
+       → ③通分すれば たせる → ④「書いてみよう」                          */
+  var steps = cur.pies.add
+    ? [[boxes[0], 200], [$("pieWrap"), 2600], [boxes[1], 4900], [$("addLead"), 6600]]
+    : [[$("pieWrap"), 80]];   /* ②〜⑪：答え合わせの あと、線が ふえるだけ */
+
+  var play = function(snap){
     clearPieTimers();
     /* いったん 全部 消して 頭から 流し直す。
        reset の あいだは transition を 止める（消えるほうが アニメーションして
-       「もどっていく」絵に なるのを ふせぐ）*/
+       「もどっていく」絵に なるのを ふせぐ）。
+       snap＝もう 見たあとの 作り直し（答え合わせ）は 動かさずに 最後の 形で 出す */
     host.classList.add("reset");
-    wrap.classList.remove("on");
-    if(addW) addW.classList.remove("on");
+    steps.forEach(function(s){ if(s[0]) s[0].classList.toggle("on", !!snap); });
     void host.offsetWidth;
     host.classList.remove("reset");
-
-    if(showAll){
-      laterPie(function(){ wrap.classList.add("on"); }, 80);
-      /* 通分の 線が ふえ終わってから「たしてみよう」を 動かす */
-      if(addW) laterPie(function(){ addW.classList.add("on"); }, 1600);
-    }else{
-      if(addW) laterPie(function(){ addW.classList.add("on"); }, 350);
-    }
+    if(snap) return;
+    steps.forEach(function(s, i){
+      if(!s[0]) return;
+      var last = (i === steps.length - 1);
+      laterPie(function(){
+        s[0].classList.add("on");
+        /* さいごの ひとこと（「書いてみよう」）は 帯に かくれがちなので そこだけ 送る
+           ＝流れが 終わったら そのまま 下の マスに 手が いく */
+        if(last && cur.pies.add) scrollNudge(s[0]);
+      }, s[1]);
+    });
   };
-  $("pieReplay").addEventListener("click", play);
-  play();
+  $("pieReplay").addEventListener("click", function(){ play(false); });
+  play(pieShown);
+  pieShown = true;
 }
 
 /* ---------- 答えの入力欄 ---------- */
@@ -1604,7 +1630,39 @@ function box(id, cls){
 }
 function renderAnswer(){
   var host = $("ansArea"), h = "";
-  if(cur.ansKind === "tsuubun"){
+  if(cur.ansKind === "compare"){
+    var c = cur.cmp;
+    /* ①は メモらん＝判定しない（通分して くらべる ための 下書き）。
+       ②は もともとの 分数の まま、あいだの 不等号を えらばせる。 */
+    h = '<div class="ansWrap">'
+      + '<div class="ansStep"><div class="stepTtl">① メモ（通分してみよう）'
+      +   '<span class="memoTag">書かなくても OK</span></div>'
+      + '<div class="ansRow">'
+      + '<div class="ansUnit"><div class="fbox">'
+      +   box("c1n","small") + '<div class="bar small"></div>' + box("c1d","small") + '</div></div>'
+      + '<span class="memoAnd">と</span>'
+      + '<div class="ansUnit"><div class="fbox">'
+      +   box("c2n","small") + '<div class="bar small"></div>' + box("c2d","small") + '</div></div>'
+      + '</div></div>'
+      + '<div class="ansStep"><div class="stepTtl">② こたえ</div>'
+      + '<div class="ansRow cmpRow">' + c.a.html
+      + '<button type="button" class="signBtn" data-sign="&gt;">＞</button>'
+      + '<button type="button" class="signBtn" data-sign="&lt;">＜</button>'
+      + c.b.html + '</div></div></div>';
+    host.innerHTML = h;
+    setSlots(["c1n","c1d","c2n","c2d"]);
+    curSign = "";
+    [].forEach.call(host.querySelectorAll(".signBtn"), function(b){
+      b.addEventListener("click", function(){
+        if(graded) return;
+        curSign = b.dataset.sign;
+        $("toast").textContent = "";
+        [].forEach.call(host.querySelectorAll(".signBtn"), function(x){
+          x.classList.toggle("on", x === b);
+        });
+      });
+    });
+  }else if(cur.ansKind === "tsuubun"){
     h = '<div class="ansWrap"><div class="ansHint">'
       + '通分した 2つの 分数を 書きましょう。<br>分母は どちらも 同じ数（最小公倍数）に なります。</div>'
       + '<div class="ansRow">'
@@ -1630,23 +1688,10 @@ function renderAnswer(){
         + '</div></div>';
       ids.push("m"+i+"n", "m"+i+"d");
     });
-    var hasWhole = cur.midWhole.some(function(x){ return x; });
-    var hasConv = cur.terms.some(function(t){ return t.kind === "dec"; });
     h = '<div class="ansWrap">'
       + '<div class="ansStep"><div class="stepTtl">① 通分した 式</div>'
-      + '<div class="ansHint">'
-      + (hasConv ? '小数は 分数に なおしてから、' : '')
-      + '分母を そろえて 書きましょう。分母は ぜんぶ 同じ数（最小公倍数）に なります。'
-      + (hasWhole
-          ? '<br>整数の マス（点線）は <b>あってもなくても OK</b>。'
-            + '<b>帯分数の まま</b> 書いても、<b>仮分数</b>に なおして 書いても 正解だよ。'
-          : '')
-      + '</div>'
       + '<div class="ansRow chain"><span class="eqlead">＝</span>' + mid + '</div></div>'
       + '<div class="ansStep"><div class="stepTtl">② こたえ</div>'
-      + '<div class="ansHint">'
-      + '<b>約分</b>できるときは 約分します。'
-      + '整数の 部分（帯分数）が ないときは、左の マスは あけたままで いいよ。</div>'
       + '<div class="ansRow chain"><span class="eqlead">＝</span>'
       + '<div class="ansUnit wholeSlot">' + box("w") + '</div>'
       + '<div class="ansUnit"><div class="fbox">'
@@ -1790,6 +1835,18 @@ function check(){
                         : "おしい！ 分母は もっと 小さい 数（最小公倍数）に できるよ");
     }
     slots.forEach(function(s){ s.el.classList.add(r.marks[s.id] ? "ok" : "ng"); });
+  }else if(cur.ansKind === "compare"){
+    if(!curSign){ $("toast").textContent = "＞か＜を えらんでね"; return; }
+    var cm = cur.cmp;
+    ok = (curSign === cm.sign);
+    userStr = cm.a.text + " " + SIGN_CH[curSign] + " " + cm.b.text;
+    if(!ok) msg = "おしい！ 通分して 分子どうしを くらべてみよう";
+    /* メモらんは 採点しない（書かなくても よい らん）。
+       えらんだ 不等号だけを 緑／朱に し、まちがえた ときは 正解の ほうに 印を 出す */
+    [].forEach.call(document.querySelectorAll(".signBtn"), function(b){
+      if(b.dataset.sign === curSign) b.classList.add(ok ? "ok" : "ng");
+      else if(!ok && b.dataset.sign === cm.sign) b.classList.add("ansmark");
+    });
   }else{
     /* 途中式 → 答え の じゅんに 見る。どちらか まちがえたら 不正解 */
     var jm = judgeMid();
@@ -1824,7 +1881,7 @@ function check(){
 
   var sec = Math.round((Date.now() - qStart)/1000);
   /* ★①「通分の しくみ」は 練習問題ではなく 参考書あつかい＝学習記録を つけない。
-     入力する前に「続きを見る」で 答えを 見られる 作りなので、記録すると
+     入力する前に「スタート」で 答えまで 見られる 作りなので、記録すると
      正答率も 解き直しリストも あてに ならなくなるため
      （語彙クロスワードの「ヒントで開けた語は誤答」と同じ考え方の、記録しない版）。
      ⚠ そのため question_catalog にも tsuubun の行は 入れていない。 */
@@ -1930,6 +1987,8 @@ function makePrint(){
     var label = MODE_LABEL[key] || "";
     var inst = (key === "tsuubun")
       ? "つぎの 2つの 分数を 通分しましょう。（分母は いちばん 小さい 共通の 分母に します）"
+      : (key === "compare")
+      ? "□に あてはまる 不等号（＞ か ＜）を 書きましょう。下の あきに 通分して くらべます。"
       : "つぎの 計算を しましょう。答えは 約分して、仮分数は 帯分数に なおして 書きましょう。";
 
     var area = $("printArea");
@@ -1952,10 +2011,11 @@ function makePrint(){
       + head("通分の たし算・ひき算　練習プリント", "小5 算数 ／ "+label, '名前：<span></span>')
       + '<div class="p-inst">'+inst+'</div><div class="p-grid">';
     probs.forEach(function(p, idx){
+      /* 大小くらべは exprHtml の 中に □ が 入っている＝＝と 答えの 線は 付けない */
+      var tail = (p.ansKind === "compare") ? ""
+        : '<span class="op">'+(p.ansKind === "tsuubun" ? "→" : "＝")+'</span><span class="p-blank"></span>';
       q += '<div class="p-item"><span class="p-no">'+(idx+1)+'</span>'
-        + '<div class="p-expr">'
-        + p.exprHtml + '<span class="op">'+(p.ansKind === "tsuubun" ? "→" : "＝")+'</span>'
-        + '<span class="p-blank"></span></div>'
+        + '<div class="p-expr">' + p.exprHtml + tail + '</div>'
         + '<div class="p-space"></div></div>';
     });
     q += '</div></div>';
