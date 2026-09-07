@@ -2540,6 +2540,17 @@ document.querySelectorAll('.math').forEach(function (el) {
       + '.q-fig2 table.sek th,.q-fig2 table.sek td{white-space:normal;padding:2px 4px;line-height:1.35;}'
       /* 図の下の説明（CAP()。「タンポポの小さな花1つ」など） */
       + '.q-fig2 .fig-cap{font-size:11px;color:#555;text-align:center;margin-top:2px;}'
+      /* 図を横にならべる型（理科の音の波形。ツール側 #qtbl .figrow と同じ構造）。
+         .q-fig2 は width:max-content なので、max-width で段を折り返させないと
+         図が全部1行に伸びて紙幅をはみ出す。svg の高さも上の 54mm 固定では
+         「もとの音＋候補ア〜カ」の7つで1ページを越えるので幅で決め直す。 */
+      + '.q-fig2 .figrow{display:flex;flex-wrap:wrap;gap:2mm;justify-content:center;'
+        + 'align-items:flex-end;max-width:146mm;}'
+      + '.q-fig2 .figrow .figcell{text-align:center;}'
+      + '.q-fig2 .figrow .cap{font-size:10.5px;color:#555;line-height:1.3;}'
+      + '.q-fig2 .figrow svg{width:34mm!important;max-width:34mm!important;height:auto!important;}'
+      /* 候補ア〜カは3つ×2段（110mm＝34mm×3＋すきま。画面と同じ並びにする） */
+      + '.q-fig2 .figrow.cands{max-width:110mm;}'
       /* 選択肢（選択肢そのものが問題の中身になる型だけ刷る）。
          文の選択肢は1列、図の選択肢(箱ひげ図)は2列に並べて縦を詰める。 */
       + '.q-choices{list-style:none;margin:6px 0 0;padding:0;font-size:15px;line-height:1.5;}'
