@@ -1040,6 +1040,10 @@ function shPolyArea(sides,areaLabel){
    立体の図
    ===================================================================== */
 var DEPTH_X = 0.45, DEPTH_Y = 0.315;   /* 奥行き1cmを 画面で どれだけ ずらすか */
+/* 上から 見おろした 円を だ円で 描くときの つぶし方（たて ÷ よこ）。
+   円柱の図(cylSVG)と しくみの部屋の 円の底面で 共通に つかう＝
+   同じツールの中で 円柱の 丸みが ちがって 見えないようにする */
+var CYL_FLAT = 0.4;
 
 /* どの図も 同じ はば(FIG_W)の 紙に のせる。
    図は CSS で はば いっぱいに ひろげるので、viewBox が せまい図ほど
@@ -1113,9 +1117,9 @@ function prismSVG(shapeFn,depthCm,hLabel,opts){
 /* 円柱（立てた向き）。上下の 円は だ円で 表す。
    hLabel を わたすと 高さの 文字だけ 差しかえられる（「？cm」を 出す 逆算用） */
 function cylSVG(rCm,hCm,showD,hLabel){
-  var k = Math.min(150/(2*rCm), 138/(hCm + 2*rCm*0.34));
+  var k = Math.min(150/(2*rCm), 138/(hCm + 2*rCm*CYL_FLAT));
   k = Math.max(7, Math.min(k, 26));
-  var R = rCm*k, H = hCm*k, ry = R*0.34;
+  var R = rCm*k, H = hCm*k, ry = R*CYL_FLAT;
   var PL = 46, PR = 54, PT = 28, PB = 34;
   var W = 2*R + PL + PR, pad = padX(W);
   var cx = PL + pad + R, top = PT + ry, bot = top + H;
@@ -1834,7 +1838,13 @@ function initRetry(){
    高さ1cm の 板を 1まいずつ 積み重ねる。板1まいの 体積は
    「底面積と 同じ数」なので、高さのぶん 積めば 底面積 × 高さ に なる。
    ===================================================================== */
-var LA = 0.55, LB = 0.38;      /* 奥へ1cm＝右へ0.55cm・上へ0.38cm（斜投影） */
+/* 奥へ1cm すすんだときに 画面で 右へ LA・上へ LB ずれる（斜投影）。
+   ⚠ 底面ごとに 変える。LA（右へのずれ）が あると 床の 円は
+   「かたむいた だ円」に なって 円に 見えない（1cm≒右0.55だと 10度ほど かたむく）。
+   角柱は LA が 無いと よこの面が つぶれて 立体に 見えないので LA を のこし、
+   円だけ LA=0（＝まっすぐ 正面から 見る）にして、教科書の 円柱と 同じ
+   「水平な だ円」で 描く。LB は 見た目の 丸みで、円柱の図(cylSVG)と そろえる。 */
+var LA = 0.55, LB = 0.38;
 var LAB_HMAX = 6;              /* 台の 大きさを 決める 高さ（動かしても 図が はねない） */
 
 function labPt(u,v,z,k,ox,oy){
@@ -1921,12 +1931,18 @@ var LAB_BASES = [
     shiki:"底辺 × 高さ ÷ 2 ＝ 4 × 3 ÷ 2 ＝ 6" },
   { id:"circle", name:"円", desc:"半径2cm",
     poly:labCircle(), area:12.56, smooth:true,
+    /* 円だけ まっすぐ 正面から 見る＝床の円は かたむかない 水平な だ円になる。
+       つぶし方は 円柱の図と そろえる（LA を のこすと 円に 見えない） */
+    la:0, lb:CYL_FLAT,
     shiki:"半径 × 半径 × 3.14 ＝ 2 × 2 × 3.14 ＝ 12.56" }
 ];
 var labIdx = 0, labH = 4, labShown = 4, labTimer = null;
 
 function labDraw(){
   var B = LAB_BASES[labIdx], poly = B.poly, i;
+  /* 斜投影のぐあいは 底面ごと（円だけ LA=0）。labPt / labFaceVisible が読む */
+  LA = (B.la === undefined) ? 0.55 : B.la;
+  LB = (B.lb === undefined) ? 0.38 : B.lb;
   var umax = 0, vmax = 0;
   for(i=0;i<poly.length;i++){
     if(poly[i][0] > umax) umax = poly[i][0];
