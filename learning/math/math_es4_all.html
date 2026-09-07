@@ -151,9 +151,14 @@ body{
 .mx{display:inline-flex;align-items:center;gap:5px}
 @media (max-width:400px){.fexp{font-size:28px;gap:9px}}
 
-/* ---------- わり算の筆算（たて書き） ----------
-   1桁=1セルの等幅グリッド(.dgrid)に右づめで入れるので、商とわられる数の位が必ずそろう。
-   商の段は かこいの罫線だけ透明にした 同じ器(.brk.nb)に入れる＝1pxもずれない */
+/* ---------- わり算の筆算（たて書き・とちゅうの計算まで書く） ----------
+   表示は「わり算のひっ算マスター」(math_es4_warizan_hissan)と 同じ形にそろえてある。
+   ・かこいは 上の横線＋左のカーブ（カーブは SVGを background に 敷く）
+   ・1桁=1セルの等幅グリッド(.dgrid)なので 商・積・差の 位が 必ずそろう
+   ・商 → かける → ひく(おろす) → … → あまり を ぜんぶ 生徒が マスに 書く
+   ⚠ マスの 大きさは --cw(幅)/--ch(高さ) で 決め、文字サイズは そこから 出す。
+     行数が 8だん 10だんと ふえても 指で さわれる 大きさを 保つため
+     （font-size から 逆算する 作りだと 行が ふえるほど 小さくしたくなる） */
 .dgrid{display:grid;grid-template-columns:repeat(var(--w),2ch);gap:3px;flex:none;
   font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
 .c{box-sizing:border-box;display:flex;align-items:center;justify-content:center;
@@ -161,18 +166,35 @@ body{
 .ic{border:1px dashed #CFC3AD;border-radius:7px;background:#fff;cursor:pointer;color:var(--orange)}
 .ic.foc{border:1px solid var(--orange);background:#FFF7EA;box-shadow:0 0 0 3px rgba(254,179,66,.28)}
 .ic.no{border:none;background:none;cursor:default}
-.wariwrap{display:inline-block;text-align:center}
-.wari{display:inline-block;font-size:32px;font-weight:900;line-height:1.25;padding:4px 2px 0}
-.wari .wrow{display:flex;align-items:flex-end}
-.wari .wl{flex:none;min-width:2.9ch;text-align:right;padding-right:.35ch}
-.wari .brk{flex:none;padding:2px 3px 0 5px;
-  border-top:4px solid var(--ink);border-left:4px solid var(--ink);
-  border-top-left-radius:18px 70%}
-.wari .brk.nb{border-color:transparent}
-.wam{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:9px;
-  font-size:16px;font-weight:900;color:var(--ink-l)}
-.wam .dgrid{font-size:30px;color:var(--ink)}
-@media (max-width:400px){.wari{font-size:27px}.wam .dgrid{font-size:26px}}
+/* 答え合わせのあと、1マスずつ ○×が つく（どの位で つまずいたかが 見える） */
+.ic.ok{border:1.5px solid var(--green);background:#EBF5EF;color:#3F7B58}
+.ic.ng{border:1.5px solid var(--sakura-d);background:#FBEDEF;color:var(--sakura-d)}
+/* ⚠ inline-block + inline-flex にすると 行ボックスの ベースラインぞろえで
+   商のだんが 上に はみ出して 頭が 切れる。ブロックの flex で 組むこと */
+.wariwrap{display:flex;justify-content:center}
+.wari{
+  --cw:clamp(27px,8.4vw,36px);--ch:calc(var(--cw) * 1.16);
+  display:flex;align-items:flex-start;
+  font-size:calc(var(--cw) * .72);font-weight:900;line-height:1;padding:4px 2px 0;
+}
+.wari .dgrid{grid-template-columns:repeat(var(--w),var(--cw));gap:2px}
+.wari .c{width:var(--cw);height:var(--ch)}
+.wari .wdiv{display:flex;flex-direction:column;justify-content:flex-end;flex:none}
+/* 商の1だんぶん（＋かこいの上線4px）下げると わる数が わられる数と 同じ高さに来る */
+.wari .wsp{height:calc(var(--ch) + 4px)}
+.wari .wdrow{display:flex}
+.wari .wdrow span{width:var(--cw);height:var(--ch);
+  display:flex;align-items:center;justify-content:center}
+.wari .wbody{display:flex;flex-direction:column;flex:none}
+/* .wq と .wbox は 同じ padding-left ＝ 商と わられる数の 位が そろう */
+.wari .wq{padding-left:10px}
+.wari .wbox{border-top:4px solid var(--ink);padding-left:10px;
+  background:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2010%2040'%20preserveAspectRatio='none'%3E%3Cpath%20d='M0,0C9,7,9,33,0,40'%20fill='none'%20stroke='%233A342C'%20stroke-width='4'/%3E%3C/svg%3E") 0 0/10px var(--ch) no-repeat}
+.wari .wrow.lined{border-bottom:4px solid var(--ink)}
+/* 上から おろしてきた 数字（うすい色＋↓） */
+.wari .c.brg{color:#B59A6A;position:relative}
+.wari .c.brg::after{content:"↓";position:absolute;top:-.52em;left:50%;transform:translateX(-50%);
+  font-size:.45em;color:#CDB589}
 
 /* ---------- 小数のたし算・ひき算の筆算 ----------
    列は［整数の位…］［小数点］［小数の位…］。小数点だけ 細い列にするので
@@ -231,6 +253,10 @@ body{
 }
 .key:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(58,52,44,.13)}
 .key.fn{background:var(--washi2);font-size:17px}
+/* わり算の筆算の「×（入らない位）」キー。何のための × かを キーに 書いておく */
+.key.xk{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:19px;line-height:1.05}
+.key.xk small{font-size:9px;font-weight:700;color:var(--ink-l);margin-top:1px}
 
 .submit{
   width:100%;margin-top:12px;height:54px;border-radius:14px;cursor:pointer;
@@ -261,7 +287,7 @@ body{
    山(pile)は z-index:5 の固定レイヤーで、モジュールが :where(button,h1,…) を
    z-index:10 に持ち上げるが 詳細度0なので、そこから漏れる このツール固有の
    要素は ここで前面に出す（div/span で組んだ入力マス・ふきだし・見出しなど） */
-.chip,.back,.submit,.box,.ch,.key,.ic,.fb,.qwrap,.qfig,.bar,.cellhint,.wam,
+.chip,.back,.submit,.box,.ch,.key,.ic,.fb,.qwrap,.qfig,.bar,.cellhint,
 .hd,.res,.dots,.lead,.pcard,.pmini{position:relative;z-index:10}
 
 /* 単元チップをタップしたときの 小さな きらめき用レイヤー */
@@ -428,56 +454,113 @@ function fracExp(items){
     :`<span class="op2">${x}</span>`).join("")+`</div>`;
 }
 
-/* ============ わり算の筆算(たて書き) ============ */
-/* 1桁=1セル。右づめ(=位ぞろえ)で入れる */
-function digitCells(str,w){
-  str=String(str);
-  const start=w-str.length;
-  let h="";
-  for(let i=0;i<w;i++){
-    const k=i-start;
-    h+=`<span class="c">${(k>=0&&k<str.length)?str[k]:""}</span>`;}
-  return h;
+/* ============ わり算の筆算(たて書き・とちゅうの計算まで) ============
+   「わり算のひっ算マスター」(math_es4_warizan_hissan) の 表示・入力順を
+   そのまま 持ってきたもの。商だけ 答えさせるのでは なく、
+   商 → かける → ひく(おろす) → … → あまり を 1マスずつ 書かせる。
+   ⚠ この単元だけ grid の 形が ちがう（order/need を 持つ「1マスずつ 採点」）。
+     小数のひっ算は 今までどおり「だんごとに 数として くらべる」形なので、
+     出題エンジン側は grid.order の 有無で 2つを 見分けている。 */
+/* 各位を 上から わっていったときの 商・積・あまりを 出す */
+function wariSteps(digits,divisor){
+  const quotient={},steps=[];let rem=0,started=false;
+  for(let i=0;i<digits.length;i++){
+    const cur=rem*10+digits[i];
+    const q=Math.floor(cur/divisor),nr=cur-q*divisor;
+    if(q>0)started=true;
+    // 商が 立ちはじめる 前の 位には 何も 書かない（教科書と同じ）
+    if(started){quotient[i]=q;steps.push({i:i,q:q,prod:q*divisor,rem:nr});}
+    rem=nr;
+  }
+  return {quotient:quotient,steps:steps,finalRem:rem};
 }
-/* 入力マス（1マス=1つの位）。data-r=だん / data-c=左からの位置。
-   from より 左は 入力できないマス(.no)にする＝わり算の商は 位が 決まっているので、
-   「商が 立つ 位」だけを 箱に して 教科書の 筆算と 同じ 見た目に する。
-   ⚠ 入力は 左から 右（上の位から）。たし算の筆算(一の位から)とは 向きが 逆で、
-     ここを そろえると わり算の 手順と 合わなくなる */
-function icCells(r,w,from){
-  from=from||0;let h="";
-  for(let i=0;i<w;i++)
-    h+=`<span class="c ic${i<from?" no":""}" data-r="${r}" data-c="${i}"></span>`;
-  return h;
+/* 数字を 右づめで 置く（一の位が rightCol の 列に 来るように） */
+function placeRight(v,rightCol){
+  const s=String(v),o={};
+  for(let k=0;k<s.length;k++)o[rightCol-(s.length-1)+k]=s[k];
+  return o;
 }
-/* わり算の筆算。商のだんは かこいの罫線を透明にした 同じ器に入れて 位をそろえる。
-   返り値の fig=空欄（画面と問題プリント用） / figA=答え入り（こたえプリント用） */
-function wariPair(a,b,withRem){
-  const q=Math.floor(a/b), r=a%b;
-  const w=String(a).length, rw=String(b).length;
-  const qFrom=w-String(q).length;      // 商の いちばん 上の 位が 立つ ところ
-  const form=(top,btm)=>`<div class="wari" style="--w:${w}">`
-    +`<div class="wrow"><span class="wl"></span><span class="brk nb"><span class="dgrid">${top}</span></span></div>`
-    +`<div class="wrow"><span class="wl">${b}</span><span class="brk"><span class="dgrid">${digitCells(a,w)}</span></span></div>`
-    +`</div>`;
-  const rem=(inner)=>withRem?`<div class="wam">あまり<span class="dgrid" style="--w:${rw}">${inner}</span></div>`:"";
-  /* 筆算と あまりは 1つの 箱に 入れる。入れないと 親が display:flex なので
-     （画面の #fig / プリントの .pfig）あまりが 筆算の 右横に 並んでしまう */
-  const wrap=(inner)=>`<div class="wariwrap">${inner}</div>`;
+/* mode: screen=入力マス / answer=数字入り(こたえプリント) / blank=わられる数だけ(問題プリント) */
+function wariHtml(rows,n,b,mode){
+  const cellHtml=(r,c)=>{
+    const cd=rows[r].cells[c],gc=`grid-column:${c+1}`;
+    if(!cd)return `<span class="c" style="${gc}"></span>`;
+    if(cd.ic&&mode==="screen")
+      return `<span class="c ic" style="${gc}" data-r="${r}" data-c="${c}"></span>`;
+    if(cd.ic&&mode==="blank")return `<span class="c" style="${gc}"></span>`;
+    return `<span class="c${cd.brg?" brg":""}" style="${gc}">${cd.v}</span>`;
+  };
+  const rowHtml=(r,cls)=>{
+    let h="";for(let c=0;c<n;c++)h+=cellHtml(r,c);
+    return `<div class="${cls} dgrid">${h}</div>`;
+  };
+  // 問題プリントは かこいの中に わられる数だけ（下の余白に 手で 書き下していく）
+  const last=(mode==="blank")?2:rows.length;
+  let box="";
+  for(let r=1;r<last;r++)box+=rowHtml(r,"wrow"+(rows[r].lined?" lined":""));
+  let dv="";String(b).split("").forEach(ch=>{dv+=`<span>${ch}</span>`;});
+  return `<div class="wariwrap"><div class="wari" style="--w:${n}">`
+    +`<div class="wdiv"><span class="wsp"></span><span class="wdrow">${dv}</span></div>`
+    +`<div class="wbody">${rowHtml(0,"wq")}<div class="wbox">${box}</div></div>`
+    +`</div></div>`;
+}
+function wariPair(a,b){
+  const digits=String(a).split("").map(Number),n=digits.length;
+  const st=wariSteps(digits,b),steps=st.steps;
+  const firstCol=steps.length?steps[0].i:n;
+  const rows=[],order=[],need={},qcols=[];let rcells=[];
+  /* 0だん目=商。商が 立つ 位は 数字、それより 左の 位は「×」を 書かせる */
+  const qc={};
+  for(let c=0;c<n;c++){
+    if(st.quotient[c]!==undefined){qc[c]={v:String(st.quotient[c]),ic:true};qcols.push(c);}
+    else if(c<firstCol)qc[c]={v:"×",ic:true};
+  }
+  rows.push({cells:qc});
+  const dvc={};
+  for(let c=0;c<n;c++)dvc[c]={v:String(digits[c])};
+  rows.push({cells:dvc});
+  for(let k=0;k<steps.length;k++){
+    const s=steps[k],pc={},pl=placeRight(s.prod,s.i);
+    for(const c in pl)pc[c]={v:pl[c],ic:true};
+    rows.push({cells:pc,lined:true});          // かけた数（下に 横線）
+    if(k<steps.length-1){
+      const nx=steps[k+1],dc={};
+      // ひいて 0 に なる 位は 書かない＝紙の 筆算と 同じ（0 が ずらっと 並ばない）
+      if(s.rem!==0){const dl=placeRight(s.rem,s.i);for(const c in dl)dc[c]={v:dl[c],ic:true};}
+      dc[nx.i]={v:String(digits[nx.i]),brg:true};   // 次の位を おろす
+      rows.push({cells:dc});
+    }else{
+      const rc={},rl=placeRight(st.finalRem,n-1);
+      for(const c in rl)rc[c]={v:rl[c],ic:true};
+      rows.push({cells:rc});                   // 最後のだん=あまり
+      const lr=rows.length-1;
+      rcells=Object.keys(rl).map(Number).sort((x,y)=>x-y).map(c=>({r:lr,c:c}));
+    }
+  }
+  /* 入力の じゅんばん: 先頭の×（左から）→ ステップごとに 商→積→差 */
+  const push=(r,c)=>{order.push({r:r,c:c});need[r+","+c]=rows[r].cells[c].v;};
+  for(let c=0;c<firstCol;c++)if(qc[c])push(0,c);
+  let pi=2;
+  for(let k=0;k<steps.length;k++){
+    push(0,steps[k].i);
+    [pi,pi+1].forEach(r=>{
+      if(!rows[r])return;
+      Object.keys(rows[r].cells).map(Number).sort((x,y)=>x-y)
+        .forEach(c=>{if(rows[r].cells[c].ic)push(r,c);});
+    });
+    pi+=2;
+  }
   return {
-    fig:  wrap(form(icCells(0,w,qFrom))+rem(icCells(1,rw))),
-    figA: wrap(form(digitCells(q,w))+rem(digitCells(r,rw))),
-    /* プリントの問題面は かこいの下に 手書きの計算スペースを 取るので、
-       あまりのマスは 置かず「こたえ」の行で 書かせる（下に 書き下していく
-       筆算の じゃまに ならないように） */
-    figP: wrap(form(icCells(0,w,qFrom))),
+    fig:  wariHtml(rows,n,b,"screen"),
+    figA: wariHtml(rows,n,b,"answer"),
+    figP: wariHtml(rows,n,b,"blank"),
     /* 記録・講師画面用の 文字だけの 問題文。筆算の図は このページのCSSに
        たよっているので 紙には 出さず（logAnswer の figForLog 参照）、
        代わりに この式を question_text として 送る */
     qtext:`${a} ÷ ${b}`,
-    grid:{w:w,dir:1,rows:withRem
-      ?[{ans:q,label:"商",from:qFrom},{ans:r,label:"あまり",w:rw}]
-      :[{ans:q,label:"商",from:qFrom}]}
+    atext:`商 ${Math.floor(a/b)}　あまり ${a%b}`,
+    grid:{w:n,nrows:rows.length,order:order,need:need,qcols:qcols,rcells:rcells,
+          labels:["商","あまり"],hissan:true,dir:1}
   };
 }
 
@@ -796,17 +879,17 @@ function gWari1(){
     const a=q*b+r;
     return Object.assign({q:"",type:"cells",dec:false,
       exp:`大きい位から わっていきます。${a}÷${b}=${q}あまり${r}。たしかめは ${b}×${q}+${r}=${a}。`,
-      key:"wari1_3ke"},wariPair(a,b,true));}
+      key:"wari1_3ke"},wariPair(a,b));}
   if(t===2){const b=R(3,9),q=R(1,9)*100+R(0,9),r=R(0,b-1);   // 十の位に0が立つ商
     const a=q*b+r;
     return Object.assign({q:"",type:"cells",
       exp:`十の位は わられないので 商に 0 を たてます。${a}÷${b}=${q}あまり${r}。`,
-      key:"wari1_zero"},wariPair(a,b,true));}
+      key:"wari1_zero"},wariPair(a,b));}
   if(t===3){const b=R(3,9),q=R(120,999),r=R(0,b-1);
     const a=q*b+r;
     return Object.assign({q:"",type:"cells",
       exp:`4けたでも やり方は 同じ。大きい位から じゅんに わって ${a}÷${b}=${q}あまり${r}。`,
-      key:"wari1_4ke"},wariPair(a,b,true));}
+      key:"wari1_4ke"},wariPair(a,b));}
   if(t===4){const b=R(2,9),k=pick([10,100]),q=R(2,9);
     return {q:`${q*b*k} ÷ ${b} = □`,type:"num",ans:q*k,
       exp:`${q*b*k} は ${k} が ${q*b}こ。${q*b}÷${b}=${q} なので ${k}が ${q}こで ${q*k} です。`,key:"wari1_anzan"};}
@@ -824,12 +907,12 @@ function gWari2(){
     if(a>999)return gWari2();       // この型は 3けた÷2けた にそろえる
     return Object.assign({q:"",type:"cells",
       exp:`わる数を およその 数（${Math.round(b/10)*10}くらい）と 見て 商を たてます。${a}÷${b}=${q}あまり${r}。`,
-      key:"wari2_2ke"},wariPair(a,b,true));}
+      key:"wari2_2ke"},wariPair(a,b));}
   if(t===2){const b=R(12,39),q=R(21,45),r=R(0,b-1);
     const a=q*b+r;
     return Object.assign({q:"",type:"cells",
       exp:`商が 2けたに なる型です。${a}÷${b}=${q}あまり${r}。たしかめは ${b}×${q}+${r}=${a}。`,
-      key:"wari2_shou2"},wariPair(a,b,true));}
+      key:"wari2_shou2"},wariPair(a,b));}
   if(t===3){const b=R(2,9),q=R(2,9);
     return {q:`${q*b*10} ÷ ${b*10} = □`,type:"num",ans:q,
       exp:`わられる数と わる数を 10でわっても 商は 同じ。${q*b}÷${b}=${q} です。`,key:"wari2_nanju"};}
@@ -1440,8 +1523,10 @@ function nextQ(){
   S.answered=false;S.focus=0;
   if(S.p.type==="cells"){
     const g=S.p.grid;
-    S.cells=g.rows.map(()=>new Array(g.w).fill(""));
-    S.cf={r:0,c:startCol(0)};   // わり算=上の位から / 小数の筆算=小さい位から
+    const nr=g.nrows||g.rows.length;
+    S.cells=[];for(let i=0;i<nr;i++)S.cells.push(new Array(g.w).fill(""));
+    // わり算の筆算=決めた じゅんばんの 先頭から / 小数の筆算=小さい位から
+    S.cf=g.order?{r:g.order[0].r,c:g.order[0].c}:{r:0,c:startCol(0)};
     S.inputs=[];
   }else{
     S.cells=[];
@@ -1468,10 +1553,12 @@ function render(){
   const A=$("ansarea"),P=$("padarea");
   A.innerHTML="";P.innerHTML="";
   if(p.type==="cells"){
-    A.innerHTML=`<div class="cellhint">${(p.grid.dir||1)>0
-      ?"上の位から 入れると 右へ すすみます"
-      :"右の 小さい位から 入れると 左へ すすみます"} / 入れなおすときは マスをタップ</div>`;
-    P.appendChild(tenkey(false));
+    A.innerHTML=`<div class="cellhint">${p.grid.hissan
+      ?"大きい位から 商 → かける → ひく の じゅんに 1マスずつ 書こう<br>商が 立たない 位には ×"
+      :(p.grid.dir||1)>0
+        ?"上の位から 入れると 右へ すすみます"
+        :"右の 小さい位から 入れると 左へ すすみます"} / 入れなおすときは マスをタップ</div>`;
+    P.appendChild(tenkey(false,!!p.grid.hissan));
     document.querySelectorAll("#fig .ic").forEach(el=>{
       if(el.classList.contains("no"))return;
       el.onclick=()=>{if(S.answered)return;S.cf={r:+el.dataset.r,c:+el.dataset.c};drawCells();};});
@@ -1531,16 +1618,27 @@ function endCol(r){
   return ((S.p.grid.dir||1)>0)?c[c.length-1]:c[0];
 }
 function drawCells(){
+  const need=S.p.grid.need;   // 1マスずつ 採点する形（わり算の筆算）だけ 持っている
   document.querySelectorAll("#fig .ic").forEach(el=>{
     const r=+el.dataset.r,c=+el.dataset.c;
-    el.textContent=(S.cells[r]&&S.cells[r][c])||"";
-    el.classList.toggle("foc",!S.answered&&S.cf.r===r&&S.cf.c===c);});
+    const v=(S.cells[r]&&S.cells[r][c])||"";
+    el.textContent=v;
+    el.classList.toggle("foc",!S.answered&&S.cf.r===r&&S.cf.c===c);
+    el.classList.remove("ok","ng");
+    if(S.answered&&need)el.classList.add(v!==""&&v===need[r+","+c]?"ok":"ng");});
 }
 /* step=+1:右へ / -1:左へ（画面で 見た向き）。入力できないマス（小数点の列・
    商が立たない位）は とばす。だんの はしを 入力の 向きに こえたときだけ
    次のだん（商→あまり）へ うつり、逆向きに こえたときは 前のだんへ もどる */
 function moveCell(step){
   const g=S.p.grid,dir=g.dir||1;
+  /* わり算の筆算は だんを またいで 商→積→差…と すすむので、
+     マスの じゅんばんを 出題時に 決めた order で 持っている */
+  if(g.order){
+    let i=g.order.findIndex(o=>o.r===S.cf.r&&o.c===S.cf.c);
+    i=Math.max(0,Math.min(g.order.length-1,(i<0?0:i)+step));
+    S.cf={r:g.order[i].r,c:g.order[i].c};return;
+  }
   const r=S.cf.r,cols=rowCols(r),i=cols.indexOf(S.cf.c)+step;
   if(i>=0&&i<cols.length){S.cf={r:r,c:cols[i]};return;}
   const fwd=(step===dir);
@@ -1566,14 +1664,18 @@ function drawBoxes(){
     b.classList.toggle("lg",String(v||"").length>=8);
     b.innerHTML=(v===""||v==null)?`<span class="ph">?</span>`:v;});
 }
-function tenkey(dec){
+/* dec=小数点キーを 出す / xk=わり算の筆算の「×（入らない位）」キーを 出す
+   （キーは 12こ 固定なので、C・小数点・× は 同じ 1マスを とりあう） */
+function tenkey(dec,xk){
   const w=document.createElement("div");w.className="pad";
-  const keys=["7","8","9","4","5","6","1","2","3",dec?".":"clr","0","del"];
+  const keys=["7","8","9","4","5","6","1","2","3",xk?"×":(dec?".":"clr"),"0","del"];
   keys.forEach(k=>{
     const b=document.createElement("button");b.className="key";
     if(k==="del"){b.className="key fn";b.textContent="⌫";b.setAttribute("aria-label","1文字けす");}
     else if(k==="clr"){b.className="key fn";b.textContent="C";b.setAttribute("aria-label","ぜんぶけす");}
     else if(k==="."){b.className="key fn";b.textContent="・";b.setAttribute("aria-label","小数点");}
+    else if(k==="×"){b.className="key fn xk";b.innerHTML=`×<small>入らない位</small>`;
+      b.setAttribute("aria-label","商が 入らない位に ×");}
     else b.textContent=k;
     b.onclick=()=>press(k);
     w.appendChild(b);});
@@ -1585,8 +1687,8 @@ function press(k){
     const dir=S.p.grid.dir||1;
     const r=S.cf.r,c=S.cf.c;
     if(k==="del"){ if(S.cells[r][c]==="")moveCell(-dir); S.cells[S.cf.r][S.cf.c]=""; }
-    else if(k==="clr"){ S.cells[r]=new Array(S.p.grid.w).fill(""); S.cf={r:r,c:startCol(r)}; }
-    else if(k!=="."){ S.cells[r][c]=k; moveCell(dir); }
+    else if(k==="clr"&&!S.p.grid.order){ S.cells[r]=new Array(S.p.grid.w).fill(""); S.cf={r:r,c:startCol(r)}; }
+    else if(k!=="."&&k!=="clr"){ S.cells[r][c]=k; moveCell(dir); }   // k は 数字 か「×」
     drawCells();return;
   }
   const i=S.focus;
@@ -1605,6 +1707,7 @@ function press(k){
 }
 /* 正解の文字づら（フィードバック・記録・こたえプリントで 同じものを使う） */
 function ansText(p){
+  if(p.atext)return p.atext;   // わり算の筆算（1マスずつ 採点する形）は 文字づらを 用意してある
   if(p.type==="cells")return p.grid.rows.map(r=>(r.label?r.label+" ":"")+fmt(r.ans)).join("　");
   if(p.type==="choice")return String(p.choices[p.ai]);
   if(p.type==="frac")return `${p.ans[0]}/${p.ans[1]}`;
@@ -1615,7 +1718,20 @@ function ansText(p){
 function judge(){
   const p=S.p;let ok=false,ua="";
   const ca=ansText(p);
-  if(p.type==="cells"){
+  if(p.type==="cells"&&p.grid.order){
+    /* わり算の筆算: 1マスずつ くらべる（とちゅうの計算も 答えの うち）。
+       ○×は drawCells が マスに つけるので、ここでは 数だけ かぞえる */
+    const g=p.grid;let blank=0,wrong=0;
+    for(const o of g.order){
+      const v=S.cells[o.r][o.c]||"";
+      if(v==="")blank++;
+      else if(v!==g.need[o.r+","+o.c])wrong++;
+    }
+    if(blank){flash("まだ 空いている マスが あるよ");return;}
+    ok=(wrong===0);
+    ua="商 "+g.qcols.map(c=>S.cells[0][c]||"?").join("")
+      +"　あまり "+g.rcells.map(o=>S.cells[o.r][o.c]||"?").join("");
+  }else if(p.type==="cells"){
     const g=p.grid,vals=[];
     for(let r=0;r<g.rows.length;r++){
       let str;
@@ -1812,8 +1928,13 @@ function prtAnsArea(p){
     // 小数の筆算は マスに 書きこんで 終わり。わり算は かこいの下に 計算する 余白と
     // 「こたえ 商__ あまり__」の行を つける
     if(p.grid.point!=null)return "";
-    return `<div class="pspace"></div><div class="pal">こたえ　`
-      +p.grid.rows.map(r=>`${r.label||""}<span class="pln s2"></span>`).join("　")+`</div>`;
+    const labs=p.grid.labels||p.grid.rows.map(r=>r.label||"");
+    /* かこいの下に 書き下していく 手書きの余白。だん数(nrows)から 決める＝
+       商1だん+わられる数1だん を のぞいた ぶんだけ 場所を とる。
+       ⚠ 一律に 広くとると 6問が A4 1枚に 収まらなくなる（tests/es4-print.spec.js） */
+    const sp=Math.max(14,Math.min(30,Math.round(4.6*((p.grid.nrows||4)-2))));
+    return `<div class="pspace" style="height:${sp}mm"></div><div class="pal">こたえ　`
+      +labs.map(l=>`${l}<span class="pln s2"></span>`).join("　")+`</div>`;
   }
   if(p.type==="choice")
     return `<div class="pch">`+p.choices.map((c,i)=>`<span><i>${"アイウエオ"[i]||(i+1)}</i>${esc(c)}</span>`).join("")
@@ -1835,11 +1956,16 @@ function prtItem(p,i,showUnit){
     +prtAnsArea(p)
     +`</div>`;
 }
+/* こたえ面の1問。わり算の筆算だけは 図が たてに 長い（8だんに なる）ので、
+   解説の 下ではなく 横に 置く＝1問の 高さが 図の 高さで 決まり、
+   6問が A4 1枚に 収まる（下に 積むと あふれて 空きページが 出る） */
 function prtAnsItem(p,i){
-  return `<div class="pa"><span class="pno">${i+1}</span><div class="pab">`
-    +`<div class="pav">${esc(ansText(p))}</div>`
-    +(p.figA?`<div class="pfig small">${p.figA}</div>`:"")
-    +`<div class="pae">${op(esc(p.exp||""))}</div>`
+  const fig=p.figA?`<div class="pfig small">${p.figA}</div>`:"";
+  const ans=`<div class="pav">${esc(ansText(p))}</div>`;
+  const exp=`<div class="pae">${op(esc(p.exp||""))}</div>`;
+  const side=!!(p.grid&&p.grid.hissan);
+  return `<div class="pa${side?" side":""}"><span class="pno">${i+1}</span><div class="pab">`
+    +(side?`<div class="pat">${ans}${exp}</div>${fig}`:ans+fig+exp)
     +`</div></div>`;
 }
 function prtCss(){
@@ -1883,13 +2009,17 @@ body{background:none!important;padding:0!important;min-height:0!important;
 /* 図の高さの 上限。ここを ゆるめると 6問が 1枚に 収まらなくなる */
 .pfig svg{max-width:100%;height:auto;max-height:31mm}
 .pit.wide .pfig svg{max-height:34mm}
-.pfig .wari{font-size:23px}
+/* わり算の筆算は マスの 大きさ(--cw)で 決まる。画面用の clamp() は 紙では
+   ビューポート幅に つられて あばれるので、必ず px で 上書きする */
+.pfig .wari{--cw:26px}
 .pfig .hissan{font-size:23px}
 .pfig .fexp{font-size:21px}
 .pfig .ptbl{font-size:9pt}
 .pfig .ptbl th,.pfig .ptbl td{padding:2px 5px;min-width:2.2em}
 .pfig .ic{border-color:#9A9284}
-.pspace{height:19mm}
+/* わり算の筆算の 問題面。かこいの下に 商・積・差を 手で 書き下していくので、
+   ここが せまいと 紙の 上で 筆算が 終わらない（1面 4問に した ぶんの余白） */
+.pspace{height:30mm}
 .pal{margin-top:6px;font-size:10pt}
 .pln{display:inline-block;min-width:22mm;border-bottom:1.2px solid #555;margin:0 3px}
 .pln.s2{min-width:12mm}
@@ -1906,15 +2036,18 @@ body{background:none!important;padding:0!important;min-height:0!important;
 .pa{display:flex;gap:7px;break-inside:avoid;page-break-inside:avoid;
   border-bottom:1px dashed #DED2BE;padding:5px 2px}
 .pab{flex:1}
+.pa.side .pab{display:flex;gap:10px;align-items:flex-start}
+.pa.side .pat{flex:1;min-width:0}
+.pa.side .pfig.small{flex:0 0 auto;margin:0}
 .pav{font-size:11pt;font-weight:900}
 .pae{font-size:9pt;color:#555;line-height:1.55;font-weight:500}
 .pfig.small{justify-content:flex-start;margin:2px 0}
 .pfig.small svg{max-height:22mm}
-.pfig.small .wari{font-size:15px}
+/* こたえ面は とちゅうの計算まで 全部 出る（8だんに なることがある）ので
+   ここを 大きくすると 6問が 1枚に 収まらなくなる（tests/es4-print.spec.js が 見張る） */
+.pfig.small .wari{--cw:13px}
 .pfig.small .hissan{font-size:15px}
 .pfig.small .fexp{font-size:15px}
-.pfig.small .wam{font-size:9pt;gap:5px;margin-top:2px}
-.pfig.small .wam .dgrid{font-size:15px}
 .pfoot{margin-top:9px;font-size:8.5pt;color:#8B877C;text-align:right}
 `;
 }

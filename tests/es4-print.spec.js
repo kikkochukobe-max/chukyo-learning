@@ -7,8 +7,9 @@
 //    12問なら 問題→こたえ→問題→こたえ（両面印刷で表=問題・裏=こたえになる順）。
 // ② その1面が A4（たて・上下余白11mm）に収まること。図の max-height を
 //    ゆるめたり 1面の問題数を増やすと あふれて 空きページが出る（CLAUDE.md/印刷の教訓）。
-// ③ わり算の筆算は「商が立つ位」だけを入力マスにして 上の位から右へ進む。
-//    たし算の筆算（一の位から左へ）と向きが逆で、そろえると手順と合わなくなる。
+// ③ わり算の筆算は 商だけでなく とちゅうの計算（かける・ひく・おろす・あまり）まで
+//    1マスずつ 書かせる。入力は 商 → 積 → 差 → 次の商 … の順で だんを またいで進み、
+//    たし算の筆算（一の位から左へ）とは 別の エンジン（grid.order/need）で 動く。
 const { test, expect } = require('@playwright/test');
 
 const URL = '/learning/math/math_es4_all.html';
@@ -97,54 +98,141 @@ test('どの単元のプリントも1面がA4（たて）に収まる', async ({
   }
 });
 
-/* わり算の筆算は「商が立つ位」だけが入力マスで、上の位から右へ進む。
-   画面に出ている わる数・わられる数から 商とあまりを計算して 打ち込み、
-   マスの数・入力の向き・採点までを ひととおり 確かめる。 */
-test('わり算の筆算: 商のマスは商のけた数ぶんで、上の位から入れて正解になる', async ({ page }) => {
+/* 単元チップは tapChip の きらめき演出ぶん（210ms）おくれて 出題が 始まる。
+   押した直後に 画面を 読むと 前の画面のままで、原因の わかりにくい
+   「rows[2] が undefined」で こける（実際に こけた） */
+async function startUnit(page, name) {
+  await page.goto(URL);
+  await page.locator('.chip', { hasText: name }).click();
+  await page.waitForSelector('#quiz:not([hidden])');
+  await page.waitForFunction(() => {
+    const f = document.getElementById('fig');
+    return document.getElementById('ansarea').children.length > 0 && f !== null;
+  });
+}
+
+/* わり算の筆算は 商だけでなく「かける・ひく・おろす・あまり」まで 1マスずつ 書かせる
+   （表示・入力順は わり算のひっ算マスター math_es4_warizan_hissan と同じ形）。
+   テスト側でも 筆算を もう一度 組み立てて、
+   ・入力の じゅんばん（商 → 積 → 差 → 次の商 …）
+   ・どのマスに 何が 入るか
+   ・商が 立たない位に × を 書かせること
+   を 画面の フォーカス移動と つき合わせる。 */
+function replayHissan(dividend, divisor) {
+  const digits = String(dividend).split('').map(Number);
+  const n = digits.length;
+  const need = {};                 // "だん,列" -> 入る文字
+  const order = [];                // 入力の じゅんばん
+  const steps = [];
+  let rem = 0, started = false;
+  for (let i = 0; i < n; i++) {
+    const cur = rem * 10 + digits[i];
+    const q = Math.floor(cur / divisor);
+    if (q > 0) started = true;
+    if (started) steps.push({ i, q, prod: q * divisor, rem: cur - q * divisor });
+    rem = cur - q * divisor;
+  }
+  const firstCol = steps.length ? steps[0].i : n;
+  const put = (r, right, v) => {
+    const s = String(v), cols = [];
+    for (let k = 0; k < s.length; k++) {
+      const c = right - (s.length - 1) + k;
+      need[`${r},${c}`] = s[k];
+      cols.push(`${r},${c}`);
+    }
+    return cols;
+  };
+  for (let c = 0; c < firstCol; c++) { need[`0,${c}`] = '×'; order.push(`0,${c}`); }
+  steps.forEach((s, k) => {
+    need[`0,${s.i}`] = String(s.q);
+    order.push(`0,${s.i}`);
+    order.push(...put(2 + k * 2, s.i, s.prod));                 // かけた数
+    if (k < steps.length - 1) {
+      if (s.rem !== 0) order.push(...put(3 + k * 2, s.i, s.rem)); // ひいた数（0のときは書かない）
+    } else {
+      order.push(...put(3 + k * 2, n - 1, rem));                 // あまり
+    }
+  });
+  return { need, order };
+}
+
+test('わり算の筆算: 商→かける→ひく の順に1マスずつ書いて正解になる', async ({ page }) => {
   let info = null;
   for (let t = 0; t < 12 && !info; t++) {
-    await page.goto(URL);
-    await page.locator('.chip', { hasText: 'わり算の筆算①' }).click();
+    await startUnit(page, 'わり算の筆算①');
     info = await page.evaluate(() => {
       const wari = document.querySelector('#fig .wari');
       if (!wari) return null;                      // 筆算以外の型が出たら引き直す
-      const rows = wari.querySelectorAll('.wrow');
-      const divisor = (rows[1].querySelector('.wl') || { textContent: '' }).textContent.trim();
-      const dividend = Array.from(rows[1].querySelectorAll('.dgrid .c'))
-        .map((c) => c.textContent.trim()).join('');
+      const rows = wari.querySelectorAll('.wbox .wrow');
       return {
-        divisor: Number(divisor),
-        dividend: Number(dividend),
-        qBoxes: wari.querySelectorAll('.ic:not(.no)').length,
-        rBoxes: document.querySelectorAll('#fig .wam .ic').length,
-        focusIsLeftmost: (() => {
-          const on = wari.querySelectorAll('.ic:not(.no)');
-          return on.length > 0 && on[0].classList.contains('foc');
-        })(),
+        divisor: Number(wari.querySelector('.wdrow').textContent.trim()),
+        dividend: Number(Array.from(rows[0].querySelectorAll('.c'))
+          .map((c) => c.textContent.trim()).join('')),
+        cells: wari.querySelectorAll('.ic').length,
       };
     });
   }
   expect(info, 'わり算の筆算の問題が出なかった').not.toBeNull();
-  const q = Math.floor(info.dividend / info.divisor);
-  const r = info.dividend % info.divisor;
-  expect(info.qBoxes, '商のマスの数').toBe(String(q).length);
-  expect(info.rBoxes, 'あまりのマスの数').toBe(String(info.divisor).length);
-  expect(info.focusIsLeftmost, '書きはじめは商のいちばん上の位').toBe(true);
+  const { need, order } = replayHissan(info.dividend, info.divisor);
+  expect(info.cells, '入力マスの数（とちゅうの計算ぶんも ある）').toBe(order.length);
 
-  const tap = async (d) => page.locator('#padarea .key')
-    .filter({ hasText: new RegExp(`^${d}$`) }).click();
-  for (const d of String(q)) await tap(d);        // 商（上の位から右へ）
-  for (const d of String(r)) await tap(d);        // 続けて あまり
+  // ×キーは「×入らない位」と2行に なっているので aria-label で つかむ
+  const tap = async (d) => (d === '×'
+    ? page.locator('#padarea .key[aria-label*="×"]')
+    : page.locator('#padarea .key').filter({ hasText: new RegExp(`^${d}$`) })).click();
+  for (const key of order) {
+    const foc = await page.evaluate(() => {
+      const el = document.querySelector('#fig .ic.foc');
+      return el && `${el.dataset.r},${el.dataset.c}`;
+    });
+    expect(foc, '入力の じゅんばん').toBe(key);
+    await tap(need[key]);
+  }
   await page.click('#go');
   await expect(page.locator('#fbt')).toHaveText('せいかい！');
   await expect(page.locator('#fbe')).toContainText(`${info.dividend}÷${info.divisor}`);
+  // 全マスに ○が つく（1マスずつ 採点している）
+  await expect(page.locator('#fig .ic.ok')).toHaveCount(order.length);
+  await expect(page.locator('#fig .ic.ng')).toHaveCount(0);
+});
+
+test('わり算の筆算: まちがえたマスだけ赤くなり、こたえは商とあまりで出る', async ({ page }) => {
+  let info = null;
+  for (let t = 0; t < 12 && !info; t++) {
+    await startUnit(page, 'わり算の筆算①');
+    info = await page.evaluate(() => {
+      const wari = document.querySelector('#fig .wari');
+      if (!wari) return null;
+      const rows = wari.querySelectorAll('.wbox .wrow');
+      return {
+        divisor: Number(wari.querySelector('.wdrow').textContent.trim()),
+        dividend: Number(Array.from(rows[0].querySelectorAll('.c'))
+          .map((c) => c.textContent.trim()).join('')),
+      };
+    });
+  }
+  expect(info).not.toBeNull();
+  const { need, order } = replayHissan(info.dividend, info.divisor);
+  const tap = async (d) => (d === '×'
+    ? page.locator('#padarea .key[aria-label*="×"]')
+    : page.locator('#padarea .key').filter({ hasText: new RegExp(`^${d}$`) })).click();
+  // 最後の1マスだけ わざと ちがう数字にする
+  for (const [i, key] of order.entries()) {
+    const v = need[key];
+    await tap(i === order.length - 1 ? (v === '9' || v === '×' ? '8' : '9') : v);
+  }
+  await page.click('#go');
+  await expect(page.locator('#fig .ic.ng')).toHaveCount(1);
+  await expect(page.locator('#fig .ic.ok')).toHaveCount(order.length - 1);
+  const q = Math.floor(info.dividend / info.divisor);
+  await expect(page.locator('#fbt'))
+    .toHaveText(`おしい！ 答えは 商 ${q}　あまり ${info.dividend % info.divisor}`);
 });
 
 /* 小数のひっ算は わり算とは 逆に「右の小さい位から 左へ」入力する。
    小数点の列は 打ってあって とばされること、整数（7 など）も 混ざることを 確かめる。 */
 test('小数のひっ算: 小さい位から入れて正解になり、小数点の列はとばされる', async ({ page }) => {
-  await page.goto(URL);
-  await page.locator('.chip', { hasText: '小数のひっ算' }).click();
+  await startUnit(page, '小数のひっ算');
   const info = await page.evaluate(() => {
     const rows = document.querySelectorAll('#fig .hissan .hrow');
     const read = (row) => Array.from(row.querySelectorAll('.c'))
