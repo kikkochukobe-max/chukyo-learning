@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- unit_key: math_jh1_kankeishiki  文字を使って関係を表す式マスター  中1 文字と式／等式・不等式 -->
+<!-- unit_key: math_js1_kankeishiki  文字を使って関係を表す式マスター  中1 文字と式／等式・不等式 -->
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -12,7 +12,7 @@
     --ink:#2d271f; --subink:#726352; --faint:#a89madd;
     --sakura:#c97b8e; --sakura-deep:#b1546c; --sakura-soft:#e8c6cf;
     --brass:#a67f36; --line:#dccfb3; --line2:#e7dcc4;
-    --seal:#bb3a2e; --ok:#4a7c59; --ng:#b25a4a;
+    --ok:#4a7c59; --ng:#b25a4a;
     --shadow:0 6px 22px rgba(70,55,30,.14);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -28,9 +28,11 @@
     color:var(--ink);
     font-family:"游ゴシック体","Yu Gothic","YuGothic","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
     -webkit-font-smoothing:antialiased;
-    display:flex; justify-content:center;
+    /* ⚠ body を flex にしない。共通ヘッダー(divp-header.js)は .wrap の兄弟として
+       body に挿入されるので、flex にすると横に並んで縦長の帯になる。
+       中央寄せは .wrap 側の margin:0 auto で行う */
   }
-  .wrap{width:100%; max-width:860px; padding:10px 12px 14px; position:relative;}
+  .wrap{width:100%; max-width:860px; margin:0 auto; padding:10px 12px 14px; position:relative;}
   .mincho{font-family:"游明朝体","Yu Mincho","YuMincho","Hiragino Mincho ProN","Noto Serif JP",serif;}
 
   /* ---- header ---- */
@@ -104,15 +106,16 @@
 
   .figwrap{margin:9px 0 4px; text-align:center; overflow-x:auto; padding:6px 2px;
     background:rgba(255,255,255,.5); border:1px solid var(--line2); border-radius:9px;}
+  /* 図の色・線は SVG の属性で直接書いている（CSSクラスにしない）。
+     誤答時に question_figure としてそのまま保存され、teacher.php の解き直し
+     プリントでは このページのCSSが無い状態で描かれるため（＝クラスにすると
+     線が見えない紙になる）。CLAUDE.md 2b */
   .fig{max-width:100%; height:auto;}
-  .stick{stroke:#b98b3f; stroke-width:5; stroke-linecap:round;}
-  .stone{fill:#3a3630; stroke:#211f1b; stroke-width:1;}
-  .fl{font-size:11px; fill:#726352; text-anchor:middle; font-family:"Yu Gothic","Hiragino Sans",sans-serif;}
-  .numbox{fill:#fff; stroke:#d9b96f; stroke-width:1.5;}
-  .numval{font-size:18px; fill:#2d271f; text-anchor:middle; font-family:"Yu Mincho",serif; font-weight:700;}
-  .seqarrow{font-size:15px; fill:#b0906a; text-anchor:middle;}
 
+  /* position:relative は共通モジュールの「正解」はんこ／「ナイスチャレンジ！」
+     バッジ（divp-correct-jh.js）の基準。生徒が書いた式の上に判子が落ちる */
   .inputbox{
+    position:relative;
     margin-top:9px; min-height:50px; display:flex; align-items:center; justify-content:center; flex-wrap:wrap;
     font-size:1.5rem; letter-spacing:.02em; padding:8px 14px; border-radius:11px;
     border:2px solid var(--sakura-soft); background:#fff;
@@ -181,26 +184,11 @@
   .modelbox .note{font-size:.72rem; color:var(--subink); margin-top:6px; line-height:1.5;}
   .msg-mini{font-size:.86rem; color:var(--subink); margin-top:6px;}
 
-  /* hanko stamp */
-  .stamp{
-    position:fixed; top:50%; left:50%; width:150px; height:150px; margin:-75px 0 0 -75px; z-index:60;
-    display:flex; align-items:center; justify-content:center; pointer-events:none; opacity:0;
-  }
-  .stamp.go{animation:stampin 1.1s ease-out forwards;}
-  .stamp .seal{
-    width:100%; height:100%; border:6px solid var(--seal); border-radius:16px;
-    display:flex; align-items:center; justify-content:center; color:var(--seal);
-    font-family:"Yu Mincho","Hiragino Mincho ProN",serif; font-weight:800; font-size:3.6rem;
-    background:rgba(255,246,240,.25); letter-spacing:.05em;
-    box-shadow:inset 0 0 0 2px rgba(187,58,46,.4);
-    text-shadow:0 0 1px rgba(187,58,46,.4);
-  }
-  @keyframes stampin{
-    0%{opacity:0; transform:scale(2.1) rotate(-16deg);}
-    18%{opacity:.96; transform:scale(.92) rotate(-8deg);}
-    30%{transform:scale(1.02) rotate(-8deg);}
-    75%{opacity:.96;}
-    100%{opacity:0; transform:scale(1) rotate(-8deg);}
+  /* 解き直し(?retry=1)の案内帯 */
+  #retryBanner{
+    background:#fbf3e0; border:1.5px solid var(--brass); border-radius:12px;
+    padding:10px 13px; margin-bottom:14px;
+    font-size:.82rem; line-height:1.65; color:#6e5518;
   }
 
   /* result */
@@ -235,6 +223,14 @@
 </style>
 </head>
 <body>
+<div class="divp-header"></div>
+<!-- 共通モジュール（学習記録・共通ヘッダー・正解はんこ）。
+     divp-correct-jh.js は Divp.correct を差し替えるので divp-core.js より後ろに置く。
+     ⚠ script は <body> 開始直後（<head> に置くとヘッダーが画面に出ない） -->
+<script src="/assets/divp-core.js" defer></script>
+<script src="/assets/divp-header.js" defer></script>
+<script src="/assets/divp-correct-jh.js" defer></script>
+
 <div class="wrap">
 
   <header class="top">
@@ -256,6 +252,7 @@
 
   <!-- ================= START ================= -->
   <div id="start">
+    <div id="retryBannerSlot"></div>
     <div class="card">
       <div class="seg-label">① 表す式の種類</div>
       <div class="seg" id="relSeg">
@@ -343,26 +340,72 @@
       <div class="score" id="scoreVal">0<small> / 10</small></div>
       <div class="rank mincho" id="rankVal"></div>
       <div class="comment" id="commentVal"></div>
+      <div class="msg-mini" id="scoreNote"></div>
       <div class="actions">
         <button class="btn again mincho" id="againBtn">もう一度</button>
         <button class="btn menu mincho" id="menuBtn">メニューへ</button>
       </div>
     </div>
   </div>
-
-  <div class="stamp" id="stamp"><div class="seal">正</div></div>
 </div>
 
 <script>
 "use strict";
 /* =========================================================
-   関係を表す式マスター  math_jh1_kankeishiki
+   関係を表す式マスター  unit_key = math_js1_kankeishiki
    採点：数値代入による同値判定（定数倍＋不等号の向き一致）
+
+   ■ 4点セット（CLAUDE.md）
+     ①記録   最初の「答え合わせ」で1問=1行を Divp.answer() に流す
+     ②正解エフェクト  divp-correct-jh.js の「正解」はんこ（自前の判子は廃止）
+     ③解き直し  ?retry=1 で pending を同じ問題として再出題（下の initRetry）
+     ④図     規則性の図は question_figure で保存し、解き直しプリントにも出す
+
+   ■ question_key = 「カテゴリ_式の種類」の12種類
+     kin/hei/hay/zu/ki/wari × eq/ineq（例: kin_eq, wari_ineq）。
+     「ランダム」「すべて」でも実際に出た組み合わせを記録する＝カルテが種類別に割れる。
+     日本語ラベルは db/seeds/seed_math_js1_kankeishiki.sql で question_catalog へ。
+
+   ■ 解き直しは「種(seed)方式」＝ CLAUDE.md 2d
+     出題に使う乱数は R() と P() の2つだけに集めてあり、出題のたびに種を1つ引いて
+     question_params:{g:生成関数のid, s:種} だけを保存する。?retry=1 では同じ id の
+     生成関数を同じ種で回すだけでまったく同じ問題が出るので、replay_json も
+     生成関数ごとの復元経路も要らない。
+     ⚠ 生成関数の id は「カテゴリ＋通し番号」を読み込み時に自動で振っている。
+       新しい生成関数は必ず各カテゴリの gens の末尾に足すこと（途中に挿入すると
+       id がずれて、既存 pending の種から別の問題が出る）。
+     ⚠ 生成関数の中身を変えた場合も、既存 pending から出る問題が変わる
+       （params_hash は同じままなので解き直し自体は成立する）。
    ========================================================= */
 
-/* ---------- 乱数ヘルパ ---------- */
-const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-const P=a=>a[Math.floor(Math.random()*a.length)];
+var UNIT_KEY='math_js1_kankeishiki';
+
+/* ---------- 共通モジュールの安全呼び出し（未読込・ローカルでも壊れない） ---------- */
+function safeDivp(fn){
+  try{
+    if(window.Divp && typeof window.Divp[fn]==='function'){
+      return window.Divp[fn].apply(window.Divp, [].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return null;
+}
+
+/* ---------- 乱数ヘルパ（xorshift32・種から決まった順に出る） ----------
+   出題の乱数は R()/P() だけを通す（種方式の前提）。
+   TP() は「種の外」で引くもの＝生成関数そのものと等式/不等式の抽選用。
+   judge() の代入値は Math.random のままでよい（問題の中身に影響しない）。 */
+let _rngState=1;
+function rngSeed(s){ _rngState=(s>>>0)||1; }
+function rngPick(){ return (Math.floor(Math.random()*4294967296)>>>0)||1; }
+function rngNext(){
+  let x=_rngState;
+  x^=x<<13; x>>>=0; x^=x>>>17; x^=x<<5; x>>>=0;
+  _rngState=x;
+  return x/4294967296;
+}
+const R=(a,b)=>a+Math.floor(rngNext()*(b-a+1));
+const P=a=>a[Math.floor(rngNext()*a.length)];
+const TP=a=>a[Math.floor(Math.random()*a.length)];
 
 /* ---------- 問題ジェネレータ ----------
    各 gen: {rel:'eq'|'ineq', vars:[表示する文字], make:()=>({text, ans})}
@@ -454,10 +497,31 @@ const CATS = {
   ]},
 };
 
-/* ---------- 規則性の図（SVG） ---------- */
+/* ---------- 生成関数の台帳（id → 生成関数） ----------
+   id は「カテゴリ＋通し番号」で、question_params.g にそのまま入る＝解き直しの復元キー。
+   ⚠ 新しい生成関数は各カテゴリの gens の末尾に足すこと（途中に挿入すると id がずれる）。 */
+const GEN_BY_ID={};
+Object.keys(CATS).forEach(catKey=>{
+  CATS[catKey].gens.forEach((g,i)=>{
+    g.id=catKey+(i+1);
+    g.cat=catKey;
+    GEN_BY_ID[g.id]=g;
+  });
+});
+/* question_key は「カテゴリ_式の種類」。question_catalog のキーと一致させる */
+function genKey(g){ return g.cat+'_'+g.rel; }
+
+/* ---------- 規則性の図（SVG） ----------
+   色・線の太さ・文字は SVG の属性で直接持たせる（CSSクラスにしない）。
+   誤答時に question_figure としてそのまま保存され、teacher.php の解き直し
+   プリントでは このページのCSSが無い状態で描かれるため。CLAUDE.md 2b
+   使っているタグ・属性は save_answer.php の FIG_TAGS / FIG_ATTRS の範囲内。 */
+const FIGFONT='Yu Gothic, Hiragino Sans, sans-serif';
+const FIGMINCHO='Yu Mincho, Hiragino Mincho ProN, serif';
 function svgWrap(inner,w,h){ return `<svg viewBox="0 0 ${w} ${h}" class="fig" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`; }
-function stick(x1,y1,x2,y2){ return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="stick"/>`; }
-function stone(cx,cy){ return `<circle cx="${cx}" cy="${cy}" r="5.2" class="stone"/>`; }
+function stick(x1,y1,x2,y2){ return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#b98b3f" stroke-width="5" stroke-linecap="round"/>`; }
+function stone(cx,cy){ return `<circle cx="${cx}" cy="${cy}" r="5.2" fill="#3a3630" stroke="#211f1b" stroke-width="1"/>`; }
+function figLabel(x,y,t){ return `<text x="${x}" y="${y}" font-size="11" fill="#726352" text-anchor="middle" font-family="${FIGFONT}">${t}</text>`; }
 
 function figMatchSquares(ns){
   const c=28, pad=10, gap=26, lh=18; let x=pad, parts='';
@@ -465,7 +529,7 @@ function figMatchSquares(ns){
   for(const n of ns){ const w=n*c, top=pad; let g='<g>';
     for(let i=0;i<n;i++){ g+=stick(x+i*c,top,x+(i+1)*c,top); g+=stick(x+i*c,top+c,x+(i+1)*c,top+c); }
     for(let i=0;i<=n;i++){ g+=stick(x+i*c,top,x+i*c,top+c); }
-    g+=`<text x="${x+w/2}" y="${top+c+lh-1}" class="fl">n=${n}</text></g>`;
+    g+=figLabel(x+w/2, top+c+lh-1, 'n='+n)+'</g>';
     parts+=g; x+=w+gap;
   }
   return svgWrap(parts,x-gap+pad,H);
@@ -479,7 +543,7 @@ function figMatchTriangles(ns){
     for(let k=0;k<npts-1;k++){ g+=stick(pts[k][0],pts[k][1],pts[k+1][0],pts[k+1][1]); }
     for(let k=0;k+2<npts;k++){ g+=stick(pts[k][0],pts[k][1],pts[k+2][0],pts[k+2][1]); }
     const w=(npts-1)*half;
-    g+=`<text x="${x+w/2}" y="${pad+h+lh-1}" class="fl">n=${n}</text></g>`;
+    g+=figLabel(x+w/2, pad+h+lh-1, 'n='+n)+'</g>';
     parts+=g; x+=w+gap;
   }
   return svgWrap(parts,x-gap+pad,H);
@@ -489,7 +553,7 @@ function figGoSquare(ns){
   const H=pad+maxN*d+lh+pad; let x=pad, parts='';
   for(const n of ns){ let g='<g>';
     for(let r=0;r<n;r++) for(let c=0;c<n;c++){ if(r===0||r===n-1||c===0||c===n-1){ g+=stone(x+c*d+d/2,pad+r*d+d/2); } }
-    const w=n*d; g+=`<text x="${x+w/2}" y="${pad+n*d+lh-3}" class="fl">1辺 ${n}個</text></g>`;
+    const w=n*d; g+=figLabel(x+w/2, pad+n*d+lh-3, '1辺 '+n+'個')+'</g>';
     parts+=g; x+=w+gap;
   }
   return svgWrap(parts,x-gap+pad,H);
@@ -499,7 +563,7 @@ function figGoTriangle(ns){
   const H=pad+(maxN-1)*dv+14+lh+pad; let x=pad, parts='';
   for(const n of ns){ const wRow=(n-1)*d, cx=x+wRow/2+8; let g='<g>';
     for(let i=0;i<n;i++) for(let j=0;j<=i;j++){ if(j===0||j===i||i===n-1){ g+=stone(cx+(j-i/2)*d, pad+i*dv+8); } }
-    g+=`<text x="${x+(wRow+16)/2}" y="${pad+(n-1)*dv+14+lh-4}" class="fl">1辺 ${n}個</text></g>`;
+    g+=figLabel(x+(wRow+16)/2, pad+(n-1)*dv+14+lh-4, '1辺 '+n+'個')+'</g>';
     parts+=g; x+=wRow+16+gap;
   }
   return svgWrap(parts,x-gap+pad,H);
@@ -508,10 +572,10 @@ function figSequence(s,d){
   const terms=[0,1,2,3].map(k=>s+d*k);
   const bw=52, bh=38, gap=16, pad=8, lh=16; let parts='', x=pad;
   terms.forEach((v,k)=>{
-    parts+=`<rect x="${x}" y="${pad}" width="${bw}" height="${bh}" rx="8" class="numbox"/>`;
-    parts+=`<text x="${x+bw/2}" y="${pad+bh/2+7}" class="numval">${v}</text>`;
-    parts+=`<text x="${x+bw/2}" y="${pad+bh+lh-2}" class="fl">${k+1}番目</text>`;
-    if(k<terms.length-1){ parts+=`<text x="${x+bw+gap/2}" y="${pad+bh/2+6}" class="seqarrow">→</text>`; }
+    parts+=`<rect x="${x}" y="${pad}" width="${bw}" height="${bh}" rx="8" fill="#ffffff" stroke="#d9b96f" stroke-width="1.5"/>`;
+    parts+=`<text x="${x+bw/2}" y="${pad+bh/2+7}" font-size="18" font-weight="700" fill="#2d271f" text-anchor="middle" font-family="${FIGMINCHO}">${v}</text>`;
+    parts+=figLabel(x+bw/2, pad+bh+lh-2, (k+1)+'番目');
+    if(k<terms.length-1){ parts+=`<text x="${x+bw+gap/2}" y="${pad+bh/2+6}" font-size="15" fill="#b0906a" text-anchor="middle" font-family="${FIGFONT}">→</text>`; }
     x+=bw+gap;
   });
   return svgWrap(parts,x-gap+pad+6,pad+bh+lh+pad);
@@ -655,10 +719,58 @@ function prettyMath(str){
   return _renderSide(str);
 }
 
+/* =========================================================
+   模範解答 → 記録用の1行テキスト（CLAUDE.md 2a の数式マーカー）
+   画面では ÷ を分数バーで見せているので、講師・保護者画面でも同じ形に見えるよう
+   F(分子/分母) に書き出す。mypage.php / retry.php / teacher.php の
+   renderMathToHTML が F() を KaTeX の分数に直す。
+   ⚠ その F() は「中にかっこもスラッシュも無い」ものだけを分数にするので、
+     分子にかっこが残る式（台形の (a+b)h÷2 など）は ÷ のまま出す
+     （マーカーが生文字で出るより読める）。
+   ========================================================= */
+function _M(node){
+  switch(node.t){
+    case 'num': return {s:String(node.v), p:5};
+    case 'pi':  return {s:'π', p:5};
+    case 'var': return {s:_vname(node.n), p:5};
+    case 'neg':{ const c=_M(node.e); return {s:'-'+(c.p<3?'('+c.s+')':c.s), p:2}; }
+    case 'pow':{ const b=_M(node.b),e=_M(node.e);
+      const sup = e.s==='2' ? '²' : e.s==='3' ? '³' : '^'+e.s;
+      return {s:(b.p<4?'('+b.s+')':b.s)+sup, p:4}; }
+    case 'bin':{
+      if(node.op==='/'){
+        const nu=_M(node.l),de=_M(node.r);
+        if(!/[()\/]/.test(nu.s) && !/[()\/]/.test(de.s)){
+          // 分数バーが かっこの代わりに くくるので、分子の (a+b+c) は付け直さない
+          return {s:'F('+nu.s+'/'+de.s+')', p:4};
+        }
+        return {s:(nu.p<2?'('+nu.s+')':nu.s)+'÷'+(de.p<3?'('+de.s+')':de.s), p:2};
+      }
+      if(node.op==='*'){ const l=_M(node.l),r=_M(node.r);
+        const ls=(l.p<2?'('+l.s+')':l.s), rs=(r.p<2?'('+r.s+')':r.s);
+        const j=(/[0-9]$/.test(ls)&&/^[0-9]/.test(rs))?'×':'';
+        return {s:ls+j+rs, p:2}; }
+      const l=_M(node.l),r=_M(node.r);
+      const ls=(l.p<1?'('+l.s+')':l.s), rs=(r.p<1?'('+r.s+')':r.s);
+      return {s:ls+(node.op==='+'?'+':'-')+rs, p:1};
+    }
+  }
+  return {s:'',p:5};
+}
+function ansMarker(str){
+  const rp=parseRelation(tokenize(str));
+  if(!rp) return str;                       // 読めなければ そのまま（記録は落とさない）
+  return _M(rp.l).s+_mrel(rp.rel)+_M(rp.r).s;
+}
+
 
 const TOTAL=10;
 let mode={rel:'random',cat:'kin'};
-let qList=[], qi=0, correctCount=0, cur=null, answered=false, wrongTries=0, input='';
+let qList=[], qTotal=TOTAL, qi=0, correctCount=0, cur=null, answered=false, wrongTries=0, input='';
+/* 1問=1行の記録は「最初の答え合わせ」だけ。logged で二重送信を防ぐ */
+let logged=false, qStart=0;
+/* 解き直し（?retry=1） */
+let retryMode=false;
 
 const $=id=>document.getElementById(id);
 
@@ -667,24 +779,41 @@ $('relSeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(
 $('catGrid').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return; [...$('catGrid').children].forEach(x=>x.classList.remove('on')); b.classList.add('on'); mode.cat=b.dataset.cat;});
 $('startBtn').addEventListener('click',startQuiz);
 $('againBtn').addEventListener('click',startQuiz);
-$('menuBtn').addEventListener('click',()=>{ $('result').style.display='none'; $('quiz').style.display='none'; $('start').style.display='block'; });
-$('homeBtn').addEventListener('click',()=>{ $('quiz').style.display='none'; $('result').style.display='none'; $('start').style.display='block'; });
+$('menuBtn').addEventListener('click',backHome);
+$('homeBtn').addEventListener('click',backHome);
+
+function backHome(){
+  retryMode=false;
+  $('quiz').style.display='none'; $('result').style.display='none'; $('start').style.display='block';
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+
+/* 生成関数の id と種から問題を作る。?retry=1 はここに保存済みの2値を渡すだけ */
+function makeQuestion(genId,seed){
+  const g=GEN_BY_ID[genId];
+  if(!g) return null;
+  rngSeed(seed);
+  const q=g.make();
+  return {genId, seed, qkey:genKey(g), catName:CATS[g.cat].name,
+          rel:g.rel, vars:g.vars, text:q.text, ans:q.ans, fig:q.fig||null};
+}
 
 function pickQuestion(){
   const cats = mode.cat==='all' ? Object.keys(CATS) : [mode.cat];
-  const want = mode.rel==='random' ? P(['eq','ineq']) : mode.rel;
+  const want = mode.rel==='random' ? TP(['eq','ineq']) : mode.rel;
   let pool=[];
-  for(const c of cats){ for(const g of CATS[c].gens){ if(g.rel===want) pool.push({c,g}); } }
-  const sel=P(pool); const q=sel.g.make();
-  return {catName:CATS[sel.c].name, rel:sel.g.rel, vars:sel.g.vars, text:q.text, ans:q.ans, fig:q.fig||null};
+  for(const c of cats){ for(const g of CATS[c].gens){ if(g.rel===want) pool.push(g); } }
+  // 生成関数と種は「種の外」で引く（種は問題の中身だけを決める）
+  return makeQuestion(TP(pool).id, rngPick());
 }
 
 function startQuiz(){
+  retryMode=false;
+  qTotal=TOTAL;
   qList=[]; for(let i=0;i<TOTAL;i++) qList.push(pickQuestion());
   qi=0; correctCount=0;
   $('start').style.display='none'; $('result').style.display='none'; $('quiz').style.display='block';
   loadQuestion();
-  try{ if(window.Divp&&Divp.log) Divp.log('math_jh1_kankeishiki','start',{mode}); }catch(e){}
 }
 
 /* --- keypad definitions --- */
@@ -760,11 +889,16 @@ function renderInput(){
 
 function loadQuestion(){
   cur=qList[qi]; answered=false; wrongTries=0; input='';
-  $('prog').textContent=`第 ${qi+1} 問 / ${TOTAL}`;
-  $('progFill').style.width=`${(qi/TOTAL)*100}%`;
+  logged=false; qStart=Date.now();
+  // 前の問題の「正解」はんこ（divp-correct-jh）が残っていたら消す
+  document.querySelectorAll('.divp-hanko,.divp-nice').forEach(e=>e.remove());
+  $('prog').textContent = retryMode ? `解き直し ${qi+1} / ${qTotal}` : `第 ${qi+1} 問 / ${qTotal}`;
+  $('progFill').style.width=`${(qi/qTotal)*100}%`;
   $('bCat').textContent=cur.catName;
   const br=$('bRel');
-  const ml = mode.rel==='eq' ? {t:'等式',c:'rel-eq'} : mode.rel==='ineq' ? {t:'不等式',c:'rel-ineq'} : {t:'ランダム',c:'rel-rand'};
+  const ml = retryMode ? {t:'解き直し',c:'rel-rand'}
+           : mode.rel==='eq' ? {t:'等式',c:'rel-eq'}
+           : mode.rel==='ineq' ? {t:'不等式',c:'rel-ineq'} : {t:'ランダム',c:'rel-rand'};
   br.textContent=ml.t; br.className='badge '+ml.c;
   const qt=$('qtext');
   const figHtml = cur.fig ? `<div class="figwrap">${cur.fig}</div>` : '';
@@ -774,23 +908,59 @@ function loadQuestion(){
   $('checkBtn').style.display='block'; $('giveupBtn').style.display='block'; $('nextBtn').style.display='none';
 }
 
+/* ---------- 学習記録（1問=1行） ----------
+   このツールは正解するまで何度でも答え合わせできるので、記録するのは
+   「最初の答え合わせ」の結果だけ（何度も送ると1問で複数行になり、
+   解答数も正答率も水増しになる）。1回も答え合わせせずに「答えを見る」を
+   押した場合も、その時点で誤答として1行記録する。
+   ⚠ 2回目以降に正解しても記録は誤答のまま＝retry_queue に入る。
+     ブルートフォースで正解にできてしまうと解き直しリストが永久に減らないため。 */
+function recordAnswer(ok,studentInput){
+  if(logged) return;
+  logged=true;
+  const sec=Math.round((Date.now()-qStart)/1000);
+  safeDivp('answer', ok, {
+    question_key: cur.qkey,
+    question_params: {g:cur.genId, s:cur.seed},   // 種方式：この2つで同じ問題を作り直せる
+    question_text: cur.text+' → 数量の関係を式で表しなさい。',
+    question_figure: cur.fig || null,             // 規則性の図（誤答のときだけ保存される）
+    correct_answer: ansMarker(cur.ans),
+    wrong_answer: ok ? null : ((studentInput||'').trim() || '（無記入で答えを見た）'),
+    time_taken_sec: (sec>0 && sec<600) ? sec : null
+  });
+}
+
 $('checkBtn').addEventListener('click',()=>{
   if(answered)return;
   if(input.trim()===''){ shakeInput(); mini('式を入力してね。'); return; }
   const res=judge(cur.ans,input);
+  /* 式として読めない入力は「答え」として扱わない＝記録も得点も動かさない。
+     キーパッドの打ちかけ（「3x+15=」など）で答え合わせを押しただけで
+     誤答が1行残り、知っている問題が解き直しリストに入るのを防ぐ。
+     未入力（上のガード）と同じあつかいで、やり直しをうながすだけにする。 */
+  if(!res.ok && (res.err==='parse'||res.err==='internal')){
+    shakeInput();
+    mini('式が読み取れないよ。数字・文字・記号を確かめてね。');
+    return;
+  }
+  recordAnswer(res.ok, input);
   if(res.ok){ markCorrect(); }
   else{
     wrongTries++;
     shakeInput();
-    if(res.err==='parse'){ mini('式が読み取れないよ。数字・文字・記号を確かめてね。'); }
-    else if(res.err==='op'){ mini('関係（＝や不等号）の向き・種類をもう一度考えよう。'); }
+    safeDivp('incorrect','#inputBox');
+    if(res.err==='op'){ mini('関係（＝や不等号）の向き・種類をもう一度考えよう。'); }
     else{ mini(wrongTries>=2 ? 'おしい！左辺と右辺が表す数量をもう一度整理してみよう。' : 'ちがうみたい。もう一度考えてみよう。'); }
   }
 });
-$('giveupBtn').addEventListener('click',()=>{ if(answered)return; revealAnswer(false); });
+$('giveupBtn').addEventListener('click',()=>{
+  if(answered)return;
+  recordAnswer(false, input);
+  revealAnswer(false);
+});
 $('nextBtn').addEventListener('click',()=>{
   qi++;
-  if(qi>=TOTAL) showResult();
+  if(qi>=qTotal) showResult();
   else loadQuestion();
 });
 
@@ -805,10 +975,11 @@ function mini(t){
 function shakeInput(){ const b=$('inputBox'); b.classList.add('shake'); setTimeout(()=>b.classList.remove('shake'),400); }
 
 function markCorrect(){
-  answered=true; correctCount++;
+  answered=true;
+  // 得点は「一発正解」だけを数える＝記録(answer_logs)と画面の点が食い違わないように
+  if(wrongTries===0) correctCount++;
   playStamp();
   revealAnswer(true);
-  try{ if(window.Divp&&Divp.log) Divp.log('math_jh1_kankeishiki','answer',{q:qi+1,ok:true,ans:cur.ans,input}); }catch(e){}
 }
 function revealAnswer(ok){
   answered=true;
@@ -823,18 +994,28 @@ function revealAnswer(ok){
     : '※ 左辺と右辺が表す数量が等しくなるように立式します。両辺を入れかえた形など、同じ関係を表す式ならすべて正解です。';
   const live=f.querySelector('.msg-mini-live'); if(live) live.remove();
   $('checkBtn').style.display='none'; $('giveupBtn').style.display='none'; $('nextBtn').style.display='block';
-  $('progFill').style.width=`${((qi+1)/TOTAL)*100}%`;
-  if(!ok){ try{ if(window.Divp&&Divp.log) Divp.log('math_jh1_kankeishiki','answer',{q:qi+1,ok:false,ans:cur.ans,input}); }catch(e){} }
+  $('nextBtn').textContent = (qi+1>=qTotal) ? '結果を見る →' : '次の問題 →';
+  $('progFill').style.width=`${((qi+1)/qTotal)*100}%`;
 }
 
+/* 正解エフェクトは共通モジュール（divp-correct-jh.js の「正解」はんこ）。
+   生徒が書いた式（#inputBox）の上に落として「丸つけ」に見せる。
+   カードごと作り直すわけではないので自動フェードで消す
+   （renderInput() が #inputBox を書き替えたときにも一緒に消える） */
 function playStamp(){
-  const s=$('stamp'); s.classList.remove('go'); void s.offsetWidth; s.classList.add('go');
-  try{ if(window.Divp&&Divp.correctJh) Divp.correctJh(s); }catch(e){}
+  safeDivp('correct','#inputBox',{fadeMs:1300});
 }
 
 function showResult(){
   $('quiz').style.display='none'; $('result').style.display='block';
-  $('scoreVal').innerHTML=`${correctCount}<small> / ${TOTAL}</small>`;
+  $('scoreVal').innerHTML=`${correctCount}<small> / ${qTotal}</small>`;
+  $('scoreNote').textContent='※ 1回目の答え合わせで正解した問題を数えています。';
+  $('againBtn').style.display = retryMode ? 'none' : '';
+  if(retryMode){
+    $('rankVal').textContent='';
+    $('commentVal').textContent='解き直しおつかれさま。同じ問題に2回続けて正解すると、解き直しリストから消えます。';
+    return;
+  }
   const r=correctCount;
   let rank,comment;
   if(r===10){ rank='皆伝'; comment='全問正解！文字を使った立式が完ぺきに身についています。'; }
@@ -844,8 +1025,55 @@ function showResult(){
   else{ rank='入門'; comment='まずは「何と何が等しい／どちらが大きい」を言葉で整理してから式にしよう。'; }
   $('rankVal').textContent='段位　'+rank;
   $('commentVal').textContent=comment;
-  try{ if(window.Divp&&Divp.log) Divp.log('math_jh1_kankeishiki','finish',{score:r,mode}); }catch(e){}
 }
+
+/* =========================================================
+   解き直し（?retry=1）
+   マイページの「解き直し」から開かれたときだけ動く。pending の
+   question_params {g:生成関数のid, s:種} で同じ問題を作り直して並べる。
+   判定後は通常どおり Divp.answer が飛び、params_hash も同じなので
+   2連続正解で save_answer.php が mastered にする。
+   ========================================================= */
+const RETRY_MAX=10;   // 1回で出す上限（多すぎると終わらないので区切る）
+
+function showRetryBanner(msg){
+  let e=$('retryBanner');
+  if(!e){ e=document.createElement('div'); e.id='retryBanner'; $('retryBannerSlot').appendChild(e); }
+  e.textContent=msg;
+}
+
+function startRetry(items){
+  qList=items.map(it=>makeQuestion(it.question_params.g, it.question_params.s>>>0)).filter(Boolean);
+  if(!qList.length){ showRetryBanner('解き直せる問題はまだありません。まちがえた問題がここにたまっていきます。'); return; }
+  retryMode=true;
+  mode.rel='random';          // どの記号を使うかは伏せる＝キーは5つ全部出す
+  qTotal=qList.length; qi=0; correctCount=0;
+  $('start').style.display='none'; $('result').style.display='none'; $('quiz').style.display='block';
+  loadQuestion();
+}
+
+function initRetry(){
+  if(!(window.Divp && typeof Divp.getRetries==='function')) return;
+  Divp.getRetries().then(items=>{
+    const use=(items||[]).filter(it=>{
+      const p=it&&it.question_params;
+      return p && GEN_BY_ID[p.g] && typeof p.s==='number';
+    }).slice(0,RETRY_MAX);
+    if(!use.length){
+      showRetryBanner('解き直せる問題はまだありません。まちがえた問題がここにたまっていきます。');
+      return;
+    }
+    startRetry(use);
+  }).catch(()=>{});
+}
+
+/* 共通モジュールは defer で読まれるので、DOM構築後に初期化する */
+window.addEventListener('DOMContentLoaded',()=>{
+  safeDivp('init', UNIT_KEY);
+  if(/[?&]retry=1/.test(location.search)){
+    try{ initRetry(); }catch(e){}
+  }
+});
 </script>
 </body>
 </html>
