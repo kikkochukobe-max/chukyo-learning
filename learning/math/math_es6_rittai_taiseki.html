@@ -827,9 +827,84 @@ function backPath(loop,run,T){
   }
   return s;
 }
+/* 辺 i（loop[i]→loop[i+1]）の むき。長さ0の 辺（円の つなぎ目）は null */
+function edgeDir(loop,i){
+  var m = loop.length, p = loop[i], q = loop[(i+1)%m];
+  var dx = q.x-p.x, dy = q.y-p.y, len = Math.sqrt(dx*dx+dy*dy);
+  return (len < 0.01) ? null : { x:dx/len, y:dy/len };
+}
+/* 辺 i から step のむきに たどって、はじめに 出てくる 長さのある 辺の むき */
+function dirNear(loop,i,step){
+  var m = loop.length, t, d;
+  for(t=0;t<m;t++){
+    d = edgeDir(loop, ((i + step*t) % m + m) % m);
+    if(d) return d;
+  }
+  return null;
+}
+/* ちょう点 i が ほんとうの「かど」か。
+   s フラグだけで 見ると、円（0〜2πの 弧）の つなぎ目が かど あつかいに なり、
+   そこに あるはずのない 線が 出る（パイプの 内がわで 実際に そう 見えた）ので、
+   辺の むきが じゅうぶん 変わって いるかも たしかめる */
+function isCorner(loop,i){
+  if(loop[i].s) return false;
+  var m = loop.length, a = dirNear(loop, (i-1+m)%m, -1), b = dirNear(loop, i, 1);
+  if(!a || !b) return false;
+  return (a.x*b.x + a.y*b.y) < 0.985;      /* 10度くらい 曲がって いれば かど */
+}
+/* 点線を ためる 入れもの。前の 線の おわりから つづく ときは M を つけない
+   （点の 数が 多い 円でも パスを 短く できる＝図は そのまま DBに 入るので） */
+function dashBag(){
+  var s = "", last = null;
+  return {
+    add: function(x1,y1,x2,y2){
+      if(Math.abs(x2-x1) < 0.01 && Math.abs(y2-y1) < 0.01) return;
+      if(!last || Math.abs(last.x-x1) > 0.01 || Math.abs(last.y-y1) > 0.01)
+        s += " M"+n2(x1)+","+n2(y1);
+      s += " L"+n2(x2)+","+n2(y2);
+      last = { x:x2, y:y2 };
+    },
+    out: function(){ return s; }
+  };
+}
+/* 線ぶんの うち「穴の あなから 見えて いない」ところだけを 点線に する。
+   穴の 中に 入って いる ぶんは ほんとうに 見えている＝帯の りんかくとして
+   実線で 出ているので、点線を かさねない */
+function addOutside(bag,loop,x1,y1,x2,y2){
+  var N = 8, i, mx, my, a = null, b = 0, one = [loop];
+  function put(){
+    if(a === null) return;
+    bag.add(x1+(x2-x1)*a, y1+(y2-y1)*a, x1+(x2-x1)*b, y1+(y2-y1)*b);
+    a = null;
+  }
+  /* たいていの 辺は 丸ごと 外か 丸ごと 中。先に 3点で ためして 早く 決める */
+  var i0 = inLoops(one,x1,y1), i1 = inLoops(one,x2,y2),
+      im = inLoops(one,(x1+x2)/2,(y1+y2)/2);
+  if(!i0 && !i1 && !im){ bag.add(x1,y1,x2,y2); return; }
+  if(i0 && i1 && im) return;
+  for(i=0;i<N;i++){
+    mx = x1 + (x2-x1)*(i+0.5)/N; my = y1 + (y2-y1)*(i+0.5)/N;
+    if(inLoops(one,mx,my)) put();
+    else { if(a === null) a = i/N; b = (i+1)/N; }
+  }
+  put();
+}
+/* 穴の かくれた線（点線）。奥の ふちを ぐるっと 1周ぶんと、かどの たての へり。
+   どちらも 穴の あなから 見えて いない ところだけ 引く。
+   loop は 画面の 座標、T は 奥へ ずらす 量（画面の 座標） */
+function holeHidden(loop,T){
+  var m = loop.length, bag = dashBag(), i, p, q;
+  for(i=0;i<m;i++){
+    p = loop[i]; q = loop[(i+1)%m];
+    addOutside(bag, loop, p.x+T.x, p.y+T.y, q.x+T.x, q.y+T.y);
+  }
+  for(i=0;i<m;i++) if(isCorner(loop,i))
+    addOutside(bag, loop, loop[i].x, loop[i].y, loop[i].x+T.x, loop[i].y+T.y);
+  return bag.out();
+}
 /* 輪郭を 奥へ ずらして 立体にする */
 function extrude(loops,T){
-  var band = "", hidden = "", k, i, r, t;
+  var band = "", holeBand = "", hidden = "", k, i, r, t;
   loops = normLoops(loops);
   for(k=0;k<loops.length;k++){
     var loop = loops[k], m = loop.length, v = [];
@@ -837,28 +912,39 @@ function extrude(loops,T){
     var runs = runsOf(v,true);
     for(r=0;r<runs.length;r++){
       var subs = splitAtCorners(loop, runs[r]);
-      for(t=0;t<subs.length;t++) band += bandPath(loop, subs[t], T);
+      /* 穴の 内がわの 面は 別の path に する。奥ゆきが 深いと 帯が 手前の面の
+         りんかくより 外まで のびる＝外まわりの よこの面で かくれる ところが
+         あるので、先に 描いて 上から ぬりつぶして もらう
+         （1枚の path に まとめると、ぬりは ぜんぶ 先・線は ぜんぶ 後に なるので
+           かくれるはずの 線が 上に 出る。パイプで 実際に そう 見えた） */
+      for(t=0;t<subs.length;t++){
+        if(k === 0) band     += bandPath(loop, subs[t], T);
+        else        holeBand += bandPath(loop, subs[t], T);
+      }
     }
-    /* かくれた線は 外まわり(k===0)だけ 点線で 見せる。
-       穴(k>0)の かくれた線まで 出すと、穴の 奥の ふちが 手前の面を
-       ななめに よこぎって、小6には 何の線か わからない 図に なる
-       （パイプ・四角い穴の 柱で 実際に そう 見えた）。
-       穴の「見える 内がわの 面」の ふちは 帯の 輪郭として 出るので、
-       穴が つきぬけている ことは それで 伝わる。 */
+    /* 見えない辺は 教科書と同じで 点線に する。外まわり(k===0)と 穴(k>0)で
+       かくれ方が ちがうので 分けて 出す。
+       ・外まわり … 見えない よこの面の 奥のふちと、その 間の たてのへり
+       ・穴 …… 奥の ふちは ぐるっと ぜんぶ かくれている（手前の面の 裏に なる）。
+                穴が 大きく 奥ゆきが 浅いと 奥の ふちが あなから のぞくので、
+                そこだけは 実線（帯の りんかく）に まかせる＝holeHidden が
+                「あなの 中に 入って いない ところ」だけ 点線に する */
     if(k === 0){
       var hruns = runsOf(v,false);
       for(r=0;r<hruns.length;r++) hidden += backPath(loop, hruns[r], T);
-      /* かくれた たての 線。「かど」だけに 引く（!loop[i].s）。
+      /* かくれた たての 線。「かど」だけに 引く。
          弧の 途中の 点にも 引くと、点の 数だけ 線が 出て 扇のように なる
          （半円・ドーナツを 押し出したとき、弧を 何十個の 点で 表しているため） */
       for(i=0;i<m;i++){
-        if(!v[(i-1+m)%m] && !v[i] && !loop[i].s)
+        if(!v[(i-1+m)%m] && !v[i] && isCorner(loop,i))
           hidden += " M"+n2(loop[i].x)+","+n2(loop[i].y)
                  +  " L"+n2(loop[i].x+T.x)+","+n2(loop[i].y+T.y);
       }
+    }else{
+      hidden += holeHidden(loop, T);
     }
   }
-  return { band:band, hidden:hidden, front:loopsPath(loops) };
+  return { band:band, holeBand:holeBand, hidden:hidden, front:loopsPath(loops) };
 }
 
 /* =====================================================================
@@ -866,12 +952,17 @@ function extrude(loops,T){
    shape(k) → {loops, deco, w, h, exact?}   k = 1cmあたりの px
    ===================================================================== */
 function P(x,y,s){ return { x:x, y:y, s:!!s }; }
-/* 円・弧を 点の ならびに する。なめらかな点は s:true */
+/* 円・弧を 点の ならびに する。なめらかな点は s:true。
+   1周ぶん（0〜2π）の ときは 終わりの 点が 始まりの 点と 同じに なるので 入れない。
+   入れると そこに 長さ0の 辺が でき、見える 面の ならびが そこで 切れて
+   （見えない辺 あつかいに なる）、円の いちばん右に あるはずのない 線が 1本 出る
+   ＝パイプの よこの面で 実際に そう 見えた */
 function arcPts(cx,cy,r,a1,a2,seg){
-  var out = [], i, a;
-  for(i=0;i<=seg;i++){
+  var out = [], i, a, full = Math.abs(Math.abs(a2-a1) - Math.PI*2) < 1e-6;
+  var last = full ? seg-1 : seg;
+  for(i=0;i<=last;i++){
     a = a1 + (a2-a1)*i/seg;
-    out.push(P(cx + r*Math.cos(a), cy - r*Math.sin(a), i>0 && i<seg));
+    out.push(P(cx + r*Math.cos(a), cy - r*Math.sin(a), full || (i>0 && i<seg)));
   }
   return out;
 }
@@ -1094,7 +1185,11 @@ function prismSVG(shapeFn,depthCm,hLabel,opts){
   var e = extrude(s.loops, T);
   var W = s.w + T.x + PL + PR, pad = padX(W);
   var g = '<g transform="translate('+n2(PL+pad)+','+n2(PT-T.y)+')">'
-    /* ① 見える よこの面 */
+    /* ①-1 穴の 内がわの 面（外まわりの 面より 先に。奥ゆきが 深いと
+            はみ出す ぶんを ②の 面と ①-2で おおって もらう） */
+    + (e.holeBand ? '<path d="'+e.holeBand+'" fill="'+C.side+'" stroke="'+C.edge
+                    + '" stroke-width="1.9" stroke-linejoin="round"/>' : "")
+    /* ①-2 見える よこの面 */
     + '<path d="'+e.band+'" fill="'+C.side+'" stroke="'+C.edge+'" stroke-width="1.9"'
     + ' stroke-linejoin="round"/>'
     /* ② 手前の面（底面）。ぬりつぶして 奥の 線を おおう */
@@ -1200,11 +1295,21 @@ function standSVG(base,HCm,hLabel,opts){
       faces.push({ d: (p0.y+q0.y)/2 - ST_A*(p0.x+q0.x)/2,
                    p: stBandPath(lp, i, pt, HCm) });
     }
-    /* かくれた線は 外まわりだけ（穴の 奥の ふちまで 出すと 何の線か わからない） */
+    /* 見えない辺は 点線に する（ねかせた向き extrude と 同じ 考え方）。
+       穴は 下の ふちが ぜんぶ 立体の 中で かくれるので、上の面に 投影した
+       あなの 中に 入って いない ところだけ 点線で 引く */
     if(L === 0){
       hr = runsOf(vis,false);
       for(i=0;i<hr.length;i++) hidden += stBackPath(lp, hr[i], pt);
-      for(i=0;i<m;i++) if(!vis[(i-1+m)%m] && !vis[i]) hidden += stVertPath(lp[i], pt, HCm);
+      for(i=0;i<m;i++) if(!vis[(i-1+m)%m] && !vis[i] && isCorner(lp,i))
+        hidden += stVertPath(lp[i], pt, HCm);
+    }else{
+      /* 上の面(z=HCm)に 投影した あな。下の ふちは そこから まっすぐ 下へ
+         HCm*k ずれた ところに ある＝ねかせた向きと 同じ 形で あつかえる */
+      hidden += holeHidden(lp.map(function(p){
+        var a = pt(p.x,p.y,HCm);
+        return { x:a.x, y:a.y, s:p.s };
+      }), { x:0, y:HCm*k });
     }
   }
   faces.sort(function(a,b){ return b.d - a.d; });
