@@ -1,0 +1,2367 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一次関数マスター 文章題編 | 中京個別指導学院</title>
+<!-- 本番デプロイ時: KaTeXは自前ホスティング(サブセット済woff2)に差し替えること -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBFAF6;
+  --grid:#ECE9E0;
+  --sumi:#33312B;
+  --usuzumi:#8B877C;
+  --shu:#C73E2E;
+  --ai:#2C5F8A;
+  --kin:#C9A227;
+  --orange:#D89A45;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  font-family:'Zen Kaku Gothic New',sans-serif;
+  color:var(--sumi);
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:24px 24px;
+  min-height:100vh;
+}
+h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
+.wrap{max-width:720px;margin:0 auto;padding:16px 16px 64px;}
+
+/* ---------- header ---------- */
+.site-head{
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  padding:14px 4px 10px;
+  border-bottom:3px double var(--shu);
+  margin-bottom:18px;
+}
+.site-head h1{font-size:clamp(19px,5vw,25px);letter-spacing:.05em;}
+.site-head h1 .accent{color:var(--shu);}
+.site-head .sub{font-size:12px;color:var(--usuzumi);letter-spacing:.1em;}
+
+/* ---------- category / step select ---------- */
+.intro{font-size:13.5px;color:var(--usuzumi);margin:0 4px 16px;line-height:1.7;}
+.lv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.lv-card{
+  position:relative;background:#fff;
+  border:1.5px solid var(--grid);border-radius:12px;
+  padding:12px 11px 10px;cursor:pointer;text-align:left;
+  font-family:inherit;
+  transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  box-shadow:0 1px 2px rgba(51,49,43,.05);
+}
+.lv-card:hover,.lv-card:focus-visible{
+  transform:translateY(-2px);border-color:var(--ai);
+  box-shadow:0 4px 10px rgba(44,95,138,.12);outline:none;
+}
+.lv-card .lv-no{font-family:'Zen Maru Gothic',sans-serif;font-size:10.5px;font-weight:700;color:var(--ai);letter-spacing:.12em;}
+.lv-card .lv-name{font-family:'Zen Maru Gothic',sans-serif;font-size:15px;font-weight:700;margin:2px 0 4px;}
+.lv-card .lv-desc{font-size:11.5px;color:var(--usuzumi);line-height:1.55;}
+.lv-card.mix{border-style:dashed;border-color:var(--kin);}
+.lv-card.mix .lv-no{color:var(--kin);}
+
+.cat-head{
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px;
+}
+.cat-head h2{font-size:19px;}
+.cat-head .cat-desc{font-size:12.5px;color:var(--usuzumi);}
+
+/* ---------- practice ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.btn-back{background:none;border:none;color:var(--ai);font-size:13.5px;cursor:pointer;font-family:inherit;padding:6px 4px;}
+.progress-dots{display:flex;gap:7px;}
+.dot{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--usuzumi);background:#fff;}
+.dot.now{border-color:var(--ai);box-shadow:0 0 0 3px rgba(44,95,138,.15);}
+.dot.ok{background:var(--shu);border-color:var(--shu);}
+.dot.ng{background:var(--grid);border-color:var(--usuzumi);}
+
+.q-card{
+  position:relative;background:#fff;
+  border:1.5px solid var(--grid);border-radius:14px;
+  padding:22px 18px 20px;
+  box-shadow:0 2px 6px rgba(51,49,43,.06);
+}
+.q-label{font-family:'Zen Maru Gothic',sans-serif;font-size:13px;font-weight:700;color:var(--ai);margin-bottom:12px;letter-spacing:.08em;}
+.q-text{
+  font-size:15px;line-height:2.0;margin-bottom:16px;
+  background:linear-gradient(transparent calc(2.0em - 1px), var(--grid) calc(2.0em - 1px), var(--grid) 2.0em, transparent 2.0em);
+  background-size:100% 2.0em;
+}
+.q-text b{color:var(--sumi);font-weight:700;border-bottom:2px solid rgba(199,62,46,.35);}
+
+/* 問題の図（表・長方形）。図の色・線はSVG/インラインstyleで持つので、
+   ここでは置き場所と大きさだけを決める（解き直しプリントはこのCSSが無い状態で描く） */
+.q-fig{margin:0 0 16px;text-align:center;overflow-x:auto;}
+.q-fig svg{max-width:100%;height:auto;}
+
+/* hint */
+.hint-area{margin:0 0 18px;}
+.btn-hint{
+  font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;
+  color:var(--orange);background:#fff;
+  border:1.5px dashed var(--orange);border-radius:999px;
+  padding:7px 18px;cursor:pointer;
+}
+.btn-hint:disabled{opacity:.4;cursor:default;}
+.hint-item{
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  margin-top:10px;padding:9px 12px;
+  background:rgba(216,154,69,.08);
+  border-left:3px solid var(--orange);border-radius:0 8px 8px 0;
+  font-size:14px;
+}
+.hint-item .h-tag{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:12px;color:var(--orange);min-width:78px;}
+.hint-item .h-tex{font-size:16px;}
+.hint-item .h-note{font-size:12.5px;color:var(--usuzumi);}
+
+/* choices (6択) */
+.choice-legend{font-size:12.5px;color:var(--usuzumi);text-align:center;margin-bottom:8px;}
+.choice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:18px;}
+.choice{
+  font-family:inherit;font-size:15px;line-height:1.5;
+  padding:12px 8px;background:#fff;color:var(--sumi);
+  border:1.5px solid var(--ai);border-radius:10px;cursor:pointer;
+  transition:transform .08s ease;
+}
+.choice:active{transform:scale(.97);}
+.choice:disabled{cursor:default;}
+/* 答え合わせ表示(選んで正解=緑 / 選ばなかった正解=緑＋「正解」バッジ /
+   選んだ誤答=朱 / 残りは薄く)は共通モジュール divp-choice-mark.js が
+   data-divp-mark を見て描く。緑はモジュール既定の苔色、朱と薄さはこのツールに合わせる。 */
+:root{--divp-mark-ng:var(--shu);--divp-mark-dim-opacity:.4;}
+.choice[data-divp-mark="correct"],.choice[data-divp-mark="answer"]{border-width:2.5px;}
+
+.btn-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center;}
+.btn{
+  font-family:'Zen Maru Gothic',sans-serif;font-weight:700;
+  font-size:15.5px;letter-spacing:.06em;
+  border:none;border-radius:999px;cursor:pointer;
+  padding:12px 34px;transition:transform .1s ease, opacity .15s;
+}
+.btn:active{transform:scale(.97);}
+.btn-main{background:var(--shu);color:#fff;box-shadow:0 3px 0 #9c2f22;}
+.btn-sub{background:#fff;color:var(--ai);border:1.5px solid var(--ai);}
+.btn-gold{background:var(--kin);color:#fff;box-shadow:0 3px 0 #a3831c;}
+.btn:disabled{opacity:.4;cursor:default;}
+.link-steps{
+  background:none;border:none;color:var(--ai);cursor:pointer;
+  font-size:13px;font-family:inherit;text-decoration:underline;padding:6px;
+}
+
+/* 正誤エフェクトは共通の divp-correct-jh（Divp.correct/incorrect）に一本化 */
+@media (prefers-reduced-motion:reduce){
+  .lv-card,.btn{transition:none;}
+}
+
+/* explanation */
+.kaisetsu{margin-top:18px;border-top:1.5px dashed var(--grid);padding-top:14px;}
+.kaisetsu h3{font-size:14px;color:var(--shu);margin-bottom:10px;letter-spacing:.08em;}
+.step{display:flex;align-items:baseline;gap:12px;margin-bottom:9px;flex-wrap:wrap;}
+.step .slabel{font-size:12.5px;color:var(--ai);min-width:130px;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;}
+.step .stex{font-size:16.5px;}
+.step .stext{font-size:14px;line-height:1.8;}
+.step.final .stex,.step.final .stext{color:var(--shu);font-weight:700;}
+
+/* ---------- print sheet ---------- */
+#printSheet{display:none;}
+@media print{
+  @page{size:A4;margin:14mm 14mm 12mm;}
+  body{background:#fff !important;background-image:none !important;}
+  .wrap{display:none !important;}
+  .divp-header{display:none !important;}   /* 共通ヘッダー(JS注入・.wrapの外)は紙に出さない */
+  #printSheet{display:block;color:#222;font-family:'Zen Kaku Gothic New',sans-serif;}
+  .ps-head{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:2.5px double #C73E2E;padding-bottom:2mm;margin-bottom:4mm;
+  }
+  .ps-title{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13pt;}
+  .ps-sub{font-size:9pt;color:#666;margin-top:1mm;}
+  .ps-name{font-size:9.5pt;}
+  .ps-name .line{display:inline-block;width:38mm;border-bottom:1px solid #333;margin-left:2mm;}
+  .p-item{break-inside:avoid;margin-bottom:4mm;}
+  .p-row{display:flex;gap:3mm;}
+  .p-no{
+    flex:none;width:6mm;height:6mm;border:1.2px solid #333;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:9.5pt;font-weight:700;
+  }
+  .p-body{flex:1;}
+  .p-text{font-size:10pt;line-height:1.65;}
+  .p-text b{font-weight:700;}
+  .p-fig{margin:1.5mm 0 0;}
+  .p-fig svg{max-width:52mm;height:auto;}   /* 図つき5問でも2枚に収まる大きさ */
+  /* グラフは目もりの数字を読んで解く図なので、紙でも大きく出す
+     （52mm だと目もりが読めなかった。class は大きさだけの役目で、
+       色・線はSVGの属性が持っている＝解き直しプリントでも図は成立する） */
+  .p-fig svg.divp-graph{max-width:84mm;}
+  .p-fig table{font-size:8pt;}
+  .p-space{
+    height:24mm;border:1px dashed #bbb;border-radius:2mm;margin-top:1.5mm;
+    position:relative;
+  }
+  .p-space::before{
+    content:'(計算)';position:absolute;top:1mm;left:2mm;
+    font-size:7pt;color:#aaa;
+  }
+  .p-ansline{font-size:10pt;margin-top:1.5mm;text-align:right;}
+  .p-ansline .blank{display:inline-block;width:18mm;border-bottom:1.2px solid #333;}
+  .p-ansline .blank.wide{width:40mm;}
+  .p-key{
+    margin-top:4mm;border-top:1.5px solid #C73E2E;padding-top:2mm;
+    font-size:8.5pt;color:#C73E2E;line-height:1.7;
+  }
+  .p-key .k-title{font-weight:700;margin-right:2mm;}
+}
+
+/* result */
+.result-card{
+  background:#fff;border:1.5px solid var(--grid);border-radius:14px;
+  padding:34px 20px 28px;text-align:center;position:relative;overflow:hidden;
+  box-shadow:0 2px 6px rgba(51,49,43,.06);
+}
+.result-card h2{font-size:20px;margin-bottom:8px;}
+.result-score{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:44px;margin:8px 0 2px;}
+.result-score .of{font-size:20px;color:var(--usuzumi);}
+.result-msg{font-size:14px;color:var(--usuzumi);margin-bottom:22px;line-height:1.7;}
+.clear-stamp{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:110px;height:110px;border-radius:50%;
+  border:4.5px solid var(--kin);color:var(--kin);
+  font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:24px;
+  transform:rotate(-12deg);margin-bottom:14px;letter-spacing:.08em;
+}
+/* 解き直しモード(?retry=1)の案内帯 */
+.retry-banner{
+  background:#FBF3E0;border:1.5px solid var(--kin);border-radius:10px;
+  padding:9px 12px;font-size:12.5px;color:#6E5518;line-height:1.6;margin:0 0 12px;
+}
+</style>
+</head>
+<body>
+<!-- 共通モジュール（ヘッダー＋ログイン / 中高用 正解ハンコ / 学習記録コア）。ローカル・未ログイン時は各モジュールが黙ってスキップする。unit_key = math_js2_ichijikansu_riyou -->
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script src="/assets/divp-choice-mark.js"></script>
+<script>if(window.Divp&&Divp.init)Divp.init('math_js2_ichijikansu_riyou');</script>
+<div class="wrap">
+
+  <header class="site-head">
+    <h1>一次関数マスター <span class="accent">文章題編</span></h1>
+    <span class="sub">中2数学 ｜ 一次関数の利用</span>
+  </header>
+
+  <!-- ===== category select ===== -->
+  <section id="view-select">
+    <p class="intro">一次関数の利用は、「変化の割合 a（1あたり変わる量）」と「切片 b（はじめの量）」を見つけて <b>y = ax + b</b> を作るのが第一歩。あとは代入するか、方程式を解くだけ。種類ごとに STEP1 から少しずつレベルアップしよう。1セット5問、全問正解でクリア!(ヒントは使ってOK)</p>
+    <div class="lv-grid" id="catGrid"></div>
+  </section>
+
+  <!-- ===== step select ===== -->
+  <section id="view-steps" hidden>
+    <div class="topbar">
+      <button class="btn-back" id="btnBackToCats" type="button">← 種類の一覧にもどる</button>
+    </div>
+    <div class="cat-head">
+      <h2 id="catTitle"></h2>
+      <span class="cat-desc" id="catDesc"></span>
+    </div>
+    <div class="lv-grid" id="stepGrid"></div>
+  </section>
+
+  <!-- ===== practice ===== -->
+  <section id="view-practice" hidden>
+    <div class="topbar">
+      <span>
+        <button class="btn-back" id="btnBack" type="button">← STEP一覧にもどる</button>
+        <button class="btn-back" id="btnPrint" type="button">🖨 プリント</button>
+      </span>
+      <div class="progress-dots" id="dots"></div>
+    </div>
+    <div class="q-card">
+      <div class="q-label" id="qLabel"></div>
+      <p class="q-text" id="qText"></p>
+      <div class="q-fig" id="qFig" hidden></div>
+      <div class="hint-area">
+        <button class="btn-hint" id="btnHint" type="button">ヒントを見る (1/3)</button>
+        <div id="hintList"></div>
+      </div>
+      <div class="choice-legend" id="choiceLegend"></div>
+      <div class="choice-grid" id="choiceGrid"></div>
+      <div class="btn-row">
+        <button class="btn btn-sub" id="btnNext" type="button" hidden>次の問題へ →</button>
+        <button class="link-steps" id="btnShowSteps" type="button" hidden>解き方を見る</button>
+      </div>
+      <div class="kaisetsu" id="kaisetsu" hidden>
+        <h3>▼ 解き方</h3>
+        <div id="stepsArea"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== result ===== -->
+  <section id="view-result" hidden>
+    <div class="result-card">
+      <div id="clearStampWrap"></div>
+      <h2 id="resultTitle"></h2>
+      <div class="result-score"><span id="scoreNum"></span><span class="of"> / 5 問</span></div>
+      <p class="result-msg" id="resultMsg"></p>
+      <div class="btn-row">
+        <button class="btn btn-gold" id="btnNextStep" type="button" hidden>つぎのSTEPへ →</button>
+        <button class="btn btn-main" id="btnRetry" type="button">もう一度このSTEP</button>
+        <button class="btn btn-sub" id="btnToSteps" type="button">一覧へ</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div id="printSheet"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+ * 一次関数マスター 文章題編 (math_js2_ichijikansu_riyou)
+ * - 種類(カテゴリ) × STEP の2階層構成（連立方程式マスター 文章題編と同じ画面）
+ * - question_key = STEPのキー (mizu1..3 / hyo1..2 / ryoukin1..3 /
+ *   hayasa1..3 / ugoku1..2 / kouten1..2 / mix)
+ * - 解き直し(?retry=1) は question_params の {m:STEPキー, s:種} だけで
+ *   生成関数を回して同じ問題を出す（CLAUDE.md 2d の種方式）
+ * - 答えは「y=ax+b の式を選ぶ(kind:'expr')」と「数値を選ぶ(kind:'num')」の2種類。
+ *   値はすべて整数か小数1桁でそろえてあるので question_text に分数マーカー F() は出ない
+ * ===================================================================== */
+
+/* ---------- RNG ----------
+   種(seed)から決まった順番で数を出す方式(xorshift32)。Math.random は種を引くときだけ。
+   問題文の数値も選択肢の並びもこの1本の流れから決まる＝種が同じなら画面まで同じ。
+   ⚠ 乱数はこの rngNext() 1本に集約すること。Math.random() を生成関数の中で
+     直接呼ぶと、その問題だけ種から再現できなくなる（解き直しで別の問題が出る）。 */
+let _rngState=1;
+/* 種をセットしたら数回から回す（ウォームアップ）。xorshift32 は小さい種を入れると
+   最初の数個の出力がとても小さい値に偏り、pick() が先頭の要素ばかり返す。 */
+function rngSeed(s){
+  _rngState=(s>>>0)||1;
+  for(let i=0;i<6;i++) rngNext();
+}
+function rngPick(){ return (Math.floor(Math.random()*4294967296)>>>0)||1; }
+function rngNext(){
+  let x=_rngState;
+  x^=x<<13; x>>>=0; x^=x>>>17; x^=x<<5; x>>>=0;
+  _rngState=x;
+  return x/4294967296;
+}
+
+/* ---------- utils ---------- */
+function rnd(a,b){ return a + Math.floor(rngNext()*(b-a+1)); }
+function pick(arr){ return arr[Math.floor(rngNext()*arr.length)]; }
+function shuffle(arr){                       /* 種から再現できる並べ替え(フィッシャー・イェーツ)。
+                                                sort に乱数の比較関数を渡す形は種で再現できない */
+  for(let i=arr.length-1;i>0;i--){
+    const j=rnd(0,i);
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+/* 数の表示。小数は1桁まで（0.5 のような変化の割合をそのまま出す＝分数を使わない） */
+function nf(v){
+  const r=Math.round(v*100)/100;
+  return String(r);
+}
+/* 符号つきで後ろにつなぐ（+3 / -3 / 0なら何も出さない） */
+function signNum(v){
+  if(v===0) return '';
+  return v>0 ? '+'+nf(v) : '-'+nf(-v);
+}
+/* y=ax+b。KaTeXでもそのまま描けて、学習記録の文字列にも使える形にする */
+function linTex(a,b){
+  if(a===0) return 'y='+nf(b);
+  let s='y=';
+  if(a===1) s+='x';
+  else if(a===-1) s+='-x';
+  else s+=nf(a)+'x';
+  return s+signNum(b);
+}
+/* ax+b=c（yに値を入れてxを求める方程式） */
+function eqOfX(a,b,c){
+  let L;
+  if(a===1) L='x';
+  else if(a===-1) L='-x';
+  else L=nf(a)+'x';
+  return L+signNum(b)+'='+nf(c);
+}
+/* x に値を入れた計算式 */
+function substTex(a,b,t){
+  let s='y=';
+  if(a===1) s+=nf(t);
+  else if(a===-1) s+='-'+nf(t);
+  else s+=nf(a)+'\\times '+nf(t);
+  return s+signNum(b);
+}
+function tex(el, latex, display){
+  if(window.katex){
+    try{
+      katex.render(latex, el, {displayMode: !!display, throwOnError:false});
+      return;
+    }catch(e){}
+  }
+  el.textContent = latex
+    .replace(/\\dfrac\{([^}]*)\}\{([^}]*)\}/g, '($1)/($2)')
+    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '($1)/($2)')
+    .replace(/\\times/g,'×');
+}
+
+/* ---------- 式をつくる問題の共通パーツ ---------- */
+/* 答え y=ax+b と、典型ミスの誤答をあわせて6つにする。
+   extra には「その問題でやりがちな式」を先に入れられる（最優先で採用） */
+function exprChoices(a,b,extra){
+  const correct=linTex(a,b);
+  const set=new Set([correct]);
+  const wrongs=[];
+  function add(t){
+    if(!t||set.has(t)||wrongs.length>=5) return false;
+    set.add(t); wrongs.push(t); return true;
+  }
+  (extra||[]).forEach(t=>add(t));
+  if(b!==0&&Number.isInteger(a)&&Number.isInteger(b)) add(linTex(b,a));  /* a と b を入れかえ */
+  add(linTex(-a,b));                                   /* 変化の割合の符号ミス */
+  if(b!==0) add(linTex(a,-b));                         /* 切片の符号ミス */
+  if(b!==0) add(linTex(a,0));                          /* 切片わすれ */
+  let guard=0;
+  while(wrongs.length<5&&guard++<300){
+    /* 変化の割合が「分速80m」のように大きいときに ±1 でずらすと
+       「81x」のような一目で消せる誤答になるので、桁に合わせた幅でずらす */
+    const da = Math.abs(a)>=10 ? pick([1,-1,0])*niceDelta(a) : pick([1,-1,2,-2,0]);
+    /* b=0（比例）の問題で切片つきの式を混ぜると「+1 があるから違う」と
+       中身を考えずに消せてしまうので、そのときは切片を動かさない */
+    const db = b===0 ? 0 : pick([0,niceDelta(b),-niceDelta(b)]);
+    const na=Math.round((a+da)*10)/10;
+    if(na===0||(da===0&&db===0)) continue;
+    add(linTex(na,b+db));
+  }
+  /* 最後の埋め合わせ。比例の式(b=0)は切片を動かせないので、変化の割合だけを
+     ずらして必ず6つそろえる（ここが無いと選択肢が4つ・5つになる形があった） */
+  const unit = Math.abs(a)>=10 ? 10 : 1;
+  for(let k=1; wrongs.length<5 && k<=40; k++){
+    if(a+k*unit!==0) add(linTex(a+k*unit, b));
+    if(a-k*unit!==0) add(linTex(a-k*unit, b));
+  }
+  return {correct, wrongs};
+}
+
+/* ---------- 6択の選択肢生成（数値の答え） ---------- */
+function niceDelta(v){
+  v=Math.abs(v);
+  if(v%100===0&&v>=300) return pick([50,100,100,200]);
+  if(v%50===0&&v>=100) return pick([50,50,100]);
+  if(v%10===0&&v>=30) return pick([10,10,20,30]);
+  return pick([1,1,2,2,3]);
+}
+/* allowNeg: 交点の座標のように負の数・0が答えになる問題だけ true */
+function makeChoices(answers, extra, allowNeg){
+  const correct=answers.map(a=>a.value);
+  const n=correct.length;
+  const set=new Set([correct.join(',')]);
+  const wrongs=[];
+  function tryAdd(vals){
+    if(vals.some(v=>!Number.isInteger(v)||(!allowNeg&&v<=0))) return false;
+    const k=vals.join(',');
+    if(set.has(k)) return false;
+    set.add(k); wrongs.push(vals); return true;
+  }
+  /* 問題固有の誤答肢(切片を忘れた値など)を最優先で入れる */
+  (extra||[]).forEach(vals=>{ if(wrongs.length<5) tryAdd(vals); });
+  /* 入れ替え(典型ミス。座標の x と y を逆にする など)。
+     ⚠ 単位がちがう2値(「12分後、1500m」など)では入れ替えると
+        「1500分後、10m」のような一目で消せる肢になって枠を1つ無駄にするので、
+        単位が同じときだけ入れる */
+  if(n===2&&correct[0]!==correct[1]&&wrongs.length<5
+     &&(answers[0].unit||'')===(answers[1].unit||'')) tryAdd([correct[1],correct[0]]);
+  let guard=0;
+  while(wrongs.length<5&&guard++<300){
+    const mode=rnd(0,1);
+    let vals=correct.slice();
+    if(mode===0){
+      const i=rnd(0,n-1);
+      vals[i]=vals[i]+pick([1,-1])*niceDelta(vals[i]);
+    }else{
+      vals=vals.map(v=>v+pick([1,-1])*niceDelta(v));
+    }
+    tryAdd(vals);
+  }
+  let k=0;
+  while(wrongs.length<5){ k++; tryAdd(correct.map((v,i)=> i===0 ? v+k : v)); }
+  return {correct, wrongs:wrongs.slice(0,5)};
+}
+/* =====================================================================
+ * 図（表・長方形）
+ * ⚠ 色・線はCSSクラスにせず、SVGの属性とインラインstyleで書く。
+ *   解き直しプリント(teacher.php)はツールのCSSが無い状態で図を描くので、
+ *   クラスで stroke を当てていると線が1本も見えない紙になる（CLAUDE.md 2b）。
+ * ⚠ 使うタグ・属性は api/save_answer.php の FIG_TAGS / FIG_ATTRS の
+ *   範囲内にとどめること（想定外だと図が丸ごと捨てられる。エラーは出ない）。
+ *   marker-end は許可されていないので、矢印の先は polygon で描く。
+ * ===================================================================== */
+const FIG_TD='style="border:1px solid #999;padding:3px 10px;text-align:center"';
+const FIG_TH='style="border:1px solid #999;padding:3px 10px;text-align:center;background:#F2F0EA;white-space:nowrap"';
+function hyoTable(ctx, xs, ys){
+  let h='<table style="border-collapse:collapse;font-size:13.5px;margin:0 auto">';
+  h+='<tr><th '+FIG_TH+'>'+ctx.xl+'</th>';
+  xs.forEach(v=>{ h+='<td '+FIG_TD+'>'+nf(v)+'</td>'; });
+  h+='</tr><tr><th '+FIG_TH+'>'+ctx.yl+'</th>';
+  ys.forEach(v=>{ h+='<td '+FIG_TD+'>'+nf(v)+'</td>'; });
+  return h+'</tr></table>';
+}
+/* 長方形ABCDと、辺BC上を動く点P。region='abp'(△ABP) / 'apcd'(四角形APCD) を塗る */
+function ugokuFig(w,h,v,region){
+  const u=16, x0=48, y0=30;
+  const W=w*u, H=h*u;
+  const ax=x0, ay=y0, bx=x0, by=y0+H, cx=x0+W, cy=y0+H, dx=x0+W, dy=y0;
+  const bp=Math.max(2,Math.round(w*0.4));
+  const px=x0+bp*u, py=by;
+  const poly = region==='abp'
+    ? ax+','+ay+' '+bx+','+by+' '+px+','+py
+    : ax+','+ay+' '+px+','+py+' '+cx+','+cy+' '+dx+','+dy;
+  const fill = region==='abp' ? '#F7E1DD' : '#E3EDF5';
+  const vbW=x0+W+56, vbH=y0+H+66;
+  let s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+vbW+' '+vbH+'" width="'+vbW+'" height="'+vbH+'"'
+    +' role="img" aria-label="長方形ABCDと辺BC上を動く点P">';
+  s+='<polygon points="'+poly+'" fill="'+fill+'" stroke="#C73E2E" stroke-width="1.4"/>';
+  s+='<rect x="'+ax+'" y="'+ay+'" width="'+W+'" height="'+H+'" fill="none" stroke="#333" stroke-width="1.6"/>';
+  s+='<circle cx="'+px+'" cy="'+py+'" r="3.6" fill="#C73E2E"/>';
+  s+='<text x="'+(ax-7)+'" y="'+(ay-7)+'" font-size="13" font-weight="700" text-anchor="end" fill="#33312B">A</text>';
+  s+='<text x="'+(bx-7)+'" y="'+(by+16)+'" font-size="13" font-weight="700" text-anchor="end" fill="#33312B">B</text>';
+  s+='<text x="'+(cx+7)+'" y="'+(cy+16)+'" font-size="13" font-weight="700" text-anchor="start" fill="#33312B">C</text>';
+  s+='<text x="'+(dx+7)+'" y="'+(dy-7)+'" font-size="13" font-weight="700" text-anchor="start" fill="#33312B">D</text>';
+  s+='<text x="'+px+'" y="'+(by+17)+'" font-size="13" font-weight="700" text-anchor="middle" fill="#C73E2E">P</text>';
+  /* 進む向きの矢印（marker-end は使えないので先端は polygon） */
+  s+='<line x1="'+(px+8)+'" y1="'+(by+31)+'" x2="'+(px+36)+'" y2="'+(by+31)+'" stroke="#C73E2E" stroke-width="1.4"/>';
+  s+='<polygon points="'+(px+43)+','+(by+31)+' '+(px+35)+','+(by+27)+' '+(px+35)+','+(by+35)+'" fill="#C73E2E"/>';
+  s+='<text x="'+(px+48)+'" y="'+(by+35)+'" font-size="11" fill="#C73E2E">毎秒 '+nf(v)+' cm</text>';
+  /* 寸法（縦は回転して辺にそわせる） */
+  s+='<text x="'+(ax-15)+'" y="'+((ay+by)/2)+'" font-size="11.5" text-anchor="middle" fill="#666"'
+    +' transform="rotate(-90 '+(ax-15)+' '+((ay+by)/2)+')">'+h+' cm</text>';
+  s+='<text x="'+((bx+cx)/2)+'" y="'+(by+55)+'" font-size="11.5" text-anchor="middle" fill="#666">'+w+' cm</text>';
+  return s+'</svg>';
+}
+
+/* ---------- グラフ（座標平面・ダイヤグラム） ----------
+   ⚠ ここも図なので色・線は属性で書く。文字は paint-order で紙色のふちを敷き、
+     方眼や直線の上でも読めるようにする（api/save_answer.php の FIG_ATTRS 内）。 */
+const GC_INK='#4a443c', GC_GRID='#E3DACA', GC_TICK='#8a8074';
+const GC_L1='#C73E2E', GC_L2='#2C5F8A';
+/* 文字のふち。方眼の線の上に数字やラベルが来ても読めるようにする */
+function gText(x,y,t,o){
+  o=o||{};
+  return '<text x="'+x+'" y="'+y+'" font-size="'+(o.size||11)+'"'
+    +(o.anchor?' text-anchor="'+o.anchor+'"':'')
+    +(o.weight?' font-weight="'+o.weight+'"':'')
+    +(o.italic?' font-style="italic"':'')
+    +' fill="'+(o.fill||GC_INK)+'" paint-order="stroke" stroke="#ffffff" stroke-width="3">'+t+'</text>';
+}
+/* 直線 y=ax+b を方眼の枠で切った両端。枠にかからなければ null */
+function clipLine(a,b,R){
+  const pts=[];
+  const yL=a*(-R)+b, yR=a*R+b;
+  if(Math.abs(yL)<=R) pts.push([-R,yL]);
+  if(Math.abs(yR)<=R) pts.push([R,yR]);
+  if(a!==0){
+    const xT=(R-b)/a, xB=(-R-b)/a;
+    if(Math.abs(xT)<R) pts.push([xT,R]);
+    if(Math.abs(xB)<R) pts.push([xB,-R]);
+  }
+  pts.sort((p,q)=>p[0]-q[0]);
+  if(pts.length<2) return null;
+  return [pts[0], pts[pts.length-1]];
+}
+/* 座標平面。lines=[{a,b,color,label}] / points=[{x,y,label}] / shade=[[x,y],…] / guides=[{x,y}] */
+function planeGraph(o){
+  const R=o.R||8, W=400, pad=28, u=(W-pad*2)/(2*R);
+  const gx=x=>+(pad+(x+R)*u).toFixed(1);
+  const gy=y=>+(pad+(R-y)*u).toFixed(1);
+  let s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+W+'" width="'+W+'" height="'+W
+    +'" class="divp-graph" role="img" aria-label="座標平面上の直線のグラフ">';
+  for(let i=-R;i<=R;i++){
+    const c=(i===0?GC_INK:GC_GRID), wd=(i===0?1.6:0.8);
+    s+='<line x1="'+gx(i)+'" y1="'+gy(-R)+'" x2="'+gx(i)+'" y2="'+gy(R)+'" stroke="'+c+'" stroke-width="'+wd+'"/>';
+    s+='<line x1="'+gx(-R)+'" y1="'+gy(i)+'" x2="'+gx(R)+'" y2="'+gy(i)+'" stroke="'+c+'" stroke-width="'+wd+'"/>';
+  }
+  /* 囲まれた部分の塗り（直線より先に描く） */
+  if(o.shade&&o.shade.length){
+    s+='<polygon points="'+o.shade.map(p=>gx(p[0])+','+gy(p[1])).join(' ')
+      +'" fill="#F7E1DD" stroke="'+GC_L1+'" stroke-width="1.2"/>';
+  }
+  /* 軸の矢じり（marker-end は使えないので短い線2本で描く） */
+  s+='<line x1="'+gx(R)+'" y1="'+gy(0)+'" x2="'+(gx(R)-7)+'" y2="'+(gy(0)-4)+'" stroke="'+GC_INK+'" stroke-width="1.6"/>'
+    +'<line x1="'+gx(R)+'" y1="'+gy(0)+'" x2="'+(gx(R)-7)+'" y2="'+(gy(0)+4)+'" stroke="'+GC_INK+'" stroke-width="1.6"/>'
+    +'<line x1="'+gx(0)+'" y1="'+gy(R)+'" x2="'+(gx(0)-4)+'" y2="'+(gy(R)+7)+'" stroke="'+GC_INK+'" stroke-width="1.6"/>'
+    +'<line x1="'+gx(0)+'" y1="'+gy(R)+'" x2="'+(gx(0)+4)+'" y2="'+(gy(R)+7)+'" stroke="'+GC_INK+'" stroke-width="1.6"/>';
+  s+=gText(gx(R)-3, gy(0)+17, 'x', {size:13, italic:true});
+  s+=gText(gx(0)+9, gy(R)+11, 'y', {size:13, italic:true});
+  s+=gText(gx(0)-6, gy(0)+15, 'O', {size:12, anchor:'end'});
+  const step=R>8?5:2;
+  for(let i=-R;i<=R;i++){
+    if(i===0||i%step!==0) continue;
+    s+=gText(gx(i), gy(0)+15, String(i), {size:10, anchor:'middle', fill:GC_TICK});
+    s+=gText(gx(0)-6, gy(i)+4, String(i), {size:10, anchor:'end', fill:GC_TICK});
+  }
+  /* 座標を読み取るための点線 */
+  (o.guides||[]).forEach(g=>{
+    s+='<line x1="'+gx(g.x)+'" y1="'+gy(0)+'" x2="'+gx(g.x)+'" y2="'+gy(g.y)
+      +'" stroke="'+GC_TICK+'" stroke-width="1.2" stroke-dasharray="5 4"/>';
+    s+='<line x1="'+gx(0)+'" y1="'+gy(g.y)+'" x2="'+gx(g.x)+'" y2="'+gy(g.y)
+      +'" stroke="'+GC_TICK+'" stroke-width="1.2" stroke-dasharray="5 4"/>';
+  });
+  (o.lines||[]).forEach(ln=>{
+    const seg=clipLine(ln.a, ln.b, R);
+    if(!seg) return;
+    const col=ln.color||GC_L1;
+    s+='<line x1="'+gx(seg[0][0])+'" y1="'+gy(seg[0][1])+'" x2="'+gx(seg[1][0])+'" y2="'+gy(seg[1][1])
+      +'" stroke="'+col+'" stroke-width="2.4" stroke-linecap="round"/>';
+    if(ln.label){
+      /* 線の上に伸びている側の端に置く（下端に置くと x 軸の目盛りと重なる） */
+      const p=(seg[0][1]>=seg[1][1])?seg[0]:seg[1];
+      if(Math.abs(Math.abs(p[1])-R)<0.001){
+        s+=gText(gx(p[0]), gy(p[1])+(p[1]>0?15:-7), ln.label, {size:12, anchor:'middle', weight:'700', fill:col});
+      }else{
+        const left=p[0]<0;
+        s+=gText(gx(p[0])+(left?6:-6), gy(p[1])-7, ln.label,
+          {size:12, anchor:(left?'start':'end'), weight:'700', fill:col});
+      }
+    }
+  });
+  (o.points||[]).forEach(pt=>{
+    s+='<circle cx="'+gx(pt.x)+'" cy="'+gy(pt.y)+'" r="4.2" fill="'+(pt.color||GC_L1)
+      +'" stroke="#ffffff" stroke-width="1.4"/>';
+    if(pt.label) s+=gText(gx(pt.x)+8, gy(pt.y)-8, pt.label, {size:12, weight:'700', fill:pt.color||GC_L1});
+  });
+  return s+'</svg>';
+}
+/* ダイヤグラムの軸決め。「目もりの上で読めてほしい値(musts)」を割り切る間かくを選び、
+   上端をその倍数に切り上げる。生成側は null が返ったら数値を引き直す。
+   ⚠ 上端は「グラフに描く一番大きい値」で決めること。答えの値で決めると、
+     そこから先に伸びる線が枠の外にはみ出して描かれる（実際にそうなった）。 */
+function niceYAxis(maxV, musts){
+  const cands=[50,100,200,250,300,500,1000];
+  for(let i=0;i<cands.length;i++){
+    const st=cands[i];
+    if((musts||[]).some(m=>m%st!==0)) continue;
+    const top=Math.ceil(maxV/st)*st;
+    if(top>0&&top/st<=8) return {step:st, max:top};
+  }
+  return null;
+}
+function niceXAxis(maxV, musts){
+  const cands=[1,2,5,10];
+  for(let i=0;i<cands.length;i++){
+    const st=cands[i];
+    if((musts||[]).some(m=>m%st!==0)) continue;
+    const top=Math.ceil(maxV/st)*st;
+    if(top>0&&top/st<=12) return {step:st, max:top};
+  }
+  return null;
+}
+/* ダイヤグラム（時間と道のりのグラフ）。segs=[{pts:[[x,y],…], color, label}] */
+function diagramGraph(o){
+  const W=400, H=300, padL=54, padR=26, padT=20, padB=44;
+  /* 念のための枠内クランプ。軸の上端が正しければ発動しない */
+  const gx=x=>+(padL+(Math.min(Math.max(x,0),o.xmax)/o.xmax)*(W-padL-padR)).toFixed(1);
+  const gy=y=>+(H-padB-(Math.min(Math.max(y,0),o.ymax)/o.ymax)*(H-padB-padT)).toFixed(1);
+  let s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H
+    +'" class="divp-graph" role="img" aria-label="時間と道のりのグラフ">';
+  for(let x=0;x<=o.xmax+0.001;x+=o.xstep){
+    const c=(x===0?GC_INK:GC_GRID);
+    s+='<line x1="'+gx(x)+'" y1="'+gy(0)+'" x2="'+gx(x)+'" y2="'+gy(o.ymax)+'" stroke="'+c
+      +'" stroke-width="'+(x===0?1.6:0.8)+'"/>';
+    /* 原点は O だけを出す（x の 0・y の 0・O が重なって読みづらくなるため） */
+    if(x!==0) s+=gText(gx(x), gy(0)+15, String(Math.round(x)), {size:10, anchor:'middle', fill:GC_TICK});
+  }
+  for(let y=0;y<=o.ymax+0.001;y+=o.ystep){
+    const c=(y===0?GC_INK:GC_GRID);
+    s+='<line x1="'+gx(0)+'" y1="'+gy(y)+'" x2="'+gx(o.xmax)+'" y2="'+gy(y)+'" stroke="'+c
+      +'" stroke-width="'+(y===0?1.6:0.8)+'"/>';
+    if(y!==0) s+=gText(gx(0)-6, gy(y)+4, String(Math.round(y)), {size:10, anchor:'end', fill:GC_TICK});
+  }
+  s+=gText(gx(o.xmax), gy(0)+30, o.xlab, {size:11, anchor:'end', fill:GC_TICK});
+  s+=gText(gx(0)-6, gy(o.ymax)-7, o.ylab, {size:11, anchor:'start', fill:GC_TICK});
+  s+=gText(gx(0)-6, gy(0)+15, 'O', {size:11, anchor:'end'});
+  (o.guides||[]).forEach(g=>{
+    s+='<line x1="'+gx(g.x)+'" y1="'+gy(0)+'" x2="'+gx(g.x)+'" y2="'+gy(g.y)
+      +'" stroke="'+GC_TICK+'" stroke-width="1.2" stroke-dasharray="5 4"/>';
+    s+='<line x1="'+gx(0)+'" y1="'+gy(g.y)+'" x2="'+gx(g.x)+'" y2="'+gy(g.y)
+      +'" stroke="'+GC_TICK+'" stroke-width="1.2" stroke-dasharray="5 4"/>';
+  });
+  (o.segs||[]).forEach(sg=>{
+    const col=sg.color||GC_L1;
+    s+='<polyline points="'+sg.pts.map(p=>gx(p[0])+','+gy(p[1])).join(' ')
+      +'" fill="none" stroke="'+col+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
+    if(sg.label){
+      const p=sg.pts[sg.pts.length-1];
+      s+=gText(gx(p[0])-5, gy(p[1])-9, sg.label, {size:12, anchor:'end', weight:'700', fill:col});
+    }
+    (sg.dots?sg.pts:[]).forEach(p=>{
+      s+='<circle cx="'+gx(p[0])+'" cy="'+gy(p[1])+'" r="3.4" fill="'+col
+        +'" stroke="#ffffff" stroke-width="1.2"/>';
+    });
+  });
+  return s+'</svg>';
+}
+
+/* =====================================================================
+ * generators
+ * ===================================================================== */
+
+/* ===== 1. 水そう ===== */
+const MIZU_CTX=[
+  {k:'ryo', amt:'水そうの水の量', unit:'L',
+   lead:(b,r,inc)=> inc
+     ? '水が <b>'+b+'</b> L 入っている水そうに、毎分 <b>'+r+'</b> L の割合で水を入れていきます。'
+     : '水が <b>'+b+'</b> L 入っている水そうから、毎分 <b>'+r+'</b> L の割合で水をぬいていきます。',
+   from:(inc)=> inc?'水を入れはじめてから':'水をぬきはじめてから',
+   bDesc:'はじめに入っていた水の量',
+   rDesc:(inc)=> inc?'1分間に増える水の量':'1分間に減る水の量'},
+  {k:'fuka', amt:'水の深さ', unit:'cm',
+   lead:(b,r,inc)=> inc
+     ? '水の深さが <b>'+b+'</b> cm の水そうに、毎分 <b>'+r+'</b> cm ずつ深くなるように水を入れていきます。'
+     : '水の深さが <b>'+b+'</b> cm の水そうから、毎分 <b>'+r+'</b> cm ずつ浅くなるように水をぬいていきます。',
+   from:(inc)=> inc?'水を入れはじめてから':'水をぬきはじめてから',
+   bDesc:'はじめの水の深さ',
+   rDesc:(inc)=> inc?'1分間に深くなる長さ':'1分間に浅くなる長さ'}
+];
+
+/* mizu1: 式をつくる */
+function genMizu1(){
+  const ctx=pick(MIZU_CTX);
+  const inc=rngNext()<0.55;
+  const b = ctx.k==='ryo' ? rnd(4,12)*5 : rnd(4,14)*2;
+  const r = ctx.k==='ryo' ? pick([2,3,4,5,6,8]) : pick([2,3,4,5]);
+  const a = inc ? r : -r;
+  const setup='x = '+ctx.from(inc)+'の時間(分)、y = '+ctx.amt+'('+ctx.unit+')';
+  return {
+    kind:'expr', lin:{a,b},
+    text: ctx.lead(b,r,inc)+ctx.from(inc)+' <b>x</b> 分後の'+ctx.amt+'を <b>y</b> '+ctx.unit
+      +' とするとき、y を x の式で表しなさい。',
+    hints:[
+      {tag:'ヒント1', text:'y=ax+b の a が「1分間に変わる量」、b が「はじめの量」。'
+        +(inc?'':'減っていくときは a が負の数になる。')},
+      {tag:'変化の割合', latex:'a='+nf(a), note:ctx.rDesc(inc)+'は '+r+' '+ctx.unit},
+      {tag:'切片', latex:'b='+nf(b), note:ctx.bDesc}
+    ],
+    steps:[
+      {label:'x, y を決める', text:setup},
+      {label:'変化の割合 a', text:ctx.rDesc(inc)+'が '+r+' '+ctx.unit+' なので a='+nf(a)
+        +(inc?'':'（減るので負）')},
+      {label:'切片 b', text:ctx.bDesc+'が '+b+' '+ctx.unit+' なので b='+b},
+      {label:'式にまとめる', latex:linTex(a,b)},
+      {label:'答え', latex:linTex(a,b), final:true}
+    ]
+  };
+}
+
+/* mizu2: 量を求める・時間を求める */
+function genMizu2(){
+  const ctx=pick(MIZU_CTX);
+  const inc=rngNext()<0.55;
+  const r = ctx.k==='ryo' ? pick([2,3,4,5,6]) : pick([2,3,4]);
+  const t = rnd(3,12);
+  const b = inc
+    ? (ctx.k==='ryo' ? rnd(2,10)*5 : rnd(3,12)*2)
+    : r*t + (ctx.k==='ryo' ? rnd(1,8)*5 : rnd(1,8)*2);   /* t分後もまだ残っている量にする */
+  const a = inc ? r : -r;
+  const y = a*t + b;
+  const askTime = rngNext()<0.5;
+  const setup='x = '+ctx.from(inc)+'の時間(分)、y = '+ctx.amt+'('+ctx.unit+')';
+  const lead = ctx.lead(b,r,inc)+ctx.from(inc)+' <b>x</b> 分後の'+ctx.amt+'を <b>y</b> '+ctx.unit+' とします。';
+  const answers = askTime
+    ? [{label:'時間', unit:'分後', value:t}]
+    : [{label:ctx.amt, unit:ctx.unit, value:y}];
+  const dist=[];
+  if(askTime && Number.isInteger(y/r) && y/r!==t) dist.push([y/r]);   /* 切片を忘れた値 */
+  if(!askTime && a*t!==y) dist.push([Math.abs(a*t)]);
+  const steps=[
+    {label:'x, y を決める', text:setup},
+    {label:'式をつくる', latex:linTex(a,b)}
+  ];
+  if(askTime){
+    steps.push({label:'y='+y+' を代入', latex:eqOfX(a,b,y)});
+    steps.push({label:'方程式を解く', latex:'x='+t});
+    steps.push({label:'答え', text:t+' 分後', final:true});
+  }else{
+    steps.push({label:'x='+t+' を代入', latex:substTex(a,b,t)});
+    steps.push({label:'計算する', latex:'y='+y});
+    steps.push({label:'答え', text:y+' '+ctx.unit, final:true});
+  }
+  return {
+    kind:'num', answers, distractors:dist,
+    text: lead + (askTime
+      ? ctx.amt+'が <b>'+y+'</b> '+ctx.unit+' になるのは、'+ctx.from(inc)+'何分後ですか。'
+      : ctx.from(inc)+' <b>'+t+'</b> 分後の'+ctx.amt+'は何 '+ctx.unit+' ですか。'),
+    hints:[
+      {tag:'ヒント1', text:setup+' として、まず y=ax+b の式をつくる。'},
+      {tag:'式', latex:linTex(a,b)},
+      askTime
+        ? {tag:'ヒント3', latex:eqOfX(a,b,y), note:'y に値を入れて x の方程式を解く'}
+        : {tag:'ヒント3', latex:substTex(a,b,t), note:'x に値を入れて計算する'}
+    ],
+    steps
+  };
+}
+
+/* mizu3: ひねり（満水・空・割合・はじめの量） */
+function genMizu3(){
+  const form=pick(['full','empty','rate','init']);
+  const r=pick([2,3,4,5,6,8]);
+  const t=rnd(4,15);
+  if(form==='full'){
+    const b=rnd(2,10)*5;
+    const V=b+r*t;
+    return {
+      kind:'num',
+      text:'容積が <b>'+V+'</b> L の水そうに、水が <b>'+b+'</b> L 入っています。この水そうに毎分 <b>'+r
+        +'</b> L の割合で水を入れていくと、水そうがいっぱいになるのは、水を入れはじめてから何分後ですか。',
+      answers:[{label:'時間', unit:'分後', value:t}],
+      distractors: Number.isInteger(V/r)&&V/r!==t ? [[V/r]] : [],
+      hints:[
+        {tag:'ヒント1', text:'x分後の水の量を y L とすると、はじめの量が切片。いっぱい＝y が容積と同じになるとき。'},
+        {tag:'式', latex:linTex(r,b)},
+        {tag:'ヒント3', latex:eqOfX(r,b,V), note:'y='+V+' として x を求める'}
+      ],
+      steps:[
+        {label:'x, y を決める', text:'x = 水を入れはじめてからの時間(分)、y = 水の量(L)'},
+        {label:'式をつくる', latex:linTex(r,b)},
+        {label:'いっぱい＝y='+V, latex:eqOfX(r,b,V)},
+        {label:'方程式を解く', latex:'x='+t},
+        {label:'答え', text:t+' 分後', final:true}
+      ]
+    };
+  }
+  if(form==='empty'){
+    const b=r*t;
+    return {
+      kind:'num',
+      text:'水が <b>'+b+'</b> L 入っている水そうから、毎分 <b>'+r
+        +'</b> L の割合で水をぬいていきます。水そうが空になるのは、水をぬきはじめてから何分後ですか。',
+      answers:[{label:'時間', unit:'分後', value:t}],
+      distractors:[],
+      hints:[
+        {tag:'ヒント1', text:'x分後の水の量を y L とすると、減るので変化の割合は負。空＝y=0 になるとき。'},
+        {tag:'式', latex:linTex(-r,b)},
+        {tag:'ヒント3', latex:eqOfX(-r,b,0), note:'y=0 として x を求める'}
+      ],
+      steps:[
+        {label:'x, y を決める', text:'x = 水をぬきはじめてからの時間(分)、y = 水の量(L)'},
+        {label:'式をつくる', latex:linTex(-r,b)},
+        {label:'空＝y=0', latex:eqOfX(-r,b,0)},
+        {label:'方程式を解く', latex:'x='+t},
+        {label:'答え', text:t+' 分後', final:true}
+      ]
+    };
+  }
+  if(form==='rate'){
+    const b=rnd(2,10)*5;
+    const Y=b+r*t;
+    return {
+      kind:'num',
+      text:'水が <b>'+b+'</b> L 入っている水そうに、一定の割合で水を入れはじめました。<b>'+t
+        +'</b> 分後に水の量を調べると <b>'+Y+'</b> L になっていました。毎分何 L の割合で水を入れていますか。',
+      answers:[{label:'毎分の割合', unit:'L', value:r}],
+      distractors: Number.isInteger(Y/t)&&Y/t!==r ? [[Y/t]] : [],
+      hints:[
+        {tag:'ヒント1', text:'増えた量 ÷ かかった時間 が「変化の割合」。はじめの量をひくのを忘れないこと。'},
+        {tag:'増えた量', latex:nf(Y)+'-'+nf(b)+'='+nf(Y-b)},
+        {tag:'ヒント3', latex:'a=\\dfrac{'+nf(Y-b)+'}{'+nf(t)+'}', note:'増えた量 ÷ 時間'}
+      ],
+      steps:[
+        {label:'増えた量', latex:nf(Y)+'-'+nf(b)+'='+nf(Y-b)},
+        {label:'変化の割合', latex:'a=\\dfrac{'+nf(Y-b)+'}{'+nf(t)+'}='+nf(r)},
+        {label:'答え', text:'毎分 '+r+' L', final:true}
+      ]
+    };
+  }
+  const b=rnd(2,10)*5;
+  const Y=b+r*t;
+  return {
+    kind:'num',
+    text:'ある水そうに、毎分 <b>'+r+'</b> L の割合で水を入れていくと、<b>'+t+'</b> 分後には水の量が <b>'+Y
+      +'</b> L になりました。はじめに入っていた水の量は何 L ですか。',
+    answers:[{label:'はじめの量', unit:'L', value:b}],
+    distractors:[[Y+r*t]],
+    hints:[
+      {tag:'ヒント1', text:'x分後の水の量を y L とすると y='+nf(r)+'x+b。x と y に分かっている値を入れて b を求める。'},
+      {tag:'式', latex:'y='+nf(r)+'x+b'},
+      {tag:'ヒント3', latex:nf(Y)+'='+nf(r)+'\\times '+nf(t)+'+b', note:'x='+t+', y='+Y+' を代入'}
+    ],
+    steps:[
+      {label:'x, y を決める', text:'x = 水を入れはじめてからの時間(分)、y = 水の量(L)'},
+      {label:'式の形', latex:'y='+nf(r)+'x+b'},
+      {label:'x='+t+', y='+Y+' を代入', latex:nf(Y)+'='+nf(r*t)+'+b'},
+      {label:'b を求める', latex:'b='+nf(b)},
+      {label:'答え', text:b+' L', final:true}
+    ]
+  };
+}
+/* ===== 2. 表から式 ===== */
+/* cols1 = STEP1の表(x=0 か 1 から)、cols2 = STEP2の表(0を含めない＝切片を計算させる) */
+const HYO_CTX=[
+  {name:'ばね',
+   xl:'おもりの重さ x（g）', yl:'ばね全体の長さ y（cm）',
+   cols1:[0,10,20,30], cols2:[10,20,30,40], step:10,
+   slopes:[0.2,0.3,0.4,0.5,0.6], bs:[10,12,14,15,16,18], dir:1,
+   intro:'あるばねに おもりをつるして、ばね全体の長さを調べたところ、下の表のようになりました。',
+   setup:'x = おもりの重さ(g)、y = ばね全体の長さ(cm)',
+   aNote:'おもりが 10 g 増えるごとの のび ÷ 10',
+   bNote:'おもりをつるしていない(x=0)ときの長さ',
+   askY:(X)=>'おもりの重さが <b>'+X+'</b> g のとき、ばね全体の長さは何 cm になりますか。',
+   askX:(Y)=>'ばね全体の長さが <b>'+Y+'</b> cm になるのは、何 g のおもりをつるしたときですか。',
+   ansY:{label:'ばねの長さ', unit:'cm'}, ansX:{label:'おもりの重さ', unit:'g'}},
+  {name:'ろうそく',
+   xl:'燃やした時間 x（分）', yl:'残りの長さ y（cm）',
+   cols1:[0,5,10,15], cols2:[5,10,15,20], step:5,
+   slopes:[0.2,0.4,0.6,0.8,1], bs:[18,20,24,25,30], dir:-1,
+   intro:'火をつけたろうそくの残りの長さを 5 分ごとに調べたところ、下の表のようになりました。',
+   setup:'x = 燃やした時間(分)、y = 残りの長さ(cm)',
+   aNote:'1分あたりに短くなる長さ（減るので負）',
+   bNote:'火をつける前(x=0)の長さ',
+   askY:(X)=>'火をつけてから <b>'+X+'</b> 分後の残りの長さは何 cm ですか。',
+   askX:(Y)=>'残りの長さが <b>'+Y+'</b> cm になるのは、火をつけてから何分後ですか。',
+   ansY:{label:'残りの長さ', unit:'cm'}, ansX:{label:'時間', unit:'分後'}},
+  {name:'コップ',
+   xl:'コップの個数 x（個）', yl:'全体の高さ y（cm）',
+   cols1:[1,2,3,4,5], cols2:[2,3,4,5,6], step:1,
+   slopes:[1,2,3], bs:[5,6,7,8], dir:1,
+   intro:'同じ形のコップを重ねて、全体の高さを調べたところ、下の表のようになりました。',
+   setup:'x = 重ねたコップの個数(個)、y = 全体の高さ(cm)',
+   aNote:'コップが1個増えるごとに高くなる長さ',
+   bNote:'x=0 としたときの高さ（表から逆算する）',
+   askY:(X)=>'コップを <b>'+X+'</b> 個重ねたときの全体の高さは何 cm ですか。',
+   askX:(Y)=>'全体の高さが <b>'+Y+'</b> cm になるのは、コップを何個重ねたときですか。',
+   ansY:{label:'全体の高さ', unit:'cm'}, ansX:{label:'コップの個数', unit:'個'}}
+];
+/* 表のすべての値が正の整数になる (a,b) を引く */
+function hyoPick(ctx, cols, extraX){
+  let a=ctx.slopes[0]*ctx.dir, b=ctx.bs[0];
+  for(let i=0;i<300;i++){
+    const ca=pick(ctx.slopes)*ctx.dir, cb=pick(ctx.bs);
+    const xs=cols.concat(extraX||[]);
+    const ok=xs.every(x=>{
+      const y=ca*x+cb;
+      return Number.isInteger(Math.round(y*100)/100) && y>=2;
+    });
+    if(ok){ a=ca; b=cb; break; }
+  }
+  return {a,b};
+}
+
+/* hyo1: 表から式をつくる */
+function genHyo1(){
+  const ctx=pick(HYO_CTX);
+  const {a,b}=hyoPick(ctx, ctx.cols1);
+  const xs=ctx.cols1, ys=xs.map(x=>a*x+b);
+  const d1=ys[1]-ys[0];
+  return {
+    kind:'expr', lin:{a,b}, fig:hyoTable(ctx,xs,ys),
+    text: ctx.intro+' x と y の関係を式で表しなさい。<br>（'+ctx.setup+'）',
+    hints:[
+      {tag:'ヒント1', text:'表で x が '+ctx.step+' 増えると y は '+nf(d1)
+        +' 変わっている。これを「x が1増えたとき」に直すと変化の割合 a になる。'},
+      {tag:'変化の割合', latex:'a=\\dfrac{'+nf(d1)+'}{'+nf(ctx.step)+'}='+nf(a), note:ctx.aNote},
+      {tag:'切片', latex:'b='+nf(b), note:ctx.bNote}
+    ],
+    steps:[
+      {label:'x, y を決める', text:ctx.setup},
+      {label:'y の変わり方', text:'x が '+ctx.step+' 増えると y は '+nf(d1)+' 変わっている'},
+      {label:'変化の割合 a', latex:'a=\\dfrac{'+nf(d1)+'}{'+nf(ctx.step)+'}='+nf(a)},
+      {label:'切片 b', text:ctx.bNote+' なので b='+nf(b)},
+      {label:'式にまとめる', latex:linTex(a,b)},
+      {label:'答え', latex:linTex(a,b), final:true}
+    ]
+  };
+}
+
+/* hyo2: 表から式をつくって予測する */
+function genHyo2(){
+  const ctx=pick(HYO_CTX);
+  const cols=ctx.cols2;
+  const X=cols[cols.length-1]+ctx.step*rnd(1,3);
+  const {a,b}=hyoPick(ctx, cols, [X]);
+  const xs=cols, ys=xs.map(x=>a*x+b);
+  const Y=a*X+b;
+  const d1=ys[1]-ys[0];
+  const askX = rngNext()<0.5;        /* true: y の値から x を求める */
+  const ans = askX ? ctx.ansX : ctx.ansY;
+  const answers=[{label:ans.label, unit:ans.unit, value: askX ? X : Y}];
+  const steps=[
+    {label:'x, y を決める', text:ctx.setup},
+    {label:'変化の割合 a', latex:'a=\\dfrac{'+nf(d1)+'}{'+nf(ctx.step)+'}='+nf(a)},
+    {label:'切片 b を求める', latex:nf(ys[0])+'='+nf(a)+'\\times '+nf(xs[0])+'+b'},
+    {label:'', latex:'b='+nf(b)},
+    {label:'式', latex:linTex(a,b)}
+  ];
+  if(askX){
+    steps.push({label:'y='+nf(Y)+' を代入', latex:eqOfX(a,b,Y)});
+    steps.push({label:'方程式を解く', latex:'x='+nf(X)});
+  }else{
+    steps.push({label:'x='+nf(X)+' を代入', latex:substTex(a,b,X)});
+    steps.push({label:'計算する', latex:'y='+nf(Y)});
+  }
+  steps.push({label:'答え', text:nf(answers[0].value)+' '+ans.unit, final:true});
+  return {
+    kind:'num', answers, fig:hyoTable(ctx,xs,ys),
+    /* 切片を「表の左端の値」と読みまちがえる典型ミス */
+    distractors: askX ? [] : [[Math.round(a*X+ys[0])]].filter(v=>v[0]!==Y&&v[0]>0),
+    text: ctx.intro+'<br>'+(askX ? ctx.askX(nf(Y)) : ctx.askY(nf(X)))
+      +'<br>（'+ctx.setup+'）',
+    hints:[
+      {tag:'ヒント1', text:'表には x=0 のらんが無いので、まず変化の割合を求め、表の1組を代入して切片 b を出す。'},
+      {tag:'式', latex:linTex(a,b)},
+      askX
+        ? {tag:'ヒント3', latex:eqOfX(a,b,Y), note:'y に値を入れて x の方程式を解く'}
+        : {tag:'ヒント3', latex:substTex(a,b,X), note:'x に値を入れて計算する'}
+    ],
+    steps
+  };
+}
+/* ===== 3. 料金プラン ===== */
+const RYO_CTX=[
+  {name:'レンタル', xname:'借りる本数', xunit:'本',
+   lead:(P,Q)=>'あるレンタルショップでは、はじめに <b>会員料金 '+P+' 円</b> をはらい、そのあと DVDを1本借りるごとに <b>'
+     +Q+' 円</b> かかります。',
+   xdef:'借りる本数を <b>x</b> 本、はらう金額の合計を <b>y</b> 円',
+   setup:'x = 借りる本数(本)、y = 金額の合計(円)',
+   bDesc:'会員料金（借りなくてもかかるお金）', qDesc:'1本あたりの料金'},
+  {name:'コピー', xname:'枚数', xunit:'枚',
+   lead:(P,Q)=>'あるコピー機は、1か月の <b>基本料金 '+P+' 円</b> に加えて、1枚コピーするごとに <b>'
+     +Q+' 円</b> かかります。',
+   xdef:'コピーする枚数を <b>x</b> 枚、1か月の料金を <b>y</b> 円',
+   setup:'x = コピーする枚数(枚)、y = 1か月の料金(円)',
+   bDesc:'基本料金（1枚もコピーしなくてもかかるお金）', qDesc:'1枚あたりの料金'},
+  {name:'通話', xname:'通話時間', xunit:'分',
+   lead:(P,Q)=>'ある携帯電話のプランは、<b>基本料金 '+P+' 円</b> に加えて、通話1分ごとに <b>'
+     +Q+' 円</b> かかります。',
+   xdef:'1か月の通話時間を <b>x</b> 分、料金を <b>y</b> 円',
+   setup:'x = 通話時間(分)、y = 1か月の料金(円)',
+   bDesc:'基本料金（通話しなくてもかかるお金）', qDesc:'1分あたりの通話料'}
+];
+
+/* ryoukin1: 式をつくる */
+function genRyoukin1(){
+  const ctx=pick(RYO_CTX);
+  const P=pick([200,300,400,500,600,800,1000]);
+  const Q=pick([20,30,40,50,80,100,120,150]);
+  return {
+    kind:'expr', lin:{a:Q, b:P},
+    text: ctx.lead(P,Q)+ctx.xdef+' とするとき、y を x の式で表しなさい。',
+    hints:[
+      {tag:'ヒント1', text:ctx.qDesc+'が変化の割合 a、'+ctx.bDesc+'が切片 b になる。'},
+      {tag:'変化の割合', latex:'a='+nf(Q), note:ctx.qDesc},
+      {tag:'切片', latex:'b='+nf(P), note:ctx.bDesc}
+    ],
+    steps:[
+      {label:'x, y を決める', text:ctx.setup},
+      {label:'変化の割合 a', text:ctx.qDesc+'が '+Q+' 円なので a='+Q},
+      {label:'切片 b', text:ctx.bDesc+'が '+P+' 円なので b='+P},
+      {label:'式にまとめる', latex:linTex(Q,P)},
+      {label:'答え', latex:linTex(Q,P), final:true}
+    ]
+  };
+}
+
+/* ryoukin2: 2つのプランの料金が同じになるのは（＝交点） */
+function genRyoukin2(){
+  const ctx=pick(RYO_CTX);
+  const x=rnd(3,12);
+  const Q1=pick([50,80,100,120,150]);
+  const dQ=pick([20,25,50,100]);
+  const Q2=Q1+dQ;
+  const P2=pick([100,200,300]);
+  const P1=P2+x*dQ;
+  const y=Q1*x+P1;
+  const setup='x = '+ctx.xname+'('+ctx.xunit+')、y = 料金(円)';
+  return {
+    kind:'num',
+    text:'ある店には次の2つのプランがあります。<br>'
+      +'Aプラン … 基本料金 <b>'+P1+'</b> 円、'+ctx.xname+'1'+ctx.xunit+'あたり <b>'+Q1+'</b> 円<br>'
+      +'Bプラン … 基本料金 <b>'+P2+'</b> 円、'+ctx.xname+'1'+ctx.xunit+'あたり <b>'+Q2+'</b> 円<br>'
+      +'2つのプランの料金が同じになるのは '+ctx.xname+'が何'+ctx.xunit+'のときで、そのときの料金はいくらですか。',
+    answers:[{label:ctx.xname, unit:ctx.xunit, value:x},{label:'料金', unit:'円', value:y}],
+    distractors:[[x, Q2*x+P2+dQ]].filter(v=>v[1]!==y),
+    hints:[
+      {tag:'ヒント1', text:'それぞれのプランの料金を y の式で表し、2つが同じ（y が等しい）になる x を求める。'},
+      {tag:'Aプラン', latex:linTex(Q1,P1)},
+      {tag:'Bプラン', latex:linTex(Q2,P2), note:'2つの右辺を = でつなぐ'}
+    ],
+    steps:[
+      {label:'x, y を決める', text:setup},
+      {label:'Aプランの式', latex:linTex(Q1,P1)},
+      {label:'Bプランの式', latex:linTex(Q2,P2)},
+      {label:'y が等しいとおく', latex:nf(Q1)+'x+'+nf(P1)+'='+nf(Q2)+'x+'+nf(P2)},
+      {label:'x を求める', latex:nf(dQ)+'x='+nf(P1-P2)},
+      {label:'', latex:'x='+nf(x)},
+      {label:'料金を求める', latex:substTex(Q1,P1,x)},
+      {label:'', latex:'y='+nf(y)},
+      {label:'答え', text:ctx.xname+' '+x+' '+ctx.xunit+'、料金 '+y+' 円', final:true}
+    ]
+  };
+}
+
+/* ryoukin3: ひねり（段階料金の式 / 予算で何個まで） */
+function genRyoukin3(){
+  if(rngNext()<0.5){
+    /* 段階料金: m枚まで定額F円、超えた分は1枚Q円 → y=Qx+(F-Qm) */
+    const m=pick([20,30,50]);
+    const Q=pick([5,10,20]);
+    const F=pick([300,500,800,1000]);
+    const b=F-Q*m;
+    return {
+      kind:'expr', lin:{a:Q, b},
+      /* 「超えた分」を忘れて y=Qx+F にする典型ミスを先に入れる */
+      exprExtra:[linTex(Q,F), linTex(Q,0), linTex(F,Q)],
+      text:'あるコピー機は、<b>'+m+'</b> 枚までは何枚コピーしても <b>'+F+'</b> 円で、<b>'+m
+        +'</b> 枚を超えた分は1枚につき <b>'+Q+'</b> 円かかります。<b>'+m
+        +'</b> 枚より多く、x 枚コピーするときの料金を y 円とするとき、y を x の式で表しなさい。',
+      hints:[
+        {tag:'ヒント1', text:m+' 枚を超えた枚数は (x-'+m+') 枚。その分だけ 1枚 '+Q+' 円がかかる。'},
+        {tag:'式の形', latex:'y='+nf(Q)+'(x-'+nf(m)+')+'+nf(F)},
+        {tag:'かっこをはずす', latex:linTex(Q,b), note:'y=ax+b の形に整理する'}
+      ],
+      steps:[
+        {label:'x, y を決める', text:'x = コピーした枚数(枚)、y = 料金(円)'},
+        {label:'超えた枚数', text:'x 枚のうち '+m+' 枚を超えたのは (x-'+m+') 枚'},
+        {label:'式をつくる', latex:'y='+nf(Q)+'(x-'+nf(m)+')+'+nf(F)},
+        {label:'かっこをはずす', latex:'y='+nf(Q)+'x-'+nf(Q*m)+'+'+nf(F)},
+        {label:'整理する', latex:linTex(Q,b)},
+        {label:'答え', latex:linTex(Q,b), final:true}
+      ]
+    };
+  }
+  /* 予算: B円以内で最大何本借りられるか */
+  const ctx=pick(RYO_CTX);
+  const n=rnd(5,15);
+  const Q=pick([100,150,200]);
+  const P=pick([200,300,500]);
+  const B=P+Q*n+pick([0,50]);
+  return {
+    kind:'num',
+    text: ctx.lead(P,Q)+'予算が <b>'+B+'</b> 円のとき、'+ctx.xname+'は最大で何'+ctx.xunit+'にできますか。',
+    answers:[{label:ctx.xname, unit:ctx.xunit, value:n}],
+    distractors:[[n+1],[Math.floor(B/Q)]].filter(v=>v[0]!==n&&v[0]>0),
+    hints:[
+      {tag:'ヒント1', text:'料金の式 y='+nf(Q)+'x+'+nf(P)+' が予算以下（y ≦ '+B+'）になる x を考える。'},
+      {tag:'式', latex:linTex(Q,P)},
+      {tag:'ヒント3', latex:nf(Q)+'x+'+nf(P)+'\\leqq '+nf(B), note:'x は整数なので、こえない一番大きい整数が答え'}
+    ],
+    steps:[
+      {label:'x, y を決める', text:ctx.setup},
+      {label:'料金の式', latex:linTex(Q,P)},
+      {label:'予算以下とおく', latex:nf(Q)+'x+'+nf(P)+'\\leqq '+nf(B)},
+      {label:'x について解く', latex:nf(Q)+'x\\leqq '+nf(B-P)},
+      {label:'', latex:'x\\leqq '+nf(Math.round((B-P)/Q*100)/100)},
+      {label:'整数で考える', text:'x は '+ctx.xunit+'の数なので整数。こえない一番大きい整数は '+n},
+      {label:'答え', text:n+' '+ctx.xunit, final:true}
+    ]
+  };
+}
+/* ===== 4. 速さ ===== */
+
+/* hayasa1: 道のりの式（残りの道のり＝減る / 途中から出発＝切片あり） */
+function genHayasa1(){
+  const v=pick([50,60,70,80,90]);
+  if(rngNext()<0.55){
+    const D=v*rnd(6,20);
+    return {
+      kind:'expr', lin:{a:-v, b:D},
+      text:'家から <b>'+D+'</b> m はなれた駅へ向かって、分速 <b>'+v
+        +'</b> m で歩きます。家を出発してから <b>x</b> 分後の、駅までの残りの道のりを <b>y</b> m とするとき、y を x の式で表しなさい。',
+      hints:[
+        {tag:'ヒント1', text:'x分間に歩いた道のりは '+nf(v)+'x m。残りの道のりは「全体 - 歩いた道のり」。'},
+        {tag:'式の形', latex:'y='+nf(D)+'-'+nf(v)+'x'},
+        {tag:'ならべかえる', latex:linTex(-v,D), note:'近づくので変化の割合は負'}
+      ],
+      steps:[
+        {label:'x, y を決める', text:'x = 出発してからの時間(分)、y = 駅までの残りの道のり(m)'},
+        {label:'歩いた道のり', text:'分速 '+v+' m で x 分歩くので '+v+'x m'},
+        {label:'残り＝全体-歩いた分', latex:'y='+nf(D)+'-'+nf(v)+'x'},
+        {label:'y=ax+b の形に', latex:linTex(-v,D)},
+        {label:'答え', latex:linTex(-v,D), final:true}
+      ]
+    };
+  }
+  const A=rnd(2,10)*100;
+  return {
+    kind:'expr', lin:{a:v, b:A},
+    text:'兄は家から <b>'+A+'</b> m 進んだ地点にいます。兄はそこから公園へ向かって分速 <b>'+v
+      +'</b> m で歩きます。歩きはじめてから <b>x</b> 分後の、家からの道のりを <b>y</b> m とするとき、y を x の式で表しなさい。',
+    hints:[
+      {tag:'ヒント1', text:'すでに進んでいる '+A+' m が切片。そこから毎分 '+v+' m ずつ増える。'},
+      {tag:'変化の割合', latex:'a='+nf(v), note:'1分間に進む道のり'},
+      {tag:'切片', latex:'b='+nf(A), note:'歩きはじめる前(x=0)の家からの道のり'}
+    ],
+    steps:[
+      {label:'x, y を決める', text:'x = 歩きはじめてからの時間(分)、y = 家からの道のり(m)'},
+      {label:'変化の割合 a', text:'分速 '+v+' m なので a='+v},
+      {label:'切片 b', text:'x=0 のとき家から '+A+' m なので b='+A},
+      {label:'式にまとめる', latex:linTex(v,A)},
+      {label:'答え', latex:linTex(v,A), final:true}
+    ]
+  };
+}
+
+/* hayasa2: 向かい合って出会う */
+function genHayasa2(){
+  const v1=pick([50,60,70,80]);
+  const v2=pick([50,60,70,80,90]);
+  const t=rnd(4,12);
+  const D=(v1+v2)*t;
+  const d1=v1*t;
+  return {
+    kind:'num',
+    text:'A町とB町は <b>'+D+'</b> m はなれています。AさんはA町を、BさんはB町を同時に出発し、向かい合って進みました。Aさんは分速 <b>'
+      +v1+'</b> m、Bさんは分速 <b>'+v2
+      +'</b> m で進みます。2人が出会うのは出発してから何分後で、その場所はA町から何 m のところですか。',
+    answers:[{label:'時間', unit:'分後', value:t},{label:'A町から', unit:'m', value:d1}],
+    distractors:[[t, v2*t]],      /* Bさんが進んだ道のりと混同する典型ミス */
+    hints:[
+      {tag:'ヒント1', text:'x分後のA町からの道のりを y m とすると、Aさんは y='+nf(v1)+'x、Bさんは y='+nf(-v2)+'x+'+nf(D)+'。'},
+      {tag:'Aさん', latex:linTex(v1,0)},
+      {tag:'Bさん', latex:linTex(-v2,D), note:'出会う＝2人の y が等しくなるとき'}
+    ],
+    steps:[
+      {label:'x, y を決める', text:'x = 出発してからの時間(分)、y = A町からの道のり(m)'},
+      {label:'Aさんの式', latex:linTex(v1,0)},
+      {label:'Bさんの式', latex:linTex(-v2,D)},
+      {label:'y が等しいとおく', latex:nf(v1)+'x=-'+nf(v2)+'x+'+nf(D)},
+      {label:'x を求める', latex:nf(v1+v2)+'x='+nf(D)},
+      {label:'', latex:'x='+nf(t)},
+      {label:'場所を求める', latex:'y='+nf(v1)+'\\times '+nf(t)+'='+nf(d1)},
+      {label:'答え', text:t+' 分後、A町から '+d1+' m', final:true}
+    ]
+  };
+}
+
+/* hayasa3: 追いつく */
+function genHayasa3(){
+  /* 条件を満たした組だけを採用する（ループを抜けただけの値を使わない） */
+  let v1=60, dv=20, t0=4;
+  for(let i=0;i<300;i++){
+    const cdv=pick([10,20,30]);
+    const cv1=pick([50,60,70,80,90]);
+    if(cv1%cdv!==0) continue;               /* x が整数になる組み合わせだけ使う */
+    const ct0=pick([3,4,5,6,8,10]);
+    const cx=cv1*ct0/cdv;
+    if(!Number.isInteger(cx)||cx<3||cx>25) continue;
+    v1=cv1; dv=cdv; t0=ct0;
+    break;
+  }
+  const x=v1*t0/dv;
+  const v2=v1+dv;
+  const d=v2*x;
+  return {
+    kind:'num',
+    text:'弟は家を出発して、分速 <b>'+v1+'</b> m で駅へ向かいました。弟が出発してから <b>'+t0
+      +'</b> 分後に、兄が同じ道を分速 <b>'+v2
+      +'</b> m で追いかけました。兄が弟に追いつくのは兄が出発してから何分後で、その場所は家から何 m のところですか。',
+    answers:[{label:'時間', unit:'分後', value:x},{label:'家から', unit:'m', value:d}],
+    distractors:[[x, v1*x]],       /* 弟の式に代入してしまう典型ミス */
+    hints:[
+      {tag:'ヒント1', text:'兄が出発してからの時間を x 分とすると、弟はすでに '+nf(v1*t0)
+        +' m 進んでいる（それが弟の式の切片）。'},
+      {tag:'兄', latex:linTex(v2,0)},
+      {tag:'弟', latex:linTex(v1,v1*t0), note:'追いつく＝2人の y が等しくなるとき'}
+    ],
+    steps:[
+      {label:'x, y を決める', text:'x = 兄が出発してからの時間(分)、y = 家からの道のり(m)'},
+      {label:'弟の先行ぶん', latex:nf(v1)+'\\times '+nf(t0)+'='+nf(v1*t0)},
+      {label:'兄の式', latex:linTex(v2,0)},
+      {label:'弟の式', latex:linTex(v1,v1*t0)},
+      {label:'y が等しいとおく', latex:nf(v2)+'x='+nf(v1)+'x+'+nf(v1*t0)},
+      {label:'x を求める', latex:nf(dv)+'x='+nf(v1*t0)},
+      {label:'', latex:'x='+nf(x)},
+      {label:'場所を求める', latex:'y='+nf(v2)+'\\times '+nf(x)+'='+nf(d)},
+      {label:'答え', text:'兄が出発してから '+x+' 分後、家から '+d+' m', final:true}
+    ]
+  };
+}
+/* ===== 5. 動く点と面積 =====
+   図が無いと解けないので q.fig を持たせる（誤答時だけ answer_logs に保存され、
+   解き直しプリントにも同じ図が出る = CLAUDE.md 2b） */
+function ugokuSetup(){
+  const h=pick([6,8,10,12]);        /* AB。面積の式の傾きが整数になるよう偶数だけ */
+  const w=pick([10,12,14,16]);      /* BC */
+  const v=pick([1,2]);              /* 毎秒 */
+  return {h,w,v,k:v*h/2, S:w*h, tmax:w/v};
+}
+function ugokuLead(s){
+  return '下の図のような長方形ABCDで、AB=<b>'+s.h+'</b> cm、BC=<b>'+s.w
+    +'</b> cm です。点Pは、点Bを出発して辺BC上を点Cまで、毎秒 <b>'+s.v+'</b> cm の速さで動きます。';
+}
+
+/* ugoku1: 面積を x の式で表す */
+function genUgoku1(){
+  const s=ugokuSetup();
+  const abp = rngNext()<0.55;
+  const a = abp ? s.k : -s.k;
+  const b = abp ? 0 : s.S;
+  const target = abp ? '△ABP' : '四角形APCD';
+  return {
+    kind:'expr', lin:{a,b}, fig:ugokuFig(s.w,s.h,s.v,abp?'abp':'apcd'),
+    exprExtra: abp ? [linTex(s.v*s.h,0), linTex(s.k,s.S)] : [linTex(-s.v*s.h,s.S), linTex(s.k,s.S)],
+    text: ugokuLead(s)+'点Bを出発してから <b>x</b> 秒後の '+target+' の面積を <b>y</b> cm²'
+      +' とするとき、y を x の式で表しなさい。（0 ≦ x ≦ '+nf(s.tmax)+'）',
+    hints:[
+      {tag:'ヒント1', text:'毎秒 '+s.v+' cm で x 秒動くので BP='+nf(s.v)+'x cm。'
+        +(abp ? '△ABPは底辺BP、高さABの三角形。' : '四角形APCDは「長方形ぜんぶ - △ABP」で求められる。')},
+      abp
+        ? {tag:'面積の式', latex:'y=\\dfrac{1}{2}\\times '+nf(s.v)+'x\\times '+nf(s.h)}
+        : {tag:'面積の式', latex:'y='+nf(s.S)+'-\\dfrac{1}{2}\\times '+nf(s.v)+'x\\times '+nf(s.h)},
+      {tag:'整理する', latex:linTex(a,b), note:'y=ax+b の形にする'}
+    ],
+    steps:[
+      {label:'x, y を決める', text:'x = 点Bを出発してからの時間(秒)、y = '+target+'の面積(cm²)'},
+      {label:'BPの長さ', text:'毎秒 '+s.v+' cm で x 秒動くので BP='+nf(s.v)+'x (cm)'},
+      abp
+        ? {label:'△ABPの面積', latex:'y=\\dfrac{1}{2}\\times '+nf(s.v)+'x\\times '+nf(s.h)}
+        : {label:'長方形-△ABP', latex:'y='+nf(s.S)+'-\\dfrac{1}{2}\\times '+nf(s.v)+'x\\times '+nf(s.h)},
+      {label:'整理する', latex:linTex(a,b)},
+      {label:'答え', latex:linTex(a,b), final:true}
+    ]
+  };
+}
+
+/* ugoku2: 面積から時間を求める / x秒後の面積を求める */
+function genUgoku2(){
+  const s=ugokuSetup();
+  const a=s.k;
+  const askTime = rngNext()<0.55;
+  let t=rnd(2,Math.floor(s.tmax));
+  const area=a*t;
+  const answers = askTime
+    ? [{label:'時間', unit:'秒後', value:t}]
+    : [{label:'面積', unit:'cm²', value:area}];
+  const steps=[
+    {label:'x, y を決める', text:'x = 点Bを出発してからの時間(秒)、y = △ABPの面積(cm²)'},
+    {label:'BPの長さ', text:'BP='+nf(s.v)+'x (cm)'},
+    {label:'面積の式', latex:'y=\\dfrac{1}{2}\\times '+nf(s.v)+'x\\times '+nf(s.h)},
+    {label:'整理する', latex:linTex(a,0)}
+  ];
+  if(askTime){
+    steps.push({label:'y='+nf(area)+' を代入', latex:eqOfX(a,0,area)});
+    steps.push({label:'方程式を解く', latex:'x='+nf(t)});
+    steps.push({label:'答え', text:t+' 秒後', final:true});
+  }else{
+    steps.push({label:'x='+nf(t)+' を代入', latex:substTex(a,0,t)});
+    steps.push({label:'計算する', latex:'y='+nf(area)});
+    steps.push({label:'答え', text:area+' cm²', final:true});
+  }
+  return {
+    kind:'num', answers, fig:ugokuFig(s.w,s.h,s.v,'abp'),
+    /* 「2分の1」を忘れる典型ミス */
+    distractors: askTime ? [] : [[s.v*s.h*t]],
+    text: ugokuLead(s)+(askTime
+      ? '△ABPの面積が <b>'+area+'</b> cm² になるのは、点Bを出発してから何秒後ですか。'
+      : '点Bを出発してから <b>'+t+'</b> 秒後の △ABP の面積は何 cm² ですか。'),
+    hints:[
+      {tag:'ヒント1', text:'まず △ABP の面積 y を x の式で表す。底辺BP='+nf(s.v)+'x、高さ AB='+s.h+' cm。'},
+      {tag:'式', latex:linTex(a,0)},
+      askTime
+        ? {tag:'ヒント3', latex:eqOfX(a,0,area), note:'y に値を入れて x の方程式を解く'}
+        : {tag:'ヒント3', latex:substTex(a,0,t), note:'x に値を入れて計算する'}
+    ],
+    steps
+  };
+}
+
+/* ===== 6. グラフの交点 ===== */
+
+/* kouten1: 2直線の交点の座標（負の数も答えになるので allowNeg） */
+function genKouten1(){
+  /* 条件を満たした組だけを採用する（ループを抜けただけの値を使わない） */
+  let p=2,q=3,m1=2,m2=-1;
+  for(let i=0;i<300;i++){
+    const cp=rnd(-3,4), cq=rnd(-4,6);
+    const c1=pick([-3,-2,-1,1,2,3]), c2=pick([-3,-2,-1,1,2,3]);
+    if(c1===c2) continue;
+    if(cp===0) continue;               /* 交点が y 軸上だと「切片が同じ」で見た目が単調 */
+    p=cp; q=cq; m1=c1; m2=c2;
+    break;
+  }
+  const b1=q-m1*p, b2=q-m2*p;
+  return {
+    kind:'num', fmt:'coord', allowNeg:true,
+    text:'2つの直線 <b>'+linTex(m1,b1)+'</b>、<b>'+linTex(m2,b2)+'</b> の交点の座標を求めなさい。',
+    answers:[{label:'x座標', unit:'', value:p},{label:'y座標', unit:'', value:q}],
+    /* x を当てずっぽうで選べないよう、x が正解と同じ誤答肢を必ず混ぜる
+       （代入のときの符号ミスで出る値。乱数だけに任せると
+       「正解だけ x が正」のような見た目の手がかりが出てしまう） */
+    distractors:[[-p, q],[p, m1*p-b1],[p, b1-m1*p]],
+    hints:[
+      {tag:'ヒント1', text:'交点は「どちらの式も成り立つ点」。y が等しいとおいて x を求め、そのあと y を求める。'},
+      {tag:'y が等しい', latex:linTex(m1,b1).slice(2)+'='+linTex(m2,b2).slice(2)},
+      {tag:'x を求める', latex:'x='+nf(p), note:'どちらかの式に代入して y を出す'}
+    ],
+    steps:[
+      {label:'交点の考え方', text:'2つの式の y が等しくなる x を求める'},
+      {label:'y が等しいとおく', latex:linTex(m1,b1).slice(2)+'='+linTex(m2,b2).slice(2)},
+      {label:'x について解く', latex:'x='+nf(p)},
+      {label:'x='+nf(p)+' を代入', latex:substTex(m1,b1,p)},
+      {label:'', latex:'y='+nf(q)},
+      {label:'答え', text:'交点の座標 ('+nf(p)+', '+nf(q)+')', final:true}
+    ]
+  };
+}
+
+/* kouten2: 2直線と y 軸で囲まれた三角形の面積 */
+function genKouten2(){
+  /* 条件を満たした組だけを採用する（ループを抜けただけの値を使わない） */
+  let p=2,q=1,m1=1,m2=-2;
+  for(let i=0;i<400;i++){
+    const cp=rnd(2,6), cq=rnd(-4,6);
+    const c1=pick([-3,-2,-1,1,2,3]), c2=pick([-3,-2,-1,1,2,3]);
+    if(c1===c2) continue;
+    const cbase=Math.abs((c2-c1)*cp);
+    if(cbase*cp%2!==0) continue;        /* 面積が整数になる組み合わせだけ使う */
+    const cS=cbase*cp/2;
+    if(cS<4||cS>60) continue;
+    p=cp; q=cq; m1=c1; m2=c2;
+    break;
+  }
+  const b1=q-m1*p, b2=q-m2*p;
+  const base=Math.abs(b1-b2);
+  const S=base*p/2;
+  return {
+    kind:'num',
+    text:'座標の1目もりを1cmとします。2つの直線 <b>'+linTex(m1,b1)+'</b>、<b>'+linTex(m2,b2)
+      +'</b> と <b>y軸</b> で囲まれた三角形の面積を求めなさい。',
+    answers:[{label:'面積', unit:'cm²', value:S}],
+    distractors:[[base*p]],            /* 2でわるのを忘れる典型ミス */
+    hints:[
+      {tag:'ヒント1', text:'2直線が y 軸と交わる点が2つ。その間の長さを底辺、交点の x 座標を高さとみる。'},
+      {tag:'底辺', latex:'|'+nf(b1)+'-('+nf(b2)+')|='+nf(base), note:'y軸上の2点のへだたり'},
+      {tag:'高さ', latex:'x='+nf(p), note:'交点の x 座標'}
+    ],
+    steps:[
+      {label:'y軸との交点', text:'(0, '+nf(b1)+') と (0, '+nf(b2)+')'},
+      {label:'底辺の長さ', latex:'|'+nf(b1)+'-('+nf(b2)+')|='+nf(base)},
+      {label:'2直線の交点', latex:'x='+nf(p)+',\\ y='+nf(q)},
+      {label:'高さ', text:'y軸から交点までのへだたり＝'+nf(p)+' cm'},
+      {label:'面積', latex:'\\dfrac{1}{2}\\times '+nf(base)+'\\times '+nf(p)+'='+nf(S)},
+      {label:'答え', text:S+' cm²', final:true}
+    ]
+  };
+}
+/* kouten3: グラフを用いて交点を読む（式も示す＝グラフと連立方程式の解のつながり） */
+function genKouten3(){
+  const R=8;
+  let p=2,q=3,m1=2,m2=-1;
+  for(let i=0;i<400;i++){
+    const cp=rnd(-4,4), cq=rnd(-5,5);
+    const c1=pick([-3,-2,-1,1,2,3]), c2=pick([-3,-2,-1,1,2,3]);
+    if(c1===c2||cp===0) continue;
+    const cb1=cq-c1*cp, cb2=cq-c2*cp;
+    if(Math.abs(cb1)>R-1||Math.abs(cb2)>R-1) continue;   /* 2直線とも枠の中に見えるように */
+    p=cp; q=cq; m1=c1; m2=c2;
+    break;
+  }
+  const b1=q-m1*p, b2=q-m2*p;
+  return {
+    kind:'num', fmt:'coord', allowNeg:true,
+    fig:planeGraph({R, lines:[
+      {a:m1, b:b1, color:GC_L1, label:'①'},
+      {a:m2, b:b2, color:GC_L2, label:'②'}
+    ]}),
+    text:'下のグラフは、2つの直線 ①<b>'+linTex(m1,b1)+'</b>、②<b>'+linTex(m2,b2)
+      +'</b> をかいたものです。グラフを使って、2直線の交点の座標を求めなさい。',
+    answers:[{label:'x座標', unit:'', value:p},{label:'y座標', unit:'', value:q}],
+    distractors:[[-p, q],[p, m1*p-b1],[p, b1-m1*p]],
+    hints:[
+      {tag:'ヒント1', text:'グラフの2本の線が交わっているところを読む。その点は①と②のどちらの式にもあてはまる（＝連立方程式の解）。'},
+      {tag:'x座標', latex:'x='+nf(p), note:'交わっている点の左右の位置'},
+      {tag:'たしかめる', latex:substTex(m1,b1,p), note:'①に代入すると y が出る'}
+    ],
+    steps:[
+      {label:'グラフから読む', text:'2本の線が交わっているのは ('+nf(p)+', '+nf(q)+')'},
+      {label:'式でたしかめる', latex:linTex(m1,b1).slice(2)+'='+linTex(m2,b2).slice(2)},
+      {label:'x について解く', latex:'x='+nf(p)},
+      {label:'①に代入', latex:substTex(m1,b1,p)},
+      {label:'', latex:'y='+nf(q)},
+      {label:'答え', text:'交点の座標 ('+nf(p)+', '+nf(q)+')　※これが連立方程式の解', final:true}
+    ]
+  };
+}
+
+/* ===== 7. グラフを読む ===== */
+
+/* yomu1: 座標平面のグラフから式をつくる */
+function genYomu1(){
+  const R=8;
+  const a=pick([-3,-2,-1,1,2,3]);
+  const b=rnd(-5,5);
+  const x2=(Math.abs(a+b)<=R-1)?1:-1;
+  return {
+    kind:'expr', lin:{a,b},
+    fig:planeGraph({R, lines:[{a,b,color:GC_L1}],
+      points:[{x:0,y:b},{x:x2,y:a*x2+b}]}),
+    text:'下のグラフは、ある一次関数のグラフです。この直線の式を求めなさい。',
+    hints:[
+      {tag:'ヒント1', text:'まず y 軸と交わる点を読む（それが切片 b）。つぎに右へ1目もり進むと y がいくつ変わるかを読む（それが変化の割合 a）。'},
+      {tag:'切片', latex:'b='+nf(b), note:'y軸との交点の y 座標'},
+      {tag:'変化の割合', latex:'a='+nf(a), note:'右へ1進むと y は '+nf(a)+' 変わる'}
+    ],
+    steps:[
+      {label:'切片を読む', text:'y軸と交わる点が (0, '+nf(b)+') なので b='+nf(b)},
+      {label:'変化の割合を読む', text:'右へ1進むと y は '+nf(a)+' 変わるので a='+nf(a)},
+      {label:'式にまとめる', latex:linTex(a,b)},
+      {label:'答え', latex:linTex(a,b), final:true}
+    ]
+  };
+}
+
+/* yomu2: 実生活のグラフから式をつくって、グラフの外を予測する */
+const YOMU2_CTX=[
+  {dir:1, xlab:'時間 (分)', ylab:'水の量 (L)', amt:'水の量', unit:'L',
+   intro:'下のグラフは、水そうに水を入れはじめてからの時間 x 分と、水そうの水の量 y L の関係を表したものです（グラフは {T} 分後までかいてあります）。',
+   setup:'x = 水を入れはじめてからの時間(分)、y = 水そうの水の量(L)',
+   askY:(X)=>'水を入れはじめてから <b>'+X+'</b> 分後の水の量は何 L ですか。',
+   askX:(Y)=>'水の量が <b>'+Y+'</b> L になるのは、水を入れはじめてから何分後ですか。',
+   ansY:{label:'水の量', unit:'L'}, ansX:{label:'時間', unit:'分後'}},
+  {dir:-1, xlab:'時間 (分)', ylab:'残りの長さ (cm)', amt:'残りの長さ', unit:'cm',
+   intro:'下のグラフは、ろうそくに火をつけてからの時間 x 分と、残りの長さ y cm の関係を表したものです（グラフは {T} 分後までかいてあります）。',
+   setup:'x = 火をつけてからの時間(分)、y = 残りの長さ(cm)',
+   askY:(X)=>'火をつけてから <b>'+X+'</b> 分後の残りの長さは何 cm ですか。',
+   askX:(Y)=>'残りの長さが <b>'+Y+'</b> cm になるのは、火をつけてから何分後ですか。',
+   ansY:{label:'残りの長さ', unit:'cm'}, ansX:{label:'時間', unit:'分後'}}
+];
+function genYomu2(){
+  const ctx=pick(YOMU2_CTX);
+  const T=10, xstep=2, ystep=(ctx.dir>0?10:5);
+  let b=(ctx.dir>0?20:30), r=2, X=14;
+  for(let i=0;i<300;i++){
+    const cb=(ctx.dir>0?pick([10,20,30]):pick([25,30,35]));
+    const cr=(ctx.dir>0?pick([2,3,4,5]):pick([1,2]));
+    const cX=T+pick([2,4,5,6]);
+    if(ctx.dir<0 && cb-cr*cX<2) continue;        /* 予測した先で 0 以下にならないように */
+    if(ctx.dir>0 && cb+cr*cX>90) continue;
+    b=cb; r=cr; X=cX;
+    break;
+  }
+  const a=r*ctx.dir;
+  const yT=b+a*T;
+  const Y=b+a*X;
+  const askX=rngNext()<0.5;
+  const ans=askX?ctx.ansX:ctx.ansY;
+  const ymax=Math.max(b,yT,0)+ystep;
+  return {
+    kind:'num',
+    answers:[{label:ans.label, unit:ans.unit, value: askX?X:Y}],
+    /* 切片を無視して比例と考えてしまう典型ミス */
+    distractors: askX ? [[Math.round(Y/a)]].filter(v=>Number.isInteger(v[0])&&v[0]>0&&v[0]!==X)
+                      : [[Math.abs(a*X)]].filter(v=>v[0]!==Y&&v[0]>0),
+    fig:diagramGraph({xmax:T, ymax:Math.ceil(ymax/ystep)*ystep, xstep, ystep,
+      xlab:ctx.xlab, ylab:ctx.ylab,
+      segs:[{pts:[[0,b],[T,yT]], color:GC_L1, dots:true}]}),
+    text: ctx.intro.replace('{T}', String(T))+'<br>'+(askX?ctx.askX(nf(Y)):ctx.askY(nf(X))),
+    hints:[
+      {tag:'ヒント1', text:'グラフから切片（x=0 のときの値）と変化の割合を読んで式をつくる。聞かれているのはグラフの外なので、式に代入して求める。'},
+      {tag:'式', latex:linTex(a,b)},
+      askX
+        ? {tag:'ヒント3', latex:eqOfX(a,b,Y), note:'y に値を入れて x の方程式を解く'}
+        : {tag:'ヒント3', latex:substTex(a,b,X), note:'x に値を入れて計算する'}
+    ],
+    steps:[
+      {label:'x, y を決める', text:ctx.setup},
+      {label:'切片を読む', text:'x=0 のとき y='+nf(b)+' なので b='+nf(b)},
+      {label:'変化の割合を読む', text:nf(T)+'分で '+nf(Math.abs(a*T))+' '+ctx.unit
+        +(ctx.dir>0?'増える':'減る')+'ので a='+nf(a)},
+      {label:'式', latex:linTex(a,b)},
+      askX
+        ? {label:'y='+nf(Y)+' を代入', latex:eqOfX(a,b,Y)}
+        : {label:'x='+nf(X)+' を代入', latex:substTex(a,b,X)},
+      {label:askX?'方程式を解く':'計算する', latex:(askX?'x='+nf(X):'y='+nf(Y))},
+      {label:'答え', text:nf(askX?X:Y)+' '+ans.unit, final:true}
+    ]
+  };
+}
+
+/* yomu3: 2直線と y 軸で囲まれた三角形の面積（グラフ上で色をつけて示す） */
+function genYomu3(){
+  const R=8;
+  let p=2,q=1,m1=1,m2=-2;
+  for(let i=0;i<500;i++){
+    const cp=rnd(1,6), cq=rnd(-6,6);
+    const c1=pick([-3,-2,-1,1,2,3]), c2=pick([-3,-2,-1,1,2,3]);
+    if(c1===c2) continue;
+    const cb1=cq-c1*cp, cb2=cq-c2*cp;
+    if(Math.abs(cb1)>R-1||Math.abs(cb2)>R-1) continue;
+    if(Math.abs(cb1-cb2)*cp%2!==0) continue;            /* 面積が整数になる組だけ */
+    const cS=Math.abs(cb1-cb2)*cp/2;
+    if(cS<3||cS>48) continue;
+    p=cp; q=cq; m1=c1; m2=c2;
+    break;
+  }
+  const b1=q-m1*p, b2=q-m2*p;
+  const base=Math.abs(b1-b2);
+  const S=base*p/2;
+  return {
+    kind:'num',
+    fig:planeGraph({R,
+      shade:[[0,b1],[0,b2],[p,q]],
+      lines:[{a:m1,b:b1,color:GC_L1,label:'①'},{a:m2,b:b2,color:GC_L2,label:'②'}],
+      points:[{x:p,y:q}]}),
+    text:'下のグラフは、2つの直線 ①<b>'+linTex(m1,b1)+'</b>、②<b>'+linTex(m2,b2)
+      +'</b> をかいたものです。座標の1目もりを1cmとして、色をつけた三角形（2直線と y軸で囲まれた部分）の面積を求めなさい。',
+    answers:[{label:'面積', unit:'cm²', value:S}],
+    distractors:[[base*p]],
+    hints:[
+      {tag:'ヒント1', text:'y軸上の2点のへだたりが底辺、交点までの横のへだたりが高さになる。'},
+      {tag:'底辺', latex:nf(base), note:'(0, '+nf(b1)+') と (0, '+nf(b2)+') のへだたり'},
+      {tag:'高さ', latex:nf(p), note:'交点の x 座標'}
+    ],
+    steps:[
+      {label:'y軸との交点', text:'①は (0, '+nf(b1)+')、②は (0, '+nf(b2)+')'},
+      {label:'底辺の長さ', latex:'|'+nf(b1)+'-('+nf(b2)+')|='+nf(base)},
+      {label:'2直線の交点', text:'グラフから ('+nf(p)+', '+nf(q)+')'},
+      {label:'高さ', text:'y軸から交点までのへだたり＝'+nf(p)+' cm'},
+      {label:'面積', latex:'\\dfrac{1}{2}\\times '+nf(base)+'\\times '+nf(p)+'='+nf(S)},
+      {label:'答え', text:S+' cm²', final:true}
+    ]
+  };
+}
+
+/* ===== 8. ダイヤグラム ===== */
+
+/* diagram1: 1人の進行グラフから速さ・式・通過時刻を読む */
+function genDiagram1(){
+  let v=80, T=10, ay={step:200,max:800}, axx={step:2,max:10};
+  for(let i=0;i<600;i++){
+    const cv=pick([60,70,75,80,100,120,150]);
+    const cT=pick([8,10,12,15]);
+    const cy=niceYAxis(cv*cT, [cv*cT]);      /* 右端の点が目もりの上に来るように */
+    const cx=niceXAxis(cT, [cT]);
+    if(!cy||!cx) continue;
+    v=cv; T=cT; ay=cy; axx=cx;
+    break;
+  }
+  const D=v*T, ystep=ay.step, xstep=axx.step;
+  const form=pick(['speed','expr','pass']);
+  const fig=diagramGraph({xmax:axx.max, ymax:ay.max, xstep, ystep,
+    xlab:'時間 (分)', ylab:'道のり (m)',
+    segs:[{pts:[[0,0],[T,D]], color:GC_L1, label:'Aさん', dots:true}]});
+  const lead='Aさんは P地点を出発して、一定の速さで Q地点へ向かいました。下のグラフは、'
+    +'出発してから x 分後の P地点からの道のりを y m として表したものです。';
+  if(form==='expr'){
+    return {
+      kind:'expr', lin:{a:v,b:0}, fig,
+      text: lead+' y を x の式で表しなさい。',
+      hints:[
+        {tag:'ヒント1', text:'グラフは原点を通るので切片は0。'+nf(T)+'分で '+nf(D)+' m 進んでいるので、1分あたりの道のりが変化の割合。'},
+        {tag:'変化の割合', latex:'a=\\dfrac{'+nf(D)+'}{'+nf(T)+'}='+nf(v)},
+        {tag:'切片', latex:'b=0', note:'出発したときは道のり0'}
+      ],
+      steps:[
+        {label:'x, y を決める', text:'x = 出発してからの時間(分)、y = P地点からの道のり(m)'},
+        {label:'グラフから読む', text:nf(T)+'分後に '+nf(D)+' m の地点にいる'},
+        {label:'変化の割合', latex:'a=\\dfrac{'+nf(D)+'}{'+nf(T)+'}='+nf(v)},
+        {label:'式', latex:linTex(v,0)},
+        {label:'答え', latex:linTex(v,0), final:true}
+      ]
+    };
+  }
+  if(form==='speed'){
+    return {
+      kind:'num', fig,
+      text: lead+' Aさんの速さは分速何 m ですか。',
+      answers:[{label:'分速', unit:'m', value:v}],
+      distractors:[[D]].filter(w=>w[0]!==v),   /* 道のりをそのまま答えてしまう典型ミス */
+      hints:[
+        {tag:'ヒント1', text:'速さ＝道のり ÷ 時間。グラフの右端の点を読んで計算する。'},
+        {tag:'グラフから', latex:'x='+nf(T)+',\\ y='+nf(D)},
+        {tag:'速さ', latex:'\\dfrac{'+nf(D)+'}{'+nf(T)+'}='+nf(v)}
+      ],
+      steps:[
+        {label:'グラフから読む', text:nf(T)+'分で '+nf(D)+' m 進んでいる'},
+        {label:'速さを求める', latex:'\\dfrac{'+nf(D)+'}{'+nf(T)+'}='+nf(v)},
+        {label:'答え', text:'分速 '+v+' m', final:true}
+      ]
+    };
+  }
+  /* pass: 縦横どちらかの目もりから外れた地点を通る時刻（式を作らないと出せない） */
+  let t=Math.max(1,T-1);
+  for(let i=0;i<60;i++){
+    const ct=rnd(1,T-1);
+    if(ct%xstep!==0 || (v*ct)%ystep!==0){ t=ct; break; }
+  }
+  const Y=v*t;
+  return {
+    kind:'num', fig,
+    text: lead+' P地点から <b>'+Y+'</b> m の地点を通るのは、出発してから何分後ですか。',
+    answers:[{label:'時間', unit:'分後', value:t}],
+    distractors:[],
+    hints:[
+      {tag:'ヒント1', text:'グラフの目もりの上ではないので、まず y を x の式で表してから代入する。'},
+      {tag:'式', latex:linTex(v,0)},
+      {tag:'ヒント3', latex:eqOfX(v,0,Y), note:'y に値を入れて x を求める'}
+    ],
+    steps:[
+      {label:'x, y を決める', text:'x = 出発してからの時間(分)、y = P地点からの道のり(m)'},
+      {label:'速さを読む', latex:'\\dfrac{'+nf(D)+'}{'+nf(T)+'}='+nf(v)},
+      {label:'式', latex:linTex(v,0)},
+      {label:'y='+nf(Y)+' を代入', latex:eqOfX(v,0,Y)},
+      {label:'方程式を解く', latex:'x='+nf(t)},
+      {label:'答え', text:t+' 分後', final:true}
+    ]
+  };
+}
+
+/* diagram2: 2人のグラフの交点（出会う・追いつく） */
+function genDiagram2(){
+  const deai=rngNext()<0.5;
+  if(deai){
+    let v1=50, v2=100, t=4, ay={step:100,max:600}, axx={step:1,max:7};
+    for(let i=0;i<1200;i++){
+      const a1=pick([50,60,75,80,100,120,150]), a2=pick([50,60,75,80,100,120,150]);
+      const ct=rnd(4,12);
+      const dd=(a1+a2)*ct;
+      const cx=niceXAxis(ct+3, [ct]);              /* 出会う時刻は目もりの上に */
+      if(!cx) continue;
+      /* 目もりの上に来てほしいのは「出会う場所」だけ。B町までの道のりは
+         問題文に書いてあるので、軸はそこまで届いていればよい
+         （両方そろえようとすると出せる数の組み合わせが極端に減った） */
+      const cy=niceYAxis(dd, [a1*ct]);
+      if(!cy) continue;
+      v1=a1; v2=a2; t=ct; ay=cy; axx=cx;
+      break;
+    }
+    const D=(v1+v2)*t;
+    const xmax=axx.max;
+    /* 2人とも相手の出発地点に着いたらそこで線を止める（枠の外に伸ばさない） */
+    const xA=Math.min(xmax, D/v1), xB=Math.min(xmax, D/v2);
+    return {
+      kind:'num',
+      fig:diagramGraph({xmax, ymax:ay.max, xstep:axx.step, ystep:ay.step,
+        xlab:'時間 (分)', ylab:'A町からの道のり (m)',
+        segs:[
+          {pts:[[0,0],[xA,v1*xA]], color:GC_L1, label:'Aさん'},
+          {pts:[[0,D],[xB,D-v2*xB]], color:GC_L2, label:'Bさん'}
+        ]}),
+      text:'A町とB町は <b>'+D+'</b> m はなれています。AさんはA町を、BさんはB町を同時に出発し、向かい合って進みました。'
+        +'Aさんは分速 <b>'+v1+'</b> m、Bさんは分速 <b>'+v2
+        +'</b> m です。下のグラフを使って、2人が出会うのは何分後で、そこはA町から何 m か求めなさい。',
+      answers:[{label:'時間', unit:'分後', value:t},{label:'A町から', unit:'m', value:v1*t}],
+      distractors:[[t, v2*t]],
+      hints:[
+        {tag:'ヒント1', text:'2本のグラフが交わったところが「出会った時刻と場所」。式でも確かめられる。'},
+        {tag:'Aさん', latex:linTex(v1,0)},
+        {tag:'Bさん', latex:linTex(-v2,D), note:'2つの y が等しくなるのが交点'}
+      ],
+      steps:[
+        {label:'グラフから読む', text:'2本の線が交わるのは '+t+'分後、A町から '+(v1*t)+' m'},
+        {label:'Aさんの式', latex:linTex(v1,0)},
+        {label:'Bさんの式', latex:linTex(-v2,D)},
+        {label:'y が等しいとおく', latex:nf(v1)+'x=-'+nf(v2)+'x+'+nf(D)},
+        {label:'x を求める', latex:'x='+nf(t)},
+        {label:'場所を求める', latex:'y='+nf(v1)+'\\times '+nf(t)+'='+nf(v1*t)},
+        {label:'答え', text:t+' 分後、A町から '+(v1*t)+' m', final:true}
+      ]
+    };
+  }
+  /* 追いつく */
+  let v1=60, dv=20, t0=4, ay={step:200,max:1000}, axx={step:2,max:12};
+  for(let i=0;i<900;i++){
+    const cdv=pick([20,30,40,50]);
+    const cv1=pick([60,80,90,100,120,150]);
+    if(cv1%cdv!==0) continue;                      /* 追いつく時刻が整数になる組だけ */
+    const ct0=pick([2,3,4,5,6]);
+    const cx=cv1*ct0/cdv;
+    if(!Number.isInteger(cx)||cx<3||cx>15) continue;
+    const cxa=niceXAxis(ct0+cx+3, [ct0, ct0+cx]);  /* 出発時刻と追いつく時刻を目もりの上に */
+    if(!cxa) continue;
+    /* 上端は「描く線の一番高いところ」で決める（追いついた地点で決めると線がはみ出す） */
+    const maxY=Math.max(cv1*cxa.max, (cv1+cdv)*(cxa.max-ct0));
+    const cya=niceYAxis(maxY, [(cv1+cdv)*cx]);
+    if(!cya) continue;
+    v1=cv1; dv=cdv; t0=ct0; ay=cya; axx=cxa;
+    break;
+  }
+  const v2=v1+dv;
+  const x=v1*t0/dv;
+  const D=v2*x;                                    /* 追いついた地点 */
+  const xmax=axx.max;
+  return {
+    kind:'num',
+    fig:diagramGraph({xmax, ymax:ay.max, xstep:axx.step, ystep:ay.step,
+      xlab:'弟が出発してからの時間 (分)', ylab:'家からの道のり (m)',
+      segs:[
+        {pts:[[0,0],[xmax,v1*xmax]], color:GC_L2, label:'弟'},
+        {pts:[[t0,0],[xmax,v2*(xmax-t0)]], color:GC_L1, label:'兄'}
+      ]}),
+    text:'弟は家を出発して分速 <b>'+v1+'</b> m で駅へ向かい、その <b>'+t0
+      +'</b> 分後に兄が分速 <b>'+v2+'</b> m で追いかけました。下のグラフを使って、'
+      +'兄が弟に追いつくのは兄が出発してから何分後で、そこは家から何 m か求めなさい。',
+    answers:[{label:'時間', unit:'分後', value:x},{label:'家から', unit:'m', value:D}],
+    distractors:[[x+t0, D],[x, v1*x]],
+    hints:[
+      {tag:'ヒント1', text:'グラフが交わったところが追いついた時刻と場所。横軸は「弟が出発してから」なので、兄の出発からの時間は交点の値から '+t0+' をひく。'},
+      {tag:'兄', latex:linTex(v2,0), note:'兄が出発してからの時間を x とした式'},
+      {tag:'弟', latex:linTex(v1,v1*t0), note:'弟は先に '+nf(v1*t0)+' m 進んでいる'}
+    ],
+    steps:[
+      {label:'グラフから読む', text:'2本の線が交わるのは家から '+D+' m の地点'},
+      {label:'弟の先行ぶん', latex:nf(v1)+'\\times '+nf(t0)+'='+nf(v1*t0)},
+      {label:'兄の式', latex:linTex(v2,0)},
+      {label:'弟の式', latex:linTex(v1,v1*t0)},
+      {label:'y が等しいとおく', latex:nf(v2)+'x='+nf(v1)+'x+'+nf(v1*t0)},
+      {label:'x を求める', latex:'x='+nf(x)},
+      {label:'場所を求める', latex:'y='+nf(v2)+'\\times '+nf(x)+'='+nf(D)},
+      {label:'答え', text:'兄が出発してから '+x+' 分後、家から '+D+' m', final:true}
+    ]
+  };
+}
+
+/* diagram3: 途中で休む折れ線グラフ */
+function genDiagram3(){
+  /* 折れ目の時刻と高さがどれも目もりの上に来る組を探す
+     （そうでないと「休んでいた時間」も「区間の速さ」もグラフから読めない） */
+  let v1=50, v2=100, t1=4, t2=7, t3=10, ay={step:100,max:500}, axx={step:1,max:10};
+  for(let i=0;i<3000;i++){
+    const a1=pick([50,60,75,80,100,120]), a2=pick([50,60,75,80,100,120,150]);
+    if(a1===a2) continue;
+    const b1=pick([3,4,5,6]), rest=pick([2,3,4,5,6]), b3=pick([3,4,5,6]);
+    const e3=b1+rest+b3;
+    const cd1=a1*b1, cD=cd1+a2*b3;
+    const cxa=niceXAxis(e3, [b1, b1+rest]);
+    if(!cxa) continue;
+    const cya=niceYAxis(cD, [cd1, cD]);
+    if(!cya) continue;
+    v1=a1; v2=a2; t1=b1; t2=b1+rest; t3=e3; ay=cya; axx=cxa;
+    break;
+  }
+  const d1=v1*t1, D=d1+v2*(t3-t2);
+  const fig=diagramGraph({xmax:axx.max, ymax:ay.max, xstep:axx.step, ystep:ay.step,
+    xlab:'時間 (分)', ylab:'家からの道のり (m)',
+    segs:[{pts:[[0,0],[t1,d1],[t2,d1],[t3,D]], color:GC_L1, dots:true}]});
+  const lead='Aさんは家を出発して公園へ向かいました。途中で休み、そのあとまた一定の速さで進みました。'
+    +'下のグラフは、出発してから x 分後の家からの道のりを y m として表したものです。';
+  const form=pick(['rest','v1','v2']);
+  if(form==='rest'){
+    return {
+      kind:'num', fig,
+      text: lead+' Aさんが休んでいたのは何分間ですか。',
+      answers:[{label:'休んだ時間', unit:'分間', value:t2-t1}],
+      distractors:[[t2],[t1]].filter(w=>w[0]!==t2-t1),
+      hints:[
+        {tag:'ヒント1', text:'休んでいる間は進んでいないので、グラフが横にまっすぐ（変化の割合が0）になっている。'},
+        {tag:'休みはじめ', latex:'x='+nf(t1)},
+        {tag:'休みおわり', latex:'x='+nf(t2), note:'その差が休んだ時間'}
+      ],
+      steps:[
+        {label:'平らな部分を読む', text:'x='+nf(t1)+' から x='+nf(t2)+' までグラフが横になっている'},
+        {label:'休んだ時間', latex:nf(t2)+'-'+nf(t1)+'='+nf(t2-t1)},
+        {label:'答え', text:(t2-t1)+' 分間', final:true}
+      ]
+    };
+  }
+  const isFirst=(form==='v1');
+  const dv=isFirst?v1:v2;
+  const dt=isFirst?t1:(t3-t2);
+  const dd=isFirst?d1:(D-d1);
+  return {
+    kind:'num', fig,
+    text: lead+' 休む'+(isFirst?'前':'あと')+'のAさんの速さは分速何 m ですか。',
+    answers:[{label:'分速', unit:'m', value:dv}],
+    distractors:[[isFirst?v2:v1],[Math.round(D/t3)]].filter(w=>w[0]!==dv&&w[0]>0),
+    hints:[
+      {tag:'ヒント1', text:'速さ＝道のり ÷ 時間。休む'+(isFirst?'前':'あと')+'の部分だけを見て、進んだ道のりとかかった時間を読む。'},
+      {tag:'進んだ道のり', latex:nf(dd), note:'m'},
+      {tag:'かかった時間', latex:nf(dt), note:'分'}
+    ],
+    steps:[
+      {label:'その部分を読む', text:(isFirst?'0分から'+nf(t1)+'分まで':nf(t2)+'分から'+nf(t3)+'分まで')
+        +'で '+nf(dd)+' m 進んでいる'},
+      {label:'速さを求める', latex:'\\dfrac{'+nf(dd)+'}{'+nf(dt)+'}='+nf(dv)},
+      {label:'答え', text:'分速 '+dv+' m', final:true}
+    ]
+  };
+}
+
+/* =====================================================================
+ * カテゴリ × STEP 定義
+ * ===================================================================== */
+const CATS=[
+  {key:'mizu', name:'水そう', desc:'一定の割合で増える・減る', steps:[
+    {key:'mizu1', name:'式をつくる', desc:'はじめの量＝切片、毎分の量＝変化の割合', gen:genMizu1},
+    {key:'mizu2', name:'量と時間', desc:'x分後の量／◯Lになるのは何分後', gen:genMizu2},
+    {key:'mizu3', name:'ひねり問題', desc:'満水・空・割合やはじめの量を逆算', gen:genMizu3},
+  ]},
+  {key:'hyo', name:'表から式', desc:'ばね・ろうそく・コップ', steps:[
+    {key:'hyo1', name:'表から式をつくる', desc:'変化の割合と切片を表から読む', gen:genHyo1},
+    {key:'hyo2', name:'表から予測する', desc:'表にない値を式で求める', gen:genHyo2},
+  ]},
+  {key:'ryoukin', name:'料金プラン', desc:'基本料金＋1あたりの料金', steps:[
+    {key:'ryoukin1', name:'式をつくる', desc:'基本料金が切片になる', gen:genRyoukin1},
+    {key:'ryoukin2', name:'同じ金額になるのは', desc:'2つのプランの交点を求める', gen:genRyoukin2},
+    {key:'ryoukin3', name:'ひねり問題', desc:'段階料金・予算で何個まで', gen:genRyoukin3},
+  ]},
+  {key:'hayasa', name:'速さ', desc:'道のりと時間の関係', steps:[
+    {key:'hayasa1', name:'道のりの式', desc:'残りの道のり／途中から出発', gen:genHayasa1},
+    {key:'hayasa2', name:'出会う', desc:'向かい合って進んで出会う', gen:genHayasa2},
+    {key:'hayasa3', name:'追いつく', desc:'先に出発した人を追いかける', gen:genHayasa3},
+  ]},
+  {key:'ugoku', name:'動く点と面積', desc:'長方形の辺を動く点P', steps:[
+    {key:'ugoku1', name:'面積の式', desc:'面積を x の式で表す', gen:genUgoku1},
+    {key:'ugoku2', name:'面積と時間', desc:'◯cm²になるのは何秒後', gen:genUgoku2},
+  ]},
+  {key:'kouten', name:'グラフの交点', desc:'2直線の交わるところ', steps:[
+    {key:'kouten1', name:'交点の座標', desc:'2つの式から交点を求める', gen:genKouten1},
+    {key:'kouten2', name:'交点と面積', desc:'2直線とy軸で囲まれた三角形', gen:genKouten2},
+    {key:'kouten3', name:'グラフから交点を読む', desc:'交点＝連立方程式の解', gen:genKouten3},
+  ]},
+  {key:'yomu', name:'グラフを読む', desc:'グラフから式をつくる', steps:[
+    {key:'yomu1', name:'グラフから式', desc:'切片と変化の割合を読み取る', gen:genYomu1},
+    {key:'yomu2', name:'グラフの外を予測', desc:'式をつくってグラフの先を求める', gen:genYomu2},
+    {key:'yomu3', name:'グラフと面積', desc:'2直線とy軸で囲まれた三角形', gen:genYomu3},
+  ]},
+  {key:'diagram', name:'ダイヤグラム', desc:'時間と道のりのグラフ', steps:[
+    {key:'diagram1', name:'グラフから速さ・式', desc:'1人の進行グラフを読む', gen:genDiagram1},
+    {key:'diagram2', name:'出会う・追いつく', desc:'2本のグラフの交点を読む', gen:genDiagram2},
+    {key:'diagram3', name:'途中で休む', desc:'折れ線グラフを区間ごとに読む', gen:genDiagram3},
+  ]},
+  {key:'mixcat', name:'総合ミックス', desc:'ぜんぶのパターンからランダム出題!', mix:true, steps:[
+    {key:'mix', name:'総合ミックス', desc:'', gen:genMix},
+  ]},
+];
+function genMix(){
+  const gens=[];
+  CATS.forEach(c=>{ if(!c.mix) c.steps.forEach(s=>gens.push(s.gen)); });
+  return pick(gens)();
+}
+const QS_PER_SET=5;
+
+/* STEPキー → 生成関数の台帳。question_key と同じキーなので、
+   解き直しは question_params の {m:このキー, s:種} だけで問題を作り直せる。
+   ⚠ CATS にSTEPを足すとここへ自動で入る（key の付け替えだけは避けること。
+     既存 pending の m が迷子になり、その問題は永久に解き直せなくなる）。 */
+const GENS={};
+CATS.forEach(c=>{ c.steps.forEach(s=>{ GENS[s.key]=s.gen; }); });
+
+const RETRY_MAX=10;
+/* 解き直し(?retry=1)専用の見せかけカテゴリ。STEPの中身は使わない */
+const RETRY_CAT={key:'retry', name:'解き直し', desc:'まちがえた問題', mix:true, retry:true,
+  steps:[{key:'retry', name:'解き直し', desc:'', gen:genMix}]};
+function isRetry(){ return !!(state.cat&&state.cat.retry); }
+
+/* ---------- 選択肢・答えの文字列化（式と数値の2種類を1か所で扱う） ---------- */
+function valsText(q, vals){
+  if(q.fmt==='coord') return '('+vals.map(v=>nf(v)).join(', ')+')';
+  return vals.map((v,j)=>nf(v)+(q.answers[j].unit||'')).join('、');
+}
+/* 6択を作って並べ替える。返す形は [{disp, isTex, correct, rec}] */
+function buildChoices(q){
+  let list;
+  if(q.kind==='expr'){
+    const ec=exprChoices(q.lin.a, q.lin.b, q.exprExtra);
+    list=[{disp:ec.correct, isTex:true, correct:true, rec:ec.correct}]
+      .concat(ec.wrongs.map(t=>({disp:t, isTex:true, correct:false, rec:t})));
+  }else{
+    const mc=makeChoices(q.answers, q.distractors, q.allowNeg);
+    list=[{disp:valsText(q,mc.correct), isTex:false, correct:true, rec:valsText(q,mc.correct)}]
+      .concat(mc.wrongs.map(v=>({disp:valsText(q,v), isTex:false, correct:false, rec:valsText(q,v)})));
+  }
+  return shuffle(list);
+}
+function legendOf(q){
+  if(q.kind==='expr') return 'y を x の式で表すと?';
+  if(q.fmt==='coord') return '(x座標、y座標)';
+  return q.answers.length===2
+    ? '('+q.answers[0].label+'、'+q.answers[1].label+')'
+    : q.answers[0].label;
+}
+/* 学習記録・プリントの答え（プレーンテキスト。分数マーカー F() は出ない値だけを使う） */
+function answerText(q){
+  if(q.kind==='expr') return linTex(q.lin.a, q.lin.b);
+  if(q.fmt==='coord') return '交点の座標 '+valsText(q, q.answers.map(a=>a.value));
+  return q.answers.map(a=>a.label+' '+nf(a.value)+(a.unit||'')).join('、');
+}
+
+/* ---------- state / views ---------- */
+let state={ cat:null, stepIdx:0, qIndex:0, total:QS_PER_SET, results:[], cur:null, choices:[],
+            curKey:null, curSeed:0, judged:false, hintOpen:0, retryQ:null };
+const $=(id)=>document.getElementById(id);
+const views={ select:$('view-select'), steps:$('view-steps'), practice:$('view-practice'), result:$('view-result') };
+function show(name){
+  Object.keys(views).forEach(k=>{ views[k].hidden=(k!==name); });
+  window.scrollTo(0,0);
+}
+function stepObj(){ return state.cat.steps[state.stepIdx]; }
+
+/* ---------- category select ---------- */
+function renderCats(){
+  const grid=$('catGrid'); grid.innerHTML='';
+  CATS.forEach(cat=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='lv-card'+(cat.mix?' mix':'');
+    btn.innerHTML=
+      '<div class="lv-no">'+(cat.mix?'SPECIAL':'STEP 1〜'+cat.steps.length)+'</div>'+
+      '<div class="lv-name">'+cat.name+'</div>'+
+      '<div class="lv-desc">'+cat.desc+'</div>';
+    btn.addEventListener('click', ()=>{
+      if(cat.mix){ startStep(cat,0); }
+      else{ openCat(cat); }
+    });
+    grid.appendChild(btn);
+  });
+}
+
+/* ---------- step select ---------- */
+function openCat(cat){
+  state.cat=cat;
+  $('catTitle').textContent=cat.name;
+  $('catDesc').textContent=cat.desc;
+  const grid=$('stepGrid'); grid.innerHTML='';
+  cat.steps.forEach((s,i)=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='lv-card';
+    btn.innerHTML=
+      '<div class="lv-no">STEP '+(i+1)+'</div>'+
+      '<div class="lv-name">'+s.name+'</div>'+
+      '<div class="lv-desc">'+s.desc+'</div>';
+    btn.addEventListener('click', ()=>startStep(cat,i));
+    grid.appendChild(btn);
+  });
+  show('steps');
+}
+
+/* ---------- practice ---------- */
+function startStep(cat,idx){
+  state={ cat, stepIdx:idx, qIndex:0, total:QS_PER_SET, results:[], cur:null,
+          curKey:null, curSeed:0, judged:false, hintOpen:0, retryQ:null };
+  /* 解き直しモードから普通の練習に戻ってきたときの後片づけ */
+  const rb=$('retryBanner'); if(rb) rb.remove();
+  $('btnPrint').hidden=false;
+  show('practice');
+  nextQuestion();
+}
+function renderDots(){
+  const box=$('dots'); box.innerHTML='';
+  for(let i=0;i<state.total;i++){
+    const d=document.createElement('div');
+    d.className='dot'+(i===state.qIndex?' now':'')+
+      (state.results[i]===true?' ok':'')+(state.results[i]===false?' ng':'');
+    box.appendChild(d);
+  }
+}
+function nextQuestion(){
+  /* 出題のたびに種を1つ引く。解き直しのときは保存してある種をそのまま使う
+     ＝生成関数を回すだけでまったく同じ問題が出る(復元経路を書かなくてよい) */
+  let key, seed;
+  if(state.retryQ&&state.retryQ.length){
+    const it=state.retryQ.shift();
+    key=it.m; seed=it.s;
+  }else{
+    key=stepObj().key;
+    seed=rngPick();
+  }
+  rngSeed(seed);
+  state.curKey=key;
+  state.curSeed=seed;
+  state.cur=GENS[key]();
+  state.judged=false;
+  state.hintOpen=0;
+  const q=state.cur;
+  const st0=stepObj();
+  const stepTag = state.cat.mix ? '' : ' STEP'+(state.stepIdx+1)+' '+st0.name;
+  $('qLabel').textContent = isRetry()
+    ? '解き直し  ─  '+(state.qIndex+1)+' / '+state.total+' 問目'
+    : state.cat.name+stepTag+'  ─  第'+(state.qIndex+1)+'問';
+  $('qText').innerHTML=q.text;
+  const figBox=$('qFig');
+  figBox.innerHTML=q.fig||'';
+  figBox.hidden=!q.fig;
+  $('hintList').innerHTML='';
+  const bh=$('btnHint');
+  bh.disabled=false;
+  bh.textContent='ヒントを見る (1/'+q.hints.length+')';
+
+  $('choiceLegend').textContent=legendOf(q);
+  state.choices=buildChoices(q);
+  const grid=$('choiceGrid'); grid.innerHTML='';
+  state.choices.forEach((ch,i)=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='choice';
+    btn.addEventListener('click', ()=>judge(i));
+    grid.appendChild(btn);
+    if(ch.isTex) tex(btn, ch.disp, false);
+    else btn.textContent=ch.disp;
+  });
+
+  $('btnNext').hidden=true;
+  $('btnShowSteps').hidden=true;
+  $('kaisetsu').hidden=true;
+  $('stepsArea').innerHTML='';
+  /* 前問の共通ハンコ（正解は自動で消えない）を次の問題の前に片づける */
+  document.querySelectorAll('.q-card .divp-hanko, .q-card .divp-nice').forEach(el=>el.remove());
+  renderDots();
+}
+
+function openHint(){
+  const hs=state.cur.hints;
+  if(state.hintOpen>=hs.length) return;
+  const h=hs[state.hintOpen];
+  const div=document.createElement('div'); div.className='hint-item';
+  const tag=document.createElement('span'); tag.className='h-tag';
+  tag.textContent=h.tag;
+  div.appendChild(tag);
+  if(h.latex){
+    const t=document.createElement('span'); t.className='h-tex';
+    div.appendChild(t);
+    if(h.note){
+      const note=document.createElement('span'); note.className='h-note';
+      note.textContent=h.note;
+      div.appendChild(note);
+    }
+    $('hintList').appendChild(div);
+    tex(t, h.latex, false);      /* 日本語はKaTeXに入れず note 側にまわす */
+  }else{
+    const t=document.createElement('span');
+    t.textContent=h.text;
+    div.appendChild(t);
+    $('hintList').appendChild(div);
+  }
+  state.hintOpen++;
+  const bh=$('btnHint');
+  if(state.hintOpen>=hs.length){
+    bh.disabled=true;
+    bh.textContent='ヒントはここまで';
+  }else{
+    bh.textContent='つぎのヒントを見る ('+(state.hintOpen+1)+'/'+hs.length+')';
+  }
+}
+
+function judge(idx){
+  if(state.judged) return;
+  state.judged=true;
+  const ok=state.choices[idx].correct;
+  state.results[state.qIndex]=ok;
+
+  /* ==== 学習記録（divp-core）。未ログイン・ローカル時は内部で黙ってスキップ ==== */
+  try{
+    if(window.Divp&&typeof window.Divp.answer==='function'){
+      window.Divp.answer(!!ok,{
+        /* 解き直しのときも「その問題が属するSTEP」を送る（見せかけの retry カテゴリではない）
+           ＝params_hash が誤答時と一致し、2連続正解で mastered になる */
+        question_key: state.curKey,
+        /* {m:STEPキー, s:種} だけで同じ問題を作り直せる（CLAUDE.md 2d） */
+        question_params: {m: state.curKey, s: state.curSeed},
+        question_text: $('qText').textContent,
+        /* 表・長方形の図は誤答のときだけ保存され、解き直しプリントに出る */
+        question_figure: state.cur.fig || null,
+        correct_answer: answerText(state.cur),
+        wrong_answer: ok ? null : state.choices[idx].rec
+      });
+    }
+  }catch(e){}
+
+  const btns=$('choiceGrid').querySelectorAll('.choice');
+  btns.forEach((b,i)=>{
+    b.disabled=true;
+    /* 答え合わせ表示は共通モジュール divp-choice-mark.js にまかせる */
+    const isC=!!state.choices[i].correct;
+    safeDivpMark(b, isC ? (i===idx?"correct":"answer") : (i===idx?"wrong":"dim"));
+  });
+
+  if(ok){
+    safeDivpCorrect('.q-card');
+    $('btnShowSteps').hidden=false;
+  }else{
+    safeDivpIncorrect('.q-card');
+    showSteps();
+  }
+  $('btnHint').disabled=true;
+  const last=state.qIndex===state.total-1;
+  $('btnNext').textContent=last?'結果を見る →':'次の問題へ →';
+  $('btnNext').hidden=false;
+  $('btnNext').focus();
+  renderDots();
+}
+
+function showSteps(){
+  const area=$('stepsArea'); area.innerHTML='';
+  state.cur.steps.forEach(sp=>{
+    const row=document.createElement('div');
+    row.className='step'+(sp.final?' final':'');
+    const lab=document.createElement('span'); lab.className='slabel';
+    lab.textContent=sp.label||'';
+    row.appendChild(lab);
+    if(sp.latex){
+      const t=document.createElement('span'); t.className='stex';
+      row.appendChild(t);
+      area.appendChild(row);
+      tex(t, sp.latex, false);
+    }else{
+      const t=document.createElement('span'); t.className='stext';
+      t.textContent=sp.text;
+      row.appendChild(t);
+      area.appendChild(row);
+    }
+  });
+  $('kaisetsu').hidden=false;
+  $('btnShowSteps').hidden=true;
+}
+
+function next(){
+  if(state.qIndex===state.total-1){ finishSet(); return; }
+  state.qIndex++;
+  nextQuestion();
+}
+/* ---------- result ---------- */
+function finishSet(){
+  const score=state.results.filter(v=>v).length;
+  const perfect=score===state.total;
+  const retry=isRetry();
+  const st0=stepObj();
+  $('clearStampWrap').innerHTML=perfect?'<div class="clear-stamp">クリア!</div>':'';
+  const stepTag = state.cat.mix ? '' : ' STEP'+(state.stepIdx+1)+' '+st0.name;
+  $('resultTitle').textContent = retry ? '解き直し おつかれさま!' : state.cat.name+stepTag;
+  $('scoreNum').textContent=score;
+  document.querySelector('#view-result .of').textContent=' / '+state.total+' 問';
+  const hasNext = !retry && !state.cat.mix && state.stepIdx < state.cat.steps.length-1;
+  $('btnNextStep').hidden = !(perfect && hasNext);
+  $('btnRetry').hidden = retry;      /* 解き直しは保存された問題を消化するモード */
+  $('btnToSteps').textContent = (retry||state.cat.mix) ? '種類の一覧へ' : 'STEP一覧へ';
+  $('resultMsg').textContent = retry
+    ? (perfect ? '全問正解! 同じ問題に2回続けて正解すると、解き直しリストから消えるよ。'
+               : 'まちがえた問題は「解き方」を見てから、もう一度チャレンジしよう。')
+    : (perfect
+        ? (hasNext ? '全問正解! つぎのSTEPにすすもう!' : '全問正解! この種類はぜんぶマスターしたね!')
+        : 'まちがえた問題は「変化の割合」と「切片」の見つけ方からふり返って、もう一度チャレンジしよう。');
+  show('result');
+}
+
+/* ---------- 共通 正誤ハンコ（divp-correct-jh）。未読込・ローカル時は黙ってスキップ ---------- */
+function safeDivpCorrect(selector){
+  if(window.Divp&&typeof Divp.correct==='function'){
+    try{ Divp.correct(selector); }catch(e){}
+  }
+}
+function safeDivpIncorrect(selector){
+  if(window.Divp&&typeof Divp.incorrect==='function'){
+    try{ Divp.incorrect(selector); }catch(e){}
+  }
+}
+function safeDivpMark(el,kind){
+  if(window.Divp&&typeof Divp.markChoice==='function'){
+    try{ Divp.markChoice(el,kind); }catch(e){}
+  }
+}
+
+/* ---------- events ---------- */
+$('btnNext').addEventListener('click', next);
+$('btnHint').addEventListener('click', openHint);
+$('btnShowSteps').addEventListener('click', showSteps);
+$('btnBackToCats').addEventListener('click', ()=>{ renderCats(); show('select'); });
+$('btnBack').addEventListener('click', ()=>{
+  if(state.cat&&state.cat.mix){ renderCats(); show('select'); }
+  else if(state.cat){ openCat(state.cat); }
+  else{ renderCats(); show('select'); }
+});
+$('btnRetry').addEventListener('click', ()=>{ if(!isRetry()) startStep(state.cat,state.stepIdx); });
+$('btnNextStep').addEventListener('click', ()=>startStep(state.cat,state.stepIdx+1));
+$('btnToSteps').addEventListener('click', ()=>{
+  if(state.cat&&!state.cat.mix){ openCat(state.cat); }
+  else{ renderCats(); show('select'); }
+});
+
+/* ---------- print (選択中のSTEPからランダム5問) ---------- */
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function buildPrint(){
+  if(isRetry()) return;                     /* 解き直しは保存された問題を消化するモード */
+  const st0=stepObj();
+  const stepTag = state.cat.mix ? '総合ミックス' : state.cat.name+' STEP'+(state.stepIdx+1)+' '+st0.name;
+  const today=new Date();
+  const dateStr=today.getFullYear()+'年'+(today.getMonth()+1)+'月'+today.getDate()+'日';
+  const qs=[];
+  /* 紙は毎回ちがう5問でよいので、1問ごとに種を引き直す */
+  for(let i=0;i<QS_PER_SET;i++){ rngSeed(rngPick()); qs.push(st0.gen()); }
+
+  let html='';
+  html+='<div class="ps-head">'
+    +'<div><div class="ps-title">一次関数マスター 文章題編</div>'
+    +'<div class="ps-sub">'+esc(stepTag)+' ｜ '+dateStr+'</div></div>'
+    +'<div class="ps-name">名前<span class="line"></span></div>'
+    +'</div>';
+
+  qs.forEach((q,i)=>{
+    const ansline = q.kind==='expr'
+      ? '式 <span class="blank wide"></span>'
+      : (q.fmt==='coord'
+          ? '座標 <span class="blank wide"></span>'
+          : q.answers.map(a=>esc(a.label)+' <span class="blank"></span> '+esc(a.unit||'')).join('　'));
+    html+='<div class="p-item"><div class="p-row">'
+      +'<div class="p-no">'+(i+1)+'</div>'
+      +'<div class="p-body">'
+      +'<div class="p-text">'+q.text+'</div>'   /* q.textは自前生成の安全なHTML(<b>/<br>/<sup>のみ) */
+      +(q.fig?'<div class="p-fig">'+q.fig+'</div>':'')
+      +'<div class="p-space"></div>'
+      +'<div class="p-ansline">答え: '+ansline+'</div>'
+      +'</div></div></div>';
+  });
+
+  html+='<div class="p-key"><span class="k-title">【答え】</span>'
+    +qs.map((q,i)=>(i+1)+'. '+esc(answerText(q))).join('　 ')
+    +'</div>';
+
+  $('printSheet').innerHTML=html;
+  window.print();
+}
+$('btnPrint').addEventListener('click', buildPrint);
+
+/* ---------- 解き直しモード(?retry=1) ----------
+   マイページの「解き直し」から ?retry=1 付きで開かれたときだけ動く。
+   question_params の {m:STEPキー, s:種} で生成関数を回すと同じ問題が出るので、
+   pending をその順に消化する。判定後は通常どおり Divp.answer が飛ぶ＝
+   params_hash も同じなので、2連続正解で save_answer.php が mastered にする。 */
+function retryBanner(msg, box){
+  const old=$('retryBanner');
+  if(old) old.remove();
+  const d=document.createElement('div');
+  d.id='retryBanner'; d.className='retry-banner'; d.textContent=msg;
+  const t=box||views.practice;
+  t.insertBefore(d, t.firstChild);
+}
+function initRetry(){
+  if(!(window.Divp&&typeof Divp.getRetries==='function')) return;
+  Divp.getRetries().then(items=>{
+    const use=(items||[]).filter(it=>{
+      const p=it&&it.question_params;
+      return p&&GENS[p.m]&&typeof p.s==='number';
+    }).slice(0,RETRY_MAX);
+    if(!use.length){
+      /* 種類の一覧に帯を出すだけ（空の問題カードを見せない） */
+      retryBanner('解き直せる問題は まだありません。これからまちがえた問題が ここに入ります。', views.select);
+      setTimeout(()=>{ const b=$('retryBanner'); if(b) b.remove(); }, 9000);
+      return;
+    }
+    state={ cat:RETRY_CAT, stepIdx:0, qIndex:0, total:use.length, results:[], cur:null,
+            curKey:null, curSeed:0, judged:false, hintOpen:0,
+            retryQ:use.map(it=>({m:it.question_params.m, s:it.question_params.s})) };
+    show('practice');
+    retryBanner('解き直しモード: まちがえた '+use.length+' 問を、同じ問題でもう一度。2回続けて正解するとリストから消えるよ。');
+    $('btnPrint').hidden=true;
+    nextQuestion();
+  }).catch(()=>{});
+}
+
+/* ---------- init ---------- */
+renderCats();
+show('select');
+if(/[?&]retry=1/.test(location.search)){ try{ initRetry(); }catch(e){} }
+</script>
+</body>
+</html>

@@ -41,6 +41,17 @@ const TOOLS = [
     next: '#btnNext',
   },
   {
+    name: '一次関数の利用',
+    url: '/learning/math/math_js2_ichijikansu_riyou.html',
+    start: async (page) => {
+      await page.locator('#catGrid button').first().click();
+      await page.locator('#stepGrid button').first().click();
+    },
+    choices: '#choiceGrid .choice',
+    grade: null,
+    next: '#btnNext',
+  },
+  {
     name: '二次方程式の利用',
     url: '/learning/math/math_js3_nijihoteishiki_riyou.html',
     start: async (page) => {

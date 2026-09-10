@@ -192,6 +192,13 @@ return [
         'sub'   => '数学・中2',
         'url'   => '/learning/math/math_js2_ichijikansu.html',
     ],
+    // 解き直しは question_params の {m:STEPキー, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
+    // 表・長方形の図は question_figure で保存する（図が無いと解けない種類があるため）
+    'math_js2_ichijikansu_riyou' => [
+        'title' => '一次関数マスター 文章題編',
+        'sub'   => '数学・中2',
+        'url'   => '/learning/math/math_js2_ichijikansu_riyou.html',
+    ],
     'allgrade_romaji' => [
         'title' => 'ローマ字マスター',
         'sub'   => 'ローマ字・五十音・英単語(おまけ)',
