@@ -104,6 +104,10 @@ svg.map{width:100%;height:auto;display:block}
 
 /* MODE TABS */
 .mode-tabs{display:flex;gap:6px;margin-bottom:16px}
+.mode-tabs[hidden]{display:none}
+/* 解き直しモード(?retry=1)の案内帯 */
+.retry-banner{background:#FBF3E0;border:1.5px solid #C9A227;border-radius:10px;
+  padding:9px 12px;font-size:12.5px;color:#6E5518;line-height:1.6;margin:0 0 14px}
 
 /* SECTION HEADER */
 .sec-head{font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:4px}
@@ -471,19 +475,39 @@ const APPLIED_EXTRAS=[20,35,50,65,80,95,110,125,140,155,170];
 // ─────────────────────────────────────────
 // UTILITIES
 // ─────────────────────────────────────────
-function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+/* ---------- RNG ----------
+   種(seed)から決まった順番で数を出す方式(xorshift32)。Math.random は種を引くときだけ。
+   A・B地点も問題の種類も基準時刻もこの1本の流れから決まる＝種が同じなら同じ問題。
+   これで question_params に {p:出題面, m:モード, s:種} を入れておくだけで
+   ?retry=1 のときに同じ問題を作り直せる（CLAUDE.md 2d）。
+   ⚠ 乱数はこの rngNext() 1本に集約すること。Math.random() を出題側で直接呼ぶと、
+     その問題だけ種から再現できなくなる（解き直しで別の問題が出る）。 */
+let _rngState=1;
+function rngSeed(s){
+  _rngState=(s>>>0)||1;
+  for(let i=0;i<6;i++) rngNext();   // 小さい種の偏りをならす（ウォームアップ）
+}
+function rngPick(){ return (Math.floor(Math.random()*4294967296)>>>0)||1; }
+function rngNext(){
+  let x=_rngState;
+  x^=x<<13; x>>>=0; x^=x>>>17; x^=x<<5; x>>>=0;
+  _rngState=x;
+  return x/4294967296;
+}
+
+function randInt(a,b){return Math.floor(rngNext()*(b-a+1))+a;}
 function randFrom(arr){return arr[randInt(0,arr.length-1)];}
 
 function genBasicPoint(){
-  return {isEast:Math.random()<0.5, deg:randFrom(BASIC_DEGS)};
+  return {isEast:rngNext()<0.5, deg:randFrom(BASIC_DEGS)};
 }
 
 function genAppliedPoint(){
   // 70% 確率で15°刻み、30% で非倍数
-  if(Math.random()<0.7){
-    return {isEast:Math.random()<0.5, deg:randFrom(BASIC_DEGS)};
+  if(rngNext()<0.7){
+    return {isEast:rngNext()<0.5, deg:randFrom(BASIC_DEGS)};
   } else {
-    return {isEast:Math.random()<0.5, deg:randFrom(APPLIED_EXTRAS)};
+    return {isEast:rngNext()<0.5, deg:randFrom(APPLIED_EXTRAS)};
   }
 }
 
@@ -645,12 +669,25 @@ function generateQ(genPointFn,mode,allowFlight){
   if(mode==='flight'){
     q=genFlightQ(a,b,diff,jisaH);
   } else {
-    const useJisa=mode==='jisa'||(mode==='mix'&&Math.random()<0.4);
+    const useJisa=mode==='jisa'||(mode==='mix'&&rngNext()<0.4);
     if(useJisa) q=genJisaQ(a,b,diff,jisaH);
-    else if(allowFlight&&Math.random()<0.4) q=genFlightQ(a,b,diff,jisaH);
+    else if(allowFlight&&rngNext()<0.4) q=genFlightQ(a,b,diff,jisaH);
     else q=genJikokuQ(a,b,diff,jisaH);
   }
   return {q,a,b,diff,jisaH};
+}
+
+/* 出題面(p)・モード(m)・種(s) の3つだけで問題を1問作る。
+   3つの面(基本/応用/確認テスト)の出題条件の違いをここ1箇所に集約したので、
+   解き直しは保存してある {p,m,s} をそのまま渡せば同じ問題が出る。
+   ⚠ ここの分岐を変えると、既存 pending の種から出る問題も変わる。 */
+function genSeeded(page,mode,seed){
+  rngSeed(seed);
+  const genFn = page==='basic'   ? genBasicPoint
+              : page==='applied' ? genAppliedPoint
+              : (rngNext()<0.6?genBasicPoint:genAppliedPoint);   // 確認テストは基本と応用の混合
+  const allowFlight = (page==='applied');
+  return generateQ(genFn,mode,allowFlight);
 }
 
 // ─────────────────────────────────────────
@@ -757,8 +794,11 @@ function showPage(id){
 // 基本篇
 // ─────────────────────────────────────────
 let bMode='mix',bOk=0,bTotal=0,bAnswered=false,bState={};
+/* 解き直し(?retry=1)用。基本篇の画面を借りて、面をまたいだ pending を順に消化する */
+let bRetryQ=null,bRetryTotal=0,bRetryDone=0;
 
 function bSetMode(m){
+  bExitRetry();          /* モードをえらび直したら解き直しモードを抜ける */
   bMode=m;
   ['mix','jisa','jikoku'].forEach(id=>{
     const btn=document.getElementById('b-tab-'+id);
@@ -768,8 +808,20 @@ function bSetMode(m){
 }
 
 function bGenerate(){
-  const {q,a,b}=generateQ(genBasicPoint,bMode);
-  bState={q,a,b};
+  /* 出題のたびに種を1つ引く。解き直し(?retry=1)のときは保存してある
+     {p:出題面, m:モード, s:種} をそのまま使う＝まったく同じ問題が出る。
+     解き直しは面をまたぐので、この基本篇の画面を借りて全部を消化する。 */
+  let page='basic', mode=bMode, seed;
+  if(bRetryQ&&bRetryQ.length){
+    const it=bRetryQ.shift();
+    page=it.p; mode=it.m; seed=it.s;
+    bRetryDone++;
+    bRetryStatus();
+  }else{
+    seed=rngPick();
+  }
+  const {q,a,b}=genSeeded(page,mode,seed);
+  bState={q,a,b,page,mode,seed};
   bAnswered=false;
   renderPoints('b',a,b);
   renderQ('b',q,'bCheck');
@@ -794,7 +846,61 @@ function bUpdateScore(){
 }
 
 function bNextQ(){bGenerate();}
-function bReset(){bOk=0;bTotal=0;bUpdateScore();bGenerate();}
+function bReset(){bExitRetry();bOk=0;bTotal=0;bUpdateScore();bGenerate();}
+
+/* ---------- 解き直しモード(?retry=1) ----------
+   マイページの「解き直し」から ?retry=1 付きで開かれたときだけ動く。
+   question_params の {p:出題面, m:モード, s:種} で genSeeded() を回すと同じ問題が
+   出るので、pending をその順に消化する。判定後は通常どおり safeDivpAnswer が飛ぶ＝
+   params_hash も同じなので、2連続正解で save_answer.php が mastered にする。
+   3つの面の pending をまとめて出すため、画面は基本篇を借りる。 */
+const RETRY_MAX=10;
+function bRetryBanner(){
+  let d=document.getElementById('retryBanner');
+  if(!d){
+    d=document.createElement('div');
+    d.id='retryBanner'; d.className='retry-banner';
+    const page=document.getElementById('page-basic');
+    page.insertBefore(d,page.firstChild);
+  }
+  return d;
+}
+function bRetryStatus(){
+  if(!bRetryTotal) return;
+  bRetryBanner().textContent=
+    '解き直しモード '+bRetryDone+' / '+bRetryTotal+' 問目 ─ '
+    +'まちがえた問題を、同じ問題でもう一度。2回続けて正解するとリストから消えるよ。';
+}
+function bExitRetry(){
+  if(!bRetryQ&&!bRetryTotal) return;
+  bRetryQ=null; bRetryTotal=0; bRetryDone=0;
+  const d=document.getElementById('retryBanner'); if(d) d.remove();
+  document.querySelector('#page-basic .mode-tabs').hidden=false;
+}
+function initRetry(){
+  if(!(window.Divp&&typeof Divp.getRetries==='function')) return;
+  Divp.getRetries().then(items=>{
+    /* 種方式に変える前の pending（question_params が経度そのもの）はここで落ちる
+       ＝出題できないので混ぜない。次にまちがえた時から解き直せるようになる。 */
+    const use=(items||[]).filter(it=>{
+      const p=it&&it.question_params;
+      return p&&(p.p==='basic'||p.p==='applied'||p.p==='test')
+             &&typeof p.m==='string'&&typeof p.s==='number';
+    }).slice(0,RETRY_MAX);
+    showPage('basic');
+    if(!use.length){
+      const d=bRetryBanner();
+      d.textContent='解き直せる問題は まだありません。これからまちがえた問題が ここに入ります。';
+      setTimeout(()=>{ const b=document.getElementById('retryBanner'); if(b) b.remove(); },9000);
+      return;
+    }
+    bRetryQ=use.map(it=>({p:it.question_params.p, m:it.question_params.m, s:it.question_params.s}));
+    bRetryTotal=bRetryQ.length; bRetryDone=0;
+    /* 解き直し中はモードの切り替えを隠す（押すと抜けてしまうため） */
+    document.querySelector('#page-basic .mode-tabs').hidden=true;
+    bGenerate();
+  }).catch(()=>{});
+}
 
 // init tabs
 ['mix','jisa','jikoku'].forEach(id=>{
@@ -817,8 +923,9 @@ function aSetMode(m){
 }
 
 function aGenerate(){
-  const {q,a,b}=generateQ(genAppliedPoint,aMode,true);
-  aState={q,a,b};
+  const seed=rngPick();
+  const {q,a,b}=genSeeded('applied',aMode,seed);
+  aState={q,a,b,page:'applied',mode:aMode,seed};
   aAnswered=false;
   renderPoints('a',a,b);
   renderQ('a',q,'aCheck');
@@ -912,9 +1019,10 @@ function printTest(){
   const sheetTitle=`時差計算 ${pageLabel}（${modeLabel}）`;
   const pickGen=()=> pageId==='page-basic'?genBasicPoint
                    : pageId==='page-applied'?genAppliedPoint
-                   : (Math.random()<0.6?genBasicPoint:genAppliedPoint);
+                   : (rngNext()<0.6?genBasicPoint:genAppliedPoint);
   const items=[],seen=new Set();
   for(let att=0;att<400&&items.length<4;att++){
+    rngSeed(rngPick());                     /* 紙は毎回ちがう4問でよいので種を引き直す */
     const {q}=generateQ(pickGen(),mode,allowFlight);
     if(seen.has(q.text)) continue;
     seen.add(q.text);
@@ -993,10 +1101,10 @@ function printTest(){
 }
 
 function tGenerate(){
-  // mix of basic + applied
-  const genFn=Math.random()<0.6?genBasicPoint:genAppliedPoint;
-  const {q,a,b}=generateQ(genFn,tMode);
-  tState={q,a,b};
+  // mix of basic + applied（どちらを使うかも種から決まる）
+  const seed=rngPick();
+  const {q,a,b}=genSeeded('test',tMode,seed);
+  tState={q,a,b,page:'test',mode:tMode,seed};
   tAnswered=false;
   tTotal++;
   renderPoints('t',a,b);
@@ -1082,15 +1190,17 @@ function safeDivpClear(selector){
 }
 
 // 正誤判定の直後に呼ぶ。question_key は 出題面(basic/applied/test)×種類(jisa/jikoku)。
-// question_params は同一問題の判定キー(params_hash)＝A・B地点の経度、時刻問題は基準時刻も含める。
+// question_params は {p:出題面, m:モード, s:種} の3つだけ（CLAUDE.md 2d）。
+// genSeeded() にこの3つを渡せば同じ問題が出るので、解き直しに復元経路が要らない。
+// ⚠ 解き直し中は基本篇の画面を借りて他の面の問題も出すので、出題面は state 側を優先する
+//    （引数の page ではなく state.page。ここがずれると question_key が変わって
+//     params_hash が誤答時と一致せず、永久に mastered にならない）。
 function logJisaAnswer(page,state,correct,userAns){
-  const q=state.q,a=state.a,b=state.b;
-  const params={a:{e:a.isEast?1:0,d:a.deg},b:{e:b.isEast?1:0,d:b.deg},t:q.type};
-  if(q.type==='jikoku'){params.h=q.miH;params.mo=q.miMonth;params.dy=q.miDay;}
-  if(q.type==='flight'){params.h=q.depH;params.mo=q.depMonth;params.dy=q.depDay;params.f=q.flight;}
+  const q=state.q;
+  const p=state.page||page, m=state.mode||'mix';
   safeDivpAnswer(correct,{
-    question_key:page+'_'+q.type,   // 例: basic_jisa / applied_jikoku / test_jisa
-    question_params:params,
+    question_key:p+'_'+q.type,      // 例: basic_jisa / applied_jikoku / test_jisa
+    question_params:{p:p, m:m, s:state.seed},
     question_text:q.text,
     correct_answer:q.answerStr,
     wrong_answer:userAns
@@ -1183,6 +1293,7 @@ function drawWorld(){
 drawWorld();
 bGenerate();
 aGenerate();
+if(/[?&]retry=1/.test(location.search)){ try{ initRetry(); }catch(e){} }
 </script>
 </body>
 </html>

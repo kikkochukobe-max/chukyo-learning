@@ -23,6 +23,11 @@ assets/                共通モジュール（全ツールがscriptタグで読
                         よう修正済み（body の中から読まれた時だけその場に挿し、
                         それ以外は body 先頭へ）＝assets を上げれば置き場所を
                         間違えているツールも直る。とはいえ新規ツールは body 直後に置くこと。
+                        ⚠ **ツール側の `body` を flex/grid にしない**。ヘッダーは本体
+                        （`.wrap` 等）の兄弟として body に挿されるので、body が flex だと
+                        **横に並んで画面左端に縦長の紺色の帯**になり、本体も潰れる。
+                        中央寄せは本体側の `margin:0 auto` で行う
+                        （math_js1_kankeishiki が `body{display:flex}` でこうなった）。
   divp-correct.js        小学生用 正解エフェクト（星＋「正解！」演出）
   divp-correct-firework.js  小学生用 正解エフェクト「花火」（絵文字が360度に弾けて落下＋
                          「せいかい！」が1文字ずつ散って戻る＋落ちた記号が画面下に積もる）。
@@ -255,7 +260,13 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    プリントに出る（正解分は保存しない＝容量の無駄）。question_text と同じ「人間用の
    表現」で、**question_params から図を復元する実装をPHPに持たせない**という
    2. の原則をそのまま守る形。組み込み済み: math_js3_aichi_daimon1（`q.tableHtml`）/
-   理科4本（`q.tbl`）/ math_es6_rittai_taiseki（`q.fig`）。
+   理科4本（`q.tbl`）/ math_es6_rittai_taiseki（`q.fig`）/
+   math_js1_kankeishiki（規則性の図 `q.fig`）。
+   ⚠ **図の色・線はCSSクラスにせずSVGの属性で書く**。解き直しプリントは
+   ツール側のCSSが無い状態で図を描くので、`class="stick"` のように
+   クラスで stroke を当てていると**線が1本も見えない紙**になる
+   （エラーは出ず、図の枠だけが出る）。math_js1_kankeishiki は組み込みのときに
+   クラス指定だった図を属性に書き直してある。
    列の追加は db/migrations/migrate_question_figure.sql。
    ⚠ 講師画面に生HTMLとして描くので、save_answer.php の `figure_is_safe()` が
    タグ・属性のホワイトリストで検証し、**想定外なら図を丸ごと捨てる**（掃除はしない）。
@@ -295,7 +306,25 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    条件は**ツール内の乱数が1か所に集まっていること**（`ri()` だけが乱数を使う形。
    `Math.random()` を各所で直接呼んでいると種で再現できない）。
    組み込み済み: math_js2_ichijikansu（生成関数50個以上・モード13種）/
-   math_es5_baisu_yakusu / math_es5_tsuubun_kagen / math_es6_rittai_taiseki。
+   math_es5_baisu_yakusu / math_es5_tsuubun_kagen / math_es6_rittai_taiseki /
+   math_js1_kankeishiki（`{g:生成関数のid, s:種}`。モードではなく**生成関数そのもの**を
+   保存する形＝「カテゴリ×等式/不等式」で選ぶツールでも、実際に出た1本を復元できる。
+   id は「カテゴリ＋通し番号」を読み込み時に自動で振るので、**新しい生成関数は
+   各カテゴリの末尾に足すこと**。途中に挿入すると id がずれて既存 pending から
+   別の問題が出る）/
+   math_js2_renritsu_riyou（`{m:STEPキー, s:種}`。二次方程式 文章題編と同じ形）/
+   social_js_jisa（`{p:出題面, m:モード, s:種}`。基本・応用・確認テストで出題条件が
+   違うので、その分岐を `genSeeded()` 1本に集約してある。**解き直しは3つの面の
+   pending を基本篇の画面にまとめて出す**ので、`question_key` は画面ではなく
+   保存してある出題面から作ること）/
+   math_js1_seihunohugohantei（`{n:項の数, s:種}`。n は question_key(terms2/terms3)
+   にも効くので、解き直しでは生成の前に termCount を戻す）/
+   math_es6_mojishiki（`{c:しゅるい, s:種}`）。
+   ⚠ **種は問題オブジェクトに持たせる**（`q.seed`）。「いま出ている問題の種」を
+   グローバル1個で持つと、他の経路が生成関数を呼んだ瞬間に画面と記録がずれる。
+   ⚠ **`sort()` に乱数の比較関数を渡す並べ替えは種で再現できない**
+   （比較の呼ばれ方がブラウザの sort 実装しだいなので、同じ種でも別の問題になる）。
+   フィッシャー・イェーツで書き直すこと（符号判定クイズで踏んだ）。
    ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
    （params_hash は同じままなので解き直し自体は成立するが、出る問題は別物になる）。
    ⚠ 種は question_params に入る＝params_hash に効くので、

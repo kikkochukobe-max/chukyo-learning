@@ -66,6 +66,12 @@
       background: linear-gradient(90deg,transparent,var(--purple),var(--blue),transparent);
     }
     .qcard.out { opacity: 0; }
+    /* 解き直しモード(?retry=1)の案内帯 */
+    .retry-banner {
+      background: #FBF3E0; border: 1.5px solid #C9A227; border-radius: 10px;
+      padding: 9px 12px; font-size: 12.5px; color: #6E5518; line-height: 1.6;
+      margin: 0 0 12px; text-align: left;
+    }
     .qlabel { font-size: .73rem; color: var(--muted); letter-spacing: .06em; margin-bottom: 13px; }
     .expr {
       font-size: clamp(2rem,8vw,3rem); font-weight: 700;
@@ -303,11 +309,40 @@ var CPROB = [
 ];
 var AI = [0,1,2,3], BI = [4,5,6,7], ALL = [0,1,2,3,4,5,6,7];
 
+/* ---------- RNG ----------
+   種(seed)から決まった順番で数を出す方式(xorshift32)。Math.random は種を引くときだけ。
+   項の選び方も符号もかっこの有無もこの1本の流れから決まる＝種が同じなら同じ問題。
+   これで question_params に {n:項の数, s:種} を入れておくだけで
+   ?retry=1 のときに同じ問題を作り直せる（CLAUDE.md 2d）。
+   ⚠ 乱数はこの rngNext() 1本に集約すること。Math.random() を出題側で直接呼ぶと、
+     その問題だけ種から再現できなくなる（解き直しで別の問題が出る）。 */
+var _rngState = 1;
+function rngSeed(s) {
+  _rngState = (s >>> 0) || 1;
+  for (var i = 0; i < 6; i++) rngNext();   // 小さい種の偏りをならす
+}
+function rngPick() { return (Math.floor(Math.random() * 4294967296) >>> 0) || 1; }
+function rngNext() {
+  var x = _rngState;
+  x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0;
+  _rngState = x;
+  return x / 4294967296;
+}
+/* 並べ替え。sort に乱数の比較関数を渡す形はブラウザのsort実装で結果が変わり、
+   同じ種でも別の問題になりうるので、自前のフィッシャー・イェーツで固定する */
+function rngShuffle(arr) {
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(rngNext() * (i + 1));
+    var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+
 function pickW(pool, used) {
   var av = pool.filter(function(i){ return !used.has(i); });
   if (!av.length) return null;
   var tot = av.reduce(function(s,i){ return s + TERMS[i].wt; }, 0);
-  var r = Math.random() * tot;
+  var r = rngNext() * tot;
   for (var j = 0; j < av.length; j++) {
     r -= TERMS[av[j]].wt;
     if (r <= 0) { used.add(av[j]); return av[j]; }
@@ -335,7 +370,7 @@ function showCondMode(condText) {
 function genCond() {
   var pool = CPROB.filter(function(p){ return p.n === termCount; });
   if (!pool.length) pool = CPROB;
-  var p = pool[Math.floor(Math.random() * pool.length)];
+  var p = pool[Math.floor(rngNext() * pool.length)];
   return {
     text: p.text, answer: p.answer, parts: p.parts,
     hasBracket: false,
@@ -351,22 +386,22 @@ function genNormal() {
   for (var k = 2; k < termCount; k++) {
     var x = pickW(ALL, used); if (x != null) idxs.push(x);
   }
-  idxs.sort(function(){ return Math.random() - 0.5; });
+  rngShuffle(idxs);
 
   var text = '', parts = [], bracketUsed = false, hasBracket = false;
   for (var i = 0; i < idxs.length; i++) {
     var t = TERMS[idxs[i]], pt, contrib;
     if (i === 0) {
-      if (Math.random() < 0.35) { pt = '−' + t.h; contrib = -t.s; }
-      else                       { pt = t.h;         contrib =  t.s; }
+      if (rngNext() < 0.35) { pt = '−' + t.h; contrib = -t.s; }
+      else                  { pt = t.h;       contrib =  t.s; }
     } else {
-      var wb = !bracketUsed && Math.random() < 0.32;
+      var wb = !bracketUsed && rngNext() < 0.32;
       if (wb) {
         bracketUsed = hasBracket = true;
-        if (Math.random() < 0.55) { pt = '−(−' + t.h + ')'; contrib =  t.s; }
-        else                       { pt = '+(−' + t.h + ')'; contrib = -t.s; }
-      } else if (Math.random() < 0.5) { pt = '+' + t.h; contrib =  t.s; }
-      else                            { pt = '−' + t.h; contrib = -t.s; }
+        if (rngNext() < 0.55) { pt = '−(−' + t.h + ')'; contrib =  t.s; }
+        else                  { pt = '+(−' + t.h + ')'; contrib = -t.s; }
+      } else if (rngNext() < 0.5) { pt = '+' + t.h; contrib =  t.s; }
+      else                        { pt = '−' + t.h; contrib = -t.s; }
     }
     text += pt;
     parts.push({text: pt, contrib: contrib, why: t.why});
@@ -377,9 +412,17 @@ function genNormal() {
   return {text: text, answer: answer, parts: parts, hasBracket: hasBracket, isCond: false};
 }
 
-/* 25% の確率で大小条件問題 */
-function gen() {
-  var q = (Math.random() < 0.25) ? genCond() : genNormal();
+/* 25% の確率で大小条件問題。
+   出題のたびに種を1つ引き、その種と項の数だけを覚えておけば同じ問題を作り直せる。
+   解き直し(?retry=1)のときは保存してある {n:項の数, s:種} をそのまま渡す。 */
+function gen(seed) {
+  var s = (seed == null) ? rngPick() : seed;
+  rngSeed(s);
+  var q = (rngNext() < 0.25) ? genCond() : genNormal();
+  /* 種は問題そのものに持たせる（グローバルに置くと、表示中の問題と
+     記録される種がずれる余地が残るため）。項の数も同じ理由で一緒に持つ。 */
+  q.seed = s;
+  q.n = termCount;
   showCondMode(q.isCond ? q.cond : null);
   return q;
 }
@@ -442,12 +485,13 @@ function ans(choice) {
 
   // 学習記録システム連携（判定直後に1行）
   safeDivpAnswer(correct, {
-    question_key: cur.isCond ? 'condition' : ('terms' + termCount),
-    question_params: {
-      text: cur.text, answer: cur.answer, parts: cur.parts,
-      isCond: cur.isCond, cond: cur.cond || null, condNote: cur.condNote || null,
-      hasBracket: !!cur.hasBracket
-    },
+    question_key: cur.isCond ? 'condition' : ('terms' + cur.n),
+    /* {n:項の数, s:種} だけで同じ問題を作り直せる（CLAUDE.md 2d）。
+       以前は問題文そのものを入れていたが、それでは ?retry=1 で再現できなかった。
+       ⚠ n は question_key にも効く（terms2 / terms3）ので、解き直しでは
+         gen() の前に termCount を戻すこと（ずれると params_hash が合わず
+         永久に mastered にならない）。 */
+    question_params: { n: cur.n, s: cur.seed },
     question_text: (cur.isCond ? (cur.cond + '　') : '') + cur.text + ' の符号は？',
     correct_answer: LBL[cur.answer],
     wrong_answer: LBL[choice]
@@ -459,7 +503,7 @@ function nextQ() {
   st.done = false; st.q++;
   $qcard.classList.add('out');
   setTimeout(function() {
-    cur = gen();
+    cur = genNext();
     $expr.textContent = cur.text;
     // 前問の正解スタンプ／不正解バッジが残っていたら消す（正解ハンコは自動フェードしないため）
     $qcard.querySelectorAll('.divp-hanko, .divp-nice').forEach(function(el){ el.remove(); });
@@ -475,14 +519,82 @@ function nextQ() {
 }
 
 function setTerms(n) {
+  exitRetry();              /* 項の数をえらび直したら解き直しモードを抜ける */
   termCount = n;
   document.getElementById('ts2').classList.toggle('active', n === 2);
   document.getElementById('ts3').classList.toggle('active', n === 3);
   if (!st.done) {
-    cur = gen();
+    cur = genNext();
     $expr.textContent = cur.text;
     renderScore();
   }
+}
+
+/* ---------- 解き直しモード(?retry=1) ----------
+   マイページの「解き直し」から ?retry=1 付きで開かれたときだけ動く。
+   question_params の {n:項の数, s:種} で gen() を回すと同じ問題が出るので、
+   pending をその順に消化する。判定後は通常どおり safeDivpAnswer が飛ぶ＝
+   params_hash も同じなので、2連続正解で save_answer.php が mastered にする。 */
+var RETRY_MAX = 10;
+var retryQ = null, retryTotal = 0, retryDone = 0;
+
+/* 次の1問。解き直し中はキューから、ふだんは新しい種で出す */
+function genNext() {
+  if (retryQ && retryQ.length) {
+    var it = retryQ.shift();
+    termCount = it.n;                 /* question_key(terms2/terms3)をそろえる */
+    retryDone++;
+    retryStatus();
+    return gen(it.s);
+  }
+  if (retryTotal && !(retryQ && retryQ.length)) exitRetry();   /* 消化しきったら通常へ */
+  return gen();
+}
+function retryBanner() {
+  var d = document.getElementById('retryBanner');
+  if (!d) {
+    d = document.createElement('div');
+    d.id = 'retryBanner';
+    d.className = 'retry-banner';
+    $qcard.parentNode.insertBefore(d, $qcard);
+  }
+  return d;
+}
+function retryStatus() {
+  if (!retryTotal) return;
+  retryBanner().textContent =
+    '解き直しモード ' + retryDone + ' / ' + retryTotal + ' 問目 ─ '
+    + 'まちがえた問題を、同じ問題でもう一度。2回続けて正解するとリストから消えるよ。';
+}
+function exitRetry() {
+  if (!retryQ && !retryTotal) return;
+  retryQ = null; retryTotal = 0; retryDone = 0;
+  var d = document.getElementById('retryBanner'); if (d) d.remove();
+}
+function initRetry() {
+  if (!(window.Divp && typeof Divp.getRetries === 'function')) return;
+  Divp.getRetries().then(function (items) {
+    /* 種方式に変える前の pending（question_params が問題文そのもの）はここで落ちる
+       ＝出題できないので混ぜない。次にまちがえた時から解き直せるようになる。 */
+    var use = (items || []).filter(function (it) {
+      var p = it && it.question_params;
+      return p && (p.n === 2 || p.n === 3) && typeof p.s === 'number';
+    }).slice(0, RETRY_MAX);
+    if (!use.length) {
+      var d = retryBanner();
+      d.textContent = '解き直せる問題は まだありません。これからまちがえた問題が ここに入ります。';
+      setTimeout(function () { var b = document.getElementById('retryBanner'); if (b) b.remove(); }, 9000);
+      return;
+    }
+    retryQ = use.map(function (it) { return { n: it.question_params.n, s: it.question_params.s }; });
+    retryTotal = retryQ.length; retryDone = 0;
+    st.done = false;
+    cur = genNext();
+    $expr.textContent = cur.text;
+    document.getElementById('ts2').classList.toggle('active', termCount === 2);
+    document.getElementById('ts3').classList.toggle('active', termCount === 3);
+    renderScore();
+  }).catch(function () {});
 }
 
 document.addEventListener('keydown', function(e) {
@@ -498,6 +610,7 @@ renderScore();
 
 // 学習記録システム初期化（未ログイン・ローカルでは黙ってスキップ）
 try { if (window.Divp && Divp.init) Divp.init('math_js1_seihunohugohantei'); } catch (e) {}
+if (/[?&]retry=1/.test(location.search)) { try { initRetry(); } catch (e) {} }
 </script>
 </body>
 </html>

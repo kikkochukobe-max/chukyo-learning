@@ -76,6 +76,7 @@ return [
         'sub'   => '数学・中1',
         'url'   => '/learning/math/math_js1_seihunomahojin.html',
     ],
+    // 解き直しは question_params の {n:項の数, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
     'math_js1_seihunohugohantei' => [
         'title' => '符号判定クイズ',
         'sub'   => '数学・中1',
@@ -91,6 +92,7 @@ return [
         'sub'   => '数学・中1',
         'url'   => '/learning/math/math_js1_kariheikin.html',
     ],
+    // 解き直しは question_params の {c:しゅるい, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
     'math_es6_mojishiki' => [
         'title' => '文字式マスター',
         'sub'   => '算数・小6',
@@ -100,6 +102,13 @@ return [
         'title' => '文字式の計算マスター',
         'sub'   => '数学・中1',
         'url'   => '/learning/math/math_js1_mojishiki_keisan.html',
+    ],
+    // 解き直しは question_params の {g:生成関数のid, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
+    // 生成関数が71個あるので replay_json は使わない（詳細はツール内の initRetry のコメント）
+    'math_js1_kankeishiki' => [
+        'title' => '関係を表す式マスター',
+        'sub'   => '数学・中1（等式・不等式で表す）',
+        'url'   => '/learning/math/math_js1_kankeishiki.html',
     ],
     'math_js1_houteishiki_master' => [
         'title' => '方程式マスター',
@@ -163,6 +172,7 @@ return [
         'sub'   => '数学・中2',
         'url'   => '/learning/math/math_js2_keisan.html',
     ],
+    // 解き直しは question_params の {m:STEPキー, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
     'math_js2_renritsu_riyou' => [
         'title' => '連立方程式マスター 文章題編',
         'sub'   => '数学・中2',
@@ -207,6 +217,8 @@ return [
         'sub'   => '英語・中1〜中3',
         'url'   => '/learning/english/english_js_grammar_app.html',
     ],
+    // 解き直しは question_params の {p:出題面, m:モード, s:種} で同じ問題を作り直す
+    // （3つの面の pending を基本篇の画面にまとめて出す = CLAUDE.md 2d）
     'social_js_jisa' => [
         'title' => '時差計算練習',
         'sub'   => '社会・中学',

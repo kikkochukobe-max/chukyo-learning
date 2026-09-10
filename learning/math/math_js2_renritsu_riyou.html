@@ -237,6 +237,11 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
   font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:24px;
   transform:rotate(-12deg);margin-bottom:14px;letter-spacing:.08em;
 }
+/* 解き直しモード(?retry=1)の案内帯 */
+.retry-banner{
+  background:#FBF3E0;border:1.5px solid var(--kin);border-radius:10px;
+  padding:9px 12px;font-size:12.5px;color:#6E5518;line-height:1.6;margin:0 0 12px;
+}
 </style>
 </head>
 <body>
@@ -330,9 +335,31 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif;}
  * - Divp統合: judge() 内のマーカー箇所に Divp.answer() を1行挿入予定
  * ===================================================================== */
 
+/* ---------- RNG ----------
+   種(seed)から決まった順番で数を出す方式(xorshift32)。Math.random は種を引くときだけ。
+   問題文の数値も選択肢の並びもこの1本の流れから決まる＝種が同じなら画面まで同じ。
+   これで question_params に {m:STEPキー, s:種} を入れておくだけで解き直しができる
+   （生成関数ごとの復元経路も replay_json も要らない = CLAUDE.md 2d）。
+   ⚠ 乱数はこの rngNext() 1本に集約すること。Math.random() を生成関数の中で
+     直接呼ぶと、その問題だけ種から再現できなくなる（解き直しで別の問題が出る）。 */
+let _rngState=1;
+/* 種をセットしたら数回から回す（ウォームアップ）。xorshift32 は小さい種を入れると
+   最初の数個の出力がとても小さい値に偏り、pick() が先頭の要素ばかり返す。 */
+function rngSeed(s){
+  _rngState=(s>>>0)||1;
+  for(let i=0;i<6;i++) rngNext();
+}
+function rngPick(){ return (Math.floor(Math.random()*4294967296)>>>0)||1; }
+function rngNext(){
+  let x=_rngState;
+  x^=x<<13; x>>>=0; x^=x>>>17; x^=x<<5; x>>>=0;
+  _rngState=x;
+  return x/4294967296;
+}
+
 /* ---------- utils ---------- */
-function rnd(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
-function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function rnd(a,b){ return a + Math.floor(rngNext()*(b-a+1)); }
+function pick(arr){ return arr[Math.floor(rngNext()*arr.length)]; }
 function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a; }
 function lcm(a,b){ return Math.abs(a*b)/gcd(a,b); }
 
@@ -447,7 +474,7 @@ function genSuu2(){
     const m=rnd(-4,6);
     const big=k*small+m;
     if(big<=small||big>50) continue;
-    const useSum=Math.random()<0.6;
+    const useSum=rngNext()<0.6;
     const mt = m===0 ? '' : (m<0?String(m):'+'+m);
     const eq1='x='+term(k,'y',true)+mt;
     const rel = m===0 ? 'ちょうど '+k+'倍です'
@@ -525,7 +552,7 @@ function genSuu3(){
     if(type==='bai_ire'){
       /* 位の倍数関係 + 入れ替え差 */
       const k=pick([2,3]);
-      const oneBig=Math.random()<0.5;      /* 一の位が十の位のk倍 or 逆 */
+      const oneBig=rngNext()<0.5;          /* 一の位が十の位のk倍 or 逆 */
       let t,o,eq1,relText,substLatex,seiriLatex,firstVar,firstVal,secondText,secondLatex;
       if(oneBig){
         t=rnd(1, k===2?4:3); o=k*t;
@@ -821,7 +848,7 @@ function genKafusoku2(){
   const n=rnd(6,15);
   const a=rnd(2,4);
   const c=a+1;
-  const amari=Math.random()<0.5;
+  const amari=rngNext()<0.5;
   let text, eq1, eq2, subst, total;
   if(amari){
     const b2=rnd(1,8);
@@ -1671,6 +1698,19 @@ function genMix(){
 }
 const QS_PER_SET=5;
 
+/* STEPキー → 生成関数の台帳。question_key と同じキーなので、
+   解き直しは question_params の {m:このキー, s:種} だけで問題を作り直せる。
+   ⚠ CATS にSTEPを足すとここへ自動で入る（key の付け替えだけは避けること。
+     既存 pending の m が迷子になり、その問題は永久に解き直せなくなる）。 */
+const GENS={};
+CATS.forEach(c=>{ c.steps.forEach(s=>{ GENS[s.key]=s.gen; }); });
+
+const RETRY_MAX=10;
+/* 解き直し(?retry=1)専用の見せかけカテゴリ。STEPの中身は使わない */
+const RETRY_CAT={key:'retry', name:'解き直し', desc:'まちがえた問題', mix:true, retry:true,
+  steps:[{key:'retry', name:'解き直し', desc:'', gen:genMix}]};
+function isRetry(){ return !!(state.cat&&state.cat.retry); }
+
 /* ---------- 6択の選択肢生成 ---------- */
 function niceDelta(v){
   if(v%100===0&&v>=300) return pick([50,100,100,200]);
@@ -1722,7 +1762,8 @@ function makeChoices(answers, extra){
 }
 
 /* ---------- state / views ---------- */
-let state={ cat:null, stepIdx:0, qIndex:0, results:[], cur:null, choices:[], judged:false, hintOpen:0 };
+let state={ cat:null, stepIdx:0, qIndex:0, total:QS_PER_SET, results:[], cur:null, choices:[],
+            curKey:null, curSeed:0, judged:false, hintOpen:0, retryQ:null };
 const $=(id)=>document.getElementById(id);
 const views={ select:$('view-select'), steps:$('view-steps'), practice:$('view-practice'), result:$('view-result') };
 function show(name){
@@ -1772,13 +1813,17 @@ function openCat(cat){
 
 /* ---------- practice ---------- */
 function startStep(cat,idx){
-  state={ cat, stepIdx:idx, qIndex:0, results:[], cur:null, judged:false, hintOpen:0 };
+  state={ cat, stepIdx:idx, qIndex:0, total:QS_PER_SET, results:[], cur:null,
+          curKey:null, curSeed:0, judged:false, hintOpen:0, retryQ:null };
+  /* 解き直しモードから普通の練習に戻ってきたときの後片づけ */
+  const rb=$('retryBanner'); if(rb) rb.remove();
+  $('btnPrint').hidden=false;
   show('practice');
   nextQuestion();
 }
 function renderDots(){
   const box=$('dots'); box.innerHTML='';
-  for(let i=0;i<QS_PER_SET;i++){
+  for(let i=0;i<state.total;i++){
     const d=document.createElement('div');
     d.className='dot'+(i===state.qIndex?' now':'')+
       (state.results[i]===true?' ok':'')+(state.results[i]===false?' ng':'');
@@ -1786,12 +1831,27 @@ function renderDots(){
   }
 }
 function nextQuestion(){
-  const st0=stepObj();
-  state.cur=st0.gen();
+  /* 出題のたびに種を1つ引く。解き直しのときは保存してある種をそのまま使う
+     ＝生成関数を回すだけでまったく同じ問題が出る(復元経路を書かなくてよい) */
+  let key, seed;
+  if(state.retryQ&&state.retryQ.length){
+    const it=state.retryQ.shift();
+    key=it.m; seed=it.s;
+  }else{
+    key=stepObj().key;
+    seed=rngPick();
+  }
+  rngSeed(seed);
+  state.curKey=key;
+  state.curSeed=seed;
+  state.cur=GENS[key]();
   state.judged=false;
   state.hintOpen=0;
+  const st0=stepObj();
   const stepTag = state.cat.mix ? '' : ' STEP'+(state.stepIdx+1)+' '+st0.name;
-  $('qLabel').textContent=state.cat.name+stepTag+'  ─  第'+(state.qIndex+1)+'問';
+  $('qLabel').textContent = isRetry()
+    ? '解き直し  ─  '+(state.qIndex+1)+' / '+state.total+' 問目'
+    : state.cat.name+stepTag+'  ─  第'+(state.qIndex+1)+'問';
   $('qText').innerHTML=state.cur.text;
   $('hintList').innerHTML='';
   const bh=$('btnHint');
@@ -1867,8 +1927,12 @@ function judge(idx){
   try{
     if(window.Divp&&typeof window.Divp.answer==='function'){
       window.Divp.answer(!!ok,{
-        question_key: stepObj().key,
-        question_params: {ans: state.cur.answers.map(a=>a.value)},
+        /* 解き直しのときも「その問題が属するSTEP」を送る（見せかけの retry カテゴリではない）
+           ＝params_hash が誤答時と一致し、2連続正解で mastered になる */
+        question_key: state.curKey,
+        /* {m:STEPキー, s:種} だけで同じ問題を作り直せる（CLAUDE.md 2d）。
+           以前は答えの値を入れていたが、それでは ?retry=1 で問題を再現できなかった */
+        question_params: {m: state.curKey, s: state.curSeed},
         question_text: $('qText').textContent,
         correct_answer: state.cur.answers.map(a=>a.label+'='+a.value+(a.unit||'')).join(', '),
         wrong_answer: ok ? null : state.choices[idx].vals.join(', ')
@@ -1892,7 +1956,7 @@ function judge(idx){
     showSteps();
   }
   $('btnHint').disabled=true;
-  const last=state.qIndex===QS_PER_SET-1;
+  const last=state.qIndex===state.total-1;
   $('btnNext').textContent=last?'結果を見る →':'次の問題へ →';
   $('btnNext').hidden=false;
   $('btnNext').focus();
@@ -1924,7 +1988,7 @@ function showSteps(){
 }
 
 function next(){
-  if(state.qIndex===QS_PER_SET-1){ finishSet(); return; }
+  if(state.qIndex===state.total-1){ finishSet(); return; }
   state.qIndex++;
   nextQuestion();
 }
@@ -1932,18 +1996,24 @@ function next(){
 /* ---------- result ---------- */
 function finishSet(){
   const score=state.results.filter(v=>v).length;
-  const perfect=score===QS_PER_SET;
+  const perfect=score===state.total;
+  const retry=isRetry();
   const st0=stepObj();
   $('clearStampWrap').innerHTML=perfect?'<div class="clear-stamp">クリア!</div>':'';
   const stepTag = state.cat.mix ? '' : ' STEP'+(state.stepIdx+1)+' '+st0.name;
-  $('resultTitle').textContent=state.cat.name+stepTag;
+  $('resultTitle').textContent = retry ? '解き直し おつかれさま!' : state.cat.name+stepTag;
   $('scoreNum').textContent=score;
-  const hasNext = !state.cat.mix && state.stepIdx < state.cat.steps.length-1;
+  document.querySelector('#view-result .of').textContent=' / '+state.total+' 問';
+  const hasNext = !retry && !state.cat.mix && state.stepIdx < state.cat.steps.length-1;
   $('btnNextStep').hidden = !(perfect && hasNext);
-  $('btnToSteps').textContent = state.cat.mix ? '種類の一覧へ' : 'STEP一覧へ';
-  $('resultMsg').textContent=perfect
-    ? (hasNext ? '全問正解! つぎのSTEPにすすもう!' : '全問正解! この種類はぜんぶマスターしたね!')
-    : 'まちがえた問題は「式の立て方」からふり返って、もう一度チャレンジしよう。';
+  $('btnRetry').hidden = retry;      /* 解き直しは保存された問題を消化するモード */
+  $('btnToSteps').textContent = (retry||state.cat.mix) ? '種類の一覧へ' : 'STEP一覧へ';
+  $('resultMsg').textContent = retry
+    ? (perfect ? '全問正解! 同じ問題に2回続けて正解すると、解き直しリストから消えるよ。'
+               : 'まちがえた問題は「解き方」を見てから、もう一度チャレンジしよう。')
+    : (perfect
+        ? (hasNext ? '全問正解! つぎのSTEPにすすもう!' : '全問正解! この種類はぜんぶマスターしたね!')
+        : 'まちがえた問題は「式の立て方」からふり返って、もう一度チャレンジしよう。');
   show('result');
 }
 
@@ -1974,7 +2044,7 @@ $('btnBack').addEventListener('click', ()=>{
   else if(state.cat){ openCat(state.cat); }
   else{ renderCats(); show('select'); }
 });
-$('btnRetry').addEventListener('click', ()=>startStep(state.cat,state.stepIdx));
+$('btnRetry').addEventListener('click', ()=>{ if(!isRetry()) startStep(state.cat,state.stepIdx); });
 $('btnNextStep').addEventListener('click', ()=>startStep(state.cat,state.stepIdx+1));
 $('btnToSteps').addEventListener('click', ()=>{
   if(state.cat&&!state.cat.mix){ openCat(state.cat); }
@@ -1984,12 +2054,14 @@ $('btnToSteps').addEventListener('click', ()=>{
 /* ---------- print (選択中のSTEPからランダム5問) ---------- */
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function buildPrint(){
+  if(isRetry()) return;                     /* 解き直しは保存された問題を消化するモード */
   const st0=stepObj();
   const stepTag = state.cat.mix ? '総合ミックス' : state.cat.name+' STEP'+(state.stepIdx+1)+' '+st0.name;
   const today=new Date();
   const dateStr=today.getFullYear()+'年'+(today.getMonth()+1)+'月'+today.getDate()+'日';
   const qs=[];
-  for(let i=0;i<QS_PER_SET;i++) qs.push(st0.gen());
+  /* 紙は毎回ちがう5問でよいので、1問ごとに種を引き直す */
+  for(let i=0;i<QS_PER_SET;i++){ rngSeed(rngPick()); qs.push(st0.gen()); }
 
   let html='';
   html+='<div class="ps-head">'
@@ -2018,9 +2090,48 @@ function buildPrint(){
 }
 $('btnPrint').addEventListener('click', buildPrint);
 
+/* ---------- 解き直しモード(?retry=1) ----------
+   マイページの「解き直し」から ?retry=1 付きで開かれたときだけ動く。
+   question_params の {m:STEPキー, s:種} で生成関数を回すと同じ問題が出るので、
+   pending をその順に消化する。判定後は通常どおり Divp.answer が飛ぶ＝
+   params_hash も同じなので、2連続正解で save_answer.php が mastered にする。 */
+function retryBanner(msg, box){
+  const old=$('retryBanner');
+  if(old) old.remove();
+  const d=document.createElement('div');
+  d.id='retryBanner'; d.className='retry-banner'; d.textContent=msg;
+  const t=box||views.practice;
+  t.insertBefore(d, t.firstChild);
+}
+function initRetry(){
+  if(!(window.Divp&&typeof Divp.getRetries==='function')) return;
+  Divp.getRetries().then(items=>{
+    /* 種方式に変える前の pending（question_params が {ans:[…]}）は
+       ここで落ちる＝出題できないので混ぜない。次にまちがえた時から入る。 */
+    const use=(items||[]).filter(it=>{
+      const p=it&&it.question_params;
+      return p&&GENS[p.m]&&typeof p.s==='number';
+    }).slice(0,RETRY_MAX);
+    if(!use.length){
+      /* 種類の一覧に帯を出すだけ（空の問題カードを見せない） */
+      retryBanner('解き直せる問題は まだありません。これからまちがえた問題が ここに入ります。', views.select);
+      setTimeout(()=>{ const b=$('retryBanner'); if(b) b.remove(); }, 9000);
+      return;
+    }
+    state={ cat:RETRY_CAT, stepIdx:0, qIndex:0, total:use.length, results:[], cur:null,
+            curKey:null, curSeed:0, judged:false, hintOpen:0,
+            retryQ:use.map(it=>({m:it.question_params.m, s:it.question_params.s})) };
+    show('practice');
+    retryBanner('解き直しモード: まちがえた '+use.length+' 問を、同じ問題でもう一度。2回続けて正解するとリストから消えるよ。');
+    $('btnPrint').hidden=true;
+    nextQuestion();
+  }).catch(()=>{});
+}
+
 /* ---------- init ---------- */
 renderCats();
 show('select');
+if(/[?&]retry=1/.test(location.search)){ try{ initRetry(); }catch(e){} }
 </script>
 </body>
 </html>

@@ -92,6 +92,10 @@ main{max-width:560px;margin:0 auto;padding:12px clamp(8px,3vw,16px) 40px;}
 /* ===== スコア ===== */
 .scorebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 2px 10px;font-size:12.5px;font-weight:700;color:#6b5d44;}
 .scorebar b{color:var(--correct);font-size:14px;}
+/* 解き直しモード(?retry=1)の あんない帯 */
+.retry-banner{background:#FBF3E0;border:1.5px solid #C9A227;border-radius:12px;
+  padding:10px 13px;margin:0 2px 12px;font-size:12.5px;font-weight:700;
+  color:#6E5518;line-height:1.7;}
 .streak{background:linear-gradient(135deg,#ef7d3e,#f0b03e);color:#fff;font-size:11px;font-weight:900;padding:2px 9px;border-radius:999px;}
 
 /* ===== 問題カード ===== */
@@ -228,9 +232,29 @@ main{max-width:560px;margin:0 auto;padding:12px clamp(8px,3vw,16px) 40px;}
 <script>
 "use strict";
 
+/* ===================== 乱数（種から作る） =====================
+   種(seed)から決まった順番で数を出す方式(xorshift32)。Math.random は種を引くときだけ。
+   数値も図の向きも選択肢の並びもこの1本の流れから決まる＝種が同じなら同じ問題。
+   これで question_params に {c:しゅるい, s:種} を入れておくだけで
+   ?retry=1 のときに同じ問題を作り直せる（CLAUDE.md 2d）。
+   ⚠ 乱数はこの rngNext() 1本に集約すること。Math.random() を出題側で直接呼ぶと、
+     その問題だけ種から再現できなくなる（解き直しで別の問題が出る）。 */
+let _rngState=1;
+function rngSeed(s){
+  _rngState=(s>>>0)||1;
+  for(let i=0;i<6;i++) rngNext();   // 小さい種の偏りをならす
+}
+function rngPick(){ return (Math.floor(Math.random()*4294967296)>>>0)||1; }
+function rngNext(){
+  let x=_rngState;
+  x^=x<<13; x>>>=0; x^=x>>>17; x^=x<<5; x>>>=0;
+  _rngState=x;
+  return x/4294967296;
+}
+
 /* ===================== 共通ヘルパー ===================== */
-function rN(a,b){ a=a||2;b=b||10;return Math.floor(Math.random()*(b-a+1))+a; }
-function ri(n){ return Math.floor(Math.random()*n); }
+function rN(a,b){ a=a||2;b=b||10;return Math.floor(rngNext()*(b-a+1))+a; }
+function ri(n){ return Math.floor(rngNext()*n); }
 function pickA(a){ return a[ri(a.length)]; }
 function shuffle(a){ a=[...a];for(let i=a.length-1;i>0;i--){const j=ri(i+1);[a[i],a[j]]=[a[j],a[i]];}return a; }
 function rPaid(){ return [500,1000,1500,2000][ri(4)]; }
@@ -506,21 +530,21 @@ function genArea(forceType){
 
   if(type==="triangle"){
     const bv=rN(2,15),hv=rN(2,15);
-    const [base,height]=Math.random()<.5?["x",String(hv)]:[String(bv),"x"];
+    const [base,height]=rngNext()<.5?["x",String(hv)]:[String(bv),"x"];
     dims={base,height};name="三角形";hint="底辺 × 高さ ÷ 2 だよ！";
     correct=`${base} × ${height} ÷ 2`;
     wrongs=shuffle([`${base} × ${height}`,`(${base} + ${height}) × 2`,`(${base} + ${height}) ÷ 2`,`${base} ÷ 2 + ${height} ÷ 2`]);
 
   } else if(type==="parallelogram"){
     const bv=rN(2,15),hv=rN(2,15);
-    const [base,height]=Math.random()<.5?["x",String(hv)]:[String(bv),"x"];
+    const [base,height]=rngNext()<.5?["x",String(hv)]:[String(bv),"x"];
     dims={base,height};name="平行四辺形";hint="底辺 × 高さ だよ！";
     correct=`${base} × ${height}`;
     wrongs=shuffle([`${base} × ${height} ÷ 2`,`(${base} + ${height}) × 2`,`${base} + ${height} × 2`,`${base} × ${height} × 2`]);
 
   } else if(type==="rhombus"){
     const v1=rN(2,15),v2=rN(2,15);
-    const [d1,d2]=Math.random()<.5?["x",String(v2)]:[String(v1),"x"];
+    const [d1,d2]=rngNext()<.5?["x",String(v2)]:[String(v1),"x"];
     dims={d1,d2};name="ひし形";hint="対角線① × 対角線② ÷ 2 だよ！";
     correct=`${d1} × ${d2} ÷ 2`;
     wrongs=shuffle([`${d1} × ${d2}`,`(${d1} + ${d2}) × 2`,`(${d1} + ${d2}) ÷ 2`,`${d1} ÷ 2 + ${d2} ÷ 2`]);
@@ -547,7 +571,7 @@ function genArea(forceType){
 
   } else if(type==="rhombus_rect"){
     const v1=rN(2,14),v2=rN(2,14);
-    const [d1,d2]=Math.random()<.5?["x",String(v2)]:[String(v1),"x"];
+    const [d1,d2]=rngNext()<.5?["x",String(v2)]:[String(v1),"x"];
     dims={d1,d2};name="ひし形（長方形の半分）";
     hint="ひし形は対角線①×対角線②の長方形のちょうど半分だよ！だから ÷2 するよ！";
     correct=`${d1} × ${d2} ÷ 2`;
@@ -555,12 +579,12 @@ function genArea(forceType){
 
   } else if(type==="rhombus_formula"){
     const d1v=rN(2,7)*2,d2v=rN(2,7)*2;
-    const useXForD1=Math.random()<0.5;
+    const useXForD1=rngNext()<0.5;
     const d1=useXForD1?"x":String(d1v);
     const d2=useXForD1?String(d2v):"x";
     const halfD1=useXForD1?"x÷2":String(d1v/2);
     const halfD2=useXForD1?String(d2v/2):"x÷2";
-    const variant=Math.random()<0.5?1:2;
+    const variant=rngNext()<0.5?1:2;
     const hd1f=isX(halfD1)?"(x ÷ 2)":halfD1;
     const hd2f=isX(halfD2)?"(x ÷ 2)":halfD2;
     const fs=[`${d1} × ${d2} ÷ 2`,`${d1} × ${hd2f}`,`${hd1f} × ${d2}`];
@@ -574,7 +598,7 @@ function genArea(forceType){
 
   } else if(type==="para_decomp"){
     const bv=rN(2,15),hv=rN(2,15);
-    const [base,height]=Math.random()<.5?["x",String(hv)]:[String(bv),"x"];
+    const [base,height]=rngNext()<.5?["x",String(hv)]:[String(bv),"x"];
     dims={base,height};name="平行四辺形（三角形2つ）";
     hint="対角線で2つの三角形に分けると、それぞれ 底辺×高さ÷2 だよ！";
     correct=`2 × (${base} × ${height} ÷ 2)`;
@@ -623,7 +647,7 @@ function genArea(forceType){
 
   } else if(type==="rhombus_decomp"){
     const hd1v=rN(1,7),hd2v=rN(1,7);
-    const [halfD1,halfD2]=Math.random()<.5?["x",String(hd2v)]:[String(hd1v),"x"];
+    const [halfD1,halfD2]=rngNext()<.5?["x",String(hd2v)]:[String(hd1v),"x"];
     dims={halfD1,halfD2};name="ひし形（直角三角形×4）";
     hint="2本の対角線で直角三角形4つに分けると、それぞれ 底辺×高さ÷2 だよ！";
     correct=`4 × (${halfD1} × ${halfD2} ÷ 2)`;
@@ -631,7 +655,7 @@ function genArea(forceType){
 
   } else if(type==="tri_half_base"){
     const halfBaseV=rN(2,10),baseV=halfBaseV*2,hV=rN(2,12);
-    const useXForBase=Math.random()<0.5;
+    const useXForBase=rngNext()<0.5;
     const base=useXForBase?"x":String(baseV);
     const height=useXForBase?String(hV):"x";
     const halfF=useXForBase?"(x ÷ 2)":String(halfBaseV);
@@ -644,7 +668,7 @@ function genArea(forceType){
 
   } else { // tri_rect
     const halfHv=rN(2,9),fullH=halfHv*2,bv=rN(3,14);
-    const xCase=Math.random()<0.5?0:2;
+    const xCase=rngNext()<0.5?0:2;
     let base,halfH,fullHStr;
     if(xCase===0){
       base="x";halfH=String(halfHv);fullHStr=String(fullH);
@@ -848,10 +872,31 @@ const CAT_BADGE={
 };
 let S={mode:'mix',qno:0,score:0,total:0,streak:0,q:null,sel:null,hint:false};
 
+/* しゅるい(cat)と種(seed)の2つだけで1問を作る。
+   解き直しはこの2つを保存しておいたものに差し替えるだけでよい。 */
+function makeQ(cat,seed){
+  rngSeed(seed);
+  const q = cat==='area' ? genArea() : genWord(cat);
+  /* 種は問題そのものに持たせる（グローバルに置くと、画面に出ている問題と
+     記録される種がずれる余地が残るため） */
+  q.seed = seed;
+  return q;
+}
 function newQ(){
-  let cat=S.mode;
-  if(cat==='mix') cat=pickA(['noy','noy','y','y','val','area','area']);
-  S.q = cat==='area' ? genArea() : genWord(cat);
+  let cat, seed;
+  if(retryQ && retryQ.length){
+    /* 解き直し(?retry=1): 保存してある {c:しゅるい, s:種} でまったく同じ問題を出す */
+    const it=retryQ.shift();
+    cat=it.c; seed=it.s;
+    retryDone++;
+    retryStatus();
+  }else{
+    if(retryTotal) exitRetry();           /* 消化しきったら ふつうの出題にもどる */
+    cat=S.mode;
+    if(cat==='mix') cat=pickA(['noy','noy','y','y','val','area','area']);
+    seed=rngPick();
+  }
+  S.q = makeQ(cat,seed);
   S.sel=null; S.hint=false; S.qno++;
   render();
   window.scrollTo({top:0,behavior:'smooth'});
@@ -936,7 +981,10 @@ function pickChoice(ch){
     if(window.Divp && Divp.answer){
       Divp.answer(ok,{
         question_key:S.q.cat,
-        question_params:{cat:S.q.cat, type:S.q.type||null},
+        /* {c:しゅるい, s:種} だけで同じ問題を作り直せる（CLAUDE.md 2d）。
+           以前は {cat, type} だったので「同じ種類」がぜんぶ同じ1問あつかいになり、
+           ?retry=1 で同じ問題を出し直すことができなかった。 */
+        question_params:{c:S.q.cat, s:S.q.seed},
         question_text:S.q.cat==='area'?`${S.q.name}の面積の式`:(S.q.q+(S.q.sub?'\n'+S.q.sub:'')),
         correct_answer:S.q.c,
         wrong_answer:ok?null:ch,
@@ -950,6 +998,7 @@ function pickChoice(ch){
 document.getElementById('segMode').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
   document.querySelectorAll('#segMode button').forEach(x=>x.classList.toggle('on',x===b));
+  exitRetry();                 /* しゅるいをえらび直したら 解き直しモードを ぬける */
   S.mode=b.dataset.mode;
   S.qno=0; newQ();
 });
@@ -965,11 +1014,14 @@ function buildPrint(){
   const today=new Date();
   const dateStr=`${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
   // 文章題6問＋面積2問
+  // 紙は毎回ちがう問題でよいので、1問ごとに種を引き直す
   const words=[];
-  for(let i=0;i<3;i++) words.push(genWord('noy'));
-  for(let i=0;i<2;i++) words.push(genWord('y'));
-  words.push(genWord('val'));
-  const areas=[genArea(),genArea()];
+  for(let i=0;i<3;i++){ rngSeed(rngPick()); words.push(genWord('noy')); }
+  for(let i=0;i<2;i++){ rngSeed(rngPick()); words.push(genWord('y')); }
+  rngSeed(rngPick()); words.push(genWord('val'));
+  rngSeed(rngPick()); const area1=genArea();
+  rngSeed(rngPick()); const area2=genArea();
+  const areas=[area1,area2];
   const items=[...words,...areas];
 
   const head=(sub)=>`<div class="p-head"><div><div class="p-school">中京個別指導学院</div><div class="p-title">文字式マスター</div><div class="p-sub">${sub}</div></div><div class="p-name">${dateStr}　名前<span></span></div></div>`;
@@ -1005,8 +1057,61 @@ document.getElementById('btnPrint').addEventListener('click',()=>{
   else window.print();
 });
 
+/* ===== 解き直しモード(?retry=1) =====
+   マイページの「解き直し」から ?retry=1 つきで ひらかれたときだけ うごく。
+   question_params の {c:しゅるい, s:種} で makeQ() を まわすと 同じ問題が出るので、
+   pending を その順に といていく。判定のあとは いつもどおり Divp.answer が とぶ＝
+   params_hash も同じなので、2回つづけて正解すると save_answer.php が mastered にする。 */
+const RETRY_MAX=10;
+let retryQ=null, retryTotal=0, retryDone=0;
+const RETRY_CATS=['noy','y','val','area'];
+
+function retryBanner(){
+  let d=document.getElementById('retryBanner');
+  if(!d){
+    d=document.createElement('div');
+    d.id='retryBanner'; d.className='retry-banner';
+    const card=document.getElementById('problemCard');
+    card.parentNode.insertBefore(d,card);
+  }
+  return d;
+}
+function retryStatus(){
+  if(!retryTotal) return;
+  retryBanner().textContent=
+    'といなおし '+retryDone+' / '+retryTotal+' もんめ ─ '
+    +'まちがえた問題を、おなじ問題でもう一度。2回つづけて正解すると リストから きえるよ。';
+}
+function exitRetry(){
+  if(!retryQ&&!retryTotal) return;
+  retryQ=null; retryTotal=0; retryDone=0;
+  const d=document.getElementById('retryBanner'); if(d) d.remove();
+}
+function initRetry(){
+  if(!(window.Divp&&typeof Divp.getRetries==='function')) return;
+  Divp.getRetries().then(items=>{
+    /* 種ほうしきに変える前の pending（question_params が {cat,type}）は ここで落ちる
+       ＝出題できないので まぜない。つぎに まちがえた時から といなおせるようになる。 */
+    const use=(items||[]).filter(it=>{
+      const p=it&&it.question_params;
+      return p&&RETRY_CATS.indexOf(p.c)>=0&&typeof p.s==='number';
+    }).slice(0,RETRY_MAX);
+    if(!use.length){
+      const d=retryBanner();
+      d.textContent='といなおせる問題は まだ ありません。これから まちがえた問題が ここに入ります。';
+      setTimeout(()=>{ const b=document.getElementById('retryBanner'); if(b) b.remove(); },9000);
+      return;
+    }
+    retryQ=use.map(it=>({c:it.question_params.c, s:it.question_params.s}));
+    retryTotal=retryQ.length; retryDone=0;
+    S.qno=0;
+    newQ();
+  }).catch(()=>{});
+}
+
 /* ===== 起動 ===== */
 newQ();
+if(/[?&]retry=1/.test(location.search)){ try{ initRetry(); }catch(e){} }
 </script>
 </body>
 </html>
