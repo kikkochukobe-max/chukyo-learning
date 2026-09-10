@@ -732,6 +732,20 @@
   .simplify-opt.selected { border-color: var(--blue); background: #dbeafe; }
   .simplify-opt.result-correct { border-color: var(--correct); background: #dcfce7; }
   .simplify-opt.result-wrong   { border-color: var(--wrong);   background: #fee2e2; }
+
+  /* RIYOU MODE（平方根の利用・かざりの長さ） */
+  /* 図は本文の右に置く。図が無いと解けない問題なので、狭い画面でも横に並べたまま
+     幅だけ詰める（縦に落とすと問題文と図が離れて読みにくい） */
+  .riy-body { display: flex; gap: 12px; align-items: flex-start; justify-content: center; text-align: left; }
+  .riy-text { flex: 1 1 auto; min-width: 0; font-size: 13.5px; line-height: 1.75; color: var(--navy); }
+  .riy-ask { margin-top: 10px; font-weight: 700; }
+  .riy-fig { flex: 0 0 auto; width: 132px; }
+  .riy-fig svg { width: 100%; height: auto; display: block; }
+  @media (max-width: 480px) {
+    .riy-body { gap: 8px; }
+    .riy-text { font-size: 12.5px; line-height: 1.7; }
+    .riy-fig { width: 104px; }
+  }
 </style>
 </head>
 <body>
@@ -776,6 +790,9 @@
     </button>
     <button class="mode-btn" id="mode-subst">
       ✒️ 代入<br><span style="font-weight:400;font-size:10px;">式の値を求める</span>
+    </button>
+    <button class="mode-btn" id="mode-riyou">
+      🎏 平方根の利用<br><span style="font-weight:400;font-size:10px;">かざりの長さ（文章題）</span>
     </button>
     <button class="mode-btn" id="mode-exam">
       🎯 入試問題<br><span style="font-weight:400;font-size:10px;">さいころと√の確率</span>
@@ -1632,6 +1649,7 @@ function checkAnswer() {
   scrollHint.textContent = '解説は下へスクロール ↓';
   card.appendChild(scrollHint);
   card.appendChild(expDiv);
+  appendBottomNext(card);
 
   updateScoreBar();
 }
@@ -1767,6 +1785,26 @@ function bindSingleConfirm(optSelector, cardSelector, gradeFn){
     gradeFn(sel);
   });
 }
+// ===== 解説の下にも「次の問題へ」を置く（全モード共通）=====
+// 採点後のカードの並びは 選択肢 →「次の問題へ」→「解説は下へスクロール ↓」→ 解説。
+// 解説を読み終えた生徒は次に進むボタンを探して**上へ戻る**ことになり、スマホでは
+// 解説1画面ぶんスクロールして戻るため「次の問題へが無い」ように見える（実際に指摘された）。
+// カードの末尾（解説の後ろ）に、上のボタンと同じ動きのものをもう1つ置く。
+// 進める処理は複製せず top.click() に委ねる＝各モードの nextBtn の中身を触らない。
+function appendBottomNext(card) {
+  if (!card) return;
+  const top = card.querySelector('.btn-next');
+  if (!top || card.querySelector('.bottom-next')) return;
+  const row = document.createElement('div');
+  row.className = 'action-row bottom-next';
+  row.style.marginTop = '12px';
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-next';
+  btn.textContent = top.textContent;
+  btn.addEventListener('click', () => top.click());
+  row.appendChild(btn);
+  card.appendChild(row);
+}
 function safeDivpCorrect(selector) {
   // /assets/divp-correct-jh.js が読み込めない環境（ローカル/未アップロード時）でも
   // 採点処理自体は止まらないようにする安全呼び出し
@@ -1790,7 +1828,7 @@ let _tfRetryQueue = null, _tfRetryTotal = 10; // 連続全問正解カウント�
 
 function switchMode(mode) {
   currentMode = mode;
-  ['truefalse','simplify','muldiv','addsub','mixed','approx','intval','subst','exam'].forEach(m =>
+  ['truefalse','simplify','muldiv','addsub','mixed','approx','intval','subst','riyou','exam'].forEach(m =>
     document.getElementById('mode-'+m)?.classList.toggle('active', mode===m)
   );
   // タイトル(H1)はサイト名「平方根マスター」で固定。現在のモード名はサブタイトルに出す
@@ -1816,6 +1854,9 @@ function switchMode(mode) {
   } else if (mode==='subst') {
     _sub.textContent = '式の値を求める';
     initSubst();
+  } else if (mode==='riyou') {
+    _sub.textContent = '平方根の利用';
+    initRiyou();
   } else if (mode==='exam') {
     _sub.textContent = '入試問題';
     initExam();
@@ -1986,6 +2027,7 @@ function selectSimplifyAnswer(chosen, s, options) {
   scrollHint2.textContent = '解説は下へスクロール ↓';
   card.appendChild(scrollHint2);
   card.appendChild(expDiv);
+  appendBottomNext(card);
   updateSimplifyScoreBar();
 }
 
@@ -2440,7 +2482,9 @@ function printCurrent(){
     case 'approx': printApprox(); break;
     case 'intval': printIntval(); break;
     case 'subst': printSubst(); break;
-    default: break;
+    // 専用プリントを持たないモード（利用・入試問題）は印刷メニューを出す。
+    // 何もしないと 🖨 ボタンが黙って効かない＝壊れて見える
+    default: showPrintMenu(); break;
   }
 }
 
@@ -3061,6 +3105,7 @@ function selectMDAnswer(chosen, prob, opts) {
   hint.textContent = '解説は下へスクロール ↓';
   card.appendChild(hint);
   card.appendChild(expDiv);
+  appendBottomNext(card);
   document.getElementById('q-count').textContent = Math.min(mdCurrentQ+1, MD_TOTAL);
   document.getElementById('score-correct').textContent = mdCorrect;
   document.getElementById('score-wrong').textContent = mdWrong;
@@ -3438,6 +3483,7 @@ function selectASAnswer(chosen, prob, opts) {
   hint.textContent='解説は下へスクロール ↓';
   card.appendChild(hint);
   card.appendChild(expDiv);
+  appendBottomNext(card);
   document.getElementById('q-count').textContent=Math.min(asCurrentQ+1,AS_TOTAL);
   document.getElementById('score-correct').textContent=asCorrect;
   document.getElementById('score-wrong').textContent=asWrong;
@@ -3710,6 +3756,7 @@ function selectMixAnswer(chosen, prob, opts){
   const card=document.querySelector('.muldiv-problem'); card.appendChild(nextRow);
   const hint=document.createElement('div'); hint.style.cssText='text-align:center;font-size:11px;color:#94a3b8;margin-top:6px;'; hint.textContent='解説は下へスクロール ↓'; card.appendChild(hint);
   card.appendChild(expDiv);
+  appendBottomNext(card);
   document.getElementById('q-count').textContent=Math.min(mixCurrentQ+1,_t);
   document.getElementById('score-correct').textContent=mixCorrect;
   document.getElementById('score-wrong').textContent=mixWrong;
@@ -3989,6 +4036,7 @@ function selectApxAnswer(chosen, prob, opts){
   hint.textContent = '解説は下へスクロール ↓';
   card.appendChild(hint);
   card.appendChild(expDiv);
+  appendBottomNext(card);
   document.getElementById('score-correct').textContent = apxCorrect;
   document.getElementById('score-wrong').textContent = apxWrong;
 }
@@ -4254,6 +4302,7 @@ function gradeIntMulti(prob){
   const card=document.querySelector('.muldiv-problem'); card.appendChild(nextRow);
   const hint=document.createElement('div'); hint.style.cssText='text-align:center;font-size:11px;color:#94a3b8;margin-top:6px;'; hint.textContent='解説は下へスクロール ↓'; card.appendChild(hint);
   card.appendChild(expDiv);
+  appendBottomNext(card);
   document.getElementById('score-correct').textContent=intCorrect;
   document.getElementById('score-wrong').textContent=intWrong;
 }
@@ -4281,6 +4330,7 @@ function selectIntAnswer(chosen, prob, opts){
   const card=document.querySelector('.muldiv-problem'); card.appendChild(nextRow);
   const hint=document.createElement('div'); hint.style.cssText='text-align:center;font-size:11px;color:#94a3b8;margin-top:6px;'; hint.textContent='解説は下へスクロール ↓'; card.appendChild(hint);
   card.appendChild(expDiv);
+  appendBottomNext(card);
   document.getElementById('score-correct').textContent=intCorrect;
   document.getElementById('score-wrong').textContent=intWrong;
 }
@@ -4581,6 +4631,7 @@ function selectSubstAnswer(chosen,prob,opts){
   const card=document.querySelector('.muldiv-problem'); card.appendChild(nextRow);
   const hint=document.createElement('div'); hint.style.cssText='text-align:center;font-size:11px;color:#94a3b8;margin-top:6px;'; hint.textContent='解説は下へスクロール ↓'; card.appendChild(hint);
   card.appendChild(expDiv);
+  appendBottomNext(card);
   document.getElementById('score-correct').textContent=subCorrect;
   document.getElementById('score-wrong').textContent=subWrong;
 }
@@ -4939,6 +4990,7 @@ function selectExamAnswer(chosen, prob, opts){
   const card=document.querySelector('.muldiv-problem'); card.appendChild(nextRow);
   const hint=document.createElement('div'); hint.style.cssText='text-align:center;font-size:11px;color:#94a3b8;margin-top:6px;'; hint.textContent='解説は下へスクロール ↓'; card.appendChild(hint);
   card.appendChild(expDiv);
+  appendBottomNext(card);
   document.getElementById('score-correct').textContent=exCorrect;
   document.getElementById('score-wrong').textContent=exWrong;
 }
@@ -4988,6 +5040,393 @@ function renderExamResult(){
 }
 document.getElementById('mode-exam').addEventListener('click', ()=>switchMode('exam'));
 // ============================ /入試問題モード ============================
+
+
+// ============================ 平方根の利用（かざりの長さ）モード ============================
+// 「1辺 s cm の正方形の紙を、対角線の交点と頂点が重なるようにつなぎ合わせてかざりをつくる」
+// という教科書・学校ワーク（2章のまとめ／活用問題）の定番。
+//   1枚目は対角線 a = s√2 ぶん、2枚目からは a/2 ずつ伸びる
+//   → n 枚のかざりの長さ = a + (a/2)×(n−1) = (n+1)/2 × a
+// これ1本から (1)対角線 (2)関係の式 (3)k枚のとき (4)n枚をnで表す (5)近似値
+// (6)上限未満で最大の枚数 (7)何本ぶんで全部何枚 を出し分ける。
+//
+// ⚠ 図が無いと解けない問題なので question_figure に SVG をそのまま渡す（CLAUDE.md 2b）。
+//    図の色・線は CSS クラスにせず属性で書くこと（解き直しプリントにツール側の CSS は無い）。
+// ⚠ 解き直しは question_params {t,s,n,k,q,m} を genRiyouProblem(spec) に戻して作り直す
+//    ＝復元経路を1本だけ持つ形（生成関数が1つなので replay_json は不要）。
+const RIY_TOTAL = 10;
+let riyCurrentQ=0, riyCorrect=0, riyWrong=0, riyWrongProbs=[], _riyRetryQueue=null, _riyRetryTotal=10, _riyRecent=[];
+const RIY_SIDES=[3,4,5,6,8,10];
+
+function _riyG(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ const r=a%b; a=b; b=r; } return a||1; }
+// (num/den)×[vs]×√2 の LaTeX。vs は '' か '(n+1)' のような文字式
+function _riyRoot2(num,den,vs){
+  vs=vs||''; const g=_riyG(num,den); num=num/g; den=den/g;
+  const body=(num===1?'':String(num))+vs+'\\sqrt{2}';
+  return den===1 ? body : '\\dfrac{'+body+'}{'+den+'}';
+}
+// num/den の係数だけ（a の係数など）
+function _riyCoef(num,den){
+  const g=_riyG(num,den); num=num/g; den=den/g;
+  return den===1 ? String(num) : '\\dfrac{'+num+'}{'+den+'}';
+}
+// 画面内の「答え：」表示用のプレーン表記（question_text にはバックスラッシュを混ぜない）
+function _riyRoot2Plain(num,den){
+  const g=_riyG(num,den); num=num/g; den=den/g;
+  const body=(num===1?'':String(num))+'√2';
+  return den===1 ? body : body+'/'+den;
+}
+function _riyCoefPlain(num,den){
+  const g=_riyG(num,den); num=num/g; den=den/g;
+  return den===1 ? String(num) : '('+num+'/'+den+')';
+}
+// 約分できるときだけ「=約分後」を足す（\dfrac{6}{2}a のまま終わらせない）
+function _riyReduceTail(num,den,suffix){
+  return (_riyG(num,den)===den) ? '='+_riyCoef(num,den)+suffix : '';
+}
+
+// かざりの図（ひし形＝45度に置いた正方形を、中心と頂点が重なるように縦につなぐ）。
+// o = {count | tail, side, diag, arrow, note}
+//   count … 実際に描く枚数（7枚以上は上3枚＋⋮＋下3枚に省略）
+//   tail  … 枚数が n（文字）のとき true。4枚描いて下に ⋮ を置く
+function riyFig(o){
+  const d=24, cx=90, ty=16, G=30, ax=36, W=210;
+  const FILLS=['#eff6ff','#fee2e2','#dcfce7','#fef9c3','#fce7f3','#ffedd5'];
+  const ink='#0a1628', gray='#94a3b8';
+  const cys=[]; let gapY=null, tailY=null, bottomY;
+  if(o.tail){
+    for(let i=0;i<4;i++) cys.push(ty+d+i*d);
+    tailY=ty+5*d+16; bottomY=ty+5*d+28;
+  } else if(o.count<=6){
+    for(let i=0;i<o.count;i++) cys.push(ty+d+i*d);
+    bottomY=cys[cys.length-1]+d;
+  } else {
+    for(let i=0;i<3;i++) cys.push(ty+d+i*d);
+    gapY=ty+4*d+G/2;
+    for(let i=0;i<3;i++) cys.push(ty+4*d+G+d+i*d);
+    bottomY=cys[cys.length-1]+d;
+  }
+  const H=bottomY+(o.note?20:14);
+  let p='';
+  // 上端・下端の補助線（長さの矢印を出すときだけ。矢印が無いと宙に浮いた点線になる）
+  if(o.arrow){
+    p+='<line x1="'+(ax-10)+'" y1="'+ty+'" x2="'+(cx+d+8)+'" y2="'+ty+'" stroke="'+gray+'" stroke-width="0.8" stroke-dasharray="3 3"/>';
+    p+='<line x1="'+(ax-10)+'" y1="'+bottomY+'" x2="'+(cx+d+8)+'" y2="'+bottomY+'" stroke="'+gray+'" stroke-width="0.8" stroke-dasharray="3 3"/>';
+  }
+  // ひし形（後から描いたものが上に重なる＝次の紙の頂点が前の紙の中心に来る）
+  for(let i=0;i<cys.length;i++){
+    const cy=cys[i];
+    p+='<polygon points="'+cx+','+(cy-d)+' '+(cx+d)+','+cy+' '+cx+','+(cy+d)+' '+(cx-d)+','+cy
+      +'" fill="'+FILLS[i%FILLS.length]+'" stroke="'+ink+'" stroke-width="1.4" stroke-linejoin="round"/>';
+  }
+  if(gapY!==null) p+='<text x="'+cx+'" y="'+(gapY+6)+'" text-anchor="middle" font-size="16" fill="'+ink+'">⋮</text>';
+  if(tailY!==null) p+='<text x="'+cx+'" y="'+(tailY+6)+'" text-anchor="middle" font-size="16" fill="'+ink+'">⋮</text>';
+  // 1枚目の対角線（重なった部分も見えるように、ひし形より後に描く）
+  if(o.diag){
+    p+='<line x1="'+(cx-d)+'" y1="'+cys[0]+'" x2="'+(cx+d)+'" y2="'+cys[0]+'" stroke="'+ink+'" stroke-width="1" stroke-dasharray="4 3"/>';
+    p+='<line x1="'+cx+'" y1="'+(cys[0]-d)+'" x2="'+cx+'" y2="'+(cys[0]+d)+'" stroke="'+ink+'" stroke-width="1" stroke-dasharray="4 3"/>';
+    p+='<text x="'+(cx+4)+'" y="'+(cys[0]-5)+'" font-size="11" fill="'+ink+'" paint-order="stroke" stroke="#ffffff" stroke-width="2.6">'+o.diag+'</text>';
+  }
+  // 1辺の長さ（1枚目の右上の辺から引き出す）
+  if(o.side){
+    p+='<line x1="'+(cx+d/2)+'" y1="'+(cys[0]-d/2)+'" x2="'+(cx+d+12)+'" y2="'+(cys[0]-d-3)+'" stroke="'+gray+'" stroke-width="0.8"/>';
+    p+='<text x="'+(cx+d+14)+'" y="'+(cys[0]-d-1)+'" font-size="11" fill="'+ink+'">'+o.side+'</text>';
+  }
+  // かざりの長さの矢印
+  if(o.arrow){
+    p+='<line x1="'+ax+'" y1="'+ty+'" x2="'+ax+'" y2="'+bottomY+'" stroke="'+ink+'" stroke-width="1"/>';
+    p+='<polygon points="'+ax+','+ty+' '+(ax-3.5)+','+(ty+8)+' '+(ax+3.5)+','+(ty+8)+'" fill="'+ink+'"/>';
+    p+='<polygon points="'+ax+','+bottomY+' '+(ax-3.5)+','+(bottomY-8)+' '+(ax+3.5)+','+(bottomY-8)+'" fill="'+ink+'"/>';
+    const my=Math.round((ty+bottomY)/2);
+    if(o.arrow.length<=5) p+='<text x="'+(ax-7)+'" y="'+(my+4)+'" text-anchor="end" font-size="12" fill="'+ink+'">'+o.arrow+'</text>';
+    else p+='<text x="'+(ax-8)+'" y="'+my+'" text-anchor="middle" font-size="11" fill="'+ink+'" transform="rotate(-90 '+(ax-8)+' '+my+')">'+o.arrow+'</text>';
+  }
+  if(o.note) p+='<text x="'+cx+'" y="'+(H-4)+'" text-anchor="middle" font-size="11" fill="#475569">'+o.note+'</text>';
+  const w=140, h=Math.round(140*H/W);
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+w+'" height="'+h
+    + '" role="img" aria-label="正方形の紙をつないだかざりの図" font-family="sans-serif">'+p+'</svg>';
+}
+
+// 「◯cm未満でいちばん長く」型の (1辺, 上限) の組。
+// n+1 < q√2 なので n = ⌊q√2⌋ − 1。q√2 の小数部が 0/1 に近い q は
+// 「未満」の判断がぶれるので外し、上限 L = s×q が5の倍数のものだけ使う。
+const RIY_LIMITS=(function(){
+  const out=[];
+  RIY_SIDES.forEach(function(s){
+    for(let q=7;q<=20;q++){
+      const v=q*Math.SQRT2, fr=v-Math.floor(v);
+      if(fr<0.06||fr>0.94) continue;
+      const L=s*q; if(L%5!==0||L<45||L>200) continue;
+      const n=Math.floor(v)-1; if(n<8||n>26) continue;
+      out.push({s:s,q:q});
+    }
+  });
+  return out;
+})();
+
+// spec を渡すと同じ問題を作り直す（解き直し用）。省略時はランダム。
+function genRiyouProblem(spec){
+  const sp=spec||{};
+  let t=sp.t;
+  if(!t){
+    const pool=['diag','rel','len','expr','approx','max','total'];
+    t=pick(pool);
+    for(let g=0; g<20 && _riyRecent.indexOf(t)>=0; g++) t=pick(pool);
+    _riyRecent.push(t); if(_riyRecent.length>3) _riyRecent.shift();
+  }
+  const opts=[], seen=new Set();
+  function add(txt, ok){ const k=String(txt); if(seen.has(k)) return; seen.add(k); opts.push({txt:k, correct:!!ok}); }
+  function fill(cands){ for(let i=0;i<cands.length && opts.length<4;i++) add(cands[i], false); }
+  function intro(s, tail){ return '1辺が '+s+' cm の正方形の折り紙を、<b>対角線の交点と頂点が重なるように</b>つなぎ合わせて、図のようなかざりをつくる。'+(tail||''); }
+
+  if(t==='diag'){
+    const s=sp.s||pick(RIY_SIDES);
+    add(_riyRoot2(s,1), true);
+    fill([String(2*s), _riyRoot2(s,2), _riyRoot2(2*s,1), _riyRoot2(s+1,1)]);
+    _shuffle(opts);
+    return {t:t, params:{t:t,s:s}, latexOpts:true, wideOpts:false, opts:opts,
+      intro:intro(s), ask:'この折り紙の<b>対角線</b>の長さは何 cm ですか。',
+      fig:riyFig({count:4, side:s+'cm', diag:'? cm'}),
+      qtext:'1辺'+s+'cmの正方形の折り紙の対角線の長さ',
+      ansNote:'答え：'+_riyRoot2Plain(s,1)+' cm',
+      expLines:[
+        '\\text{対角線を }x\\ \\text{cm とすると、対角線を1辺とする正方形の面積は もとの2つ分}',
+        'x^2=2\\times '+s+'^2='+(2*s*s),
+        'x>0\\ \\text{より}\\quad x=\\sqrt{'+(2*s*s)+'}='+_riyRoot2(s,1)+'\\ \\text{(cm)}',
+        '\\text{（正方形の対角線は 1 辺の }\\sqrt{2}\\text{ 倍）}'
+      ]};
+  }
+
+  if(t==='rel'){
+    const s=sp.s||pick(RIY_SIDES);
+    const n=sp.n||pick([6,7,8,9,10]);
+    add('b='+_riyCoef(n+1,2)+'a', true);
+    fill(['b='+_riyCoef(n,2)+'a', 'b='+_riyCoef(n,1)+'a', 'b='+_riyCoef(n-1,2)+'a', 'b='+_riyCoef(n+1,1)+'a']);
+    _shuffle(opts);
+    return {t:t, params:{t:t,s:s,n:n}, latexOpts:true, wideOpts:true, opts:opts,
+      intro:intro(s, '紙は '+n+' 枚つなぎ合わせる。'),
+      ask:'正方形の紙の対角線の長さを <b>a</b> cm、できたかざりの長さを <b>b</b> cm とするとき、a と b の関係を式に表すと？',
+      fig:riyFig({count:n, side:s+'cm', diag:'a cm', arrow:'b cm'}),
+      qtext:'1辺'+s+'cmの正方形の紙'+n+'枚のかざり／対角線 a とかざりの長さ b の関係を式に表す',
+      ansNote:'答え：b = '+_riyCoefPlain(n+1,2)+'a',
+      expLines:[
+        '\\text{1枚目で }a\\ \\text{cm、2枚目からは }\\dfrac{a}{2}\\ \\text{ずつ長くなる}',
+        'b=a+\\dfrac{a}{2}\\times '+(n-1)+'=\\dfrac{2a+'+(n-1)+'a}{2}=\\dfrac{'+(n+1)+'}{2}a',
+        '\\therefore\\ b='+_riyCoef(n+1,2)+'a'
+      ]};
+  }
+
+  if(t==='len'){
+    const s=sp.s||pick(RIY_SIDES);
+    const k=sp.k||pick([2,3,4,5]);
+    add(_riyRoot2((k+1)*s,2), true);
+    fill([_riyRoot2(k*s,1), _riyRoot2((k+1)*s,1), _riyRoot2(k*s,2), _riyRoot2((k+2)*s,2)]);
+    _shuffle(opts);
+    return {t:t, params:{t:t,s:s,k:k}, latexOpts:true, wideOpts:false, opts:opts,
+      intro:intro(s), ask:'この折り紙を <b>'+k+' 枚</b>使ったときのかざりの長さは何 cm ですか。',
+      fig:riyFig({count:k, side:s+'cm', arrow:'かざりの長さ'}),
+      qtext:'1辺'+s+'cmの折り紙'+k+'枚をつないだかざりの長さ',
+      ansNote:'答え：'+_riyRoot2Plain((k+1)*s,2)+' cm',
+      expLines:[
+        '\\text{対角線 }a=\\sqrt{2\\times '+s+'^2}='+_riyRoot2(s,1)+'\\ \\text{(cm)}',
+        '\\text{長さ}=a+\\dfrac{a}{2}\\times '+(k-1)+'=\\dfrac{'+(k+1)+'}{2}a'+_riyReduceTail(k+1,2,'a'),
+        '='+_riyCoef(k+1,2)+'\\times '+_riyRoot2(s,1)+'='+_riyRoot2((k+1)*s,2)+'\\ \\text{(cm)}'
+      ]};
+  }
+
+  if(t==='expr'){
+    const s=sp.s||pick(RIY_SIDES);
+    add(_riyRoot2(s,2,'(n+1)'), true);
+    fill([_riyRoot2(s,2,'n'), _riyRoot2(s,1,'(n+1)'), _riyRoot2(s,2,'(n-1)'), _riyRoot2(s,1,'n')]);
+    _shuffle(opts);
+    return {t:t, params:{t:t,s:s}, latexOpts:true, wideOpts:true, opts:opts,
+      intro:intro(s), ask:'この折り紙を <b>n 枚</b>使ったときのかざりの長さを、n を使って表すと？',
+      fig:riyFig({tail:true, side:s+'cm', arrow:'かざりの長さ', note:'n 枚'}),
+      qtext:'1辺'+s+'cmの折り紙 n 枚をつないだかざりの長さを n で表す',
+      ansNote:'答え：'+_riyCoefPlain(s,2)+'(n+1)√2 cm',
+      expLines:[
+        '\\text{対角線 }a='+_riyRoot2(s,1)+'\\ \\text{(cm)}',
+        '\\text{長さ}=a+\\dfrac{a}{2}(n-1)=\\dfrac{n+1}{2}a',
+        '=\\dfrac{n+1}{2}\\times '+_riyRoot2(s,1)+'='+_riyRoot2(s,2,'(n+1)')+'\\ \\text{(cm)}'
+      ]};
+  }
+
+  if(t==='approx'){
+    const s=sp.s||pick(RIY_SIDES);
+    const n=sp.n||pick([6,7,8,9,10,11,12]);
+    // (c+1)/2 × s√2 に √2=1.414 を入れて小数第1位まで。整数のまま計算して丸め誤差を避ける
+    const fx=function(c){ return (Math.round((c+1)*s*1414/200)/10).toFixed(1); };
+    const ansNum=fx(n);
+    add(ansNum+' cm', true);
+    fill([(Math.round((n+1)*s*1414/100)/10).toFixed(1)+' cm', fx(n-1)+' cm', fx(n+1)+' cm', fx(n+2)+' cm']);
+    _shuffle(opts);
+    const cDec=(n+1)*s/2;
+    const raw=Math.round((n+1)*s*1414/2)/1000;
+    return {t:t, params:{t:t,s:s,n:n}, latexOpts:false, wideOpts:false, opts:opts,
+      intro:intro(s, '紙は '+n+' 枚つなぎ合わせる。'),
+      ask:'√2 = 1.414 として、かざりの長さを<b>小数第1位まで</b>求めると？',
+      fig:riyFig({count:n, side:s+'cm', arrow:'かざりの長さ'}),
+      qtext:'1辺'+s+'cmの折り紙'+n+'枚のかざりの長さ（√2=1.414、小数第1位まで）',
+      ansNote:'答え：'+ansNum+' cm',
+      expLines:[
+        '\\text{長さ}=\\dfrac{'+(n+1)+'}{2}a='+_riyCoef(n+1,2)+'\\times '+_riyRoot2(s,1)+'='+_riyRoot2((n+1)*s,2)+'\\ \\text{(cm)}',
+        '='+cDec+'\\times 1.414='+raw,
+        '\\approx '+ansNum+'\\ \\text{(cm)}'
+      ]};
+  }
+
+  // max / total ─ 「L cm 未満でいちばん長く」から枚数を出す
+  let s2, q;
+  if(sp.s && sp.q){ s2=sp.s; q=sp.q; } else { const e=pick(RIY_LIMITS); s2=e.s; q=e.q; }
+  const L=s2*q, fl=Math.floor(q*Math.SQRT2), n2=fl-1;
+  const limitLines=[
+    '\\text{折り紙 }n\\ \\text{枚のとき　長さ}='+_riyRoot2(s2,2,'(n+1)')+'\\ \\text{(cm)}',
+    _riyRoot2(s2,2,'(n+1)')+'<'+L,
+    'n+1<\\dfrac{2\\times '+L+'}{'+s2+'\\sqrt{2}}='+q+'\\sqrt{2}='+(q*Math.SQRT2).toFixed(2)+'\\cdots',
+    'n+1\\leqq '+fl+'\\quad\\therefore\\ n='+n2+'\\ \\text{(枚)}'
+  ];
+
+  if(t==='total'){
+    const hon=sp.m||pick([5,6,8,10,12]);
+    add(String(n2*hon)+' 枚', true);
+    fill([String((n2+1)*hon)+' 枚', String((n2-1)*hon)+' 枚', String((n2+2)*hon)+' 枚', String(n2+hon)+' 枚']);
+    _shuffle(opts);
+    return {t:t, params:{t:t,s:s2,q:q,m:hon}, latexOpts:false, wideOpts:false, opts:opts,
+      intro:intro(s2, 'かざりの長さは <b>'+L+' cm 未満</b>でもっとも長くする。'),
+      ask:'このかざりを <b>'+hon+' 本</b>つくるとき、折り紙は全部で何枚必要ですか。',
+      fig:riyFig({count:n2, side:s2+'cm', arrow:L+'cm未満'}),
+      qtext:'1辺'+s2+'cmの折り紙で'+L+'cm未満の最長のかざりを'+hon+'本作るのに必要な枚数',
+      ansNote:'答え：'+(n2*hon)+' 枚（1本あたり '+n2+' 枚）',
+      expLines:limitLines.concat(['\\therefore\\ '+n2+'\\times '+hon+'='+(n2*hon)+'\\ \\text{(枚)}'])};
+  }
+
+  add(String(n2)+' 枚', true);
+  fill([String(n2+1)+' 枚', String(n2-1)+' 枚', String(n2+2)+' 枚', String(n2-2)+' 枚']);
+  _shuffle(opts);
+  return {t:'max', params:{t:'max',s:s2,q:q}, latexOpts:false, wideOpts:false, opts:opts,
+    intro:intro(s2), ask:'かざりの長さを <b>'+L+' cm 未満</b>でもっとも長くするには、折り紙は何枚必要ですか。',
+    fig:riyFig({count:n2, side:s2+'cm', arrow:L+'cm未満'}),
+    qtext:'1辺'+s2+'cmの折り紙で'+L+'cm未満のもっとも長いかざりを作るのに必要な枚数',
+    ansNote:'答え：'+n2+' 枚',
+    expLines:limitLines};
+}
+
+function initRiyou(){
+  _riyRetryQueue=null; _riyRetryTotal=RIY_TOTAL;
+  riyCurrentQ=0; riyCorrect=0; riyWrong=0; riyWrongProbs=[]; _riyRecent=[];
+  document.getElementById('q-count').textContent=1;
+  document.getElementById('score-correct').textContent=0;
+  document.getElementById('score-wrong').textContent=0;
+  document.getElementById('progress-fill').style.width='0%';
+  renderRiyQuestion();
+}
+
+function renderRiyQuestion(){
+  const _total=_riyRetryQueue!==null?_riyRetryTotal:RIY_TOTAL;
+  if(riyCurrentQ>=_total){ renderRiyResult(); return; }
+  document.getElementById('q-count').textContent=Math.min(riyCurrentQ+1,_total);
+  document.getElementById('score-correct').textContent=riyCorrect;
+  document.getElementById('score-wrong').textContent=riyWrong;
+  document.getElementById('progress-fill').style.width=(riyCurrentQ/_total*100)+'%';
+  const prob=(_riyRetryQueue&&_riyRetryQueue.length>0)?_riyRetryQueue.shift():genRiyouProblem();
+  const optBtns=prob.opts.map(function(o,i){
+    return '<button class="muldiv-opt" id="riyopt-'+i+'" data-idx="'+i+'">'+(prob.latexOpts?K(o.txt):o.txt)+'</button>';
+  }).join('');
+  document.getElementById('quiz-area').innerHTML=
+    '<div class="muldiv-problem">'
+    + '<button class="card-reset-btn" id="card-reset-btn">↩ 最初へ</button>'
+    + '<div class="simplify-label">平方根の利用</div>'
+    + '<div class="riy-body">'
+    +   '<div class="riy-text"><div>'+prob.intro+'</div><div class="riy-ask">'+prob.ask+'</div></div>'
+    +   '<div class="riy-fig">'+prob.fig+'</div>'
+    + '</div>'
+    + '<div class="muldiv-opts'+(prob.wideOpts?' opts-wide':'')+'" id="riy-opts">'+optBtns+'</div>'
+    + '</div>';
+  bindSingleConfirm('.muldiv-opt', '.muldiv-problem', function(idx){ selectRiyAnswer(prob.opts[idx], prob, prob.opts); });
+  document.getElementById('card-reset-btn').addEventListener('click', function(){ switchMode('riyou'); });
+  fitToWidth();
+}
+
+function selectRiyAnswer(chosen, prob, opts){
+  const isCorrect=chosen.correct;
+  if(isCorrect){ riyCorrect++; safeDivpCorrect('.muldiv-problem'); } else { riyWrong++; riyWrongProbs.push(prob); safeDivpIncorrect('.muldiv-problem'); }
+  Divp.answer(isCorrect, {
+    question_key:'riyou',
+    question_params:prob.params,
+    question_text:prob.qtext,
+    correct_answer:(opts.find(function(o){return o.correct;})||{}).txt,
+    wrong_answer:chosen.txt,
+    question_figure:prob.fig,     // 図が無いと解けない＝誤答時だけ保存され解き直しプリントに出る
+  });
+  opts.forEach(function(o,i){
+    const btn=document.getElementById('riyopt-'+i); if(!btn) return;
+    btn.disabled=true;
+    if(o.correct) btn.classList.add('result-correct');
+    else if(o===chosen&&!isCorrect) btn.classList.add('result-wrong');
+  });
+  const expDiv=document.createElement('div'); expDiv.className='explanation';
+  const msg=isCorrect?'<span style="color:#166534;font-weight:700;">✓ 正解！</span>':'<span style="color:#991b1b;font-weight:700;">✗ 不正解</span>';
+  const lineHtml=prob.expLines.map(function(l){ return '<div style="margin-bottom:6px;">'+K(l)+'</div>'; }).join('');
+  expDiv.innerHTML=msg+'<br><br>'+lineHtml+(prob.ansNote?'<div style="font-size:12px;color:#64748b;margin-top:4px;">'+prob.ansNote+'</div>':'');
+  const _total=_riyRetryQueue!==null?_riyRetryTotal:RIY_TOTAL;
+  const nextRow=document.createElement('div'); nextRow.className='action-row'; nextRow.style.marginTop='12px';
+  const nextBtn=document.createElement('button'); nextBtn.className='btn btn-next';
+  nextBtn.textContent=riyCurrentQ+1>=_total?'結果を見る':'次の問題へ →';
+  nextBtn.addEventListener('click', function(){ riyCurrentQ++; renderRiyQuestion(); });
+  nextRow.appendChild(nextBtn);
+  const card=document.querySelector('.muldiv-problem'); card.appendChild(nextRow);
+  const hint=document.createElement('div'); hint.style.cssText='text-align:center;font-size:11px;color:#94a3b8;margin-top:6px;'; hint.textContent='解説は下へスクロール ↓'; card.appendChild(hint);
+  card.appendChild(expDiv);
+  appendBottomNext(card);
+  document.getElementById('score-correct').textContent=riyCorrect;
+  document.getElementById('score-wrong').textContent=riyWrong;
+}
+
+function renderRiyResult(){
+  document.getElementById('progress-fill').style.width='100%';
+  const isRetry=(_riyRetryQueue!==null);
+  const effTotal=isRetry?_riyRetryTotal:RIY_TOTAL;
+  const showGrade=effTotal>=10;
+  document.getElementById('q-count').textContent=effTotal;
+  document.getElementById('score-correct').textContent=riyCorrect;
+  document.getElementById('score-wrong').textContent=riyWrong;
+  const pct=Math.round(riyCorrect/effTotal*100);
+  if(!isRetry){ if(riyCorrect===effTotal) consecutivePerfect++; else consecutivePerfect=0; }
+  let grade,color,msg;
+  if(showGrade){
+    if(consecutivePerfect>=3){grade='SSS';color='#ff4dff';msg='30問連続全問正解！文章題も完璧！！';}
+    else if(consecutivePerfect>=2){grade='SS';color='#ff9000';msg='20問連続全問正解！すばらしい！';}
+    else if(riyCorrect===effTotal){grade='S';color='#f5c842';msg='10問全問正解！平方根の利用マスター！';}
+    else if(pct>=90){grade='A';color='#22c55e';msg='あと1問！よくできました！';}
+    else if(pct>=70){grade='B';color='#3b82f6';msg='もう少し！図をかいて「a と a/2」を確かめよう。';}
+    else if(pct>=50){grade='C';color='#f97316';msg='復習してもう一度！';}
+    else{grade='D';color='#ef4444';msg='1枚目は a、2枚目からは a/2 ずつ。ここから組み立てよう。';}
+  }
+  document.getElementById('quiz-area').innerHTML=
+    '<div class="result-screen">'
+    + '<div style="font-size:14px;color:#64748b;letter-spacing:0.1em;margin-bottom:8px;">RESULT</div>'
+    + (showGrade ? '<div class="result-grade" style="color:'+color+';">'+grade+'</div><div class="result-msg">'+msg+'</div>' : '<div class="result-msg" style="margin-top:6px;">解き直しおつかれさま！</div>')
+    + '<div style="font-size:36px;font-weight:900;color:#0a1628;margin-bottom:8px;">'+riyCorrect+' <span style="font-size:18px;color:#64748b;">/ '+effTotal+'問正解</span></div>'
+    + '<div class="result-breakdown">'
+    +   '<div class="result-item c">✓ 正解 '+riyCorrect+'問</div>'
+    +   '<div class="result-item w">✗ 不正解 '+riyWrong+'問</div>'
+    + '</div>'
+    + '<button class="btn-retry" id="retry-btn">もう一度チャレンジ</button>'
+    + (riyWrongProbs.length>0?'<button class="btn-retry-wrong" id="wrong-retry-btn">🔁 間違えた '+riyWrongProbs.length+' 問を解き直す</button>':'')
+    + '</div>';
+  document.getElementById('retry-btn').addEventListener('click', initRiyou);
+  document.getElementById('wrong-retry-btn')?.addEventListener('click', function(){
+    _riyRetryQueue=[...riyWrongProbs]; _riyRetryTotal=_riyRetryQueue.length;
+    riyWrongProbs=[]; riyCurrentQ=0; riyCorrect=0; riyWrong=0;
+    document.getElementById('q-count').textContent=1;
+    document.getElementById('score-correct').textContent=0;
+    document.getElementById('score-wrong').textContent=0;
+    document.getElementById('progress-fill').style.width='0%';
+    renderRiyQuestion();
+  });
+}
+document.getElementById('mode-riyou').addEventListener('click', ()=>switchMode('riyou'));
+// ============================ /平方根の利用モード ============================
 
 
 
@@ -5122,6 +5561,7 @@ initQuiz();
   const MODE_NAMES = {
     truefalse: '正誤問題', simplify: '簡略化', addsub: '加減', muldiv: '乗除',
     mixed: '四則混合', approx: '近似値', intval: '整数値', subst: '代入',
+    riyou: '平方根の利用',
   };
 
   // question_params が再出題に必要な形かの検証（古い形式・欠損データを弾く）
@@ -5136,6 +5576,15 @@ initQuiz();
     approx:   p => p && p.base && p.qLatex && Array.isArray(p.lines),
     intval:   p => p && p.qLatex && p.subtype,
     subst:    p => p && p.condLatex && p.exprLatex && Array.isArray(p.expLines),
+    // 利用モードだけは「問題そのもの」ではなく作り直すための種類と数値だけを持つ。
+    // 種類ごとに必要な値が欠けている行を通すと、その値だけ乱数で埋まって
+    // 別の問題が出る＝params_hash が変わって永久に mastered にならないので弾く
+    riyou:    p => p && typeof p.t === 'string' && p.s > 0
+      && (p.t !== 'rel'    || p.n > 0)
+      && (p.t !== 'approx' || p.n > 0)
+      && (p.t !== 'len'    || p.k > 0)
+      && (p.t !== 'max'    || p.q > 0)
+      && (p.t !== 'total'  || (p.q > 0 && p.m > 0)),
   };
 
   function resetScoreBar() {
@@ -5181,6 +5630,11 @@ initQuiz();
       _subRetryQueue = [...probs]; _subRetryTotal = _subRetryQueue.length;
       subWrongProbs = []; subCurrentQ = 0; subCorrect = 0; subWrong = 0;
       resetScoreBar(); renderSubstQuestion();
+    } else if (key === 'riyou') {
+      // 利用モードは params から問題を作り直す（他モードは params 自体が問題オブジェクト）
+      _riyRetryQueue = probs.map(p => genRiyouProblem(p)); _riyRetryTotal = _riyRetryQueue.length;
+      riyWrongProbs = []; riyCurrentQ = 0; riyCorrect = 0; riyWrong = 0;
+      resetScoreBar(); renderRiyQuestion();
     }
   }
 

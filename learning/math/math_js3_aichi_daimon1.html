@@ -590,13 +590,16 @@ function gen2(){
  return q_('t2','a1_mojibunsuu',[texPart(tex),SEL_TXT],ch,ex)}
 
 /* ── (3) 単項式の乗除 ── */
+/* 単項式のtex。係数0は「0xy」ではなく「0」と書く(誤答候補に混ざると式として不正になるため) */
 function monoTex(c,ex,ey){let s;
+ if(c===0)return'0';
  if(ex||ey){s=(c===1)?'':(c===-1)?'-':String(c)}else s=String(c);
  if(ex)s+='x'+(ex>1?'^{'+ex+'}':'');
  if(ey)s+='y'+(ey>1?'^{'+ey+'}':'');
  return s}
 /* a,b の単項式tex(monoTexはx,y固定なので2文字問題用に別に持つ) */
 function monoTexAB(c,ea,eb){let s;
+ if(c===0)return'0';
  if(ea||eb){s=(c===1)?'':(c===-1)?'-':String(c)}else s=String(c);
  if(ea)s+='a'+(ea>1?'^{'+ea+'}':'');
  if(eb)s+='b'+(eb>1?'^{'+eb+'}':'');
@@ -615,9 +618,11 @@ function gen3(){
    const tex='('+t1+t2+')\\div\\dfrac{'+dn+'}{'+dd+'}ab';
    const linAB=(x,y)=>monoTexAB(x,1,0)+(y<0?'':'+')+monoTexAB(y,0,1);
    const correct=linAB(P,Q);
-   const w=[monoTexAB(P+Q,1,1),                 // 文字をabのまま残した
-    linAB(P,-Q),linAB(-P,Q),linAB(Q,P)];
-   if(A*dn%dd===0&&B*dn%dd===0)w.splice(1,0,linAB(A*dn/dd,B*dn/dd)); // 逆数にせず掛けた
+   /* 「文字をabのまま残した」誤り。P+Q=0 の組は「0ab」になってしまうので出さない */
+   const w=[];
+   if(P+Q!==0)w.push(monoTexAB(P+Q,1,1));
+   if(A*dn%dd===0&&B*dn%dd===0)w.push(linAB(A*dn/dd,B*dn/dd)); // 逆数にせず掛けた
+   w.push(linAB(P,-Q),linAB(-P,Q),linAB(Q,P));
    const ch=mkChoices(correct,w.filter(s2=>s2!==correct));
    if(!ch)continue;
    const ex=[jt('分数の単項式でわる → 逆数をかける'),
@@ -777,7 +782,7 @@ function gen5(){
   const D2=p*p+4*q;
   if(D2<=1||isSquare(D2)||D2===D)continue;
   if(sqfree(D).s!==1)continue; // 表示を√Dのまま使うため無平方に限定
-  const tex='x(x'+sn(a)+')=-'+b+'(x'+sn(c)+')';
+  const tex='x(x'+sn(a)+')=-'+(b===1?'':b)+'(x'+sn(c)+')';   // b=1 を「-1(x+2)」と書かない
   function sol(pp,DD){return'x=\\dfrac{'+(-pp)+'\\pm\\sqrt{'+DD+'}}{2}'}
   const correct=sol(p,D);
   const w=[sol(-p,D),sol(p,D2),sol(-p,D2)];
@@ -1056,7 +1061,7 @@ function gen10(){
    const parts=[txtPart('関数 '),texPart('y='+kTexH),
     txtPart(' について、x の値が '+p+' から '+q+' まで増加するときの変化の割合として正しいものを、次のアからエまでの中から一つ選びなさい。')];
    const ex=['\\text{変化の割合}=\\dfrac{y\\text{の増加量}}{x\\text{の増加量}}',
-    '=\\dfrac{'+k+'\\times'+q+'^{2}-'+k+'\\times('+p+')^{2}}{'+q+'-('+p+')}='+m];
+    '=\\dfrac{'+pn(k)+'\\times'+pn(q)+'^{2}-'+pn(k)+'\\times'+pn(p)+'^{2}}{'+q+'-('+p+')}='+m];
    return q_('t10','a1_henka',parts,ch,ex)}
   const wm=shuffle([k,2*k===m?3*k:2*k,m+nz(-2,2)]).filter(x=>x!==m&&x!==0);
   const ms=[m].concat(wm);
@@ -1069,7 +1074,7 @@ function gen10(){
   const kTex=(k===1)?'x^{2}':(k===-1)?'-x^{2}':k+'x^{2}';
   const parts=[txtPart('x の値が '+p+' から '+q+' まで増加するときの変化の割合が、関数 '),
    texPart('y='+kTex),txtPart(' と同じ関数を、次のアからエまでの中から一つ選びなさい。')];
-  const ex=['y='+kTex+jt(' の変化の割合は ')+'\\dfrac{'+k+'\\times('+q+')^{2}-'+k+'\\times('+p+')^{2}}{'+q+'-('+p+')}='+m,
+  const ex=['y='+kTex+jt(' の変化の割合は ')+'\\dfrac{'+pn(k)+'\\times('+q+')^{2}-'+pn(k)+'\\times('+p+')^{2}}{'+q+'-('+p+')}='+m,
    jt('傾き '+m+' の一次関数を選ぶ')];
   return{typeId:'t10',key:'a1_henka',parts:parts,choices:all,correct:correct,expl:ex,multi:1,tableHtml:null}}
  if(pat==='shizen'){
@@ -1975,6 +1980,9 @@ function genHisto(){
 function quadTex(S,P){return'x^{2}'+snTex(S,'x')+(P!==0?sn(P):'')}
 function facTex2(a){return'(x'+sn(a)+')'}
 function pairTexF(a,b){const lo=Math.min(a,b),hi=Math.max(a,b);return facTex2(lo)+facTex2(hi)}
+/* 誤答用。a・b のどちらかが 0 になる組は「(x+0)」と表示されてしまうので作らない(null を返し、
+   呼び出し側が .filter(Boolean) で落とす。誤答は多めに並べてあるので1つ減っても4択は埋まる) */
+function pairTexW(a,b){return(a===0||b===0)?null:pairTexF(a,b)}
 /* --- 展開の計算・表示ヘルパ（2次式を [x²の係数, xの係数, 定数] の3つ組で扱う） --- */
 /* (p1x+q1)(p2x+q2) を展開 */
 function mulLin(p1,q1,p2,q2){return[p1*p2,p1*q2+q1*p2,q1*q2]}
@@ -2214,7 +2222,7 @@ function gen15(){
    if(!chk())continue;
    const tex='(x'+sn(a)+')(x'+sn(b)+')'+(c>0?'+':'')+coefTex(c,'x');
    const correct=pairTexF(A1,B1);
-   const w=[pairTexF(-A1,-B1),pairTexF(a,b),pairTexF(A1-1,B1+1),pairTexF(-A1,B1)];
+   const w=[pairTexF(-A1,-B1),pairTexF(a,b),pairTexW(A1-1,B1+1),pairTexF(-A1,B1)].filter(Boolean);
    const ch=mkChoices(correct,w);
    if(!ch)continue;
    const ex=['\\text{まず展開して整理: }'+quadTex(S,Q),'='+correct];
@@ -2252,7 +2260,7 @@ function gen15(){
  while(b===a||a+b===0)b=nz(-7,7);
  const texQ=quadTex(a+b,a*b);
  const correct=pairTexF(a,b);
- const w=[pairTexF(-a,-b),pairTexF(a,-b),pairTexF(-a,b),pairTexF(a-1,b+1)];
+ const w=[pairTexF(-a,-b),pairTexF(a,-b),pairTexF(-a,b),pairTexW(a-1,b+1)].filter(Boolean);
  const ch=mkChoices(correct,w);
  if(!ch)return gen15();
  const ex=['\\text{積が }'+(a*b)+'\\text{、和が }'+(a+b)+'\\text{ の2数 → }'+a+'\\text{ と }'+b,'='+correct];

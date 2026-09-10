@@ -376,7 +376,9 @@ INSERT INTO question_catalog (unit_key, question_key, label, base_xp) VALUES
   ('math_js3_heihokon', 'mixed',     '四則混合', 1),
   ('math_js3_heihokon', 'approx',    '近似値',   1),
   ('math_js3_heihokon', 'intval',    '整数値',   1),
-  ('math_js3_heihokon', 'subst',     '代入',     1)
+  ('math_js3_heihokon', 'subst',     '代入',     1),
+  ('math_js3_heihokon', 'riyou',     '平方根の利用', 1),
+  ('math_js3_heihokon', 'exam',      '入試問題', 1)
 ON DUPLICATE KEY UPDATE label = VALUES(label), base_xp = VALUES(base_xp);
 
 -- 二次方程式マスターのシード
