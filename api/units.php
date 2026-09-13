@@ -28,6 +28,12 @@ return [
         'sub'   => '数学・高校（数学B 数列）',
         'url'   => '/learning/math/math_hs_suuretsu.html',
     ],
+    // 漸化式だけを10タイプに分けた特化ツール。解き直しは数列と同じ種(seed)方式
+    'math_hs_zenkashiki' => [
+        'title' => '漸化式マスター',
+        'sub'   => '数学・高校（数学B 漸化式）',
+        'url'   => '/learning/math/math_hs_zenkashiki.html',
+    ],
     // 解き直しは question_params の {m:サブモード, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
     'math_es5_baisu_yakusu' => [
         'title' => '倍数・約数マスター',

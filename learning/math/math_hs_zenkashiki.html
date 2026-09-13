@@ -1,0 +1,2316 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>漸化式マスター | 中京個別指導学院</title>
+<meta name="description" content="高校数学B 漸化式だけを集めた練習ツール。二項間（等差型・等比型・階差型・特性方程式・指数・逆数・関数スライド・階比・対数）と三項間（=0の基本形）の10タイプを、基本・標準から選んで練習できます。等差型・等比型・特性方程式はグラフモードつき。特性方程式は y=x との交点を求め、そこへ原点をずらすと等比型になる——という動きをそのまま見られます。中京個別指導学院。">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- ⚠ 共通モジュール（divp-header.js など）は <head> ではなく <body> 開始直後に置く。
+     ヘッダーは document.currentScript の位置に自分を挿し込むので、head に書くと
+     header 要素が head の中に入って画面に一切出ない（エラーは出ない）。 -->
+<style>
+/* ================================================================
+   漸化式マスター — 数列完全マスター(math_hs_suuretsu)と同じ「高校生向け・
+   暗い紺地＋シアン／バイオレット」系統でそろえる（同じ生徒が行き来するため）。
+   共通モジュールの色は :root の変数で上書きする（var()のフォールバック方式なので
+   読み込み順に関係なくツール側が勝つ）。
+   ================================================================ */
+:root{
+  --bg:#070A12;
+  --bg2:#0C1120;
+  --panel:rgba(255,255,255,.045);
+  --panel2:rgba(255,255,255,.075);
+  --line:rgba(140,175,255,.16);
+  --line2:rgba(140,175,255,.30);
+  --ink:#E9EEFB;
+  --ink2:#B7C1DA;
+  --muted:#7C86A1;
+  --cy:#38E8FF;
+  --cy2:#0E9EC0;
+  --vi:#A78BFA;
+  --vi2:#7C5CFA;
+  --gold:#FFD166;
+  --ok:#7EE0A0;
+  --ng:#FF7A80;
+  --warn:#FFB35C;
+  --jp:"Zen Kaku Gothic New",system-ui,-apple-system,"Hiragino Kaku Gothic ProN",sans-serif;
+  --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  /* ── 答え合わせ表示（divp-choice-mark.js）────────────────────────
+     正解の緑は #3E8E5A に統一するのが原則だが、このツールは暗背景なので
+     science_js3_ionlab と同じ明るい緑の例外側にそろえる（緑の種類を増やさない）。
+     枠は明るい緑・文字は読める薄緑に分ける（--divp-mark-ok-text）。 */
+  --divp-mark-ok:#7ee0a0;
+  --divp-mark-ok-bg:rgba(126,224,160,.16);
+  --divp-mark-ok-bg-soft:rgba(126,224,160,.10);
+  --divp-mark-ok-text:#bfe6cf;
+  --divp-mark-ng:#ff7a80;
+  --divp-mark-ng-bg:rgba(255,122,128,.16);
+  --divp-mark-dim-opacity:.38;
+  /* ── 10問ごとの評価（divp-result.js）を暗配色に寄せる。
+     ランクの色（--divp-result-grade-*）は既定の派手な配色のままにする（ランクは目立ってよい） */
+  --divp-result-bg:#0C1222;
+  --divp-result-ink:#E9EEFB;
+  --divp-result-sub:#7C86A1;
+  --divp-result-accent:#38E8FF;
+  --divp-result-accent-ink:#04121A;
+  --divp-result-sub-btn:rgba(255,255,255,.07);
+  --divp-result-wrong-btn:#7C5CFA;
+  --divp-result-ok:#7ee0a0;
+  --divp-result-ok-bg:rgba(126,224,160,.14);
+  --divp-result-ng:#ff7a80;
+  --divp-result-ng-bg:rgba(255,122,128,.14);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{min-height:100%;}
+/* html 側にも地の色を置く。body の背景は background-attachment:fixed で
+   ビューポートに貼るため、iOS の慣性スクロールで端まで引っ張られたときや
+   印刷・全画面キャプチャで背景の外側が出ると、ここが無いと白地になる
+   （ほぼ白の文字 --ink が白地に乗ると読めなくなる） */
+html{background:#070A12;}
+body{
+  background:
+    radial-gradient(1200px 760px at 82% -12%, rgba(56,232,255,.10), transparent 60%),
+    radial-gradient(900px 700px at 4% 6%, rgba(167,139,250,.11), transparent 58%),
+    linear-gradient(180deg,var(--bg2),var(--bg) 46%);
+  background-attachment:fixed;
+  color:var(--ink);
+  font-family:var(--jp);
+  font-feature-settings:"palt";
+  touch-action:manipulation;
+  -webkit-text-size-adjust:100%;
+}
+/* 方眼ではなく「製図の目地」。うっすら入れて紙感を消す */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    repeating-linear-gradient(90deg, rgba(140,175,255,.045) 0 1px, transparent 1px 56px),
+    repeating-linear-gradient(0deg,  rgba(140,175,255,.045) 0 1px, transparent 1px 56px);
+  mask-image:radial-gradient(1000px 700px at 50% 0%, #000 30%, transparent 78%);
+  -webkit-mask-image:radial-gradient(1000px 700px at 50% 0%, #000 30%, transparent 78%);
+}
+/* 余白は body ではなく中身側に持たせる（共通ヘッダーは画面幅いっぱいのバーなので、
+   body に padding があると左右と上にすき間ができて「ずれている」見え方になる） */
+.wrap{position:relative;z-index:1;padding:14px 12px 96px;}
+a{color:var(--cy);}
+
+/* ---------- ヘッダー ---------- */
+header.dv-head{
+  max-width:920px;margin:0 auto 12px;display:flex;align-items:flex-end;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;padding-bottom:10px;
+  border-bottom:1px solid var(--line);
+}
+h1{
+  font-size:1.42rem;font-weight:900;letter-spacing:.02em;line-height:1.18;
+  display:flex;flex-direction:column;gap:5px;
+}
+h1 .sub{
+  font-family:var(--mono);font-size:.62rem;font-weight:500;letter-spacing:.28em;
+  color:var(--cy);text-transform:uppercase;
+}
+h1 .ttl{background:linear-gradient(92deg,#fff 12%,var(--cy) 58%,var(--vi) 96%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.stats{display:flex;gap:8px;}
+.stat{
+  min-width:74px;text-align:center;border:1px solid var(--line);border-radius:12px;
+  background:var(--panel);padding:7px 10px;
+}
+.stat b{display:block;font-family:var(--mono);font-size:1.12rem;line-height:1.1;color:#fff;}
+.stat span{display:block;font-size:.56rem;letter-spacing:.18em;color:var(--muted);margin-top:3px;}
+#rankBadge b{background:linear-gradient(92deg,var(--gold),#FFF1C2);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+/* ---------- 上段タブ（演習 / 証明） ---------- */
+.viewtabs{max-width:920px;margin:0 auto 14px;display:flex;gap:8px;}
+.vtab{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  border:1px solid var(--line);border-radius:14px;background:var(--panel);
+  padding:10px 8px;color:var(--ink2);cursor:pointer;font-family:inherit;
+  transition:border-color .18s, box-shadow .18s, background .18s, color .18s;
+}
+.vtab b{font-size:.94rem;font-weight:700;}
+.vtab i{font-style:normal;font-family:var(--mono);font-size:.56rem;letter-spacing:.24em;color:var(--muted);}
+.vtab.on{
+  color:#fff;border-color:var(--cy);
+  background:linear-gradient(140deg,rgba(56,232,255,.16),rgba(167,139,250,.14));
+  box-shadow:0 0 0 1px rgba(56,232,255,.28), 0 14px 30px -18px rgba(56,232,255,.85);
+}
+.vtab.on i{color:var(--cy);}
+
+/* ---------- 出題タイプ / レベル ---------- */
+.pane{max-width:920px;margin:0 auto;}
+.selbox{
+  border:1px solid var(--line);border-radius:16px;background:var(--panel);
+  padding:12px;margin-bottom:12px;
+}
+.selhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px;}
+.selhead h2{
+  font-family:var(--mono);font-size:.62rem;font-weight:500;letter-spacing:.22em;
+  color:var(--cy);text-transform:uppercase;
+}
+.foldBtn{
+  border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink2);
+  font-family:inherit;font-size:.7rem;padding:4px 12px;cursor:pointer;
+}
+.selacts{display:flex;align-items:center;gap:7px;}
+.foldBtn.prt{color:var(--gold);border-color:rgba(255,209,102,.38);}
+.foldBtn.prt:hover{background:rgba(255,209,102,.12);}
+.selbox.folded .chips,.selbox.folded .mixbox{display:none;}
+.chips{display:flex;flex-wrap:wrap;gap:7px;}
+.chip{
+  border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.03);
+  color:var(--ink2);font-family:inherit;font-size:.76rem;padding:7px 13px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;line-height:1.2;
+  transition:border-color .16s, box-shadow .16s, background .16s, color .16s;
+}
+.chip small{font-family:var(--mono);font-size:.58rem;color:var(--muted);}
+.chip:hover{border-color:var(--line2);color:var(--ink);}
+.chip.on{
+  color:#fff;border-color:var(--cy);
+  background:linear-gradient(135deg,rgba(56,232,255,.20),rgba(167,139,250,.16));
+  box-shadow:0 0 0 1px rgba(56,232,255,.26), 0 10px 24px -16px rgba(56,232,255,.9);
+}
+.chip.on small{color:#CFF6FF;}
+.chip.mix{border-style:dashed;}
+.chip.mix.on{border-style:solid;border-color:var(--vi);
+  box-shadow:0 0 0 1px rgba(167,139,250,.3), 0 10px 24px -16px rgba(167,139,250,.9);}
+
+/* レベル（3段のセグメント） */
+.lvrow{display:flex;align-items:center;gap:10px;margin-top:11px;flex-wrap:wrap;}
+.lvlabel{font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;color:var(--muted);}
+.lvseg{display:flex;gap:4px;border:1px solid var(--line);border-radius:12px;padding:4px;background:rgba(0,0,0,.22);}
+.lvbtn{
+  border:0;border-radius:9px;background:transparent;color:var(--ink2);font-family:inherit;
+  font-size:.76rem;padding:6px 13px;cursor:pointer;display:flex;align-items:center;gap:6px;
+  transition:background .16s,color .16s;
+}
+.lvbtn u{text-decoration:none;font-family:var(--mono);font-size:.66rem;color:var(--muted);}
+.lvbtn.on{background:linear-gradient(135deg,var(--cy2),var(--vi2));color:#fff;}
+.lvbtn.on u{color:#DFF6FF;}
+#lvDesc{font-size:.74rem;color:var(--ink2);}
+#lvDesc b{color:var(--cy);font-weight:700;}
+
+/* ミックスの内訳 */
+.mixbox{margin-top:11px;border-top:1px dashed var(--line);padding-top:10px;}
+.mixgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(146px,1fr));gap:6px;}
+.mixgrid label{
+  display:flex;align-items:center;gap:7px;font-size:.74rem;color:var(--ink2);
+  border:1px solid transparent;border-radius:9px;padding:5px 7px;cursor:pointer;
+}
+.mixgrid label:hover{background:rgba(255,255,255,.04);}
+.mixgrid input{accent-color:var(--cy);width:15px;height:15px;}
+.mixbtns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.miniBtn{
+  border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink2);
+  font-family:inherit;font-size:.68rem;padding:5px 11px;cursor:pointer;
+}
+.miniBtn:hover{border-color:var(--line2);color:#fff;}
+
+/* ---------- 問題カード ---------- */
+/* ⚠ overflow は visible のまま（正解はんこは直径171pxで、hidden だと切れる） */
+#card{
+  position:relative;overflow:visible;
+  border:1px solid var(--line);border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.062),rgba(255,255,255,.018));
+  padding:16px 16px 18px;box-shadow:0 30px 60px -50px #000;
+}
+#card::before{
+  content:"";position:absolute;left:22px;right:22px;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cy),var(--vi),transparent);opacity:.75;
+}
+#card.shake{animation:shk .34s;}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.qmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.qmeta .tag{
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;color:var(--cy);
+  border:1px solid rgba(56,232,255,.34);border-radius:999px;padding:3px 9px;
+}
+.qmeta .tag.vi{color:var(--vi);border-color:rgba(167,139,250,.38);}
+.qmeta .tag.pl{color:var(--muted);border-color:var(--line);}
+.qmeta .grow{flex:1;}
+.qlead{font-size:.94rem;line-height:1.66;color:var(--ink);}
+.qsub{margin-top:9px;font-size:.82rem;color:var(--ink2);line-height:1.8;}
+.qdisp{
+  margin:14px 0 4px;padding:14px 8px;text-align:center;font-size:1.28rem;color:#fff;
+  border-radius:14px;background:rgba(0,0,0,.28);border:1px solid var(--line);
+  overflow-x:auto;
+}
+.qdisp .katex{color:#fff;}
+.seq{
+  font-family:var(--mono);font-size:1.02rem;letter-spacing:.02em;color:#fff;
+  display:flex;flex-wrap:wrap;gap:0 6px;justify-content:center;
+}
+.seq i{font-style:normal;color:var(--cy);}
+
+/* 選択肢 */
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;}
+@media (max-width:520px){.choices{grid-template-columns:1fr;}}
+.choiceBtn{
+  display:flex;align-items:center;gap:10px;text-align:left;
+  border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.035);
+  color:var(--ink);font-family:inherit;font-size:.98rem;padding:12px 12px;cursor:pointer;
+  min-height:56px;transition:border-color .15s,background .15s,transform .08s;
+}
+.choiceBtn:hover:not([disabled]){border-color:var(--line2);background:rgba(255,255,255,.06);}
+.choiceBtn:active:not([disabled]){transform:scale(.985);}
+.choiceBtn .cno{
+  flex:0 0 26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  font-family:var(--mono);font-size:.76rem;color:var(--cy);
+  border:1px solid rgba(56,232,255,.32);background:rgba(56,232,255,.08);
+}
+.choiceBtn.sel{border-color:var(--cy);background:rgba(56,232,255,.12);box-shadow:0 0 0 1px rgba(56,232,255,.3);}
+.choiceBtn .katex{color:inherit;}
+
+/* テンキー */
+.numwrap{margin-top:14px;}
+.numdisp{
+  height:58px;border-radius:13px;border:1px solid var(--line);background:rgba(0,0,0,.3);
+  display:flex;align-items:center;justify-content:flex-end;padding:0 16px;
+  font-family:var(--mono);font-size:1.62rem;color:#fff;letter-spacing:.04em;
+}
+.numdisp.empty{color:var(--muted);font-size:1rem;letter-spacing:.14em;}
+.numunit{font-size:.8rem;color:var(--muted);margin-left:8px;font-family:var(--jp);}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px;max-width:330px;}
+.key{
+  height:52px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.05);
+  color:#fff;font-family:var(--mono);font-size:1.2rem;cursor:pointer;
+  transition:background .12s,border-color .12s,transform .06s;
+}
+.key:hover{background:rgba(255,255,255,.09);border-color:var(--line2);}
+.key:active{transform:scale(.95);background:rgba(56,232,255,.2);}
+.key.fn{font-size:.92rem;color:var(--ink2);}
+
+/* 判定・解説 */
+.verdict{margin-top:13px;font-size:.9rem;font-weight:700;min-height:1.3em;}
+.verdict.ok{color:var(--ok);}
+.verdict.ng{color:var(--ng);}
+#explain{display:none;margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;}
+.exHead{
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;color:var(--vi);margin-bottom:8px;
+}
+.exLine{font-size:.86rem;line-height:1.95;color:var(--ink2);padding:1px 0;}
+.exLine .katex{color:#fff;}
+.exLine.key{color:#fff;}
+.exFml{
+  margin:8px 0;padding:9px 11px;border-left:2px solid var(--vi);
+  background:rgba(167,139,250,.08);border-radius:0 10px 10px 0;font-size:.86rem;color:var(--ink);
+}
+.exFml .katex{color:#fff;}
+.proofLink{
+  display:inline-flex;align-items:center;gap:6px;margin-top:10px;
+  border:1px solid rgba(167,139,250,.4);border-radius:999px;background:rgba(167,139,250,.1);
+  color:#D8CCFF;font-family:inherit;font-size:.74rem;padding:6px 13px;cursor:pointer;
+}
+.proofLink:hover{background:rgba(167,139,250,.2);}
+
+/* 操作ボタン */
+.actions{
+  max-width:920px;margin:14px auto 0;display:flex;gap:9px;
+}
+.btn{
+  flex:1;border:0;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:700;
+  padding:15px 12px;cursor:pointer;color:#04121A;
+  background:linear-gradient(135deg,var(--cy),#7FF0FF);
+  box-shadow:0 16px 34px -22px rgba(56,232,255,.95);
+}
+.btn.ghost{
+  background:transparent;color:var(--ink2);border:1px solid var(--line);box-shadow:none;
+}
+.btn.vi{background:linear-gradient(135deg,var(--vi2),var(--vi));color:#fff;
+  box-shadow:0 16px 34px -22px rgba(167,139,250,.95);}
+.btn[disabled]{opacity:.4;cursor:default;box-shadow:none;}
+#toast{
+  max-width:920px;margin:10px auto 0;text-align:center;font-size:.8rem;color:var(--cy);min-height:1.2em;
+  font-family:var(--mono);letter-spacing:.06em;
+}
+.banner{
+  max-width:920px;margin:0 auto 12px;border:1px solid rgba(255,209,102,.4);
+  background:rgba(255,209,102,.08);border-radius:12px;padding:10px 13px;
+  font-size:.79rem;color:#FFE9AE;line-height:1.6;
+}
+
+#pview{display:none;}
+.pvhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.pvhead h2{font-size:1.06rem;font-weight:700;}
+.pvfml{
+  max-width:920px;margin:0 auto 12px;padding:12px;border-radius:14px;text-align:center;
+  border:1px solid rgba(167,139,250,.34);background:rgba(167,139,250,.08);font-size:1.14rem;
+}
+.pvfml .katex{color:#fff;}
+.stage{
+  border:1px solid var(--line);border-radius:18px;background:rgba(0,0,0,.3);
+  padding:14px 10px;overflow-x:auto;min-height:230px;display:flex;align-items:center;justify-content:center;
+}
+/* 図はステージの幅(最大920px)まで使ってよい。660pxで止めていたぶん
+   viewBox が縮小されて図の中の文字まで小さくなっていた */
+.stage svg{width:100%;height:auto;max-width:800px;display:block;}
+.pvcap{
+  margin-top:12px;border:1px solid var(--line);border-radius:14px;background:var(--panel);
+  padding:12px 14px;min-height:92px;
+}
+.pvno{font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;color:var(--cy);}
+.pvtxt{font-size:.86rem;line-height:1.8;color:var(--ink);margin-top:6px;}
+.pvtxt b{color:var(--cy);}
+/* 証明ステージの消し込み線（等比数列の和） */
+.strike{stroke:var(--ng);stroke-width:2.6;stroke-linecap:round;
+  stroke-dasharray:120;stroke-dashoffset:120;transition:stroke-dashoffset .5s ease;}
+.strike.on{stroke-dashoffset:0;}
+.dim{opacity:1;transition:opacity .45s ease;}
+.dim.off{opacity:.3;}
+.glow{filter:drop-shadow(0 0 10px rgba(56,232,255,.85));}
+.pvmath{margin-top:9px;text-align:center;font-size:1.04rem;overflow-x:auto;}
+.pvmath .katex{color:#fff;}
+.pvctrl{display:flex;align-items:center;gap:9px;margin-top:12px;}
+.pvdots{flex:1;display:flex;justify-content:center;gap:7px;}
+.pvdots i{
+  width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.16);display:block;
+  transition:background .2s,transform .2s;
+}
+.pvdots i.on{background:var(--cy);transform:scale(1.35);box-shadow:0 0 10px rgba(56,232,255,.9);}
+.pvdots i.done{background:rgba(56,232,255,.4);}
+
+/* ================================================================
+   グラフモード
+   等差型・等比型・特性方程式の3つを「くもの巣図（a_n → a_{n+1} の直線）」と
+   「項の並び（n → a_n）」の2枚で見せる。
+   ⚠ 図はすべて JS が SVG を組み立てて innerHTML で入れる。色・線の太さは
+     クラス（この CSS）で当てているが、**グラフモードの図は紙にも記録にも出ない**
+     （question_figure には使わない）ので、解き直しプリントの「クラスが効かない」
+     制約は関係ない。演習側の問題は全部テキストなので図は保存しない。
+   ================================================================ */
+#view-graph{display:none;}
+.glead{max-width:920px;margin:0 auto 12px;font-size:.84rem;color:var(--ink2);line-height:1.8;}
+.glead b{color:var(--cy);}
+
+/* パラメータの増減（スライダーではなく±ボタン。整数だけを取らせたいのと、
+   タブレットで指がすべっても値が飛ばないようにするため） */
+.ctrlbox{
+  border:1px solid var(--line);border-radius:16px;background:var(--panel);
+  padding:11px 12px;margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+}
+.stepper{display:flex;align-items:center;gap:6px;}
+.stepper > span.lb{font-size:.78rem;color:var(--ink2);min-width:2.1em;}
+.stepper .sbtn{
+  width:30px;height:30px;border:1px solid var(--line);border-radius:9px;
+  background:rgba(255,255,255,.05);color:#fff;font-family:var(--mono);font-size:1rem;cursor:pointer;
+}
+.stepper .sbtn:hover{background:rgba(56,232,255,.16);border-color:var(--line2);}
+.stepper .sval{
+  min-width:44px;text-align:center;font-family:var(--mono);font-size:1.02rem;color:var(--cy);
+  border:1px solid var(--line);border-radius:9px;padding:4px 6px;background:rgba(0,0,0,.28);
+}
+.ctrlnote{font-size:.72rem;color:var(--muted);flex:1;min-width:150px;line-height:1.6;}
+
+/* 図2枚。狭い画面では縦に積む */
+.gwrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+@media (max-width:760px){.gwrap{grid-template-columns:1fr;}}
+.gcard{
+  border:1px solid var(--line);border-radius:16px;background:rgba(0,0,0,.3);
+  padding:10px 10px 8px;overflow:hidden;
+}
+.gcard h3{
+  font-family:var(--mono);font-size:.58rem;letter-spacing:.16em;color:var(--vi);
+  margin-bottom:6px;text-transform:uppercase;
+}
+.gcard h3 em{font-style:normal;font-family:var(--jp);letter-spacing:0;color:var(--ink2);font-size:.74rem;margin-left:7px;}
+.gcard svg{width:100%;height:auto;display:block;}
+/* いまの一般項（図の下に出す答え） */
+.gans{
+  max-width:920px;margin:12px auto 0;border:1px solid rgba(255,209,102,.34);
+  background:rgba(255,209,102,.07);border-radius:14px;padding:11px 13px;text-align:center;font-size:1.06rem;
+}
+.gans .katex{color:#fff;}
+.gans .katex-display{margin:0;}
+
+/* ---------- グラフの部品（SVG） ---------- */
+.ax{stroke:var(--line2);stroke-width:1.2;}
+.axlb{fill:var(--muted);font-family:"DM Mono",monospace;font-size:12px;}
+.tick{stroke:var(--line);stroke-width:1;}
+.ticklb{fill:var(--muted);font-family:"DM Mono",monospace;font-size:10.5px;text-anchor:middle;}
+.grid{stroke:rgba(140,175,255,.07);stroke-width:1;}
+/* y=x（鏡の線）。ここで折り返すから「次の項」が横軸に移せる */
+.gyx{stroke:#8B93AE;stroke-width:1.4;stroke-dasharray:6 5;fill:none;}
+/* y=px+q（漸化式そのもの） */
+.gfn{stroke:var(--cy);stroke-width:2.4;fill:none;filter:drop-shadow(0 0 6px rgba(56,232,255,.5));}
+/* くもの巣（階段）。stroke-dasharray で1本ずつ描かれるアニメーションにする */
+.cob{stroke:var(--gold);stroke-width:1.8;fill:none;opacity:.9;}
+.cobv{stroke:var(--vi);stroke-width:1.8;fill:none;opacity:.9;}
+.dot{fill:var(--cy);}
+.dot.g{fill:var(--gold);}
+.dot.v{fill:var(--vi);}
+.ptlb{fill:#DCE6FF;font-family:"DM Mono",monospace;font-size:11.5px;text-anchor:middle;}
+.ptlb.g{fill:var(--gold);}
+.ptlb.v{fill:#D8CCFF;}
+/* 不動点α（y=x と y=px+q の交点） */
+.fix{fill:var(--ng);stroke:#fff;stroke-width:1.2;}
+.fixlb{fill:var(--ng);font-family:"DM Mono",monospace;font-size:12.5px;text-anchor:middle;font-weight:500;}
+.fixguide{stroke:var(--ng);stroke-width:1.1;stroke-dasharray:4 4;fill:none;opacity:.75;}
+/* ずらした先の新しい軸（原点をαへ移す）。translate はJSが style で当てる */
+.newax{stroke:var(--gold);stroke-width:1.6;}
+.newlb{fill:var(--gold);font-family:"DM Mono",monospace;font-size:12px;}
+.axmove{transition:transform .95s cubic-bezier(.35,.05,.2,1);}
+/* 項の並び（n → a_n）側。αの高さに引く水平線と、そこからの差 b_n */
+.asym{stroke:var(--ng);stroke-width:1.4;stroke-dasharray:6 4;fill:none;}
+.bseg{stroke:var(--gold);stroke-width:2.2;fill:none;stroke-linecap:round;}
+.blb{fill:var(--gold);font-family:"DM Mono",monospace;font-size:11px;text-anchor:start;}
+.plink{stroke:rgba(56,232,255,.4);stroke-width:1.2;stroke-dasharray:3 3;fill:none;}
+/* ステップで出し入れする要素（.on が付いたら見える） */
+.gshow{opacity:0;transition:opacity .5s ease;}
+.gshow.on{opacity:1;}
+footer{
+  max-width:920px;margin:22px auto 0;text-align:center;
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.18em;color:var(--muted);
+}
+@media (max-width:560px){
+  h1{font-size:1.18rem;}
+  .qdisp{font-size:1.1rem;}
+  .stat{min-width:64px;padding:6px 8px;}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+}
+/* 紙に共通ヘッダーは出さない（モジュール側でも消しているが、HTMLだけ先に上げても
+   紙に出ないようツール側にも同じ1行を持たせる） */
+@media print{
+  .divp-header{display:none!important;}
+}
+</style>
+</head>
+<body data-unit-key="math_hs_zenkashiki" data-theme="noir" data-effect="jh">
+
+<!-- 共通モジュール（file:// では divp-core が自動で黙る）
+     ・divp-header.js … 共通ヘッダー。この位置に挿し込まれる（body直後が定位置）
+     ・divp-core.js … 学習記録（Divp.init / Divp.answer）
+     ・divp-correct-jh.js … 正解=はんこ / 誤答=バッジ（中学・高校共通）
+     ・divp-choice-mark.js … 答え合わせ表示（正解=緑 / 選んだ誤答=朱）
+     ・divp-result.js … 10問ごとの評価（RESULT画面）
+     ・print-watermark.js … 練習プリントのロゴ透かし（無くても透かし無しで印刷できる） -->
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-choice-mark.js" defer></script>
+<script src="/assets/divp-result.js"></script>
+<script src="/assets/print-watermark.js"></script>
+
+<!-- 共通ヘッダーはこの div の外（body直下）に入る＝画面幅いっぱいのバーになる -->
+<div class="wrap">
+
+<header class="dv-head">
+  <h1><span class="sub">Mathematics B / Recurrence</span><span class="ttl">漸化式マスター</span></h1>
+  <!-- LEVEL / XP はツール側で持たない。XPは save_answer.php が
+       question_catalog.base_xp × イベント倍率で確定し、レベルは累計XPからマイページが算出する -->
+  <div class="stats">
+    <div class="stat" id="rankBadge"><b id="rankVal">D</b><span>RANK</span></div>
+    <div class="stat"><b id="streakVal">0</b><span>STREAK</span></div>
+  </div>
+</header>
+
+<nav class="viewtabs">
+  <button class="vtab on" data-view="train"><b>演習モード</b><i>training</i></button>
+  <button class="vtab" data-view="graph"><b>グラフモード</b><i>graph</i></button>
+</nav>
+
+<!-- ===================== 演習モード ===================== -->
+<div id="view-train" class="pane">
+
+  <div class="selbox" id="selbox">
+    <div class="selhead">
+      <h2>Type &amp; Level</h2>
+      <div class="selacts">
+        <button class="foldBtn prt" id="prtBtn" type="button"
+                title="いま選んでいるタイプ・レベルで練習プリント（A4・問題＋解答）を作る">🖨 印刷</button>
+        <button class="foldBtn" id="foldBtn" aria-expanded="true">とじる</button>
+      </div>
+    </div>
+    <div class="chips" id="typeChips"></div>
+    <div class="lvrow">
+      <span class="lvlabel">LEVEL</span>
+      <div class="lvseg" id="lvSeg">
+        <button class="lvbtn on" data-lv="1"><u>1</u>基本</button>
+        <button class="lvbtn" data-lv="2"><u>2</u>標準</button>
+      </div>
+      <span id="lvDesc"></span>
+    </div>
+    <div class="mixbox" id="mixBox" style="display:none">
+      <div class="mixgrid" id="mixGrid"></div>
+      <div class="mixbtns">
+        <button class="miniBtn" id="mixAll">ぜんぶ選ぶ</button>
+        <button class="miniBtn" id="mixNone">ぜんぶ外す</button>
+        <button class="miniBtn" id="mixBasic">まず覚える4タイプ</button>
+      </div>
+    </div>
+  </div>
+
+  <section id="card">
+    <div class="qmeta">
+      <span class="tag" id="qType">等差型</span>
+      <span class="tag vi" id="qLv">LV.1</span>
+      <span class="grow"></span>
+      <span class="tag pl" id="qNum">1 / 10</span>
+    </div>
+    <div class="qlead" id="qLead"></div>
+    <div class="qdisp" id="qDisp"></div>
+    <div class="qsub" id="qSub"></div>
+    <div id="ansArea"></div>
+    <div class="verdict" id="verdict"></div>
+    <div id="explain">
+      <div class="exHead">SOLUTION</div>
+      <div id="exBody"></div>
+    </div>
+  </section>
+
+  <div class="actions">
+    <button class="btn" id="checkBtn">答え合わせ</button>
+    <button class="btn ghost" id="nextBtn">次の問題 ➜</button>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<!-- ===================== グラフモード ===================== -->
+<div id="view-graph" class="pane">
+  <p class="glead">
+    漸化式は「<b>いまの項を入れると次の項が出てくる装置</b>」＝ <b>y = f(x)</b> の直線そのもの。<br>
+    左の図は、その直線と <b>y = x</b> の間を行き来して項を作っていく様子（くもの巣図）。右の図はできあがった項の並び。<br>
+    数を変えながら、<b>特性方程式の解 α が「y = x との交点」</b>であること、そこへ<b>原点をずらすと等比型になる</b>ことを確かめてください。
+  </p>
+  <div class="chips" id="gTypeChips"></div>
+  <div class="ctrlbox" id="gCtrl"></div>
+  <div class="gwrap">
+    <div class="gcard">
+      <h3>COBWEB<em>横軸 = aₙ ／ 縦軸 = aₙ₊₁</em></h3>
+      <div id="gCob"></div>
+    </div>
+    <div class="gcard">
+      <h3>SEQUENCE<em>横軸 = n ／ 縦軸 = aₙ</em></h3>
+      <div id="gSeq"></div>
+    </div>
+  </div>
+  <div class="gans" id="gAns"></div>
+  <div class="pvcap">
+    <div class="pvno" id="gNo"></div>
+    <div class="pvtxt" id="gTxt"></div>
+    <div class="pvmath" id="gMath"></div>
+  </div>
+  <div class="pvctrl">
+    <button class="btn ghost" id="gPrev" style="flex:0 0 auto;padding:11px 16px;font-size:.84rem">◀ もどる</button>
+    <div class="pvdots" id="gDots"></div>
+    <button class="btn vi" id="gNext" style="flex:0 0 auto;padding:11px 18px;font-size:.84rem">次へ ▶</button>
+  </div>
+</div>
+
+<footer>CHUKYO KOBETSU SHIDO GAKUIN</footer>
+</div><!-- /.wrap -->
+
+<script>
+"use strict";
+/* ================================================================
+   math_hs_zenkashiki.html  漸化式マスター   unit_key = math_hs_zenkashiki
+   modes(=question_key):
+     二項間 … tousa(等差型) / touhi(等比型) / kaisa(階差型) / tokusei(特性方程式) /
+              shisuu(指数) / gyakusuu(逆数) / slide(関数スライド) / kaihi(階比) / taisuu(対数)
+     三項間 … sankou(基本＝右辺0の形)
+     ＋ mix（えらんだタイプからランダム。記録はその問題のタイプで残すので "mix" は飛ばない）
+   レベル(1基本/2標準)は question_key を増やさず question_params の lv に持つ
+     ＝カルテはタイプ単位で読める。params_hash には lv も種も入るので
+     「同じ問題」の判定はレベルごとに成立する。
+   共通処理: 学習記録(Divp.answer) / 正解エフェクト(divp-correct-jh) /
+     解き直し(?retry=1 … question_params の種で同じ問題を作り直す：CLAUDE.md 2d) /
+     図 … 漸化式の問題は全部テキストなので question_figure は使わない。
+          選択式は question_choices を渡して解き直しプリントに選択肢ごと出す。
+   ⚠ 記録に載せる文字列の書き分け（CLAUDE.md 2a）:
+     ・question_text（問題文）は和文が混ざるので **^ _ { } \ を1文字も入れない**
+       （1文字でもあると講師画面が文字列ぜんぶを TeX として描き、和文が斜体で崩れる）。
+       指数は「3のn乗」のように日本語で書き下す。
+     ・correct_answer と question_choices は和文を含まない純粋な式なので、
+       **TeX のまま**渡す（バックスラッシュがあるので講師画面が丸ごと KaTeX で描く＝きれいに出る）。
+   ================================================================ */
+
+/* ---------- 小道具 ---------- */
+const N_CHOICES=6;
+const UNIT_KEY="math_hs_zenkashiki";
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+/* 本文中に数式を混ぜる用（KaTeXはあとで renderTexIn がまとめて描く） */
+function T(tex){return '<span class="tex" data-tex="'+esc(tex)+'"></span>';}
+function TD(tex){return '<span class="tex" data-d="1" data-tex="'+esc(tex)+'"></span>';}
+function renderTexIn(root){
+  if(!root)return;
+  root.querySelectorAll(".tex").forEach(el=>{
+    const s=el.dataset.tex;
+    if(s==null)return;
+    if(window.katex){
+      const tex=(s.indexOf("\\sum")>=0 && s.indexOf("\\displaystyle")<0)?("\\displaystyle "+s):s;
+      try{katex.render(tex,el,{throwOnError:false,displayMode:el.dataset.d==="1"});}
+      catch(e){el.textContent=s;}
+    }else{
+      /* KaTeX が来る前でも読めるように、記号だけ落とした素の文字を出しておく */
+      el.textContent=s.replace(/\\[a-zA-Z]+/g," ").replace(/[{}]/g,"");
+    }
+  });
+}
+function stripTags(html){
+  const d=document.createElement("div");d.innerHTML=String(html==null?"":html);
+  d.querySelectorAll(".tex").forEach(el=>{el.textContent=" ";});
+  return (d.textContent||"").replace(/\s+/g," ").trim();
+}
+
+/* ---------- 数の見せ方 ---------- */
+function pm(x){return (x<0?"-":"+")+Math.abs(x);}        /* "+3" / "-3" */
+function par(x){return x<0?"("+x+")":String(x);}          /* "(-3)" / "3" */
+/* 整数係数の n の多項式。coefs は降べきの順 [an,…,a1,a0] */
+function polyTex(coefs){
+  const deg=coefs.length-1;let s="";
+  coefs.forEach((c,i)=>{
+    const p=deg-i;
+    if(c===0)return;
+    const sign=(c<0)?"-":(s?"+":"");
+    const a=Math.abs(c);
+    let body;
+    if(p===0)body=String(a);
+    else{
+      const cc=(a===1)?"":String(a);
+      body=cc+(p===1?"n":"n^"+p);
+    }
+    s+=sign+body;
+  });
+  return s||"0";
+}
+/* 係数つきの項。1 は書かず、-1 はマイナスだけにする */
+function coefTex(c,body){
+  if(c===1)return body;
+  if(c===-1)return "-"+body;
+  return String(c)+body;
+}
+/* 符号つきで後ろに足す項。0 なら何も出さない（「+0」を出さないため） */
+function pmCoef(c,body){
+  if(c===0)return "";
+  const a=Math.abs(c);
+  return (c<0?"-":"+")+(a===1?"":String(a))+body;
+}
+/* a・r^(式)。先頭に置く項として組む（a=1 のときは係数を書かない）。
+   ⚠ r=1 のときは 1^(式) と書かずに係数だけにする（三項間で特性方程式の解が1になる型を出すため） */
+function geoTex(a,r,expr){
+  if(a===0)return "0";
+  if(r===1)return String(a);
+  const rb=(r<0)?"("+r+")":String(r);
+  let co="";
+  if(a===-1)co="-";
+  else if(a!==1)co=a+"\\cdot ";
+  return co+rb+"^{"+expr+"}";
+}
+/* 2項目以降に符号つきで足す a・r^(式)。0 なら何も出さない */
+function addGeoTex(a,r,expr){
+  if(a===0)return "";
+  if(r===1)return pm(a);
+  const rb=(r<0)?"("+r+")":String(r);
+  const m=Math.abs(a);
+  const co=(m===1)?"":m+"\\cdot ";
+  return (a<0?"-":"+")+co+rb+"^{"+expr+"}";
+}
+/* a・r^(式) + k */
+function geoConstTex(a,r,expr,k){
+  let s=geoTex(a,r,expr);
+  if(k!==0)s+=pm(k);
+  return s;
+}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;}
+/* 約分した分数の TeX（分母1なら整数、負号は前に出す） */
+function fracTex(n,d){
+  if(d<0){n=-n;d=-d;}
+  const g=gcd(n,d);n/=g;d/=g;
+  if(d===1)return String(n);
+  return (n<0?"-":"")+"\\dfrac{"+Math.abs(n)+"}{"+d+"}";
+}
+/* 符号つきで後ろに足す分数。負のときに「+-\dfrac{…}」にならないようにする
+   （指数型の解説は q/r が負になることがある） */
+function pmFrac(n,d){
+  if(n===0)return "";
+  const body=fracTex(Math.abs(n),Math.abs(d));
+  const neg=((n<0)!==(d<0));
+  return (neg?"-":"+")+body;
+}
+/* 記録用の平文で使う「3のn乗」表記。question_text に ^ を持ち込まないための書き下し */
+function powJa(base,expr){return String(base)+"の"+expr+"乗";}
+
+/* ---------- 種(seed)から作る乱数 ----------
+   出題のたびに種を1つ引いて question_params に {m:タイプ, lv:レベル, s:種} で保存する。
+   解き直し(?retry=1)は同じ種で生成関数を回すだけで**まったく同じ問題**が出る（CLAUDE.md 2d）。
+   ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
+     （params_hash は同じなので解き直し自体は成立するが、問題文は別物になる）。
+   ⚠ 乱数はこの ri() 1か所に集める。Math.random を生成関数の中で直接呼ぶと種で再現できない。 */
+let _rng=1;
+function rngSeed(s){_rng=(s>>>0)||1;}
+function rngPick(){return (Math.floor(Math.random()*4294967296)>>>0)||1;}  /* 種そのものだけは真の乱数 */
+function rngNext(){let x=_rng;x^=x<<13;x>>>=0;x^=x>>>17;x^=x<<5;x>>>=0;_rng=x;return x/4294967296;}
+function ri(min,max){return Math.floor(rngNext()*(max-min+1))+min;}
+function pick(a){return a[ri(0,a.length-1)];}
+/* ⚠ 並べ替えは sort に乱数比較を渡さない（ブラウザの sort 実装しだいで
+   同じ種でも別の並びになる＝解き直しで同じ問題が出なくなる）。フィッシャー・イェーツで書く */
+function shuffle(a){const b=a.slice();for(let i=b.length-1;i>0;i--){const j=ri(0,i);[b[i],b[j]]=[b[j],b[i]];}return b;}
+function nzi(min,max){let v=0;while(v===0)v=ri(min,max);return v;}
+
+/* 選択肢を作る。誤答候補から重複を除いて N_CHOICES-1 個ぶん使う。
+   ⚠ 誤答候補に「値としては正解と同じ式」を混ぜないこと（約分前の形など） */
+function mkChoice(cor,wrongs){
+  const seen=new Set([cor]);const w=[];
+  (wrongs||[]).forEach(x=>{if(x!=null&&x!==""&&!seen.has(x)){seen.add(x);w.push(x);}});
+  const all=shuffle([cor].concat(w.slice(0,N_CHOICES-1)));
+  return {kind:"choice",choices:all,correct:all.indexOf(cor)};
+}
+
+/* ---------- タイプ台帳 ----------
+   k = question_key（そのまま question_catalog に登録する）
+   g = グラフモードで見られる型（あれば解説に「グラフで見る」ボタンが出る）
+   lv = レベルごとの中身（画面の説明にも出す） */
+const MODES=[
+  {k:"tousa",   n:"① 等差型",       s:"a(n+1)=a(n)+d",       grp:"二項間",
+   lv:["一般項を求める","第k項の値を求める"]},
+  {k:"touhi",   n:"② 等比型",       s:"a(n+1)=p a(n)",       grp:"二項間",
+   lv:["一般項を求める","第k項の値を求める"]},
+  {k:"kaisa",   n:"③ 階差型",       s:"a(n+1)=a(n)+f(n)",    grp:"二項間",
+   lv:["階差が1次式","階差が等比数列"]},
+  {k:"tokusei", n:"④ 特性方程式",   s:"a(n+1)=p a(n)+q",     grp:"二項間",
+   lv:["一般項を求める","公比が負・第k項の値"]},
+  {k:"shisuu",  n:"⑤ 指数",         s:"a(n+1)=p a(n)+q r^n", grp:"二項間",
+   lv:["両辺を r^(n+1) で割る","係数つき・組合せを変える"]},
+  {k:"gyakusuu",n:"⑥ 逆数",         s:"a(n+1)=a(n)/(p a+q)", grp:"二項間",
+   lv:["逆数が等差になる形","逆数が特性方程式型になる形"]},
+  {k:"slide",   n:"⑦ 関数スライド", s:"a(n+1)=p a(n)+(1次式)",grp:"二項間",
+   lv:["f(n)=αn+β を見つける","公比が3・負のとき"]},
+  {k:"kaihi",   n:"⑧ 階比",         s:"a(n+1)=f(n)a(n)",     grp:"二項間",
+   lv:["となりの比が約分で消える","2つ飛びで消える形"]},
+  {k:"taisuu",  n:"⑨ 対数",         s:"a(n+1)=c a(n)^p",     grp:"二項間",
+   lv:["両辺の対数をとる","対数が特性方程式型になる形"]},
+  {k:"sankou",  n:"⑩ 三項間（基本）",s:"a(n+2)+pa(n+1)+qa(n)=0",grp:"三項間",
+   lv:["特性方程式の解の一方が1","解が2つとも1以外"]}
+];
+const MODEMAP={};MODES.forEach(m=>{MODEMAP[m.k]=m;});
+/* 「まず覚える4タイプ」（ミックスの初期セット。授業で先に触る順） */
+const BASIC4=["tousa","touhi","kaisa","tokusei"];
+const MAXLV=2;
+
+/* ================================================================
+   問題ジェネレータ
+   返り値: {lead, disp, sub, ans, ex, plainQ, plainA, graph}
+     lead   … 問題文（HTML。T() で数式を混ぜられる）
+     disp   … 中央に大きく出す式（TeX文字列。漸化式そのものを置く）
+     ans    … {kind:"num", val, unit} | {kind:"choice", choices:[TeX], correct}
+     ex     … 解説行の配列（HTML）
+     plainQ … 記録用の問題文。**^ _ { } \ を1文字も入れない**（和文が混ざるため）
+     plainA … 記録用の正解。純粋な式なので **TeX のまま**でよい（省略時は ans から作る）
+     graph  … グラフモードで見られる型 {t,a1,…}（あれば解説に「グラフで見る」ボタンが出る）
+   ⚠ 誤答候補は「値としては正解と同じ式」を混ぜないこと。
+     指数の底や係数を変えるとき、たまたま正解と一致しないか毎回確かめている
+     （例: 階差型レベル2 は r=2 のとき c と m が一致するので候補から外す）。
+   ================================================================ */
+const LEAD_GEN="次の条件で定められる数列 "+T("\\{a_n\\}")+" の一般項を求めよ。";
+
+/* ---------- ① 等差型  a(n+1)=a(n)+d ---------- */
+function genTousa(lv){
+  const A=nzi(-9,10), d=nzi(-7,9);
+  const recT="a_n"+pm(d);
+  const recP="a(n)"+pm(d);
+  if(lv===1){
+    const cor=polyTex([d,A-d]);
+    const w=[polyTex([d,A]),polyTex([d,A+d]),polyTex([-d,A-d]),polyTex([d,A-2*d]),polyTex([d+1,A-d])];
+    if(Math.abs(d)>=2)w.push(geoTex(A,d,"n-1"));
+    return {
+      lead:LEAD_GEN,
+      disp:"a_1="+A+",\\quad a_{n+1}="+recT,
+      ans:mkChoice(cor,w),
+      ex:['<div class="exLine key">'+T("a_{n+1}-a_n="+d)+" ＝ となりとの差がいつも同じ。つまり<b>公差 "+d+" の等差数列</b>。"
+            +"漸化式の右辺が「"+T("a_n")+" ＋ 定数」ならこの型。</div>",
+          '<div class="exFml">'+T("a_n=a_1+(n-1)d")+"</div>",
+          T("a_n="+A+"+(n-1)\\times"+par(d)+"="+A+pm(-d)+pm(d)+"n"),
+          "整理して "+T("a_n="+cor)+"。",
+          '<div class="exLine key">検算は '+T("n=1")+" を入れて "+T("a_1="+A)+" に戻るか。ここだけで9割のミスが見つかる。</div>"],
+      plainQ:"a(1)="+A+"、a(n+1)="+recP+" のとき一般項 a(n) を求めよ",
+      graph:{t:"tousa",a1:A,d:d}
+    };
+  }
+  const k=ri(11,40);
+  const v=A+(k-1)*d;
+  return {
+    lead:"次の条件で定められる数列 "+T("\\{a_n\\}")+" の第 "+T(String(k))+" 項を求めよ。",
+    disp:"a_1="+A+",\\quad a_{n+1}="+recT,
+    ans:{kind:"num",val:v},
+    ex:['<div class="exLine key">'+T("a_{n+1}-a_n="+d)+" なので公差 "+d+" の等差数列。</div>",
+        '<div class="exFml">'+T("a_n="+A+"+(n-1)\\times"+par(d)+"="+polyTex([d,A-d]))+"</div>",
+        T("a_{"+k+"}="+A+"+"+(k-1)+"\\times"+par(d)+"="+A+pm((k-1)*d)+"="+v),
+        '<div class="exLine key">足す回数は「'+T("n-1")+" 回」。第 "+k+" 項なら "+(k-1)+" 回で、"+k+" 回ではない。</div>"],
+    plainQ:"a(1)="+A+"、a(n+1)="+recP+" のとき第"+k+"項を求めよ",
+    graph:{t:"tousa",a1:A,d:d}
+  };
+}
+
+/* ---------- ② 等比型  a(n+1)=p a(n) ---------- */
+function genTouhi(lv){
+  const A=nzi(-6,7), p=(lv===1)?pick([2,3,-2,-3]):pick([2,3,-2,4]);
+  const recT=coefTex(p,"a_n");
+  const recP=(p===-1?"-a(n)":(p===1?"a(n)":p+"a(n)"));
+  if(lv===1){
+    const cor=geoTex(A,p,"n-1");
+    const w=[geoTex(A,p,"n"),geoTex(A*p,p,"n-1"),geoTex(A,-p,"n-1"),polyTex([p,A-p]),
+             geoTex(A,p,"n+1"),geoTex(A,p*p,"n-1")];
+    return {
+      lead:LEAD_GEN,
+      disp:"a_1="+A+",\\quad a_{n+1}="+recT,
+      ans:mkChoice(cor,w),
+      ex:['<div class="exLine key">'+T("\\dfrac{a_{n+1}}{a_n}="+p)+" ＝ となりとの<b>比</b>がいつも同じ。つまり<b>公比 "+p+" の等比数列</b>。</div>",
+          '<div class="exFml">'+T("a_n=a_1r^{n-1}")+"</div>",
+          T("a_n="+par(A)+"\\times"+par(p)+"^{n-1}="+cor),
+          '<div class="exLine key">指数は '+T("n")+" ではなく "+T("n-1")+"。"
+            +(p<0?("公比が負なので、項の符号は1つおきに入れかわる。"):"")
+            +T("n=1")+" のとき "+T(par(p)+"^0=1")+" で初項に戻る、が検算。</div>"],
+      plainQ:"a(1)="+A+"、a(n+1)="+recP+" のとき一般項 a(n) を求めよ",
+      graph:{t:"touhi",a1:A,p:p}
+    };
+  }
+  const k=ri(4,8);
+  const v=A*Math.pow(p,k-1);
+  return {
+    lead:"次の条件で定められる数列 "+T("\\{a_n\\}")+" の第 "+T(String(k))+" 項を求めよ。",
+    disp:"a_1="+A+",\\quad a_{n+1}="+recT,
+    ans:{kind:"num",val:v},
+    ex:['<div class="exLine key">公比 '+p+" の等比数列。"+T("a_n="+geoTex(A,p,"n-1"))+"。</div>",
+        T("a_{"+k+"}="+par(A)+"\\times"+par(p)+"^{"+(k-1)+"}="+par(A)+"\\times"+Math.pow(p,k-1)+"="+v),
+        '<div class="exLine key">'+(p<0?("かける回数 "+(k-1)+" は"+((k-1)%2===0?"偶数なので符号はそのまま":"奇数なので符号が入れかわる")+"。"):"かける回数は "+(k-1)+" 回（"+k+" 回ではない）。")+"</div>"],
+    plainQ:"a(1)="+A+"、a(n+1)="+recP+" のとき第"+k+"項を求めよ",
+    graph:{t:"touhi",a1:A,p:p}
+  };
+}
+
+/* ---------- ③ 階差型  a(n+1)=a(n)+f(n) ---------- */
+function genKaisa(lv){
+  if(lv===1){
+    /* 階差が1次式。c は偶数にして展開後の係数を整数にそろえる */
+    const c=pick([2,4,6,-2,-4]), e=nzi(-6,8), A=nzi(-8,9);
+    const fT=polyTex([c,e]);
+    const cor=polyTex([c/2,e-c/2,A-e]);
+    const w=[polyTex([c/2,e+c/2,A]),polyTex([c/2,e-c/2,-e]),polyTex([c,e]),
+             polyTex([c/2,e-c/2,A]),polyTex([c,e-c,A-e]),polyTex([c/2,e-c/2,A+e])];
+    return {
+      lead:LEAD_GEN,
+      disp:"a_1="+A+",\\quad a_{n+1}=a_n+\\left("+fT+"\\right)",
+      ans:mkChoice(cor,w),
+      ex:['<div class="exLine key">右辺が「'+T("a_n")+" ＋ <b>"+T("n")+" の式</b>」＝<b>階差型</b>。"
+            +T("b_n="+fT)+" が階差数列。</div>",
+          '<div class="exFml">'+T("a_n=a_1+\\sum_{k=1}^{n-1}b_k\\quad(n\\geqq2)")+"</div>",
+          T("\\sum_{k=1}^{n-1}\\left("+polyTex([c,e]).replace(/n/g,"k")+"\\right)="+c+"\\cdot\\dfrac{(n-1)n}{2}+"+par(e)+"(n-1)"),
+          "よって "+T("a_n="+A+pmCoef(c/2,"n(n-1)")+pmCoef(e,"(n-1)")+"="+cor)+"。",
+          '<div class="exLine key">Σ の上は '+T("n")+" ではなく "+T("n-1")+"（足す差の個数は項の個数より1つ少ない）。"
+            +"この公式は "+T("n\\geqq2")+" 用なので、最後に "+T("n=1")+" で "+T("a_1="+A)+" に戻るかを必ず確かめる。</div>"],
+      plainQ:"a(1)="+A+"、a(n+1)=a(n)+("+fT+") のとき一般項 a(n) を求めよ"
+    };
+  }
+  /* 階差が等比数列。c=m(r-1) にすると Σ が m(r^(n-1)-1) になって整数でそろう */
+  const r=pick([2,3,4]), m=ri(1,3), A=nzi(-6,8);
+  const c=m*(r-1);
+  const fT=geoTex(c,r,"n-1");
+  const cor=geoConstTex(m,r,"n-1",A-m);
+  const w=[geoConstTex(m,r,"n",A-m),geoConstTex(m,r,"n-1",A),geoConstTex(m*r,r,"n-1",A-m),
+           geoConstTex(m,r,"n-1",A+m),geoConstTex(m,r,"n+1",A-m)];
+  if(c!==m)w.push(geoConstTex(c,r,"n-1",A-c));
+  return {
+    lead:LEAD_GEN,
+    disp:"a_1="+A+",\\quad a_{n+1}=a_n+"+fT,
+    ans:mkChoice(cor,w),
+    ex:['<div class="exLine key">右辺が「'+T("a_n")+" ＋ "+T("n")+" の式」＝<b>階差型</b>。ここでは階差 "+T("b_n="+fT)+" が<b>等比数列</b>。</div>",
+        '<div class="exFml">'+T("a_n=a_1+\\sum_{k=1}^{n-1}b_k\\quad(n\\geqq2)")+"</div>",
+        T("\\sum_{k=1}^{n-1}"+geoTex(c,r,"k-1")+"=\\dfrac{"+c+"("+r+"^{n-1}-1)}{"+r+"-1}="+coefTex(m,"("+r+"^{n-1}-1)")),
+        "よって "+T("a_n="+A+pm(-m)+"+"+geoTex(m,r,"n-1")+"="+cor)+"。",
+        '<div class="exLine key">等比数列の和は<b>項数 '+T("n-1")+"</b> 個ぶん。"+T("n=1")+" を入れて "+T("a_1="+A)+" に戻るか確かめる。</div>"],
+    plainQ:"a(1)="+A+"、a(n+1)=a(n)+"+(c===1?"":c+"×")+powJa(r,"(n-1)")+" のとき一般項 a(n) を求めよ"
+  };
+}
+
+/* ---------- ④ 特性方程式  a(n+1)=p a(n)+q ----------
+   α（特性方程式の解）を先に決めて q=α(1-p) と作るので、α は必ず整数になる。
+   グラフモードの主役。α は y=x と y=px+q の交点で、そこへ原点をずらすと②等比型になる。 */
+function genTokusei(lv){
+  const p=(lv===1)?pick([2,3]):pick([-2,3,4,-3]);
+  const al=nzi(-6,6);
+  const q=al*(1-p);
+  const A=al+nzi(-5,5);
+  const recT=coefTex(p,"a_n")+pm(q);
+  const recP=(p===-1?"-a(n)":p+"a(n)")+pm(q);
+  const gen=geoConstTex(A-al,p,"n-1",al);
+  const exCore=[
+    '<div class="exLine key">右辺が「'+T(String(p)+"a_n")+" ＋ <b>定数</b>」＝<b>特性方程式の型</b>。"
+      +T("a_n")+" の係数が1でないのがポイント（1なら①等差型）。</div>",
+    "特性方程式 "+T("x="+coefTex(p,"x")+pm(q))+" を解く。"+T(par(1-p)+"x="+q)+" より "+T("\\alpha="+al)+"。",
+    "この "+T("\\alpha")+" を漸化式から辺々引くと "+T("a_{n+1}-"+par(al)+"="+coefTex(p,"(a_n-"+par(al)+")")),
+    "つまり "+T("\\{a_n-"+par(al)+"\\}")+" は 初項 "+T("a_1-"+par(al)+"="+(A-al))+"、公比 "+T(String(p))+" の<b>等比数列</b>。",
+    T("a_n-"+par(al)+"="+geoTex(A-al,p,"n-1"))+" なので "+T("a_n="+gen)+"。",
+    '<div class="exLine key">'+T("\\alpha")+" は<b>動かない点</b>。"+T("a_n=\\alpha")+" なら次も "
+      +T("\\alpha")+" のままで、そこからのズレ "+T("a_n-\\alpha")+" だけが毎回 "+T(String(p))+" 倍される。"
+      +"グラフでは "+T("y=x")+" との<b>交点</b>。</div>"
+  ];
+  if(lv===1||ri(1,2)===1){
+    const w=[geoConstTex(A,p,"n-1",al),geoConstTex(A-al,p,"n",al),geoConstTex(A-al,p,"n-1",-al),
+             geoConstTex(A+al,p,"n-1",al),geoConstTex(al-A,p,"n-1",al),geoConstTex(A-al,p,"n-1",q)];
+    return {
+      lead:LEAD_GEN,
+      disp:"a_1="+A+",\\quad a_{n+1}="+recT,
+      ans:mkChoice(gen,w),
+      ex:exCore,
+      plainQ:"a(1)="+A+"、a(n+1)="+recP+" のとき一般項 a(n) を求めよ",
+      graph:{t:"tokusei",a1:A,p:p,q:q}
+    };
+  }
+  const k=ri(4,7);
+  const v=(A-al)*Math.pow(p,k-1)+al;
+  return {
+    lead:"次の条件で定められる数列 "+T("\\{a_n\\}")+" の第 "+T(String(k))+" 項を求めよ。",
+    disp:"a_1="+A+",\\quad a_{n+1}="+recT,
+    ans:{kind:"num",val:v},
+    ex:exCore.concat([T("a_{"+k+"}="+par(A-al)+"\\times"+par(p)+"^{"+(k-1)+"}"+pm(al)+"="+((A-al)*Math.pow(p,k-1))+pm(al)+"="+v)]),
+    plainQ:"a(1)="+A+"、a(n+1)="+recP+" のとき第"+k+"項を求めよ",
+    graph:{t:"tokusei",a1:A,p:p,q:q}
+  };
+}
+
+/* ---------- ⑤ 指数  a(n+1)=p a(n)+q r^n ----------
+   q=m(r-p) と作ると、特殊解の係数 m が整数になり答えが整数係数でそろう。
+   a_n = (a_1 - m r)p^(n-1) + m r^n */
+function genShisuu(lv){
+  const cf=(lv===1)?{p:2,r:3}:pick([{p:3,r:2},{p:2,r:5},{p:3,r:4},{p:4,r:3},{p:2,r:3}]);
+  const p=cf.p, r=cf.r, m=(lv===1)?1:ri(1,2);
+  const q=m*(r-p);
+  let A=ri(-6,12);
+  if(A===m*r)A=m*r+1;                 /* C=0 だと等比の項が消えて型が変わる */
+  const C=A-m*r;
+  const cor=geoTex(C,p,"n-1")+addGeoTex(m,r,"n");
+  const w=[geoTex(C,p,"n")+addGeoTex(m,r,"n"),
+           geoTex(C,p,"n-1")+addGeoTex(m,r,"n-1"),
+           geoTex(A,p,"n-1")+addGeoTex(m,r,"n"),
+           geoTex(C,p,"n-1")+addGeoTex(-m,r,"n"),
+           geoTex(A-m,p,"n-1")+addGeoTex(m,r,"n"),
+           geoTex(C,r,"n-1")+addGeoTex(m,p,"n")];
+  const recT=coefTex(p,"a_n")+addGeoTex(q,r,"n");
+  const recP=p+"a(n)"+(q<0?"-":"+")+(Math.abs(q)===1?"":Math.abs(q)+"×")+powJa(r,"n");
+  return {
+    lead:LEAD_GEN,
+    disp:"a_1="+A+",\\quad a_{n+1}="+recT,
+    ans:mkChoice(cor,w),
+    ex:['<div class="exLine key">右辺の定数の場所に <b>'+T("n")+" が指数として入った "+T(r+"^n")+"</b> がある＝<b>指数型</b>。"
+          +"このままでは④が使えないので、<b>両辺を "+T(r+"^{n+1}")+" で割って</b>④の形に持ち込む。</div>",
+        T("\\dfrac{a_{n+1}}{"+r+"^{n+1}}="+fracTex(p,r)+"\\cdot\\dfrac{a_n}{"+r+"^{n}}"+pmFrac(q,r)),
+        T("b_n=\\dfrac{a_n}{"+r+"^{n}}")+" とおくと "+T("b_{n+1}="+fracTex(p,r)+"b_n"+pmFrac(q,r))+" ＝ ④特性方程式の型。",
+        "特性方程式 "+T("x="+fracTex(p,r)+"x"+pmFrac(q,r))+" の解は "+T("x=\\dfrac{"+q+"}{"+r+"-"+par(p)+"}="+m)+"。",
+        T("b_1=\\dfrac{"+A+"}{"+r+"}")+" なので "+T("b_n-"+par(m)+"=\\left(\\dfrac{"+A+"}{"+r+"}-"+par(m)+"\\right)\\left("+fracTex(p,r)+"\\right)^{n-1}"),
+        "両辺に "+T(r+"^n")+" をかけて戻すと "+T("a_n="+cor)+"。",
+        '<div class="exLine key">'+T(p+"^{n+1}")+" で割ると③<b>階差型</b>になる（どちらでも解ける）。"
+          +"割る前に「割ったあとどの型になるか」を決めてから手を動かすと迷わない。</div>"],
+    plainQ:"a(1)="+A+"、a(n+1)="+recP+" のとき一般項 a(n) を求めよ"
+  };
+}
+
+/* ---------- ⑥ 逆数  a(n+1)=a(n)/(p a(n)+q) ----------
+   a_1=1/b1 と置いて b_n=1/a_n の初項を整数にしてある。
+   q=1 なら b は等差、q=2 なら b は④特性方程式の型。 */
+function genGyakusuu(lv){
+  const p=ri(2,7), b1=ri(1,3);
+  const a1T=(b1===1)?"1":"\\dfrac{1}{"+b1+"}";
+  const a1P=(b1===1)?"1":("F(1/"+b1+")");
+  if(lv===1){
+    const den=polyTex([p,b1-p]);
+    const cor="\\dfrac{1}{"+den+"}";
+    const w=["\\dfrac{1}{"+polyTex([p,b1])+"}","\\dfrac{1}{"+polyTex([p,b1-2*p])+"}",den,
+             "\\dfrac{1}{"+polyTex([p,b1+p])+"}","\\dfrac{1}{"+polyTex([p+1,b1-p])+"}",
+             "\\dfrac{1}{"+polyTex([p,b1-p+1])+"}"];
+    return {
+      lead:LEAD_GEN+"（すべての "+T("n")+" で "+T("a_n\\neq0")+" としてよい）",
+      disp:"a_1="+a1T+",\\quad a_{n+1}=\\dfrac{a_n}{"+coefTex(p,"a_n")+"+1}",
+      ans:mkChoice(cor,w),
+      ex:['<div class="exLine key">分母に '+T("a_n")+" がいる＝<b>逆数型</b>。<b>両辺の逆数</b>をとると分母がばらける。</div>",
+          T("\\dfrac{1}{a_{n+1}}=\\dfrac{"+coefTex(p,"a_n")+"+1}{a_n}="+p+"+\\dfrac{1}{a_n}"),
+          T("b_n=\\dfrac{1}{a_n}")+" とおくと "+T("b_{n+1}=b_n+"+p)+" ＝ ①<b>等差型</b>。初項は "+T("b_1=\\dfrac{1}{a_1}="+b1)+"。",
+          T("b_n="+b1+"+(n-1)\\times"+p+"="+den),
+          "よって "+T("a_n=\\dfrac{1}{b_n}="+cor)+"。",
+          '<div class="exLine key">最後に<b>逆数へ戻す</b>のを忘れない（'+T("b_n")+" のまま答えるのが最頻出のミス）。"
+            +T("n=1")+" で "+T("a_1")+" に戻るかも確かめる。</div>"],
+      plainQ:"a(1)="+a1P+"、a(n+1)=a(n)÷("+p+"a(n)+1) のとき一般項 a(n) を求めよ"
+    };
+  }
+  /* q=2: b(n+1)=2b(n)+p → α=-p */
+  const den=geoConstTex(b1+p,2,"n-1",-p);
+  const cor="\\dfrac{1}{"+den+"}";
+  const w=["\\dfrac{1}{"+geoConstTex(b1,2,"n-1",-p)+"}","\\dfrac{1}{"+geoConstTex(b1+p,2,"n",-p)+"}",
+           "\\dfrac{1}{"+geoConstTex(b1+p,2,"n-1",p)+"}",den,
+           "\\dfrac{1}{"+geoConstTex(b1+p,2,"n-1",0)+"}","\\dfrac{1}{"+geoConstTex(b1+p,2,"n+1",-p)+"}"];
+  return {
+    lead:LEAD_GEN+"（すべての "+T("n")+" で "+T("a_n\\neq0")+" としてよい）",
+    disp:"a_1="+a1T+",\\quad a_{n+1}=\\dfrac{a_n}{"+coefTex(p,"a_n")+"+2}",
+    ans:mkChoice(cor,w),
+    ex:['<div class="exLine key">分母に '+T("a_n")+" がいる＝<b>逆数型</b>。両辺の逆数をとる。</div>",
+        T("\\dfrac{1}{a_{n+1}}=\\dfrac{"+coefTex(p,"a_n")+"+2}{a_n}="+p+"+\\dfrac{2}{a_n}"),
+        T("b_n=\\dfrac{1}{a_n}")+" とおくと "+T("b_{n+1}=2b_n+"+p)+" ＝ ④<b>特性方程式の型</b>（"
+          +T("b_n")+" の係数が1でないので等差にはならない）。初項は "+T("b_1="+b1)+"。",
+        "特性方程式 "+T("x=2x+"+p)+" より "+T("\\alpha="+(-p))+"。"
+          +T("b_n"+pm(p)+"="+par(b1+p)+"\\cdot2^{n-1}"),
+        T("b_n="+den)+" なので "+T("a_n="+cor)+"。",
+        '<div class="exLine key">逆数をとった先が①になるか④になるかは、<b>分母の定数項</b>で決まる。'
+          +"1 なら等差、それ以外なら特性方程式。</div>"],
+    plainQ:"a(1)="+a1P+"、a(n+1)=a(n)÷("+p+"a(n)+2) のとき一般項 a(n) を求めよ"
+  };
+}
+
+/* ---------- ⑦ 関数スライド  a(n+1)=p a(n)+(n の1次式) ----------
+   f(n)=αn+β を先に決め、c=α(p-1)、e=β(p-1)-α と逆算して問題を作る。
+   a(n)+αn+β が公比 p の等比数列になる＝④の「定数をずらす」を1次式まで広げた形。 */
+function genSlide(lv){
+  const p=(lv===1)?2:pick([3,-2]);
+  const al=nzi(-3,3), be=ri(-4,4);
+  const c=al*(p-1), e=be*(p-1)-al;
+  let A=nzi(-6,8);
+  if(A+al+be===0)A=A+1;               /* K=0 だと等比の項が消えて型が変わる */
+  const K=A+al+be;
+  const fT=polyTex([c,e]);
+  const fSlide=pmCoef(al,"n")+(be!==0?pm(be):"");   /* 「+αn+β」を符号つきで前に出した形 */
+  const mk=function(k2,expr,a2,b2){
+    return geoTex(k2,p,expr)+pmCoef(-a2,"n")+((-b2)!==0?pm(-b2):"");
+  };
+  const cor=mk(K,"n-1",al,be);
+  const w=[mk(K,"n",al,be),mk(K,"n-1",-al,-be),mk(A,"n-1",al,be),mk(K+al+be,"n-1",al,be)];
+  if(be!==0)w.push(mk(K,"n-1",al,-be));
+  if(c!==al||e!==be)w.push(mk(K,"n-1",c,e));
+  return {
+    lead:LEAD_GEN,
+    disp:"a_1="+A+",\\quad a_{n+1}="+coefTex(p,"a_n")+"+\\left("+fT+"\\right)",
+    ans:mkChoice(cor,w),
+    ex:['<div class="exLine key">右辺が「'+T(coefTex(p,"a_n"))+" ＋ <b>"+T("n")+" の1次式</b>」。"
+          +"④は定数をずらしたが、ここは<b>1次式ごとずらす</b>＝関数スライド。</div>",
+        '<div class="exFml">'+T("a_{n+1}+f(n+1)="+coefTex(p,"\\{a_n+f(n)\\}"))+" となる "+T("f(n)=\\alpha n+\\beta")+" を探す</div>",
+        /* ⚠ "\\alpha"+"n" を直につなぐと \alphan という未定義コマンドになる（KaTeX が何も描かない）。
+           係数の body に空白を1つ入れて \alpha n と離すこと */
+        "右辺を展開して "+T("a_{n+1}="+coefTex(p,"a_n")+"+\\{"+coefTex(p-1,"\\alpha ")+"n"
+            +((p-1)<0?"":"+")+coefTex(p-1,"\\beta")+"-\\alpha\\}")
+          +" なので、"+T("n")+" の係数と定数項を比べて "
+          +T(coefTex(p-1,"\\alpha")+"="+c)+"、"+T(coefTex(p-1,"\\beta")+"-\\alpha="+e)+"。",
+        "これを解いて "+T("\\alpha="+al)+"、"+T("\\beta="+be)+"。つまり "+T("f(n)="+polyTex([al,be]))+"。",
+        /* ⚠ 「a_n+」に polyTex をそのままつなぐと、α が負のとき "a_n+-2n" になる。
+           符号は pmCoef / pm で前に出すこと（記号の並びは機械テストで見ている） */
+        T("\\{a_n"+fSlide+"\\}")+" は 初項 "+T("a_1"+pm(al)+(be!==0?pm(be):"")+"="+K)+"、公比 "+T(String(p))+" の等比数列。",
+        T("a_n"+fSlide+"="+geoTex(K,p,"n-1"))+" より "+T("a_n="+cor)+"。",
+        '<div class="exLine key">係数比較は '+T("n")+" の係数と定数項の<b>2本</b>。"
+          +T("n=1")+" を入れて "+T("a_1="+A)+" に戻るかで検算する。</div>"],
+    plainQ:"a(1)="+A+"、a(n+1)="+(p===-1?"-a(n)":p+"a(n)")+"+("+fT+") のとき一般項 a(n) を求めよ"
+  };
+}
+
+/* ---------- ⑧ 階比  a(n+1)=f(n)a(n) ----------
+   辺々かけると分子・分母が約分で消える（telescoping product）。 */
+function genKaihi(lv){
+  const up=(ri(1,2)===1);             /* true: 比が (n+c)/n（増える） / false: n/(n+c) */
+  if(lv===1){
+    const A=ri(2,9);
+    const recT=up?"\\dfrac{n+1}{n}a_n":"\\dfrac{n}{n+1}a_n";
+    const recP=up?"((n+1)/n)×a(n)":"(n/(n+1))×a(n)";
+    const cor=up?coefTex(A,"n"):("\\dfrac{"+A+"}{n}");
+    const w=up
+      ?["\\dfrac{"+A+"}{n}",coefTex(A,"(n+1)"),coefTex(A,"(n-1)"),coefTex(A,"n^2"),
+        "\\dfrac{"+A+"n(n+1)}{2}",coefTex(A+1,"n")]
+      :["\\dfrac{"+A+"}{n+1}",coefTex(A,"n"),"\\dfrac{"+A+"}{n^2}","\\dfrac{"+(2*A)+"}{n(n+1)}",
+        "\\dfrac{"+A+"}{n-1}","\\dfrac{"+(A+1)+"}{n}"];
+    const prod=up
+      ?"\\dfrac{2}{1}\\cdot\\dfrac{3}{2}\\cdot\\dfrac{4}{3}\\cdots\\dfrac{n}{n-1}=n"
+      :"\\dfrac{1}{2}\\cdot\\dfrac{2}{3}\\cdot\\dfrac{3}{4}\\cdots\\dfrac{n-1}{n}=\\dfrac{1}{n}";
+    return {
+      lead:LEAD_GEN,
+      disp:"a_1="+A+",\\quad a_{n+1}="+recT,
+      ans:mkChoice(cor,w),
+      ex:['<div class="exLine key">'+T("a_n")+" に<b>"+T("n")+" の式がかかっている</b>＝<b>階比型</b>。"
+            +"公比が一定でないので②は使えない。<b>辺々かけて約分</b>する。</div>",
+          T("\\dfrac{a_{n+1}}{a_n}="+(up?"\\dfrac{n+1}{n}":"\\dfrac{n}{n+1}"))+" を "+T("n=1,2,\\cdots,n-1")+" で並べてかけ合わせる。",
+          '<div class="exFml">'+T("\\dfrac{a_n}{a_1}="+prod)+"</div>",
+          "となりどうしで約分され、<b>両端だけ</b>が残る。よって "+T("a_n="+cor)+"。",
+          '<div class="exLine key">別ルート: 両辺を '+T(up?"(n+1)":"n")+" で割ると "
+            +T(up?"\\dfrac{a_{n+1}}{n+1}=\\dfrac{a_n}{n}":"(n+1)a_{n+1}=na_n")
+            +" ＝ "+T(up?"\\dfrac{a_n}{n}":"na_n")+" が<b>定数</b>。こちらのほうが速い。</div>"],
+      plainQ:"a(1)="+A+"、a(n+1)="+recP+" のとき一般項 a(n) を求めよ"
+    };
+  }
+  const A=pick([1,3,5,7,9,11]);
+  const recT=up?"\\dfrac{n+2}{n}a_n":"\\dfrac{n}{n+2}a_n";
+  const recP=up?"((n+2)/n)×a(n)":"(n/(n+2))×a(n)";
+  const cor=up?("\\dfrac{"+(A===1?"":A)+"n(n+1)}{2}"):("\\dfrac{"+(2*A)+"}{n(n+1)}");
+  const w=up
+    ?["\\dfrac{"+(A===1?"":A)+"n(n+2)}{2}",coefTex(A,"n(n+1)"),"\\dfrac{"+(A===1?"":A)+"n(n-1)}{2}",
+      coefTex(A,"n"),"\\dfrac{"+(2*A)+"}{n(n+1)}","\\dfrac{"+(A===1?"":A)+"(n+1)(n+2)}{2}"]
+    :["\\dfrac{"+A+"}{n(n+1)}","\\dfrac{"+(2*A)+"}{n(n+2)}","\\dfrac{"+(2*A)+"}{n(n-1)}",
+      "\\dfrac{"+A+"}{n}","\\dfrac{"+(A===1?"":A)+"n(n+1)}{2}","\\dfrac{"+(2*A)+"}{(n+1)(n+2)}"];
+  const prod=up
+    ?"\\dfrac{3}{1}\\cdot\\dfrac{4}{2}\\cdot\\dfrac{5}{3}\\cdot\\dfrac{6}{4}\\cdots\\dfrac{n+1}{n-1}=\\dfrac{n(n+1)}{2}"
+    :"\\dfrac{1}{3}\\cdot\\dfrac{2}{4}\\cdot\\dfrac{3}{5}\\cdot\\dfrac{4}{6}\\cdots\\dfrac{n-1}{n+1}=\\dfrac{2}{n(n+1)}";
+  return {
+    lead:LEAD_GEN,
+    disp:"a_1="+A+",\\quad a_{n+1}="+recT,
+    ans:mkChoice(cor,w),
+    ex:['<div class="exLine key">階比型。ただし今度は分母と分子が<b>2つずれている</b>ので、'
+          +"消える相手は<b>となりではなく1つ飛ばし</b>になる。</div>",
+        T("\\dfrac{a_{n+1}}{a_n}="+(up?"\\dfrac{n+2}{n}":"\\dfrac{n}{n+2}"))+" を "+T("n=1,2,\\cdots,n-1")+" で並べてかけ合わせる。",
+        '<div class="exFml">'+T("\\dfrac{a_n}{a_1}="+prod)+"</div>",
+        "1つ飛ばしで消えるので、残るのは<b>前2個・後ろ2個</b>。よって "+T("a_n="+cor)+"。",
+        '<div class="exLine key">別ルート: 両辺を '+T(up?"(n+1)(n+2)":"1")+" で"+(up?"割ると ":"整理すると ")
+          +T(up?"\\dfrac{a_{n+1}}{(n+1)(n+2)}=\\dfrac{a_n}{n(n+1)}":"(n+1)(n+2)a_{n+1}=n(n+1)a_n")
+          +" ＝ "+T(up?"\\dfrac{a_n}{n(n+1)}":"n(n+1)a_n")+" が定数。"
+          +T("n=1")+" で "+T("a_1="+A)+" に戻るか必ず確かめる。</div>"],
+    plainQ:"a(1)="+A+"、a(n+1)="+recP+" のとき一般項 a(n) を求めよ"
+  };
+}
+
+/* ---------- ⑨ 対数  a(n+1)=c a(n)^p ----------
+   a_1=B^s、a(n+1)=B^t・a(n)^2 と作るので、b_n=log_B(a_n) は必ず整数列になる。
+   t=0 なら b は②等比型、t≠0 なら④特性方程式の型。 */
+function genTaisuu(lv){
+  const B=pick([2,3]), s=ri(1,3), pw=pick([2,3]);
+  /* b(n+1)=pw・b(n)+t。t を (pw-1) の倍数にすると α=-mu が整数でそろう */
+  const mu=(lv===1)?0:nzi(1,2);
+  const t=(pw-1)*mu;
+  const a1T=(s===1)?String(B):(B+"^{"+s+"}");
+  const a1P=(s===1)?String(B):powJa(B,s);
+  const coef=Math.pow(B,t);
+  const recT=(t===0?"":String(coef))+"a_n^{\\,"+pw+"}";
+  const recP=(t===0?"":coef+"×")+"a(n)の"+pw+"乗";
+  const expo=(t===0)?geoTex(s,pw,"n-1"):geoConstTex(s+mu,pw,"n-1",-mu);
+  const cor=B+"^{"+expo+"}";
+  const w=(t===0)
+    ?[B+"^{"+geoTex(s,pw,"n")+"}",B+"^{"+geoTex(s,pw,"n+1")+"}",B+"^{"+polyTex([s,0])+"}",
+      B+"^{n^"+pw+"}",B+"^{"+geoTex(s,pw*pw,"n-1")+"}",B+"^{"+geoTex(s*pw,pw,"n-1")+"}"]
+    :[B+"^{"+geoConstTex(s+mu,pw,"n",-mu)+"}",B+"^{"+geoConstTex(s+mu,pw,"n-1",mu)+"}",
+      B+"^{"+geoConstTex(s,pw,"n-1",-mu)+"}",B+"^{"+geoConstTex(s+mu,pw,"n-1",0)+"}",
+      B+"^{"+polyTex([s+mu,-mu])+"}",B+"^{"+geoConstTex(s+mu,pw,"n+1",-mu)+"}"];
+  const ex=['<div class="exLine key">'+T("a_n")+" が<b>"+pw+"乗</b>になっていて、右辺は<b>かけ算だけ</b>＝<b>対数型</b>。"
+              +"すべての項が正なので、<b>両辺の "+T(String(B))+" を底とする対数</b>をとると指数が前に降りる。</div>",
+    T("\\log_{"+B+"}a_{n+1}="+(t===0?"":(t+"+"))+pw+"\\log_{"+B+"}a_n"),
+    T("b_n=\\log_{"+B+"}a_n")+" とおくと "+T("b_{n+1}="+pw+"b_n"+(t===0?"":pm(t)))+" ＝ "
+      +(t===0?"②<b>等比型</b>":"④<b>特性方程式の型</b>")+"。初項は "+T("b_1=\\log_{"+B+"}"+a1T+"="+s)+"。"];
+  if(t===0)ex.push(T("b_n="+coefTex(s,pw+"^{n-1}")+"="+expo));
+  else ex.push("特性方程式 "+T("x="+pw+"x"+pm(t))+" より "+T("\\alpha="+(-mu))+"。"
+      +T("b_n"+pm(mu)+"="+par(s+mu)+"\\cdot"+pw+"^{n-1}")+" なので "+T("b_n="+expo)+"。");
+  ex.push("よって "+T("a_n="+B+"^{b_n}="+cor)+"。");
+  ex.push('<div class="exLine key">答えは '+T("b_n")+" ではなく "+T("a_n")+"。最後に "+T(String(B))
+      +" の肩に戻す。底は何でもよいが、"+T("a_1")+" に合わせて "+T(String(B))+" にすると "+T("b_1")+" が整数になる。</div>");
+  return {
+    lead:LEAD_GEN+"（すべての "+T("n")+" で "+T("a_n>0")+"）",
+    disp:"a_1="+a1T+",\\quad a_{n+1}="+recT,
+    ans:mkChoice(cor,w),
+    ex:ex,
+    plainQ:"a(1)="+a1P+"、a(n+1)="+recP+" のとき一般項 a(n) を求めよ"
+  };
+}
+
+/* ---------- ⑩ 三項間（基本＝右辺0） ----------
+   特性方程式の2解 α,β を先に決め、a_n=Cα^(n-1)+Dβ^(n-1) から a_1,a_2 を逆算する。 */
+function genSankou(lv){
+  const pr=(lv===1)?[1,pick([2,3,-2])]:pick([[2,3],[2,-1],[3,-1],[-2,3],[2,4],[3,-2]]);
+  const al=pr[0], be=pr[1];
+  const C=nzi(-4,5);
+  let D=nzi(-4,5);
+  let guard=0;
+  while(D===C&&guard++<20)D=nzi(-4,5);
+  if(D===C)D=C+1;                     /* C=D だと「係数を入れかえた誤答」が正解と一致する */
+  const A1=C+D, A2=C*al+D*be;
+  const S=al+be, P=al*be;
+  const recT="a_{n+2}"+pmCoef(-S,"a_{n+1}")+pmCoef(P,"a_n")+"=0";
+  const recP="a(n+2)"+pmCoef(-S,"a(n+1)")+pmCoef(P,"a(n)")+"=0";
+  const cor=geoTex(C,al,"n-1")+addGeoTex(D,be,"n-1");
+  const w=[geoTex(C,al,"n")+addGeoTex(D,be,"n"),
+           geoTex(D,al,"n-1")+addGeoTex(C,be,"n-1"),
+           geoTex(C,al,"n-1")+addGeoTex(-D,be,"n-1"),
+           geoTex(A1,al,"n-1")+addGeoTex(A2,be,"n-1"),
+           geoTex(C,be,"n-1")+addGeoTex(D,al,"n-1"),
+           geoTex(C,al,"n-1")+addGeoTex(D,be,"n")];
+  const k1=A2-al*A1, k2=A2-be*A1;
+  return {
+    lead:LEAD_GEN,
+    disp:"a_1="+A1+",\\quad a_2="+A2+",\\quad "+recT,
+    ans:mkChoice(cor,w),
+    ex:['<div class="exLine key">3つの項が並ぶ<b>三項間</b>。'+T("a_{n+2}\\to x^2")+"、"+T("a_{n+1}\\to x")+"、"
+          +T("a_n\\to1")+" と置きかえた<b>特性方程式</b>を作る。</div>",
+        '<div class="exFml">'+T("x^2"+pmCoef(-S,"x")+pm(P)+"=0\\;\\Longrightarrow\\;(x-"+par(al)+")(x-"+par(be)+")=0")
+          +"　解は "+T("x="+al+",\\;"+be)+"</div>",
+        "解が2つ出たということは、漸化式が次の2通りに変形できるということ。",
+        T("a_{n+2}"+pmCoef(-al,"a_{n+1}")+"="+coefTex(be,"\\left(a_{n+1}"+pmCoef(-al,"a_n")+"\\right)"))+"　…… ①",
+        T("a_{n+2}"+pmCoef(-be,"a_{n+1}")+"="+coefTex(al,"\\left(a_{n+1}"+pmCoef(-be,"a_n")+"\\right)"))+"　…… ②",
+        "①より "+T("a_{n+1}"+pmCoef(-al,"a_n")+"="+geoTex(k1,be,"n-1"))+"（初項 "+T("a_2"+pmCoef(-al,"a_1")+"="+k1)+"、公比 "+T(String(be))+"）",
+        "②より "+T("a_{n+1}"+pmCoef(-be,"a_n")+"="+geoTex(k2,al,"n-1"))+"（初項 "+T("a_2"+pmCoef(-be,"a_1")+"="+k2)+"、公比 "+T(String(al))+"）",
+        "辺々引くと "+T(par(be-al)+"a_n="+geoTex(k1,be,"n-1")+addGeoTex(-k2,al,"n-1"))+" なので "+T("a_n="+cor)+"。",
+        '<div class="exLine key">'+(al===1
+          ? ("解の一方が "+T("1")+" のときは①が "+T("a_{n+1}-a_n="+geoTex(k1,be,"n-1"))+" ＝③<b>階差型</b>そのもの。そちらで解いてもよい。")
+          : ("①だけを使って③④に持ち込むより、①②を<b>引く</b>ほうが速い（"+T("a_{n+1}")+" が一度に消える）。"))
+          +"</div>"],
+    plainQ:"a(1)="+A1+"、a(2)="+A2+"、"+recP+" のとき一般項 a(n) を求めよ"
+  };
+}
+
+const GENS={
+  tousa:genTousa, touhi:genTouhi, kaisa:genKaisa, tokusei:genTokusei, shisuu:genShisuu,
+  gyakusuu:genGyakusuu, slide:genSlide, kaihi:genKaihi, taisuu:genTaisuu, sankou:genSankou
+};
+
+/* ================================================================
+   グラフモード
+   漸化式 a(n+1)=f(a(n)) を「直線 y=f(x) と y=x の間を行き来する装置」として見せる。
+     左（くもの巣図）… 横軸 a(n)・縦軸 a(n+1)。縦に上がって直線に当たり、
+                        y=x で折り返して横軸に戻す＝次の項。
+     右（項の並び）  … 横軸 n・縦軸 a(n)。
+   ⚠ 図は「1回作って、ステップでは class を付け替えるだけ」にしてある
+     （作り直すと CSS の transition が走らず、原点がαへ**すべっていく**動きが出ない）。
+   ⚠ 公比は 1/2 のような分数も選べるようにしてある（整数だけだと |p|<1 が作れず、
+     「αに吸い寄せられる」いちばん大事な絵が一度も出ない）。内部では
+     rat(){n,d} の有理数で持ち、表示は分数、計算は n/d で行う。
+   ================================================================ */
+function rat(n,d){if(d<0){n=-n;d=-d;}const g=gcd(n,d)||1;return {n:n/g,d:d/g};}
+function ratVal(r){return r.n/r.d;}
+function ratTex(r){return (r.d===1)?String(r.n):((r.n<0?"-":"")+"\\dfrac{"+Math.abs(r.n)+"}{"+r.d+"}");}
+function ratPm(r){
+  if(r.n===0)return "";
+  return (r.n<0?"-":"+")+((r.d===1)?String(Math.abs(r.n)):("\\dfrac{"+Math.abs(r.n)+"}{"+r.d+"}"));
+}
+/* 係数として前に置く有理数（1 と -1 は数字を書かない） */
+function ratCoef(r,body){
+  if(r.n===0)return "0";
+  if(r.d===1&&r.n===1)return body;
+  if(r.d===1&&r.n===-1)return "-"+body;
+  return ratTex(r)+body;
+}
+/* 公比の選択肢。1 は等差型（交点なし）になるので入れない */
+const PLIST=[{n:-3,d:1},{n:-2,d:1},{n:-1,d:1},{n:-1,d:2},{n:1,d:2},{n:1,d:3},
+             {n:2,d:1},{n:3,d:1},{n:4,d:1}];
+function plistIndex(r){
+  for(let i=0;i<PLIST.length;i++)if(PLIST[i].n===r.n&&PLIST[i].d===r.d)return i;
+  return -1;
+}
+
+const GRAPHS=[
+  {k:"tousa",n:"① 等差型",s:"a(n+1)=a(n)+d",
+   ps:[{k:"a1",lb:"a₁",min:-12,max:12},{k:"d",lb:"d",min:-9,max:9,nz:true}],
+   def:{a1:-4,d:2},
+   steps:[
+     {txt:"漸化式 <b>a<sub>n+1</sub> = a<sub>n</sub> + d</b> は、そのまま直線 <b>y = x + d</b>。折り返し用の <b>y = x</b>（点線）も引いておく。この2本は<b>平行</b>で、どこまで行っても交わらない。",
+      math:"y=x+d\\quad\\text{と}\\quad y=x"},
+     {txt:"横軸の <b>a₁</b> から<b>まっすぐ上</b>に上がって直線に当たった高さが <b>a₂</b>。それを <b>y = x</b> で<b>横に折り返す</b>と、次の入力として横軸に乗る。",
+      math:"a_2=a_1+d"},
+     {txt:"あとはその繰り返し。2直線のすき間は<b>ずっと d のまま</b>なので、階段の段差も d のまま。<b>止まる点（不動点）が無い</b>ので、どこまでも同じ歩幅で進む。",
+      math:"a_{n+1}-a_n=d\\;(\\text{一定})"},
+     {txt:"右の図を見ると、点が<b>一直線</b>に並ぶ。だから一般項は <b>n の1次式</b>。これが等差数列。",
+      math:"a_n=a_1+(n-1)d"}
+   ]},
+  {k:"touhi",n:"② 等比型",s:"a(n+1)=p a(n)",
+   ps:[{k:"a1",lb:"a₁",min:-7,max:7,nz:true},{k:"p",lb:"p",list:true}],
+   def:{a1:1,p:{n:2,d:1}},
+   steps:[
+     {txt:"<b>y = px</b> は<b>原点を通る</b>直線。だから <b>y = x</b> との交点は<b>原点 (0, 0)</b>。等比型では「動かない点」がはじめから原点にある。",
+      math:"y=px\\quad\\text{と}\\quad y=x"},
+     {txt:"a₁ から上へ、y = x で折り返して横へ。出てくる項は<b>原点からの距離が毎回 p 倍</b>になる。",
+      math:"a_2=pa_1,\\quad a_3=p^2a_1"},
+     {txt:"<b>|p| &gt; 1</b> なら原点からどんどん離れ、<b>|p| &lt; 1</b> なら原点に<b>吸い寄せられる</b>。p が負なら左右に飛びながら近づく（離れる）。p を変えて確かめてみてください。",
+      math:"a_n=a_1p^{n-1}"},
+     {txt:"ここが次の④につながる。<b>等比型＝「動かない点が原点にある」場合</b>。原点でなければ、そこを原点にずらせばよい——それが特性方程式。",
+      math:"a_n=a_1p^{n-1}"}
+   ]},
+  {k:"tokusei",n:"④ 特性方程式",s:"a(n+1)=p a(n)+q",
+   ps:[{k:"a1",lb:"a₁",min:-12,max:12},{k:"p",lb:"p",list:true},{k:"q",lb:"q",min:-24,max:24}],
+   def:{a1:1,p:{n:1,d:2},q:3},
+   steps:[
+     {txt:"漸化式 <b>a<sub>n+1</sub> = p a<sub>n</sub> + q</b> は直線 <b>y = px + q</b>。②とちがって<b>原点を通らない</b>（q だけ上にずれている）。",
+      math:"y=px+q"},
+     {txt:"やることは同じ。a₁ から上 → <b>y = x</b> で折り返して横 → また上……。こうして a₂, a₃, … ができていく。",
+      math:"a_{n+1}=pa_n+q"},
+     {txt:"2本の直線は<b>1点で交わる</b>。その交点の x 座標こそ、<b>特性方程式 x = px + q の解 α</b>。方程式を解く作業は、この<b>交点を求める</b>作業そのもの。",
+      math:"x=px+q\\;\\Longrightarrow\\;\\alpha=\\dfrac{q}{1-p}"},
+     {txt:"α は<b>動かない点</b>。a<sub>n</sub> が α なら次も α。だから見るべきは「項そのもの」ではなく<b>α からのズレ</b>。右の図の金色の棒がそのズレ b<sub>n</sub> = a<sub>n</sub> − α で、毎回きっかり p 倍になっている。",
+      math:"b_n=a_n-\\alpha"},
+     {txt:"そこで<b>原点を α へずらす</b>。金色の新しい軸が交点まですべっていきます。この新しい目もりで測った値が b<sub>n</sub>。",
+      math:"b_n=a_n-\\alpha"},
+     {txt:"ずらした座標で見ると、直線は<b>新しい原点を通る</b>——つまり <b>y = px</b>、②<b>等比型そのもの</b>。だから b<sub>n</sub> は公比 p の等比数列。最後に α を足して戻せば一般項。",
+      math:"b_n=(a_1-\\alpha)p^{n-1}\\;\\Longrightarrow\\;a_n=(a_1-\\alpha)p^{n-1}+\\alpha"}
+   ]}
+];
+const GRAPHMAP={};GRAPHS.forEach(g=>{GRAPHMAP[g.k]=g;});
+
+/* ---------- グラフの状態 ---------- */
+let gType="tokusei", gStep=0;
+const gPar={};
+GRAPHS.forEach(g=>{gPar[g.k]=JSON.parse(JSON.stringify(g.def));});
+
+/* いまのパラメータから「直線 y=ax+b」「不動点」「項の並び」を作る */
+function gModel(){
+  const P=gPar[gType];
+  let a,b;
+  if(gType==="tousa"){a=1;b=P.d;}
+  else if(gType==="touhi"){a=ratVal(P.p);b=0;}
+  else{a=ratVal(P.p);b=P.q;}
+  const hasFix=(gType!=="tousa");
+  let al=0;
+  if(gType==="touhi")al=0;
+  else if(gType==="tokusei")al=P.q/(1-ratVal(P.p));
+  /* 項は6個まで。発散する型は窓からはみ出した時点で打ち切る（無理に縮めない） */
+  const base=Math.max(Math.abs(P.a1),Math.abs(al),4);
+  const LIM=base*6+2;
+  const terms=[P.a1];
+  for(let i=0;i<5;i++){
+    const nx=a*terms[terms.length-1]+b;
+    if(!isFinite(nx)||Math.abs(nx)>LIM)break;
+    terms.push(nx);
+  }
+  return {P:P,a:a,b:b,al:al,hasFix:hasFix,terms:terms};
+}
+
+/* 目もりの間隔を「1, 2, 5, 10, …」から選ぶ */
+function niceStep(range){
+  const raw=range/6;
+  const p=Math.pow(10,Math.floor(Math.log10(raw<=0?1:raw)));
+  const c=raw/p;
+  let m;
+  if(c<1.5)m=1;else if(c<3)m=2;else if(c<7)m=5;else m=10;
+  return m*p;
+}
+function fmtNum(v){
+  const r=Math.round(v*100)/100;
+  return (Math.abs(r-Math.round(r))<1e-9)?String(Math.round(r)):String(r);
+}
+function sl(x1,y1,x2,y2,cls,extra){
+  return '<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)
+    +'" class="'+cls+'"'+(extra||"")+"/>";
+}
+function stx(x,y,s,cls,extra){
+  return '<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" class="'+cls+'"'+(extra||"")+">"+esc(s)+"</text>";
+}
+function sdot(x,y,r,cls,extra){
+  return '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+r+'" class="'+cls+'"'+(extra||"")+"/>";
+}
+/* data-st="k" を付けた要素は「ステップ k 以降で見える」（gApply が .on を付ける） */
+function st(k){return ' data-st="'+k+'"';}
+
+/* ---------- 左: くもの巣図 ---------- */
+function cobSVG(M){
+  const W=400,H=400,MG=34;
+  const vals=M.terms.concat([0]);
+  if(M.hasFix)vals.push(M.al);
+  let lo=Math.min.apply(null,vals),hi=Math.max.apply(null,vals);
+  if(hi-lo<1){hi+=1;lo-=1;}
+  const pad=(hi-lo)*0.22;
+  lo-=pad;hi+=pad;
+  const X=v=>MG+(v-lo)/(hi-lo)*(W-2*MG);
+  const Y=v=>H-MG-(v-lo)/(hi-lo)*(H-2*MG);
+  const L=MG,R=W-MG,TP=MG,BT=H-MG;
+  let s="";
+  /* 目もり */
+  const stp=niceStep(hi-lo);
+  for(let v=Math.ceil(lo/stp)*stp;v<=hi;v+=stp){
+    if(Math.abs(v)<1e-9)continue;
+    s+=sl(X(v),TP,X(v),BT,"grid");
+    s+=sl(L,Y(v),R,Y(v),"grid");
+  }
+  /* 軸（0 は必ず窓に入っているので必ず内側で交わる） */
+  s+=sl(L,Y(0),R,Y(0),"ax")+sl(X(0),TP,X(0),BT,"ax");
+  s+=stx(X(0)-11,Y(0)+15,"O","axlb");
+  s+=stx(R-4,Y(0)-8,"aₙ","axlb",' text-anchor="end"');
+  s+=stx(X(0)+7,TP+12,"aₙ₊₁","axlb");
+  /* y=x（折り返しの鏡） */
+  s+='<path d="M'+X(lo)+" "+Y(lo)+"L"+X(hi)+" "+Y(hi)+'" class="gyx"/>';
+  s+=stx(X(hi)-6,Y(hi)+16,"y = x","axlb",' text-anchor="end"');
+  /* y=ax+b を窓の中だけ描く */
+  const seg=clipLine(M.a,M.b,lo,hi);
+  if(seg)s+='<path d="M'+X(seg[0])+" "+Y(M.a*seg[0]+M.b)+"L"+X(seg[1])+" "+Y(M.a*seg[1]+M.b)+'" class="gfn"/>';
+  /* 直線の名札。ずらしたあとは y=px に読み替える */
+  /* 名札は直線の左寄り。くもの巣の階段は a₁ から右へ伸びるので、左端に置くと重なりにくい */
+  const lbx=(seg?(seg[0]*0.86+seg[1]*0.14):0);
+  const lby=M.a*lbx+M.b;
+  s+=stx(X(lbx),Y(lby)-14,lineLabel(),"axlb dim",' text-anchor="middle"');
+  /* くもの巣（縦→横の階段）。最初の1往復だけ step1、残りは step2 から */
+  let path1="",path2="";
+  for(let i=0;i<M.terms.length-1;i++){
+    const x=M.terms[i],y=M.terms[i+1];
+    const seg1="M"+X(x)+" "+Y(i===0?0:x)+"L"+X(x)+" "+Y(y);   /* 縦: 直線に当てる */
+    const seg2="M"+X(x)+" "+Y(y)+"L"+X(y)+" "+Y(y);           /* 横: y=x で折り返す */
+    if(i===0)path1+=seg1+seg2;else path2+=seg1+seg2;
+  }
+  const cobFrom=1;
+  if(path1)s+='<path d="'+path1+'" class="cob gshow"'+st(cobFrom)+"/>";
+  if(path2)s+='<path d="'+path2+'" class="cob gshow"'+st(cobFrom+1)+"/>";
+  /* 項の目もり（横軸の上の点） */
+  M.terms.forEach((v,i)=>{
+    if(i>3)return;
+    s+=sdot(X(v),Y(0),3.2,"dot g gshow",st(i===0?0:cobFrom+(i>1?1:0)));
+    s+=stx(X(v),Y(0)+17,"a"+"₁₂₃₄".charAt(i),"ptlb g gshow",st(i===0?0:cobFrom+(i>1?1:0)));
+  });
+  /* 不動点 α（y=x と直線の交点） */
+  if(M.hasFix){
+    const fs=(gType==="tokusei")?2:0;
+    s+=sl(X(M.al),Y(M.al),X(M.al),Y(0),"fixguide gshow",st(fs));
+    s+=sl(X(M.al),Y(M.al),X(0),Y(M.al),"fixguide gshow",st(fs));
+    s+=sdot(X(M.al),Y(M.al),5,"fix gshow",st(fs));
+    s+=stx(X(M.al),Y(M.al)-11,(gType==="touhi")?"O (交点)":("α = "+fmtNum(M.al)),"fixlb gshow",st(fs));
+  }
+  /* ずらした新しい軸（原点を α へ運ぶ）。translate は gApply が style で当てる */
+  if(gType==="tokusei"){
+    const dx=X(M.al)-X(0),dy=Y(M.al)-Y(0);
+    /* ⚠ 軸の線は窓の外まで長く引く。窓ぶんの長さしかないと、α へずらした瞬間に
+       線の端が画面の中に入ってきて「軸が途中で切れている」絵になる。
+       名札は新しい原点のそばに置く（一緒に動くので、α がどこでも O' の隣に出る）。 */
+    s+='<g id="newAxG" class="axmove gshow" data-dx="'+dx.toFixed(1)+'" data-dy="'+dy.toFixed(1)+'"'+st(4)+">"
+      +sl(-W,Y(0),2*W,Y(0),"newax")
+      +sl(X(0),-H,X(0),2*H,"newax")
+      +stx(X(0)-15,Y(0)+17,"O'","newlb")
+      +stx(X(0)+96,Y(0)+17,"bₙ","newlb")
+      +stx(X(0)+8,Y(0)-92,"bₙ₊₁","newlb")
+      +"</g>";
+  }
+  return '<svg viewBox="0 0 '+W+" "+H+'" role="img" aria-label="くもの巣図">'+s+"</svg>";
+}
+/* 直線 y=ax+b のうち、窓 [lo,hi]×[lo,hi] に入る x の区間 */
+function clipLine(a,b,lo,hi){
+  let x1=lo,x2=hi;
+  if(Math.abs(a)>1e-9){
+    const xa=(lo-b)/a, xb=(hi-b)/a;
+    const s1=Math.min(xa,xb), s2=Math.max(xa,xb);
+    x1=Math.max(x1,s1);x2=Math.min(x2,s2);
+  }else{
+    if(b<lo||b>hi)return null;
+  }
+  return (x2-x1>1e-9)?[x1,x2]:null;
+}
+function lineLabel(){
+  if(gType==="tousa")return "y = x + d";
+  if(gType==="touhi")return "y = px";
+  return "y = px + q";
+}
+
+/* ---------- 右: 項の並び（n → a_n） ---------- */
+function seqSVG(M){
+  const W=400,H=400,MG=34;
+  const N=Math.max(M.terms.length,2);
+  const vals=M.terms.concat([0]);
+  if(M.hasFix)vals.push(M.al);
+  let lo=Math.min.apply(null,vals),hi=Math.max.apply(null,vals);
+  if(hi-lo<1){hi+=1;lo-=1;}
+  const pad=(hi-lo)*0.18;lo-=pad;hi+=pad;
+  const X=i=>MG+ (i)/(N)*(W-2*MG);              /* i は 0 起点（n=1 が i=1） */
+  const Y=v=>H-MG-(v-lo)/(hi-lo)*(H-2*MG);
+  const L=MG,R=W-MG,TP=MG,BT=H-MG;
+  let s="";
+  const stp=niceStep(hi-lo);
+  for(let v=Math.ceil(lo/stp)*stp;v<=hi;v+=stp){
+    if(Math.abs(v)<1e-9)continue;
+    s+=sl(L,Y(v),R,Y(v),"grid");
+  }
+  s+=sl(L,Y(0),R,Y(0),"ax")+sl(X(0),TP,X(0),BT,"ax");
+  s+=stx(X(0)-11,Y(0)+15,"O","axlb");
+  s+=stx(R-4,Y(0)+16,"n","axlb",' text-anchor="end"');
+  s+=stx(X(0)+7,TP+12,"aₙ","axlb");
+  /* α の高さの水平線（漸近する高さ）。等比型は原点＝0 の線 */
+  if(M.hasFix){
+    const fs=(gType==="tokusei")?2:0;
+    s+=sl(L,Y(M.al),R,Y(M.al),"asym gshow",st(fs));
+    s+=stx(L+3,Y(M.al)-6,(gType==="touhi")?"y = 0":("y = α = "+fmtNum(M.al)),"fixlb gshow",st(fs)+' text-anchor="start"');
+  }
+  /* 点をつなぐ細い線 */
+  let d="";
+  M.terms.forEach((v,i)=>{d+=(i?"L":"M")+X(i+1)+" "+Y(v);});
+  s+='<path d="'+d+'" class="plink"/>';
+  /* α からのズレ b_n を金色の棒で見せる（特性方程式のときだけ） */
+  if(gType==="tokusei"){
+    M.terms.forEach((v,i)=>{
+      if(i>3)return;
+      s+=sl(X(i+1),Y(M.al),X(i+1),Y(v),"bseg gshow",st(3));
+      /* 棒が短いときに名札を出すと、点の値（5.69 など）と重なって読めなくなる。
+         αに近づくほど棒は短くなるので、前の3本だけに絞る */
+      if(i<3&&Math.abs(Y(M.al)-Y(v))>=26)
+        s+=stx(X(i+1)+5,(Y(M.al)+Y(v))/2,"b"+"₁₂₃₄".charAt(i),"blb gshow",st(3));
+    });
+  }
+  M.terms.forEach((v,i)=>{
+    s+=sdot(X(i+1),Y(v),4.2,"dot");
+    s+=stx(X(i+1),Y(v)-11,fmtNum(v),"ptlb");
+    s+=stx(X(i+1),BT+16,String(i+1),"ticklb");
+  });
+  /* 等差型・等比型は「となりとの関係」を書き添える */
+  if(gType==="tousa"&&M.terms.length>=2){
+    for(let i=0;i<Math.min(M.terms.length-1,4);i++){
+      s+=stx((X(i+1)+X(i+2))/2,(Y(M.terms[i])+Y(M.terms[i+1]))/2-6,
+             (M.P.d>0?"+":"")+M.P.d,"blb gshow",st(2)+' text-anchor="middle"');
+    }
+  }
+  if(gType==="touhi"&&M.terms.length>=2){
+    for(let i=0;i<Math.min(M.terms.length-1,4);i++){
+      s+=stx((X(i+1)+X(i+2))/2,(Y(M.terms[i])+Y(M.terms[i+1]))/2-6,
+             "×p","blb gshow",st(2)+' text-anchor="middle"');
+    }
+  }
+  return '<svg viewBox="0 0 '+W+" "+H+'" role="img" aria-label="項の並び">'+s+"</svg>";
+}
+
+/* ---------- いまのパラメータでの一般項（図の下に出す） ---------- */
+function gAnsTex(M){
+  const P=M.P;
+  if(gType==="tousa")return "a_n="+polyTex([P.d,P.a1-P.d]);
+  if(gType==="touhi"){
+    const p=P.p;
+    const body=(p.d===1)?(par(p.n)+"^{n-1}"):("\\left("+ratTex(p)+"\\right)^{n-1}");
+    return "a_n="+coefTex(P.a1,body);
+  }
+  const p=P.p;
+  const alR=rat(P.q*p.d,p.d-p.n);                 /* α = q/(1-p) */
+  const c=rat(P.a1*alR.d-alR.n,alR.d);            /* a_1 - α */
+  /* a_1=α のときは全部の項が α（定数列）。「0+α」と書かない */
+  if(c.n===0)return "a_n="+ratTex(alR)+"\\quad(\\text{すべての項が }\\alpha)";
+  const body=(p.d===1)?(par(p.n)+"^{n-1}"):("\\left("+ratTex(p)+"\\right)^{n-1}");
+  return "a_n="+ratCoef(c,body)+ratPm(alR);
+}
+
+/* ---------- 画面を組む ---------- */
+function buildGraphChips(){
+  const box=document.getElementById("gTypeChips");
+  box.innerHTML=GRAPHS.map(g=>
+    '<button class="chip'+(g.k===gType?" on":"")+'" data-g="'+g.k+'">'+esc(g.n)+"<small>"+esc(g.s)+"</small></button>"
+  ).join("");
+}
+function buildGraphCtrl(){
+  const g=GRAPHMAP[gType],P=gPar[gType];
+  let s=g.ps.map(pp=>{
+    const v=pp.list?ratTex(P[pp.k]).replace(/\\dfrac\{(\d+)\}\{(\d+)\}/,"$1/$2"):String(P[pp.k]);
+    return '<div class="stepper"><span class="lb">'+esc(pp.lb)+'</span>'
+      +'<button class="sbtn" data-p="'+pp.k+'" data-dir="-1">−</button>'
+      +'<span class="sval" id="sv-'+pp.k+'">'+esc(v)+"</span>"
+      +'<button class="sbtn" data-p="'+pp.k+'" data-dir="1">＋</button></div>';
+  }).join("");
+  s+='<div class="ctrlnote">'+(gType==="tokusei"
+      ? "p と q を変えると交点 α が動きます。|p| が 1 より小さいと α に吸い寄せられ、大きいと離れていきます。"
+      : (gType==="touhi"
+         ? "p を 1/2 や −1/2 にすると原点に吸い寄せられる様子が見えます。"
+         : "d を変えても2直線は平行のまま＝交点はできません。"))+"</div>";
+  document.getElementById("gCtrl").innerHTML=s;
+}
+function gRender(){
+  const M=gModel();
+  document.getElementById("gCob").innerHTML=cobSVG(M);
+  document.getElementById("gSeq").innerHTML=seqSVG(M);
+  const ans=document.getElementById("gAns");
+  ans.innerHTML="いまの数での一般項　"+TD(gAnsTex(M));
+  renderTexIn(ans);
+  const g=GRAPHMAP[gType];
+  document.getElementById("gDots").innerHTML=g.steps.map(()=>"<i></i>").join("");
+  /* 1フレーム置いてから当てる（初期状態 → step の transition を走らせるため） */
+  gApply(true);
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{gApply(false);});});
+}
+/* ステップを図に反映する。要素は作り直さず class と transform だけを付け替える */
+function gApply(initial){
+  const g=GRAPHMAP[gType];
+  const step=initial?-1:gStep;
+  document.querySelectorAll("#view-graph [data-st]").forEach(el=>{
+    el.classList.toggle("on",step>=parseInt(el.dataset.st,10));
+  });
+  const nx=document.getElementById("newAxG");
+  if(nx){
+    const on=(step>=4);
+    nx.style.transform=on?("translate("+nx.dataset.dx+"px,"+nx.dataset.dy+"px)"):"translate(0px,0px)";
+  }
+  /* ずらしたあとは元の直線の名札を薄くする（y=px+q → y=px に読み替える合図） */
+  document.querySelectorAll("#gCob .axlb.dim").forEach(el=>{
+    el.classList.toggle("off",gType==="tokusei"&&step>=5);
+  });
+  if(initial)return;
+  const s=g.steps[gStep];
+  document.getElementById("gNo").textContent="STEP "+(gStep+1)+" / "+g.steps.length;
+  document.getElementById("gTxt").innerHTML=s.txt;
+  const mm=document.getElementById("gMath");
+  mm.innerHTML=s.math?TD(s.math):"";
+  renderTexIn(mm);
+  Array.prototype.forEach.call(document.getElementById("gDots").children,(el,i)=>{
+    el.className=(i===gStep)?"on":(i<gStep?"done":"");
+  });
+  document.getElementById("gPrev").disabled=(gStep===0);
+  document.getElementById("gNext").textContent=(gStep>=g.steps.length-1)?"最初から ↺":"次へ ▶";
+}
+function setGraph(k,step){
+  if(!GRAPHMAP[k])return;
+  gType=k;gStep=step||0;
+  buildGraphChips();buildGraphCtrl();gRender();
+}
+/* 演習の解説から「グラフで見る」で飛んできたとき、その問題の数をそのまま入れる */
+function openGraphFrom(info){
+  if(!info||!GRAPHMAP[info.t])return;
+  const g=GRAPHMAP[info.t],P=gPar[info.t];
+  const lim=function(key,v){
+    const pp=g.ps.filter(x=>x.k===key)[0];
+    return pp?Math.max(pp.min,Math.min(pp.max,v)):v;
+  };
+  if(typeof info.a1==="number")P.a1=lim("a1",info.a1);
+  if(typeof info.d==="number")P.d=lim("d",info.d);
+  if(typeof info.q==="number")P.q=lim("q",info.q);
+  if(typeof info.p==="number"){
+    const r=rat(info.p,1);
+    P.p=(plistIndex(r)>=0)?r:{n:2,d:1};
+  }
+  setView("graph");
+  setGraph(info.t,0);
+}
+function gStepParam(key,dir){
+  const g=GRAPHMAP[gType],P=gPar[gType];
+  const pp=g.ps.filter(x=>x.k===key)[0];
+  if(!pp)return;
+  if(pp.list){
+    let i=plistIndex(P[key]);
+    if(i<0)i=0;
+    i+=dir;
+    if(i<0)i=PLIST.length-1;
+    if(i>=PLIST.length)i=0;
+    P[key]=PLIST[i];
+  }else{
+    let v=P[key]+dir;
+    if(pp.nz&&v===0)v+=dir;
+    if(v<pp.min)v=pp.max;
+    if(v>pp.max)v=pp.min;
+    P[key]=v;
+  }
+  buildGraphCtrl();
+  gRender();
+}
+
+/* ---------- Divp guard ---------- */
+function safeDivp(fn){
+  try{
+    if(window.Divp&&typeof Divp[fn]==="function"){
+      return Divp[fn].apply(Divp,[].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return undefined;
+}
+
+/* ---------- 状態 ----------
+   XP・レベルはツール側で持たない（save_answer.php が確定し、マイページが算出する）。
+   RANK と STREAK はその場の励ましなので画面だけで持つ（保存しない＝開き直すとD/0から） */
+let view="train";
+let mode="tousa", lv=1, cur=null, graded=false;
+let selChoice=-1, numStr="";
+/* 学習記録用: いま出ている問題のタイプ・レベル・種と開始時刻 */
+let curMode="tousa", curLv=1, curSeed=0, qStart=0;
+let streak=0, lastRank="D";
+const perfectRuns={};              /* タイプごとの「連続 全問正解セット」数 */
+let mixSet=new Set(BASIC4);
+/* 解き直しモード(?retry=1)のキュー。null = 通常出題
+   wrongRound=true のときは「10問の中でまちがえた分だけ」のミニラウンド */
+let retryQ=null, retryTotal=0, retryDone=0, wrongRound=false;
+
+/* ---------- 10問ごとの評価（共通モジュール divp-result.js）----------
+   終わりのない練習ツールなので、10問ごとにランク付きの結果画面を出す。
+   まちがえた問題は種を持っているので、そのまま解き直しラウンドにできる
+   （同じ種＝同じ問題＝params_hash も同じなので、2連続正解でマスターになる）。
+   ⚠ 結果画面は「10問目を解いた瞬間」ではなく、その次のボタンで出す（解説を隠さないため）。 */
+const ROUND_N=10;
+let roundMarks=[], roundTotal=ROUND_N, roundRetry=false;
+function hasResultCard(){return !!(window.Divp&&typeof Divp.resultPush==="function");}
+function roundStart(total,retry){
+  roundMarks=[];
+  roundTotal=(total>0)?total:ROUND_N;
+  roundRetry=!!retry;
+}
+function roundInit(){
+  safeDivp("resultInit",{
+    total:ROUND_N,
+    questionKey:mode,                 /* 連続全問正解はタイプごとに数える */
+    masterLabel:"漸化式マスター",
+    labels:{next:"つぎの%d問へ",wrong:"↻ まちがえた %n 問を解き直す",
+            modes:"タイプをえらび直す",home:"学習ツール一覧へ"},
+    onNext:function(){newQuestion();},
+    onRetryWrong:startWrongRound,
+    onModes:function(){try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){window.scrollTo(0,0);}},
+    home:"/learning/"
+  });
+  roundStart(ROUND_N,false);
+}
+function showRoundResult(){
+  if(!hasResultCard()){roundStart(ROUND_N,false);return false;}
+  const marks=roundMarks.slice();
+  updateRank(marks);
+  safeDivp("resultStart",{total:marks.length,retry:roundRetry,questionKey:mode});
+  marks.forEach(m=>safeDivp("resultPush",m.ok,m.item));
+  roundStart(ROUND_N,false);
+  return true;
+}
+/* HUD の RANK は divp-result と同じ判定で出す（画面の2箇所で違う評価が出ないように） */
+function updateRank(marks){
+  if(!marks.length)return;
+  if(roundRetry||marks.length<ROUND_N){lastRank="—";updHUD();return;}
+  const ok=marks.filter(m=>m.ok).length;
+  const rate=ok/marks.length;
+  const key=mode;
+  if(ok===marks.length)perfectRuns[key]=(perfectRuns[key]||0)+1;
+  else perfectRuns[key]=0;
+  const run=perfectRuns[key]||0;
+  if(run>=3)lastRank="SSS";
+  else if(run===2)lastRank="SS";
+  else if(run===1)lastRank="S";
+  else if(rate>=0.9)lastRank="A";
+  else if(rate>=0.7)lastRank="B";
+  else if(rate>=0.5)lastRank="C";
+  else lastRank="D";
+  updHUD();
+}
+/* 「まちがえた N 問を解き直す」。10問の中の誤答を同じ種で出し直す */
+function startWrongRound(items){
+  const use=(items||[]).filter(it=>it&&GENS[it.m]);
+  if(!use.length){retryQ=null;newQuestion();return;}
+  retryQ=use.map(it=>({m:it.m,lv:it.lv||1,s:it.s}));
+  retryTotal=retryQ.length;retryDone=0;wrongRound=true;
+  roundStart(retryTotal,true);
+  newQuestion();
+}
+
+/* ---------- HUD / セレクタ ---------- */
+function updHUD(){
+  document.getElementById("rankVal").textContent=lastRank;
+  document.getElementById("streakVal").textContent=String(streak);
+}
+function buildTypeChips(){
+  const box=document.getElementById("typeChips");
+  box.innerHTML=MODES.map(m=>
+    '<button class="chip'+(m.k===mode?" on":"")+'" data-mode="'+m.k+'">'+esc(m.n)+"<small>"+esc(m.s)+"</small></button>"
+  ).join("")+'<button class="chip mix'+(mode==="mix"?" on":"")+'" data-mode="mix">ミックス<small>えらんだタイプから</small></button>';
+}
+function buildMixGrid(){
+  const g=document.getElementById("mixGrid");
+  g.innerHTML=MODES.map(m=>
+    '<label><input type="checkbox" data-mix="'+m.k+'"'+(mixSet.has(m.k)?" checked":"")+">"+esc(m.n)+"</label>"
+  ).join("");
+}
+function updLvDesc(){
+  const d=document.getElementById("lvDesc");
+  if(mode==="mix"){d.innerHTML="えらんだタイプから <b>レベル"+lv+"</b> の問題をランダムに出します";return;}
+  const m=MODEMAP[mode];
+  d.innerHTML="<b>"+esc(m.n)+"</b>（"+esc(m.grp)+"） ／ "+esc(m.lv[lv-1]);
+}
+function setMixAll(fn){
+  mixSet=new Set(MODES.filter(m=>fn(m.k)).map(m=>m.k));
+  buildMixGrid();
+}
+
+/* ---------- 出題 ---------- */
+function newQuestion(){
+  safeDivp("resultClose");
+  clearEffects();
+  graded=false;selChoice=-1;numStr="";
+  document.getElementById("verdict").textContent="";
+  document.getElementById("verdict").className="verdict";
+  document.getElementById("explain").style.display="none";
+  document.getElementById("toast").textContent="";
+  document.getElementById("checkBtn").disabled=false;
+  document.getElementById("nextBtn").textContent="次の問題 ➜";
+
+  let m=null,l=lv,s=0;
+  if(retryQ){
+    if(retryQ.length){
+      const it=retryQ.shift();
+      m=it.m;l=it.lv;s=it.s;retryDone++;
+    }else{
+      /* 解き直しキューを解ききった */
+      retryQ=null;
+      if(wrongRound){wrongRound=false;}
+      banner("解き直しはここまで！ このまま通常の出題に戻ります");
+      roundStart(ROUND_N,false);
+    }
+  }
+  if(m===null){
+    if(mode==="mix"){
+      const list=Array.from(mixSet);
+      if(!list.length){noMix();return;}
+      /* ミックスのタイプ選びは種の外（記録はその問題のタイプで残す） */
+      m=list[Math.floor(Math.random()*list.length)];
+    }else{
+      m=mode;
+    }
+    l=lv;s=rngPick();
+  }
+  if(!GENS[m]){m="tousa";}
+  if(!(l>=1&&l<=MAXLV))l=1;
+
+  curMode=m;curLv=l;curSeed=s;
+  rngSeed(s);
+  cur=GENS[m](l);
+  qStart=Date.now();
+  renderQuestion();
+}
+function noMix(){
+  cur=null;
+  document.getElementById("qLead").innerHTML="出題するタイプが1つも選ばれていません。上の「ミックス」の内訳から、練習したいタイプにチェックを入れてください。";
+  document.getElementById("qDisp").style.display="none";
+  document.getElementById("qSub").innerHTML="";
+  document.getElementById("ansArea").innerHTML="";
+  document.getElementById("checkBtn").disabled=true;
+}
+function renderQuestion(){
+  const md=MODEMAP[curMode];
+  document.getElementById("qType").textContent=md?md.n:curMode;
+  document.getElementById("qLv").textContent="LV."+curLv;
+  const total=roundTotal||ROUND_N;
+  document.getElementById("qNum").textContent=
+    (retryQ?("解き直し "+retryDone+" / "+retryTotal):((roundMarks.length+1)+" / "+total));
+
+  document.getElementById("qLead").innerHTML=cur.lead||"";
+  const disp=document.getElementById("qDisp");
+  if(cur.disp){disp.style.display="";disp.innerHTML=TD(cur.disp);}
+  else{disp.style.display="none";disp.innerHTML="";}
+  document.getElementById("qSub").innerHTML=cur.sub||"";
+
+  const area=document.getElementById("ansArea");
+  if(cur.ans.kind==="choice"){
+    area.innerHTML='<div class="choices" id="choices">'+cur.ans.choices.map((c,i)=>
+      '<button class="choiceBtn" data-i="'+i+'"><span class="cno">'+"ABCDEF".charAt(i)+"</span>"+T(c)+"</button>"
+    ).join("")+"</div>";
+  }else{
+    const unit=cur.ans.unit?('<span class="numunit">'+esc(cur.ans.unit)+"</span>"):"";
+    area.innerHTML='<div class="numwrap">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<div class="numdisp empty" id="numDisp" style="flex:1">数字を入力</div>'+unit+"</div>"
+      +'<div class="keypad" id="keypad">'
+      +[7,8,9,4,5,6,1,2,3].map(n=>'<button class="key" data-k="'+n+'">'+n+"</button>").join("")
+      +'<button class="key fn" data-k="-">±</button>'
+      +'<button class="key" data-k="0">0</button>'
+      +'<button class="key fn" data-k="bs">⌫</button>'
+      +"</div></div>";
+  }
+  renderTexIn(document.getElementById("card"));
+}
+function refreshNum(){
+  const d=document.getElementById("numDisp");
+  if(!d)return;
+  if(numStr===""){d.textContent="数字を入力";d.classList.add("empty");}
+  else{d.textContent=numStr;d.classList.remove("empty");}
+}
+
+/* ---------- 判定 ---------- */
+function check(){
+  if(graded||!cur)return;
+  const a=cur.ans;
+  let ok=false,userStr="";
+  if(a.kind==="choice"){
+    if(selChoice<0){toast("答えを1つ選んでください");return;}
+    ok=(selChoice===a.correct);
+    /* 記録に残す解答は **TeX のまま**。講師画面は \ を見つけると文字列ごと
+       KaTeX で描くので、そのほうがきれいに出る（和文を混ぜないことが条件） */
+    userStr=a.choices[selChoice];
+    /* 答え合わせ表示（正解=緑 / 選んだ誤答=朱 / 選ばなかった正解に「正解」バッジ） */
+    safeDivp("markChoices","#ansArea .choiceBtn",{correct:a.correct,selected:selChoice,dimOthers:true});
+    document.querySelectorAll("#ansArea .choiceBtn").forEach(b=>{b.disabled=true;});
+  }else{
+    if(numStr===""||numStr==="-"){toast("答えを入力してください");return;}
+    ok=(parseInt(numStr,10)===a.val);
+    userStr=numStr;
+    document.querySelectorAll("#keypad .key").forEach(b=>{b.disabled=true;});
+  }
+  graded=true;
+  document.getElementById("checkBtn").disabled=true;
+
+  const v=document.getElementById("verdict");
+  const correctStr=cur.plainA||((a.kind==="choice")?a.choices[a.correct]:(String(a.val)+(a.unit||"")));
+  const correctDisp=(a.kind==="choice")?T(a.choices[a.correct]):esc(String(a.val)+(a.unit||""));
+  if(ok){
+    streak++;
+    v.className="verdict ok";v.textContent="正解";
+    toast(streak>=3?("連続 "+streak+" 問正解"):"");
+    correctEffect();
+  }else{
+    streak=0;
+    v.className="verdict ng";v.innerHTML="正解は "+correctDisp;
+    renderTexIn(v);
+    toast("");
+    incorrectEffect();
+    const card=document.getElementById("card");
+    card.classList.remove("shake");void card.offsetWidth;card.classList.add("shake");
+  }
+  updHUD();
+  showExplain();
+
+  /* ── 学習記録（判定直後に1行）──────────────────────────────
+     question_key はタイプ名そのまま(CLAUDE.md 設計判断3)。
+     question_params は {m:タイプ, lv:レベル, s:種} だけで、この3つがあれば
+     ?retry=1 で同じ問題を作り直せる（復元用のロジックはPHP側に置かない）。
+     未ログイン・file:// では divp-core が黙ってスキップする。 */
+  const qSec=qStart?Math.max(1,Math.round((Date.now()-qStart)/1000)):0;
+  safeDivp("answer",ok,{
+    question_key:curMode,
+    question_params:{m:curMode,lv:curLv,s:curSeed},
+    question_text:plainQuestion(),
+    /* 選択式は選択肢ごと解き直しプリントに出す（紙で同じ問題が解けるように） */
+    question_choices:(a.kind==="choice")?a.choices.map(c=>({t:"tex",v:c})):null,
+    correct_answer:correctStr,
+    wrong_answer:userStr,
+    /* 離席ぶんを混ぜないよう10分超は記録しない */
+    time_taken_sec:(qSec>0&&qSec<=600)?qSec:null
+  });
+
+  /* 10問ごとの評価用に1問ぶん記録。結果画面は解説を隠さないよう次のボタンで出す */
+  roundMarks.push({ok:ok,item:{m:curMode,lv:curLv,s:curSeed}});
+  if(hasResultCard()&&roundDone()){
+    document.getElementById("nextBtn").textContent="採点結果へ ➜";
+  }
+}
+/* このラウンドを解き終わったか。
+   ⚠ retryQ は空配列でも truthy なので、length まで見ないと
+     解き直しラウンドの結果画面が一度も出ない */
+function roundDone(){
+  if(retryQ)return retryQ.length===0;
+  return roundMarks.length>=roundTotal;
+}
+/* 記録用の問題文。**^ _ { } \ を入れない**（和文が混ざるので、1文字でもあると
+   講師画面が文字列ぜんぶを TeX として描いて和文が斜体で崩れる） */
+function plainQuestion(){
+  if(!cur)return "";
+  let s=cur.plainQ||stripTags(cur.lead||"");
+  s="【レベル"+curLv+"】"+s;
+  return s.replace(/\s+/g," ").trim();
+}
+function showExplain(){
+  const ex=document.getElementById("explain");
+  const body=document.getElementById("exBody");
+  let html=(cur.ex||[]).map(l=>(/^<div/.test(l)?l:'<div class="exLine">'+l+"</div>")).join("");
+  if(cur.graph&&GRAPHMAP[cur.graph.t]){
+    html+='<button class="proofLink" data-graph=\''+esc(JSON.stringify(cur.graph))+'\'>'
+      +"▶ この漸化式をグラフで見る</button>";
+  }
+  body.innerHTML=html;
+  renderTexIn(body);
+  ex.style.display="block";
+}
+function toast(s){document.getElementById("toast").textContent=s||"";}
+
+/* ================================================================
+   練習プリント（A4・別ウィンドウ）
+   いま選んでいるタイプ×レベルで10問作り、「問題」→改ページ→「解答」を出す。
+   ⚠ 画面の出題を壊さないこと。GENS[] は cur を触らないが乱数は進むので、
+     1問作るごとに rngSeed(rngPick()) を張り直す。
+   ⚠ 数式は**親ウィンドウの KaTeX で HTML に焼いてから**流し込む
+     （子ウィンドウで katex を動かすと読み込み待ちが要り、印刷ダイアログのほうが
+     先に出て数式が生テキストのまま紙になる）。子には CSS だけ読ませる。
+   ⚠ 透かしは print-watermark.js を通す（無ければ透かし無しで印刷）。
+   ================================================================ */
+const PRT_N=10;
+function prtTex(html){
+  const box=document.createElement("div");
+  box.innerHTML=html||"";
+  renderTexIn(box);
+  return box.innerHTML;
+}
+/* 画面と同じ生成関数で n 問。ミックスなら選ばれているタイプから混ぜる。
+   ⚠ 同じ問題を2度出さないための照合は「画面に出る全部＋答え」で行う。
+   ⚠ そのレベルに n 通り無いタイプは、埋まらないまま少なく返る。水増しはしない。 */
+function prtPick(n){
+  const pool=(mode==="mix")?Array.from(mixSet):[mode];
+  const out=[],seen=new Set();
+  if(!pool.length)return out;
+  for(let t=0;t<n*40&&out.length<n;t++){
+    const m=pool[Math.floor(Math.random()*pool.length)];
+    if(!GENS[m])continue;
+    rngSeed(rngPick());
+    const q=GENS[m](lv);
+    const a=(q.ans.kind==="choice")?q.ans.choices[q.ans.correct]:String(q.ans.val);
+    const sig=[m,q.lead||"",q.disp||"",q.sub||"",a].join("");
+    if(seen.has(sig))continue;
+    seen.add(sig);out.push({m:m,q:q});
+  }
+  return out;
+}
+function prtAnsHtml(q){
+  if(q.ans.kind==="choice")
+    return '<span class="mk">'+"ABCDEF".charAt(q.ans.correct)+"</span>"+prtTex(T(q.ans.choices[q.ans.correct]));
+  return "<b>"+esc(String(q.ans.val))+"</b>"+(q.ans.unit?('<span class="un">'+esc(q.ans.unit)+"</span>"):"");
+}
+function prtHtml(items){
+  const md=MODEMAP[mode];
+  const label=(mode==="mix"?"ミックス":(md?md.n:mode))+"　LEVEL "+lv+"　全"+items.length+"問";
+  const d=new Date();
+  const date=d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
+  const wmCss=(window.ChukyoPrint&&ChukyoPrint.css)?ChukyoPrint.css():"";
+  const wmImg=(window.ChukyoPrint&&ChukyoPrint.img)?ChukyoPrint.img():"";
+  const head=t=>'<div class="ph"><div><div class="pb">中京個別指導学院</div><div class="pt">'+t+"</div></div>"
+    +'<div class="pr"><div>名前：<span class="nm"></span></div><div class="dt">'+date+"</div></div></div>";
+  const probs=items.map((it,i)=>{
+    const q=it.q;
+    let s='<div class="p"><div class="q"><span class="no">('+(i+1)+")</span><span>"+prtTex(q.lead||"")+"</span></div>";
+    if(q.disp)s+='<div class="dp">'+prtTex(TD(q.disp))+"</div>";
+    if(q.sub)s+='<div class="sb">'+prtTex(q.sub)+"</div>";
+    if(q.ans.kind==="choice")
+      s+='<div class="ch">'+q.ans.choices.map((c,j)=>
+        "<span><i>"+"ABCDEF".charAt(j)+"</i>"+prtTex(T(c))+"</span>").join("")+"</div>";
+    s+='<div class="al">答'+(q.ans.kind==="choice"?'<span class="bx"></span>':'<span class="ln"></span>')+"</div>";
+    return s+"</div>";
+  }).join("");
+  const answ=items.map((it,i)=>
+    '<div class="a"><span class="no">('+(i+1)+")</span>"+prtAnsHtml(it.q)+"</div>").join("");
+  return '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">'
+    +'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">'
+    +"<title>漸化式マスター 練習プリント｜中京個別指導学院</title><style>"
+    +"@page{size:A4 portrait;margin:14mm 16mm;}"
+    +"*{box-sizing:border-box;margin:0;padding:0;}"
+    +'body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;color:#111;font-size:10pt;}'
+    /* ⚠ KaTeX の display 数式は既定で上下 1em の余白を持つ。1問ごとに 7mm 以上
+       食うので必ず 0 にする（これが無いと10問で1枚に収まらない） */
+    +".katex-display{margin:0;}"
+    +"@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}"
+    +wmCss
+    +".wm{position:fixed;}"   /* 2ページに流れても各ページに透かしを出す */
+    +".ph{display:flex;justify-content:space-between;align-items:flex-end;"
+      +"border-bottom:2.5px solid #0a1628;padding-bottom:7px;margin-bottom:10px;}"
+    +".pb{font-size:9pt;font-weight:700;color:#0a1628;margin-bottom:2px;}"
+    +".pt{font-size:16pt;font-weight:900;color:#0a1628;}"
+    +".pr{display:flex;flex-direction:column;gap:6px;align-items:flex-end;}"
+    +".nm{border-bottom:1px solid #111;display:inline-block;min-width:110px;}"
+    +".dt{font-size:9pt;color:#374151;}"
+    +".lb{font-size:11pt;font-weight:700;background:#0a1628;color:#fff;padding:3px 12px;"
+      +"border-radius:4px;display:inline-block;margin-bottom:6px;}"
+    +".lb.gy{background:#374151;}"
+    +".ins{font-size:9.5pt;color:#374151;margin-bottom:6px;}"
+    +".p{break-inside:avoid;page-break-inside:avoid;border-bottom:1px solid #d1d5db;padding:5px 2px 6px;}"
+    +".q{display:flex;gap:6px;align-items:baseline;line-height:1.5;}"
+    +".no{font-weight:700;min-width:26px;flex:0 0 auto;}"
+    +".dp{text-align:center;margin:4px 0 1px;}"
+    +".sb{margin:3px 0 1px;font-size:10pt;}"
+    +".exFml{background:#f3f4f6;border-radius:4px;padding:4px 8px;display:inline-block;line-height:1.7;}"
+    +".ch{display:flex;flex-wrap:wrap;gap:3px 14px;margin-top:5px;font-size:10pt;}"
+    +".ch span{display:inline-flex;align-items:center;gap:5px;}"
+    +".ch i{font-style:normal;font-weight:700;font-size:8pt;border:1px solid #6b7280;border-radius:50%;"
+      +"width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;}"
+    +".al{margin-top:6px;font-size:10pt;color:#374151;}"
+    +".ln{display:inline-block;min-width:50mm;border-bottom:1px solid #9ca3af;margin-left:7px;}"
+    +".bx{display:inline-block;width:20mm;height:6mm;border:1px solid #9ca3af;border-radius:3px;"
+      +"margin-left:7px;vertical-align:middle;}"
+    +".brk{page-break-before:always;break-before:page;}"
+    +".a{display:flex;gap:6px;align-items:baseline;border-bottom:1px solid #d1d5db;padding:7px 2px;}"
+    +".mk{font-weight:700;background:#0a1628;color:#fff;border-radius:3px;padding:0 6px;margin-right:7px;}"
+    +".un{margin-left:5px;font-size:9.5pt;color:#374151;}"
+    +"</style></head><body>"+wmImg
+    +"<section>"+head("漸化式マスター　練習プリント")
+      +'<div class="lb">'+esc(label)+"</div>"
+      +'<div class="ins">次の問いに答えなさい。</div>'+probs+"</section>"
+    +'<section class="brk">'+head("漸化式マスター　解答")
+      +'<div class="lb gy">解答</div>'+answ+"</section>"
+    +"</body></html>";
+}
+function printSheet(){
+  const items=prtPick(PRT_N);
+  if(!items.length){banner("出題するタイプが1つも選ばれていません。ミックスの内訳でチェックを入れてください");return;}
+  if(items.length<PRT_N)
+    banner("このタイプ・レベルは問題が "+items.length+" 通りしかないため、"+items.length+"問のプリントになります");
+  const w=window.open("","_blank","width=794,height=1123");
+  if(!w){banner("ポップアップがブロックされました。このサイトのポップアップを許可してから、もう一度お試しください");return;}
+  w.document.write(prtHtml(items));
+  w.document.close();
+  setTimeout(()=>{
+    if(window.ChukyoPrint&&ChukyoPrint.print)ChukyoPrint.print(w.document,w);
+    else{w.focus();w.print();}
+  },600);
+}
+
+function banner(msg){
+  const old=document.getElementById("noticeBanner");
+  if(old)old.remove();
+  const d=document.createElement("div");
+  d.id="noticeBanner";d.className="banner";d.textContent=msg;
+  const pane=document.getElementById("view-train");
+  pane.insertBefore(d,pane.firstChild);
+  setTimeout(()=>{if(d.parentNode)d.remove();},9000);
+}
+
+/* 正解=はんこ / 誤答=「ナイスチャレンジ！」バッジ（js/jh共通 divp-correct-jh.js）。
+   第1引数のセレクタは必須。#card は overflow:visible にしてある
+   （はんこは直径171pxで、hidden だと切れる）。
+   ⚠ はんこは既定で自動では消えない（カードを innerHTML で作り直すツール前提の作り）。
+     このツールは #card の中身だけ差し替えるので消えずに残る。
+     fadeMs を渡して自分で引っ込めさせ、次の問題でも clearEffects() で片付ける。 */
+function clearEffects(){
+  document.querySelectorAll("#card .divp-hanko,#card .divp-nice").forEach(e=>e.remove());
+}
+function correctEffect(){
+  if(window.Divp&&typeof Divp.correct==="function"){Divp.correct("#card",{fadeMs:1400});}
+}
+function incorrectEffect(){
+  if(window.Divp&&typeof Divp.incorrect==="function")Divp.incorrect("#card");
+}
+
+/* ---------- 解き直しモード(?retry=1) ----------
+   マイページの「解き直し」から ?retry=1 付きで開かれたときだけ動く。
+   question_params の {m:タイプ, lv:レベル, s:種} で生成関数を回すと同じ問題が出るので、
+   pending をその順に消化する。判定後は通常どおり Divp.answer が飛ぶ＝
+   params_hash も同じなので、2連続正解で save_answer.php が mastered にする。 */
+function initRetry(){
+  if(!(window.Divp&&typeof Divp.getRetries==="function"))return;
+  Divp.getRetries().then(items=>{
+    const use=(items||[]).filter(it=>{
+      const p=it&&it.question_params;
+      return p&&GENS[p.m]&&typeof p.s==="number";
+    }).map(it=>({m:it.question_params.m,lv:it.question_params.lv||1,s:it.question_params.s}));
+    if(!use.length){
+      banner("解き直せる問題はまだありません。これからまちがえた問題がここに入ります");
+      return;
+    }
+    retryQ=use.slice();retryTotal=retryQ.length;retryDone=0;wrongRound=false;
+    roundStart(retryTotal,true);          /* 解き直しはランクを付けないラウンド */
+    banner("解き直しモード: まちがえた "+retryTotal+" 問を、同じ問題で出し直します");
+    newQuestion();
+  }).catch(()=>{});
+}
+
+/* ---------- 画面の切り替え ---------- */
+function setView(v){
+  view=v;
+  document.getElementById("view-train").style.display=(v==="train")?"block":"none";
+  document.getElementById("view-graph").style.display=(v==="graph")?"block":"none";
+  document.querySelectorAll(".vtab").forEach(b=>b.classList.toggle("on",b.dataset.view===v));
+  if(v==="train")safeDivp("resultClose");
+  try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){window.scrollTo(0,0);}
+}
+
+/* ---------- イベント ---------- */
+document.querySelector(".viewtabs").addEventListener("click",e=>{
+  const b=e.target.closest(".vtab");if(!b)return;
+  setView(b.dataset.view);
+  if(b.dataset.view==="graph")gRender();     /* 非表示中は幅0で描かれているので描き直す */
+});
+document.getElementById("typeChips").addEventListener("click",e=>{
+  const c=e.target.closest(".chip");if(!c)return;
+  mode=c.dataset.mode;
+  retryQ=null;wrongRound=false;                 /* タイプを選び直したら解き直しモードを抜ける */
+  document.querySelectorAll("#typeChips .chip").forEach(x=>x.classList.toggle("on",x===c));
+  document.getElementById("mixBox").style.display=(mode==="mix")?"block":"none";
+  roundStart(ROUND_N,false);                    /* ラウンドも数え直し（連続はタイプごと） */
+  safeDivp("resultClose");
+  updLvDesc();
+  newQuestion();
+});
+document.getElementById("lvSeg").addEventListener("click",e=>{
+  const b=e.target.closest(".lvbtn");if(!b)return;
+  lv=parseInt(b.dataset.lv,10)||1;
+  document.querySelectorAll(".lvbtn").forEach(x=>x.classList.toggle("on",x===b));
+  retryQ=null;wrongRound=false;
+  roundStart(ROUND_N,false);
+  safeDivp("resultClose");
+  updLvDesc();
+  newQuestion();
+});
+document.getElementById("mixGrid").addEventListener("change",e=>{
+  const cb=e.target.closest("input[data-mix]");if(!cb)return;
+  if(cb.checked)mixSet.add(cb.dataset.mix);else mixSet.delete(cb.dataset.mix);
+  if(mode==="mix"&&!cur)newQuestion();
+});
+document.getElementById("mixAll").addEventListener("click",()=>{setMixAll(()=>true);if(mode==="mix"&&!cur)newQuestion();});
+document.getElementById("mixNone").addEventListener("click",()=>{setMixAll(()=>false);});
+document.getElementById("mixBasic").addEventListener("click",()=>{
+  setMixAll(k=>BASIC4.indexOf(k)>=0);
+  if(mode==="mix"&&!cur)newQuestion();
+});
+document.getElementById("prtBtn").addEventListener("click",printSheet);
+document.getElementById("foldBtn").addEventListener("click",()=>{
+  const box=document.getElementById("selbox"),b=document.getElementById("foldBtn");
+  const fold=!box.classList.contains("folded");
+  box.classList.toggle("folded",fold);
+  b.textContent=fold?"ひらく":"とじる";
+  b.setAttribute("aria-expanded",fold?"false":"true");
+});
+/* 選択肢・テンキーはクリック委任だけで受ける（touch リスナーを足さない＝
+   高速連打のタッチミス対策。touch-action:manipulation は body に指定済み） */
+document.getElementById("ansArea").addEventListener("click",e=>{
+  const c=e.target.closest(".choiceBtn");
+  if(c&&!graded){
+    selChoice=parseInt(c.dataset.i,10);
+    document.querySelectorAll("#ansArea .choiceBtn").forEach(b=>b.classList.toggle("sel",b===c));
+    return;
+  }
+  const k=e.target.closest(".key");
+  if(k&&!graded){
+    const v=k.dataset.k;
+    if(v==="bs")numStr=numStr.slice(0,-1);
+    else if(v==="-")numStr=(numStr.charAt(0)==="-")?numStr.slice(1):("-"+numStr);
+    else if(numStr.replace("-","").length<9)numStr+=v;
+    refreshNum();
+  }
+});
+document.getElementById("checkBtn").addEventListener("click",check);
+document.getElementById("nextBtn").addEventListener("click",()=>{
+  /* ラウンドを解き終わっていたら、次の問題ではなく結果画面を先に出す */
+  if(graded&&roundDone()){
+    const drained=!!(retryQ&&retryQ.length===0);
+    if(showRoundResult()){
+      if(drained){retryQ=null;wrongRound=false;}
+      return;
+    }
+    if(drained){retryQ=null;wrongRound=false;}
+  }
+  newQuestion();
+});
+document.getElementById("exBody").addEventListener("click",e=>{
+  const b=e.target.closest("[data-graph]");if(!b)return;
+  let info=null;
+  try{info=JSON.parse(b.dataset.graph);}catch(err){}
+  if(info)openGraphFrom(info);
+});
+/* グラフモード */
+document.getElementById("gTypeChips").addEventListener("click",e=>{
+  const b=e.target.closest(".chip");if(!b)return;
+  setGraph(b.dataset.g,0);
+});
+document.getElementById("gCtrl").addEventListener("click",e=>{
+  const b=e.target.closest(".sbtn");if(!b)return;
+  gStepParam(b.dataset.p,parseInt(b.dataset.dir,10));
+});
+document.getElementById("gPrev").addEventListener("click",()=>{
+  if(gStep>0){gStep--;gApply(false);}
+});
+document.getElementById("gNext").addEventListener("click",()=>{
+  const g=GRAPHMAP[gType];
+  if(gStep>=g.steps.length-1){gStep=0;gRender();return;}   /* 最後まで来たら最初から */
+  gStep++;gApply(false);
+});
+/* キーボード（PCで解く生徒向け）。数字・マイナス・BS・Enter だけ */
+document.addEventListener("keydown",e=>{
+  if(view!=="train")return;
+  if(e.target&&/^(INPUT|TEXTAREA)$/.test(e.target.tagName))return;
+  if(e.key==="Enter"){
+    e.preventDefault();
+    if(graded)document.getElementById("nextBtn").click();
+    else check();
+    return;
+  }
+  if(!cur||graded||cur.ans.kind!=="num")return;
+  if(/^[0-9]$/.test(e.key)){
+    if(numStr.replace("-","").length<9)numStr+=e.key;refreshNum();
+  }else if(e.key==="-"){
+    numStr=(numStr.charAt(0)==="-")?numStr.slice(1):("-"+numStr);refreshNum();
+  }else if(e.key==="Backspace"){
+    e.preventDefault();numStr=numStr.slice(0,-1);refreshNum();
+  }
+});
+/* KaTeX は defer 読み込みなので、来てからもう一度描き直す */
+window.addEventListener("load",()=>{
+  renderTexIn(document.body);
+  if(view==="graph")gRender();
+});
+
+/* ---------- 起動 ---------- */
+/* 学習記録の開始（セッション・学習時間・ハートビートは divp-core にまかせる） */
+safeDivp("init",UNIT_KEY);
+buildTypeChips();
+buildMixGrid();
+buildGraphChips();
+buildGraphCtrl();
+roundInit();
+updLvDesc();
+updHUD();
+newQuestion();
+gRender();
+/* マイページの「解き直し」から来たときだけ、pending を同じ問題で出し直す */
+if(/[?&]retry=1/.test(location.search)){try{initRetry();}catch(e){}}
+/* ?graph=tokusei のように直リンクでグラフを開けるようにしておく（授業で見せる用） */
+(function(){
+  const m=/[?&]graph=([a-z]+)/i.exec(location.search);
+  if(m&&GRAPHMAP[m[1]]){setView("graph");setGraph(m[1],0);}
+})();
+</script>
+</body>
+</html>
