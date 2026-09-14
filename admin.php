@@ -119,7 +119,7 @@ if ($role === 'super_admin') {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>アカウント管理（登録・変更・削除） | 中京個別指導学院</title>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --paper:#FBFAF6;--grid:#ECE9E0;--ink:#33312B;--ink-soft:#8B877C;
@@ -170,6 +170,13 @@ if ($role === 'super_admin') {
   .chks label{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:500;margin:0;
     background:var(--white);border:1.5px solid var(--grid);border-radius:999px;padding:3px 12px;cursor:pointer}
   .chks input{width:auto;margin:0}
+  /* 登録一覧タブだけ、見出しから表の中身まで丸ゴでそろえる
+     （teacher.php の #students-card と同じ考え方）。
+     コンテナ1本の「継承」で効かせるのが要点で、#pane-list td のような
+     直接指定にすると、独自に font-family を持つ子（.newmark / .sib-badge /
+     .plan-badge / button.mini、それに monospace の貼り付け用 textarea）まで
+     潰してしまう。input/select は font-family:inherit なので自動で追従する */
+  #pane-list{font-family:'Zen Maru Gothic',sans-serif}
   table{border-collapse:collapse;width:100%;font-size:13px;margin-top:10px}
   th{font-size:11px;color:var(--ink-soft);font-weight:700;text-align:left;
     border-bottom:2px solid var(--ai-soft);padding:6px 8px;white-space:nowrap}

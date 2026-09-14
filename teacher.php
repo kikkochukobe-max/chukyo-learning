@@ -851,7 +851,7 @@ function ssl_row_html(array $ssl): string
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>講師ページ | 中京個別指導学院</title>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script src="/assets/print-watermark.js"></script>
@@ -905,16 +905,24 @@ function ssl_row_html(array $ssl): string
     border-bottom:2px solid var(--ai-soft);padding:6px 8px;white-space:nowrap}
   td{border-bottom:1px solid #F3F0E8;padding:7px 8px;vertical-align:top}
   tr:last-child td{border-bottom:none}
-  /* 数字は等幅で桁を揃える。Zen Kaku Gothic New のWeb版は tnum 非対応で
-     読み込み後にプロポーショナル幅へ戻ってしまうため、数字だけ等幅数字を持つ
-     システムフォントで描画し、漢字(「位」等)は Zen にフォールバックさせる */
+  /* 数字は等幅で桁を揃える。Zen 系のWeb版は tnum 非対応で読み込み後に
+     プロポーショナル幅へ戻ってしまうため、数字だけ等幅数字を持つ
+     システムフォントで描画し、漢字(「位」「分」等)は Zen Maru Gothic に
+     フォールバックさせる（system-ui=Segoe UI は日本語を持たないので、
+     このスタックの日本語は必ず丸ゴで出る） */
   .num{text-align:right;white-space:nowrap;
-    font-family:system-ui,'Segoe UI','Helvetica Neue',Arial,'Zen Kaku Gothic New',sans-serif;
+    font-family:system-ui,'Segoe UI','Helvetica Neue',Arial,'Zen Maru Gothic',sans-serif;
     font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
   /* 生徒名は一覧・ランキングとも丸ゴで統一する。ランキングの担当外教室の生徒は
      リンクにならない生テキストなので、a ではなくセル(.c-name)側にも同じ指定を置く */
   a.sname{color:var(--ai);font-weight:700;text-decoration:none;font-family:'Zen Maru Gothic',sans-serif}
   td.c-name{font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
+  /* 生徒一覧のカードだけ、見出しから表の中身まで丸ゴでそろえる。
+     ここは「継承」で効かせるのが要点で、独自に font-family を持つ子
+     （.num の等幅数字・.c-name の太字丸ゴ）はそのまま自分の指定が勝つ。
+     カード側を #students-card td のように直接指定にすると .num を潰して
+     数字の桁が揃わなくなるので、コンテナ1本にとどめること */
+  #students-card{font-family:'Zen Maru Gothic',sans-serif}
   /* 生徒一覧は列幅を固定比率にし、教室を切り替えても幅がブレないようにする。
      table-layout:fixed + width:100% で、余った幅は colgroup の比率どおりに全列へ配分
      （1列だけが膨らまない）。長い氏名は…で省略 */
@@ -1123,7 +1131,7 @@ function ssl_row_html(array $ssl): string
     .sp-only{display:block}
     .sp-only.row{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-top:8px}
     .sp-fsel{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--ink-soft);flex:1 1 30%}
-    .sp-sel{font-family:'Zen Kaku Gothic New',sans-serif;font-size:15px;font-weight:700;color:var(--ink);
+    .sp-sel{font-family:'Zen Maru Gothic',sans-serif;font-size:15px;font-weight:700;color:var(--ink);
       border:1.5px solid var(--grid);border-radius:9px;padding:7px 9px;background:var(--white);cursor:pointer;
       flex:1 1 auto;min-width:0;max-width:100%}
     /* ランキング/テスト生/イベント等のpillは縮ませない（1文字ずつ折り返す事故を防ぐ） */
@@ -1144,13 +1152,13 @@ function ssl_row_html(array $ssl): string
     .sp-list li:last-child{border-bottom:none}
     /* 生徒コード(左端) → 学年 → 氏名(可変) → 問題数(固定幅・右揃えで縦に揃う) */
     .sp-list .r-code{flex:0 0 auto;color:var(--ink-soft);font-size:14px;
-      font-family:system-ui,'Segoe UI',Arial,sans-serif;font-variant-numeric:tabular-nums}
+      font-family:system-ui,'Segoe UI',Arial,'Zen Maru Gothic',sans-serif;font-variant-numeric:tabular-nums}
     .sp-list .r-grade{flex:0 0 2.6em;color:var(--ink-soft);font-size:13px;white-space:nowrap}
     .sp-list .r-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
       font-size:16px;font-weight:700;font-family:'Zen Maru Gothic',sans-serif}
     .sp-list .r-name a.sname{color:var(--ai);text-decoration:none;font-weight:700;font-family:'Zen Maru Gothic',sans-serif}
     .sp-list .r-solved{flex:0 0 3.6em;text-align:right;color:var(--ink-soft);font-size:13px;white-space:nowrap;
-      font-family:system-ui,'Segoe UI',Arial,sans-serif;font-variant-numeric:tabular-nums}
+      font-family:system-ui,'Segoe UI',Arial,'Zen Maru Gothic',sans-serif;font-variant-numeric:tabular-nums}
 
     /* --- ランキング: 種類ドロップダウンで選んだ表だけ表示。1行=順位/学年/氏名/数字 --- */
     .sp-rank-bar{margin:10px 0 2px}
@@ -1991,7 +1999,7 @@ function ssl_row_html(array $ssl): string
     <a class="ptab<?= $showTest ? ' active' : '' ?>" href="<?= h(qtab(['showtest' => $showTest ? null : '1'])) ?>"><?= $showTest ? 'テスト生を隠す' : 'テスト生を表示' ?></a>
   </div>
 
-  <div class="card">
+  <div class="card" id="students-card">
     <h1>生徒一覧 <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">（<?= h($periodLabels[$period]) ?><?= $filterSubject !== '' ? '・' . h(subject_label($filterSubject)) : '' ?><?= $filterGrade !== '' ? '・' . h(grade_label($filterGrade)) : '' ?>の学習状況）</span></h1>
 <?php if (count($students) === 0): ?>
     <p style="font-size:13px;color:var(--ink-soft);margin-top:8px;">表示できる生徒がいません</p>

@@ -229,7 +229,7 @@ function subject_color(array $subjects, string $folder): string
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>学習ツールいちらん | 中京個別指導学院</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
     --paper:#FBFAF6;
@@ -246,7 +246,7 @@ function subject_color(array $subjects, string $folder): string
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{
-    font-family:'Zen Kaku Gothic New',sans-serif;
+    font-family:'Zen Maru Gothic',sans-serif;
     color:var(--ink);
     background-color:var(--paper);
     background-image:
