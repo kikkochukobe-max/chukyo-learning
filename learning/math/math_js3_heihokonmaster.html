@@ -2435,10 +2435,24 @@ function mixAnsLatex(p){
   if(p.type==='adv') return reLatex(p.ans);
   return mdSignedAnswerLatex(p);
 }
+// 配列のコピーをフィッシャー・イェーツでシャッフルする
+// （sort に乱数の比較関数を渡すやり方は偏るうえ、並びがブラウザの sort 実装しだいになる）
+function shuffled(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+// n問ぶんの「出す種類」の割り当てを作る。6タイプが必ず1回ずつ入り、
+// 余り（10問なら4問）だけを抽選して足す＝プリントに出ないタイプが生まれない
+function formulaPrintPlan(n){
+  const plan=[];
+  while(plan.length<n) plan.push(...shuffled(FORMULA_KINDS));
+  return shuffled(plan.slice(0,n));
+}
 function printMix(){
   const probs=[]; const seen=new Set();
+  // 乗法公式だけは種類を先に割り当てる。1問ずつ抽選すると10問では
+  // 必ずどれかのタイプが出ない（6タイプあるので偏りがそのまま紙に出る）
+  const plan = mixKind==='formula' ? formulaPrintPlan(10) : null;
   for(let att=0; att<500 && probs.length<10; att++){
-    const p=genMixProblem(); if(!p) continue;
+    const p = plan ? genFormulaProblem(plan[probs.length]) : genMixProblem();
+    if(!p) continue;
     const sig=(p._signedQuestionLatex||p.latex||p.probLatex||''); if(seen.has(sig)) continue;
     seen.add(sig); probs.push(p);
   }
@@ -3303,10 +3317,13 @@ function sPar(n){ return n<0 ? `(${n})` : String(n); }
 // 根号に付く係数（1 なら係数なし＝従来どおりの形）。radLatex(k,A) が k√A を描く。
 // (k√A)^2 = k^2 A が大きくなりすぎると答えが読みにくいので FORMULA_SQ_MAX で頭を打つ
 const FORMULA_COEFS=[1,1,2,2,3], FORMULA_SQ_MAX=48;
-function genFormulaProblem(){
+const FORMULA_KINDS=['diffprod_rr','diffprod_ri','square_rr','square_ri','xab','xab_rad'];
+// wantKind を渡すと その種類だけを作る（プリントで6タイプを満遍なく出すため）。
+// 省略すると従来どおり6タイプから抽選する
+function genFormulaProblem(wantKind){
   const rads=[2,3,5,6,7], ints=[1,2,3,4];
   for(let att=0;att<200;att++){
-    const kind=pick(['diffprod_rr','diffprod_ri','square_rr','square_ri','xab','xab_rad']);
+    const kind=wantKind||pick(FORMULA_KINDS);
     let qLatex,p,q,m,steps,altSum=0,dm=1,dq=0;
     if(kind==='diffprod_rr'){
       const A=pick(rads),B=pick(rads); if(A===B)continue;
