@@ -998,21 +998,25 @@ function gen8(){
 /* ── (9) 確率 ── */
 function fracTex(num,den){const f=F(num,den);return'\\dfrac{'+f.n+'}{'+f.d+'}'}
 function gen9(){
+ /* items は「重なりのない種類」だけを並べる。当たりと特賞のように
+    一方がもう一方に含まれる言い方を混ぜると「同じ種類」が決まらない。
+    くじは2種類(当たり/はずれ)なので「1本ずつ」「2本とも同じ」で聞く。 */
  const themes=[
-  {noun:'カード',verb:'取り出す',label:l=>l+'が書かれているカード',count:'枚',
+  {noun:'カード',verb:'取り出す',way:'取り出し方',label:l=>l+'が書かれているカード',count:'枚',
    items:['A','B','C'],ask:'取り出した 2 枚のカードに書かれた文字が異なる',same:'同じ文字になる'},
-  {noun:'玉',verb:'取り出す',label:l=>l+'色の玉',count:'個',
+  {noun:'玉',verb:'取り出す',way:'取り出し方',label:l=>l+'色の玉',count:'個',
    items:['赤','白','青'],ask:'取り出した 2 個の玉の色が異なる',same:'同じ色になる'},
-  {noun:'くじ',verb:'ひく',label:l=>l+'のくじ',count:'本',
-   items:['当たり','はずれ','特賞'],ask:'ひいた 2 本のくじの種類が異なる',same:'同じ種類になる'},
-  {noun:'ボール',verb:'取り出す',label:l=>l+'のボール',count:'個',
+  {noun:'くじ',verb:'ひく',way:'ひき方',label:l=>l+'くじ',count:'本',
+   items:['当たり','はずれ'],ask:'当たりとはずれが 1 本ずつになる',same:'2 本とも同じ種類になる',
+   exDiff:'当たりとはずれが 1 本ずつになる'},
+  {noun:'ボール',verb:'取り出す',way:'取り出し方',label:l=>l+'のボール',count:'個',
    items:['①','②','③'],ask:'取り出した 2 個のボールの番号が異なる',same:'同じ番号になる'}];
  for(let t=0;t<100;t++){
   const th=rc(themes);
-  const a=ri(2,3),b=ri(1,3),c=ri(1,2);
-  const cnts=[a,b,c];const N=a+b+c;
+  const cnts=th.items.length===2?[ri(2,4),ri(2,4)]:[ri(2,3),ri(1,3),ri(1,2)];
+  const N=cnts.reduce((s,x)=>s+x,0);
   if(N<5||N>7)continue;
-  const same=C2(a)+C2(b)+C2(c);
+  const same=cnts.reduce((s,x)=>s+C2(x),0);
   const total=C2(N);
   const diffN=total-same;
   if(same===0||diffN===0)continue;
@@ -1028,12 +1032,14 @@ function gen9(){
    fracTex(1,2)];
   const ch=mkChoices(correct,w);
   if(!ch)continue;
-  const listStr=[0,1,2].map(k=>th.label(th.items[k])+'が '+cnts[k]+' '+th.count).join('、');
-  const askStr=askDiff?th.ask:th.same.replace(/になる$/,'');
+  const listStr=cnts.map((n,k)=>th.label(th.items[k])+'が '+n+' '+th.count).join('、');
+  const askStr=askDiff?th.ask:th.same;
   const parts=[txtPart('箱の中に'+listStr+'入っている。中を見ないで、この箱から'+th.noun+'を同時に 2 '+th.count+th.verb+'とき、'+askStr+'確率として正しいものを、次のアからエまでの中から一つ選びなさい。')];
-  const ex=[jt('2'+th.count+'の'+th.verb+'方は全部で ')+'{}_{'+N+'}\\mathrm{C}_{2}='+total+jt(' 通り'),
-   jt((askDiff?'異なる':'同じになる')+'のは ')+cnt+jt(' 通り'),
-   fracTex(cnt,total)];
+  /* 中学では C を使わないので、樹形図と同じ数え方(N×(N-1)÷2)で書く */
+  const ex=[jt('2 '+th.count+'の'+th.way+'は全部で ')+N+'\\times'+(N-1)+'\\div 2='+total+jt(' 通り'),
+   jt('(1 '+th.count+'めが '+N+' 通り、2 '+th.count+'めが '+(N-1)+' 通り。同時に'+th.verb+'ので順番は区別せず 2 でわる)'),
+   jt((askDiff?(th.exDiff||'異なる'):'同じになる')+'のは ')+cnt+jt(' 通り'),
+   (F(cnt,total).d!==total?'\\dfrac{'+cnt+'}{'+total+'}=':'')+fracTex(cnt,total)];
   return q_('t9','a1_kakuritsu',parts,ch,ex)}
  return gen9()}
 
