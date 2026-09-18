@@ -239,6 +239,12 @@ button{font-family:inherit}
 "use strict";
 /* ============ utils ============ */
 var $=function(id){return document.getElementById(id)};
+/* 1問に かかった時間を 測る時計。**端末の時計（Date.now）は 使わない**。
+   performance.now() は ページを 開いてからの 経過msで、端末の日付・時刻を
+   変えても 動かない＝解いている 途中で 時計を 巻き戻して 秒数を
+   ごまかすことが できない。差を 取る用の 時計なので、
+   「いつ 解いたか」の 記録には 使えない（そちらは サーバーの時刻）。 */
+function nowMs(){ return (window.performance&&performance.now)?performance.now():+new Date() }
 function R(a,b){return a+Math.floor(Math.random()*(b-a+1))}
 function pick(a){return a[R(0,a.length-1)]}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=R(0,i);var t=a[i];a[i]=a[j];a[j]=t}return a}
@@ -376,7 +382,7 @@ function curQ(){ return S.phase==="main"?S.qs[S.i]:S.retry[S.i] }
 
 function showQ(){
   var q=curQ(), n=(S.phase==="main"?S.qs:S.retry).length;
-  S.locked=false; S.sel=-1; S.t0=Date.now();
+  S.locked=false; S.sel=-1; S.t0=nowMs();
   $("judge").hidden=true; $("judge").innerHTML="";
   $("qnum").textContent=(S.i+1)+" / "+n;
   $("progbar").style.width=(S.i/n*100)+"%";
@@ -653,7 +659,7 @@ function grade(){
     mine=S.val[0]; ok=(Number(S.val[0])===Number(q.ans));
   }
   S.locked=true;
-  var ms=Date.now()-S.t0;
+  var ms=nowMs()-S.t0;
   logAnswer(q,ok,mine,ms);
   if(ok){
     if(S.phase==="main") S.ok++;
@@ -672,6 +678,10 @@ function grade(){
    記録しない（それで マスター判定が 進んでしまわないように）。 */
 function logAnswer(q,ok,mine,ms){
   if(S.phase==="retry") return;
+  // 1問の 所要時間。席を はずした ぶんを まぜないよう 10分を こえたら 記録しない
+  // （他の ツールと 同じ ガード）。0以下も 捨てる。
+  var sec=Math.round(ms/1000);
+  if(!(sec>0&&sec<600)) sec=null;
   try{
     var D=window.Divp;
     if(!D||typeof D.answer!=="function") return;
@@ -681,7 +691,7 @@ function logAnswer(q,ok,mine,ms){
       question_text: String(q.log||q.q).replace(/<[^>]*>/g,""),
       correct_answer: ansText(q),
       wrong_answer: mine,
-      time_taken_sec: Math.round(ms/1000)
+      time_taken_sec: sec
     });
   }catch(e){ /* オフラインでも 演習は つづける */ }
 }

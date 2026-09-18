@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/time_ranking.php';   // 台帳（min_ms 等）と判定関数を共用する
 
 // タイムアタックのクリアタイムを1プレイ=1行で保存する。
 // answer_logs には残さない（種類別集計・XPを汚さない）。
@@ -28,9 +29,22 @@ if ($timeMs <= 0 || $timeMs > 86400000) {
     json_response(['ok' => false, 'error' => 'invalid_time'], 400);
 }
 $missCount = isset($input['miss_count']) ? max(0, (int)$input['miss_count']) : 0;
+if ($missCount > 9999) {
+    json_response(['ok' => false, 'error' => 'invalid_request'], 400);
+}
 $meta = $input['meta'] ?? null;
 if ($meta !== null && !is_array($meta)) {
     json_response(['ok' => false, 'error' => 'invalid_request'], 400);
+}
+
+// ---- 人間には出せない記録を弾く（台帳 time_units() の min_ms / total）----
+// タイムはクライアントが測って送るだけの値なので、ここが唯一の歯止めになる。
+// 保存しない＝ランキングにも自己ベストにも残らない。error_log に残すので、
+// 繰り返し出る生徒がいれば気づける（ツールの不具合で出ている可能性もある）。
+if (time_is_impossible($unitKey, $timeMs, $missCount)) {
+    error_log("[save_time] あり得ないタイムを拒否: student_id={$studentId} unit_key={$unitKey} "
+        . "question_key={$questionKey} time_ms={$timeMs} miss_count={$missCount}");
+    json_response(['ok' => false, 'error' => 'invalid_time'], 400);
 }
 
 $pdo = db();
@@ -76,16 +90,9 @@ try {
     $recordId = (int)$pdo->lastInsertId();
 
     // 学習時間は活動ベースで積算（1問ごとのログは残さないが、遊んだ時間は記録する）。
-    // save_answer.php と同じく「前回活動からの経過(上限5分)」を duration_sec に足す。
+    // save_answer.php と同じ helpers.php の共通処理を通す。
     if ($sessionId !== null) {
-        $stmt = $pdo->prepare(
-            'UPDATE study_sessions
-             SET duration_sec = COALESCE(duration_sec, 0)
-                   + LEAST(TIMESTAMPDIFF(SECOND, COALESCE(ended_at, started_at), NOW()), 300),
-                 ended_at = NOW()
-             WHERE session_id = :id'
-        );
-        $stmt->execute(['id' => $sessionId]);
+        touch_session_activity($pdo, $sessionId, $studentId);
     }
 
     $pdo->commit();

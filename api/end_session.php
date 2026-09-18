@@ -29,13 +29,12 @@ $stmt = $pdo->prepare(
 $stmt->execute(['id' => $sessionId]);
 $counts = $stmt->fetch();
 
-// 学習時間は壁時計ではなく活動ベースの積算（放置時間を含めない。最終区間も5分上限）
+// 学習時間は壁時計ではなく活動ベースの積算（放置時間を含めない。最終区間も5分上限）。
+// helpers.php に集約＝同じ生徒の他タブと同じ時間を二重に数えない。
+touch_session_activity($pdo, $sessionId, (int)$actor['id']);
 $stmt = $pdo->prepare(
     'UPDATE study_sessions
-     SET duration_sec = COALESCE(duration_sec, 0)
-           + LEAST(TIMESTAMPDIFF(SECOND, COALESCE(ended_at, started_at), NOW()), 300),
-         ended_at = NOW(),
-         total_questions = :total,
+     SET total_questions = :total,
          correct_count = :correct
      WHERE session_id = :id'
 );

@@ -981,6 +981,11 @@ function ssl_row_html(array $ssl): string
   .ssl-type.ret{background:#E9F2EC;color:#3E7A5E}
   /* 送信された時刻。日付(.ssl-date)と読み違えないよう小さく薄く出す */
   .ssl-sent{font-size:10px;color:#A8A399;font-feature-settings:'tnum'}
+  /* タイムの「速すぎ」印。あり得ない値は保存の時点で弾いてあるので、
+     これは「先生が見て判断する」グレーの記録にだけ付く */
+  .t-susp{font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;
+    background:#F6E3DF;color:var(--shu);vertical-align:middle;
+    font-family:'Zen Maru Gothic',sans-serif;cursor:help}
   .ssl-yet{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
     background:#FFF3D0;color:#8A6D12;font-family:'Zen Maru Gothic',sans-serif}
   .ssl-ok{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
@@ -1363,12 +1368,17 @@ function ssl_row_html(array $ssl): string
     $miss = (int)$trow['miss_count'];
     $scoreTxt = $hasScore ? (max(0, (int)$tc['total'] - $miss) . '/' . (int)$tc['total']) : (string)$miss;
     $perfect = $hasScore && $miss === 0;
+    // 「速すぎ」の印（台帳 time_units() の suspect_ms 未満）。あり得ない値は
+    // save_time.php が保存の時点で弾いているので、ここに出るのは
+    // 「不可能とまでは言えないが先生が見て判断した方がよい」記録だけ。
+    // 生徒のマイページには出さない＝疑いを本人に突きつけない。
+    $tsusp = time_is_suspect($tuk, (int)$trow['time_ms']);
 ?>
       <tr>
 <?php if (!$isRecent): ?>
         <td class="num" data-label="順位" style="font-weight:700;<?= $ti < 3 ? 'color:var(--kin);' : '' ?>"><?= $ti + 1 ?>位</td>
 <?php endif; ?>
-        <td class="num" data-label="タイム" style="font-weight:700;"><?= h(fmt_time_unit((int)$trow['time_ms'], $tuk)) ?></td>
+        <td class="num" data-label="タイム" style="font-weight:700;"><?= h(fmt_time_unit((int)$trow['time_ms'], $tuk)) ?><?php if ($tsusp): ?> <span class="t-susp" title="この単元で想定している最速より速い記録です。本人に聞いてみてください（記録は消していません）">速すぎ</span><?php endif; ?></td>
         <td class="num" data-label="<?= h($tc['miss_label']) ?>"<?= $perfect ? ' style="font-weight:700;color:var(--kin);"' : '' ?>><?= h($scoreTxt) ?></td>
         <td data-label="表示"><?= h($tmode) ?></td>
         <td data-label="日時" style="white-space:nowrap;"><?= h(substr((string)$trow['created_at'], 0, 16)) ?></td>
@@ -1822,7 +1832,7 @@ function ssl_row_html(array $ssl): string
 <?php endif; ?>
         <td data-label="教室"><?= h($r['classroom_name']) ?></td>
         <td data-label="学年"><?= h(grade_label($r['grade'])) ?></td>
-        <td class="num" data-label="ベスト" style="font-weight:700;"><?= h(fmt_time_ms((int)$r['best_ms'])) ?></td>
+        <td class="num" data-label="ベスト" style="font-weight:700;"><?= h(fmt_time_ms((int)$r['best_ms'])) ?><?php if (time_is_suspect($timeRankUnit, (int)$r['best_ms'])): ?> <span class="t-susp" title="この単元で想定している最速より速い記録です。本人に聞いてみてください（記録は消していません）">速すぎ</span><?php endif; ?></td>
         <td class="num" data-label="回数"><?= (int)$r['plays'] ?></td>
       </tr>
 <?php endforeach; ?>

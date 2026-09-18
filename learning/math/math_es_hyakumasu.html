@@ -802,8 +802,16 @@ body{
   var countdown=$('countdown'), cdNum=$('cdNum');
   var mode='h', cdTimer=null, cdActive=false;
 
+  // タイムの計測に使う時計。**端末の時計（Date.now）は使わない**。
+  // performance.now() はページを開いてからの経過msで、端末の日付・時刻を
+  // 変えても動かない＝プレイの途中で時計を巻き戻して「速いタイム」を
+  // 作ることができない（Date.now() だとそれができてしまう）。
+  // ⚠ 差を取る用の時計なので、「いつ遊んだか」の記録には使えない（そちらは Date.now）。
+  var nowMs=(window.performance&&performance.now)?function(){return performance.now();}
+                                               :function(){return +new Date();};
+
   // ---- プレイ中のタイマー表示（試験的に非表示。?timer=1 を付けると出る）----
-  // 計測そのものは Date.now() で続けているので、結果画面のタイム・クール別スプリット・
+  // 計測そのものは nowMs() で続けているので、結果画面のタイム・クール別スプリット・
   // 記録の保存は今まで通り。非表示中は毎フレームの rAF ループも止める
   //（残り時間を気にせず打てる＋タップ処理に回るメインスレッドが増える）。
   // visibility で消すのは、レイアウトを1pxも動かさずタイトルの位置を保つため。
@@ -822,7 +830,7 @@ body{
   }
   function tick(){
     if(!running)return;
-    var txt=fmtClock(Date.now()-startT);
+    var txt=fmtClock(nowMs()-startT);
     if(txt!==lastShown){ lastShown=txt; timerEl.textContent=txt; }
     rafId=requestAnimationFrame(tick);
   }
@@ -896,7 +904,7 @@ body{
         // 開始直後はまだ動く要素がある（ヘッダーの描き変わり・Webフォントの適用）ので、
         // 数回だけ測り直して追いつく。以降は paintNow が毎タップ追従する。
         [80,200,500,1000,2000].forEach(function(ms){ setTimeout(measureKeys, ms); });
-        startT=Date.now(); coolStart=startT; running=true;
+        startT=nowMs(); coolStart=startT; running=true;
         if(SHOW_TIMER){ cancelAnimationFrame(rafId); tick(); }
         return;
       }
@@ -921,7 +929,7 @@ body{
     // ① 状態は即進める。次の問題の“描画”だけを一瞬保留し、打ち終えた答えを見せる。
     idx++;
     if(idx%PER_COOL===0){
-      var now=Date.now();
+      var now=nowMs();
       splits.push(now-coolStart);
       coolStart=now;
     }
@@ -953,7 +961,7 @@ body{
     running=false;
     cancelAnimationFrame(rafId);
     document.getElementById('topBar').style.display='none';
-    var total=Date.now()-startT;
+    var total=nowMs()-startT;
     renderResult({time_ms:total, miss_count:miss, splits:splits, ms:ms});
     hideRecordBadge();
     show(scrEnd);
@@ -1349,8 +1357,6 @@ body{
   // press が早期 return する場合（2桁で満杯など）でも点灯だけは出したいので、
   // ここでも描画フレームを予約しておく。
   function flashKey(el){ flashQueue.push(el); schedulePaint(); }
-  var nowMs=(window.performance&&performance.now)?function(){return performance.now();}
-                                               :function(){return +new Date();};
 
   // ── テンキー入力：1接地 = 1入力 ─────────────────────────────
   // 経路は端末ごとに1本だけ。タッチ端末は touch イベント、それ以外は pointerdown。

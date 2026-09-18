@@ -3359,6 +3359,11 @@ let mode='free',curType=null,q=null,setQs=[],setIdx=0,setMarks=[],streak=0;
    null = 解き直しモードではない（mode==='retry' と対で使う） */
 let retryQ=null,retryTotal=0,retryDone=0;
 let tSetStart=0,tQStart=0,timerId=null,graded=false,selected=[];
+/* タイム計測の時計。**端末の時計(Date.now)は使わない**。performance.now() は
+   ページを開いてからの経過msで、端末の日付・時刻を変えても動かない＝解いている
+   途中で時計を巻き戻して本番セットのタイムを縮めることができない。
+   差を取る用の時計なので「いつ解いたか」の記録には使えない（そちらはサーバーの時刻）。 */
+const nowMs=()=>(window.performance&&performance.now)?performance.now():+new Date();
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');window.scrollTo(0,0)}
 
@@ -3427,8 +3432,8 @@ function startWrongSet(ws){
  if(roundIsFree){$('timer').style.display='none'}
  else{
   $('timer').style.display='inline';
-  tSetStart=Date.now();
-  timerId=setInterval(()=>{const s=Math.floor((Date.now()-tSetStart)/1000);
+  tSetStart=nowMs();
+  timerId=setInterval(()=>{const s=Math.floor((nowMs()-tSetStart)/1000);
    $('timer').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')},500)}
  loadQ(setQs[0]);show('scr-drill')}
 function initResultSet(){
@@ -3465,9 +3470,9 @@ function initResultFree(t){
 function startSet(){mode='set';setQs=E.genAichiSet();setIdx=0;setMarks=[];retryQ=null;wrongRetrySet=false;roundIsFree=false;
  initResultSet();safeDivp('resultStart');
  $('streak').style.display='none';$('timer').style.display='inline';
- tSetStart=Date.now();
+ tSetStart=nowMs();
  if(timerId)clearInterval(timerId);
- timerId=setInterval(()=>{const s=Math.floor((Date.now()-tSetStart)/1000);
+ timerId=setInterval(()=>{const s=Math.floor((nowMs()-tSetStart)/1000);
   $('timer').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')},500);
  loadQ(setQs[0]);show('scr-drill')}
 function nextQ(){
@@ -3482,7 +3487,7 @@ function nextQ(){
   if(setIdx>=setQs.length){finishSet();return}
   loadQ(setQs[setIdx])}}
 
-function loadQ(newQ){q=newQ;graded=false;selected=[];tQStart=Date.now();
+function loadQ(newQ){q=newQ;graded=false;selected=[];tQStart=nowMs();
  const tp=E.TYPES.filter(t=>t.id===q.typeId)[0];
  $('qNo').textContent=mode==='set'?'('+(setIdx+1)+')'
   :mode==='retry'?'解き直し '+(retryDone+1)+'/'+retryTotal
@@ -3538,7 +3543,7 @@ $('btnCheck').addEventListener('click',()=>{
  /* この1問にかかった秒数（answer_logs.time_taken_sec）。
     タブを開いたまま離席したぶんまで記録すると平均が壊れるので、
     10分を超えたら「解いていた時間」とは見なさず記録しない。 */
- const qSec=tQStart?Math.max(1,Math.round((Date.now()-tQStart)/1000)):0;
+ const qSec=tQStart?Math.max(1,Math.round((nowMs()-tQStart)/1000)):0;
  const ok=selected.length===q.correct.length&&
   q.correct.every(c=>selected.indexOf(c)>=0);
  /* 学習記録: 判定直後に1行。未ログイン/file://ではdivp-core側が黙ってスキップする */
@@ -3605,7 +3610,7 @@ function stamp(ok){
 
 function finishSet(){
  if(timerId)clearInterval(timerId);
- const sec=Math.floor((Date.now()-tSetStart)/1000);
+ const sec=Math.floor((nowMs()-tSetStart)/1000);
  const score=setMarks.filter(Boolean).length;
  lastSetSec=sec;
  renderRoundResult();

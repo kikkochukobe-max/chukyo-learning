@@ -16,13 +16,6 @@ if ($sessionId <= 0) {
 }
 
 $pdo = db();
-$stmt = $pdo->prepare(
-    'UPDATE study_sessions
-     SET duration_sec = COALESCE(duration_sec, 0)
-           + LEAST(TIMESTAMPDIFF(SECOND, COALESCE(ended_at, started_at), NOW()), 300),
-         ended_at = NOW()
-     WHERE session_id = :id AND student_id = :sid'
-);
-$stmt->execute(['id' => $sessionId, 'sid' => $actor['id']]);
+touch_session_activity($pdo, $sessionId, (int)$actor['id']);
 
 json_response(['ok' => true]);

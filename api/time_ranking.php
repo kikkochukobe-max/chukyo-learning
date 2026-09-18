@@ -20,13 +20,24 @@ declare(strict_types=1);
 //   total        1プレイの問題数。指定すると miss_count から得点(total - miss)を出す
 //   miss_label   miss_count 列の見出し（既定「ミス」）
 //   precision    'ms'=1:03.4 表記（既定） / 'sec'=8分12秒 表記（秒単位でしか測らない単元）
+//   min_ms       これより速いタイムは save_time.php が**保存しない**（人間には出せない値）。
+//                タイムはクライアントが測った値をそのまま送るので、ここが唯一の歯止めになる。
+//                ツール側は performance.now() で測る＝端末の時計を巻き戻しても縮まないが、
+//                開発者ツールから直接 fetch を叩かれる経路はサーバーでしか止められない。
+//   suspect_ms   これより速いと「速すぎ」の印を講師ページに出す（保存はする）。
+//                min_ms =「物理的にあり得ない」/ suspect_ms =「先生が見て判断する」の2段。
+//                生徒側（マイページ）には出さない＝疑いを本人に突きつけない。
 function time_units(): array
 {
     return [
         'math_es_hyakumasu' => [
-            'label'   => '100マス たし算',
-            'ranking' => true,
-            'order'   => 'time',
+            'label'      => '100マス たし算',
+            'ranking'    => true,
+            'order'      => 'time',
+            // 100問。1問0.3秒は打鍵だけでも不可能なので30秒未満は拒否、
+            // 1分未満は小学生の実力としてまず出ないので印を出す
+            'min_ms'     => 30000,
+            'suspect_ms' => 60000,
         ],
         'math_js3_aichi_daimon1' => [
             'label'        => '愛知県 大問1 本番セット',
@@ -36,6 +47,10 @@ function time_units(): array
             'total'        => 10,
             'miss_label'   => '得点',
             'precision'    => 'sec',
+            // 入試大問1の10問。読むだけでも1問6秒はかかる＝1分未満は拒否、
+            // 2分未満は印（全問正解で2分を切る生徒がいたら先生が見て判断する）
+            'min_ms'       => 60000,
+            'suspect_ms'   => 120000,
         ],
     ];
 }
@@ -53,7 +68,32 @@ function time_unit_conf(string $unitKey): ?array
         'total'        => null,
         'miss_label'   => 'ミス',
         'precision'    => 'ms',
+        'min_ms'       => null,
+        'suspect_ms'   => null,
     ];
+}
+
+// 保存を拒否するタイムか（台帳に min_ms / total を書いた単元だけ効く）。
+// 台帳に無い単元・書いていない単元は判定材料が無いので素通りする
+// ＝新しくタイムを記録するツールを作ったら min_ms も一緒に書くこと。
+// なお 0以下・24時間超という単元によらない範囲は save_time.php 側で別に弾いている。
+function time_is_impossible(string $unitKey, int $timeMs, int $missCount): bool
+{
+    $conf = time_unit_conf($unitKey);
+    if ($conf === null) return false;                 // 台帳に無い単元は判定材料が無い
+    if ($conf['min_ms'] !== null && $timeMs < $conf['min_ms']) return true;
+    // 1プレイの問題数が決まっている単元で、ミス数がそれを超えるのはあり得ない
+    // （得点 = total - miss がマイナスになる）
+    if ($conf['total'] !== null && $missCount > (int)$conf['total']) return true;
+    return false;
+}
+
+// 「速すぎ」の印を出すか（保存はする）。講師ページだけで使い、生徒には見せない。
+function time_is_suspect(string $unitKey, int $timeMs): bool
+{
+    $conf = time_unit_conf($unitKey);
+    if ($conf === null || $conf['suspect_ms'] === null) return false;
+    return $timeMs < (int)$conf['suspect_ms'];
 }
 
 // 速さランキングに出す単元だけ（unit_key => 表示名）。講師ページのタブ用。

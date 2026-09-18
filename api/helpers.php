@@ -259,6 +259,48 @@ function params_hash($params): string
     return hash('sha256', json_encode($normalized, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 }
 
+// ===== 学習時間の積算 =====
+// 「前回活動からの経過（上限5分）」を duration_sec に足し、ended_at を
+// 「最後に活動した時刻」へ進める。解答・ハートビート・タイム保存・終了の4か所から呼ぶ
+// （同じ式を4本に写していたのをここに集約した。片方だけ直す事故を防ぐ）。
+//
+// ⚠ 起点は「そのセッションの前回活動」ではなく「**その生徒の**前回活動」にする。
+//   セッションごとに独立で数えると、同じ1時間をタブの数だけ二重に数えられる
+//   （ツールを2つ並べて開いて放置するだけで学習時間が2倍になる＝水増しできる）。
+//   他のセッションの最終活動より後のぶんしか足さないので、何タブ開いても合計は実時間を超えない。
+//   悪意が無くても起きる二重計上（同じツールを2窓で開いたまま）もこれで消える。
+// ⚠ 時刻はすべてサーバーの NOW()。端末の時計は一切見ていない。
+function touch_session_activity(PDO $pdo, int $sessionId, int $studentId): void
+{
+    // 同じ生徒の他セッションの最終活動時刻。加算は最大5分なので、直近1日ぶんだけ見れば足りる
+    $stmt = $pdo->prepare(
+        'SELECT MAX(COALESCE(ended_at, started_at)) FROM study_sessions
+          WHERE student_id = :sid AND session_id <> :id
+            AND started_at >= NOW() - INTERVAL 1 DAY'
+    );
+    $stmt->execute(['sid' => $studentId, 'id' => $sessionId]);
+    $otherLast = $stmt->fetchColumn();
+
+    // GREATEST は引数に NULL があると NULL を返すので、他セッションが無い時は入れない
+    $base = 'COALESCE(ended_at, started_at)';
+    $params = ['id' => $sessionId, 'sid' => $studentId];
+    if ($otherLast !== null && $otherLast !== false) {
+        $base = 'GREATEST(COALESCE(ended_at, started_at), :other)';
+        $params['other'] = $otherLast;
+    }
+
+    // GREATEST(0, …) は、起点が NOW() より後になった場合（他セッションが同じ瞬間に
+    // 書き込んだ等）にマイナスを足さないための保険
+    $stmt = $pdo->prepare(
+        "UPDATE study_sessions
+         SET duration_sec = COALESCE(duration_sec, 0)
+               + GREATEST(0, LEAST(TIMESTAMPDIFF(SECOND, {$base}, NOW()), 300)),
+             ended_at = NOW()
+         WHERE session_id = :id AND student_id = :sid"
+    );
+    $stmt->execute($params);
+}
+
 // ===== 退会の予約（students.deactivate_on） =====
 // deactivate_on は「この日までは使える」最終利用日。**翌日から** 無効にする。
 // 期日を過ぎた予約をまとめて is_active=0 にする。

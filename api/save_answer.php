@@ -31,7 +31,14 @@ $questionText = isset($input['question_text']) ? substr((string)$input['question
 $correctAnswer = isset($input['correct_answer']) ? substr((string)$input['correct_answer'], 0, 100) : null;
 $studentAnswer = isset($input['student_answer']) ? substr((string)$input['student_answer'], 0, 100) : null;
 $retryOf = isset($input['retry_of']) ? (int)$input['retry_of'] : null;
+// 1問の所要時間。クライアントが測った値なので、あり得ない範囲は記録せず null にする
+// （ツール側も「10分を超えたら送らない」ガードを持つが、端末の時計を戻された場合の
+//   マイナス値や、直接 fetch を叩かれた場合の巨大値はここでしか止まらない）。
+// 列は signed INT なのでマイナスもそのまま入ってしまう＝弾かないと平均が壊れる。
 $timeTakenSec = isset($input['time_taken_sec']) ? (int)$input['time_taken_sec'] : null;
+if ($timeTakenSec !== null && ($timeTakenSec <= 0 || $timeTakenSec > 3600)) {
+    $timeTakenSec = null;
+}
 $hash = params_hash($questionParams);
 
 /* 問題の図（SVG/表のHTML）。図が無いと紙で解き直せない問題のためにそのまま保存する。
@@ -272,14 +279,12 @@ try {
     $answerId = (int)$pdo->lastInsertId();
 
     if ($sessionId !== null) {
-        // 学習時間は活動ベースの積算: 前回活動からの経過(上限5分)を加算していく
+        // 学習時間は活動ベースの積算（helpers.php に集約。同じ生徒の他タブと二重に数えない）
+        touch_session_activity($pdo, $sessionId, $studentId);
         $stmt = $pdo->prepare(
             'UPDATE study_sessions
              SET total_questions = total_questions + 1,
-                 correct_count = correct_count + :inc,
-                 duration_sec = COALESCE(duration_sec, 0)
-                   + LEAST(TIMESTAMPDIFF(SECOND, COALESCE(ended_at, started_at), NOW()), 300),
-                 ended_at = NOW()
+                 correct_count = correct_count + :inc
              WHERE session_id = :id'
         );
         $stmt->execute(['inc' => $isCorrect ? 1 : 0, 'id' => $sessionId]);
