@@ -78,11 +78,29 @@ function self_study_select_columns(PDO $pdo): string
 {
     $cols = 'sslog.log_id, sslog.study_date, sslog.subject, sslog.material, sslog.range_text,
              sslog.minutes, sslog.feeling, sslog.memo, sslog.checked_at, sslog.teacher_comment,
-             t.teacher_name';
+             sslog.created_at, t.teacher_name';
     if (self_study_has_type($pdo)) {
         $cols .= ', sslog.study_type, sslog.retain_span';
     }
     return $cols;
+}
+
+// 送信された時刻（created_at）の表示用ラベル。
+// 自習した日と同じ日に送っていれば時刻だけ（"21:34"）、あとから書いたなら日付も付ける
+// （"9/18 7:02"）＝「いつやったか」と「いつ書いたか」のずれが一目で分かる。
+// ※created_at は JST（api/db.php が接続時に time_zone = '+09:00' を通している）。
+// ※なおした時刻は出さない。updated_at は講師が確認印を押しただけでも動くので
+//   「生徒がなおした時刻」として読めない（出すなら専用の列を足すこと）。
+function self_study_sent_label(?string $createdAt, string $studyDate): ?string
+{
+    if ($createdAt === null || $createdAt === '') {
+        return null;
+    }
+    $d = date_create_immutable($createdAt);
+    if (!$d) {
+        return null;
+    }
+    return ($d->format('Y-m-d') === $studyDate ? '' : $d->format('n/j ')) . $d->format('G:i');
 }
 
 // バッジに出す文言。「忘れない勉強・長期」のように短期／長期まで含める。
@@ -131,9 +149,11 @@ function self_study_row(array $row): array
     // study_type / retain_span はマイグレーション前の環境だとキー自体が無い
     $type = $row['study_type'] ?? null;
     $span = $row['retain_span'] ?? null;
+    $studyDate = (string)$row['study_date'];
+    $createdAt = isset($row['created_at']) ? (string)$row['created_at'] : null;
     return [
         'log_id'          => (int)$row['log_id'],
-        'study_date'      => (string)$row['study_date'],
+        'study_date'      => $studyDate,
         'subject'         => (string)$row['subject'],
         'subject_label'   => SELF_STUDY_SUBJECTS[$row['subject']] ?? (string)$row['subject'],
         'study_type'      => $type,
@@ -145,6 +165,9 @@ function self_study_row(array $row): array
         'feeling'         => $feeling,
         'feeling_label'   => $feeling !== null ? (SELF_STUDY_FEELINGS[$feeling] ?? '') : null,
         'memo'            => $row['memo'],
+        // 生徒が書いて送った時刻（自習した日 study_date とは別物）
+        'created_at'      => $createdAt,
+        'sent_label'      => self_study_sent_label($createdAt, $studyDate),
         'checked_at'      => $row['checked_at'],
         'teacher_comment' => $row['teacher_comment'],
         'teacher_name'    => $row['teacher_name'] ?? null,

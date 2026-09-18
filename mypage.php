@@ -681,6 +681,8 @@ function h(?string $s): string
     font-family:'Zen Maru Gothic',sans-serif}
   .ss-type.mem{background:var(--shu-soft);color:var(--shu)}
   .ss-type.ret{background:#E9F2EC;color:#3E7A5E}
+  /* 書いて送った時刻。自習した日(.ss-date)と読み違えないよう小さく薄く出す */
+  .ss-sent{font-size:10px;color:#C0BBB0;font-feature-settings:'tnum'}
   .ss-mark{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
     background:#EDF3F8;color:var(--ai);font-family:'Zen Maru Gothic',sans-serif}
   .ss-mark.yet{background:var(--paper);color:#C7C2B6;border:1px dashed var(--grid)}
@@ -1267,6 +1269,8 @@ document.querySelectorAll('.today-q').forEach(function (el) {
       h.push('<span class="ss-chip">' + esc(it.subject_label) + '</span>');
       if (it.minutes) h.push('<span>' + it.minutes + '分</span>');
       if (it.feeling) h.push('<span title="' + esc(FEEL_LABELS[it.feeling] || '') + '">' + esc(FEELS[it.feeling] || '') + '</span>');
+      // 書いて送った時刻（自習した日とちがう日に書いたときは日付も入る）
+      if (it.sent_label) h.push('<span class="ss-sent">' + esc(it.sent_label) + ' に送信</span>');
       h.push(checked
         ? '<span class="ss-mark">✓ 先生かくにん済み</span>'
         : '<span class="ss-mark yet">みてもらう前</span>');

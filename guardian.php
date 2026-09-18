@@ -343,6 +343,8 @@ if ($isGuardian) {
     font-family:'Zen Maru Gothic',sans-serif}
   .ss-type.mem{background:var(--shu-soft);color:var(--shu)}
   .ss-type.ret{background:#E9F2EC;color:#3E7A5E}
+  /* お子さまが書いて送った時刻。自習した日(.ss-date)と読み違えないよう小さく薄く出す */
+  .ss-sent{font-size:10px;color:#C0BBB0;font-feature-settings:'tnum'}
   .ss-mark{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
     background:#EDF3F8;color:var(--ai);font-family:'Zen Maru Gothic',sans-serif}
   .ss-mark.yet{background:var(--paper);color:#C7C2B6;border:1px dashed var(--grid)}
@@ -501,6 +503,9 @@ document.getElementById('lpin').addEventListener('keydown', (e) => { if (e.key =
 <?php endif; ?>
 <?php if ($it['feeling']): ?>
             <span title="<?= h($it['feeling_label']) ?>"><?= h(SELF_STUDY_FEELING_FACES[$it['feeling']] ?? '') ?></span>
+<?php endif; ?>
+<?php if (!empty($it['sent_label'])): /* 書いて送った時刻（自習した日とちがう日に書いたときは日付も入る） */ ?>
+            <span class="ss-sent"><?= h($it['sent_label']) ?> に送信</span>
 <?php endif; ?>
             <span class="ss-mark<?= $checked ? '' : ' yet' ?>"><?= $checked ? '✓ 先生かくにん済み' : 'みてもらう前' ?></span>
           </div>

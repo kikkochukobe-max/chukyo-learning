@@ -818,6 +818,11 @@ function ssl_row_html(array $ssl): string
         $o .= '<span title="' . h(SELF_STUDY_FEELINGS[$fee]) . '">'
             . h(SELF_STUDY_FEELING_FACES[$fee]) . ' ' . h(SELF_STUDY_FEELINGS[$fee]) . '</span>';
     }
+    // 送信された時刻（自習した日とずれていれば日付も出る＝まとめ書きが分かる）
+    $sent = self_study_sent_label($ssl['created_at'] ?? null, (string)$ssl['study_date']);
+    if ($sent !== null) {
+        $o .= '<span class="ssl-sent">' . h($sent) . ' 送信</span>';
+    }
     $o .= '<span class="ssl-state">'
         . ($checked
             ? '<span class="ssl-ok">✓ ' . h((string)($ssl['teacher_name'] ?? '')) . ' 確認済み</span>'
@@ -974,6 +979,8 @@ function ssl_row_html(array $ssl): string
     font-family:'Zen Maru Gothic',sans-serif}
   .ssl-type.mem{background:#F6E3DF;color:var(--shu)}
   .ssl-type.ret{background:#E9F2EC;color:#3E7A5E}
+  /* 送信された時刻。日付(.ssl-date)と読み違えないよう小さく薄く出す */
+  .ssl-sent{font-size:10px;color:#A8A399;font-feature-settings:'tnum'}
   .ssl-yet{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
     background:#FFF3D0;color:#8A6D12;font-family:'Zen Maru Gothic',sans-serif}
   .ssl-ok{font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;
