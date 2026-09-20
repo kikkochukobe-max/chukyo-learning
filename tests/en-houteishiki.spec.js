@@ -219,6 +219,43 @@ test.describe('円と方程式マスター', () => {
     expect(errs).toEqual([]);
   });
 
+  /* ③条件から円の標準レベルは3本立て（中心が直線上／点を通る／軸に接する）。
+     「中心が直線上」は、直線が AB の垂直二等分線だと中心が決まらず答えが無数になるので、
+     出てきた問題が必ず1つに決まる形かどうかも見ておく。 */
+  test('条件から円 標準レベルに「中心が直線上」が出る', async ({ page }) => {
+    const errs = watchErrors(page);
+    await page.goto(TOOL);
+    await page.click('#typeChips .chip[data-mode="tsukuru"]');
+    await page.click('#lvSeg .lvbtn[data-lv="2"]');
+    const seen = await page.evaluate(() => {
+      const out = { line: 0, pt: 0, axis: 0, bad: [] };
+      for (let i = 0; i < 150; i++) {
+        // @ts-ignore ツール内のグローバル
+        newQuestion();
+        // @ts-ignore
+        const q = cur;
+        const m = /中心が直線 y=(.+?) 上にあり、2点 A\((-?\d+), (-?\d+)\)、B\((-?\d+), (-?\d+)\)/.exec(q.plainQ);
+        if (m) {
+          out.line++;
+          const km = /([+-]\d+)$/.exec(m[1]);
+          const xs = km ? m[1].slice(0, km.index) : m[1];
+          const sl = (xs === '') ? 0 : ((xs === 'x') ? 1 : ((xs === '-x') ? -1 : parseInt(xs, 10)));
+          const ax = +m[2], ay = +m[3], bx = +m[4], by = +m[5];
+          // 直線 ⟂ AB だと中心が1つに決まらない
+          if ((bx - ax) + sl * (by - ay) === 0) out.bad.push('垂直二等分線: ' + q.plainQ);
+          if (ax === bx && ay === by) out.bad.push('A と B が同じ点: ' + q.plainQ);
+        } else if (/を通る円/.test(q.plainQ)) out.pt++;
+        else out.axis++;
+      }
+      return out;
+    });
+    expect(seen.line, '「中心が直線上」が出ない').toBeGreaterThan(15);
+    expect(seen.pt, '「点を通る円」が出ない').toBeGreaterThan(15);
+    expect(seen.axis, '「軸に接する円」が出ない').toBeGreaterThan(15);
+    expect(seen.bad).toEqual([]);
+    expect(errs).toEqual([]);
+  });
+
   test('図モードが3種類とも描ける', async ({ page }) => {
     const errs = watchErrors(page);
     await page.goto(TOOL);

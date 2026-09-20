@@ -592,8 +592,8 @@ const MODES=[
    lv:["中心と半径から式をつくる","式から中心と半径を読む"]},
   {k:"ippankei",    n:"② 一般形",       s:"x²+y²+lx+my+n=0",   grp:"円の方程式",
    lv:["平方完成して中心・半径","分数の中心／円を表す p の範囲"]},
-  {k:"tsukuru",     n:"③ 条件から円",   s:"直径・通る点・接する", grp:"円の方程式",
-   lv:["直径の両端が与えられた円","点を通る円・軸に接する円"]},
+  {k:"tsukuru",     n:"③ 条件から円",   s:"直径・通る点・接する・中心が直線上", grp:"円の方程式",
+   lv:["直径の両端が与えられた円","点を通る／軸に接する／中心が直線上"]},
   {k:"chokusen",    n:"④ 直線との位置関係", s:"d と r をくらべる", grp:"直線と円",
    lv:["共有点の個数を求める","2点で交わる k の範囲"]},
   {k:"kyorigen",    n:"⑤ 距離と弦の長さ", s:"弦=2√(r²-d²)",     grp:"直線と円",
@@ -842,8 +842,70 @@ GENS.ippankei=function(lv){
 };
 
 /* ================================================================
+   ③-標準 中心がある直線 y=mx+c 上にあり、2点 A, B を通る円
+   中心を C(t, mt+c) とおき、CA=CB（どちらも半径）から t を決める。
+   ⚠ 直線が AB の垂直二等分線そのものだと中心が1つに決まらない（答えが無数）。
+     ℓ の方向 (1, m) と AB が垂直になる組み合わせは作らない。
+   ================================================================ */
+function tsukuruOnLine(){
+  const h=ri(-3,3), k=ri(-4,4);            /* 中心（これが答え） */
+  const m=pick([-3,-2,-1,1,2,3]);
+  const c=k-m*h;                            /* 中心が直線上に乗るように切片を決める */
+  /* A と B は中心から同じ距離にある格子点。ずらし方を入れかえると距離が変わらない */
+  let u=0,v=0,off=null;
+  for(let t=0;t<12&&!off;t++){
+    u=ri(-5,5);v=ri(-5,5);
+    if(u===0&&v===0){u=3;v=4;}
+    const cands=shuffle([[v,u],[-u,v],[u,-v],[-v,u],[v,-u],[-v,-u]]);
+    for(let i=0;i<cands.length;i++){
+      const b2=cands[i];
+      if(b2[0]===u&&b2[1]===v)continue;                 /* A と同じ点 */
+      if(b2[0]===-u&&b2[1]===-v)continue;               /* AB が直径＝直線がいらなくなる */
+      if((b2[0]-u)+m*(b2[1]-v)===0)continue;            /* ℓ が AB の垂直二等分線になる */
+      off=b2;break;
+    }
+  }
+  if(!off){u=1;v=2;off=[-1,2];}              /* この組は m によらず必ず成り立つ */
+  const r2=u*u+v*v;
+  const ax=h+u, ay=k+v, bx=h+off[0], by=k+off[1];
+  const lineT="y="+mxTex(m)+sg(c);
+  const ctT="C(t,\\ "+linTerms([[m,"t"],[c,""]])+")";
+  const cor=circTex(h,k,r2,"^2");
+  const mid=[(ax+bx)/2,(ay+by)/2];
+  const ab2=(ax-bx)*(ax-bx)+(ay-by)*(ay-by);
+  return {
+    lead:"中心が直線 "+T(lineT)+" 上にあり、2点 A"+T(ptTex(ax,ay))+"、B"+T(ptTex(bx,by))
+        +" を通る円の方程式を求めよ。",
+    ans:mkChoice(cor,[
+      circTex(-h,-k,r2,"^2"),
+      circTex(k,h,r2,"^2"),
+      circTex(h,k,2*r2,"^2"),
+      circTex(h,k,4*r2,"^2"),
+      circTex(ax,ay,r2,"^2"),
+      circTex(bx,by,r2,"^2"),
+      /* 中心を AB の中点にしてしまう間違い（座標が整数になるときだけ出す） */
+      ((mid[0]===Math.round(mid[0])&&mid[1]===Math.round(mid[1]))
+        ?circTex(mid[0],mid[1],ab2/4,"^2"):null),
+      (isSq(r2)?circTex(h,k,Math.round(Math.sqrt(r2)),"^2"):null)
+    ]),
+    plainQ:"中心が直線 "+lineT+" 上にあり、2点 A"+ptPlain(ax,ay)+"、B"+ptPlain(bx,by)
+          +" を通る円の方程式を求めよ。",
+    ex:[
+      "中心は直線 "+T(lineT)+" の上にあるので、"+T(ctT)+" とおける（"+T("t")+" が1つ決まれば中心が決まる）。",
+      "A も B も円周上＝<b>どちらも中心からの距離が半径</b>なので "+T("CA=CB")+"。2乗して",
+      T("(t"+sg(-ax)+")^2+("+linTerms([[m,"t"],[c-ay,""]])+")^2"
+        +"=(t"+sg(-bx)+")^2+("+linTerms([[m,"t"],[c-by,""]])+")^2"),
+      "展開すると "+T("t^2")+" が消えて1次方程式になり、"+T("t="+h)+"。よって中心は "+T(ptTex(h,k))+"。",
+      "半径の2乗は "+T("CA^2=("+u+")^2+("+v+")^2="+r2),
+      '<div class="exFml">'+TD(cor)+"</div>"
+    ]
+  };
+}
+
+/* ================================================================
    ③ 条件から円を求める
-   lv1: 直径の両端 ／ lv2: 中心と通る点／軸に接する円
+   lv1: 直径の両端
+   lv2: 中心が直線上（tsukuruOnLine）／中心と通る点／軸に接する円
    ================================================================ */
 GENS.tsukuru=function(lv){
   if(lv===1){
@@ -872,7 +934,9 @@ GENS.tsukuru=function(lv){
       ]
     };
   }
-  if(ri(0,1)===0){
+  const kind=ri(0,2);
+  if(kind===0)return tsukuruOnLine();
+  if(kind===1){
     /* 中心が与えられ、1点を通る円 */
     const a=ri(-5,5), b=ri(-5,5);
     let px=ri(-6,6), py=ri(-6,6);
