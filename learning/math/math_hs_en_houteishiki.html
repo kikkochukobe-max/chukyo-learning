@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>円と方程式マスター | 中京個別指導学院</title>
-<meta name="description" content="高校数学II 図形と方程式のうち「円」だけを集めた練習ツール。円の方程式・一般形の平方完成・条件から円を求める・直線との位置関係・中心との距離と弦の長さ・円上の点の接線・傾きや円外の点からの接線・2つの円の位置関係・2円の交点を通る直線と共通弦・放物線との共有点の10タイプを、基本と標準から選んで練習できます。図モードでは半径 r と距離 d、2円の中心間距離、放物線との交わり方を動かしながら見られます。中京個別指導学院。">
+<meta name="description" content="高校数学II 図形と方程式のうち「円」だけを集めた練習ツール。円の方程式・一般形の平方完成と円を表す条件（定数pの範囲）・条件から円を求める・直線との位置関係・中心との距離と弦の長さ・円上の点の接線・傾きや円外の点からの接線・2つの円の位置関係・2円の交点を通る直線と共通弦・放物線との共有点の10タイプを、基本と標準から選んで練習できます。図モードでは半径 r と距離 d、2円の中心間距離、放物線との交わり方を動かしながら見られます。中京個別指導学院。">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -591,7 +591,7 @@ const MODES=[
   {k:"houteishiki", n:"① 円の方程式",   s:"(x-a)²+(y-b)²=r²",  grp:"円の方程式",
    lv:["中心と半径から式をつくる","式から中心と半径を読む"]},
   {k:"ippankei",    n:"② 一般形",       s:"x²+y²+lx+my+n=0",   grp:"円の方程式",
-   lv:["平方完成して中心・半径","中心・半径が分数になる形"]},
+   lv:["平方完成して中心・半径","分数の中心／円を表す p の範囲"]},
   {k:"tsukuru",     n:"③ 条件から円",   s:"直径・通る点・接する", grp:"円の方程式",
    lv:["直径の両端が与えられた円","点を通る円・軸に接する円"]},
   {k:"chokusen",    n:"④ 直線との位置関係", s:"d と r をくらべる", grp:"直線と円",
@@ -697,8 +697,87 @@ GENS.houteishiki=function(lv){
 };
 
 /* ================================================================
+   ②-標準 「円を表す」ための定数 p の範囲
+   平方完成した右辺（＝半径の2乗）が **正** であることが条件。
+   ・1次型 … 定数項に p が入る（右辺が p の1次式 → p の範囲は片側）
+   ・2次型 … x の係数が -2p（右辺が p の2次式 → 因数分解して2つの範囲）
+   ⚠ 不等号は生の「<」ではなく TeX の \lt / \leqq で書く。
+     api/save_answer.php は question_choices に生の < があると選択肢を丸ごと捨てる。
+   ================================================================ */
+function ippankeiRange(){
+  if(ri(0,9)<4){
+    /* 1次型: x²+y²+lx+my±p+c0=0 → 右辺 = a²+b²-c0 ∓ p */
+    let a=ri(-5,5), b=ri(-5,5);
+    if(a===0&&b===0)a=nzi(1,5);
+    const s=sgn1();                 /* p の符号 */
+    const c0=nzi(-8,8);
+    const K=a*a+b*b-c0;             /* 右辺 = K - s p */
+    const L=-2*a, M=-2*b;
+    const body="x^2+y^2"+termTex(L,"x")+termTex(M,"y")+termTex(s,"p")+sg(c0)+"=0";
+    const plain="x²+y²"+termTex(L,"x")+termTex(M,"y")+termTex(s,"p")+sg(c0)+"=0";
+    /* s=1 なら p<K、s=-1 なら -K<p。向きの書き方は「p を左か右か」だけに統一する
+       （p>K と K<p の2通りを混ぜると、同じ意味の選択肢が2つできてしまう） */
+    const dir=function(v,eq){const o=eq?"\\leqq ":"\\lt ";return (s>0)?("p"+o+v):((-v)+o+"p");};
+    const rev=function(v,eq){const o=eq?"\\leqq ":"\\lt ";return (s>0)?(v+o+"p"):("p"+o+(-v));};
+    const cor=dir(K,false);
+    return {
+      lead:"次の方程式が円を表すような定数 "+T("p")+" の値の範囲を求めよ。",
+      disp:body,
+      ans:mkChoice(cor,[
+        rev(K,false),
+        dir(K,true),
+        dir(a*a+b*b,false),          /* 定数項を落とした */
+        dir(4*a*a+4*b*b-c0,false),   /* 係数を半分にし忘れた */
+        dir(a*a+b*b+c0,false),       /* 定数項の符号ミス */
+        rev(K,true)
+      ]),
+      plainQ:"方程式 "+plain+" が円を表すような定数 p の値の範囲を求めよ。",
+      ex:[
+        "「円を表す」＝平方完成した<b>右辺（半径の2乗）が正</b>、ということ。",
+        T(sqx(a,"x","^2")+"+"+sqx(b,"y","^2")+"="+K+termTex(-s,"p")),
+        "右辺 "+T("\\gt 0")+" を解く。",
+        T(K+termTex(-s,"p")+"\\gt 0\\quad\\Rightarrow\\quad "+cor),
+        '<div class="exFml">'+TD(cor)+"</div>",
+        "⚠ "+T("=0")+" のときは半径が0＝<b>1点</b>になってしまうので、等号は入れない。"
+      ]
+    };
+  }
+  /* 2次型: x²+y²-2px+my+kp+c0=0 → 右辺 = p²-kp+αβ = (p-α)(p-β) */
+  const al=ri(-5,3);
+  const be=al+ri(1,6);
+  const b=ri(-5,5);
+  const k=al+be;
+  const c0=b*b-al*be;
+  const body="x^2+y^2-2px"+termTex(-2*b,"y")+termTex(k,"p")+sg(c0)+"=0";
+  const plain="x²+y²-2px"+termTex(-2*b,"y")+termTex(k,"p")+sg(c0)+"=0";
+  const cor="p\\lt "+al+",\\ "+be+"\\lt p";
+  return {
+    lead:"次の方程式が円を表すような定数 "+T("p")+" の値の範囲を求めよ。",
+    disp:body,
+    ans:mkChoice(cor,[
+      al+"\\lt p\\lt "+be,
+      "p\\leqq "+al+",\\ "+be+"\\leqq p",
+      al+"\\leqq p\\leqq "+be,
+      "p\\lt "+(-be)+",\\ "+(-al)+"\\lt p",
+      "p\\lt "+al,
+      be+"\\lt p"
+    ]),
+    plainQ:"方程式 "+plain+" が円を表すような定数 p の値の範囲を求めよ。",
+    ex:[
+      "「円を表す」＝平方完成した<b>右辺（半径の2乗）が正</b>、ということ。",
+      T("x")+" の項は "+T("-2px")+" なので、中心の "+T("x")+" 座標は "+T("p")+"。",
+      T("(x-p)^2+"+sqx(b,"y","^2")+"=p^2"+termTex(-k,"p")+sg(al*be)),
+      "右辺を因数分解して "+T("(p"+sg(-al)+")(p"+sg(-be)+")\\gt 0")+"。",
+      '<div class="exFml">'+TD(cor)+"</div>",
+      "⚠ "+T("p="+al)+"、"+T("p="+be)+" のときは半径が0＝<b>1点</b>になるので、等号は入れない。"
+    ]
+  };
+}
+
+/* ================================================================
    ② 一般形 x²+y²+lx+my+n=0
-   lv1: 係数が偶数（中心も半径も整数）／ lv2: 中心・半径が分数になる形
+   lv1: 係数が偶数（中心も半径も整数）
+   lv2: 中心・半径が分数になる形／円を表す p の範囲（ippankeiRange）
    ================================================================ */
 GENS.ippankei=function(lv){
   if(lv===1){
@@ -729,6 +808,8 @@ GENS.ippankei=function(lv){
       ex:ex
     };
   }
+  /* 標準レベルは2種類。どちらも「平方完成した右辺＝半径の2乗」を見るのは同じ */
+  if(ri(0,1)===0)return ippankeiRange();
   /* 中心が半整数になる形。p,q のうち一方だけを奇数、s を奇数にすると
      定数項 (p²+q²-s²)/4 がきちんと整数になる */
   const s=pick([3,5,7,9,11]);

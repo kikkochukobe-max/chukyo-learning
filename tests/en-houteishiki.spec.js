@@ -186,6 +186,39 @@ test.describe('円と方程式マスター', () => {
     await p2.close();
   });
 
+  /* ②一般形の標準レベルは「分数の中心」と「円を表す p の範囲」の2本立て。
+     片方が出なくなっても画面上は普通に動いてしまうので、両方出ることを見張る。
+     範囲の答えは半径の2乗が正になる区間と一致しているはず（境界は等号を含まない）。 */
+  test('一般形 標準レベルに「円を表す p の範囲」が出る', async ({ page }) => {
+    const errs = watchErrors(page);
+    await page.goto(TOOL);
+    await page.click('#typeChips .chip[data-mode="ippankei"]');
+    await page.click('#lvSeg .lvbtn[data-lv="2"]');
+    const seen = await page.evaluate(() => {
+      const out = { range: 0, frac: 0, lin: 0, quad: 0, badEq: [] };
+      for (let i = 0; i < 120; i++) {
+        // @ts-ignore ツール内のグローバル
+        newQuestion();
+        // @ts-ignore
+        const q = cur;
+        if (/が円を表すような/.test(q.plainQ)) {
+          out.range++;
+          if (/-2px/.test(q.plainQ)) out.quad++; else out.lin++;
+          // 答えは p の範囲。等号（≦）を含んでいたら誤り（半径0の1点が混ざる）
+          const a = q.ans.choices[q.ans.correct];
+          if (a.indexOf('\\leqq') >= 0) out.badEq.push(q.plainQ + ' → ' + a);
+        } else out.frac++;
+      }
+      return out;
+    });
+    expect(seen.range, '範囲問題が出ない').toBeGreaterThan(10);
+    expect(seen.frac, '分数の中心の問題が出ない').toBeGreaterThan(10);
+    expect(seen.lin, '1次型（右辺が p の1次式）が出ない').toBeGreaterThan(0);
+    expect(seen.quad, '2次型（-2px の形）が出ない').toBeGreaterThan(0);
+    expect(seen.badEq).toEqual([]);
+    expect(errs).toEqual([]);
+  });
+
   test('図モードが3種類とも描ける', async ({ page }) => {
     const errs = watchErrors(page);
     await page.goto(TOOL);
