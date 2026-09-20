@@ -1,0 +1,2231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>円と方程式マスター | 中京個別指導学院</title>
+<meta name="description" content="高校数学II 図形と方程式のうち「円」だけを集めた練習ツール。円の方程式・一般形の平方完成・条件から円を求める・直線との位置関係・中心との距離と弦の長さ・円上の点の接線・傾きや円外の点からの接線・2つの円の位置関係・2円の交点を通る直線と共通弦・放物線との共有点の10タイプを、基本と標準から選んで練習できます。図モードでは半径 r と距離 d、2円の中心間距離、放物線との交わり方を動かしながら見られます。中京個別指導学院。">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- ⚠ 共通モジュール（divp-header.js など）は <head> ではなく <body> 開始直後に置く。
+     ヘッダーは document.currentScript の位置に自分を挿し込むので、head に書くと
+     header 要素が head の中に入って画面に一切出ない（エラーは出ない）。 -->
+<style>
+/* ================================================================
+   円と方程式マスター — 数列完全マスター / 漸化式マスターと同じ
+   「高校生向け・暗い紺地＋シアン／バイオレット」でそろえる（同じ生徒が行き来する）。
+   共通モジュールの色は :root の変数で上書きする（var()のフォールバック方式なので
+   読み込み順に関係なくツール側が勝つ）。
+   ================================================================ */
+:root{
+  --bg:#070A12;
+  --bg2:#0C1120;
+  --panel:rgba(255,255,255,.045);
+  --line:rgba(140,175,255,.16);
+  --line2:rgba(140,175,255,.30);
+  --ink:#E9EEFB;
+  --ink2:#B7C1DA;
+  --muted:#7C86A1;
+  --cy:#38E8FF;
+  --cy2:#0E9EC0;
+  --vi:#A78BFA;
+  --vi2:#7C5CFA;
+  --gold:#FFD166;
+  --ok:#7EE0A0;
+  --ng:#FF7A80;
+  --jp:"Zen Kaku Gothic New",system-ui,-apple-system,"Hiragino Kaku Gothic ProN",sans-serif;
+  --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  /* ── 答え合わせ表示（divp-choice-mark.js）────────────────────────
+     正解の緑は #3E8E5A に統一するのが原則だが、このツールは暗背景なので
+     science_js3_ionlab / 漸化式マスターと同じ明るい緑の例外側にそろえる。 */
+  --divp-mark-ok:#7ee0a0;
+  --divp-mark-ok-bg:rgba(126,224,160,.16);
+  --divp-mark-ok-bg-soft:rgba(126,224,160,.10);
+  --divp-mark-ok-text:#bfe6cf;
+  --divp-mark-ng:#ff7a80;
+  --divp-mark-ng-bg:rgba(255,122,128,.16);
+  --divp-mark-dim-opacity:.38;
+  /* ── 10問ごとの評価（divp-result.js）を暗配色に寄せる。
+     ランクの色（--divp-result-grade-*）は既定の派手な配色のまま（ランクは目立ってよい） */
+  --divp-result-bg:#0C1222;
+  --divp-result-ink:#E9EEFB;
+  --divp-result-sub:#7C86A1;
+  --divp-result-accent:#38E8FF;
+  --divp-result-accent-ink:#04121A;
+  --divp-result-sub-btn:rgba(255,255,255,.07);
+  --divp-result-wrong-btn:#7C5CFA;
+  --divp-result-ok:#7ee0a0;
+  --divp-result-ok-bg:rgba(126,224,160,.14);
+  --divp-result-ng:#ff7a80;
+  --divp-result-ng-bg:rgba(255,122,128,.14);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{min-height:100%;}
+/* html 側にも地の色を置く（body の背景は fixed なので、端まで引っ張られたときに
+   ここが無いと白地が出て、ほぼ白の文字 --ink が読めなくなる） */
+html{background:#070A12;}
+body{
+  background:
+    radial-gradient(1200px 760px at 82% -12%, rgba(56,232,255,.10), transparent 60%),
+    radial-gradient(900px 700px at 4% 6%, rgba(167,139,250,.11), transparent 58%),
+    linear-gradient(180deg,var(--bg2),var(--bg) 46%);
+  background-attachment:fixed;
+  color:var(--ink);
+  font-family:var(--jp);
+  font-feature-settings:"palt";
+  touch-action:manipulation;
+  -webkit-text-size-adjust:100%;
+}
+/* ⚠ body を flex/grid にしない。共通ヘッダーは .wrap の兄弟として body に挿されるので、
+   flex にすると横に並んで画面左端に縦長の帯になる（中央寄せは .wrap 側の margin で行う）。 */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    repeating-linear-gradient(90deg, rgba(140,175,255,.045) 0 1px, transparent 1px 56px),
+    repeating-linear-gradient(0deg,  rgba(140,175,255,.045) 0 1px, transparent 1px 56px);
+  mask-image:radial-gradient(1000px 700px at 50% 0%, #000 30%, transparent 78%);
+  -webkit-mask-image:radial-gradient(1000px 700px at 50% 0%, #000 30%, transparent 78%);
+}
+.wrap{position:relative;z-index:1;padding:14px 12px 96px;}
+a{color:var(--cy);}
+
+/* ---------- ヘッダー ---------- */
+header.dv-head{
+  max-width:920px;margin:0 auto 12px;display:flex;align-items:flex-end;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);
+}
+h1{font-size:1.42rem;font-weight:900;letter-spacing:.02em;line-height:1.18;display:flex;flex-direction:column;gap:5px;}
+h1 .sub{font-family:var(--mono);font-size:.62rem;font-weight:500;letter-spacing:.26em;color:var(--cy);text-transform:uppercase;}
+h1 .ttl{background:linear-gradient(92deg,#fff 12%,var(--cy) 58%,var(--vi) 96%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.stats{display:flex;gap:8px;}
+.stat{min-width:74px;text-align:center;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:7px 10px;}
+.stat b{display:block;font-family:var(--mono);font-size:1.12rem;line-height:1.1;color:#fff;}
+.stat span{display:block;font-size:.56rem;letter-spacing:.18em;color:var(--muted);margin-top:3px;}
+#rankBadge b{background:linear-gradient(92deg,var(--gold),#FFF1C2);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+/* ---------- 上段タブ ---------- */
+.viewtabs{max-width:920px;margin:0 auto 14px;display:flex;gap:8px;}
+.vtab{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  border:1px solid var(--line);border-radius:14px;background:var(--panel);
+  padding:10px 8px;color:var(--ink2);cursor:pointer;font-family:inherit;
+  transition:border-color .18s, box-shadow .18s, background .18s, color .18s;
+}
+.vtab b{font-size:.94rem;font-weight:700;}
+.vtab i{font-style:normal;font-family:var(--mono);font-size:.56rem;letter-spacing:.24em;color:var(--muted);}
+.vtab.on{
+  color:#fff;border-color:var(--cy);
+  background:linear-gradient(140deg,rgba(56,232,255,.16),rgba(167,139,250,.14));
+  box-shadow:0 0 0 1px rgba(56,232,255,.28), 0 14px 30px -18px rgba(56,232,255,.85);
+}
+.vtab.on i{color:var(--cy);}
+
+/* ---------- 出題タイプ / レベル ---------- */
+.pane{max-width:920px;margin:0 auto;}
+.selbox{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:12px;margin-bottom:12px;}
+.selhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px;}
+.selhead h2{font-family:var(--mono);font-size:.62rem;font-weight:500;letter-spacing:.22em;color:var(--cy);text-transform:uppercase;}
+.selacts{display:flex;align-items:center;gap:7px;}
+.foldBtn{border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink2);
+  font-family:inherit;font-size:.7rem;padding:4px 12px;cursor:pointer;}
+.foldBtn.prt{color:var(--gold);border-color:rgba(255,209,102,.38);}
+.foldBtn.prt:hover{background:rgba(255,209,102,.12);}
+.selbox.folded .chips,.selbox.folded .mixbox{display:none;}
+.chips{display:flex;flex-wrap:wrap;gap:7px;}
+.chip{
+  border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.03);
+  color:var(--ink2);font-family:inherit;font-size:.76rem;padding:7px 13px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;line-height:1.2;
+  transition:border-color .16s, box-shadow .16s, background .16s, color .16s;
+}
+.chip small{font-family:var(--mono);font-size:.58rem;color:var(--muted);}
+.chip:hover{border-color:var(--line2);color:var(--ink);}
+.chip.on{
+  color:#fff;border-color:var(--cy);
+  background:linear-gradient(135deg,rgba(56,232,255,.20),rgba(167,139,250,.16));
+  box-shadow:0 0 0 1px rgba(56,232,255,.26), 0 10px 24px -16px rgba(56,232,255,.9);
+}
+.chip.on small{color:#CFF6FF;}
+.chip.mix{border-style:dashed;}
+.chip.mix.on{border-style:solid;border-color:var(--vi);
+  box-shadow:0 0 0 1px rgba(167,139,250,.3), 0 10px 24px -16px rgba(167,139,250,.9);}
+.lvrow{display:flex;align-items:center;gap:10px;margin-top:11px;flex-wrap:wrap;}
+.lvlabel{font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;color:var(--muted);}
+.lvseg{display:flex;gap:4px;border:1px solid var(--line);border-radius:12px;padding:4px;background:rgba(0,0,0,.22);}
+.lvbtn{border:0;border-radius:9px;background:transparent;color:var(--ink2);font-family:inherit;
+  font-size:.76rem;padding:6px 13px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .16s,color .16s;}
+.lvbtn u{text-decoration:none;font-family:var(--mono);font-size:.66rem;color:var(--muted);}
+.lvbtn.on{background:linear-gradient(135deg,var(--cy2),var(--vi2));color:#fff;}
+.lvbtn.on u{color:#DFF6FF;}
+#lvDesc{font-size:.74rem;color:var(--ink2);}
+#lvDesc b{color:var(--cy);font-weight:700;}
+.mixbox{margin-top:11px;border-top:1px dashed var(--line);padding-top:10px;}
+.mixgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px;}
+.mixgrid label{display:flex;align-items:center;gap:7px;font-size:.74rem;color:var(--ink2);
+  border:1px solid transparent;border-radius:9px;padding:5px 7px;cursor:pointer;}
+.mixgrid label:hover{background:rgba(255,255,255,.04);}
+.mixgrid input{accent-color:var(--cy);width:15px;height:15px;}
+.mixbtns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.miniBtn{border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink2);
+  font-family:inherit;font-size:.68rem;padding:5px 11px;cursor:pointer;}
+.miniBtn:hover{border-color:var(--line2);color:#fff;}
+
+/* ---------- 問題カード ---------- */
+/* ⚠ overflow は visible のまま（正解はんこは直径171pxで、hidden だと切れる） */
+#card{
+  position:relative;overflow:visible;border:1px solid var(--line);border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.062),rgba(255,255,255,.018));
+  padding:16px 16px 18px;box-shadow:0 30px 60px -50px #000;
+}
+#card::before{content:"";position:absolute;left:22px;right:22px;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cy),var(--vi),transparent);opacity:.75;}
+#card.shake{animation:shk .34s;}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.qmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.qmeta .tag{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;color:var(--cy);
+  border:1px solid rgba(56,232,255,.34);border-radius:999px;padding:3px 9px;}
+.qmeta .tag.vi{color:var(--vi);border-color:rgba(167,139,250,.38);}
+.qmeta .tag.pl{color:var(--muted);border-color:var(--line);}
+.qmeta .grow{flex:1;}
+.qlead{font-size:.94rem;line-height:1.72;color:var(--ink);}
+.qsub{margin-top:9px;font-size:.82rem;color:var(--ink2);line-height:1.8;}
+.qdisp{margin:14px 0 4px;padding:14px 8px;text-align:center;font-size:1.22rem;color:#fff;
+  border-radius:14px;background:rgba(0,0,0,.28);border:1px solid var(--line);overflow-x:auto;}
+.qdisp .katex{color:#fff;}
+.qdisp .katex-display{margin:.24em 0;}
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;}
+@media (max-width:560px){.choices{grid-template-columns:1fr;}}
+.choiceBtn{
+  display:flex;align-items:center;gap:10px;text-align:left;
+  border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.035);
+  color:var(--ink);font-family:inherit;font-size:.96rem;padding:12px;cursor:pointer;
+  min-height:56px;transition:border-color .15s,background .15s,transform .08s;
+}
+.choiceBtn:hover:not([disabled]){border-color:var(--line2);background:rgba(255,255,255,.06);}
+.choiceBtn:active:not([disabled]){transform:scale(.985);}
+.choiceBtn .cno{flex:0 0 26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  font-family:var(--mono);font-size:.76rem;color:var(--cy);
+  border:1px solid rgba(56,232,255,.32);background:rgba(56,232,255,.08);}
+.choiceBtn.sel{border-color:var(--cy);background:rgba(56,232,255,.12);box-shadow:0 0 0 1px rgba(56,232,255,.3);}
+.choiceBtn .katex{color:inherit;}
+.numwrap{margin-top:14px;}
+.numdisp{height:58px;border-radius:13px;border:1px solid var(--line);background:rgba(0,0,0,.3);
+  display:flex;align-items:center;justify-content:flex-end;padding:0 16px;
+  font-family:var(--mono);font-size:1.62rem;color:#fff;letter-spacing:.04em;}
+.numdisp.empty{color:var(--muted);font-size:1rem;letter-spacing:.14em;}
+.numunit{font-size:.8rem;color:var(--muted);margin-left:8px;font-family:var(--jp);}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px;max-width:330px;}
+.key{height:52px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.05);
+  color:#fff;font-family:var(--mono);font-size:1.2rem;cursor:pointer;transition:background .12s,border-color .12s,transform .06s;}
+.key:hover{background:rgba(255,255,255,.09);border-color:var(--line2);}
+.key:active{transform:scale(.95);background:rgba(56,232,255,.2);}
+.key.fn{font-size:.92rem;color:var(--ink2);}
+.verdict{margin-top:13px;font-size:.9rem;font-weight:700;min-height:1.3em;}
+.verdict.ok{color:var(--ok);}
+.verdict.ng{color:var(--ng);}
+#explain{display:none;margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;}
+.exHead{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;color:var(--vi);margin-bottom:8px;}
+.exLine{font-size:.86rem;line-height:1.95;color:var(--ink2);padding:1px 0;}
+.exLine .katex{color:#fff;}
+.exFml{margin:8px 0;padding:9px 11px;border-left:2px solid var(--vi);
+  background:rgba(167,139,250,.08);border-radius:0 10px 10px 0;font-size:.9rem;color:var(--ink);}
+.exFml .katex{color:#fff;}
+.figLink{display:inline-flex;align-items:center;gap:6px;margin-top:10px;
+  border:1px solid rgba(167,139,250,.4);border-radius:999px;background:rgba(167,139,250,.1);
+  color:#D8CCFF;font-family:inherit;font-size:.74rem;padding:6px 13px;cursor:pointer;}
+.figLink:hover{background:rgba(167,139,250,.2);}
+.actions{max-width:920px;margin:14px auto 0;display:flex;gap:9px;}
+.btn{flex:1;border:0;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:700;
+  padding:15px 12px;cursor:pointer;color:#04121A;
+  background:linear-gradient(135deg,var(--cy),#7FF0FF);box-shadow:0 16px 34px -22px rgba(56,232,255,.95);}
+.btn.ghost{background:transparent;color:var(--ink2);border:1px solid var(--line);box-shadow:none;}
+.btn[disabled]{opacity:.4;cursor:default;box-shadow:none;}
+#toast{max-width:920px;margin:10px auto 0;text-align:center;font-size:.8rem;color:var(--cy);
+  min-height:1.2em;font-family:var(--mono);letter-spacing:.06em;}
+.banner{max-width:920px;margin:0 auto 12px;border:1px solid rgba(255,209,102,.4);
+  background:rgba(255,209,102,.08);border-radius:12px;padding:10px 13px;font-size:.79rem;color:#FFE9AE;line-height:1.6;}
+
+/* ================================================================
+   図モード
+   「半径 r と距離 d をくらべる」「中心間の距離 d と r1+r2, |r1-r2| をくらべる」
+   「放物線を代入すると y の2次方程式になる」の3つを、値を動かしながら見る。
+   ⚠ 図は JS が SVG を組み立てて innerHTML で入れる。色・線は**属性**で書いてあるが、
+     図モードの図は紙にも記録にも出ない（question_figure には使わない）ので
+     解き直しプリントの制約とは無関係。演習側の問題は全部テキストで解ける。
+   ================================================================ */
+#view-fig{display:none;}
+.glead{max-width:920px;margin:0 auto 12px;font-size:.84rem;color:var(--ink2);line-height:1.8;}
+.glead b{color:var(--cy);}
+.ctrlbox{border:1px solid var(--line);border-radius:16px;background:var(--panel);
+  padding:11px 12px;margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.stepper{display:flex;align-items:center;gap:6px;}
+.stepper > span.lb{font-size:.8rem;color:var(--ink2);min-width:2.4em;}
+.stepper .sbtn{width:30px;height:30px;border:1px solid var(--line);border-radius:9px;
+  background:rgba(255,255,255,.05);color:#fff;font-family:var(--mono);font-size:1rem;cursor:pointer;}
+.stepper .sbtn:hover{background:rgba(56,232,255,.16);border-color:var(--line2);}
+.stepper .sval{min-width:46px;text-align:center;font-family:var(--mono);font-size:1.02rem;color:var(--cy);
+  border:1px solid var(--line);border-radius:9px;padding:4px 6px;background:rgba(0,0,0,.28);}
+.gwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:10px;align-items:start;}
+@media (max-width:760px){.gwrap{grid-template-columns:1fr;}}
+.gcard{border:1px solid var(--line);border-radius:16px;background:rgba(0,0,0,.3);padding:10px;overflow:hidden;}
+.gcard h3{font-family:var(--mono);font-size:.58rem;letter-spacing:.16em;color:var(--vi);margin-bottom:6px;text-transform:uppercase;}
+/* 図は正方形の viewBox なので、幅いっぱいにすると縦にも同じだけ伸びる。
+   画面の高さを食いすぎないよう上限をつけて中央に置く */
+.gcard svg{width:100%;height:auto;display:block;max-width:460px;margin:0 auto;}
+.greadout{font-size:.86rem;line-height:2.05;color:var(--ink2);}
+.greadout .katex{color:#fff;}
+.greadout b{color:#fff;}
+.gjudge{margin-top:8px;border-radius:12px;padding:10px 12px;font-size:.92rem;font-weight:700;
+  border:1px solid rgba(56,232,255,.34);background:rgba(56,232,255,.1);color:#CFF6FF;line-height:1.6;}
+footer{max-width:920px;margin:22px auto 0;text-align:center;
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.18em;color:var(--muted);}
+@media (max-width:560px){
+  h1{font-size:1.16rem;}
+  .qdisp{font-size:1.04rem;}
+  .stat{min-width:64px;padding:6px 8px;}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+}
+/* 紙に共通ヘッダーは出さない（モジュール側でも消しているが、HTMLだけ先に上げても
+   紙に出ないようツール側にも同じ1行を持たせる） */
+@media print{
+  .divp-header{display:none!important;}
+}
+</style>
+</head>
+<body data-unit-key="math_hs_en_houteishiki" data-theme="noir" data-effect="jh">
+
+<!-- 共通モジュール（file:// では divp-core が自動で黙る）
+     ・divp-header.js … 共通ヘッダー。この位置に挿し込まれる（body直後が定位置）
+     ・divp-core.js … 学習記録（Divp.init / Divp.answer）
+     ・divp-correct-jh.js … 正解=はんこ / 誤答=バッジ（中学・高校共通）
+     ・divp-choice-mark.js … 答え合わせ表示（正解=緑 / 選んだ誤答=朱）
+     ・divp-result.js … 10問ごとの評価（RESULT画面）
+     ・print-watermark.js … 練習プリントのロゴ透かし（無くても透かし無しで印刷できる） -->
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-choice-mark.js" defer></script>
+<script src="/assets/divp-result.js"></script>
+<script src="/assets/print-watermark.js"></script>
+
+<!-- 共通ヘッダーはこの div の外（body直下）に入る＝画面幅いっぱいのバーになる -->
+<div class="wrap">
+
+<header class="dv-head">
+  <h1><span class="sub">Mathematics II / Circle</span><span class="ttl">円と方程式マスター</span></h1>
+  <!-- LEVEL / XP はツール側で持たない。XPは save_answer.php が
+       question_catalog.base_xp × イベント倍率で確定し、レベルは累計XPからマイページが算出する -->
+  <div class="stats">
+    <div class="stat" id="rankBadge"><b id="rankVal">D</b><span>RANK</span></div>
+    <div class="stat"><b id="streakVal">0</b><span>STREAK</span></div>
+  </div>
+</header>
+
+<nav class="viewtabs">
+  <button class="vtab on" data-view="train"><b>演習モード</b><i>training</i></button>
+  <button class="vtab" data-view="fig"><b>図モード</b><i>figure</i></button>
+</nav>
+
+<!-- ===================== 演習モード ===================== -->
+<div id="view-train" class="pane">
+
+  <div class="selbox" id="selbox">
+    <div class="selhead">
+      <h2>Type &amp; Level</h2>
+      <div class="selacts">
+        <button class="foldBtn prt" id="prtBtn" type="button"
+                title="いま選んでいるタイプ・レベルで練習プリント（A4・問題＋解答）を作る">🖨 印刷</button>
+        <button class="foldBtn" id="foldBtn" aria-expanded="true">とじる</button>
+      </div>
+    </div>
+    <div class="chips" id="typeChips"></div>
+    <div class="lvrow">
+      <span class="lvlabel">LEVEL</span>
+      <div class="lvseg" id="lvSeg">
+        <button class="lvbtn on" data-lv="1"><u>1</u>基本</button>
+        <button class="lvbtn" data-lv="2"><u>2</u>標準</button>
+      </div>
+      <span id="lvDesc"></span>
+    </div>
+    <div class="mixbox" id="mixBox" style="display:none">
+      <div class="mixgrid" id="mixGrid"></div>
+      <div class="mixbtns">
+        <button class="miniBtn" id="mixAll">ぜんぶ選ぶ</button>
+        <button class="miniBtn" id="mixNone">ぜんぶ外す</button>
+        <button class="miniBtn" id="mixBasicBtn">基本の4タイプだけ</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="card">
+    <div class="qmeta">
+      <span class="tag" id="qType">円の方程式</span>
+      <span class="tag vi" id="qLv">LV.1</span>
+      <span class="grow"></span>
+      <span class="tag pl" id="qNum">1 / 10</span>
+    </div>
+    <div class="qlead" id="qLead"></div>
+    <div class="qdisp" id="qDisp" style="display:none"></div>
+    <div class="qsub" id="qSub"></div>
+    <div id="ansArea"></div>
+    <div class="verdict" id="verdict"></div>
+    <div id="explain">
+      <div class="exHead">SOLUTION</div>
+      <div id="exBody"></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" id="checkBtn">こたえあわせ</button>
+    <button class="btn ghost" id="nextBtn">次の問題 ➜</button>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<!-- ===================== 図モード ===================== -->
+<div id="view-fig" class="pane">
+  <div class="glead" id="figLead"></div>
+  <div class="chips" id="figChips" style="margin-bottom:12px"></div>
+  <div class="ctrlbox" id="figCtrl"></div>
+  <div class="gwrap">
+    <div class="gcard">
+      <h3>figure</h3>
+      <div id="figSvg"></div>
+    </div>
+    <div class="gcard">
+      <h3>check</h3>
+      <div class="greadout" id="figRead"></div>
+      <div class="gjudge" id="figJudge"></div>
+    </div>
+  </div>
+</div>
+
+<footer>CHUKYO KOBETSU SHIDO GAKUIN</footer>
+</div><!-- /.wrap -->
+
+<script>
+"use strict";
+/* ================================================================
+   math_hs_en_houteishiki.html  円と方程式マスター
+   unit_key = math_hs_en_houteishiki
+   modes(=question_key):
+     円の方程式 … houteishiki(基本形) / ippankei(一般形) / tsukuru(条件から円を求める)
+     直線と円   … chokusen(位置関係) / kyorigen(中心との距離・弦の長さ)
+     接線       … sessen_jou(円上の点における接線) / sessen_gai(傾き・円外の点からの接線)
+     2つの円    … nien(位置関係) / nien_kouten(交点を通る直線・共通弦)
+     放物線     … houbutsu(共有点の個数・座標)
+     ＋ mix（えらんだタイプからランダム。記録はその問題のタイプで残すので "mix" は飛ばない）
+   レベル(1基本/2標準)は question_key を増やさず question_params の lv に持つ
+     ＝カルテはタイプ単位で読める。params_hash には lv も種も入るので
+     「同じ問題」の判定はレベルごとに成立する。
+   共通処理:
+     ・学習記録 … Divp.answer（判定直後に1行）
+     ・正解エフェクト … divp-correct-jh（js/jh共通のはんこ）
+     ・解き直し … ?retry=1 で question_params の種から同じ問題を作り直す（CLAUDE.md 2d）
+     ・図 … 問題は全部テキストだけで解ける（座標・方程式が本文に出る）ので
+            question_figure は使わない。選択式は question_choices を渡して
+            解き直しプリントに選択肢ごと出す。
+   ⚠ 記録に載せる文字列の書き分け（CLAUDE.md 2a）:
+     ・question_text（問題文）は和文が混ざるので **^ _ { } \ を1文字も入れない**
+       （1文字でもあると講師画面が文字列ぜんぶを TeX として描き、和文が斜体で崩れる）。
+       2乗は「²」、ルートは「√」の文字で書く。
+     ・correct_answer と question_choices は、和文を含まない純粋な式のときだけ
+       **TeX のまま**渡す（講師画面が丸ごと KaTeX で描く＝きれいに出る）。
+       「中心 (2, -1)、半径 2√5」のように和文を含む答えは TeX を使わず素の文字で書く
+       （ans.plain=true のタイプ。画面側も KaTeX に通さない）。
+   ================================================================ */
+
+/* ---------- 小道具 ---------- */
+const N_CHOICES=6;
+const UNIT_KEY="math_hs_en_houteishiki";
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+/* 本文中に数式を混ぜる用（KaTeXはあとで renderTexIn がまとめて描く） */
+function T(tex){return '<span class="tex" data-tex="'+esc(tex)+'"></span>';}
+function TD(tex){return '<span class="tex" data-d="1" data-tex="'+esc(tex)+'"></span>';}
+function renderTexIn(root){
+  if(!root)return;
+  root.querySelectorAll(".tex").forEach(el=>{
+    const s=el.dataset.tex;
+    if(s==null)return;
+    if(window.katex){
+      try{katex.render(s,el,{throwOnError:false,displayMode:el.dataset.d==="1"});}
+      catch(e){el.textContent=s;}
+    }else{
+      /* KaTeX が来る前でも読めるように、記号だけ落とした素の文字を出しておく */
+      el.textContent=s.replace(/\\[a-zA-Z]+/g," ").replace(/[{}]/g,"");
+    }
+  });
+}
+function stripTags(html){
+  const d=document.createElement("div");d.innerHTML=String(html==null?"":html);
+  d.querySelectorAll(".tex").forEach(el=>{el.textContent=" ";});
+  return (d.textContent||"").replace(/\s+/g," ").trim();
+}
+
+/* ---------- 数の見せ方 ---------- */
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t;}return a||1;}
+/* 符号つきの数。0 のときは空文字（「+0」を出さない） */
+function sg(v){return (v===0)?"":((v<0)?("-"+Math.abs(v)):("+"+v));}
+/* n を a√b に分解する */
+function sqParts(n){
+  let a=1,b=n;
+  for(let k=2;k*k<=b;k++){while(b%(k*k)===0){b/=k*k;a*=k;}}
+  return [a,b];
+}
+function sqrtTex(n){
+  if(n<0)return "";
+  const p=sqParts(n);
+  if(p[1]===1)return String(p[0]);
+  return (p[0]===1?"":String(p[0]))+"\\sqrt{"+p[1]+"}";
+}
+/* 記録用・和文まじりの答え用（TeX を使わない √ 表記） */
+function sqrtPlain(n){
+  if(n<0)return "";
+  const p=sqParts(n);
+  if(p[1]===1)return String(p[0]);
+  return (p[0]===1?"":String(p[0]))+"√"+p[1];
+}
+function isSq(n){if(n<0)return false;const r=Math.round(Math.sqrt(n));return r*r===n;}
+function fracTex(n,d){
+  if(d<0){n=-n;d=-d;}
+  const g=gcd(n,d);n/=g;d/=g;
+  if(d===1)return String(n);
+  return (n<0?"-":"")+"\\dfrac{"+Math.abs(n)+"}{"+d+"}";
+}
+function fracPlain(n,d){
+  if(d<0){n=-n;d=-d;}
+  const g=gcd(n,d);n/=g;d/=g;
+  if(d===1)return String(n);
+  return n+"/"+d;
+}
+function ptTex(x,y){return "("+x+",\\ "+y+")";}
+function ptPlain(x,y){return "("+x+", "+y+")";}
+/* 円の標準形。sup は画面/TeX なら "^2"、記録用の平文なら "²" */
+function circTex(a,b,r2,sup){
+  const p=(v,n)=>(v===0)?(n+sup):("("+n+(v>0?("-"+v):("+"+(-v)))+")"+sup);
+  return p(a,"x")+"+"+p(b,"y")+"="+r2;
+}
+/* 1次式の並び。[[係数,"x"],[係数,"y"],[定数,""]] */
+function linTerms(pairs){
+  let s="";
+  pairs.forEach(p=>{
+    const c=p[0],v=p[1];
+    if(c===0)return;
+    const a=Math.abs(c);
+    const body=(v==="")?String(a):((a===1?"":String(a))+v);
+    s+=(s===""?(c<0?"-":""):(c<0?"-":"+"))+body;
+  });
+  return s||"0";
+}
+function lineTex(a,b,c){return linTerms([[a,"x"],[b,"y"],[c,""]])+"=0";}
+/* 直線を約分し、先頭の係数を正にそろえる（同じ直線が別の文字列にならないように） */
+function normLine(a,b,c){
+  const g=gcd(gcd(a,b),c)||1;
+  a/=g;b/=g;c/=g;
+  const lead=(a!==0)?a:b;
+  if(lead<0){a=-a;b=-b;c=-c;}
+  return [a,b,c];
+}
+function lineStr(L){return lineTex(L[0],L[1],L[2]);}
+/* 円の一般形 x²+y²+lx+my+n=0 */
+function gformTex(l,m,n,sup){
+  let s="x"+sup+"+y"+sup;
+  if(l)s+=(l<0?"-":"+")+(Math.abs(l)===1?"":Math.abs(l))+"x";
+  if(m)s+=(m<0?"-":"+")+(Math.abs(m)===1?"":Math.abs(m))+"y";
+  if(n)s+=sg(n);
+  return s+"=0";
+}
+/* (x-a)² の形。a=0 なら x² */
+function sqx(a,v,sup){return (a===0)?(v+sup):("("+v+sg(-a)+")"+sup);}
+/* 傾き m の x の項（y=mx+k の mx の部分） */
+function mxTex(m){return (m===1)?"x":((m===-1)?"-x":(m+"x"));}
+
+/* ---------- 種(seed)から作る乱数 ----------
+   出題のたびに種を1つ引いて question_params に {m:タイプ, lv:レベル, s:種} で保存する。
+   解き直し(?retry=1)は同じ種で生成関数を回すだけで**まったく同じ問題**が出る（CLAUDE.md 2d）。
+   ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
+     （params_hash は同じなので解き直し自体は成立するが、問題文は別物になる）。
+   ⚠ 乱数はこの ri() 1か所に集める。Math.random を生成関数の中で直接呼ぶと種で再現できない。 */
+let _rng=1;
+function rngSeed(s){_rng=(s>>>0)||1;}
+function rngPick(){return (Math.floor(Math.random()*4294967296)>>>0)||1;}  /* 種そのものだけは真の乱数 */
+function rngNext(){let x=_rng;x^=x<<13;x>>>=0;x^=x>>>17;x^=x<<5;x>>>=0;_rng=x;return x/4294967296;}
+function ri(min,max){return Math.floor(rngNext()*(max-min+1))+min;}
+function pick(a){return a[ri(0,a.length-1)];}
+function sgn1(){return ri(0,1)?1:-1;}
+function nzi(min,max){let v=0;while(v===0)v=ri(min,max);return v;}
+/* ⚠ 並べ替えは sort に乱数比較を渡さない（ブラウザの sort 実装しだいで
+   同じ種でも別の並びになる＝解き直しで同じ問題が出なくなる）。フィッシャー・イェーツで書く */
+function shuffle(a){const b=a.slice();for(let i=b.length-1;i>0;i--){const j=ri(0,i);const t=b[i];b[i]=b[j];b[j]=t;}return b;}
+
+/* 選択肢を作る。誤答候補から重複を除いて N_CHOICES-1 個ぶん使う。
+   ⚠ 誤答候補に「値としては正解と同じもの」を混ぜないこと。
+     直線は normLine、根号は sqrtTex で表記が一意になるので、同じ値なら同じ文字列になり
+     この seen で弾ける（＝正解が2つある選択肢にはならない）。
+   plain=true のときは KaTeX に通さない素の文字（和文を含む選択肢）。 */
+function mkChoice(cor,wrongs,plain){
+  const seen={};seen[cor]=1;
+  const w=[];
+  (wrongs||[]).forEach(x=>{
+    if(x==null||x==="")return;
+    if(seen[x])return;
+    seen[x]=1;w.push(x);
+  });
+  const all=shuffle([cor].concat(w.slice(0,N_CHOICES-1)));
+  return {kind:"choice",choices:all,correct:all.indexOf(cor),plain:!!plain};
+}
+function mkNum(val,unit){return {kind:"num",val:val,unit:unit||""};}
+</script>
+<script>
+"use strict";
+/* ---------- タイプ台帳 ----------
+   k = question_key（そのまま question_catalog に登録する）
+   lv = レベルごとの中身（画面の説明にも出す） */
+const MODES=[
+  {k:"houteishiki", n:"① 円の方程式",   s:"(x-a)²+(y-b)²=r²",  grp:"円の方程式",
+   lv:["中心と半径から式をつくる","式から中心と半径を読む"]},
+  {k:"ippankei",    n:"② 一般形",       s:"x²+y²+lx+my+n=0",   grp:"円の方程式",
+   lv:["平方完成して中心・半径","中心・半径が分数になる形"]},
+  {k:"tsukuru",     n:"③ 条件から円",   s:"直径・通る点・接する", grp:"円の方程式",
+   lv:["直径の両端が与えられた円","点を通る円・軸に接する円"]},
+  {k:"chokusen",    n:"④ 直線との位置関係", s:"d と r をくらべる", grp:"直線と円",
+   lv:["共有点の個数を求める","2点で交わる k の範囲"]},
+  {k:"kyorigen",    n:"⑤ 距離と弦の長さ", s:"弦=2√(r²-d²)",     grp:"直線と円",
+   lv:["中心と直線の距離 d","切り取られる弦の長さ"]},
+  {k:"sessen_jou",  n:"⑥ 円上の点の接線", s:"x₁x+y₁y=r²",       grp:"接線",
+   lv:["中心が原点の円","中心がずれた円"]},
+  {k:"sessen_gai",  n:"⑦ 傾き・円外からの接線", s:"y=mx±r√(m²+1)", grp:"接線",
+   lv:["傾きが与えられた接線","円外の点から引いた接線"]},
+  {k:"nien",        n:"⑧ 2つの円の位置関係", s:"d と r₁+r₂, |r₁-r₂|", grp:"2つの円",
+   lv:["位置関係を答える","接するような半径 r"]},
+  {k:"nien_kouten", n:"⑨ 2円の交点",    s:"2式の差 = 共通弦",   grp:"2つの円",
+   lv:["交点を通る直線","共通弦の長さ"]},
+  {k:"houbutsu",    n:"⑩ 放物線との関係", s:"y=x²+c を代入",     grp:"放物線",
+   lv:["共有点の個数","共有点の座標"]}
+];
+const MODEMAP={};MODES.forEach(m=>{MODEMAP[m.k]=m;});
+const MAXLV=2;
+const BASIC4=["houteishiki","ippankei","chokusen","sessen_jou"];
+
+/* ---------- よく使う整数の組 ---------- */
+/* 直線 Ax+By+C=0 の (A,B) と √(A²+B²)。距離 d を整数にするために使う */
+const LINES=[[3,4,5],[4,3,5],[3,-4,5],[4,-3,5],[6,8,10],[8,-6,10],
+             [5,12,13],[12,5,13],[5,-12,13],[12,-5,13],[1,0,1],[0,1,1]];
+/* 円周上の格子点をつくる三角比（a²+b²=r²） */
+const TRI=[[3,4,5],[4,3,5],[6,8,10],[8,6,10],[5,12,13],[12,5,13],
+           [9,12,15],[12,9,15],[8,15,17],[15,8,17],[7,24,25],[24,7,25],[20,21,29]];
+/* 円外の点用。[半径 r, 中心からの距離 p]（p²-r² が平方数＝接線の傾きが有理数になる） */
+const LEGS=[[3,5],[4,5],[6,10],[8,10],[5,13],[12,13],[8,17],[15,17],
+            [9,15],[12,15],[7,25],[24,25],[20,25],[20,29],[21,29]];
+
+const GENS={};
+
+/* 符号つきの項。係数1の文字は「1」を書かない */
+function termTex(c,v){
+  if(c===0)return "";
+  const a=Math.abs(c);
+  return (c<0?"-":"+")+((a===1&&v!=="")?"":String(a))+v;
+}
+/* (x - p/2)^2 のような分数ずらしの平方完成。p=0 なら x^2 */
+function sqxFrac(p,v){
+  if(p===0)return v+"^2";
+  return "\\left("+v+(p>0?"-":"+")+fracTex(Math.abs(p),2)+"\\right)^2";
+}
+
+/* ================================================================
+   ① 円の方程式（基本形）
+   lv1: 中心と半径 → 方程式 ／ lv2: 方程式 → 中心と半径
+   ================================================================ */
+GENS.houteishiki=function(lv){
+  let a=ri(-6,6), b=ri(-6,6);
+  if(a===0&&b===0)a=nzi(1,6);
+  if(lv===1){
+    const r=ri(1,8), r2=r*r;
+    const cor=circTex(a,b,r2,"^2");
+    return {
+      lead:"中心が "+T(ptTex(a,b))+"、半径が "+T(String(r))+" の円の方程式を求めよ。",
+      /* 中心が軸の上（a=0 や b=0）だと符号ちがいの候補が正解と同じ文字列になって
+         消えるので、半径ちがい・x と y の入れかえも候補に入れて数をたもつ */
+      ans:mkChoice(cor,[
+        circTex(a,b,r,"^2"),
+        circTex(-a,-b,r2,"^2"),
+        circTex(-a,-b,r,"^2"),
+        circTex(-a,b,r2,"^2"),
+        circTex(a,-b,r2,"^2"),
+        circTex(b,a,r2,"^2"),
+        circTex(-b,-a,r2,"^2"),
+        circTex(a,b,4*r2,"^2"),
+        circTex(a,b,2*r2,"^2")
+      ]),
+      plainQ:"中心が "+ptPlain(a,b)+"、半径が "+r+" の円の方程式を求めよ。",
+      ex:[
+        "円の方程式の基本形は "+T("(x-a)^2+(y-b)^2=r^2")+"（中心 "+T("(a,\\ b)")+"、半径 "+T("r")+"）。",
+        "中心から "+T("a="+a)+"、"+T("b="+b)+"、半径から "+T("r="+r)+" を代入する。",
+        "⚠ 右辺は半径ではなく<b>半径の2乗</b>: "+T(r+"^2="+r2),
+        '<div class="exFml">'+TD(cor)+"</div>"
+      ]
+    };
+  }
+  const r2=pick([4,9,16,25,36,49,5,8,10,12,13,18,20,24,26,32,45,50]);
+  const cor="中心 "+ptPlain(a,b)+"、半径 "+sqrtPlain(r2);
+  return {
+    lead:"次の円の中心の座標と半径を求めよ。",
+    disp:circTex(a,b,r2,"^2"),
+    ans:mkChoice(cor,[
+      "中心 "+ptPlain(-a,-b)+"、半径 "+sqrtPlain(r2),
+      "中心 "+ptPlain(a,b)+"、半径 "+r2,
+      "中心 "+ptPlain(-a,-b)+"、半径 "+r2,
+      "中心 "+ptPlain(-a,b)+"、半径 "+sqrtPlain(r2),
+      "中心 "+ptPlain(a,-b)+"、半径 "+sqrtPlain(r2),
+      "中心 "+ptPlain(b,a)+"、半径 "+sqrtPlain(r2)
+    ],true),
+    plainQ:"円 "+circTex(a,b,r2,"²")+" の中心の座標と半径を求めよ。",
+    plainA:cor,
+    ex:[
+      T("(x-a)^2+(y-b)^2=r^2")+" と見くらべる。",
+      "⚠ 中心は<b>式の中の符号と逆</b>: "+T(sqx(a,"x","^2"))+" なら "+T("x="+a)+" が中心の "+T("x")+" 座標。",
+      "半径は右辺の平方根: "+T("r=\\sqrt{"+r2+"}="+sqrtTex(r2)),
+      '<div class="exFml">中心 '+T(ptTex(a,b))+"、半径 "+T(sqrtTex(r2))+"</div>"
+    ]
+  };
+};
+
+/* ================================================================
+   ② 一般形 x²+y²+lx+my+n=0
+   lv1: 係数が偶数（中心も半径も整数）／ lv2: 中心・半径が分数になる形
+   ================================================================ */
+GENS.ippankei=function(lv){
+  if(lv===1){
+    let a=ri(-5,5), b=ri(-5,5);
+    if(a===0&&b===0)a=nzi(1,5);
+    const r=ri(1,7);
+    const l=-2*a, m=-2*b, n=a*a+b*b-r*r;
+    const cor="中心 "+ptPlain(a,b)+"、半径 "+r;
+    const miss=2*(a*a+b*b)-r*r;      /* 定数項の符号を落とす典型ミス */
+    const ex=[T("x")+" の項、"+T("y")+" の項をそれぞれ<b>平方完成</b>する。"];
+    if(a!==0)ex.push(T("x^2"+termTex(l,"x")+"="+sqx(a,"x","^2")+"-"+(a*a)));
+    if(b!==0)ex.push(T("y^2"+termTex(m,"y")+"="+sqx(b,"y","^2")+"-"+(b*b)));
+    ex.push("定数をまとめると "+T(circTex(a,b,r*r,"^2")));
+    ex.push('<div class="exFml">中心 '+T(ptTex(a,b))+"、半径 "+T(String(r))+"</div>");
+    return {
+      lead:"次の方程式が表す円の中心の座標と半径を求めよ。",
+      disp:gformTex(l,m,n,"^2"),
+      ans:mkChoice(cor,[
+        "中心 "+ptPlain(l,m)+"、半径 "+r,
+        "中心 "+ptPlain(-a,-b)+"、半径 "+r,
+        "中心 "+ptPlain(a,b)+"、半径 "+(r*r),
+        (miss>0?("中心 "+ptPlain(a,b)+"、半径 "+sqrtPlain(miss)):null),
+        "中心 "+ptPlain(-l,-m)+"、半径 "+r,
+        "中心 "+ptPlain(b,a)+"、半径 "+r
+      ],true),
+      plainQ:"方程式 "+gformTex(l,m,n,"²")+" が表す円の中心の座標と半径を求めよ。",
+      plainA:cor,
+      ex:ex
+    };
+  }
+  /* 中心が半整数になる形。p,q のうち一方だけを奇数、s を奇数にすると
+     定数項 (p²+q²-s²)/4 がきちんと整数になる */
+  const s=pick([3,5,7,9,11]);
+  let p,q;
+  if(ri(0,1)===0){p=pick([-7,-5,-3,-1,1,3,5,7]);q=2*ri(-4,4);}
+  else{p=2*ri(-4,4);q=pick([-7,-5,-3,-1,1,3,5,7]);}
+  const n=(p*p+q*q-s*s)/4;
+  const cor="中心 ("+fracPlain(p,2)+", "+fracPlain(q,2)+")、半径 "+fracPlain(s,2);
+  const ex=[T("x")+" の項、"+T("y")+" の項をそれぞれ平方完成する（<b>半分にすると分数</b>になる）。"];
+  if(p!==0)ex.push(T("x^2"+termTex(-p,"x")+"="+sqxFrac(p,"x")+"-"+fracTex(p*p,4)));
+  if(q!==0)ex.push(T("y^2"+termTex(-q,"y")+"="+sqxFrac(q,"y")+"-"+fracTex(q*q,4)));
+  ex.push("まとめると "+T(sqxFrac(p,"x")+"+"+sqxFrac(q,"y")+"="+fracTex(s*s,4)));
+  ex.push("右辺は "+T(fracTex(s*s,4)+"=\\left("+fracTex(s,2)+"\\right)^2")+" なので半径は "+T(fracTex(s,2))+"。");
+  ex.push('<div class="exFml">中心 '+T("\\left("+fracTex(p,2)+",\\ "+fracTex(q,2)+"\\right)")+"、半径 "+T(fracTex(s,2))+"</div>");
+  return {
+    lead:"次の方程式が表す円の中心の座標と半径を求めよ。",
+    disp:gformTex(-p,-q,n,"^2"),
+    ans:mkChoice(cor,[
+      "中心 "+ptPlain(p,q)+"、半径 "+s,
+      "中心 ("+fracPlain(-p,2)+", "+fracPlain(-q,2)+")、半径 "+fracPlain(s,2),
+      "中心 ("+fracPlain(p,2)+", "+fracPlain(q,2)+")、半径 "+s,
+      "中心 ("+fracPlain(p,2)+", "+fracPlain(q,2)+")、半径 "+fracPlain(s*s,4),
+      "中心 "+ptPlain(-p,-q)+"、半径 "+fracPlain(s,2),
+      "中心 ("+fracPlain(q,2)+", "+fracPlain(p,2)+")、半径 "+fracPlain(s,2)
+    ],true),
+    plainQ:"方程式 "+gformTex(-p,-q,n,"²")+" が表す円の中心の座標と半径を求めよ。",
+    plainA:cor,
+    ex:ex
+  };
+};
+
+/* ================================================================
+   ③ 条件から円を求める
+   lv1: 直径の両端 ／ lv2: 中心と通る点／軸に接する円
+   ================================================================ */
+GENS.tsukuru=function(lv){
+  if(lv===1){
+    const cx=ri(-4,4), cy=ri(-4,4);
+    let u=ri(-4,4), v=ri(-4,4);
+    if(u===0&&v===0)u=nzi(1,4);
+    const ax=cx+u, ay=cy+v, bx=cx-u, by=cy-v;
+    const r2=u*u+v*v;
+    const cor=circTex(cx,cy,r2,"^2");
+    return {
+      lead:"2点 A"+T(ptTex(ax,ay))+"、B"+T(ptTex(bx,by))+" を直径の両端とする円の方程式を求めよ。",
+      ans:mkChoice(cor,[
+        circTex(cx,cy,4*r2,"^2"),
+        circTex(ax,ay,r2,"^2"),
+        circTex(2*cx,2*cy,r2,"^2"),
+        circTex(-cx,-cy,r2,"^2"),
+        circTex(bx,by,r2,"^2"),
+        circTex(cx,cy,2*r2,"^2")
+      ]),
+      plainQ:"2点 A"+ptPlain(ax,ay)+"、B"+ptPlain(bx,by)+" を直径の両端とする円の方程式を求めよ。",
+      ex:[
+        "直径の両端が分かっているので、<b>中心は AB の中点</b>。",
+        T("\\left(\\dfrac{("+ax+")+("+bx+")}{2},\\ \\dfrac{("+ay+")+("+by+")}{2}\\right)="+ptTex(cx,cy)),
+        "半径は中心から A までの距離。2乗のまま使えばよい: "+T("r^2="+(u*u)+"+"+(v*v)+"="+r2),
+        '<div class="exFml">'+TD(cor)+"</div>"
+      ]
+    };
+  }
+  if(ri(0,1)===0){
+    /* 中心が与えられ、1点を通る円 */
+    const a=ri(-5,5), b=ri(-5,5);
+    let px=ri(-6,6), py=ri(-6,6);
+    if(px===a&&py===b)px=a+nzi(1,4);
+    const dx=px-a, dy=py-b, r2=dx*dx+dy*dy;
+    const cor=circTex(a,b,r2,"^2");
+    return {
+      lead:"中心が "+T(ptTex(a,b))+" で、点 P"+T(ptTex(px,py))+" を通る円の方程式を求めよ。",
+      /* ⚠ 半径0の「円」は候補にしない（x²+y²=0 は円ではないので選択肢として成立しない） */
+      ans:mkChoice(cor,[
+        circTex(a,b,(px+a)*(px+a)+(py+b)*(py+b),"^2"),
+        circTex(px,py,r2,"^2"),
+        circTex(-a,-b,r2,"^2"),
+        (dx!==0?circTex(a,b,dx*dx,"^2"):null),
+        (dy!==0?circTex(a,b,dy*dy,"^2"):null),
+        circTex(a,b,2*r2,"^2"),
+        circTex(a,b,4*r2,"^2"),
+        circTex(-a,b,r2,"^2"),
+        circTex(a,-b,r2,"^2")
+      ]),
+      plainQ:"中心が "+ptPlain(a,b)+" で、点 P"+ptPlain(px,py)+" を通る円の方程式を求めよ。",
+      ex:[
+        "半径は<b>中心と通る点の距離</b>。2乗のまま求めればよい。",
+        T("r^2=("+px+sg(-a)+")^2+("+py+sg(-b)+")^2="+(dx*dx)+"+"+(dy*dy)+"="+r2),
+        '<div class="exFml">'+TD(cor)+"</div>"
+      ]
+    };
+  }
+  const a=nzi(-6,6), b=nzi(-6,6);
+  const onX=(ri(0,1)===0);
+  const r=Math.abs(onX?b:a), r2=r*r;
+  const other=Math.abs(onX?a:b);
+  const cor=circTex(a,b,r2,"^2");
+  return {
+    lead:"中心が "+T(ptTex(a,b))+" で、"+(onX?"x":"y")+"軸に接する円の方程式を求めよ。",
+    ans:mkChoice(cor,[
+      circTex(a,b,other*other,"^2"),
+      circTex(a,b,r,"^2"),
+      circTex(a,b,a*a+b*b,"^2"),
+      circTex(-a,-b,r2,"^2"),
+      circTex(a,b,2*r2,"^2"),
+      circTex(b,a,r2,"^2"),
+      /* |a|=|b| のとき上の候補が正解とそろってしまうので、数をたもつ用の追加 */
+      circTex(-a,b,r2,"^2"),
+      circTex(a,-b,r2,"^2"),
+      circTex(a,b,4*r2,"^2")
+    ]),
+    plainQ:"中心が "+ptPlain(a,b)+" で、"+(onX?"x":"y")+"軸に接する円の方程式を求めよ。",
+    ex:[
+      (onX?("x軸に接する円の半径は、中心の "+T("y")+" 座標の絶対値。")
+          :("y軸に接する円の半径は、中心の "+T("x")+" 座標の絶対値。")),
+      T("r=|"+(onX?b:a)+"|="+r)+" なので "+T("r^2="+r2)+"。",
+      '<div class="exFml">'+TD(cor)+"</div>"
+    ]
+  };
+};
+
+/* ================================================================
+   ④ 直線と円の位置関係
+   lv1: 共有点の個数（d と r をくらべる）／ lv2: 2点で交わる k の範囲
+   ================================================================ */
+GENS.chokusen=function(lv){
+  if(lv===1){
+    const r=ri(2,8);
+    /* 半分くらいは y=mx+k の形で出す。こちらは d が無理数になるので
+       「両辺とも正だから2乗してくらべる」＝判別式と同じ計算を覚える側の練習になる。
+       図モードは y=mx+k で持っているので、この形の問題には図リンクが付く。 */
+    if(ri(0,9)<5){
+      const m=ri(-3,3), k=nzi(-9,9);
+      const lhs=k*k, rhs=r*r*(m*m+1);
+      const cnt=(lhs<rhs)?2:((lhs===rhs)?1:0);
+      return {
+        lead:"円 "+T("x^2+y^2="+(r*r))+" と直線 "+T("y="+mxTex(m)+sg(k))+" の共有点の個数を求めよ。",
+        ans:mkNum(cnt,"個"),
+        fig:{t:"line",r:r,m:m,k:k},
+        plainQ:"円 x²+y²="+(r*r)+" と直線 y="+mxTex(m)+sg(k)+" の共有点の個数を求めよ。",
+        ex:[
+          "直線を "+T(linTerms([[m,"x"],[-1,"y"]])+sg(k)+"=0")+" になおし、中心 "+T("(0,\\ 0)")+" との距離を出す。",
+          T("d=\\dfrac{|"+k+"|}{\\sqrt{"+(m*m)+"+1}}=\\dfrac{"+Math.abs(k)+"}{\\sqrt{"+(m*m+1)+"}}"),
+          "そのままでは比べにくいので、<b>どちらも正だから2乗してくらべる</b>。",
+          T("d^2=\\dfrac{"+(k*k)+"}{"+(m*m+1)+"}")+" と "+T("r^2="+(r*r))+" → 分母をはらって "
+            +T(lhs+(lhs<rhs?"<":(lhs===rhs?"=":">"))+rhs),
+          (cnt===2?"<b>d &lt; r</b> … 直線は円の内部を通りぬける。"
+                 :(cnt===1?"<b>d = r</b> … 直線は円に接する。"
+                          :"<b>d &gt; r</b> … 直線は円と出会わない。")),
+          '<div class="exFml">共有点は '+cnt+" 個</div>",
+          "（代入して判別式 "+T("D")+" の符号を見ても同じ結果になる）"
+        ]
+      };
+    }
+    const t=pick(LINES), A=t[0], B=t[1], H=t[2];
+    const d=ri(0,r+3);
+    const c=sgn1()*d*H;
+    const cnt=(d<r)?2:((d===r)?1:0);
+    /* 図モードは y=mx+k の形で持っているので、そう書ける問題だけリンクを出す */
+    const fig=(B!==0&&(A%B===0)&&(c%B===0))?{t:"line",r:r,m:-A/B,k:-c/B}:null;
+    return {
+      lead:"円 "+T("x^2+y^2="+(r*r))+" と直線 "+T(lineTex(A,B,c))+" の共有点の個数を求めよ。",
+      ans:mkNum(cnt,"個"),
+      fig:fig,
+      plainQ:"円 x²+y²="+(r*r)+" と直線 "+lineTex(A,B,c)+" の共有点の個数を求めよ。",
+      ex:[
+        "中心 "+T("(0,\\ 0)")+" と直線の距離 "+T("d")+" を、半径 "+T("r="+r)+" とくらべる。",
+        T("d=\\dfrac{|"+(c===0?"0":String(c))+"|}{\\sqrt{"+(A*A)+"+"+(B*B)+"}}=\\dfrac{"+Math.abs(c)+"}{"+H+"}="+d),
+        (d<r?"<b>d &lt; r</b> … 直線は円の内部を通りぬける。"
+            :(d===r?"<b>d = r</b> … 直線は円に接する。"
+                   :"<b>d &gt; r</b> … 直線は円と出会わない。")),
+        '<div class="exFml">共有点は '+cnt+" 個</div>"
+      ]
+    };
+  }
+  const r=ri(1,6);
+  const m=pick([-3,-2,-1,1,2,3]);
+  const R=r*r*(m*m+1);
+  const S=sqrtTex(R);
+  /* ⚠ 不等号は生の「<」ではなく TeX の \lt で書く。
+     api/save_answer.php は question_choices に生の < が1つでもあると
+     **選択肢を丸ごと捨てる**（記録は残るので気づきにくい）。 */
+  const cor="-"+S+"\\lt k\\lt "+S;
+  return {
+    lead:"円 "+T("x^2+y^2="+(r*r))+" と直線 "+T("y="+mxTex(m)+"+k")+" が異なる2点で交わるような定数 "+T("k")+" の値の範囲を求めよ。",
+    ans:mkChoice(cor,[
+      "k\\lt -"+S+",\\ "+S+"\\lt k",
+      "k=\\pm "+S,
+      "-"+r+"\\lt k\\lt "+r,
+      "-"+R+"\\lt k\\lt "+R,
+      "-"+sqrtTex(m*m+1)+"\\lt k\\lt "+sqrtTex(m*m+1),
+      "-"+sqrtTex(r*r*m*m)+"\\lt k\\lt "+sqrtTex(r*r*m*m)
+    ]),
+    plainQ:"円 x²+y²="+(r*r)+" と直線 y="+mxTex(m)+"+k が異なる2点で交わるような定数 k の値の範囲を求めよ。",
+    ex:[
+      "直線を "+T(linTerms([[m,"x"],[-1,"y"]])+"+k=0")+" と書きかえ、中心 "+T("(0,\\ 0)")+" との距離を出す。",
+      T("d=\\dfrac{|k|}{\\sqrt{"+(m*m)+"+1}}=\\dfrac{|k|}{\\sqrt{"+(m*m+1)+"}}"),
+      "異なる2点で交わる条件は "+T("d<r")+"。両辺は正なので2乗して "+T("k^2<"+(r*r)+"\\cdot "+(m*m+1)+"="+R)+"。",
+      '<div class="exFml">'+TD(cor)+"</div>",
+      "（"+T("y="+mxTex(m)+"+k")+" を代入して判別式 "+T("D>0")+" を解いても同じ答えになる）"
+    ]
+  };
+};
+
+/* ================================================================
+   ⑤ 中心と直線の距離・弦の長さ
+   lv1: 点と直線の距離の公式 ／ lv2: 弦の長さ 2√(r²-d²)
+   ================================================================ */
+GENS.kyorigen=function(lv){
+  const t=pick(LINES), A=t[0], B=t[1], H=t[2];
+  if(lv===1){
+    const p=ri(-5,5), q=ri(-5,5), r=ri(1,9);
+    const d=ri(1,9);
+    const c=sgn1()*d*H-(A*p+B*q);
+    const v=A*p+B*q+c;
+    return {
+      lead:"円 "+T(circTex(p,q,r*r,"^2"))+" の中心と、直線 "+T(lineTex(A,B,c))+" との距離を求めよ。",
+      ans:mkNum(d,""),
+      plainQ:"円 "+circTex(p,q,r*r,"²")+" の中心と、直線 "+lineTex(A,B,c)+" との距離を求めよ。",
+      ex:[
+        "円の中心は "+T(ptTex(p,q))+"。点と直線の距離の公式にあてはめる。",
+        T("d=\\dfrac{|ax_0+by_0+c|}{\\sqrt{a^2+b^2}}"),
+        T("d=\\dfrac{|"+A+"\\cdot("+p+")"+(B===0?"":("+"+B+"\\cdot("+q+")"))+sg(c)+"|}{\\sqrt{"+(A*A)+"+"+(B*B)+"}}"
+          +"=\\dfrac{|"+v+"|}{"+H+"}="+d),
+        '<div class="exFml">'+TD("d="+d)+"</div>"
+      ]
+    };
+  }
+  const r=ri(3,10);
+  const d=ri(1,r-1);
+  const c=sgn1()*d*H;
+  const cor=sqrtTex(4*(r*r-d*d));
+  return {
+    lead:"円 "+T("x^2+y^2="+(r*r))+" が直線 "+T(lineTex(A,B,c))+" から切り取る弦の長さを求めよ。",
+    ans:mkChoice(cor,[
+      sqrtTex(r*r-d*d),
+      sqrtTex(4*(r*r+d*d)),
+      String(2*r),
+      sqrtTex(4*r*r-d*d),
+      String(2*d),
+      sqrtTex(r*r+d*d)
+    ]),
+    plainQ:"円 x²+y²="+(r*r)+" が直線 "+lineTex(A,B,c)+" から切り取る弦の長さを求めよ。",
+    ex:[
+      "中心から弦におろした垂線は、弦を<b>2等分</b>する。半径・距離・弦の半分で直角三角形ができる。",
+      "中心と直線の距離は "+T("d=\\dfrac{"+Math.abs(c)+"}{"+H+"}="+d)+"。",
+      T("\\left(\\dfrac{\\text{弦}}{2}\\right)^2=r^2-d^2="+(r*r)+"-"+(d*d)+"="+(r*r-d*d)),
+      T("\\text{弦}=2\\sqrt{"+(r*r-d*d)+"}="+cor),
+      '<div class="exFml">'+TD(cor)+"</div>"
+    ]
+  };
+};
+
+/* ================================================================
+   ⑥ 円上の点における接線
+   lv1: 中心が原点（x₁x+y₁y=r²）／ lv2: 中心がずれた円
+   ================================================================ */
+GENS.sessen_jou=function(lv){
+  const t=pick(TRI);
+  const r=t[2], r2=r*r;
+  let x1,y1;
+  if(ri(0,5)===0){                       /* たまに軸上の点を出す */
+    if(ri(0,1)===0){x1=sgn1()*r;y1=0;}
+    else{x1=0;y1=sgn1()*r;}
+  }else{
+    x1=sgn1()*t[0];y1=sgn1()*t[1];
+  }
+  if(lv===1){
+    const cor=linTerms([[x1,"x"],[y1,"y"]])+"="+r2;
+    return {
+      lead:"円 "+T("x^2+y^2="+r2)+" 上の点 P"+T(ptTex(x1,y1))+" における接線の方程式を求めよ。",
+      ans:mkChoice(cor,[
+        linTerms([[x1,"x"],[y1,"y"]])+"="+r,
+        linTerms([[x1,"x"],[-y1,"y"]])+"="+r2,
+        linTerms([[y1,"x"],[x1,"y"]])+"="+r2,
+        linTerms([[-x1,"x"],[-y1,"y"]])+"="+r2,
+        linTerms([[x1,"x"],[y1,"y"]])+"="+(2*r2),
+        linTerms([[x1,"x"],[y1,"y"]])+"="+(r2+1)
+      ]),
+      plainQ:"円 x²+y²="+r2+" 上の点 P"+ptPlain(x1,y1)+" における接線の方程式を求めよ。",
+      ex:[
+        "円 "+T("x^2+y^2=r^2")+" 上の点 "+T("(x_1,\\ y_1)")+" における接線は "+T("x_1x+y_1y=r^2")+"。",
+        "P の座標をそのまま係数に書きうつすだけでよい。",
+        T(x1+"\\cdot x"+(y1===0?"":("+("+y1+")\\cdot y"))+"="+r2),
+        '<div class="exFml">'+TD(cor)+"</div>",
+        "（接線は<b>半径 OP と垂直</b>。傾きを出してから求めても同じ式になる）"
+      ]
+    };
+  }
+  const a=ri(-5,5), b=ri(-5,5);
+  const px=a+x1, py=b+y1;
+  const rhs=r2+a*x1+b*y1;
+  const cor=linTerms([[x1,"x"],[y1,"y"]])+"="+rhs;
+  return {
+    lead:"円 "+T(circTex(a,b,r2,"^2"))+" 上の点 P"+T(ptTex(px,py))+" における接線の方程式を求めよ。",
+    ans:mkChoice(cor,[
+      linTerms([[x1,"x"],[y1,"y"]])+"="+r2,
+      linTerms([[x1,"x"],[y1,"y"]])+"="+(r2-a*x1-b*y1),
+      linTerms([[px,"x"],[py,"y"]])+"="+r2,
+      linTerms([[x1,"x"],[-y1,"y"]])+"="+rhs,
+      linTerms([[y1,"x"],[x1,"y"]])+"="+rhs,
+      linTerms([[x1,"x"],[y1,"y"]])+"="+r,
+      linTerms([[px,"x"],[py,"y"]])+"="+rhs,
+      /* ⚠ 係数をまるごと符号反転したものは rhs=0 だと**正解と同じ直線**になる。
+         その組み合わせのときだけ候補から外す（文字列は違うので dedupe では消えない） */
+      (rhs!==0?(linTerms([[-x1,"x"],[-y1,"y"]])+"="+rhs):null),
+      (rhs!==0?(linTerms([[x1,"x"],[y1,"y"]])+"="+(2*rhs)):null)
+    ]),
+    plainQ:"円 "+circTex(a,b,r2,"²")+" 上の点 P"+ptPlain(px,py)+" における接線の方程式を求めよ。",
+    ex:[
+      "中心がずれた円 "+T("(x-a)^2+(y-b)^2=r^2")+" 上の点 "+T("(x_1,\\ y_1)")+" の接線は",
+      T("(x_1-a)(x-a)+(y_1-b)(y-b)=r^2"),
+      "P と中心の差は "+T("x_1-a="+x1)+"、"+T("y_1-b="+y1)+" なので",
+      T("("+x1+")(x"+sg(-a)+")+("+y1+")(y"+sg(-b)+")="+r2),
+      "展開して整理すると",
+      '<div class="exFml">'+TD(cor)+"</div>"
+    ]
+  };
+};
+
+/* ================================================================
+   ⑦ 傾きが与えられた接線 / 円外の点から引いた接線
+   ================================================================ */
+/* 2本の接線をまとめて1つの答えにする。normLine で表記をそろえるので、
+   同じ直線の組は必ず同じ文字列になる（＝正解と同じ誤答が混ざらない） */
+function pairStr(L1,L2){
+  return lineStr(normLine(L1[0],L1[1],L1[2]))+",\\ "+lineStr(normLine(L2[0],L2[1],L2[2]));
+}
+GENS.sessen_gai=function(lv){
+  if(lv===1){
+    const r=ri(1,8);
+    const m=pick([-3,-2,-1,1,2,3]);
+    const S=sqrtTex(r*r*(m*m+1));
+    const head="y="+mxTex(m);
+    const cor=head+"\\pm "+S;
+    return {
+      lead:"円 "+T("x^2+y^2="+(r*r))+" に接し、傾きが "+T(String(m))+" である直線の方程式を求めよ。",
+      ans:mkChoice(cor,[
+        head+"\\pm "+r,
+        head+"\\pm "+sqrtTex(m*m+1),
+        head+"\\pm "+sqrtTex(r*r*m*m),
+        head+"\\pm "+sqrtTex(r*r+m*m),
+        head+"\\pm "+(r*r*(m*m+1)),
+        head+"\\pm "+(r*r),
+        /* r や m が小さいと上の候補がそろってしまうので、数をたもつ用の追加 */
+        head+"\\pm "+sqrtTex(4*r*r*(m*m+1)),
+        "y="+mxTex(-m)+"\\pm "+S,
+        head+"\\pm "+(2*r)
+      ]),
+      plainQ:"円 x²+y²="+(r*r)+" に接し、傾きが "+m+" である直線の方程式を求めよ。",
+      ex:[
+        "求める直線を "+T("y="+mxTex(m)+"+k")+" とおき、一般形 "+T(linTerms([[m,"x"],[-1,"y"]])+"+k=0")+" になおす。",
+        "中心 "+T("(0,\\ 0)")+" との距離が半径 "+T(String(r))+" に等しい。",
+        T("\\dfrac{|k|}{\\sqrt{"+(m*m)+"+1}}="+r+"\\quad\\Rightarrow\\quad |k|="+r+"\\sqrt{"+(m*m+1)+"}="+S),
+        '<div class="exFml">'+TD(cor)+"</div>",
+        "（公式 "+T("y=mx\\pm r\\sqrt{m^2+1}")+" として覚えてもよい）"
+      ]
+    };
+  }
+  const g=pick(LEGS);
+  const r=g[0], P=g[1];
+  const t=Math.round(Math.sqrt(P*P-r*r));   /* 接点までの距離。P²-r²=t² */
+  const onX=(ri(0,1)===0);
+  const P0=sgn1()*P;
+  const px=onX?P0:0, py=onX?0:P0;
+  /* 接線は onX なら (u,∓w,c)、onY なら (∓w,u,c) の形になる */
+  const mk2=function(u,w,cc){
+    return onX?pairStr([u,-w,cc],[u,w,cc]):pairStr([-w,u,cc],[w,u,cc]);
+  };
+  const cor=mk2(r,t,-r*P0);
+  const m1=onX?fracTex(r,t):fracTex(t,r);
+  /* 距離の分子 |q-mp|。q=0 のときに「|+15m|」と先頭に + が出ないようにする */
+  const numTex=((py===0?"":String(py))+(px===0?"":(px>0?("-"+px+"m"):("+"+Math.abs(px)+"m")))).replace(/^\+/,"");
+  /* P が軸の上にあるときに「m(x)」「+(-13)」のような形にならないよう書き分ける */
+  const tanTex="y"+sg(-py)+"="+((px===0)?"mx":("m(x"+sg(-px)+")"));
+  const genTex="mx-y"+sg(py)+((px===0)?"":((px>0?"-":"+")+(Math.abs(px)===1?"":Math.abs(px))+"m"))+"=0";
+  return {
+    lead:"円 "+T("x^2+y^2="+(r*r))+" に、円外の点 P"+T(ptTex(px,py))+" から引いた接線の方程式を求めよ（2本）。",
+    ans:mkChoice(cor,[
+      mk2(r,t,r*P0),
+      mk2(t,r,-t*P0),
+      mk2(r,t,-r*r),
+      mk2(P,t,-P*P0),
+      mk2(t,r,-r*P0),
+      mk2(r,t,-P0)
+    ]),
+    plainQ:"円 x²+y²="+(r*r)+" に、円外の点 P"+ptPlain(px,py)+" から引いた接線の方程式を求めよ（2本）。",
+    ex:[
+      "接点は分からないので、<b>P を通る直線</b> "+T(tanTex)+" とおく。",
+      "一般形 "+T(genTex)+" になおし、中心 "+T("(0,\\ 0)")+" との距離が "+T(String(r))+" になる条件を立てる。",
+      T("\\dfrac{|"+(numTex===""?"0":numTex)+"|}{\\sqrt{m^2+1}}="+r),
+      "両辺を2乗して整理すると "+T("m")+" の2次方程式になり、"+T("m=\\pm "+m1)+"。",
+      "これを "+T(tanTex)+" に戻して整理する。",
+      '<div class="exFml">'+TD(cor)+"</div>"
+    ]
+  };
+};
+
+/* ================================================================
+   ⑧ 2つの円の位置関係
+   lv1: 位置関係を選ぶ ／ lv2: 接するような半径 r
+   ================================================================ */
+const NIEN_LABELS=[
+  "たがいに外部にある（共有点なし）",
+  "外接する（共有点1個）",
+  "異なる2点で交わる（共有点2個）",
+  "内接する（共有点1個）",
+  "一方が他方の内部にある（共有点なし）"
+];
+function nienIndex(d,r1,r2){
+  const s=r1+r2, t=Math.abs(r1-r2);
+  if(d>s)return 0;
+  if(d===s)return 1;
+  if(d>t)return 2;
+  if(d===t)return 3;
+  return 4;
+}
+/* 中心間の距離をちょうど d にする整数ベクトル */
+function offsetFor(d){
+  const base=[[d,0],[-d,0],[0,d],[0,-d]];
+  const extra={
+    5:[[3,4],[4,3],[-3,4],[3,-4],[-4,-3]],
+    10:[[6,8],[8,6],[-6,8],[6,-8]],
+    13:[[5,12],[12,5],[-5,12],[5,-12]],
+    15:[[9,12],[12,9],[-9,12]],
+    17:[[8,15],[15,8],[-8,15]]
+  };
+  return pick(base.concat(extra[d]||[]));
+}
+GENS.nien=function(lv){
+  if(lv===1){
+    const rel=ri(0,4);
+    let d=ri(2,10), r1, r2;
+    if(rel===0){
+      if(d<3)d=ri(3,10);
+      r1=ri(1,d-2);r2=ri(1,d-1-r1);
+    }else if(rel===1){
+      r1=ri(1,d-1);r2=d-r1;
+    }else if(rel===2){
+      r1=ri(1,8);
+      const lo=Math.max(1,d-r1+1,r1-d+1), hi=r1+d-1;
+      r2=ri(lo,hi);
+    }else if(rel===3){
+      r1=ri(1,8);r2=r1+d;
+    }else{
+      r1=ri(1,6);r2=r1+d+ri(1,3);
+    }
+    const p1=ri(-4,4), q1=ri(-4,4);
+    const off=offsetFor(d);
+    const p2=p1+off[0], q2=q1+off[1];
+    /* 答えは「つくったつもりの関係」ではなく、実際の d・r1・r2 から判定する */
+    const idx=nienIndex(d,r1,r2);
+    const cor=NIEN_LABELS[idx];
+    return {
+      lead:"2つの円 "+T("C_1")+"、"+T("C_2")+" の位置関係として正しいものを選べ。",
+      disp:"C_1:"+circTex(p1,q1,r1*r1,"^2")+"\\qquad C_2:"+circTex(p2,q2,r2*r2,"^2"),
+      ans:mkChoice(cor,NIEN_LABELS.filter(x=>x!==cor),true),
+      fig:{t:"two",r1:r1,r2:r2,d:d},
+      plainQ:"2つの円 C1: "+circTex(p1,q1,r1*r1,"²")+"、C2: "+circTex(p2,q2,r2*r2,"²")+" の位置関係を答えよ。",
+      plainA:cor,
+      ex:[
+        "半径は "+T("r_1="+r1)+"、"+T("r_2="+r2)+"。中心は "+T(ptTex(p1,q1))+" と "+T(ptTex(p2,q2))+"。",
+        "中心間の距離 "+T("d=\\sqrt{("+off[0]+")^2+("+off[1]+")^2}=\\sqrt{"+(off[0]*off[0]+off[1]*off[1])+"}="+d),
+        T("r_1+r_2="+(r1+r2))+"、"+T("|r_1-r_2|="+Math.abs(r1-r2))+" と "+T("d="+d)+" をくらべる。",
+        '<div class="exFml">'+esc(cor)+"</div>",
+        "（"+T("d>r_1+r_2")+" 外部／"+T("d=r_1+r_2")+" 外接／"+T("|r_1-r_2|<d<r_1+r_2")+" 2点で交わる／"
+          +T("d=|r_1-r_2|")+" 内接／"+T("d<|r_1-r_2|")+" 内部）"
+      ]
+    };
+  }
+  const r1=ri(1,6);
+  const d=ri(r1+1,r1+9);
+  const p1=ri(-4,4), q1=ri(-4,4);
+  const off=offsetFor(d);
+  const p2=p1+off[0], q2=q1+off[1];
+  const cor="r="+(d-r1)+",\\ "+(d+r1);
+  return {
+    lead:"円 "+T("C_1")+" と、中心が "+T(ptTex(p2,q2))+" で半径が "+T("r")+" の円 "+T("C_2")+" が接するような正の数 "+T("r")+" の値をすべて求めよ。",
+    disp:"C_1:"+circTex(p1,q1,r1*r1,"^2"),
+    ans:mkChoice(cor,[
+      "r="+(d-r1),
+      "r="+(d+r1),
+      "r="+d,
+      "r="+r1+",\\ "+d,
+      "r="+(d-r1)+",\\ "+d,
+      "r="+(d*d-r1*r1)
+    ]),
+    plainQ:"円 C1: "+circTex(p1,q1,r1*r1,"²")+" と、中心が "+ptPlain(p2,q2)+" で半径が r の円 C2 が接するような正の数 r の値をすべて求めよ。",
+    ex:[
+      T("C_1")+" の中心は "+T(ptTex(p1,q1))+"、半径は "+T(String(r1))+"。中心間の距離は",
+      T("d=\\sqrt{("+off[0]+")^2+("+off[1]+")^2}="+d),
+      "<b>外接</b>するのは "+T("d=r_1+r")+" のとき: "+T("r="+d+"-"+r1+"="+(d-r1)),
+      "<b>内接</b>するのは "+T("d=|r-r_1|")+" のとき: "+T("r="+d+"+"+r1+"="+(d+r1))+"（"+T("r="+r1+"-"+d)+" は負になるので不適）",
+      '<div class="exFml">'+TD(cor)+"</div>"
+    ]
+  };
+};
+
+/* ================================================================
+   ⑨ 2円の交点（共通弦）
+   交点 A, B を先に決め、その垂直二等分線上に中心を置いて2つの円をつくる。
+   ＝必ず2点で交わり、係数も整数になる。
+   ================================================================ */
+GENS.nien_kouten=function(lv){
+  const x0=ri(-3,3), y0=ri(-3,3);
+  let a=ri(-3,3), b=ri(-3,3);
+  if(a===0&&b===0)a=nzi(1,3);
+  const s1=nzi(-3,3);
+  let s2=nzi(-3,3);
+  if(s2===s1)s2=(s1===3)?-1:(s1+1);
+  const ab=a*a+b*b;
+  const P1=x0-b*s1, Q1=y0+a*s1, R1=ab*(1+s1*s1);
+  const P2=x0-b*s2, Q2=y0+a*s2, R2=ab*(1+s2*s2);
+  const L1=[-2*P1,-2*Q1,P1*P1+Q1*Q1-R1];
+  const L2=[-2*P2,-2*Q2,P2*P2+Q2*Q2-R2];
+  const diff=normLine(L1[0]-L2[0],L1[1]-L2[1],L1[2]-L2[2]);
+  const c1Tex=gformTex(L1[0],L1[1],L1[2],"^2");
+  const c2Tex=gformTex(L2[0],L2[1],L2[2],"^2");
+  const c1Pl=gformTex(L1[0],L1[1],L1[2],"²");
+  const c2Pl=gformTex(L2[0],L2[1],L2[2],"²");
+  if(lv===1){
+    const cor=lineStr(diff);
+    const centerLine=normLine(Q2-Q1,-(P2-P1),-((Q2-Q1)*P1-(P2-P1)*Q1));
+    return {
+      lead:"2つの円 "+T("C_1")+"、"+T("C_2")+" の2つの交点を通る直線の方程式を求めよ。",
+      disp:"C_1:"+c1Tex+"\\qquad C_2:"+c2Tex,
+      ans:mkChoice(cor,[
+        lineStr(normLine(L1[0]+L2[0],L1[1]+L2[1],L1[2]+L2[2])),
+        lineStr(normLine(diff[0],diff[1],-diff[2])),
+        lineStr(centerLine),
+        lineStr(normLine(diff[1],diff[0],diff[2])),
+        lineStr(normLine(diff[0],-diff[1],diff[2])),
+        lineStr(normLine(2*diff[0],2*diff[1],diff[2])),
+        /* 共通弦と平行で、中心を通ってしまう直線（通る点をまちがえた形）。
+           中心は共通弦の上には無い（s1,s2 が 0 でない）ので必ず別の直線になる */
+        lineStr(normLine(diff[0],diff[1],-(diff[0]*P1+diff[1]*Q1))),
+        lineStr(normLine(diff[0],diff[1],-(diff[0]*P2+diff[1]*Q2)))
+      ]),
+      plainQ:"2つの円 C1: "+c1Pl+"、C2: "+c2Pl+" の2つの交点を通る直線の方程式を求めよ。",
+      ex:[
+        "2つの交点は<b>どちらの式もみたす</b>。2式を<b>引く</b>と "+T("x^2")+"、"+T("y^2")+" が消えて1次式が残る。",
+        T("("+c1Tex.replace(/=0$/,"")+")-("+c2Tex.replace(/=0$/,"")+")=0"),
+        "整理すると",
+        '<div class="exFml">'+TD(cor)+"</div>",
+        "（この直線が<b>共通弦</b>。2円が接するときは接点での共通接線になる）"
+      ]
+    };
+  }
+  const cor=sqrtTex(4*ab);
+  const d1sq=ab*s1*s1;
+  return {
+    lead:"2つの円 "+T("C_1")+"、"+T("C_2")+" の共通弦の長さを求めよ。",
+    disp:"C_1:"+c1Tex+"\\qquad C_2:"+c2Tex,
+    ans:mkChoice(cor,[
+      sqrtTex(ab),
+      sqrtTex(4*R1),
+      sqrtTex(4*d1sq),
+      sqrtTex(4*(R1+ab)),
+      String(2*ab),
+      sqrtTex(R1)
+    ]),
+    plainQ:"2つの円 C1: "+c1Pl+"、C2: "+c2Pl+" の共通弦の長さを求めよ。",
+    ex:[
+      "まず2式を引いて<b>共通弦の直線</b>を出す: "+T(lineStr(diff)),
+      T("C_1")+" の中心は "+T(ptTex(P1,Q1))+"、半径は "+T("\\sqrt{"+R1+"}")+"。",
+      "中心とこの直線の距離は "+T("d=\\sqrt{"+d1sq+"}="+sqrtTex(d1sq))+"。",
+      T("\\text{弦}=2\\sqrt{r^2-d^2}=2\\sqrt{"+R1+"-"+d1sq+"}=2\\sqrt{"+ab+"}"),
+      '<div class="exFml">'+TD(cor)+"</div>"
+    ]
+  };
+};
+
+/* ================================================================
+   ⑩ 放物線 y=x²+c と円 x²+y²=r²
+   x²=y-c を代入すると y の2次方程式になる。
+   判別式が平方数になる c だけを選ぶので、y は必ず整数で出る。
+   ================================================================ */
+function houInfo(r,c){
+  /* y²+y-(c+r²)=0 の解と、そこから決まる x²=y-c */
+  const D=1+4*(c+r*r);
+  const k=Math.round(Math.sqrt(D));
+  const ys=[(-1+k)/2,(-1-k)/2];
+  const pts=[];
+  let cnt=0;
+  ys.forEach(y=>{
+    const X=y-c;
+    if(X<0)return;
+    pts.push({y:y,X:X});
+    cnt+=(X===0)?1:2;
+  });
+  return {k:k,ys:ys,pts:pts,cnt:cnt};
+}
+function houCoordTex(pts){
+  return pts.map(p=>(p.X===0)?("(0,\\ "+p.y+")"):("(\\pm "+sqrtTex(p.X)+",\\ "+p.y+")")).join(",\\ ");
+}
+GENS.houbutsu=function(lv){
+  const r=ri(2,6);
+  const cands=shuffle([3,5,7,9,11,13]);
+  let c=null, info=null;
+  for(let i=0;i<cands.length;i++){
+    const kk=cands[i];
+    const cc=(kk*kk-1)/4-r*r;
+    if(Math.abs(cc)>14)continue;
+    const inf=houInfo(r,cc);
+    if(lv===1||(inf.pts.length>=1&&inf.cnt>=2)){c=cc;info=inf;break;}
+  }
+  if(c===null){c=(25-1)/4-r*r;info=houInfo(r,c);}
+  const circ="x^2+y^2="+(r*r);
+  const para="y=x^2"+sg(c);
+  const quad="y^2+y"+sg(-(c+r*r))+"=0";
+  const exHead=[
+    T(para)+" より "+T("x^2=y"+sg(-c))+"。これを円の式に代入する。",
+    T("(y"+sg(-c)+")+y^2="+(r*r)+"\\quad\\Rightarrow\\quad "+quad),
+    "解くと "+T("y="+info.ys[0]+",\\ "+info.ys[1])+"。"
+  ];
+  if(lv===1){
+    const lines=exHead.concat(
+      info.ys.map(y=>{
+        const X=y-c;
+        return T("y="+y)+" のとき "+T("x^2="+y+sg(-c)+"="+X)
+          +(X>0?(" … "+T("x=\\pm "+sqrtTex(X))+" で2個")
+               :(X===0?" … "+T("x=0")+" で1個":" … 負なので<b>解なし</b>"));
+      })
+    );
+    lines.push('<div class="exFml">共有点は '+info.cnt+" 個</div>");
+    return {
+      lead:"円 "+T(circ)+" と放物線 "+T(para)+" の共有点の個数を求めよ。",
+      ans:mkNum(info.cnt,"個"),
+      fig:{t:"para",r:r,c:c},
+      plainQ:"円 x²+y²="+(r*r)+" と放物線 y=x²"+sg(c)+" の共有点の個数を求めよ。",
+      ex:lines
+    };
+  }
+  const cor=houCoordTex(info.pts);
+  /* 誤答: x²=y+c としてしまった / x と y を取りちがえた / 不適な解も入れてしまった */
+  const wPlus=info.ys.filter(y=>(y+c)>=0).map(y=>({y:y,X:y+c}));
+  const wSwap=info.pts.map(p=>(p.X===0)?("("+p.y+",\\ 0)"):("("+p.y+",\\ \\pm "+sqrtTex(p.X)+")")).join(",\\ ");
+  const wAll=info.ys.map(y=>{
+    const X=Math.abs(y-c);
+    return (X===0)?("(0,\\ "+y+")"):("(\\pm "+sqrtTex(X)+",\\ "+y+")");
+  }).join(",\\ ");
+  const wNegY=info.pts.map(p=>(p.X===0)?("(0,\\ "+(-p.y)+")"):("(\\pm "+sqrtTex(p.X)+",\\ "+(-p.y)+")")).join(",\\ ");
+  const lines=exHead.concat(
+    info.ys.map(y=>{
+      const X=y-c;
+      return T("y="+y)+" のとき "+T("x^2="+y+sg(-c)+"="+X)
+        +(X>0?(" … "+T("x=\\pm "+sqrtTex(X)))
+             :(X===0?" … "+T("x=0"):" … 負なので<b>この解は不適</b>"));
+    })
+  );
+  lines.push('<div class="exFml">'+TD(cor)+"</div>");
+  return {
+    lead:"円 "+T(circ)+" と放物線 "+T(para)+" の共有点の座標をすべて求めよ。",
+    ans:mkChoice(cor,[
+      (wPlus.length?houCoordTex(wPlus):null),
+      wSwap,
+      wAll,
+      wNegY,
+      houCoordTex(info.pts.slice(0,1)),
+      "(0,\\ "+info.ys[0]+")"
+    ]),
+    plainQ:"円 x²+y²="+(r*r)+" と放物線 y=x²"+sg(c)+" の共有点の座標をすべて求めよ。",
+    ex:lines
+  };
+};
+
+/* ================================================================
+   状態・画面まわり
+   ================================================================ */
+/* 共通モジュールが無い環境（file:// / 未ログイン）でも落ちないようにする窓口。
+   divp-core 側にも guard があるが、モジュール自体が読めていない場合もあるため */
+function safeDivp(fn){
+  try{
+    if(window.Divp&&typeof Divp[fn]==="function"){
+      return Divp[fn].apply(Divp,[].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return undefined;
+}
+
+/* XP・レベルはツール側で持たない（save_answer.php が確定し、マイページが算出する）。
+   RANK と STREAK はその場の励ましなので画面だけで持つ（保存しない＝開き直すとD/0から） */
+let view="train";
+let mode="houteishiki", lv=1, cur=null, graded=false;
+let selChoice=-1, numStr="";
+/* 学習記録用: いま出ている問題のタイプ・レベル・種と開始時刻 */
+let curMode="houteishiki", curLv=1, curSeed=0, qStart=0;
+let streak=0, lastRank="—";
+const perfectRuns={};              /* タイプごとの「連続 全問正解セット」数 */
+let mixSet=new Set(BASIC4);
+/* 解き直しモード(?retry=1)のキュー。null = 通常出題 */
+let retryQ=null, retryTotal=0, retryDone=0;
+
+/* ---------- 10問ごとの評価（共通モジュール divp-result.js）----------
+   終わりのない練習ツールなので、10問ごとにランク付きの結果画面を出す。
+   まちがえた問題は種を持っているので、そのまま解き直しラウンドにできる
+   （同じ種＝同じ問題＝params_hash も同じなので、2連続正解でマスターになる）。
+   ⚠ 結果画面は「10問目を解いた瞬間」ではなく、その次のボタンで出す（解説を隠さないため）。 */
+const ROUND_N=10;
+let roundMarks=[], roundTotal=ROUND_N, roundRetry=false;
+function hasResultCard(){return !!(window.Divp&&typeof Divp.resultPush==="function");}
+function roundStart(total,retry){
+  roundMarks=[];
+  roundTotal=(total>0)?total:ROUND_N;
+  roundRetry=!!retry;
+}
+function roundInit(){
+  safeDivp("resultInit",{
+    total:ROUND_N,
+    questionKey:mode,                 /* 連続全問正解はタイプごとに数える */
+    masterLabel:"円と方程式マスター",
+    labels:{next:"つぎの%d問へ",wrong:"↻ まちがえた %n 問を解き直す",
+            modes:"タイプをえらび直す",home:"学習ツール一覧へ"},
+    onNext:function(){newQuestion();},
+    onRetryWrong:startWrongRound,
+    onModes:function(){try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){window.scrollTo(0,0);}},
+    home:"/learning/"
+  });
+  roundStart(ROUND_N,false);
+}
+function showRoundResult(){
+  if(!hasResultCard()){roundStart(ROUND_N,false);return false;}
+  const marks=roundMarks.slice();
+  updateRank(marks);
+  safeDivp("resultStart",{total:marks.length,retry:roundRetry,questionKey:mode});
+  marks.forEach(m=>safeDivp("resultPush",m.ok,m.item));
+  roundStart(ROUND_N,false);
+  return true;
+}
+/* HUD の RANK は divp-result と同じ判定で出す（画面の2箇所で違う評価が出ないように） */
+function updateRank(marks){
+  if(!marks.length)return;
+  if(roundRetry||marks.length<ROUND_N){lastRank="—";updHUD();return;}
+  const ok=marks.filter(m=>m.ok).length;
+  const rate=ok/marks.length;
+  const key=mode;
+  if(ok===marks.length)perfectRuns[key]=(perfectRuns[key]||0)+1;
+  else perfectRuns[key]=0;
+  const run=perfectRuns[key]||0;
+  if(run>=3)lastRank="SSS";
+  else if(run===2)lastRank="SS";
+  else if(run===1)lastRank="S";
+  else if(rate>=0.9)lastRank="A";
+  else if(rate>=0.7)lastRank="B";
+  else if(rate>=0.5)lastRank="C";
+  else lastRank="D";
+  updHUD();
+}
+/* 「まちがえた N 問を解き直す」。10問の中の誤答を同じ種で出し直す */
+function startWrongRound(items){
+  const use=(items||[]).filter(it=>it&&GENS[it.m]);
+  if(!use.length){retryQ=null;newQuestion();return;}
+  retryQ=use.map(it=>({m:it.m,lv:it.lv||1,s:it.s}));
+  retryTotal=retryQ.length;retryDone=0;
+  roundStart(retryTotal,true);
+  newQuestion();
+}
+
+/* ---------- HUD / セレクタ ---------- */
+function updHUD(){
+  document.getElementById("rankVal").textContent=lastRank;
+  document.getElementById("streakVal").textContent=String(streak);
+}
+function buildTypeChips(){
+  const box=document.getElementById("typeChips");
+  box.innerHTML=MODES.map(m=>
+    '<button class="chip'+(m.k===mode?" on":"")+'" data-mode="'+m.k+'">'+esc(m.n)+"<small>"+esc(m.s)+"</small></button>"
+  ).join("")+'<button class="chip mix'+(mode==="mix"?" on":"")+'" data-mode="mix">ミックス<small>えらんだタイプから</small></button>';
+}
+function buildMixGrid(){
+  const g=document.getElementById("mixGrid");
+  g.innerHTML=MODES.map(m=>
+    '<label><input type="checkbox" data-mix="'+m.k+'"'+(mixSet.has(m.k)?" checked":"")+">"+esc(m.n)+"</label>"
+  ).join("");
+}
+function updLvDesc(){
+  const d=document.getElementById("lvDesc");
+  if(mode==="mix"){d.innerHTML="えらんだタイプから <b>レベル"+lv+"</b> の問題をランダムに出します";return;}
+  const m=MODEMAP[mode];
+  d.innerHTML="<b>"+esc(m.n)+"</b>（"+esc(m.grp)+"） ／ "+esc(m.lv[lv-1]);
+}
+function setMixAll(fn){
+  mixSet=new Set(MODES.filter(m=>fn(m.k)).map(m=>m.k));
+  buildMixGrid();
+}
+function banner(msg){
+  const old=document.getElementById("noticeBanner");
+  if(old)old.remove();
+  const d=document.createElement("div");
+  d.id="noticeBanner";d.className="banner";d.textContent=msg;
+  const pane=document.getElementById("view-train");
+  pane.insertBefore(d,pane.firstChild);
+  setTimeout(()=>{if(d.parentNode)d.remove();},9000);
+}
+
+/* ---------- 出題 ---------- */
+function newQuestion(){
+  safeDivp("resultClose");
+  clearEffects();
+  graded=false;selChoice=-1;numStr="";
+  const v=document.getElementById("verdict");
+  v.textContent="";v.className="verdict";
+  document.getElementById("explain").style.display="none";
+  document.getElementById("toast").textContent="";
+  document.getElementById("checkBtn").disabled=false;
+  document.getElementById("nextBtn").textContent="次の問題 ➜";
+
+  let m=null,l=lv,s=0;
+  if(retryQ){
+    if(retryQ.length){
+      const it=retryQ.shift();
+      m=it.m;l=it.lv;s=it.s;retryDone++;
+    }else{
+      retryQ=null;
+      banner("解き直しはここまで！ このまま通常の出題に戻ります");
+      roundStart(ROUND_N,false);
+    }
+  }
+  if(m===null){
+    if(mode==="mix"){
+      const list=Array.from(mixSet);
+      if(!list.length){noMix();return;}
+      /* ミックスのタイプ選びは種の外（記録はその問題のタイプで残す） */
+      m=list[Math.floor(Math.random()*list.length)];
+    }else{
+      m=mode;
+    }
+    l=lv;s=rngPick();
+  }
+  if(!GENS[m])m="houteishiki";
+  if(!(l>=1&&l<=MAXLV))l=1;
+
+  curMode=m;curLv=l;curSeed=s;
+  rngSeed(s);
+  cur=GENS[m](l);
+  qStart=Date.now();
+  renderQuestion();
+}
+function noMix(){
+  cur=null;
+  document.getElementById("qLead").innerHTML="出題するタイプが1つも選ばれていません。上の「ミックス」の内訳から、練習したいタイプにチェックを入れてください。";
+  document.getElementById("qDisp").style.display="none";
+  document.getElementById("qSub").innerHTML="";
+  document.getElementById("ansArea").innerHTML="";
+  document.getElementById("checkBtn").disabled=true;
+}
+function renderQuestion(){
+  const md=MODEMAP[curMode];
+  document.getElementById("qType").textContent=md?md.n:curMode;
+  document.getElementById("qLv").textContent="LV."+curLv;
+  const total=roundTotal||ROUND_N;
+  document.getElementById("qNum").textContent=
+    (retryQ?("解き直し "+retryDone+" / "+retryTotal):((roundMarks.length+1)+" / "+total));
+
+  document.getElementById("qLead").innerHTML=cur.lead||"";
+  const disp=document.getElementById("qDisp");
+  if(cur.disp){disp.style.display="";disp.innerHTML=TD(cur.disp);}
+  else{disp.style.display="none";disp.innerHTML="";}
+  document.getElementById("qSub").innerHTML=cur.sub||"";
+
+  const area=document.getElementById("ansArea");
+  const a=cur.ans;
+  if(a.kind==="choice"){
+    area.innerHTML='<div class="choices" id="choices">'+a.choices.map((c,i)=>
+      '<button class="choiceBtn" data-i="'+i+'"><span class="cno">'+"ABCDEF".charAt(i)+"</span>"
+      +"<span>"+(a.plain?esc(c):T(c))+"</span></button>"
+    ).join("")+"</div>";
+  }else{
+    const unit=a.unit?('<span class="numunit">'+esc(a.unit)+"</span>"):"";
+    area.innerHTML='<div class="numwrap">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<div class="numdisp empty" id="numDisp" style="flex:1">数字を入力</div>'+unit
+      +"</div>"
+      +'<div class="keypad" id="keypad">'
+      +[1,2,3,4,5,6,7,8,9].map(n=>'<button class="key" data-k="'+n+'">'+n+"</button>").join("")
+      +'<button class="key fn" data-k="-">±</button>'
+      +'<button class="key" data-k="0">0</button>'
+      +'<button class="key fn" data-k="bs">⌫</button>'
+      +"</div></div>";
+  }
+  renderTexIn(document.getElementById("card"));
+  refreshNum();
+  try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){}
+}
+function refreshNum(){
+  const d=document.getElementById("numDisp");
+  if(!d)return;
+  if(numStr===""){d.textContent="数字を入力";d.classList.add("empty");}
+  else{d.textContent=numStr;d.classList.remove("empty");}
+}
+
+/* ---------- 判定 ---------- */
+function check(){
+  if(graded||!cur)return;
+  const a=cur.ans;
+  let ok=false,userStr="";
+  if(a.kind==="choice"){
+    if(selChoice<0){toast("答えを1つ選んでください");return;}
+    ok=(selChoice===a.correct);
+    userStr=a.choices[selChoice];
+    /* 答え合わせ表示（正解=緑 / 選んだ誤答=朱 / 選ばなかった正解に「正解」バッジ） */
+    safeDivp("markChoices","#ansArea .choiceBtn",{correct:a.correct,selected:selChoice,dimOthers:true});
+    document.querySelectorAll("#ansArea .choiceBtn").forEach(b=>{b.disabled=true;});
+  }else{
+    if(numStr===""||numStr==="-"){toast("答えを入力してください");return;}
+    ok=(parseInt(numStr,10)===a.val);
+    userStr=numStr;
+    document.querySelectorAll("#keypad .key").forEach(b=>{b.disabled=true;});
+  }
+  graded=true;
+  document.getElementById("checkBtn").disabled=true;
+
+  const v=document.getElementById("verdict");
+  const correctStr=cur.plainA||((a.kind==="choice")?a.choices[a.correct]:(String(a.val)+(a.unit||"")));
+  const correctDisp=(a.kind==="choice")
+    ?(a.plain?esc(a.choices[a.correct]):T(a.choices[a.correct]))
+    :esc(String(a.val)+(a.unit||""));
+  if(ok){
+    streak++;
+    v.className="verdict ok";v.textContent="正解";
+    toast(streak>=3?("連続 "+streak+" 問正解"):"");
+    correctEffect();
+  }else{
+    streak=0;
+    v.className="verdict ng";v.innerHTML="正解は "+correctDisp;
+    renderTexIn(v);
+    toast("");
+    incorrectEffect();
+    const card=document.getElementById("card");
+    card.classList.remove("shake");void card.offsetWidth;card.classList.add("shake");
+  }
+  updHUD();
+  showExplain();
+
+  /* ── 学習記録（判定直後に1行）──────────────────────────────
+     question_key はタイプ名そのまま（CLAUDE.md 設計判断3）。
+     question_params は {m:タイプ, lv:レベル, s:種} だけで、この3つがあれば
+     ?retry=1 で同じ問題を作り直せる（復元用のロジックはPHP側に置かない）。
+     未ログイン・file:// では divp-core が黙ってスキップする。 */
+  const qSec=qStart?Math.max(1,Math.round((Date.now()-qStart)/1000)):0;
+  safeDivp("answer",ok,{
+    question_key:curMode,
+    question_params:{m:curMode,lv:curLv,s:curSeed},
+    question_text:plainQuestion(),
+    /* 選択式は選択肢ごと解き直しプリントに出す（紙で同じ問題が解けるように） */
+    question_choices:(a.kind==="choice")?a.choices.map(c=>({t:"tex",v:c})):null,
+    correct_answer:correctStr,
+    wrong_answer:userStr,
+    /* 離席ぶんを混ぜないよう10分超は記録しない */
+    time_taken_sec:(qSec>0&&qSec<=600)?qSec:null
+  });
+
+  /* 10問ごとの評価用に1問ぶん記録。結果画面は解説を隠さないよう次のボタンで出す */
+  roundMarks.push({ok:ok,item:{m:curMode,lv:curLv,s:curSeed}});
+  if(hasResultCard()&&roundDone()){
+    document.getElementById("nextBtn").textContent="採点結果へ ➜";
+  }
+}
+/* このラウンドを解き終わったか。
+   ⚠ retryQ は空配列でも truthy なので、length まで見ないと
+     解き直しラウンドの結果画面が一度も出ない */
+function roundDone(){
+  if(retryQ)return retryQ.length===0;
+  return roundMarks.length>=roundTotal;
+}
+/* 記録用の問題文。**^ _ { } \ を入れない**（和文が混ざるので、1文字でもあると
+   講師画面が文字列ぜんぶを TeX として描いて和文が斜体で崩れる）。
+   2乗は「²」、ルートは「√」の文字で書く。 */
+function plainQuestion(){
+  if(!cur)return "";
+  let s=cur.plainQ||stripTags(cur.lead||"");
+  s="【レベル"+curLv+"】"+s;
+  return s.replace(/\s+/g," ").trim();
+}
+function showExplain(){
+  const ex=document.getElementById("explain");
+  const body=document.getElementById("exBody");
+  let html=(cur.ex||[]).map(l=>(/^<div/.test(l)?l:'<div class="exLine">'+l+"</div>")).join("");
+  if(cur.fig){
+    html+='<button class="figLink" data-fig=\''+esc(JSON.stringify(cur.fig))+'\'>▶ この問題を図で見る</button>';
+  }
+  body.innerHTML=html;
+  renderTexIn(body);
+  ex.style.display="block";
+}
+function toast(s){document.getElementById("toast").textContent=s||"";}
+
+/* 正解=はんこ / 誤答=「ナイスチャレンジ！」バッジ（js/jh共通 divp-correct-jh.js）。
+   第1引数のセレクタは必須。#card は overflow:visible にしてある
+   （はんこは直径171pxで、hidden だと切れる）。
+   ⚠ はんこは既定で自動では消えない（カードを innerHTML で作り直すツール前提の作り）。
+     このツールは #card の中身だけ差し替えるので消えずに残る。
+     fadeMs を渡して自分で引っ込めさせ、次の問題でも clearEffects() で片付ける。 */
+function clearEffects(){
+  document.querySelectorAll("#card .divp-hanko,#card .divp-nice").forEach(e=>e.remove());
+}
+function correctEffect(){
+  if(window.Divp&&typeof Divp.correct==="function")Divp.correct("#card",{fadeMs:1400});
+}
+function incorrectEffect(){
+  if(window.Divp&&typeof Divp.incorrect==="function")Divp.incorrect("#card");
+}
+
+/* ---------- 解き直しモード(?retry=1) ----------
+   マイページの「解き直し」から ?retry=1 付きで開かれたときだけ動く。
+   question_params の {m:タイプ, lv:レベル, s:種} で生成関数を回すと同じ問題が出るので、
+   pending をその順に消化する。判定後は通常どおり Divp.answer が飛ぶ＝
+   params_hash も同じなので、2連続正解で save_answer.php が mastered にする。
+   ⚠ Divp.getRetries() は Promise を返す（戻り値をそのまま配列として使わない）。 */
+function initRetry(){
+  if(!(window.Divp&&typeof Divp.getRetries==="function"))return;
+  Divp.getRetries().then(items=>{
+    const use=(items||[]).filter(it=>{
+      const p=it&&it.question_params;
+      return p&&GENS[p.m]&&typeof p.s==="number";
+    }).map(it=>({m:it.question_params.m,lv:it.question_params.lv||1,s:it.question_params.s}));
+    if(!use.length){
+      banner("解き直せる問題はまだありません。これからまちがえた問題がここに入ります");
+      return;
+    }
+    retryQ=use.slice();retryTotal=retryQ.length;retryDone=0;
+    roundStart(retryTotal,true);          /* 解き直しはランクを付けないラウンド */
+    banner("解き直しモード: まちがえた "+retryTotal+" 問を、同じ問題で出し直します");
+    newQuestion();
+  }).catch(()=>{});
+}
+
+/* ================================================================
+   図モード
+   値を動かしながら「d と r」「d と r1±r2」「代入してできる2次方程式」を見る。
+   ⚠ 図の色・線は属性で書く（クラスに頼らない）。このツールでは紙に出さないが、
+     あとで question_figure に回すことになっても同じ図が使えるようにしておく。
+   ================================================================ */
+const FIG_TYPES=[
+  {k:"line",n:"直線と円",  s:"d と r"},
+  {k:"two", n:"2つの円",   s:"d と r₁±r₂"},
+  {k:"para",n:"放物線と円",s:"代入して2次方程式"}
+];
+const FIG_CTRL={
+  line:[{k:"r",lb:"r",min:1,max:9},{k:"m",lb:"m",min:-4,max:4},{k:"k",lb:"k",min:-12,max:12}],
+  two:[{k:"r1",lb:"r₁",min:1,max:8},{k:"r2",lb:"r₂",min:1,max:8},{k:"d",lb:"d",min:0,max:15}],
+  para:[{k:"pr",lb:"r",min:1,max:8},{k:"pc",lb:"c",min:-8,max:8}]
+};
+const FIG_LEAD={
+  line:"直線と円の共有点の個数は、<b>中心から直線までの距離 d</b> と <b>半径 r</b> をくらべるだけで決まります。"
+      +"傾き m と切片 k を動かして、d と r の大小が入れかわる瞬間を見てください。",
+  two:"2つの円は、<b>中心間の距離 d</b> を "+"<b>r₁+r₂</b> と <b>|r₁-r₂|</b> とくらべると位置関係が決まります。"
+      +"d を動かすと、外部 → 外接 → 2点で交わる → 内接 → 内部 と変わっていきます。",
+  para:"放物線 y=x²+c を円に代入すると、<b>y だけの2次方程式</b>になります。"
+      +"y の解ごとに x²=y-c を見て、x が2個・1個・無しのどれかを数えるのが手順です。"
+};
+let figType="line";
+const figV={r:5,m:1,k:6,r1:3,r2:2,d:6,pr:3,pc:-2};
+
+function plotStart(R,ox,oy){
+  const S=400,pad=16,k=(S/2-pad)/R,cx=S/2,cy=S/2;
+  const X=function(x){return +(cx+(x-ox)*k).toFixed(1);};
+  const Y=function(y){return +(cy-(y-oy)*k).toFixed(1);};
+  let g="";
+  const step=(R<=7)?1:((R<=14)?2:5);
+  let v;
+  for(v=Math.ceil((ox-R)/step)*step;v<=ox+R;v+=step){
+    g+='<line x1="'+X(v)+'" y1="0" x2="'+X(v)+'" y2="'+S+'" stroke="rgba(140,175,255,.08)" stroke-width="1"/>';
+    if(v!==0)g+='<text x="'+X(v)+'" y="'+(Y(0)+13)+'" fill="#6B7590" font-family="DM Mono,monospace" font-size="10" text-anchor="middle">'+v+"</text>";
+  }
+  for(v=Math.ceil((oy-R)/step)*step;v<=oy+R;v+=step){
+    g+='<line x1="0" y1="'+Y(v)+'" x2="'+S+'" y2="'+Y(v)+'" stroke="rgba(140,175,255,.08)" stroke-width="1"/>';
+    if(v!==0)g+='<text x="'+(X(0)-6)+'" y="'+(Y(v)+4)+'" fill="#6B7590" font-family="DM Mono,monospace" font-size="10" text-anchor="end">'+v+"</text>";
+  }
+  g+='<line x1="0" y1="'+Y(0)+'" x2="'+S+'" y2="'+Y(0)+'" stroke="rgba(140,175,255,.5)" stroke-width="1.3"/>';
+  g+='<line x1="'+X(0)+'" y1="0" x2="'+X(0)+'" y2="'+S+'" stroke="rgba(140,175,255,.5)" stroke-width="1.3"/>';
+  g+='<text x="'+(X(0)-6)+'" y="'+(Y(0)+14)+'" fill="#7C86A1" font-family="DM Mono,monospace" font-size="11" text-anchor="end">O</text>';
+  return {S:S,k:k,X:X,Y:Y,g:g,R:R};
+}
+function plotEnd(p,extra){
+  return '<svg viewBox="0 0 '+p.S+" "+p.S+'" xmlns="http://www.w3.org/2000/svg" role="img">'+p.g+extra+"</svg>";
+}
+function svgCircle(p,a,b,r,color){
+  return '<circle cx="'+p.X(a)+'" cy="'+p.Y(b)+'" r="'+(r*p.k).toFixed(1)+'" fill="none" stroke="'+color+'" stroke-width="2.2"/>'
+    +'<circle cx="'+p.X(a)+'" cy="'+p.Y(b)+'" r="3.2" fill="'+color+'"/>';
+}
+function svgDot(p,x,y){
+  return '<circle cx="'+p.X(x)+'" cy="'+p.Y(y)+'" r="5.2" fill="#FFD166" stroke="#0C1120" stroke-width="1.5"/>';
+}
+function fmt(v){
+  const r=Math.round(v*100)/100;
+  return (Math.abs(r-Math.round(r))<1e-9)?String(Math.round(r)):r.toFixed(2);
+}
+
+function figLine(){
+  const r=figV.r,m=figV.m,k=figV.k;
+  const den=m*m+1;
+  const d=Math.abs(k)/Math.sqrt(den);
+  const D=den*r*r-k*k;
+  const cnt=(D>0)?2:((D===0)?1:0);
+  const R=Math.max(r+1.5,d+1.5,4);
+  const p=plotStart(R,0,0);
+  let g=svgCircle(p,0,0,r,"#38E8FF");
+  const x1=-R*1.6,x2=R*1.6;
+  g+='<line x1="'+p.X(x1)+'" y1="'+p.Y(m*x1+k)+'" x2="'+p.X(x2)+'" y2="'+p.Y(m*x2+k)+'" stroke="#A78BFA" stroke-width="2.2"/>';
+  g+='<line x1="'+p.X(0)+'" y1="'+p.Y(0)+'" x2="'+p.X(r)+'" y2="'+p.Y(0)+'" stroke="#38E8FF" stroke-width="1.5" stroke-dasharray="4 4"/>';
+  g+='<text x="'+((p.X(0)+p.X(r))/2)+'" y="'+(p.Y(0)-7)+'" fill="#38E8FF" font-family="DM Mono,monospace" font-size="12" text-anchor="middle">r</text>';
+  const fx=-m*k/den, fy=k/den;
+  g+='<line x1="'+p.X(0)+'" y1="'+p.Y(0)+'" x2="'+p.X(fx)+'" y2="'+p.Y(fy)+'" stroke="#FFD166" stroke-width="1.9" stroke-dasharray="5 4"/>';
+  g+='<text x="'+((p.X(0)+p.X(fx))/2+9)+'" y="'+((p.Y(0)+p.Y(fy))/2-5)+'" fill="#FFD166" font-family="DM Mono,monospace" font-size="12">d</text>';
+  if(D>=0){
+    const sq=Math.sqrt(D);
+    [(-m*k+sq)/den,(-m*k-sq)/den].forEach(function(x){g+=svgDot(p,x,m*x+k);});
+  }
+  const read="<div>円　"+T("x^2+y^2="+(r*r))+"　（半径 "+T("r="+r)+"）</div>"
+    +"<div>直線　"+T("y="+mxTex(m)+sg(k))+"</div>"
+    +"<div>"+T("d=\\dfrac{|"+k+"|}{\\sqrt{"+(m*m)+"+1}}")+" = <b>"+fmt(d)+"</b></div>"
+    +"<div>"+T("r")+" = <b>"+r+"</b></div>"
+    +"<div>判別式　"+T("D="+den+"\\cdot "+(r*r)+"-"+(k*k)+"="+D)+"</div>";
+  const judge=(cnt===2)?("d &lt; r → 異なる2点で交わる（共有点2個）")
+    :((cnt===1)?("d = r → <b>接する</b>（共有点1個）"):("d &gt; r → 共有点なし"));
+  return {svg:plotEnd(p,g),read:read,judge:judge};
+}
+
+function figTwo(){
+  const r1=figV.r1,r2=figV.r2,d=figV.d;
+  const R=Math.max((d+r1+r2)/2+1.2,4);
+  const p=plotStart(R,d/2,0);
+  let g=svgCircle(p,0,0,r1,"#38E8FF")+svgCircle(p,d,0,r2,"#A78BFA");
+  g+='<line x1="'+p.X(0)+'" y1="'+p.Y(0)+'" x2="'+p.X(d)+'" y2="'+p.Y(0)+'" stroke="#FFD166" stroke-width="1.9" stroke-dasharray="5 4"/>';
+  g+='<text x="'+p.X(d/2)+'" y="'+(p.Y(0)-8)+'" fill="#FFD166" font-family="DM Mono,monospace" font-size="12" text-anchor="middle">d='+d+"</text>";
+  const same=(d===0&&r1===r2);
+  if(!same&&d>0&&d<r1+r2&&d>Math.abs(r1-r2)){
+    const x=(d*d+r1*r1-r2*r2)/(2*d);
+    const yy=Math.sqrt(Math.max(0,r1*r1-x*x));
+    g+=svgDot(p,x,yy)+svgDot(p,x,-yy);
+  }else if(!same&&(d===r1+r2||d===Math.abs(r1-r2))&&d>0){
+    const x=(d*d+r1*r1-r2*r2)/(2*d);
+    g+=svgDot(p,x,0);
+  }
+  const idx=nienIndex(d,r1,r2);
+  const read="<div>"+T("C_1")+"　中心 "+T("(0,\\ 0)")+"　半径 "+T("r_1="+r1)+"</div>"
+    +"<div>"+T("C_2")+"　中心 "+T("("+d+",\\ 0)")+"　半径 "+T("r_2="+r2)+"</div>"
+    +"<div>"+T("d="+d)+"</div>"
+    +"<div>"+T("r_1+r_2="+(r1+r2))+"　/　"+T("|r_1-r_2|="+Math.abs(r1-r2))+"</div>";
+  const judge=same?"2つの円は完全に重なる（同じ円）":esc(NIEN_LABELS[idx]);
+  return {svg:plotEnd(p,g),read:read,judge:judge};
+}
+
+function figPara(){
+  const r=figV.pr,c=figV.pc;
+  const D=1+4*(c+r*r);
+  const R=Math.max(r+1.5,Math.abs(c)+1.5,4);
+  const p=plotStart(R,0,0);
+  let g=svgCircle(p,0,0,r,"#38E8FF");
+  let pts=[];
+  for(let x=-R*1.3;x<=R*1.3;x+=R/70){
+    const y=x*x+c;
+    if(y<-R*1.6||y>R*1.6){if(pts.length){g+='<polyline points="'+pts.join(" ")+'" fill="none" stroke="#A78BFA" stroke-width="2.2"/>';pts=[];}continue;}
+    pts.push(p.X(x)+","+p.Y(y));
+  }
+  if(pts.length)g+='<polyline points="'+pts.join(" ")+'" fill="none" stroke="#A78BFA" stroke-width="2.2"/>';
+  let cnt=0, ylist=[];
+  if(D>=0){
+    const sq=Math.sqrt(D);
+    [(-1+sq)/2,(-1-sq)/2].forEach(function(y){
+      ylist.push(y);
+      const X=y-c;
+      if(X<0)return;
+      if(X===0){cnt+=1;g+=svgDot(p,0,y);}
+      else{cnt+=2;g+=svgDot(p,Math.sqrt(X),y)+svgDot(p,-Math.sqrt(X),y);}
+    });
+  }
+  const read="<div>円　"+T("x^2+y^2="+(r*r))+"</div>"
+    +"<div>放物線　"+T("y=x^2"+sg(c))+"</div>"
+    +"<div>"+T("x^2=y"+sg(-c))+" を代入して</div>"
+    +"<div>"+T("y^2+y"+sg(-(c+r*r))+"=0")+"</div>"
+    +"<div>判別式　"+T("D=1+4\\cdot("+(c+r*r)+")="+D)+"</div>"
+    +(ylist.length?("<div>"+T("y="+fmt(ylist[0])+",\\ "+fmt(ylist[1]))+"</div>"):"<div>y の実数解なし</div>")
+    +(ylist.length?ylist.map(function(y){
+        const X=y-c;
+        return "<div>"+T("y="+fmt(y))+" → "+T("x^2="+fmt(X))+"　"
+          +((X>0)?"x は2個":((X===0)?"x は1個":"<b>不適</b>"))+"</div>";
+      }).join(""):"");
+  const judge="共有点は <b>"+cnt+"</b> 個";
+  return {svg:plotEnd(p,g),read:read,judge:judge};
+}
+function figRender(){
+  let out;
+  if(figType==="line")out=figLine();
+  else if(figType==="two")out=figTwo();
+  else out=figPara();
+  document.getElementById("figSvg").innerHTML=out.svg;
+  const read=document.getElementById("figRead");
+  const judge=document.getElementById("figJudge");
+  read.innerHTML=out.read;judge.innerHTML=out.judge;
+  renderTexIn(read);renderTexIn(judge);
+}
+function buildFigChips(){
+  document.getElementById("figChips").innerHTML=FIG_TYPES.map(f=>
+    '<button class="chip'+(f.k===figType?" on":"")+'" data-fig="'+f.k+'">'+esc(f.n)+"<small>"+esc(f.s)+"</small></button>"
+  ).join("");
+  document.getElementById("figLead").innerHTML=FIG_LEAD[figType]||"";
+}
+function buildFigCtrl(){
+  document.getElementById("figCtrl").innerHTML=(FIG_CTRL[figType]||[]).map(c=>
+    '<div class="stepper"><span class="lb">'+esc(c.lb)+'</span>'
+    +'<button class="sbtn" data-p="'+c.k+'" data-dir="-1">−</button>'
+    +'<span class="sval" id="sv_'+c.k+'">'+figV[c.k]+"</span>"
+    +'<button class="sbtn" data-p="'+c.k+'" data-dir="1">＋</button></div>'
+  ).join("");
+}
+function figStep(key,dir){
+  const c=(FIG_CTRL[figType]||[]).filter(x=>x.k===key)[0];
+  if(!c)return;
+  let v=figV[key]+dir;
+  if(v<c.min)v=c.min;
+  if(v>c.max)v=c.max;
+  figV[key]=v;
+  const el=document.getElementById("sv_"+key);
+  if(el)el.textContent=v;
+  figRender();
+}
+/* 解説の「▶ この問題を図で見る」から呼ぶ */
+function openFigFrom(info){
+  if(!info||!info.t)return;
+  figType=info.t;
+  if(info.t==="line"){
+    figV.r=Math.max(1,Math.min(9,info.r));
+    figV.m=Math.max(-4,Math.min(4,info.m));
+    figV.k=Math.max(-12,Math.min(12,info.k));
+  }else if(info.t==="two"){
+    figV.r1=Math.max(1,Math.min(8,info.r1));
+    figV.r2=Math.max(1,Math.min(8,info.r2));
+    figV.d=Math.max(0,Math.min(15,info.d));
+  }else{
+    figV.pr=Math.max(1,Math.min(8,info.r));
+    figV.pc=Math.max(-8,Math.min(8,info.c));
+  }
+  setView("fig");
+  buildFigChips();buildFigCtrl();figRender();
+}
+
+/* ================================================================
+   練習プリント（A4・別ウィンドウ）
+   いま選んでいるタイプ×レベルで10問作り、「問題」→改ページ→「解答」を出す。
+   ⚠ 画面の出題を壊さないこと。GENS[] は cur を触らないが乱数は進むので、
+     1問作るごとに rngSeed(rngPick()) を張り直す。
+   ⚠ 数式は**親ウィンドウの KaTeX で HTML に焼いてから**流し込む
+     （子ウィンドウで katex を動かすと読み込み待ちが要り、印刷ダイアログのほうが
+     先に出て数式が生テキストのまま紙になる）。子には CSS だけ読ませる。
+   ================================================================ */
+const PRT_N=10;
+function prtTex(html){
+  const box=document.createElement("div");
+  box.innerHTML=html||"";
+  renderTexIn(box);
+  return box.innerHTML;
+}
+function prtPick(n){
+  const pool=(mode==="mix")?Array.from(mixSet):[mode];
+  const out=[],seen={};
+  if(!pool.length)return out;
+  for(let t=0;t<n*40&&out.length<n;t++){
+    const m=pool[Math.floor(Math.random()*pool.length)];
+    if(!GENS[m])continue;
+    rngSeed(rngPick());
+    const q=GENS[m](lv);
+    const a=(q.ans.kind==="choice")?q.ans.choices[q.ans.correct]:String(q.ans.val);
+    const sig=[m,q.lead||"",q.disp||"",q.sub||"",a].join("");
+    if(seen[sig])continue;
+    seen[sig]=1;out.push({m:m,q:q});
+  }
+  return out;
+}
+function prtAnsHtml(q){
+  if(q.ans.kind==="choice")
+    return '<span class="mk">'+"ABCDEF".charAt(q.ans.correct)+"</span>"
+      +(q.ans.plain?esc(q.ans.choices[q.ans.correct]):prtTex(T(q.ans.choices[q.ans.correct])));
+  return "<b>"+esc(String(q.ans.val))+"</b>"+(q.ans.unit?('<span class="un">'+esc(q.ans.unit)+"</span>"):"");
+}
+function prtHtml(items){
+  const md=MODEMAP[mode];
+  const label=(mode==="mix"?"ミックス":(md?md.n:mode))+"　LEVEL "+lv+"　全"+items.length+"問";
+  const d=new Date();
+  const date=d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
+  const wmCss=(window.ChukyoPrint&&ChukyoPrint.css)?ChukyoPrint.css():"";
+  const wmImg=(window.ChukyoPrint&&ChukyoPrint.img)?ChukyoPrint.img():"";
+  const head=function(t){
+    return '<div class="ph"><div><div class="pb">中京個別指導学院</div><div class="pt">'+esc(t)+"</div></div>"
+      +'<div class="pr"><div>名前：<span class="nm"></span></div><div class="dt">'+date+"</div></div></div>";
+  };
+  const probs=items.map(function(it,i){
+    const q=it.q;
+    let s='<div class="p"><div class="q"><span class="no">('+(i+1)+")</span><span>"+prtTex(q.lead||"")+"</span></div>";
+    if(q.disp)s+='<div class="dp">'+prtTex(TD(q.disp))+"</div>";
+    if(q.sub)s+='<div class="sb">'+prtTex(q.sub)+"</div>";
+    if(q.ans.kind==="choice")
+      s+='<div class="ch">'+q.ans.choices.map(function(c,j){
+        return "<span><i>"+"ABCDEF".charAt(j)+"</i>"+(q.ans.plain?esc(c):prtTex(T(c)))+"</span>";
+      }).join("")+"</div>";
+    s+='<div class="al">答'+(q.ans.kind==="choice"?'<span class="bx"></span>':'<span class="ln"></span>')+"</div>";
+    return s+"</div>";
+  }).join("");
+  const answ=items.map(function(it,i){
+    return '<div class="a"><span class="no">('+(i+1)+")</span>"+prtAnsHtml(it.q)+"</div>";
+  }).join("");
+  return '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">'
+    +'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">'
+    +"<title>円と方程式マスター 練習プリント｜中京個別指導学院</title><style>"
+    +"@page{size:A4 portrait;margin:14mm 16mm;}"
+    +"*{box-sizing:border-box;margin:0;padding:0;}"
+    +'body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;color:#111;font-size:10pt;}'
+    /* ⚠ KaTeX の display 数式は既定で上下 1em の余白を持つ。1問ごとに 7mm 以上
+       食うので必ず 0 にする（これが無いと10問で1枚に収まらない） */
+    +".katex-display{margin:0;}"
+    +"@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}"
+    +wmCss
+    +".wm{position:fixed;}"
+    +".ph{display:flex;justify-content:space-between;align-items:flex-end;"
+      +"border-bottom:2.5px solid #0a1628;padding-bottom:7px;margin-bottom:10px;}"
+    +".pb{font-size:8pt;letter-spacing:.2em;color:#4a5568;}"
+    +".pt{font-size:13pt;font-weight:700;margin-top:2px;}"
+    +".pr{text-align:right;font-size:9pt;}"
+    +".nm{display:inline-block;width:32mm;border-bottom:1px solid #333;}"
+    +".dt{color:#666;font-size:8pt;margin-top:4px;}"
+    +".p{border-bottom:1px dotted #bbb;padding:6px 0 7px;}"
+    +".q{display:flex;gap:6px;line-height:1.7;}"
+    +".no{font-weight:700;color:#2C5F8A;flex:0 0 auto;}"
+    +".dp{text-align:center;margin:4px 0;font-size:11pt;}"
+    +".sb{font-size:9pt;color:#444;margin-top:2px;}"
+    +".ch{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:4px;font-size:9.5pt;}"
+    +".ch span{display:flex;align-items:center;gap:4px;}"
+    +".ch i{font-style:normal;font-size:8pt;color:#fff;background:#2C5F8A;border-radius:3px;padding:0 4px;}"
+    +".al{margin-top:5px;font-size:9pt;color:#555;display:flex;align-items:center;gap:6px;}"
+    +".bx{display:inline-block;width:16mm;height:6mm;border:1px solid #333;}"
+    +".ln{display:inline-block;width:46mm;border-bottom:1px solid #333;height:5mm;}"
+    +".pg{page-break-before:always;}"
+    +".a{display:flex;gap:8px;align-items:center;padding:4px 0;border-bottom:1px dotted #ddd;font-size:10pt;}"
+    +".mk{font-weight:700;color:#C73E2E;margin-right:4px;}"
+    +".un{font-size:8pt;color:#666;margin-left:3px;}"
+    +"</style></head><body>"
+    +wmImg+head(label)+probs
+    +'<div class="pg">'+wmImg+head(label+"　解答")+answ+"</div>"
+    +"</body></html>";
+}
+function printSheet(){
+  const items=prtPick(PRT_N);
+  if(!items.length){toast("印刷する問題を作れませんでした");return;}
+  const w=window.open("","_blank");
+  if(!w){toast("ポップアップがブロックされました");return;}
+  w.document.write(prtHtml(items));
+  w.document.close();
+  w.focus();
+  setTimeout(function(){try{w.print();}catch(e){}},700);
+}
+
+/* ---------- 画面の切り替え ---------- */
+function setView(v){
+  view=v;
+  document.getElementById("view-train").style.display=(v==="train")?"block":"none";
+  document.getElementById("view-fig").style.display=(v==="fig")?"block":"none";
+  document.querySelectorAll(".vtab").forEach(b=>b.classList.toggle("on",b.dataset.view===v));
+  if(v==="train")safeDivp("resultClose");
+  try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){window.scrollTo(0,0);}
+}
+
+/* ---------- イベント ---------- */
+document.querySelector(".viewtabs").addEventListener("click",function(e){
+  const b=e.target.closest(".vtab");if(!b)return;
+  setView(b.dataset.view);
+  if(b.dataset.view==="fig")figRender();   /* 非表示中は幅0で描かれているので描き直す */
+});
+document.getElementById("typeChips").addEventListener("click",function(e){
+  const c=e.target.closest(".chip");if(!c)return;
+  mode=c.dataset.mode;
+  retryQ=null;                                  /* タイプを選び直したら解き直しモードを抜ける */
+  document.querySelectorAll("#typeChips .chip").forEach(x=>x.classList.toggle("on",x===c));
+  document.getElementById("mixBox").style.display=(mode==="mix")?"block":"none";
+  roundStart(ROUND_N,false);                    /* ラウンドも数え直し（連続はタイプごと） */
+  safeDivp("resultClose");
+  updLvDesc();
+  newQuestion();
+});
+document.getElementById("lvSeg").addEventListener("click",function(e){
+  const b=e.target.closest(".lvbtn");if(!b)return;
+  lv=parseInt(b.dataset.lv,10)||1;
+  document.querySelectorAll(".lvbtn").forEach(x=>x.classList.toggle("on",x===b));
+  retryQ=null;
+  roundStart(ROUND_N,false);
+  safeDivp("resultClose");
+  updLvDesc();
+  newQuestion();
+});
+document.getElementById("mixGrid").addEventListener("change",function(e){
+  const cb=e.target.closest("input[data-mix]");if(!cb)return;
+  if(cb.checked)mixSet.add(cb.dataset.mix);else mixSet.delete(cb.dataset.mix);
+  if(mode==="mix"&&!cur)newQuestion();
+});
+document.getElementById("mixAll").addEventListener("click",function(){setMixAll(()=>true);if(mode==="mix"&&!cur)newQuestion();});
+document.getElementById("mixNone").addEventListener("click",function(){setMixAll(()=>false);});
+document.getElementById("mixBasicBtn").addEventListener("click",function(){
+  setMixAll(k=>BASIC4.indexOf(k)>=0);
+  if(mode==="mix"&&!cur)newQuestion();
+});
+document.getElementById("prtBtn").addEventListener("click",printSheet);
+document.getElementById("foldBtn").addEventListener("click",function(){
+  const box=document.getElementById("selbox"),b=document.getElementById("foldBtn");
+  const fold=!box.classList.contains("folded");
+  box.classList.toggle("folded",fold);
+  b.textContent=fold?"ひらく":"とじる";
+  b.setAttribute("aria-expanded",fold?"false":"true");
+});
+/* 選択肢・テンキーはクリック委任だけで受ける（touch リスナーを足さない＝
+   高速連打のタッチミス対策。touch-action:manipulation は body に指定済み） */
+document.getElementById("ansArea").addEventListener("click",function(e){
+  const c=e.target.closest(".choiceBtn");
+  if(c&&!graded){
+    selChoice=parseInt(c.dataset.i,10);
+    document.querySelectorAll("#ansArea .choiceBtn").forEach(b=>b.classList.toggle("sel",b===c));
+    return;
+  }
+  const k=e.target.closest(".key");
+  if(k&&!graded){
+    const v=k.dataset.k;
+    if(v==="bs")numStr=numStr.slice(0,-1);
+    else if(v==="-")numStr=(numStr.charAt(0)==="-")?numStr.slice(1):("-"+numStr);
+    else if(numStr.replace("-","").length<9)numStr+=v;
+    refreshNum();
+  }
+});
+document.getElementById("checkBtn").addEventListener("click",check);
+document.getElementById("nextBtn").addEventListener("click",function(){
+  /* ラウンドを解き終わっていたら、次の問題ではなく結果画面を先に出す */
+  if(graded&&roundDone()){
+    const drained=!!(retryQ&&retryQ.length===0);
+    if(showRoundResult()){
+      if(drained)retryQ=null;
+      return;
+    }
+    if(drained)retryQ=null;
+  }
+  newQuestion();
+});
+document.getElementById("exBody").addEventListener("click",function(e){
+  const b=e.target.closest("[data-fig]");if(!b)return;
+  let info=null;
+  try{info=JSON.parse(b.dataset.fig);}catch(err){}
+  if(info)openFigFrom(info);
+});
+document.getElementById("figChips").addEventListener("click",function(e){
+  const b=e.target.closest(".chip");if(!b)return;
+  figType=b.dataset.fig;
+  buildFigChips();buildFigCtrl();figRender();
+});
+document.getElementById("figCtrl").addEventListener("click",function(e){
+  const b=e.target.closest(".sbtn");if(!b)return;
+  figStep(b.dataset.p,parseInt(b.dataset.dir,10));
+});
+/* キーボード（PCで解く生徒向け）。数字・マイナス・BS・Enter だけ */
+document.addEventListener("keydown",function(e){
+  if(view!=="train")return;
+  if(e.target&&/^(INPUT|TEXTAREA)$/.test(e.target.tagName))return;
+  if(e.key==="Enter"){
+    e.preventDefault();
+    if(graded)document.getElementById("nextBtn").click();
+    else check();
+    return;
+  }
+  if(!cur||graded||cur.ans.kind!=="num")return;
+  if(/^[0-9]$/.test(e.key)){
+    if(numStr.replace("-","").length<9)numStr+=e.key;refreshNum();
+  }else if(e.key==="-"){
+    numStr=(numStr.charAt(0)==="-")?numStr.slice(1):("-"+numStr);refreshNum();
+  }else if(e.key==="Backspace"){
+    e.preventDefault();numStr=numStr.slice(0,-1);refreshNum();
+  }
+});
+/* KaTeX は defer 読み込みなので、来てからもう一度描き直す */
+window.addEventListener("load",function(){
+  renderTexIn(document.body);
+  if(view==="fig")figRender();
+});
+
+/* ---------- 起動 ---------- */
+/* 学習記録の開始（セッション・学習時間・ハートビートは divp-core にまかせる） */
+safeDivp("init",UNIT_KEY);
+buildTypeChips();
+buildMixGrid();
+buildFigChips();
+buildFigCtrl();
+roundInit();
+updLvDesc();
+updHUD();
+newQuestion();
+figRender();
+/* マイページの「解き直し」から来たときだけ、pending を同じ問題で出し直す */
+if(/[?&]retry=1/.test(location.search)){try{initRetry();}catch(e){}}
+/* ?fig=two のように直リンクで図モードを開けるようにしておく（授業で見せる用） */
+(function(){
+  const m=/[?&]fig=([a-z]+)/i.exec(location.search);
+  if(m&&FIG_CTRL[m[1]]){figType=m[1];buildFigChips();buildFigCtrl();setView("fig");figRender();}
+})();
+</script>
+</body>
+</html>
