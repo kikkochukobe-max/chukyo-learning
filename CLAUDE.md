@@ -84,11 +84,11 @@ assets/                共通モジュール（全ツールがscriptタグで読
                          --divp-mark-ok-text は「正解」の文字色だけを分けたいとき用
                          (既定は枠と同色。イオンのしくみラボのような暗い背景の
                          ツールで、枠は明るい緑・文字は読める薄い色にするために使う)。
-                         組み込み済み15本: 一次関数・愛知県大問1・方程式の利用・
+                         組み込み済み16本: 一次関数・愛知県大問1・方程式の利用・
                          連立方程式の利用・一次関数の利用・計算特集(中2)・二次方程式・
                          二次方程式の利用・イオンのしくみラボ・光と音と力・
                          立体の体積マスター・倍数約数マスター・数列完全マスター・
-                         漸化式マスター・円と方程式マスター
+                         漸化式マスター・円と方程式マスター・2次関数マスター
                          （`grep -rln markChoice learning/` が正。数え直したら増えていた）。
                          回帰テスト tests/choice-mark.spec.js(仕様) と
                          tests/choice-mark-tools.spec.js(各ツールの配線)
@@ -118,8 +118,9 @@ assets/                共通モジュール（全ツールがscriptタグで読
                          そもそもランクを出すかが未決なので、別モジュールにする。
                          ⚠ 4点セット(記録・正解エフェクト・解き直し・図)とは別の
                          任意機能。セット制で出題するツールだけが読めばよい。
-                         組み込み済み5本: math_js3_aichi_daimon1 / math_js2_ichijikansu /
-                         math_hs_suuretsu / math_hs_zenkashiki / math_hs_en_houteishiki
+                         組み込み済み6本: math_js3_aichi_daimon1 / math_js2_ichijikansu /
+                         math_hs_suuretsu / math_hs_zenkashiki / math_hs_en_houteishiki /
+                         math_hs_nijikansu
                          （`grep -rln resultInit learning/` が正）。
                          ⚠ **終わりのない練習モードにも入れること**。大問1は最初
                          「本番セット10問」だけに入れたが、生徒が触るのは
@@ -266,6 +267,11 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    `.sysbrace`/`.sysrows` 等のCSSは**ページ用と印刷シート用の2箇所**にある。
    ツール側で question_text の表記を変えたら、**3ファイルすべて**を更新すること
    （1つ漏らすとその画面だけマーカーが生文字で出る。実際に3回やらかしている）
+   ⚠ **画面側（ツールの KaTeX）にも同じ線引きがある**: `katex.render()` に渡す文字列に
+   和文を混ぜない。KaTeX は「軸」「原点」のような文字を知らず、`throwOnError:false` でも
+   **赤字のエラー表示**になる（2次関数マスターで踏んだ）。軸の文字だけ TeX で描き、
+   和文はその外に置く（`T("x")+" 軸"`）。点の並びも `T("(1,2)")+"、"+T("(3,4)")` と
+   区切りの「、」を TeX の外に出す。回帰テストは「`.katex-error` が1つも無いこと」で見張れる。
 2b. **図が無いと解けない問題は question_figure で図そのものを保存する**。
    `Divp.answer(ok,{… question_figure:<画面に出したSVG/表のHTML>})` と渡すと、
    **誤答のときだけ** answer_logs.question_figure に入り、teacher.php の解き直し
@@ -340,8 +346,11 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    math_js2_ichijikansu_riyou（`{m:STEPキー, s:種}`。連立の文章題編と同じ形。
    答えが「式(y=ax+b)」の種類と「数値」の種類が混ざるので、選択肢づくりだけ
    `buildChoices()` で1か所に寄せてある）/
-   math_hs_zenkashiki・math_hs_en_houteishiki（どちらも `{m:タイプ, lv:レベル, s:種}`。
-   レベルは question_key を増やさず params に持つ＝カルテはタイプ単位で読める）。
+   math_hs_zenkashiki・math_hs_en_houteishiki・math_hs_nijikansu（どれも
+   `{m:タイプ, lv:レベル, s:種}`。レベルは question_key を増やさず params に持つ
+   ＝カルテはタイプ単位で読める。⚠ 2次関数マスターは**タイプごとにレベルの数が違う**
+   （発展を持たないタイプは2つまで）ので、出題時に `lv > lvCount(m)` なら
+   そのタイプの最上位レベルへ寄せる＝ミックスで「発展」を選んでも破綻しない）。
    ⚠ **種は問題オブジェクトに持たせる**（`q.seed`）。「いま出ている問題の種」を
    グローバル1個で持つと、他の経路が生成関数を呼んだ瞬間に画面と記録がずれる。
    ⚠ **`sort()` に乱数の比較関数を渡す並べ替えは種で再現できない**

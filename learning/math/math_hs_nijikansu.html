@@ -1,0 +1,2632 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2次関数マスター | 中京個別指導学院</title>
+<meta name="description" content="高校数学I「2次関数」の章をまるごと練習できるツール。関数の値と値域・平方完成と頂点・放物線の平行移動・対称移動・最大最小（定義域つき）・定義域や軸が動く最大最小・2次関数の決定・最大値から係数決定・最大最小の文章題・絶対値を含む1次関数のグラフ・条件式がある場合の最大最小の11タイプを、基本／標準／発展のレベル別に出題します。図モードでは平行移動・定義域と軸・絶対値のグラフを動かしながら確かめられます。中京個別指導学院。">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- ⚠ 共通モジュール（divp-header.js など）は <head> ではなく <body> 開始直後に置く。
+     ヘッダーは document.currentScript の位置に自分を挿し込むので、head に書くと
+     header 要素が head の中に入って画面に一切出ない（エラーは出ない）。 -->
+<style>
+/* ================================================================
+   2次関数マスター — 数列完全マスター / 漸化式マスター / 円と方程式マスターと
+   同じ「高校生向け・暗い紺地＋シアン／バイオレット」でそろえる（同じ生徒が行き来する）。
+   共通モジュールの色は :root の変数で上書きする（var()のフォールバック方式なので
+   読み込み順に関係なくツール側が勝つ）。
+   ================================================================ */
+:root{
+  --bg:#070A12;
+  --bg2:#0C1120;
+  --panel:rgba(255,255,255,.045);
+  --line:rgba(140,175,255,.16);
+  --line2:rgba(140,175,255,.30);
+  --ink:#E9EEFB;
+  --ink2:#B7C1DA;
+  --muted:#7C86A1;
+  --cy:#38E8FF;
+  --cy2:#0E9EC0;
+  --vi:#A78BFA;
+  --vi2:#7C5CFA;
+  --gold:#FFD166;
+  --ok:#7EE0A0;
+  --ng:#FF7A80;
+  --jp:"Zen Kaku Gothic New",system-ui,-apple-system,"Hiragino Kaku Gothic ProN",sans-serif;
+  --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  /* ── 答え合わせ表示（divp-choice-mark.js）────────────────────────
+     正解の緑は #3E8E5A に統一するのが原則だが、このツールは暗背景なので
+     science_js3_ionlab / 漸化式マスター / 円と方程式マスターと同じ
+     明るい緑の例外側にそろえる。 */
+  --divp-mark-ok:#7ee0a0;
+  --divp-mark-ok-bg:rgba(126,224,160,.16);
+  --divp-mark-ok-bg-soft:rgba(126,224,160,.10);
+  --divp-mark-ok-text:#bfe6cf;
+  --divp-mark-ng:#ff7a80;
+  --divp-mark-ng-bg:rgba(255,122,128,.16);
+  --divp-mark-dim-opacity:.38;
+  /* ── 10問ごとの評価（divp-result.js）を暗配色に寄せる。
+     ランクの色（--divp-result-grade-*）は既定の派手な配色のまま（ランクは目立ってよい） */
+  --divp-result-bg:#0C1222;
+  --divp-result-ink:#E9EEFB;
+  --divp-result-sub:#7C86A1;
+  --divp-result-accent:#38E8FF;
+  --divp-result-accent-ink:#04121A;
+  --divp-result-sub-btn:rgba(255,255,255,.07);
+  --divp-result-wrong-btn:#7C5CFA;
+  --divp-result-ok:#7ee0a0;
+  --divp-result-ok-bg:rgba(126,224,160,.14);
+  --divp-result-ng:#ff7a80;
+  --divp-result-ng-bg:rgba(255,122,128,.14);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{min-height:100%;}
+/* html 側にも地の色を置く（body の背景は fixed なので、端まで引っ張られたときに
+   ここが無いと白地が出て、ほぼ白の文字 --ink が読めなくなる） */
+html{background:#070A12;}
+body{
+  background:
+    radial-gradient(1200px 760px at 82% -12%, rgba(56,232,255,.10), transparent 60%),
+    radial-gradient(900px 700px at 4% 6%, rgba(167,139,250,.11), transparent 58%),
+    linear-gradient(180deg,var(--bg2),var(--bg) 46%);
+  background-attachment:fixed;
+  color:var(--ink);
+  font-family:var(--jp);
+  font-feature-settings:"palt";
+  touch-action:manipulation;
+  -webkit-text-size-adjust:100%;
+}
+/* ⚠ body を flex/grid にしない。共通ヘッダーは .wrap の兄弟として body に挿されるので、
+   flex にすると横に並んで画面左端に縦長の帯になる（中央寄せは .wrap 側の margin で行う）。 */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    repeating-linear-gradient(90deg, rgba(140,175,255,.045) 0 1px, transparent 1px 56px),
+    repeating-linear-gradient(0deg,  rgba(140,175,255,.045) 0 1px, transparent 1px 56px);
+  mask-image:radial-gradient(1000px 700px at 50% 0%, #000 30%, transparent 78%);
+  -webkit-mask-image:radial-gradient(1000px 700px at 50% 0%, #000 30%, transparent 78%);
+}
+.wrap{position:relative;z-index:1;padding:14px 12px 96px;}
+a{color:var(--cy);}
+
+/* ---------- ヘッダー ---------- */
+header.dv-head{
+  max-width:920px;margin:0 auto 12px;display:flex;align-items:flex-end;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);
+}
+h1{font-size:1.42rem;font-weight:900;letter-spacing:.02em;line-height:1.18;display:flex;flex-direction:column;gap:5px;}
+h1 .sub{font-family:var(--mono);font-size:.62rem;font-weight:500;letter-spacing:.26em;color:var(--cy);text-transform:uppercase;}
+h1 .ttl{background:linear-gradient(92deg,#fff 12%,var(--cy) 58%,var(--vi) 96%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.stats{display:flex;gap:8px;}
+.stat{min-width:74px;text-align:center;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:7px 10px;}
+.stat b{display:block;font-family:var(--mono);font-size:1.12rem;line-height:1.1;color:#fff;}
+.stat span{display:block;font-size:.56rem;letter-spacing:.18em;color:var(--muted);margin-top:3px;}
+#rankBadge b{background:linear-gradient(92deg,var(--gold),#FFF1C2);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+/* ---------- 上段タブ ---------- */
+.viewtabs{max-width:920px;margin:0 auto 14px;display:flex;gap:8px;}
+.vtab{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  border:1px solid var(--line);border-radius:14px;background:var(--panel);
+  padding:10px 8px;color:var(--ink2);cursor:pointer;font-family:inherit;
+  transition:border-color .18s, box-shadow .18s, background .18s, color .18s;
+}
+.vtab b{font-size:.94rem;font-weight:700;}
+.vtab i{font-style:normal;font-family:var(--mono);font-size:.56rem;letter-spacing:.24em;color:var(--muted);}
+.vtab.on{
+  color:#fff;border-color:var(--cy);
+  background:linear-gradient(140deg,rgba(56,232,255,.16),rgba(167,139,250,.14));
+  box-shadow:0 0 0 1px rgba(56,232,255,.28), 0 14px 30px -18px rgba(56,232,255,.85);
+}
+.vtab.on i{color:var(--cy);}
+
+/* ---------- 出題タイプ / レベル ---------- */
+.pane{max-width:920px;margin:0 auto;}
+.selbox{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:12px;margin-bottom:12px;}
+.selhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px;}
+.selhead h2{font-family:var(--mono);font-size:.62rem;font-weight:500;letter-spacing:.22em;color:var(--cy);text-transform:uppercase;}
+.selacts{display:flex;align-items:center;gap:7px;}
+.foldBtn{border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink2);
+  font-family:inherit;font-size:.7rem;padding:4px 12px;cursor:pointer;}
+.foldBtn.prt{color:var(--gold);border-color:rgba(255,209,102,.38);}
+.foldBtn.prt:hover{background:rgba(255,209,102,.12);}
+.selbox.folded .chips,.selbox.folded .mixbox{display:none;}
+.chips{display:flex;flex-wrap:wrap;gap:7px;}
+.chip{
+  border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.03);
+  color:var(--ink2);font-family:inherit;font-size:.76rem;padding:7px 13px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;line-height:1.2;
+  transition:border-color .16s, box-shadow .16s, background .16s, color .16s;
+}
+.chip small{font-family:var(--mono);font-size:.58rem;color:var(--muted);}
+.chip:hover{border-color:var(--line2);color:var(--ink);}
+.chip.on{
+  color:#fff;border-color:var(--cy);
+  background:linear-gradient(135deg,rgba(56,232,255,.20),rgba(167,139,250,.16));
+  box-shadow:0 0 0 1px rgba(56,232,255,.26), 0 10px 24px -16px rgba(56,232,255,.9);
+}
+.chip.on small{color:#CFF6FF;}
+.chip.mix{border-style:dashed;}
+.chip.mix.on{border-style:solid;border-color:var(--vi);
+  box-shadow:0 0 0 1px rgba(167,139,250,.3), 0 10px 24px -16px rgba(167,139,250,.9);}
+.lvrow{display:flex;align-items:center;gap:10px;margin-top:11px;flex-wrap:wrap;}
+.lvlabel{font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;color:var(--muted);}
+.lvseg{display:flex;gap:4px;border:1px solid var(--line);border-radius:12px;padding:4px;background:rgba(0,0,0,.22);}
+.lvbtn{border:0;border-radius:9px;background:transparent;color:var(--ink2);font-family:inherit;
+  font-size:.76rem;padding:6px 13px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .16s,color .16s;}
+.lvbtn u{text-decoration:none;font-family:var(--mono);font-size:.66rem;color:var(--muted);}
+.lvbtn.on{background:linear-gradient(135deg,var(--cy2),var(--vi2));color:#fff;}
+.lvbtn.on u{color:#DFF6FF;}
+/* そのタイプに無いレベル（発展を持たないタイプ）は押せなくする。
+   ボタンごと消すと段組みが動いて押しまちがえるので、薄くして残す */
+.lvbtn[disabled]{opacity:.28;cursor:default;}
+#lvDesc{font-size:.74rem;color:var(--ink2);}
+#lvDesc b{color:var(--cy);font-weight:700;}
+#lvDesc i{font-style:normal;color:var(--muted);}
+.mixbox{margin-top:11px;border-top:1px dashed var(--line);padding-top:10px;}
+.mixgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px;}
+.mixgrid label{display:flex;align-items:center;gap:7px;font-size:.74rem;color:var(--ink2);
+  border:1px solid transparent;border-radius:9px;padding:5px 7px;cursor:pointer;}
+.mixgrid label:hover{background:rgba(255,255,255,.04);}
+.mixgrid input{accent-color:var(--cy);width:15px;height:15px;}
+.mixbtns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.miniBtn{border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink2);
+  font-family:inherit;font-size:.68rem;padding:5px 11px;cursor:pointer;}
+.miniBtn:hover{border-color:var(--line2);color:#fff;}
+
+/* ---------- 問題カード ---------- */
+/* ⚠ overflow は visible のまま（正解はんこは直径171pxで、hidden だと切れる） */
+#card{
+  position:relative;overflow:visible;border:1px solid var(--line);border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.062),rgba(255,255,255,.018));
+  padding:16px 16px 18px;box-shadow:0 30px 60px -50px #000;
+}
+#card::before{content:"";position:absolute;left:22px;right:22px;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cy),var(--vi),transparent);opacity:.75;}
+#card.shake{animation:shk .34s;}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.qmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.qmeta .tag{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;color:var(--cy);
+  border:1px solid rgba(56,232,255,.34);border-radius:999px;padding:3px 9px;}
+.qmeta .tag.vi{color:var(--vi);border-color:rgba(167,139,250,.38);}
+.qmeta .tag.pl{color:var(--muted);border-color:var(--line);}
+.qmeta .grow{flex:1;}
+.qlead{font-size:.94rem;line-height:1.72;color:var(--ink);}
+.qsub{margin-top:9px;font-size:.82rem;color:var(--ink2);line-height:1.8;}
+.qdisp{margin:14px 0 4px;padding:14px 8px;text-align:center;font-size:1.22rem;color:#fff;
+  border-radius:14px;background:rgba(0,0,0,.28);border:1px solid var(--line);overflow-x:auto;}
+.qdisp .katex{color:#fff;}
+.qdisp .katex-display{margin:.24em 0;}
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;}
+@media (max-width:560px){.choices{grid-template-columns:1fr;}}
+.choiceBtn{
+  display:flex;align-items:center;gap:10px;text-align:left;
+  border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.035);
+  color:var(--ink);font-family:inherit;font-size:.96rem;padding:12px;cursor:pointer;
+  min-height:56px;transition:border-color .15s,background .15s,transform .08s;
+}
+.choiceBtn:hover:not([disabled]){border-color:var(--line2);background:rgba(255,255,255,.06);}
+.choiceBtn:active:not([disabled]){transform:scale(.985);}
+.choiceBtn .cno{flex:0 0 26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  font-family:var(--mono);font-size:.76rem;color:var(--cy);
+  border:1px solid rgba(56,232,255,.32);background:rgba(56,232,255,.08);}
+.choiceBtn.sel{border-color:var(--cy);background:rgba(56,232,255,.12);box-shadow:0 0 0 1px rgba(56,232,255,.3);}
+.choiceBtn .katex{color:inherit;}
+/* 場合分けの答え（発展の「軸が動く」など）は1行が長いので、選択肢は1列にして折り返す */
+.choices.wide{grid-template-columns:1fr;}
+.choices.wide .choiceBtn{font-size:.88rem;line-height:1.7;}
+.numwrap{margin-top:14px;}
+.numdisp{height:58px;border-radius:13px;border:1px solid var(--line);background:rgba(0,0,0,.3);
+  display:flex;align-items:center;justify-content:flex-end;padding:0 16px;
+  font-family:var(--mono);font-size:1.62rem;color:#fff;letter-spacing:.04em;}
+.numdisp.empty{color:var(--muted);font-size:1rem;letter-spacing:.14em;}
+.numunit{font-size:.8rem;color:var(--muted);margin-left:8px;font-family:var(--jp);}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px;max-width:330px;}
+.key{height:52px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.05);
+  color:#fff;font-family:var(--mono);font-size:1.2rem;cursor:pointer;transition:background .12s,border-color .12s,transform .06s;}
+.key:hover{background:rgba(255,255,255,.09);border-color:var(--line2);}
+.key:active{transform:scale(.95);background:rgba(56,232,255,.2);}
+.key.fn{font-size:.92rem;color:var(--ink2);}
+.verdict{margin-top:13px;font-size:.9rem;font-weight:700;min-height:1.3em;}
+.verdict.ok{color:var(--ok);}
+.verdict.ng{color:var(--ng);}
+#explain{display:none;margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;}
+.exHead{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;color:var(--vi);margin-bottom:8px;}
+.exLine{font-size:.86rem;line-height:1.95;color:var(--ink2);padding:1px 0;}
+.exLine .katex{color:#fff;}
+.exFml{margin:8px 0;padding:9px 11px;border-left:2px solid var(--vi);
+  background:rgba(167,139,250,.08);border-radius:0 10px 10px 0;font-size:.9rem;color:var(--ink);}
+.exFml .katex{color:#fff;}
+.figLink{display:inline-flex;align-items:center;gap:6px;margin-top:10px;
+  border:1px solid rgba(167,139,250,.4);border-radius:999px;background:rgba(167,139,250,.1);
+  color:#D8CCFF;font-family:inherit;font-size:.74rem;padding:6px 13px;cursor:pointer;}
+.figLink:hover{background:rgba(167,139,250,.2);}
+.actions{max-width:920px;margin:14px auto 0;display:flex;gap:9px;}
+.btn{flex:1;border:0;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:700;
+  padding:15px 12px;cursor:pointer;color:#04121A;
+  background:linear-gradient(135deg,var(--cy),#7FF0FF);box-shadow:0 16px 34px -22px rgba(56,232,255,.95);}
+.btn.ghost{background:transparent;color:var(--ink2);border:1px solid var(--line);box-shadow:none;}
+.btn[disabled]{opacity:.4;cursor:default;box-shadow:none;}
+#toast{max-width:920px;margin:10px auto 0;text-align:center;font-size:.8rem;color:var(--cy);
+  min-height:1.2em;font-family:var(--mono);letter-spacing:.06em;}
+.banner{max-width:920px;margin:0 auto 12px;border:1px solid rgba(255,209,102,.4);
+  background:rgba(255,209,102,.08);border-radius:12px;padding:10px 13px;font-size:.79rem;color:#FFE9AE;line-height:1.6;}
+
+/* ================================================================
+   図モード
+   「平行移動で頂点がどう動くか」「定義域と軸の位置で最大・最小がどこに来るか」
+   「絶対値のグラフの折れ目」の3つを、値を動かしながら見る。
+   ⚠ 図は JS が SVG を組み立てて innerHTML で入れる。色・線は**属性**で書いてあるが、
+     図モードの図は紙にも記録にも出ない（question_figure には使わない）ので
+     解き直しプリントの制約とは無関係。演習側の問題は全部テキストで解ける。
+   ================================================================ */
+#view-fig{display:none;}
+.glead{max-width:920px;margin:0 auto 12px;font-size:.84rem;color:var(--ink2);line-height:1.8;}
+.glead b{color:var(--cy);}
+.ctrlbox{border:1px solid var(--line);border-radius:16px;background:var(--panel);
+  padding:11px 12px;margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.stepper{display:flex;align-items:center;gap:6px;}
+.stepper > span.lb{font-size:.8rem;color:var(--ink2);min-width:2.4em;}
+.stepper .sbtn{width:30px;height:30px;border:1px solid var(--line);border-radius:9px;
+  background:rgba(255,255,255,.05);color:#fff;font-family:var(--mono);font-size:1rem;cursor:pointer;}
+.stepper .sbtn:hover{background:rgba(56,232,255,.16);border-color:var(--line2);}
+.stepper .sval{min-width:46px;text-align:center;font-family:var(--mono);font-size:1.02rem;color:var(--cy);
+  border:1px solid var(--line);border-radius:9px;padding:4px 6px;background:rgba(0,0,0,.28);}
+.gwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:10px;align-items:start;}
+@media (max-width:760px){.gwrap{grid-template-columns:1fr;}}
+.gcard{border:1px solid var(--line);border-radius:16px;background:rgba(0,0,0,.3);padding:10px;overflow:hidden;}
+.gcard h3{font-family:var(--mono);font-size:.58rem;letter-spacing:.16em;color:var(--vi);margin-bottom:6px;text-transform:uppercase;}
+/* 図は正方形の viewBox なので、幅いっぱいにすると縦にも同じだけ伸びる。
+   画面の高さを食いすぎないよう上限をつけて中央に置く */
+.gcard svg{width:100%;height:auto;display:block;max-width:460px;margin:0 auto;}
+.greadout{font-size:.86rem;line-height:2.05;color:var(--ink2);}
+.greadout .katex{color:#fff;}
+.greadout b{color:#fff;}
+.gjudge{margin-top:8px;border-radius:12px;padding:10px 12px;font-size:.92rem;font-weight:700;
+  border:1px solid rgba(56,232,255,.34);background:rgba(56,232,255,.1);color:#CFF6FF;line-height:1.6;}
+footer{max-width:920px;margin:22px auto 0;text-align:center;
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.18em;color:var(--muted);}
+@media (max-width:560px){
+  h1{font-size:1.16rem;}
+  .qdisp{font-size:1.04rem;}
+  .stat{min-width:64px;padding:6px 8px;}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+}
+/* 紙に共通ヘッダーは出さない（モジュール側でも消しているが、HTMLだけ先に上げても
+   紙に出ないようツール側にも同じ1行を持たせる） */
+@media print{
+  .divp-header{display:none!important;}
+}
+</style>
+</head>
+<body data-unit-key="math_hs_nijikansu" data-theme="noir" data-effect="jh">
+
+<!-- 共通モジュール（file:// では divp-core が自動で黙る）
+     ・divp-header.js … 共通ヘッダー。この位置に挿し込まれる（body直後が定位置）
+     ・divp-core.js … 学習記録（Divp.init / Divp.answer）
+     ・divp-correct-jh.js … 正解=はんこ / 誤答=バッジ（中学・高校共通）
+     ・divp-choice-mark.js … 答え合わせ表示（正解=緑 / 選んだ誤答=朱）
+     ・divp-result.js … 10問ごとの評価（RESULT画面）
+     ・print-watermark.js … 練習プリントのロゴ透かし（無くても透かし無しで印刷できる） -->
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-choice-mark.js" defer></script>
+<script src="/assets/divp-result.js"></script>
+<script src="/assets/print-watermark.js"></script>
+
+<!-- 共通ヘッダーはこの div の外（body直下）に入る＝画面幅いっぱいのバーになる -->
+<div class="wrap">
+
+<header class="dv-head">
+  <h1><span class="sub">Mathematics I / Quadratic Function</span><span class="ttl">2次関数マスター</span></h1>
+  <!-- LEVEL / XP はツール側で持たない。XPは save_answer.php が
+       question_catalog.base_xp × イベント倍率で確定し、レベルは累計XPからマイページが算出する -->
+  <div class="stats">
+    <div class="stat" id="rankBadge"><b id="rankVal">D</b><span>RANK</span></div>
+    <div class="stat"><b id="streakVal">0</b><span>STREAK</span></div>
+  </div>
+</header>
+
+<nav class="viewtabs">
+  <button class="vtab on" data-view="train"><b>演習モード</b><i>training</i></button>
+  <button class="vtab" data-view="fig"><b>図モード</b><i>figure</i></button>
+</nav>
+
+<!-- ===================== 演習モード ===================== -->
+<div id="view-train" class="pane">
+
+  <div class="selbox" id="selbox">
+    <div class="selhead">
+      <h2>Type &amp; Level</h2>
+      <div class="selacts">
+        <button class="foldBtn prt" id="prtBtn" type="button"
+                title="いま選んでいるタイプ・レベルで練習プリント（A4・問題＋解答）を作る">🖨 印刷</button>
+        <button class="foldBtn" id="foldBtn" aria-expanded="true">とじる</button>
+      </div>
+    </div>
+    <div class="chips" id="typeChips"></div>
+    <div class="lvrow">
+      <span class="lvlabel">LEVEL</span>
+      <div class="lvseg" id="lvSeg">
+        <button class="lvbtn on" data-lv="1"><u>1</u>基本</button>
+        <button class="lvbtn" data-lv="2"><u>2</u>標準</button>
+        <button class="lvbtn" data-lv="3"><u>3</u>発展</button>
+      </div>
+      <span id="lvDesc"></span>
+    </div>
+    <div class="mixbox" id="mixBox" style="display:none">
+      <div class="mixgrid" id="mixGrid"></div>
+      <div class="mixbtns">
+        <button class="miniBtn" id="mixAll">ぜんぶ選ぶ</button>
+        <button class="miniBtn" id="mixNone">ぜんぶ外す</button>
+        <button class="miniBtn" id="mixBasicBtn">教科書の基本だけ</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="card">
+    <div class="qmeta">
+      <span class="tag" id="qType">関数の値と値域</span>
+      <span class="tag vi" id="qLv">LV.1</span>
+      <span class="grow"></span>
+      <span class="tag pl" id="qNum">1 / 10</span>
+    </div>
+    <div class="qlead" id="qLead"></div>
+    <div class="qdisp" id="qDisp" style="display:none"></div>
+    <div class="qsub" id="qSub"></div>
+    <div id="ansArea"></div>
+    <div class="verdict" id="verdict"></div>
+    <div id="explain">
+      <div class="exHead">SOLUTION</div>
+      <div id="exBody"></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" id="checkBtn">こたえあわせ</button>
+    <button class="btn ghost" id="nextBtn">次の問題 ➜</button>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<!-- ===================== 図モード ===================== -->
+<div id="view-fig" class="pane">
+  <div class="glead" id="figLead"></div>
+  <div class="chips" id="figChips" style="margin-bottom:12px"></div>
+  <div class="ctrlbox" id="figCtrl"></div>
+  <div class="gwrap">
+    <div class="gcard">
+      <h3>figure</h3>
+      <div id="figSvg"></div>
+    </div>
+    <div class="gcard">
+      <h3>check</h3>
+      <div class="greadout" id="figRead"></div>
+      <div class="gjudge" id="figJudge"></div>
+    </div>
+  </div>
+</div>
+
+<footer>CHUKYO KOBETSU SHIDO GAKUIN</footer>
+</div><!-- /.wrap -->
+
+<script>
+"use strict";
+/* ================================================================
+   math_hs_nijikansu.html  2次関数マスター
+   unit_key = math_hs_nijikansu
+   出題範囲 = 数学I「2次関数」章まるごと（チャート式の例題63〜85にあたる範囲）
+   modes(=question_key):
+     関数とグラフ     … kansuu(関数の値・値域・係数決定)
+     2次関数のグラフ  … heihei(平方完成と頂点) / heikou(平行移動) / taisho(対称移動)
+     最大・最小       … saidai(最大値・最小値) / ugoku(定義域や軸が動く) /
+                        keisu(最大値から係数決定) / bunsho(文章題)
+     2次関数の決定    … kettei(頂点・3点・最大最小の条件)
+     発展             … zettai(絶対値を含む1次関数のグラフ) / joken(条件式がある場合)
+     ＋ mix（えらんだタイプからランダム。記録はその問題のタイプで残すので "mix" は飛ばない）
+   レベル(1基本/2標準/3発展)は question_key を増やさず question_params の lv に持つ
+     ＝カルテはタイプ単位で読める。params_hash には lv も種も入るので
+     「同じ問題」の判定はレベルごとに成立する。
+   ⚠ レベルの数はタイプごとに違う（発展を持たないタイプは2つまで）。
+     MODES[].lv の長さがそのタイプのレベル数で、画面のボタンはそれに合わせて出し分ける。
+   共通処理:
+     ・学習記録 … Divp.answer（判定直後に1行）
+     ・正解エフェクト … divp-correct-jh（js/jh共通のはんこ）
+     ・解き直し … ?retry=1 で question_params の種から同じ問題を作り直す（CLAUDE.md 2d）
+     ・図 … 問題は全部テキストだけで解ける（式も座標も本文に出る）ので
+            question_figure は使わない。選択式は question_choices を渡して
+            解き直しプリントに選択肢ごと出す。
+   ⚠ 記録に載せる文字列の書き分け（CLAUDE.md 2a）:
+     ・question_text（問題文）は和文が混ざるので **^ _ { } \ を1文字も入れない**
+       （1文字でもあると講師画面が文字列ぜんぶを TeX として描き、和文が斜体で崩れる）。
+       2乗は「²」、ルートは「√」の文字で書く。
+     ・correct_answer と question_choices は、和文を含まない純粋な式のときだけ
+       **TeX のまま**渡す（講師画面が丸ごと KaTeX で描く＝きれいに出る）。
+       「x=2 で最小値 -3」のように和文を含む答えは TeX を使わず素の文字で書く
+       （ans.plain=true のタイプ。画面側も KaTeX に通さない）。
+     ・不等号は **生の「<」を1文字も書かない**（CLAUDE.md 2f。api/save_answer.php が
+       question_choices を丸ごと捨てる）。TeX では \lt / \gt、素の文字では
+       全角の「＜」「＞」と「≦」を使う。
+   ================================================================ */
+
+/* ---------- 小道具 ---------- */
+const N_CHOICES=6;
+const UNIT_KEY="math_hs_nijikansu";
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+/* 本文中に数式を混ぜる用（KaTeXはあとで renderTexIn がまとめて描く） */
+function T(tex){return '<span class="tex" data-tex="'+esc(tex)+'"></span>';}
+function TD(tex){return '<span class="tex" data-d="1" data-tex="'+esc(tex)+'"></span>';}
+function renderTexIn(root){
+  if(!root)return;
+  root.querySelectorAll(".tex").forEach(el=>{
+    const s=el.dataset.tex;
+    if(s==null)return;
+    if(window.katex){
+      try{katex.render(s,el,{throwOnError:false,displayMode:el.dataset.d==="1"});}
+      catch(e){el.textContent=s;}
+    }else{
+      /* KaTeX が来る前でも読めるように、記号だけ落とした素の文字を出しておく */
+      el.textContent=s.replace(/\\[a-zA-Z]+/g," ").replace(/[{}]/g,"");
+    }
+  });
+}
+function stripTags(html){
+  const d=document.createElement("div");d.innerHTML=String(html==null?"":html);
+  d.querySelectorAll(".tex").forEach(el=>{el.textContent=" ";});
+  return (d.textContent||"").replace(/\s+/g," ").trim();
+}
+
+/* ---------- 数の見せ方 ---------- */
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t;}return a||1;}
+/* 符号つきの数。0 のときは空文字（「+0」を出さない） */
+function sg(v){return (v===0)?"":((v<0)?("-"+Math.abs(v)):("+"+v));}
+function fracTex(n,d){
+  if(d<0){n=-n;d=-d;}
+  const g=gcd(n,d);n/=g;d/=g;
+  if(d===1)return String(n);
+  return (n<0?"-":"")+"\\dfrac{"+Math.abs(n)+"}{"+d+"}";
+}
+/* 記録用・和文まじりの答え用（TeX を使わない分数表記） */
+function fracPlain(n,d){
+  if(d<0){n=-n;d=-d;}
+  const g=gcd(n,d);n/=g;d/=g;
+  if(d===1)return String(n);
+  return n+"/"+d;
+}
+function ptTex(x,y){return "("+x+",\\ "+y+")";}
+function ptPlain(x,y){return "("+x+", "+y+")";}
+/* (n/d)x の項を符号つきで返す（平方完成の途中式用。約分して 1x は x と書く） */
+function fracTermTex(n,d,v){
+  if(d<0){n=-n;d=-d;}
+  const g=gcd(n,d);let nn=n/g;const dd=d/g;
+  const s=(nn<0)?"-":"+";nn=Math.abs(nn);
+  if(dd===1)return s+((nn===1)?v:(nn+v));
+  return s+"\\dfrac{"+nn+"}{"+dd+"}"+v;
+}
+/* 分数座標の点。n1/d1, n2/d2 */
+function ptFracTex(n1,d1,n2,d2){
+  return "\\left("+fracTex(n1,d1)+",\\ "+fracTex(n2,d2)+"\\right)";
+}
+function ptFracPlain(n1,d1,n2,d2){
+  return "("+fracPlain(n1,d1)+", "+fracPlain(n2,d2)+")";
+}
+/* 項を並べて多項式にする。terms=[[係数,"x^2"],[係数,"x"],[係数,""]]
+   ⚠ 先頭が負のときだけ "-"、2項目以降は必ず符号を付ける（"+"の付け忘れ防止） */
+function poly(terms){
+  let s="";
+  terms.forEach(function(t){
+    const c=t[0],v=t[1];
+    if(c===0)return;
+    const a=Math.abs(c);
+    const body=(v==="")?String(a):((a===1)?v:(String(a)+v));
+    s+=(s===""?(c<0?"-":""):(c<0?"-":"+"))+body;
+  });
+  return s||"0";
+}
+/* ax²+bx+c。sup は画面/TeX なら "^2"、記録用の平文なら "²" */
+function quad(a,b,c,v,sup){return poly([[a,v+sup],[b,v],[c,""]]);}
+/* y=a(x-p)²+q の右辺。sup は "^2" か "²" */
+function vert(a,p,q,sup){
+  const core=(p===0)?("x"+sup):("(x"+sg(-p)+")"+sup);
+  const head=(a===1)?core:((a===-1)?("-"+core):(String(a)+core));
+  return head+((q===0)?"":sg(q));
+}
+/* 1次式 ax+b */
+function lin(a,b,v){return poly([[a,v],[b,""]]);}
+/* 「a²-4a+3」のように、文字 a についての2次式を素の文字で書く（場合分けの答え用） */
+function quadA(p,q,r){return poly([[p,"a²"],[q,"a"],[r,""]]);}
+/* 素の文字で作った式を TeX に持ち込むときの変換。
+   ⚠ KaTeX は「²」のような素の上つき文字を知らないので、そのまま渡すと赤字で出る。 */
+function texA(s){return String(s).replace(/²/g,"^2");}
+/* 不等号。plain=true なら全角（生の「<」は question_choices が捨てられるので使わない） */
+function ltP(l,r){return l+"＜"+r;}
+function leP(l,r){return l+"≦"+r;}
+
+/* ---------- 種(seed)から作る乱数 ----------
+   出題のたびに種を1つ引いて question_params に {m:タイプ, lv:レベル, s:種} で保存する。
+   解き直し(?retry=1)は同じ種で生成関数を回すだけで**まったく同じ問題**が出る（CLAUDE.md 2d）。
+   ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
+     （params_hash は同じなので解き直し自体は成立するが、問題文は別物になる）。
+   ⚠ 乱数はこの ri() 1か所に集める。Math.random を生成関数の中で直接呼ぶと種で再現できない。 */
+let _rng=1;
+function rngSeed(s){_rng=(s>>>0)||1;}
+function rngPick(){return (Math.floor(Math.random()*4294967296)>>>0)||1;}  /* 種そのものだけは真の乱数 */
+function rngNext(){let x=_rng;x^=x<<13;x>>>=0;x^=x>>>17;x^=x<<5;x>>>=0;_rng=x;return x/4294967296;}
+function ri(min,max){return Math.floor(rngNext()*(max-min+1))+min;}
+function pick(a){return a[ri(0,a.length-1)];}
+function sgn1(){return ri(0,1)?1:-1;}
+function nzi(min,max){let v=0;while(v===0)v=ri(min,max);return v;}
+/* ⚠ 並べ替えは sort に乱数比較を渡さない（ブラウザの sort 実装しだいで
+   同じ種でも別の並びになる＝解き直しで同じ問題が出なくなる）。フィッシャー・イェーツで書く */
+function shuffle(a){const b=a.slice();for(let i=b.length-1;i>0;i--){const j=ri(0,i);const t=b[i];b[i]=b[j];b[j]=t;}return b;}
+
+/* 選択肢を作る。誤答候補から重複を除いて（N-1）個ぶん使う。
+   ⚠ 誤答候補に「値としては正解と同じもの」を混ぜないこと。
+     式は poly / vert で表記が一意になるので、同じ値なら同じ文字列になり
+     この seen で弾ける（＝正解が2つある選択肢にはならない）。
+   plain=true … KaTeX に通さない素の文字（和文を含む選択肢）
+   wide=true … 場合分けの答えのように1行が長いもの。4択にして1列で出す */
+function mkChoice(cor,wrongs,plain,wide){
+  const max=wide?4:N_CHOICES;
+  const seen={};seen[cor]=1;
+  const w=[];
+  (wrongs||[]).forEach(x=>{
+    if(x==null||x==="")return;
+    if(seen[x])return;
+    seen[x]=1;w.push(x);
+  });
+  const all=shuffle([cor].concat(w.slice(0,max-1)));
+  return {kind:"choice",choices:all,correct:all.indexOf(cor),plain:!!plain,wide:!!wide};
+}
+function mkNum(val,unit){return {kind:"num",val:val,unit:unit||""};}
+</script>
+<script>
+"use strict";
+/* ---------- タイプ台帳 ----------
+   k = question_key（そのまま question_catalog に登録する）
+   lv = レベルごとの中身（画面の説明にも出す）。**配列の長さ＝そのタイプのレベル数**
+   ex = もとになった例題番号（生徒がチャート式と行き来できるように出す） */
+const MODES=[
+  {k:"kansuu", n:"① 関数の値と値域", s:"f(a)・値域", grp:"関数とグラフ", ex:"例題63〜65",
+   lv:["関数の式と関数の値","1次関数の値域・最大最小","値域の条件から係数決定"]},
+  {k:"heihei", n:"② 平方完成と頂点", s:"y=a(x-p)²+q", grp:"2次関数のグラフ", ex:"例題66〜68",
+   lv:["頂点形から頂点と軸を読む","一般形を平方完成する","分数が出る平方完成"]},
+  {k:"heikou", n:"③ 平行移動", s:"頂点がどう動くか", grp:"2次関数のグラフ", ex:"例題69・70・79",
+   lv:["移動した放物線の式","どう動かせば重なるか","移動する前の係数を求める"]},
+  {k:"taisho", n:"④ 対称移動", s:"x軸・y軸・原点", grp:"2次関数のグラフ", ex:"例題80",
+   lv:["頂点形で対称移動","一般形で対称移動"]},
+  {k:"saidai", n:"⑤ 最大値・最小値", s:"頂点と端をくらべる", grp:"最大・最小", ex:"例題71・72",
+   lv:["定義域なし（頂点そのもの）","定義域あり（軸が内側）","定義域あり（軸が外側）"]},
+  {k:"ugoku", n:"⑥ 動く最大・最小", s:"場合分け", grp:"最大・最小", ex:"例題82〜84",
+   lv:["定義域の一端が動く","軸が動く","定義域の両端が動く"]},
+  {k:"kettei", n:"⑦ 2次関数の決定", s:"条件から式をつくる", grp:"2次関数の決定", ex:"例題75〜77",
+   lv:["頂点と通る1点","通る3点","軸・最大最小の条件"]},
+  {k:"keisu", n:"⑧ 最大値から係数決定", s:"a の値を求める", grp:"最大・最小", ex:"例題73",
+   lv:["定義域なし","定義域あり"]},
+  {k:"bunsho", n:"⑨ 最大・最小の文章題", s:"面積・売上・高さ", grp:"最大・最小", ex:"例題74・81",
+   lv:["和と積・面積・高さ","定義域がつく文章題"]},
+  {k:"zettai", n:"⑩ 絶対値のグラフ", s:"y=|x-p|+q", grp:"発展", ex:"例題78",
+   lv:["折れ目と最小値","絶対値2つの和"]},
+  {k:"joken", n:"⑪ 条件式つきの最大・最小", s:"1文字を消す", grp:"発展", ex:"例題85",
+   lv:["条件式を代入する","変域がつく場合"]}
+];
+const MODEMAP={};MODES.forEach(m=>{MODEMAP[m.k]=m;});
+const MAXLV=3;
+/* そのタイプが持つレベル数（発展を持たないタイプは2） */
+function lvCount(k){const m=MODEMAP[k];return (m&&m.lv)?m.lv.length:1;}
+/* ミックスの初期セット＝教科書の基本にあたる4タイプ */
+const BASIC4=["kansuu","heihei","saidai","kettei"];
+
+const GENS={};
+</script>
+<script>
+"use strict";
+/* ================================================================
+   ① 関数の値と値域（例題63・64・65）
+   lv1: f(k) の値 ／ lv2: 1次関数の値域 ／ lv3: 値域の条件から係数決定
+   ================================================================ */
+GENS.kansuu=function(lv){
+  if(lv===1){
+    const k=nzi(-4,4);
+    if(ri(0,3)>0){                       /* 4回に3回は2次関数 */
+      const a=nzi(-3,3), b=ri(-6,6), c=ri(-9,9);
+      const t1=a*k*k, t2=b*k, val=t1+t2+c;
+      return {
+        lead:"関数 "+T("f(x)="+quad(a,b,c,"x","^2"))+" について、"+T("f("+k+")")+" の値を求めよ。",
+        ans:mkNum(val),
+        plainQ:"関数 f(x)="+quad(a,b,c,"x","²")+" について、f("+k+") の値を求めよ。",
+        ex:[
+          T("f("+k+")")+" は、"+T("x")+" のところに "+T(String(k))+" を代入した値。",
+          (k<0)?("⚠ 負の数を代入するときは<b>かっこを付けて</b>から2乗する: "+T("("+k+")^2="+(k*k)))
+               :(""+T("x^2")+" の部分は "+T(k+"^2="+(k*k))+" になる。"),
+          '<div class="exFml">'+T("f("+k+")="+poly([[t1,""],[t2,""],[c,""]])+"="+val)+"</div>"
+        ]
+      };
+    }
+    const a=nzi(-5,5), b=ri(-9,9);
+    const val=a*k+b;
+    return {
+      lead:"関数 "+T("f(x)="+lin(a,b,"x"))+" について、"+T("f("+k+")")+" の値を求めよ。",
+      ans:mkNum(val),
+      plainQ:"関数 f(x)="+lin(a,b,"x")+" について、f("+k+") の値を求めよ。",
+      ex:[
+        T("x")+" のところに "+T(String(k))+" を代入する。",
+        '<div class="exFml">'+T("f("+k+")="+poly([[a*k,""],[b,""]])+"="+val)+"</div>"
+      ]
+    };
+  }
+
+  if(lv===2){
+    const a=nzi(-4,4), b=ri(-8,8);
+    const p=ri(-4,2), q=p+ri(1,5);
+    const y1=a*p+b, y2=a*q+b;
+    const lo=Math.min(y1,y2), hi=Math.max(y1,y2);
+    const rng=function(l,h){return l+" \\leqq y \\leqq "+h;};
+    const w1=Math.min(a*p,a*q), w2=Math.max(a*p,a*q);           /* b の足し忘れ */
+    const v1=-a*p+b, v2=-a*q+b;                                  /* 傾きの符号ミス */
+    const u=a*(q+1)+b;                                           /* 右端の読みちがい */
+    return {
+      lead:"1次関数 "+T("y="+lin(a,b,"x"))+"　"+T("("+p+" \\leqq x \\leqq "+q+")")+" の値域を求めよ。",
+      ans:mkChoice(rng(lo,hi),[
+        rng(p,q), rng(hi,lo), rng(w1,w2), rng(Math.min(v1,v2),Math.max(v1,v2)),
+        rng(Math.min(lo,u),Math.max(lo,u)), rng(lo-1,hi+1)
+      ]),
+      plainQ:"1次関数 y="+lin(a,b,"x")+" ("+p+"≦x≦"+q+") の値域を求めよ。",
+      plainA:lo+"≦y≦"+hi,
+      ex:[
+        "1次関数は<b>右上がりか右下がりのまっすぐな線</b>なので、"
+        +"値域の両端は<b>定義域の両端の値</b>でしか起こらない。",
+        T("x="+p)+" のとき "+T("y="+y1)+"、"+T("x="+q)+" のとき "+T("y="+y2),
+        (a>0)?("傾き "+T(String(a))+" は正 → 右上がり。"+T("x")+" が大きいほど "+T("y")+" も大きい。")
+             :("傾き "+T(String(a))+" は負 → 右下がり。"+T("x")+" が大きいほど "+T("y")+" は小さい。"),
+        '<div class="exFml">'+T(rng(lo,hi))+"</div>"
+      ]
+    };
+  }
+
+  /* lv3 … 値域などの条件から1次関数の係数決定（例題65） */
+  const a=nzi(1,4)*sgn1();
+  const b=nzi(-6,6);
+  const p=ri(-3,2), q=p+ri(2,5);
+  const y1=a*p+b, y2=a*q+b;
+  const lo=Math.min(y1,y2), hi=Math.max(y1,y2);
+  const cor="a="+a+",\\ b="+b;
+  const cond=(a>0)?"正の数":"負の数";
+  return {
+    lead:"1次関数 "+T("y=ax+b")+"　"+T("("+p+" \\leqq x \\leqq "+q+")")+" の値域が "
+        +T(lo+" \\leqq y \\leqq "+hi)+" であるとき、定数 "+T("a,\\ b")+" の値を求めよ。"
+        +"ただし "+T("a")+" は"+cond+"とする。",
+    ans:mkChoice(cor,[
+      "a="+(-a)+",\\ b="+b,
+      "a="+a+",\\ b="+(-b),
+      "a="+(-a)+",\\ b="+(-b),
+      "a="+b+",\\ b="+a,
+      "a="+a+",\\ b="+(b+1),
+      "a="+(a+sgn1())+",\\ b="+b
+    ]),
+    plainQ:"1次関数 y=ax+b ("+p+"≦x≦"+q+") の値域が "+lo+"≦y≦"+hi+" であるとき、"
+      +"定数 a, b の値を求めよ。ただし a は"+cond+"とする。",
+    plainA:"a="+a+", b="+b,
+    ex:[
+      (a>0)?("傾きが正なら右上がりなので、"+T("x="+p)+" のとき最小 "+T("y="+lo)+"、"
+             +T("x="+q)+" のとき最大 "+T("y="+hi)+"。")
+           :("傾きが負なら右下がりなので、"+T("x="+p)+" のとき最大 "+T("y="+hi)+"、"
+             +T("x="+q)+" のとき最小 "+T("y="+lo)+"。"),
+      "この2組を "+T("y=ax+b")+" に代入すると、"+T("a,\\ b")+" についての連立方程式になる。",
+      '<div class="exFml">'+T("a\\times("+p+")+b="+y1)+"　/　"+T("a\\times("+q+")+b="+y2)+"</div>",
+      "辺々ひくと "+T((q-p)+"a="+(y2-y1))+" → "+T("a="+a)+"、代入して "+T("b="+b),
+      '<div class="exFml">'+T(cor)+"</div>"
+    ]
+  };
+};
+
+/* ================================================================
+   ② 平方完成と頂点（例題66・67・68）
+   lv1: 頂点形から頂点・軸 ／ lv2: 一般形を平方完成 ／ lv3: 分数が出る平方完成
+   ================================================================ */
+GENS.heihei=function(lv){
+  if(lv===1){
+    const a=pick([-3,-2,-1,1,2,3]);
+    const p=nzi(-5,5), q=nzi(-6,6);
+    const cor="頂点 ("+p+", "+q+")、軸 x="+p;
+    return {
+      lead:"次の2次関数のグラフの頂点の座標と軸を求めよ。",
+      disp:"y="+vert(a,p,q,"^2"),
+      ans:mkChoice(cor,[
+        "頂点 ("+(-p)+", "+q+")、軸 x="+(-p),
+        "頂点 ("+p+", "+(-q)+")、軸 x="+p,
+        "頂点 ("+(-p)+", "+(-q)+")、軸 x="+(-p),
+        "頂点 ("+q+", "+p+")、軸 x="+q,
+        "頂点 ("+p+", "+q+")、軸 y="+q,
+        "頂点 ("+(-p)+", "+q+")、軸 x="+p
+      ],true),
+      plainQ:"2次関数 y="+vert(a,p,q,"²")+" のグラフの頂点の座標と軸を求めよ。",
+      plainA:cor,
+      ex:[
+        T("y=a(x-p)^2+q")+" のグラフは、頂点 "+T("(p,\\ q)")+"、軸は直線 "+T("x=p")+"。",
+        "⚠ 頂点の "+T("x")+" 座標は<b>かっこの中の符号と逆</b>: "
+          +T((p===0?"x^2":"(x"+sg(-p)+")^2"))+" → "+T("x="+p),
+        T("a="+a)+" は "+((a>0)?"正なので<b>下に凸</b>（最小値をとる形）。":"負なので<b>上に凸</b>（最大値をとる形）。"),
+        '<div class="exFml">頂点 '+T(ptTex(p,q))+"、軸は直線 "+T("x="+p)+"</div>"
+      ],
+      fig:{t:"idou",a:a,p:p,q:q}
+    };
+  }
+
+  if(lv===2){
+    const a=sgn1();                       /* ±1 */
+    const p=nzi(-5,5), q=ri(-8,8);
+    const b=-2*a*p, c=a*p*p+q;
+    return {
+      lead:"次の2次関数を "+T("y=a(x-p)^2+q")+" の形に変形し、頂点の座標を求めよ。",
+      disp:"y="+quad(a,b,c,"x","^2"),
+      ans:mkChoice(ptTex(p,q),[
+        ptTex(-p,q), ptTex(p,-q), ptTex(-p,-q), ptTex(q,p), ptTex(p,c), ptTex(b,c)
+      ]),
+      plainQ:"2次関数 y="+quad(a,b,c,"x","²")+" のグラフの頂点の座標を求めよ。",
+      ex:[
+        (a===1)?(""+T("x")+" の係数 "+T(String(b))+" の<b>半分の2乗</b>をたしてひく。")
+               :(""+T("x^2")+" の係数 "+T("-1")+" でくくってから、かっこの中を平方完成する。"),
+        '<div class="exFml">'+T("y="+vert(a,p,q,"^2"))+"</div>",
+        "よって頂点は "+T(ptTex(p,q))+"、軸は直線 "+T("x="+p)+"。",
+        "検算: "+T("x="+p)+" を代入すると "+T("y="+q)+" になる。"
+      ],
+      fig:{t:"idou",a:a,p:p,q:q}
+    };
+  }
+
+  /* lv3 … 係数が1でなく、頂点が分数になる平方完成（例題68） */
+  const a=pick([-3,-2,2,3]);
+  let b=nzi(-9,9); if(b%2===0)b+=(b>0?1:-1);      /* b は奇数 → 頂点が分数になる */
+  const c=ri(-6,6);
+  const cor=ptFracTex(-b,2*a,4*a*c-b*b,4*a);
+  return {
+    lead:"次の2次関数のグラフの頂点の座標を求めよ。",
+    disp:"y="+quad(a,b,c,"x","^2"),
+    ans:mkChoice(cor,[
+      ptFracTex(b,2*a,4*a*c-b*b,4*a),
+      ptFracTex(-b,2*a,b*b-4*a*c,4*a),
+      ptFracTex(b,2*a,b*b-4*a*c,4*a),
+      ptFracTex(-b,2*a,4*a*c-b*b,2*a),
+      ptFracTex(-b,2*a,4*a*c+b*b,4*a),
+      ptFracTex(-b,a,4*a*c-b*b,4*a)
+    ]),
+    plainQ:"2次関数 y="+quad(a,b,c,"x","²")+" のグラフの頂点の座標を求めよ。",
+    plainA:ptFracPlain(-b,2*a,4*a*c-b*b,4*a),
+    ex:[
+      "まず "+T("x^2")+" の係数 "+T(String(a))+" で<b>2次の項と1次の項だけ</b>をくくる。",
+      '<div class="exFml">'+T("y="+a+"\\left(x^2"+fracTermTex(b,a,"x")+"\\right)"+sg(c))+"</div>",
+      "かっこの中は "+T("x")+" の係数 "+T(fracTex(b,a))+" の半分 "+T(fracTex(b,2*a))+" の2乗をたしてひく。",
+      "頂点の "+T("x")+" 座標は "+T(fracTex(-b,2*a))+"、"+T("y")+" 座標は代入して "+T(fracTex(4*a*c-b*b,4*a))+"。",
+      '<div class="exFml">頂点 '+T(cor)+"</div>"
+    ]
+  };
+};
+
+/* ================================================================
+   ③ 平行移動（例題69・70・79）
+   lv1: 移動後の式 ／ lv2: どう動かせば重なるか ／ lv3: 移動前の係数を求める
+   ================================================================ */
+GENS.heikou=function(lv){
+  if(lv===1){
+    const a=pick([-3,-2,-1,1,2,3]);
+    const p=ri(-4,4), q=ri(-5,5);
+    const s=nzi(-4,4), t=nzi(-5,5);
+    const cor="y="+vert(a,p+s,q+t,"^2");
+    return {
+      lead:"放物線 "+T("y="+vert(a,p,q,"^2"))+" を、"+T("x")+" 軸方向に "+T(String(s))
+          +"、"+T("y")+" 軸方向に "+T(String(t))+" だけ平行移動して得られる放物線の方程式を求めよ。",
+      ans:mkChoice(cor,[
+        "y="+vert(a,p-s,q+t,"^2"),
+        "y="+vert(a,p+s,q-t,"^2"),
+        "y="+vert(a,p-s,q-t,"^2"),
+        "y="+vert(-a,p+s,q+t,"^2"),
+        "y="+vert(a,p,q,"^2"),
+        "y="+vert(a,q+t,p+s,"^2")
+      ]),
+      plainQ:"放物線 y="+vert(a,p,q,"²")+" を x軸方向に "+s+"、y軸方向に "+t
+        +" だけ平行移動して得られる放物線の方程式を求めよ。",
+      ex:[
+        "平行移動しても<b>形（"+T("x^2")+" の係数）は変わらない</b>。動くのは頂点だけ。",
+        "もとの頂点 "+T(ptTex(p,q))+" を "+T("("+s+",\\ "+t+")")+" だけ動かすと "+T(ptTex(p+s,q+t))+"。",
+        '<div class="exFml">'+T(cor)+"</div>",
+        "⚠ 式では "+T("x")+" 軸方向の移動が<b>逆の符号</b>で入る（"+T("x")+" を "+T("x-"+(s>=0?s:"("+s+")"))+" に置きかえる）。"
+      ],
+      fig:{t:"idou",a:a,p:p+s,q:q+t}
+    };
+  }
+
+  if(lv===2){
+    const a=pick([-2,-1,1,2]);
+    const p1=ri(-4,3), q1=ri(-5,5);
+    let p2=ri(-4,4), q2=ri(-6,6);
+    if(p2===p1)p2=p1+nzi(1,3);
+    if(q2===q1)q2=q1+nzi(1,3);
+    const b1=-2*a*p1, c1=a*p1*p1+q1;
+    const b2=-2*a*p2, c2=a*p2*p2+q2;
+    const dx=p2-p1, dy=q2-q1;
+    const cor="x軸方向に "+dx+"、y軸方向に "+dy;
+    return {
+      lead:"放物線 "+T("y="+quad(a,b1,c1,"x","^2"))+" を平行移動して、放物線 "
+          +T("y="+quad(a,b2,c2,"x","^2"))+" に重ねたい。どのように平行移動すればよいか。",
+      ans:mkChoice(cor,[
+        "x軸方向に "+(-dx)+"、y軸方向に "+dy,
+        "x軸方向に "+dx+"、y軸方向に "+(-dy),
+        "x軸方向に "+(-dx)+"、y軸方向に "+(-dy),
+        "x軸方向に "+dy+"、y軸方向に "+dx,
+        "x軸方向に "+(p1-p2)+"、y軸方向に "+(q2-q1+1)
+      ],true),
+      plainQ:"放物線 y="+quad(a,b1,c1,"x","²")+" を平行移動して放物線 y="+quad(a,b2,c2,"x","²")
+        +" に重ねるには、どのように平行移動すればよいか。",
+      plainA:cor,
+      ex:[
+        "平行移動の量は<b>頂点どうしを見くらべる</b>だけで分かる。両方とも平方完成する。",
+        '<div class="exFml">'+T("y="+vert(a,p1,q1,"^2"))+"　頂点 "+T(ptTex(p1,q1))+"</div>",
+        '<div class="exFml">'+T("y="+vert(a,p2,q2,"^2"))+"　頂点 "+T(ptTex(p2,q2))+"</div>",
+        "頂点の差が移動量: "+T("("+p2+")-("+p1+")="+dx)+"、"+T("("+q2+")-("+q1+")="+dy),
+        '<div class="exFml">'+esc(cor)+" だけ平行移動する</div>"
+      ],
+      fig:{t:"idou",a:a,p:p2,q:q2}
+    };
+  }
+
+  /* lv3 … 平行移動してできた式から、もとの係数を逆算する（例題79） */
+  const s=nzi(-4,4), t=nzi(-5,5);
+  const p2=ri(-4,4), q2=ri(-6,6);
+  const B=-2*p2, C=p2*p2+q2;                 /* 移動後 y=x²+Bx+C */
+  const p1=p2-s, q1=q2-t;                    /* 移動前の頂点 */
+  const A=-2*p1, D=p1*p1+q1;                 /* 移動前 y=x²+ax+b */
+  const cor="a="+A+",\\ b="+D;
+  const pw=p2+s, qw=q2+t;                    /* 逆向きに動かしてしまった場合 */
+  return {
+    lead:"放物線 "+T("y=x^2+ax+b")+" を、"+T("x")+" 軸方向に "+T(String(s))+"、"
+        +T("y")+" 軸方向に "+T(String(t))+" だけ平行移動すると、放物線 "
+        +T("y="+quad(1,B,C,"x","^2"))+" に重なる。定数 "+T("a,\\ b")+" の値を求めよ。",
+    ans:mkChoice(cor,[
+      "a="+(-2*pw)+",\\ b="+(pw*pw+qw),
+      "a="+(-2*pw)+",\\ b="+(pw*pw+q1),
+      "a="+(-2*p1)+",\\ b="+(p1*p1+qw),
+      "a="+B+",\\ b="+C,
+      "a="+(-A)+",\\ b="+D
+    ]),
+    plainQ:"放物線 y=x²+ax+b を x軸方向に "+s+"、y軸方向に "+t+" だけ平行移動すると、"
+      +"放物線 y="+quad(1,B,C,"x","²")+" に重なる。定数 a, b の値を求めよ。",
+    plainA:"a="+A+", b="+D,
+    ex:[
+      "移動<b>後</b>の放物線を平方完成して頂点を出す。",
+      '<div class="exFml">'+T("y="+vert(1,p2,q2,"^2"))+"　頂点 "+T(ptTex(p2,q2))+"</div>",
+      "移動前の頂点は、そこから<b>逆向きに</b>動かした点: "
+        +T(ptTex(p2,q2))+" → "+T(ptTex(p1,q1)),
+      "よって移動前は "+T("y="+vert(1,p1,q1,"^2"))+" = "+T("y="+quad(1,A,D,"x","^2")),
+      '<div class="exFml">'+T(cor)+"</div>"
+    ]
+  };
+};
+
+/* ================================================================
+   ④ 対称移動（例題80）
+   lv1: 頂点形 ／ lv2: 一般形
+   x軸 → y を -y に（全体の符号が反転）／ y軸 → x を -x に ／ 原点 → 両方
+   ================================================================ */
+/* ⚠ 和文は TeX に入れない（KaTeX は「軸」を知らず赤字で出る）。
+   軸の文字だけ T() で描き、和文はその外に置く。 */
+const SYM=[T("x")+" 軸",T("y")+" 軸","原点"];
+const SYM_P=["x軸","y軸","原点"];
+GENS.taisho=function(lv){
+  const kind=ri(0,2);
+  if(lv===1){
+    const a=pick([-3,-2,-1,1,2,3]);
+    const p=nzi(-5,5), q=nzi(-6,6);
+    const res=[[-a,p,-q],[a,-p,q],[-a,-p,-q]];           /* x軸 / y軸 / 原点 */
+    const r=res[kind];
+    const cor="y="+vert(r[0],r[1],r[2],"^2");
+    const wrongs=[];
+    res.forEach(function(x,i){if(i!==kind)wrongs.push("y="+vert(x[0],x[1],x[2],"^2"));});
+    wrongs.push("y="+vert(-a,p,q,"^2"));
+    wrongs.push("y="+vert(a,p,-q,"^2"));
+    wrongs.push("y="+vert(a,-p,-q,"^2"));
+    return {
+      lead:"放物線 "+T("y="+vert(a,p,q,"^2"))+" を "+SYM[kind]
+          +" に関して対称移動して得られる放物線の方程式を求めよ。",
+      ans:mkChoice(cor,wrongs),
+      plainQ:"放物線 y="+vert(a,p,q,"²")+" を "+SYM_P[kind]+" に関して対称移動して得られる放物線の方程式を求めよ。",
+      ex:[
+        "頂点 "+T(ptTex(p,q))+" が "+SYM[kind]+" に関してどこへ移るかを考える。",
+        (kind===0)?("x 軸に関して対称 → "+T("x")+" はそのまま、"+T("y")+" の符号が変わる。"
+                    +"頂点は "+T(ptTex(p,-q))+"、上に凸と下に凸も<b>入れかわる</b>。")
+        :((kind===1)?("y 軸に関して対称 → "+T("y")+" はそのまま、"+T("x")+" の符号が変わる。"
+                    +"頂点は "+T(ptTex(-p,q))+"、"+T("x^2")+" の係数は<b>変わらない</b>。")
+                   :("原点に関して対称 → "+T("x")+" も "+T("y")+" も符号が変わる。"
+                    +"頂点は "+T(ptTex(-p,-q))+"、"+T("x^2")+" の係数の符号も変わる。")),
+        '<div class="exFml">'+T(cor)+"</div>"
+      ]
+    };
+  }
+
+  /* lv2 … 一般形のまま置きかえる */
+  const a=pick([-2,-1,1,2]), b=nzi(-6,6), c=nzi(-8,8);
+  const res=[[-a,-b,-c],[a,-b,c],[-a,b,-c]];
+  const r=res[kind];
+  const cor="y="+quad(r[0],r[1],r[2],"x","^2");
+  const wrongs=[];
+  res.forEach(function(x,i){if(i!==kind)wrongs.push("y="+quad(x[0],x[1],x[2],"x","^2"));});
+  wrongs.push("y="+quad(a,b,-c,"x","^2"));
+  wrongs.push("y="+quad(-a,-b,c,"x","^2"));
+  wrongs.push("y="+quad(a,-b,-c,"x","^2"));
+  return {
+    lead:"放物線 "+T("y="+quad(a,b,c,"x","^2"))+" を "+SYM[kind]
+        +" に関して対称移動して得られる放物線の方程式を求めよ。",
+    ans:mkChoice(cor,wrongs),
+    plainQ:"放物線 y="+quad(a,b,c,"x","²")+" を "+SYM_P[kind]+" に関して対称移動して得られる放物線の方程式を求めよ。",
+    ex:[
+      (kind===0)?("x 軸に関して対称移動は "+T("y")+" を "+T("-y")+" に置きかえる → 両辺に "+T("-1")+" をかけて "+T("y=-f(x)")+"。")
+      :((kind===1)?("y 軸に関して対称移動は "+T("x")+" を "+T("-x")+" に置きかえる → "+T("y=f(-x)")+"。"
+                   +T("x^2")+" の項は変わらず、"+T("x")+" の項の符号だけ変わる。")
+                 :("原点に関して対称移動は "+T("x")+" を "+T("-x")+"、"+T("y")+" を "+T("-y")+" に置きかえる → "+T("y=-f(-x)")+"。")),
+      '<div class="exFml">'+T(cor)+"</div>",
+      "検算: 頂点で確かめる。もとの頂点は "+T("y="+quad(a,b,c,"x","^2"))+" を平方完成して求められる。"
+    ]
+  };
+};
+</script>
+<script>
+"use strict";
+/* ================================================================
+   ⑤ 最大値・最小値（例題71・72）
+   lv1: 定義域なし（頂点そのもの）
+   lv2: 定義域あり・軸が定義域の内側（頂点と端を両方見る）
+   lv3: 定義域あり・軸が定義域の外側（端と端をくらべる）
+   ⚠ 答えは和文まじりなので plain（TeX に通さない）。不等号は使わない書き方にしてある。
+   ================================================================ */
+/* 「x=2 で最小値 -3、最大値はない」 */
+function mmOne(x,val,isMax){
+  return "x="+x+" で"+(isMax?"最大値 ":"最小値 ")+val+"、"+(isMax?"最小値":"最大値")+"はない";
+}
+/* 「x=4 で最大値 5、x=2 で最小値 -3」 */
+function mmBoth(xmax,vmax,xmin,vmin){
+  return "x="+xmax+" で最大値 "+vmax+"、x="+xmin+" で最小値 "+vmin;
+}
+GENS.saidai=function(lv){
+  if(lv===1){
+    const a=pick([-3,-2,-1,1,2,3]);
+    const p=nzi(-5,5), q=nzi(-8,8);
+    const b=-2*a*p, c=a*p*p+q;
+    const up=(a>0);                       /* 下に凸 = 最小値をもつ */
+    const cor=mmOne(p,q,!up);
+    return {
+      lead:"次の2次関数の最大値・最小値を求めよ。",
+      disp:"y="+quad(a,b,c,"x","^2"),
+      ans:mkChoice(cor,[
+        mmOne(-p,q,!up), mmOne(p,-q,!up), mmOne(p,q,up),
+        mmOne(q,p,!up), mmOne(p,c,!up), mmOne(-p,-q,!up)
+      ],true),
+      plainQ:"2次関数 y="+quad(a,b,c,"x","²")+" の最大値・最小値を求めよ。",
+      plainA:cor,
+      ex:[
+        "まず平方完成して<b>頂点</b>を出す。",
+        '<div class="exFml">'+T("y="+vert(a,p,q,"^2"))+"　頂点 "+T(ptTex(p,q))+"</div>",
+        T("x^2")+" の係数 "+T(String(a))+" が"+(up?"正 → <b>下に凸</b>。頂点で<b>最小</b>になり、上へはいくらでも伸びるので最大値はない。"
+                                              :"負 → <b>上に凸</b>。頂点で<b>最大</b>になり、下へはいくらでも伸びるので最小値はない。"),
+        '<div class="exFml">'+esc(cor)+"</div>"
+      ],
+      fig:{t:"idou",a:a,p:p,q:q}
+    };
+  }
+
+  const a=pick([-2,-1,1,2]);
+  const p=ri(-3,3), q=ri(-6,6);
+  const b=-2*a*p, c=a*p*p+q;
+  const up=(a>0);
+  let s,e;
+  if(lv===2){
+    /* 軸が定義域の内側。端までの距離を変えて「遠い端」を1つに決める */
+    let dl=ri(1,4), dr=ri(1,4);
+    if(dl===dr)dr=dl+1;
+    s=p-dl;e=p+dr;
+  }else{
+    /* 軸が定義域の外側（左か右にまとめて置く） */
+    const gap=ri(1,3), len=ri(1,4);
+    if(sgn1()>0){s=p+gap;e=s+len;}
+    else{e=p-gap;s=e-len;}
+  }
+  const fs=a*(s-p)*(s-p)+q, fe=a*(e-p)*(e-p)+q;
+  const farX=(Math.abs(s-p)>Math.abs(e-p))?s:e;
+  const farV=(Math.abs(s-p)>Math.abs(e-p))?fs:fe;
+  const nearX=(farX===s)?e:s;
+  const nearV=(farX===s)?fe:fs;
+  let cor,wrongs;
+  if(lv===2){
+    /* 頂点が定義域の中 → 凸の向きの側は頂点、反対側は遠い端 */
+    cor=up?mmBoth(farX,farV,p,q):mmBoth(p,q,farX,farV);
+    wrongs=up?[
+      mmBoth(p,q,farX,farV),                 /* 最大と最小の取りちがえ */
+      mmBoth(nearX,nearV,p,q),               /* 近い端を最大にしてしまう */
+      mmBoth(farX,farV,nearX,nearV),         /* 頂点を見ずに両端だけで答える */
+      mmBoth(farX,farV,p,-q)
+    ]:[
+      mmBoth(farX,farV,p,q),
+      mmBoth(p,q,nearX,nearV),
+      mmBoth(nearX,nearV,farX,farV),
+      mmBoth(p,-q,farX,farV)
+    ];
+  }else{
+    /* 頂点が定義域の外 → 最大も最小も端で起こる */
+    const hiX=(fs>fe)?s:e, hiV=Math.max(fs,fe);
+    const loX=(fs>fe)?e:s, loV=Math.min(fs,fe);
+    cor=mmBoth(hiX,hiV,loX,loV);
+    wrongs=[
+      mmBoth(loX,loV,hiX,hiV),                       /* 入れかえ */
+      up?mmBoth(hiX,hiV,p,q):mmBoth(p,q,loX,loV),    /* 定義域の外の頂点を答えてしまう */
+      mmBoth(hiV,hiX,loV,loX),                       /* x と値の取りちがえ */
+      mmBoth(loX,hiV,hiX,loV)                        /* 端と値の組み合わせちがい */
+    ];
+  }
+  return {
+    lead:"次の2次関数について、定義域 "+T(s+" \\leqq x \\leqq "+e)+" における最大値・最小値を求めよ。",
+    disp:"y="+quad(a,b,c,"x","^2"),
+    ans:mkChoice(cor,wrongs,true,true),
+    plainQ:"2次関数 y="+quad(a,b,c,"x","²")+" ("+s+"≦x≦"+e+") の最大値・最小値を求めよ。",
+    plainA:cor,
+    ex:[
+      "平方完成すると "+T("y="+vert(a,p,q,"^2"))+"　軸は "+T("x="+p)+"、頂点 "+T(ptTex(p,q))+"。",
+      (lv===2)?("軸 "+T("x="+p)+" は定義域 "+T(s+" \\leqq x \\leqq "+e)+" の<b>中にある</b> → "
+                +(up?"最小は頂点、最大は<b>軸から遠いほうの端</b>。":"最大は頂点、最小は<b>軸から遠いほうの端</b>。"))
+              :("軸 "+T("x="+p)+" は定義域 "+T(s+" \\leqq x \\leqq "+e)+" の<b>外にある</b> → "
+                +"定義域の中でグラフは<b>一方向にしか動かない</b>ので、最大も最小も端で起こる。"),
+      "両端の値: "+T("x="+s)+" のとき "+T("y="+fs)+"、"+T("x="+e)+" のとき "+T("y="+fe),
+      '<div class="exFml">'+esc(cor)+"</div>"
+    ],
+    fig:{t:"kukan",a:a,k:p,q:q,s:s,e:e}
+  };
+};
+
+/* ================================================================
+   ⑥ 動く最大・最小（例題82・83・84）
+   lv1: 定義域の一端が動く ／ lv2: 軸が動く ／ lv3: 定義域の両端が動く
+   ⚠ 答えは場合分けの組そのもの。1行が長いので wide（4択・1列）で出す。
+   ⚠ 不等号は全角「＜」「≦」で書く（生の「<」は question_choices が
+     丸ごと捨てられる。CLAUDE.md 2f）。
+   ================================================================ */
+GENS.ugoku=function(lv){
+  if(lv===1){
+    /* f(x)=x²-2kx+c を 0≦x≦a で見る。軸は x=k（固定）、右端 a が動く */
+    const k=ri(1,4), c=ri(-6,8);
+    const vtx=c-k*k;                          /* 頂点の y 座標 */
+    const fa=quadA(1,-2*k,c);                 /* f(a)=a²-2ka+c */
+    const isMax=(ri(0,1)===1);
+    let cor,wrongs;
+    if(isMax){
+      /* f(0)=c と f(a) をくらべる。境目は a=2k */
+      cor="0＜a≦"+(2*k)+" のとき "+c+"、"+(2*k)+"＜a のとき "+fa;
+      wrongs=[
+        "0＜a≦"+k+" のとき "+c+"、"+k+"＜a のとき "+fa,
+        "0＜a≦"+(2*k)+" のとき "+fa+"、"+(2*k)+"＜a のとき "+c,
+        "0＜a＜"+k+" のとき "+fa+"、"+k+"≦a のとき "+vtx,
+        "0＜a≦"+(2*k)+" のとき "+vtx+"、"+(2*k)+"＜a のとき "+fa
+      ];
+    }else{
+      /* 頂点が定義域に入るかどうか。境目は a=k */
+      cor="0＜a＜"+k+" のとき "+fa+"、"+k+"≦a のとき "+vtx;
+      wrongs=[
+        "0＜a＜"+(2*k)+" のとき "+fa+"、"+(2*k)+"≦a のとき "+vtx,
+        "0＜a＜"+k+" のとき "+vtx+"、"+k+"≦a のとき "+fa,
+        "0＜a＜"+k+" のとき "+fa+"、"+k+"≦a のとき "+c,
+        "0＜a＜"+k+" のとき "+quadA(1,2*k,c)+"、"+k+"≦a のとき "+vtx
+      ];
+    }
+    return {
+      lead:"2次関数 "+T("y="+quad(1,-2*k,c,"x","^2"))+"　"+T("(0 \\leqq x \\leqq a)")
+          +" の"+(isMax?"最大値":"最小値")+"を、正の定数 "+T("a")+" の値で場合分けして求めよ。",
+      ans:mkChoice(cor,wrongs,true,true),
+      plainQ:"2次関数 y="+quad(1,-2*k,c,"x","²")+" (0≦x≦a、a は正の定数) の"
+        +(isMax?"最大値":"最小値")+"を a の値で場合分けして求めよ。",
+      plainA:cor,
+      ex:[
+        "平方完成すると "+T("y="+vert(1,k,vtx,"^2"))+"　軸は "+T("x="+k)+"（<b>動かない</b>）。",
+        "動くのは定義域の右端 "+T("a")+" のほう。グラフの<b>どこを切り取るか</b>が変わる。",
+        isMax?("下に凸なので最大は<b>端</b>で起こる。"+T("f(0)="+c)+" と "+T("f(a)="+texA(fa))
+               +" をくらべると、境目は "+T("a="+(2*k))+"（軸 "+T("x="+k)+" の2倍）。")
+             :("下に凸なので、<b>軸が定義域に入れば頂点が最小</b>。入らなければ右端 "+T("x=a")+" が最小。"
+               +"境目は "+T("a="+k)+"。"),
+        '<div class="exFml">'+esc(cor)+"</div>",
+        "⚠ 場合分けの境目は<b>どちらか一方に「=」を付ける</b>（両方に付けない・どちらにも付けないのは×）。"
+      ],
+      fig:{t:"kukan",a:1,k:k,q:vtx,s:0,e:Math.max(1,k+1)}
+    };
+  }
+
+  if(lv===2){
+    /* f(x)=x²-2ax+c を 0≦x≦t で見る。軸 x=a が動く（例題83） */
+    const t=pick([2,4,6]), c=ri(-5,8);
+    const ft=quadA(0,-2*t,t*t+c);             /* f(t)=t²-2at+c */
+    const vtxA=quadA(-1,0,c);                 /* 頂点の値 = -a²+c */
+    const isMax=(ri(0,1)===1);
+    let cor,wrongs;
+    if(isMax){
+      cor="a＜"+(t/2)+" のとき "+ft+"、"+(t/2)+"≦a のとき "+c;
+      wrongs=[
+        "a＜"+t+" のとき "+ft+"、"+t+"≦a のとき "+c,
+        "a＜"+(t/2)+" のとき "+c+"、"+(t/2)+"≦a のとき "+ft,
+        "a＜0 のとき "+c+"、0≦a≦"+t+" のとき "+vtxA+"、"+t+"＜a のとき "+ft,
+        "a＜"+(t/2)+" のとき "+vtxA+"、"+(t/2)+"≦a のとき "+c
+      ];
+    }else{
+      cor="a＜0 のとき "+c+"、0≦a≦"+t+" のとき "+vtxA+"、"+t+"＜a のとき "+ft;
+      wrongs=[
+        "a＜0 のとき "+c+"、0≦a≦"+t+" のとき "+quadA(1,0,c)+"、"+t+"＜a のとき "+ft,
+        "a＜0 のとき "+ft+"、0≦a≦"+t+" のとき "+vtxA+"、"+t+"＜a のとき "+c,
+        "a＜"+(t/2)+" のとき "+ft+"、"+(t/2)+"≦a のとき "+c,
+        "0≦a≦"+t+" のとき "+vtxA+"、それ以外のとき "+c
+      ];
+    }
+    return {
+      lead:"2次関数 "+T("y=x^2-2ax"+sg(c))+"　"+T("(0 \\leqq x \\leqq "+t+")")
+          +" の"+(isMax?"最大値":"最小値")+"を、定数 "+T("a")+" の値で場合分けして求めよ。",
+      ans:mkChoice(cor,wrongs,true,true),
+      plainQ:"2次関数 y=x²-2ax"+sg(c)+" (0≦x≦"+t+") の"+(isMax?"最大値":"最小値")
+        +"を、定数 a の値で場合分けして求めよ。",
+      plainA:cor,
+      ex:[
+        "平方完成すると "+T("y=(x-a)^2-a^2"+sg(c))+"　軸は "+T("x=a")+"（<b>動く</b>）、定義域は "
+          +T("0 \\leqq x \\leqq "+t)+"（<b>動かない</b>）。",
+        isMax?("最大は<b>軸から遠いほうの端</b>で起こる。"+T("f(0)="+c)+" と "+T("f("+t+")="+texA(ft))
+               +" のどちらが大きいかは、軸が定義域の<b>まん中 "+T("x="+(t/2))+"</b> より左か右かで決まる。")
+             :("下に凸なので、<b>軸が定義域の中にあれば頂点が最小</b>。"
+               +"軸が左にはみ出せば "+T("x=0")+"、右にはみ出せば "+T("x="+t)+" が最小になる。"),
+        '<div class="exFml">'+esc(cor)+"</div>",
+        "⚠ 場合分けの境目は軸 "+T("x=a")+" が<b>定義域の端に重なるとき</b>"
+          +(isMax?"ではなく、まん中に来るとき":"")+"。"
+      ],
+      fig:{t:"ugoku",k:1,c:c,tt:t}
+    };
+  }
+
+  /* lv3 … 定義域の両端が動く（例題84）。幅 w は固定のまま平行にずれていく */
+  const k=ri(1,4), c=ri(-6,8), w=pick([2,3]);
+  const vtx=c-k*k;
+  const left=quadA(1,2*(w-k),w*w-2*k*w+c);    /* f(a+w) */
+  const right=quadA(1,-2*k,c);                /* f(a) */
+  const cor="a＜"+(k-w)+" のとき "+left+"、"+(k-w)+"≦a≦"+k+" のとき "+vtx+"、"+k+"＜a のとき "+right;
+  return {
+    lead:"2次関数 "+T("y="+quad(1,-2*k,c,"x","^2"))+"　"+T("(a \\leqq x \\leqq a+"+w+")")
+        +" の最小値を、定数 "+T("a")+" の値で場合分けして求めよ。",
+    ans:mkChoice(cor,[
+      "a＜"+(k-w)+" のとき "+right+"、"+(k-w)+"≦a≦"+k+" のとき "+vtx+"、"+k+"＜a のとき "+left,
+      "a＜"+k+" のとき "+left+"、"+k+"≦a≦"+(k+w)+" のとき "+vtx+"、"+(k+w)+"＜a のとき "+right,
+      "a＜"+(k-w)+" のとき "+left+"、"+(k-w)+"≦a≦"+k+" のとき "+c+"、"+k+"＜a のとき "+right,
+      "a＜"+(k-w)+" のとき "+left+"、"+k+"＜a のとき "+right
+    ],true,true),
+    plainQ:"2次関数 y="+quad(1,-2*k,c,"x","²")+" (a≦x≦a+"+w+") の最小値を、"
+      +"定数 a の値で場合分けして求めよ。",
+    plainA:cor,
+    ex:[
+      "平方完成すると "+T("y="+vert(1,k,vtx,"^2"))+"　軸は "+T("x="+k)+"（動かない）。",
+      "定義域は幅 "+T(String(w))+" のまま<b>まるごと左右に動く</b>。軸をまたぐかどうかで3通りに分かれる。",
+      "① 定義域が軸より左（"+T("a+"+w+" \\lt "+k)+" つまり "+T("a \\lt "+(k-w))+"）→ 右端 "
+        +T("x=a+"+w)+" が最小 → "+T(texA(left)),
+      "② 軸が定義域の中（"+T((k-w)+" \\leqq a \\leqq "+k)+"）→ 頂点が最小 → "+T(String(vtx)),
+      "③ 定義域が軸より右（"+T(k+" \\lt a")+"）→ 左端 "+T("x=a")+" が最小 → "+T(texA(right)),
+      '<div class="exFml">'+esc(cor)+"</div>"
+    ],
+    fig:{t:"kukan",a:1,k:k,q:vtx,s:k-w,e:k}
+  };
+};
+</script>
+<script>
+"use strict";
+/* ================================================================
+   ⑦ 2次関数の決定（例題75・76・77）
+   lv1: 頂点と通る1点 ／ lv2: 通る3点 ／ lv3: 軸・最大最小の条件
+   ================================================================ */
+GENS.kettei=function(lv){
+  if(lv===1){
+    const a=pick([-3,-2,-1,1,2,3]);
+    const p=ri(-4,4), q=ri(-6,6);
+    const d=pick([-2,-1,1,2]);
+    const x0=p+d, y0=q+a*d*d;
+    const cor="y="+vert(a,p,q,"^2");
+    return {
+      lead:"頂点が "+T(ptTex(p,q))+" で、点 "+T(ptTex(x0,y0))+" を通る2次関数を求めよ。",
+      ans:mkChoice(cor,[
+        "y="+vert(-a,p,q,"^2"),
+        "y="+vert(a,-p,q,"^2"),
+        "y="+vert(a,p,-q,"^2"),
+        "y="+vert(a,-p,-q,"^2"),
+        "y="+vert(2*a,p,q,"^2"),
+        "y="+vert(a,x0,y0,"^2")
+      ]),
+      plainQ:"頂点が "+ptPlain(p,q)+" で、点 "+ptPlain(x0,y0)+" を通る2次関数を求めよ。",
+      ex:[
+        "頂点が分かっているので "+T("y=a(x-p)^2+q")+" とおく。",
+        '<div class="exFml">'+T("y=a"+((p===0)?"x^2":"(x"+sg(-p)+")^2")+sg(q))+"</div>",
+        "通る点 "+T(ptTex(x0,y0))+" を代入して "+T("a")+" を求める: "
+          +T(a+"\\times("+d+")^2"+sg(q)+"="+y0),
+        '<div class="exFml">'+T(cor)+"</div>"
+      ],
+      fig:{t:"idou",a:a,p:p,q:q}
+    };
+  }
+
+  if(lv===2){
+    const a=pick([-2,-1,1,2]), b=nzi(-6,6), c=nzi(-8,8);
+    const xs=shuffle([0,1,-1,2,-2]).slice(0,3);
+    const f=function(x){return a*x*x+b*x+c;};
+    /* ⚠ 「、」を TeX の中に入れない（KaTeX が和文を知らず赤字で出る）。
+       点ごとに T() を作って、区切りの「、」はその外側に置く。 */
+    const pts=xs.map(function(x){return T(ptTex(x,f(x)));}).join("、");
+    const cor="y="+quad(a,b,c,"x","^2");
+    return {
+      lead:"3点 "+pts+" を通る2次関数を求めよ。",
+      ans:mkChoice(cor,[
+        "y="+quad(a,-b,c,"x","^2"),
+        "y="+quad(-a,b,c,"x","^2"),
+        "y="+quad(a,b,-c,"x","^2"),
+        "y="+quad(b,a,c,"x","^2"),
+        "y="+quad(a,c,b,"x","^2"),
+        "y="+quad(-a,-b,c,"x","^2")
+      ]),
+      plainQ:"3点 "+xs.map(function(x){return ptPlain(x,f(x));}).join("、")+" を通る2次関数を求めよ。",
+      ex:[
+        "頂点は分からないので "+T("y=ax^2+bx+c")+" とおき、3点を代入して連立方程式にする。",
+        '<div class="exFml">'+xs.map(function(x){
+            return T("a\\times("+x+")^2+b\\times("+x+")+c="+f(x));
+          }).join("　/　")+"</div>",
+        (xs.indexOf(0)>=0)?(""+T("x=0")+" の式からすぐ "+T("c="+c)+" が出る。残り2つで "+T("a,\\ b")+" を解く。")
+                          :("3つの式を組み合わせて文字を1つずつ消していく。"),
+        '<div class="exFml">'+T(cor)+"</div>"
+      ]
+    };
+  }
+
+  /* lv3 … 最大・最小の条件、または軸と2点の条件（例題76） */
+  if(ri(0,1)===1){
+    const isMax=(ri(0,1)===1);
+    const a=isMax?pick([-3,-2,-1]):pick([1,2,3]);
+    const p=ri(-4,4), q=ri(-6,6);
+    const d=pick([-2,-1,1,2]);
+    const x0=p+d, y0=q+a*d*d;
+    const cor="y="+vert(a,p,q,"^2");
+    return {
+      lead:T("x="+p)+" で"+(isMax?"最大値":"最小値")+" "+T(String(q))+" をとり、点 "
+          +T(ptTex(x0,y0))+" を通る2次関数を求めよ。",
+      ans:mkChoice(cor,[
+        "y="+vert(-a,p,q,"^2"),
+        "y="+vert(a,-p,q,"^2"),
+        "y="+vert(a,p,-q,"^2"),
+        "y="+vert(a,q,p,"^2"),
+        "y="+vert(2*a,p,q,"^2"),
+        "y="+vert(a,-p,-q,"^2"),
+        /* p=0 や q=0 のときに符号ちがいの候補が正解と同じ文字列になって消えるので、
+           必ず別物になる候補も足しておく（選択肢が3つに減らないように） */
+        "y="+vert(a,p+1,q,"^2"),
+        "y="+vert(-2*a,p,q,"^2")
+      ]),
+      plainQ:"x="+p+" で"+(isMax?"最大値":"最小値")+" "+q+" をとり、点 "+ptPlain(x0,y0)
+        +" を通る2次関数を求めよ。",
+      ex:[
+        "「"+T("x="+p)+" で"+(isMax?"最大":"最小")+"」＝<b>頂点が "+T(ptTex(p,q))+"</b> ということ。",
+        T("y=a"+((p===0)?"x^2":"(x"+sg(-p)+")^2")+sg(q))+" とおいて点 "+T(ptTex(x0,y0))+" を代入する。",
+        isMax?("最大値をもつので "+T("a")+" は<b>負</b>（上に凸）。"+T("a="+a))
+             :("最小値をもつので "+T("a")+" は<b>正</b>（下に凸）。"+T("a="+a)),
+        '<div class="exFml">'+T(cor)+"</div>"
+      ],
+      fig:{t:"idou",a:a,p:p,q:q}
+    };
+  }
+  const a=pick([-2,-1,1,2]);
+  const p=ri(-3,3), q=ri(-6,6);
+  let d1=pick([-3,-2,-1,1,2,3]), d2=pick([-3,-2,-1,1,2,3]);
+  if(Math.abs(d1)===Math.abs(d2))d2=(Math.abs(d1)===3)?1:(Math.abs(d1)+1);
+  const x1=p+d1, y1=q+a*d1*d1, x2=p+d2, y2=q+a*d2*d2;
+  const cor="y="+vert(a,p,q,"^2");
+  return {
+    lead:"軸が直線 "+T("x="+p)+" で、2点 "+T(ptTex(x1,y1))+"、"+T(ptTex(x2,y2))
+        +" を通る2次関数を求めよ。",
+    ans:mkChoice(cor,[
+      "y="+vert(a,-p,q,"^2"),
+      "y="+vert(-a,p,q,"^2"),
+      "y="+vert(a,p,-q,"^2"),
+      "y="+vert(2*a,p,q,"^2"),
+      "y="+vert(a,p,q+1,"^2"),
+      "y="+vert(a,-p,-q,"^2")
+    ]),
+    plainQ:"軸が直線 x="+p+" で、2点 "+ptPlain(x1,y1)+"、"+ptPlain(x2,y2)+" を通る2次関数を求めよ。",
+    ex:[
+      "軸が "+T("x="+p)+" と分かっているので "+T("y=a(x-p)^2+q")+" の "+T("p")+" は決まっている。",
+      '<div class="exFml">'+T("y=a"+((p===0)?"x^2":"(x"+sg(-p)+")^2")+"+q")+"</div>",
+      "2点を代入: "+T(a*d1*d1+"+q="+y1)+"　/　"+T(a*d2*d2+"+q="+y2)+" の形になる2式を解く。",
+      '<div class="exFml">'+T(cor)+"</div>"
+    ],
+    fig:{t:"idou",a:a,p:p,q:q}
+  };
+};
+
+/* ================================================================
+   ⑧ 最大値・最小値から係数決定（例題73）
+   lv1: 定義域なし（頂点の値＝与えられた最大・最小）
+   lv2: 定義域あり（軸が中にあるか、外にあるかで代入する場所が変わる）
+   ⚠ 答えは整数の a。テンキーで入力する。
+   ================================================================ */
+GENS.keisu=function(lv){
+  if(lv===1){
+    const a=ri(1,5), c=ri(-6,8);
+    const isMax=(ri(0,1)===1);
+    /* 上に凸: y=-x²+2ax+c → 最大値 a²+c ／ 下に凸: y=x²-2ax+c → 最小値 c-a² */
+    const val=isMax?(a*a+c):(c-a*a);
+    const fx=isMax?("y=-x^2+2ax"+sg(c)):("y=x^2-2ax"+sg(c));
+    const fp=isMax?("y=-x²+2ax"+sg(c)):("y=x²-2ax"+sg(c));
+    return {
+      lead:"2次関数 "+T(fx)+" の"+(isMax?"最大値":"最小値")+"が "+T(String(val))
+          +" であるとき、正の定数 "+T("a")+" の値を求めよ。",
+      ans:mkNum(a),
+      plainQ:"2次関数 "+fp+" の"+(isMax?"最大値":"最小値")+"が "+val+" であるとき、正の定数 a の値を求めよ。",
+      ex:[
+        "平方完成して頂点の "+T("y")+" 座標を "+T("a")+" で表す。",
+        '<div class="exFml">'+T(isMax?("y=-(x-a)^2+a^2"+sg(c)):("y=(x-a)^2-a^2"+sg(c)))+"</div>",
+        "定義域が無いので"+(isMax?"最大値":"最小値")+"は頂点の値そのもの: "
+          +T(isMax?("a^2"+sg(c)+"="+val):("-a^2"+sg(c)+"="+val)),
+        T("a^2="+(a*a))+" で "+T("a")+" は正だから "+T("a="+a)
+      ]
+    };
+  }
+
+  /* lv2 … 定義域つき。軸が中にある場合と、はみ出して端で決まる場合 */
+  const N=pick([2,3,4,5]);
+  const c=ri(-5,8);
+  const type=ri(0,2);
+  if(type===0){
+    /* 下に凸・軸が定義域の中 → 最小値は頂点 */
+    const a=ri(1,N-1)||1;
+    const val=c-a*a;
+    return {
+      lead:"2次関数 "+T("y=x^2-2ax"+sg(c))+"　"+T("(0 \\leqq x \\leqq "+N+")")+" の最小値が "
+          +T(String(val))+" であるとき、定数 "+T("a")+" の値を求めよ。ただし "
+          +T("0 \\lt a \\lt "+N)+" とする。",
+      ans:mkNum(a),
+      plainQ:"2次関数 y=x²-2ax"+sg(c)+" (0≦x≦"+N+") の最小値が "+val
+        +" であるとき、定数 a の値を求めよ。ただし 0＜a＜"+N+" とする。",
+      ex:[
+        "平方完成すると "+T("y=(x-a)^2-a^2"+sg(c))+"　軸は "+T("x=a")+"。",
+        "条件より軸は定義域の<b>中</b>にあるので、最小値は<b>頂点の値</b>。",
+        '<div class="exFml">'+T("-a^2"+sg(c)+"="+val)+" → "+T("a^2="+(a*a))+"</div>",
+        T("0 \\lt a \\lt "+N)+" だから "+T("a="+a)
+      ]
+    };
+  }
+  if(type===1){
+    /* 下に凸・軸が定義域より右 → 最小値は右端 x=N */
+    const a=N+ri(1,3);
+    const val=N*N-2*a*N+c;
+    return {
+      lead:"2次関数 "+T("y=x^2-2ax"+sg(c))+"　"+T("(0 \\leqq x \\leqq "+N+")")+" の最小値が "
+          +T(String(val))+" であるとき、定数 "+T("a")+" の値を求めよ。ただし "
+          +T(N+" \\lt a")+" とする。",
+      ans:mkNum(a),
+      plainQ:"2次関数 y=x²-2ax"+sg(c)+" (0≦x≦"+N+") の最小値が "+val
+        +" であるとき、定数 a の値を求めよ。ただし "+N+"＜a とする。",
+      ex:[
+        "軸 "+T("x=a")+" は定義域より<b>右</b>にあるので、グラフは定義域の中で右下がり。",
+        "つまり最小値は<b>右端 "+T("x="+N)+"</b> の値。",
+        '<div class="exFml">'+T(N*N+"-2a\\times "+N+sg(c)+"="+val)+"</div>",
+        T((-2*N)+"a="+(val-N*N-c))+" より "+T("a="+a)
+      ]
+    };
+  }
+  /* 上に凸・軸が定義域の中 → 最大値は頂点 */
+  const a=ri(1,N-1)||1;
+  const val=a*a+c;
+  return {
+    lead:"2次関数 "+T("y=-x^2+2ax"+sg(c))+"　"+T("(0 \\leqq x \\leqq "+N+")")+" の最大値が "
+        +T(String(val))+" であるとき、定数 "+T("a")+" の値を求めよ。ただし "
+        +T("0 \\lt a \\lt "+N)+" とする。",
+    ans:mkNum(a),
+    plainQ:"2次関数 y=-x²+2ax"+sg(c)+" (0≦x≦"+N+") の最大値が "+val
+      +" であるとき、定数 a の値を求めよ。ただし 0＜a＜"+N+" とする。",
+    ex:[
+      "平方完成すると "+T("y=-(x-a)^2+a^2"+sg(c))+"　上に凸で軸は "+T("x=a")+"。",
+      "軸が定義域の中にあるので、最大値は頂点の値。",
+      '<div class="exFml">'+T("a^2"+sg(c)+"="+val)+" → "+T("a^2="+(a*a))+"</div>",
+      T("0 \\lt a \\lt "+N)+" だから "+T("a="+a)
+    ]
+  };
+};
+
+/* ================================================================
+   ⑨ 最大・最小の文章題（例題74・81）
+   lv1: 和と積・長方形の面積・投げ上げ
+   lv2: 定義域がつく文章題（動く点・値下げと売上）
+   ⚠ 答えは整数。単位は ans.unit に持たせる（記録の correct_answer にも付く）
+   ================================================================ */
+GENS.bunsho=function(lv){
+  if(lv===1){
+    const t=ri(0,2);
+    if(t===0){
+      const m=ri(4,12);
+      return {
+        lead:"和が "+T(String(2*m))+" である2つの数について、その積の最大値を求めよ。",
+        ans:mkNum(m*m),
+        plainQ:"和が "+(2*m)+" である2つの数について、その積の最大値を求めよ。",
+        ex:[
+          "一方を "+T("x")+" とすると、もう一方は "+T((2*m)+"-x")+"。",
+          '<div class="exFml">'+T("y=x("+(2*m)+"-x)=-x^2+"+(2*m)+"x=-(x-"+m+")^2+"+(m*m))+"</div>",
+          "上に凸なので "+T("x="+m)+"（2つの数が等しいとき）に最大。",
+          '<div class="exFml">最大値 '+T(String(m*m))+"</div>"
+        ]
+      };
+    }
+    if(t===1){
+      const m=ri(5,14);
+      return {
+        lead:"周の長さが "+T(String(4*m))+" cm である長方形のうち、面積が最大になるものの面積を求めよ。",
+        ans:mkNum(m*m,"cm²"),
+        plainQ:"周の長さが "+(4*m)+" cm である長方形のうち、面積が最大になるものの面積を求めよ。",
+        ex:[
+          "たての長さを "+T("x")+" cm とすると、たて＋よこ＝"+T(String(2*m))+" なのでよこは "+T((2*m)+"-x")+" cm。",
+          '<div class="exFml">'+T("S=x("+(2*m)+"-x)=-(x-"+m+")^2+"+(m*m))+"</div>",
+          "定義域は "+T("0 \\lt x \\lt "+(2*m))+"。その中に軸 "+T("x="+m)+" があるので、"
+            +"<b>正方形のとき</b>に最大。",
+          '<div class="exFml">最大値 '+T(String(m*m))+" cm²</div>"
+        ]
+      };
+    }
+    const k=ri(2,6);
+    return {
+      lead:"地面から真上に投げ上げたボールの "+T("t")+" 秒後の高さが "
+          +T("h=-5t^2+"+(10*k)+"t")+"（m）で表されるとき、最も高くなったときの高さを求めよ。",
+      ans:mkNum(5*k*k,"m"),
+      plainQ:"地面から真上に投げ上げたボールの t 秒後の高さが h=-5t²+"+(10*k)
+        +"t（m）で表されるとき、最も高くなったときの高さを求めよ。",
+      ex:[
+        T("t^2")+" の係数が負なので上に凸。頂点が最高点。",
+        '<div class="exFml">'+T("h=-5(t^2-"+(2*k)+"t)=-5(t-"+k+")^2+"+(5*k*k))+"</div>",
+        T("t="+k)+" 秒後に最高点 "+T(String(5*k*k))+" m。",
+        "⚠ 高さを聞かれているので、答えるのは "+T("t")+" ではなく "+T("h")+" のほう。"
+      ]
+    };
+  }
+
+  /* lv2 … 定義域がつく文章題 */
+  if(ri(0,1)===1){
+    const m=ri(3,6);                     /* AB=2m、P は毎秒1cm */
+    const n=2*m+2*ri(0,3);               /* BC=n（毎秒2cm の Q が届く長さ） */
+    const askArea=(ri(0,1)===1);
+    return {
+      lead:"長方形 ABCD で "+T("AB="+(2*m))+" cm、"+T("BC="+n)+" cm である。"
+          +"点 P は A を出発して辺 AB 上を B まで毎秒 1cm で、点 Q は B を出発して辺 BC 上を C まで毎秒 2cm で動く。"
+          +"2点が同時に出発してから "+T("t")+" 秒後の三角形 PBQ について、"
+          +(askArea?"面積の最大値を求めよ。":"面積が最大になるのは何秒後か求めよ。"),
+      ans:askArea?mkNum(m*m,"cm²"):mkNum(m,"秒後"),
+      plainQ:"長方形 ABCD で AB="+(2*m)+" cm、BC="+n+" cm である。点 P は A を出発して辺 AB 上を B まで"
+        +"毎秒 1cm で、点 Q は B を出発して辺 BC 上を C まで毎秒 2cm で動く。2点が同時に出発してから t 秒後の"
+        +"三角形 PBQ について、"+(askArea?"面積の最大値を求めよ。":"面積が最大になるのは何秒後か求めよ。"),
+      ex:[
+        T("t")+" 秒後、"+T("PB="+(2*m)+"-t")+" cm、"+T("BQ=2t")+" cm。",
+        '<div class="exFml">'+T("S=\\dfrac{1}{2}("+(2*m)+"-t)\\times 2t=-t^2+"+(2*m)+"t=-(t-"+m+")^2+"+(m*m))+"</div>",
+        "動ける範囲は P が B に着くまで（"+T("t \\leqq "+(2*m))+"）、Q が C に着くまで（"
+          +T("t \\leqq "+(n/2))+"）なので "+T("0 \\leqq t \\leqq "+Math.min(2*m,n/2))+"。",
+        "軸 "+T("t="+m)+" はこの範囲の中にあるので、そこが最大。",
+        '<div class="exFml">'+(askArea?("最大値 "+T(String(m*m))+" cm²"):(T("t="+m)+" 秒後"))+"</div>"
+      ]
+    };
+  }
+  const p=ri(20,40), n=p-2*ri(3,8);       /* 価格 10p 円・個数 20n 個。p-n は偶数 */
+  const x=(p-n)/2;
+  const price=10*(p-x);
+  return {
+    lead:"ある商品を1個 "+T(String(10*p))+" 円で売ると1日に "+T(String(20*n))+" 個売れる。"
+        +"1個につき 10 円値下げするごとに、売れる個数は1日に 20 個ずつ増えるという。"
+        +"1日の売上金額を最大にするには、1個いくらで売ればよいか。",
+    ans:mkNum(price,"円"),
+    plainQ:"ある商品を1個 "+(10*p)+" 円で売ると1日に "+(20*n)+" 個売れる。1個につき 10 円値下げするごとに、"
+      +"売れる個数は1日に 20 個ずつ増える。1日の売上金額を最大にするには、1個いくらで売ればよいか。",
+    ex:[
+      "値下げの回数を "+T("x")+" 回とすると、値段は "+T((10*p)+"-10x")+" 円、個数は "+T((20*n)+"+20x")+" 個。",
+      '<div class="exFml">'+T("y=("+(10*p)+"-10x)("+(20*n)+"+20x)=200("+p+"-x)("+n+"+x)")+"</div>",
+      "上に凸の2次関数で、"+T("y=0")+" になるのは "+T("x="+p)+" と "+T("x="+(-n))
+        +"。軸はその<b>ちょうどまん中</b>: "+T("x=\\dfrac{"+p+"+("+(-n)+")}{2}="+x),
+      T("x="+x)+" 回値下げするので、値段は "+T((10*p)+"-10\\times "+x+"="+price)+" 円。",
+      "⚠ 聞かれているのは<b>値段</b>。"+T("x")+" の値のまま答えない。"
+    ]
+  };
+};
+
+/* ================================================================
+   ⑩ 絶対値を含む1次関数のグラフ（例題78）
+   lv1: y=a|x-p|+q の折れ目と最大・最小
+   lv2: y=|x-p|+|x-q| の最小値（場合分けして直線をつなぐ）
+   ================================================================ */
+GENS.zettai=function(lv){
+  if(lv===1){
+    const a=pick([-2,-1,1,2]);
+    const p=nzi(-5,5), q=nzi(-6,6);
+    const head=(a===1)?"":((a===-1)?"-":String(a));
+    const fx="y="+head+"\\left|x"+sg(-p)+"\\right|"+sg(q);
+    const fp="y="+head+"|x"+sg(-p)+"|"+sg(q);
+    const cor=mmOne(p,q,a<0);
+    return {
+      lead:"次の関数の最大値・最小値を求めよ。",
+      disp:fx,
+      ans:mkChoice(cor,[
+        mmOne(-p,q,a<0), mmOne(p,-q,a<0), mmOne(p,q,a>0),
+        mmOne(q,p,a<0), mmOne(-p,-q,a<0), mmOne(p,q+a,a<0)
+      ],true),
+      plainQ:"関数 "+fp+" の最大値・最小値を求めよ。",
+      plainA:cor,
+      ex:[
+        T("\\left|x"+sg(-p)+"\\right|")+" は "+T("x="+p)+" のとき 0 で、それ以外では<b>必ず正</b>。",
+        "グラフは "+T("x="+p)+" で折れ曲がる"+(a<0?"<b>上下逆の Λ 字</b>":"<b>V 字</b>")+"になる。",
+        (a>0)?("係数 "+T(String(a))+" が正なので、折れ目が<b>いちばん下</b>。"+T("x="+p)+" で最小値 "+T(String(q))+"。")
+             :("係数 "+T(String(a))+" が負なので、折れ目が<b>いちばん上</b>。"+T("x="+p)+" で最大値 "+T(String(q))+"。"),
+        '<div class="exFml">'+esc(cor)+"</div>"
+      ]
+    };
+  }
+
+  const p=ri(-5,2), q=p+ri(2,6);
+  const cor=p+"≦x≦"+q+" のとき 最小値 "+(q-p);
+  return {
+    lead:"次の関数の最小値と、そのときの "+T("x")+" の値の範囲を求めよ。",
+    disp:"y=\\left|x"+sg(-p)+"\\right|+\\left|x"+sg(-q)+"\\right|",
+    ans:mkChoice(cor,[
+      "x="+p+" のとき 最小値 "+(q-p),
+      "x="+q+" のとき 最小値 "+(q-p),
+      p+"≦x≦"+q+" のとき 最小値 "+(q+p),
+      p+"≦x≦"+q+" のとき 最小値 0",
+      p+"≦x≦"+q+" のとき 最小値 "+(Math.abs(p)+Math.abs(q))
+    ],true,true),
+    plainQ:"関数 y=|x"+sg(-p)+"|+|x"+sg(-q)+"| の最小値と、そのときの x の値の範囲を求めよ。",
+    plainA:cor,
+    ex:[
+      "絶対値が2つあるので、外れる場所 "+T("x="+p)+" と "+T("x="+q)+" で3つに分けて考える。",
+      "① "+T("x \\lt "+p)+" のとき　"+T("y=-(x"+sg(-p)+")-(x"+sg(-q)+")="+poly([[-2,"x"],[p+q,""]])),
+      "② "+T(p+" \\leqq x \\leqq "+q)+" のとき　"+T("y=(x"+sg(-p)+")-(x"+sg(-q)+")="+(q-p))+"（<b>一定</b>）",
+      "③ "+T(q+" \\lt x")+" のとき　"+T("y=(x"+sg(-p)+")+(x"+sg(-q)+")="+poly([[2,"x"],[-(p+q),""]])),
+      "①は右下がり、③は右上がり、②は水平。だから<b>まん中の区間ぜんぶで最小</b>になる。",
+      '<div class="exFml">'+esc(cor)+"</div>"
+    ]
+  };
+};
+
+/* ================================================================
+   ⑪ 条件式がある場合の最大・最小（例題85）
+   lv1: 条件式を代入して1文字消す
+   lv2: 変域がつく（代入したあと定義域を出してから考える）
+   ================================================================ */
+GENS.joken=function(lv){
+  if(lv===1){
+    const m=ri(2,7);
+    if(ri(0,1)===1){
+      return {
+        lead:T("x+y="+(2*m))+" のとき、"+T("x^2+y^2")+" の最小値を求めよ。",
+        ans:mkNum(2*m*m),
+        plainQ:"x+y="+(2*m)+" のとき、x²+y² の最小値を求めよ。",
+        ex:[
+          "条件式から "+T("y="+(2*m)+"-x")+" として、"+T("y")+" を消す（<b>1文字を消す</b>のが基本）。",
+          '<div class="exFml">'+T("x^2+("+(2*m)+"-x)^2=2x^2-"+(4*m)+"x+"+(4*m*m))+"</div>",
+          "平方完成すると "+T("2(x-"+m+")^2+"+(2*m*m))+"。",
+          T("x="+m)+"（このとき "+T("y="+m)+"）で最小値 "+T(String(2*m*m))+"。"
+        ]
+      };
+    }
+    return {
+      lead:T("x+y="+(2*m))+" のとき、"+T("xy")+" の最大値を求めよ。",
+      ans:mkNum(m*m),
+      plainQ:"x+y="+(2*m)+" のとき、xy の最大値を求めよ。",
+      ex:[
+        T("y="+(2*m)+"-x")+" を代入して1文字消す。",
+        '<div class="exFml">'+T("xy=x("+(2*m)+"-x)=-(x-"+m+")^2+"+(m*m))+"</div>",
+        "上に凸なので "+T("x="+m)+" で最大値 "+T(String(m*m))+"。",
+        "⚠ "+T("x")+" に変域が付いていないので、頂点がそのまま答えになる。"
+      ]
+    };
+  }
+
+  const t=ri(0,2);
+  if(t===0){
+    const v=ri(2,6);
+    return {
+      lead:T("x+2y="+(4*v))+"、"+T("x \\geqq 0")+"、"+T("y \\geqq 0")+" のとき、"+T("xy")+" の最大値を求めよ。",
+      ans:mkNum(2*v*v),
+      plainQ:"x+2y="+(4*v)+"、x≧0、y≧0 のとき、xy の最大値を求めよ。",
+      ex:[
+        T("x="+(4*v)+"-2y")+" を代入して "+T("y")+" だけの式にする。",
+        '<div class="exFml">'+T("xy=("+(4*v)+"-2y)y=-2(y-"+v+")^2+"+(2*v*v))+"</div>",
+        "⚠ 変域を先に出す: "+T("x \\geqq 0")+" より "+T("y \\leqq "+(2*v))+"、"+T("y \\geqq 0")+" と合わせて "
+          +T("0 \\leqq y \\leqq "+(2*v))+"。",
+        "軸 "+T("y="+v)+" はこの範囲の中にあるので頂点が最大。",
+        '<div class="exFml">最大値 '+T(String(2*v*v))+"（"+T("x="+(2*v))+"、"+T("y="+v)+"）</div>"
+      ]
+    };
+  }
+  if(t===1){
+    /* 軸（x=S/2）が変域の外に来るように m を取る＝答えは端の値になる */
+    const S=ri(6,12);
+    const m=Math.min(S-2,Math.floor(S/2)+ri(1,3));
+    return {
+      lead:T("x+y="+S)+"、"+T("x \\geqq "+m)+" のとき、"+T("xy")+" の最大値を求めよ。",
+      ans:mkNum(m*(S-m)),
+      plainQ:"x+y="+S+"、x≧"+m+" のとき、xy の最大値を求めよ。",
+      ex:[
+        T("y="+S+"-x")+" を代入して "+T("xy=x("+S+"-x)=-\\left(x-"+fracTex(S,2)+"\\right)^2+"+fracTex(S*S,4))+"。",
+        "上に凸で軸は "+T("x="+fracTex(S,2))+"。ところが変域は "+T("x \\geqq "+m)+" で、"
+          +"<b>軸は変域の外（左側）</b>にある。",
+        "変域の中では右下がりなので、<b>いちばん左の端</b> "+T("x="+m)+" で最大。",
+        '<div class="exFml">最大値 '+T(m+"\\times "+(S-m)+"="+(m*(S-m)))+"</div>",
+        "⚠ 頂点の値をそのまま答えない。軸が変域の外にあるときは<b>端</b>を見る。"
+      ]
+    };
+  }
+  const S=ri(3,9);
+  return {
+    lead:T("x+y="+S)+"、"+T("x \\geqq 0")+"、"+T("y \\geqq 0")+" のとき、"+T("x^2+y^2")+" の最大値を求めよ。",
+    ans:mkNum(S*S),
+    plainQ:"x+y="+S+"、x≧0、y≧0 のとき、x²+y² の最大値を求めよ。",
+    ex:[
+      T("y="+S+"-x")+" を代入すると "+T("x^2+("+S+"-x)^2=2x^2-"+(2*S)+"x+"+(S*S)),
+      "変域は "+T("0 \\leqq x \\leqq "+S)+"（"+T("y \\geqq 0")+" から出る）。",
+      "下に凸で軸は "+T("x="+fracTex(S,2))+"（変域のまん中）。最大は<b>軸から遠い端</b>＝両端。",
+      '<div class="exFml">'+T("x=0")+" または "+T("x="+S)+" のとき 最大値 "+T(String(S*S))+"</div>",
+      "⚠ 最小値（頂点）と聞きまちがえないこと。ここは<b>最大</b>なので端を見る。"
+    ]
+  };
+};
+</script>
+<script>
+"use strict";
+/* ================================================================
+   状態・画面まわり
+   ================================================================ */
+/* 共通モジュールが無い環境（file:// / 未ログイン）でも落ちないようにする窓口。
+   divp-core 側にも guard があるが、モジュール自体が読めていない場合もあるため */
+function safeDivp(fn){
+  try{
+    if(window.Divp&&typeof Divp[fn]==="function"){
+      return Divp[fn].apply(Divp,[].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return undefined;
+}
+
+/* XP・レベルはツール側で持たない（save_answer.php が確定し、マイページが算出する）。
+   RANK と STREAK はその場の励ましなので画面だけで持つ（保存しない＝開き直すとD/0から） */
+let view="train";
+let mode="kansuu", lv=1, cur=null, graded=false;
+let selChoice=-1, numStr="";
+/* 学習記録用: いま出ている問題のタイプ・レベル・種と開始時刻 */
+let curMode="kansuu", curLv=1, curSeed=0, qStart=0;
+let streak=0, lastRank="—";
+const perfectRuns={};              /* タイプごとの「連続 全問正解セット」数 */
+let mixSet=new Set(BASIC4);
+/* 解き直しモード(?retry=1)のキュー。null = 通常出題 */
+let retryQ=null, retryTotal=0, retryDone=0;
+
+/* ---------- 10問ごとの評価（共通モジュール divp-result.js）----------
+   終わりのない練習ツールなので、10問ごとにランク付きの結果画面を出す。
+   まちがえた問題は種を持っているので、そのまま解き直しラウンドにできる
+   （同じ種＝同じ問題＝params_hash も同じなので、2連続正解でマスターになる）。
+   ⚠ 結果画面は「10問目を解いた瞬間」ではなく、その次のボタンで出す（解説を隠さないため）。 */
+const ROUND_N=10;
+let roundMarks=[], roundTotal=ROUND_N, roundRetry=false;
+function hasResultCard(){return !!(window.Divp&&typeof Divp.resultPush==="function");}
+function roundStart(total,retry){
+  roundMarks=[];
+  roundTotal=(total>0)?total:ROUND_N;
+  roundRetry=!!retry;
+}
+function roundInit(){
+  safeDivp("resultInit",{
+    total:ROUND_N,
+    questionKey:mode,                 /* 連続全問正解はタイプごとに数える */
+    masterLabel:"2次関数マスター",
+    labels:{next:"つぎの%d問へ",wrong:"↻ まちがえた %n 問を解き直す",
+            modes:"タイプをえらび直す",home:"学習ツール一覧へ"},
+    onNext:function(){newQuestion();},
+    onRetryWrong:startWrongRound,
+    onModes:function(){try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){window.scrollTo(0,0);}},
+    home:"/learning/"
+  });
+  roundStart(ROUND_N,false);
+}
+function showRoundResult(){
+  if(!hasResultCard()){roundStart(ROUND_N,false);return false;}
+  const marks=roundMarks.slice();
+  updateRank(marks);
+  safeDivp("resultStart",{total:marks.length,retry:roundRetry,questionKey:mode});
+  marks.forEach(m=>safeDivp("resultPush",m.ok,m.item));
+  roundStart(ROUND_N,false);
+  return true;
+}
+/* HUD の RANK は divp-result と同じ判定で出す（画面の2箇所で違う評価が出ないように） */
+function updateRank(marks){
+  if(!marks.length)return;
+  if(roundRetry||marks.length<ROUND_N){lastRank="—";updHUD();return;}
+  const ok=marks.filter(m=>m.ok).length;
+  const rate=ok/marks.length;
+  const key=mode;
+  if(ok===marks.length)perfectRuns[key]=(perfectRuns[key]||0)+1;
+  else perfectRuns[key]=0;
+  const run=perfectRuns[key]||0;
+  if(run>=3)lastRank="SSS";
+  else if(run===2)lastRank="SS";
+  else if(run===1)lastRank="S";
+  else if(rate>=0.9)lastRank="A";
+  else if(rate>=0.7)lastRank="B";
+  else if(rate>=0.5)lastRank="C";
+  else lastRank="D";
+  updHUD();
+}
+/* 「まちがえた N 問を解き直す」。10問の中の誤答を同じ種で出し直す */
+function startWrongRound(items){
+  const use=(items||[]).filter(it=>it&&GENS[it.m]);
+  if(!use.length){retryQ=null;newQuestion();return;}
+  retryQ=use.map(it=>({m:it.m,lv:it.lv||1,s:it.s}));
+  retryTotal=retryQ.length;retryDone=0;
+  roundStart(retryTotal,true);
+  newQuestion();
+}
+
+/* ---------- HUD / セレクタ ---------- */
+function updHUD(){
+  document.getElementById("rankVal").textContent=lastRank;
+  document.getElementById("streakVal").textContent=String(streak);
+}
+function buildTypeChips(){
+  const box=document.getElementById("typeChips");
+  box.innerHTML=MODES.map(m=>
+    '<button class="chip'+(m.k===mode?" on":"")+'" data-mode="'+m.k+'">'+esc(m.n)+"<small>"+esc(m.s)+"</small></button>"
+  ).join("")+'<button class="chip mix'+(mode==="mix"?" on":"")+'" data-mode="mix">ミックス<small>えらんだタイプから</small></button>';
+}
+function buildMixGrid(){
+  const g=document.getElementById("mixGrid");
+  g.innerHTML=MODES.map(m=>
+    '<label><input type="checkbox" data-mix="'+m.k+'"'+(mixSet.has(m.k)?" checked":"")+">"+esc(m.n)+"</label>"
+  ).join("");
+}
+/* レベルの数はタイプごとに違う（発展を持たないタイプは2つまで）。
+   持っていないレベルのボタンは押せなくし、選択中のレベルがはみ出していたら引き下げる。 */
+function maxLvOf(k){return (k==="mix")?MAXLV:lvCount(k);}
+function updLvSeg(){
+  const n=maxLvOf(mode);
+  if(lv>n)lv=n;
+  document.querySelectorAll("#lvSeg .lvbtn").forEach(b=>{
+    const v=parseInt(b.dataset.lv,10)||1;
+    b.disabled=(v>n);
+    b.classList.toggle("on",v===lv);
+  });
+}
+function updLvDesc(){
+  const d=document.getElementById("lvDesc");
+  if(mode==="mix"){
+    d.innerHTML="えらんだタイプから <b>レベル"+lv+"</b> の問題をランダムに出します"
+      +"<i>（そのレベルを持たないタイプは、いちばん上のレベルで出ます）</i>";
+    return;
+  }
+  const m=MODEMAP[mode];
+  d.innerHTML="<b>"+esc(m.n)+"</b>（"+esc(m.grp)+"） ／ "+esc(m.lv[lv-1])
+    +" <i>"+esc(m.ex)+"</i>";
+}
+function setMixAll(fn){
+  mixSet=new Set(MODES.filter(m=>fn(m.k)).map(m=>m.k));
+  buildMixGrid();
+}
+function banner(msg){
+  const old=document.getElementById("noticeBanner");
+  if(old)old.remove();
+  const d=document.createElement("div");
+  d.id="noticeBanner";d.className="banner";d.textContent=msg;
+  const pane=document.getElementById("view-train");
+  pane.insertBefore(d,pane.firstChild);
+  setTimeout(()=>{if(d.parentNode)d.remove();},9000);
+}
+
+/* ---------- 出題 ---------- */
+function newQuestion(){
+  safeDivp("resultClose");
+  clearEffects();
+  graded=false;selChoice=-1;numStr="";
+  const v=document.getElementById("verdict");
+  v.textContent="";v.className="verdict";
+  document.getElementById("explain").style.display="none";
+  document.getElementById("toast").textContent="";
+  document.getElementById("checkBtn").disabled=false;
+  document.getElementById("nextBtn").textContent="次の問題 ➜";
+
+  let m=null,l=lv,s=0;
+  if(retryQ){
+    if(retryQ.length){
+      const it=retryQ.shift();
+      m=it.m;l=it.lv;s=it.s;retryDone++;
+    }else{
+      retryQ=null;
+      banner("解き直しはここまで！ このまま通常の出題に戻ります");
+      roundStart(ROUND_N,false);
+    }
+  }
+  if(m===null){
+    if(mode==="mix"){
+      const list=Array.from(mixSet);
+      if(!list.length){noMix();return;}
+      /* ミックスのタイプ選びは種の外（記録はその問題のタイプで残す） */
+      m=list[Math.floor(Math.random()*list.length)];
+    }else{
+      m=mode;
+    }
+    l=lv;s=rngPick();
+  }
+  if(!GENS[m])m="kansuu";
+  /* そのタイプが持たないレベルを指定されたら、いちばん上のレベルに寄せる
+     （ミックスで「発展」を選んだとき、発展を持たないタイプが混ざるため） */
+  if(!(l>=1))l=1;
+  if(l>lvCount(m))l=lvCount(m);
+
+  curMode=m;curLv=l;curSeed=s;
+  rngSeed(s);
+  cur=GENS[m](l);
+  qStart=Date.now();
+  renderQuestion();
+}
+function noMix(){
+  cur=null;
+  document.getElementById("qLead").innerHTML="出題するタイプが1つも選ばれていません。上の「ミックス」の内訳から、練習したいタイプにチェックを入れてください。";
+  document.getElementById("qDisp").style.display="none";
+  document.getElementById("qSub").innerHTML="";
+  document.getElementById("ansArea").innerHTML="";
+  document.getElementById("checkBtn").disabled=true;
+}
+function renderQuestion(){
+  const md=MODEMAP[curMode];
+  document.getElementById("qType").textContent=md?md.n:curMode;
+  document.getElementById("qLv").textContent="LV."+curLv;
+  const total=roundTotal||ROUND_N;
+  document.getElementById("qNum").textContent=
+    (retryQ?("解き直し "+retryDone+" / "+retryTotal):((roundMarks.length+1)+" / "+total));
+
+  document.getElementById("qLead").innerHTML=cur.lead||"";
+  const disp=document.getElementById("qDisp");
+  if(cur.disp){disp.style.display="";disp.innerHTML=TD(cur.disp);}
+  else{disp.style.display="none";disp.innerHTML="";}
+  document.getElementById("qSub").innerHTML=cur.sub||"";
+
+  const area=document.getElementById("ansArea");
+  const a=cur.ans;
+  if(a.kind==="choice"){
+    /* 場合分けの答えは1行が長いので1列（wide）で出す */
+    area.innerHTML='<div class="choices'+(a.wide?" wide":"")+'" id="choices">'+a.choices.map((c,i)=>
+      '<button class="choiceBtn" data-i="'+i+'"><span class="cno">'+"ABCDEF".charAt(i)+"</span>"
+      +"<span>"+(a.plain?esc(c):T(c))+"</span></button>"
+    ).join("")+"</div>";
+  }else{
+    const unit=a.unit?('<span class="numunit">'+esc(a.unit)+"</span>"):"";
+    area.innerHTML='<div class="numwrap">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<div class="numdisp empty" id="numDisp" style="flex:1">数字を入力</div>'+unit
+      +"</div>"
+      +'<div class="keypad" id="keypad">'
+      +[1,2,3,4,5,6,7,8,9].map(n=>'<button class="key" data-k="'+n+'">'+n+"</button>").join("")
+      +'<button class="key fn" data-k="-">±</button>'
+      +'<button class="key" data-k="0">0</button>'
+      +'<button class="key fn" data-k="bs">⌫</button>'
+      +"</div></div>";
+  }
+  renderTexIn(document.getElementById("card"));
+  refreshNum();
+  try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){}
+}
+function refreshNum(){
+  const d=document.getElementById("numDisp");
+  if(!d)return;
+  if(numStr===""){d.textContent="数字を入力";d.classList.add("empty");}
+  else{d.textContent=numStr;d.classList.remove("empty");}
+}
+
+/* ---------- 判定 ---------- */
+function check(){
+  if(graded||!cur)return;
+  const a=cur.ans;
+  let ok=false,userStr="";
+  if(a.kind==="choice"){
+    if(selChoice<0){toast("答えを1つ選んでください");return;}
+    ok=(selChoice===a.correct);
+    userStr=a.choices[selChoice];
+    /* 答え合わせ表示（正解=緑 / 選んだ誤答=朱 / 選ばなかった正解に「正解」バッジ） */
+    safeDivp("markChoices","#ansArea .choiceBtn",{correct:a.correct,selected:selChoice,dimOthers:true});
+    document.querySelectorAll("#ansArea .choiceBtn").forEach(b=>{b.disabled=true;});
+  }else{
+    if(numStr===""||numStr==="-"){toast("答えを入力してください");return;}
+    ok=(parseInt(numStr,10)===a.val);
+    userStr=numStr;
+    document.querySelectorAll("#keypad .key").forEach(b=>{b.disabled=true;});
+  }
+  graded=true;
+  document.getElementById("checkBtn").disabled=true;
+
+  const v=document.getElementById("verdict");
+  const correctStr=cur.plainA||((a.kind==="choice")?a.choices[a.correct]:(String(a.val)+(a.unit||"")));
+  const correctDisp=(a.kind==="choice")
+    ?(a.plain?esc(a.choices[a.correct]):T(a.choices[a.correct]))
+    :esc(String(a.val)+(a.unit||""));
+  if(ok){
+    streak++;
+    v.className="verdict ok";v.textContent="正解";
+    toast(streak>=3?("連続 "+streak+" 問正解"):"");
+    correctEffect();
+  }else{
+    streak=0;
+    v.className="verdict ng";v.innerHTML="正解は "+correctDisp;
+    renderTexIn(v);
+    toast("");
+    incorrectEffect();
+    const card=document.getElementById("card");
+    card.classList.remove("shake");void card.offsetWidth;card.classList.add("shake");
+  }
+  updHUD();
+  showExplain();
+
+  /* ── 学習記録（判定直後に1行）──────────────────────────────
+     question_key はタイプ名そのまま（CLAUDE.md 設計判断3）。
+     question_params は {m:タイプ, lv:レベル, s:種} だけで、この3つがあれば
+     ?retry=1 で同じ問題を作り直せる（復元用のロジックはPHP側に置かない）。
+     未ログイン・file:// では divp-core が黙ってスキップする。 */
+  const qSec=qStart?Math.max(1,Math.round((Date.now()-qStart)/1000)):0;
+  safeDivp("answer",ok,{
+    question_key:curMode,
+    question_params:{m:curMode,lv:curLv,s:curSeed},
+    question_text:plainQuestion(),
+    /* 選択式は選択肢ごと解き直しプリントに出す（紙で同じ問題が解けるように） */
+    question_choices:(a.kind==="choice")?a.choices.map(c=>({t:"tex",v:c})):null,
+    correct_answer:correctStr,
+    wrong_answer:userStr,
+    /* 離席ぶんを混ぜないよう10分超は記録しない */
+    time_taken_sec:(qSec>0&&qSec<=600)?qSec:null
+  });
+
+  /* 10問ごとの評価用に1問ぶん記録。結果画面は解説を隠さないよう次のボタンで出す */
+  roundMarks.push({ok:ok,item:{m:curMode,lv:curLv,s:curSeed}});
+  if(hasResultCard()&&roundDone()){
+    document.getElementById("nextBtn").textContent="採点結果へ ➜";
+  }
+}
+/* このラウンドを解き終わったか。
+   ⚠ retryQ は空配列でも truthy なので、length まで見ないと
+     解き直しラウンドの結果画面が一度も出ない */
+function roundDone(){
+  if(retryQ)return retryQ.length===0;
+  return roundMarks.length>=roundTotal;
+}
+/* 記録用の問題文。**^ _ { } \ を入れない**（和文が混ざるので、1文字でもあると
+   講師画面が文字列ぜんぶを TeX として描いて和文が斜体で崩れる）。
+   2乗は「²」、ルートは「√」の文字で書く。 */
+function plainQuestion(){
+  if(!cur)return "";
+  let s=cur.plainQ||stripTags(cur.lead||"");
+  s="【レベル"+curLv+"】"+s;
+  return s.replace(/\s+/g," ").trim();
+}
+function showExplain(){
+  const ex=document.getElementById("explain");
+  const body=document.getElementById("exBody");
+  let html=(cur.ex||[]).map(l=>(/^<div/.test(l)?l:'<div class="exLine">'+l+"</div>")).join("");
+  if(cur.fig){
+    html+='<button class="figLink" data-fig=\''+esc(JSON.stringify(cur.fig))+'\'>▶ この問題を図で見る</button>';
+  }
+  body.innerHTML=html;
+  renderTexIn(body);
+  ex.style.display="block";
+}
+function toast(s){document.getElementById("toast").textContent=s||"";}
+
+/* 正解=はんこ / 誤答=「ナイスチャレンジ！」バッジ（js/jh共通 divp-correct-jh.js）。
+   第1引数のセレクタは必須。#card は overflow:visible にしてある
+   （はんこは直径171pxで、hidden だと切れる）。
+   ⚠ はんこは既定で自動では消えない（カードを innerHTML で作り直すツール前提の作り）。
+     このツールは #card の中身だけ差し替えるので消えずに残る。
+     fadeMs を渡して自分で引っ込めさせ、次の問題でも clearEffects() で片付ける。 */
+function clearEffects(){
+  document.querySelectorAll("#card .divp-hanko,#card .divp-nice").forEach(e=>e.remove());
+}
+function correctEffect(){
+  if(window.Divp&&typeof Divp.correct==="function")Divp.correct("#card",{fadeMs:1400});
+}
+function incorrectEffect(){
+  if(window.Divp&&typeof Divp.incorrect==="function")Divp.incorrect("#card");
+}
+
+/* ---------- 解き直しモード(?retry=1) ----------
+   マイページの「解き直し」から ?retry=1 付きで開かれたときだけ動く。
+   question_params の {m:タイプ, lv:レベル, s:種} で生成関数を回すと同じ問題が出るので、
+   pending をその順に消化する。判定後は通常どおり Divp.answer が飛ぶ＝
+   params_hash も同じなので、2連続正解で save_answer.php が mastered にする。
+   ⚠ Divp.getRetries() は Promise を返す（戻り値をそのまま配列として使わない）。 */
+function initRetry(){
+  if(!(window.Divp&&typeof Divp.getRetries==="function"))return;
+  Divp.getRetries().then(items=>{
+    const use=(items||[]).filter(it=>{
+      const p=it&&it.question_params;
+      return p&&GENS[p.m]&&typeof p.s==="number";
+    }).map(it=>({m:it.question_params.m,lv:it.question_params.lv||1,s:it.question_params.s}));
+    if(!use.length){
+      banner("解き直せる問題はまだありません。これからまちがえた問題がここに入ります");
+      return;
+    }
+    retryQ=use.slice();retryTotal=retryQ.length;retryDone=0;
+    roundStart(retryTotal,true);          /* 解き直しはランクを付けないラウンド */
+    banner("解き直しモード: まちがえた "+retryTotal+" 問を、同じ問題で出し直します");
+    newQuestion();
+  }).catch(()=>{});
+}
+</script>
+<script>
+"use strict";
+/* ================================================================
+   図モード
+   「平行移動で頂点がどう動くか」「軸と定義域の位置で最大・最小がどこに来るか」
+   「軸が動くと最小値の場所が切り替わる」「絶対値のグラフの折れ目」の4つを、
+   値を動かしながら見る。
+   ⚠ 図の色・線は**属性**で書く（クラスに頼らない）。このツールでは紙にも記録にも
+     出さないが、あとで question_figure に回しても同じ図が使えるようにしておく。
+   ================================================================ */
+const FIG_TYPES=[
+  {k:"idou",  n:"平行移動",          s:"y=a(x-p)²+q"},
+  {k:"kukan", n:"定義域と最大・最小",s:"軸と区間"},
+  {k:"ugoku", n:"軸が動く",          s:"場合分け"},
+  {k:"zettai",n:"絶対値のグラフ",    s:"|x-p|+|x-q|"}
+];
+const FIG_CTRL={
+  idou:[{k:"a",lb:"a",min:-3,max:3,skip0:true},
+        {k:"p",lb:"p",min:-6,max:6},
+        {k:"q",lb:"q",min:-6,max:6}],
+  kukan:[{k:"ka",lb:"a",min:-2,max:2,skip0:true},
+         {k:"kk",lb:"軸",min:-5,max:5},
+         {k:"kq",lb:"q",min:-6,max:6},
+         {k:"ks",lb:"左端",min:-8,max:7},
+         {k:"ke",lb:"右端",min:-7,max:8}],
+  ugoku:[{k:"ua",lb:"軸a",min:-4,max:8},
+         {k:"uc",lb:"c",min:-6,max:8},
+         {k:"ut",lb:"右端",min:1,max:6}],
+  zettai:[{k:"zp",lb:"p",min:-6,max:3},
+          {k:"zq",lb:"q",min:-3,max:6}]
+};
+const FIG_LEAD={
+  idou:"放物線は<b>形（a の値）を変えずに頂点だけが動く</b>のが平行移動です。"
+      +"うすい線がもとの y=ax²、こい線が y=a(x-p)²+q。p と q を動かして、"
+      +"式の中の符号と動く向きの関係を見てください。",
+  kukan:"定義域がつくと、最大・最小は<b>頂点か、定義域の端か</b>のどちらかで起こります。"
+       +"軸を動かして定義域の中に入れたり外に出したりすると、答えの場所が入れかわります。",
+  ugoku:"軸 <b>x=a</b> が動き、定義域 <b>0≦x≦t</b> は動かない形（発展の「軸が動く」）。"
+       +"a を動かすと、最小値をとる場所が 左端 → 頂点 → 右端 と切りかわります。"
+       +"その切りかわる瞬間が、答案の<b>場合分けの境目</b>です。",
+  zettai:"絶対値は<b>中身が 0 になるところで折れる</b>のが特徴です。"
+       +"p と q を動かすと、2つの折れ目の間が<b>水平</b>になり、そこがまるごと最小になることが分かります。"
+};
+let figType="idou";
+const figV={a:1,p:2,q:-3, ka:1,kk:1,kq:-4,ks:-2,ke:4, ua:1,uc:3,ut:4, zp:-1,zq:3};
+
+function fmt(v){
+  const r=Math.round(v*100)/100;
+  return (Math.abs(r-Math.round(r))<1e-9)?String(Math.round(r)):r.toFixed(2);
+}
+/* 座標平面の下地。x,y それぞれの表示範囲を渡す（放物線は縦に伸びるので正方形にしない） */
+function plot2(x0,x1,y0,y1){
+  const W=440,H=420,pad=20;
+  const kx=(W-2*pad)/(x1-x0), ky=(H-2*pad)/(y1-y0);
+  const X=function(x){return +(pad+(x-x0)*kx).toFixed(1);};
+  const Y=function(y){return +(H-pad-(y-y0)*ky).toFixed(1);};
+  let g="";
+  const sx=((x1-x0)<=14)?1:2, sy=((y1-y0)<=16)?2:4;
+  let v;
+  for(v=Math.ceil(x0/sx)*sx;v<=x1;v+=sx){
+    g+='<line x1="'+X(v)+'" y1="'+Y(y0)+'" x2="'+X(v)+'" y2="'+Y(y1)+'" stroke="rgba(140,175,255,.08)" stroke-width="1"/>';
+    if(v!==0)g+='<text x="'+X(v)+'" y="'+(Y(0)+13)+'" fill="#6B7590" font-family="DM Mono,monospace" font-size="10" text-anchor="middle">'+v+"</text>";
+  }
+  for(v=Math.ceil(y0/sy)*sy;v<=y1;v+=sy){
+    g+='<line x1="'+X(x0)+'" y1="'+Y(v)+'" x2="'+X(x1)+'" y2="'+Y(v)+'" stroke="rgba(140,175,255,.08)" stroke-width="1"/>';
+    if(v!==0)g+='<text x="'+(X(0)-6)+'" y="'+(Y(v)+4)+'" fill="#6B7590" font-family="DM Mono,monospace" font-size="10" text-anchor="end">'+v+"</text>";
+  }
+  g+='<line x1="'+X(x0)+'" y1="'+Y(0)+'" x2="'+X(x1)+'" y2="'+Y(0)+'" stroke="rgba(140,175,255,.5)" stroke-width="1.3"/>';
+  g+='<line x1="'+X(0)+'" y1="'+Y(y0)+'" x2="'+X(0)+'" y2="'+Y(y1)+'" stroke="rgba(140,175,255,.5)" stroke-width="1.3"/>';
+  g+='<text x="'+(X(0)-6)+'" y="'+(Y(0)+14)+'" fill="#7C86A1" font-family="DM Mono,monospace" font-size="11" text-anchor="end">O</text>';
+  return {W:W,H:H,X:X,Y:Y,g:g,x0:x0,x1:x1,y0:y0,y1:y1};
+}
+function plotEnd(p,extra){
+  return '<svg viewBox="0 0 '+p.W+" "+p.H+'" xmlns="http://www.w3.org/2000/svg" role="img">'+p.g+extra+"</svg>";
+}
+/* 関数のグラフ。表示範囲の外に出たところで線を切る（枠の外にはみ出させない） */
+function curveSvg(p,f,color,width,dash,xa,xb){
+  const from=(xa==null)?p.x0:Math.max(p.x0,xa);
+  const to=(xb==null)?p.x1:Math.min(p.x1,xb);
+  const N=200, segs=[];
+  let cur=[];
+  for(let i=0;i<=N;i++){
+    const x=from+(to-from)*i/N;
+    const y=f(x);
+    if(y>=p.y0&&y<=p.y1){cur.push(p.X(x)+","+p.Y(y));}
+    else if(cur.length){segs.push(cur);cur=[];}
+  }
+  if(cur.length)segs.push(cur);
+  return segs.filter(function(s){return s.length>1;}).map(function(s){
+    return '<polyline points="'+s.join(" ")+'" fill="none" stroke="'+color+'" stroke-width="'+(width||2.2)+'"'
+      +(dash?(' stroke-dasharray="'+dash+'"'):"")+"/>";
+  }).join("");
+}
+function svgDot(p,x,y,color){
+  return '<circle cx="'+p.X(x)+'" cy="'+p.Y(y)+'" r="5.2" fill="'+(color||"#FFD166")+'" stroke="#0C1120" stroke-width="1.5"/>';
+}
+function svgVline(p,x,color,dash){
+  return '<line x1="'+p.X(x)+'" y1="'+p.Y(p.y0)+'" x2="'+p.X(x)+'" y2="'+p.Y(p.y1)+'" stroke="'+color
+    +'" stroke-width="1.6"'+(dash?(' stroke-dasharray="'+dash+'"'):"")+"/>";
+}
+function svgLabel(p,x,y,txt,color,anchor){
+  return '<text x="'+p.X(x)+'" y="'+p.Y(y)+'" fill="'+(color||"#E9EEFB")
+    +'" font-family="DM Mono,monospace" font-size="12" text-anchor="'+(anchor||"middle")
+    +'" paint-order="stroke" stroke="#0C1120" stroke-width="3">'+esc(txt)+"</text>";
+}
+
+/* ---------- ① 平行移動 ---------- */
+function figIdou(){
+  const a=figV.a,p=figV.p,q=figV.q;
+  const pl=plot2(-8,8,-8,10);
+  const f0=function(x){return a*x*x;};
+  const f1=function(x){return a*(x-p)*(x-p)+q;};
+  let g=curveSvg(pl,f0,"rgba(167,139,250,.45)",2,"5 5");
+  g+=curveSvg(pl,f1,"#38E8FF",2.6);
+  g+='<line x1="'+pl.X(0)+'" y1="'+pl.Y(0)+'" x2="'+pl.X(p)+'" y2="'+pl.Y(q)
+    +'" stroke="#FFD166" stroke-width="1.8" stroke-dasharray="4 4"/>';
+  g+=svgDot(pl,0,0,"#A78BFA")+svgDot(pl,p,q);
+  g+=svgLabel(pl,p,q+1.1,"("+p+", "+q+")","#FFD166");
+  const b=-2*a*p, c=a*p*p+q;
+  const read="<div>もとの放物線　"+T("y="+vert(a,0,0,"^2"))+"</div>"
+    +"<div>移動後　"+T("y="+vert(a,p,q,"^2"))+"</div>"
+    +"<div>展開すると　"+T("y="+quad(a,b,c,"x","^2"))+"</div>"
+    +"<div>頂点　"+T(ptTex(p,q))+"　軸　"+T("x="+p)+"</div>";
+  const judge=T("x")+" 軸方向に <b>"+p+"</b>、"+T("y")+" 軸方向に <b>"+q+"</b> だけ平行移動"
+    +"（式では "+T("x")+" が "+T("x"+sg(-p))+" に変わる＝<b>符号が逆</b>）";
+  return {svg:plotEnd(pl,g),read:read,judge:judge};
+}
+
+/* ---------- ② 定義域と最大・最小 ---------- */
+function figKukan(){
+  const a=figV.ka,k=figV.kk,q=figV.kq;
+  let s=figV.ks,e=figV.ke;
+  if(s>=e)e=s+1;
+  const f=function(x){return a*(x-k)*(x-k)+q;};
+  const lo=Math.min(-8,q-2), hi=Math.max(10,q+2);
+  const pl=plot2(-9,9,lo,hi);
+  let g='<rect x="'+pl.X(s)+'" y="'+pl.Y(pl.y1)+'" width="'+(pl.X(e)-pl.X(s))+'" height="'
+    +(pl.Y(pl.y0)-pl.Y(pl.y1))+'" fill="rgba(56,232,255,.07)"/>';
+  g+=svgVline(pl,s,"rgba(56,232,255,.45)","4 4")+svgVline(pl,e,"rgba(56,232,255,.45)","4 4");
+  g+=svgVline(pl,k,"rgba(255,209,102,.5)","2 4");
+  g+=curveSvg(pl,f,"rgba(167,139,250,.35)",2);
+  g+=curveSvg(pl,f,"#38E8FF",3,null,s,e);
+  const inside=(k>=s&&k<=e);
+  const cand=[[s,f(s)],[e,f(e)]];
+  if(inside)cand.push([k,q]);
+  let mx=cand[0],mn=cand[0];
+  cand.forEach(function(c){if(c[1]>mx[1])mx=c;if(c[1]<mn[1])mn=c;});
+  g+=svgDot(pl,mx[0],mx[1],"#FF7A80")+svgDot(pl,mn[0],mn[1],"#7EE0A0");
+  g+=svgLabel(pl,mx[0],mx[1]+1.2,"最大 "+fmt(mx[1]),"#FF7A80");
+  g+=svgLabel(pl,mn[0],mn[1]-1.6,"最小 "+fmt(mn[1]),"#7EE0A0");
+  const read="<div>"+T("y="+vert(a,k,q,"^2"))+"</div>"
+    +"<div>軸　"+T("x="+k)+"　頂点　"+T(ptTex(k,q))+"</div>"
+    +"<div>定義域　"+T(s+" \\leqq x \\leqq "+e)+"</div>"
+    +"<div>"+T("f("+s+")="+fmt(f(s)))+"　"+T("f("+e+")="+fmt(f(e)))+"</div>"
+    +"<div>軸は定義域の <b>"+(inside?"中":"外")+"</b></div>";
+  const judge="最大値 <b>"+fmt(mx[1])+"</b>（"+T("x="+mx[0])+"）　/　最小値 <b>"+fmt(mn[1])+"</b>（"+T("x="+mn[0])+"）"
+    +"<br>"+(inside?("頂点が定義域に入っているので、"+(a>0?"最小":"最大")+"は頂点。反対側は<b>軸から遠いほうの端</b>。")
+                  :"軸が定義域の外なので、<b>最大も最小も端</b>で起こる。");
+  return {svg:plotEnd(pl,g),read:read,judge:judge};
+}
+
+/* ---------- ③ 軸が動く（発展83） ---------- */
+function figUgoku(){
+  const A=figV.ua,c=figV.uc,t=figV.ut;
+  const f=function(x){return x*x-2*A*x+c;};
+  const vtx=c-A*A;
+  const lo=Math.min(-8,vtx-2), hi=Math.max(12,c+4);
+  const pl=plot2(-6,10,lo,hi);
+  let g='<rect x="'+pl.X(0)+'" y="'+pl.Y(pl.y1)+'" width="'+(pl.X(t)-pl.X(0))+'" height="'
+    +(pl.Y(pl.y0)-pl.Y(pl.y1))+'" fill="rgba(56,232,255,.07)"/>';
+  g+=svgVline(pl,0,"rgba(56,232,255,.45)","4 4")+svgVline(pl,t,"rgba(56,232,255,.45)","4 4");
+  g+=svgVline(pl,A,"rgba(255,209,102,.55)","2 4");
+  g+=svgLabel(pl,A,pl.y1-1,"軸 x="+A,"#FFD166");
+  g+=curveSvg(pl,f,"rgba(167,139,250,.35)",2);
+  g+=curveSvg(pl,f,"#38E8FF",3,null,0,t);
+  let mx,mv,cs;
+  if(A<0){mx=0;mv=c;cs="① 軸が左にはみ出す（a＜0）→ 左端 x=0 が最小";}
+  else if(A<=t){mx=A;mv=vtx;cs="② 軸が定義域の中（0≦a≦"+t+"）→ 頂点が最小";}
+  else{mx=t;mv=f(t);cs="③ 軸が右にはみ出す（"+t+"＜a）→ 右端 x="+t+" が最小";}
+  g+=svgDot(pl,mx,mv,"#7EE0A0");
+  g+=svgLabel(pl,mx,mv-1.6,"最小 "+fmt(mv),"#7EE0A0");
+  const read="<div>"+T("y=x^2-2ax"+sg(c))+"　→　"+T("y=(x-a)^2-a^2"+sg(c))+"</div>"
+    +"<div>いまの軸　"+T("a="+A)+"　頂点　"+T(ptTex(A,vtx))+"</div>"
+    +"<div>定義域　"+T("0 \\leqq x \\leqq "+t)+"</div>"
+    +"<div>"+T("f(0)="+c)+"　"+T("f("+t+")="+fmt(f(t)))+"　頂点の値 "+T(String(vtx))+"</div>";
+  const judge=esc(cs)+"<br>最小値は <b>"+fmt(mv)+"</b>（"+T("x="+mx)+"）";
+  return {svg:plotEnd(pl,g),read:read,judge:judge};
+}
+
+/* ---------- ④ 絶対値のグラフ（発展78） ---------- */
+function figZettai(){
+  let p=figV.zp,q=figV.zq;
+  if(p>q){const w=p;p=q;q=w;}
+  const f=function(x){return Math.abs(x-p)+Math.abs(x-q);};
+  const pl=plot2(-9,9,-2,14);
+  let g=curveSvg(pl,f,"#38E8FF",2.8);
+  g+=svgVline(pl,p,"rgba(167,139,250,.35)","3 4")+svgVline(pl,q,"rgba(167,139,250,.35)","3 4");
+  g+=svgDot(pl,p,q-p)+svgDot(pl,q,q-p);
+  g+=svgLabel(pl,(p+q)/2,q-p+1.4,"最小 "+(q-p),"#7EE0A0");
+  const read="<div>"+T("y=\\left|x"+sg(-p)+"\\right|+\\left|x"+sg(-q)+"\\right|")+"</div>"
+    +"<div>折れ目　"+T("x="+p)+" と "+T("x="+q)+"</div>"
+    +"<div>"+T("x \\lt "+p)+"　"+T("y="+poly([[-2,"x"],[p+q,""]]))+"（右下がり）</div>"
+    +"<div>"+T(p+" \\leqq x \\leqq "+q)+"　"+T("y="+(q-p))+"（水平）</div>"
+    +"<div>"+T(q+" \\lt x")+"　"+T("y="+poly([[2,"x"],[-(p+q),""]]))+"（右上がり）</div>";
+  const judge=T(p+" \\leqq x \\leqq "+q)+" のとき 最小値 <b>"+(q-p)+"</b>"
+    +"<br>2点からの距離の和なので、<b>2点の間ならどこでも同じ</b>（最小）になる。";
+  return {svg:plotEnd(pl,g),read:read,judge:judge};
+}
+
+function figRender(){
+  let out;
+  if(figType==="idou")out=figIdou();
+  else if(figType==="kukan")out=figKukan();
+  else if(figType==="ugoku")out=figUgoku();
+  else out=figZettai();
+  document.getElementById("figSvg").innerHTML=out.svg;
+  const read=document.getElementById("figRead");
+  const judge=document.getElementById("figJudge");
+  read.innerHTML=out.read;judge.innerHTML=out.judge;
+  renderTexIn(read);renderTexIn(judge);
+}
+function buildFigChips(){
+  document.getElementById("figChips").innerHTML=FIG_TYPES.map(f=>
+    '<button class="chip'+(f.k===figType?" on":"")+'" data-fig="'+f.k+'">'+esc(f.n)+"<small>"+esc(f.s)+"</small></button>"
+  ).join("");
+  document.getElementById("figLead").innerHTML=FIG_LEAD[figType]||"";
+}
+function buildFigCtrl(){
+  document.getElementById("figCtrl").innerHTML=(FIG_CTRL[figType]||[]).map(c=>
+    '<div class="stepper"><span class="lb">'+esc(c.lb)+'</span>'
+    +'<button class="sbtn" data-p="'+c.k+'" data-dir="-1">−</button>'
+    +'<span class="sval" id="sv_'+c.k+'">'+figV[c.k]+"</span>"
+    +'<button class="sbtn" data-p="'+c.k+'" data-dir="1">＋</button></div>'
+  ).join("");
+}
+function figSetVal(key,v){
+  figV[key]=v;
+  const el=document.getElementById("sv_"+key);
+  if(el)el.textContent=v;
+}
+function figStep(key,dir){
+  const c=(FIG_CTRL[figType]||[]).filter(x=>x.k===key)[0];
+  if(!c)return;
+  let v=figV[key]+dir;
+  if(c.skip0&&v===0)v+=dir;          /* a=0 は放物線にならないので飛ばす */
+  if(v<c.min)v=c.min;
+  if(v>c.max)v=c.max;
+  figSetVal(key,v);
+  /* 定義域は左端＜右端をたもつ（押した側を優先して相手をずらす） */
+  if(figType==="kukan"&&figV.ks>=figV.ke){
+    if(key==="ks")figSetVal("ke",Math.min(8,figV.ks+1));
+    else figSetVal("ks",Math.max(-8,figV.ke-1));
+  }
+  figRender();
+}
+/* 解説の「▶ この問題を図で見る」から呼ぶ */
+function openFigFrom(info){
+  if(!info||!info.t)return;
+  const cl=function(v,lo,hi){return Math.max(lo,Math.min(hi,v));};
+  figType=info.t;
+  if(info.t==="idou"){
+    figSetVal("a",cl(info.a,-3,3));figSetVal("p",cl(info.p,-6,6));figSetVal("q",cl(info.q,-6,6));
+  }else if(info.t==="kukan"){
+    figV.ka=cl(info.a,-2,2);figV.kk=cl(info.k,-5,5);figV.kq=cl(info.q,-6,6);
+    figV.ks=cl(info.s,-8,7);figV.ke=cl(info.e,-7,8);
+    if(figV.ks>=figV.ke)figV.ke=Math.min(8,figV.ks+1);
+  }else if(info.t==="ugoku"){
+    figV.ua=cl(info.k,-4,8);figV.uc=cl(info.c,-6,8);figV.ut=cl(info.tt,1,6);
+  }else{
+    figV.zp=cl(info.p,-6,3);figV.zq=cl(info.q,-3,6);
+  }
+  setView("fig");
+  buildFigChips();buildFigCtrl();figRender();
+}
+
+/* ================================================================
+   練習プリント（A4・別ウィンドウ）
+   いま選んでいるタイプ×レベルで10問作り、「問題」→改ページ→「解答」を出す。
+   ⚠ 画面の出題を壊さないこと。GENS[] は cur を触らないが乱数は進むので、
+     1問作るごとに rngSeed(rngPick()) を張り直す。
+   ⚠ 数式は**親ウィンドウの KaTeX で HTML に焼いてから**流し込む
+     （子ウィンドウで katex を動かすと読み込み待ちが要り、印刷ダイアログのほうが
+     先に出て数式が生テキストのまま紙になる）。子には CSS だけ読ませる。
+   ================================================================ */
+/* 1枚に入る問題数はタイプで違う。A4の本文枠は約1016px で、実測（Chrome・本文幅672px）だと
+   1問あたり **選択肢つき 160〜230px / テンキー（数値入力）70〜100px**。
+   そこで選択肢つきは5問、数値入力は10問にする＝「問題1枚＋解答1枚」がくずれない。
+   ⚠ 一律10問にすると、場合分けの選択肢を持つ⑥などが2枚目にあふれる（実測1869px）。 */
+const PRT_N=10, PRT_N_TEXT=8, PRT_N_CHOICE=5, PRT_N_LONG=4;
+function prtCount(){
+  const pool=(mode==="mix")?Array.from(mixSet):[mode];
+  let kind=0;                       /* 0=数値入力 1=選択肢 2=長い選択肢 */
+  let longQ=false;                  /* 文章題のように問題文そのものが長い */
+  pool.forEach(function(m){
+    if(!GENS[m])return;
+    rngSeed(rngPick());
+    try{
+      const q=GENS[m](Math.min(lv,lvCount(m)));
+      const a=q.ans;
+      if((q.plainQ||"").length>=60)longQ=true;
+      if(a.kind!=="choice")return;
+      if(kind<1)kind=1;
+      /* 場合分け（wide）・分数・長い和文の選択肢は1問で紙を大きく食う */
+      const long=a.wide||a.choices.some(function(c){
+        return /dfrac/.test(String(c))||String(c).length>=20;
+      });
+      if(long)kind=2;
+    }catch(e){}
+  });
+  if(kind===0)return longQ?PRT_N_TEXT:PRT_N;    /* 文章題（⑨）は1問が3行になる */
+  return (kind===1)?PRT_N_CHOICE:PRT_N_LONG;
+}
+function prtTex(html){
+  const box=document.createElement("div");
+  box.innerHTML=html||"";
+  renderTexIn(box);
+  return box.innerHTML;
+}
+function prtPick(n){
+  const pool=(mode==="mix")?Array.from(mixSet):[mode];
+  const out=[],seen={};
+  if(!pool.length)return out;
+  for(let t=0;t<n*40&&out.length<n;t++){
+    const m=pool[Math.floor(Math.random()*pool.length)];
+    if(!GENS[m])continue;
+    rngSeed(rngPick());
+    const q=GENS[m](Math.min(lv,lvCount(m)));
+    const a=(q.ans.kind==="choice")?q.ans.choices[q.ans.correct]:String(q.ans.val);
+    const sig=[m,q.lead||"",q.disp||"",q.sub||"",a].join("");
+    if(seen[sig])continue;
+    seen[sig]=1;out.push({m:m,q:q});
+  }
+  return out;
+}
+function prtAnsHtml(q){
+  if(q.ans.kind==="choice")
+    return '<span class="mk">'+"ABCDEF".charAt(q.ans.correct)+"</span>"
+      +(q.ans.plain?esc(q.ans.choices[q.ans.correct]):prtTex(T(q.ans.choices[q.ans.correct])));
+  return "<b>"+esc(String(q.ans.val))+"</b>"+(q.ans.unit?('<span class="un">'+esc(q.ans.unit)+"</span>"):"");
+}
+function prtHtml(items){
+  const md=MODEMAP[mode];
+  const label=(mode==="mix"?"ミックス":(md?md.n:mode))+"　LEVEL "+lv+"　全"+items.length+"問";
+  const d=new Date();
+  const date=d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
+  const wmCss=(window.ChukyoPrint&&ChukyoPrint.css)?ChukyoPrint.css():"";
+  const wmImg=(window.ChukyoPrint&&ChukyoPrint.img)?ChukyoPrint.img():"";
+  const head=function(t){
+    return '<div class="ph"><div><div class="pb">中京個別指導学院</div><div class="pt">'+esc(t)+"</div></div>"
+      +'<div class="pr"><div>名前：<span class="nm"></span></div><div class="dt">'+date+"</div></div></div>";
+  };
+  const probs=items.map(function(it,i){
+    const q=it.q;
+    let s='<div class="p"><div class="q"><span class="no">('+(i+1)+")</span><span>"+prtTex(q.lead||"")+"</span></div>";
+    if(q.disp)s+='<div class="dp">'+prtTex(TD(q.disp))+"</div>";
+    if(q.sub)s+='<div class="sb">'+prtTex(q.sub)+"</div>";
+    if(q.ans.kind==="choice")
+      s+='<div class="ch'+(q.ans.wide?" wd":"")+'">'+q.ans.choices.map(function(c,j){
+        return "<span><i>"+"ABCDEF".charAt(j)+"</i>"+(q.ans.plain?esc(c):prtTex(T(c)))+"</span>";
+      }).join("")+"</div>";
+    s+='<div class="al">答'+(q.ans.kind==="choice"?'<span class="bx"></span>':'<span class="ln"></span>')+"</div>";
+    return s+"</div>";
+  }).join("");
+  const answ=items.map(function(it,i){
+    return '<div class="a"><span class="no">('+(i+1)+")</span>"+prtAnsHtml(it.q)+"</div>";
+  }).join("");
+  return '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">'
+    +'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">'
+    +"<title>2次関数マスター 練習プリント｜中京個別指導学院</title><style>"
+    +"@page{size:A4 portrait;margin:14mm 16mm;}"
+    +"*{box-sizing:border-box;margin:0;padding:0;}"
+    +'body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;color:#111;font-size:10pt;}'
+    /* ⚠ KaTeX の display 数式は既定で上下 1em の余白を持つ。1問ごとに 7mm 以上
+       食うので必ず 0 にする（これが無いと10問で1枚に収まらない） */
+    +".katex-display{margin:0;}"
+    +"@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}"
+    +wmCss
+    +".wm{position:fixed;}"
+    +".ph{display:flex;justify-content:space-between;align-items:flex-end;"
+      +"border-bottom:2.5px solid #0a1628;padding-bottom:7px;margin-bottom:10px;}"
+    +".pb{font-size:8pt;letter-spacing:.2em;color:#4a5568;}"
+    +".pt{font-size:13pt;font-weight:700;margin-top:2px;}"
+    +".pr{text-align:right;font-size:9pt;}"
+    +".nm{display:inline-block;width:32mm;border-bottom:1px solid #333;}"
+    +".dt{color:#666;font-size:8pt;margin-top:4px;}"
+    +".p{border-bottom:1px dotted #bbb;padding:6px 0 7px;break-inside:avoid;page-break-inside:avoid;}"
+    +".q{display:flex;gap:6px;line-height:1.7;}"
+    +".no{font-weight:700;color:#2C5F8A;flex:0 0 auto;}"
+    +".dp{text-align:center;margin:4px 0;font-size:11pt;}"
+    +".sb{font-size:9pt;color:#444;margin-top:2px;}"
+    +".ch{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:4px;font-size:9.5pt;}"
+    +".ch span{display:flex;align-items:center;gap:4px;}"
+    /* 場合分けの選択肢は1行が長いので、紙でも1つずつ改行して出す */
+    +".ch.wd{flex-direction:column;gap:2px;}"
+    +".ch i{font-style:normal;font-size:8pt;color:#fff;background:#2C5F8A;border-radius:3px;padding:0 4px;}"
+    +".al{margin-top:5px;font-size:9pt;color:#555;display:flex;align-items:center;gap:6px;}"
+    +".bx{display:inline-block;width:16mm;height:6mm;border:1px solid #333;}"
+    +".ln{display:inline-block;width:46mm;border-bottom:1px solid #333;height:5mm;}"
+    +".pg{page-break-before:always;}"
+    +".a{display:flex;gap:8px;align-items:center;padding:4px 0;border-bottom:1px dotted #ddd;font-size:10pt;}"
+    +".mk{font-weight:700;color:#C73E2E;margin-right:4px;}"
+    +".un{font-size:8pt;color:#666;margin-left:3px;}"
+    +"</style></head><body>"
+    +wmImg+head(label)+probs
+    +'<div class="pg">'+wmImg+head(label+"　解答")+answ+"</div>"
+    +"</body></html>";
+}
+function printSheet(){
+  const items=prtPick(prtCount());
+  if(!items.length){toast("印刷する問題を作れませんでした");return;}
+  const w=window.open("","_blank");
+  if(!w){toast("ポップアップがブロックされました");return;}
+  w.document.write(prtHtml(items));
+  w.document.close();
+  w.focus();
+  setTimeout(function(){try{w.print();}catch(e){}},700);
+}
+
+/* ---------- 画面の切り替え ---------- */
+function setView(v){
+  view=v;
+  document.getElementById("view-train").style.display=(v==="train")?"block":"none";
+  document.getElementById("view-fig").style.display=(v==="fig")?"block":"none";
+  document.querySelectorAll(".vtab").forEach(b=>b.classList.toggle("on",b.dataset.view===v));
+  if(v==="train")safeDivp("resultClose");
+  try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){window.scrollTo(0,0);}
+}
+
+/* ---------- イベント ---------- */
+document.querySelector(".viewtabs").addEventListener("click",function(e){
+  const b=e.target.closest(".vtab");if(!b)return;
+  setView(b.dataset.view);
+  if(b.dataset.view==="fig")figRender();   /* 非表示中は幅0で描かれているので描き直す */
+});
+document.getElementById("typeChips").addEventListener("click",function(e){
+  const c=e.target.closest(".chip");if(!c)return;
+  mode=c.dataset.mode;
+  retryQ=null;                                  /* タイプを選び直したら解き直しモードを抜ける */
+  document.querySelectorAll("#typeChips .chip").forEach(x=>x.classList.toggle("on",x===c));
+  document.getElementById("mixBox").style.display=(mode==="mix")?"block":"none";
+  roundStart(ROUND_N,false);                    /* ラウンドも数え直し（連続はタイプごと） */
+  safeDivp("resultClose");
+  updLvSeg();updLvDesc();
+  newQuestion();
+});
+document.getElementById("lvSeg").addEventListener("click",function(e){
+  const b=e.target.closest(".lvbtn");if(!b||b.disabled)return;
+  lv=parseInt(b.dataset.lv,10)||1;
+  retryQ=null;
+  roundStart(ROUND_N,false);
+  safeDivp("resultClose");
+  updLvSeg();updLvDesc();
+  newQuestion();
+});
+document.getElementById("mixGrid").addEventListener("change",function(e){
+  const cb=e.target.closest("input[data-mix]");if(!cb)return;
+  if(cb.checked)mixSet.add(cb.dataset.mix);else mixSet.delete(cb.dataset.mix);
+  if(mode==="mix"&&!cur)newQuestion();
+});
+document.getElementById("mixAll").addEventListener("click",function(){setMixAll(()=>true);if(mode==="mix"&&!cur)newQuestion();});
+document.getElementById("mixNone").addEventListener("click",function(){setMixAll(()=>false);});
+document.getElementById("mixBasicBtn").addEventListener("click",function(){
+  setMixAll(k=>BASIC4.indexOf(k)>=0);
+  if(mode==="mix"&&!cur)newQuestion();
+});
+document.getElementById("prtBtn").addEventListener("click",printSheet);
+document.getElementById("foldBtn").addEventListener("click",function(){
+  const box=document.getElementById("selbox"),b=document.getElementById("foldBtn");
+  const fold=!box.classList.contains("folded");
+  box.classList.toggle("folded",fold);
+  b.textContent=fold?"ひらく":"とじる";
+  b.setAttribute("aria-expanded",fold?"false":"true");
+});
+/* 選択肢・テンキーはクリック委任だけで受ける（touch リスナーを足さない＝
+   高速連打のタッチミス対策。touch-action:manipulation は body に指定済み） */
+document.getElementById("ansArea").addEventListener("click",function(e){
+  const c=e.target.closest(".choiceBtn");
+  if(c&&!graded){
+    selChoice=parseInt(c.dataset.i,10);
+    document.querySelectorAll("#ansArea .choiceBtn").forEach(b=>b.classList.toggle("sel",b===c));
+    return;
+  }
+  const k=e.target.closest(".key");
+  if(k&&!graded){
+    const v=k.dataset.k;
+    if(v==="bs")numStr=numStr.slice(0,-1);
+    else if(v==="-")numStr=(numStr.charAt(0)==="-")?numStr.slice(1):("-"+numStr);
+    else if(numStr.replace("-","").length<9)numStr+=v;
+    refreshNum();
+  }
+});
+document.getElementById("checkBtn").addEventListener("click",check);
+document.getElementById("nextBtn").addEventListener("click",function(){
+  /* ラウンドを解き終わっていたら、次の問題ではなく結果画面を先に出す */
+  if(graded&&roundDone()){
+    const drained=!!(retryQ&&retryQ.length===0);
+    if(showRoundResult()){
+      if(drained)retryQ=null;
+      return;
+    }
+    if(drained)retryQ=null;
+  }
+  newQuestion();
+});
+document.getElementById("exBody").addEventListener("click",function(e){
+  const b=e.target.closest("[data-fig]");if(!b)return;
+  let info=null;
+  try{info=JSON.parse(b.dataset.fig);}catch(err){}
+  if(info)openFigFrom(info);
+});
+document.getElementById("figChips").addEventListener("click",function(e){
+  const b=e.target.closest(".chip");if(!b)return;
+  figType=b.dataset.fig;
+  buildFigChips();buildFigCtrl();figRender();
+});
+document.getElementById("figCtrl").addEventListener("click",function(e){
+  const b=e.target.closest(".sbtn");if(!b)return;
+  figStep(b.dataset.p,parseInt(b.dataset.dir,10));
+});
+/* キーボード（PCで解く生徒向け）。数字・マイナス・BS・Enter だけ */
+document.addEventListener("keydown",function(e){
+  if(view!=="train")return;
+  if(e.target&&/^(INPUT|TEXTAREA)$/.test(e.target.tagName))return;
+  if(e.key==="Enter"){
+    e.preventDefault();
+    if(graded)document.getElementById("nextBtn").click();
+    else check();
+    return;
+  }
+  if(!cur||graded||cur.ans.kind!=="num")return;
+  if(/^[0-9]$/.test(e.key)){
+    if(numStr.replace("-","").length<9)numStr+=e.key;refreshNum();
+  }else if(e.key==="-"){
+    numStr=(numStr.charAt(0)==="-")?numStr.slice(1):("-"+numStr);refreshNum();
+  }else if(e.key==="Backspace"){
+    e.preventDefault();numStr=numStr.slice(0,-1);refreshNum();
+  }
+});
+/* KaTeX は defer 読み込みなので、来てからもう一度描き直す */
+window.addEventListener("load",function(){
+  renderTexIn(document.body);
+  if(view==="fig")figRender();
+});
+
+/* ---------- 起動 ---------- */
+/* 学習記録の開始（セッション・学習時間・ハートビートは divp-core にまかせる） */
+safeDivp("init",UNIT_KEY);
+buildTypeChips();
+buildMixGrid();
+buildFigChips();
+buildFigCtrl();
+roundInit();
+updLvSeg();
+updLvDesc();
+updHUD();
+newQuestion();
+figRender();
+/* マイページの「解き直し」から来たときだけ、pending を同じ問題で出し直す */
+if(/[?&]retry=1/.test(location.search)){try{initRetry();}catch(e){}}
+/* ?fig=kukan のように直リンクで図モードを開けるようにしておく（授業で見せる用） */
+(function(){
+  const m=/[?&]fig=([a-z]+)/i.exec(location.search);
+  if(m&&FIG_CTRL[m[1]]){figType=m[1];buildFigChips();buildFigCtrl();setView("fig");figRender();}
+})();
+</script>
+</body>
+</html>

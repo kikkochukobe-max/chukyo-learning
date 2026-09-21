@@ -40,6 +40,12 @@ return [
         'sub'   => '数学・高校（数学II 図形と方程式）',
         'url'   => '/learning/math/math_hs_en_houteishiki.html',
     ],
+    // 数学I「2次関数」の章まるごと（11タイプ・基本/標準/発展）。解き直しは同じ種(seed)方式
+    'math_hs_nijikansu' => [
+        'title' => '2次関数マスター',
+        'sub'   => '数学・高校（数学I 2次関数）',
+        'url'   => '/learning/math/math_hs_nijikansu.html',
+    ],
     // 解き直しは question_params の {m:サブモード, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
     'math_es5_baisu_yakusu' => [
         'title' => '倍数・約数マスター',
