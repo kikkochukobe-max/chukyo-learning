@@ -1457,7 +1457,7 @@ function ssl_row_html(array $ssl): string
         <td data-label="種類"><span class="chip"><?= h($wr['label']) ?></span></td>
         <td class="math" data-label="問題" data-math="<?= h($wr['question_text']) ?>"><?= h($wr['question_text']) ?></td>
         <td class="math" data-label="正解" data-math="<?= h($wr['correct_answer']) ?>"><?= h($wr['correct_answer']) ?></td>
-        <td class="math wrong-ans" data-label="生徒の答え" data-math="<?= h($wr['student_answer']) ?>"><?= h($wr['student_answer']) ?></td>
+        <td class="math wrong-ans" data-ans="1" data-label="生徒の答え" data-math="<?= h($wr['student_answer']) ?>"><?= h($wr['student_answer']) ?></td>
       </tr>
 <?php endforeach; ?>
     </table>
@@ -2202,6 +2202,37 @@ function renderMathToHTML(src){
   if (/[²³]/.test(src)) return _renderMath(src);   // 日本語混じりで上付きを含む文は従来のトークン描画
   return _mescape(src).replace(/\n/g, '<br>');
 }
+// ===== 生徒の答え専用の整形 =====
+// 生徒は分数を素のスラッシュ（「49/2」）で打つので、F(49/2) に直してから共通処理へ
+// 渡す＝正解の列と同じ縦組みの分数で並ぶ。この画面にしか生徒の答えは出ないので、
+// mypage.php / retry.php 側の renderMathToHTML には持ち込まない。
+// ⚠ 問題文・正解には使わないこと。地の文のスラッシュは「6xy/2x」の除算や
+//   「(1,2) (4,5) / 2≦y≦5」の区切りでもあり、分数と区別できない
+//   （分数のつもりの / を F() で包むのはツール側の責務。ここは生入力の救済）。
+function _fracify(src){
+  var s = String(src == null ? '' : src);
+  if (s.indexOf('/') < 0) return s;
+  if (/[\\{}]/.test(s)) return s;                     // 既にLaTeX
+  if (/F\([^()\/]+\/[^()\/]+\)/.test(s)) return s;    // 既にF()マーカー付き
+  // 生徒の入力は「x^2/3」のように ^ で上付きを書く。F() の中身は _toLatex が
+  // ²³ を上付きに戻すので、先に Unicode の上付きへ寄せておく（^ が残ったままだと
+  // renderMathToHTML が文字列ぜんぶを LaTeX とみなして F( ) が生で出る）。
+  var t = s.replace(/\^2/g, '²').replace(/\^3/g, '³');
+  // 分子・分母とも「数・文字・上付き」だけの短い項のときに限って分数とみなす。
+  // 「60km/h」のような単位付きを分数にしないよう、英字2文字以上が並ぶ側は対象外。
+  var out = t.replace(/(?:^|(?<=[\s=,、（(+\-±]))([0-9A-Za-zπ.²³]+)\/([0-9A-Za-zπ.²³]+)(?![\/0-9A-Za-zπ.²³])/g,
+    function (all, a, b) {
+      if (/[A-Za-z]{2,}/.test(a) || /[A-Za-z]{2,}/.test(b)) return all;
+      // 「y=3/2x+1」の傾きは (3/2)x の意味。分母の数字のあとの文字は分数の外に出す
+      var tail = '', mb = /^(\d+)([A-Za-zπ][0-9A-Za-zπ.²³]*)$/.exec(b);
+      if (mb) { b = mb[1]; tail = mb[2]; }
+      return 'F(' + a + '/' + b + ')' + tail;
+    });
+  if (out === t) return s;            // 分数として拾えるものが無い＝元のまま
+  if (/\^/.test(out)) return s;       // ^4 等が残る式は従来どおり全体をLaTeXとして描く
+  return out;
+}
+function renderAnswerToHTML(src){ return renderMathToHTML(_fracify(src)); }
 /* ===== 「グラフをかく」問題の解答用: 方眼に正解の直線を引く =====
    一次関数マスターの作図モードは、問題として空の方眼(class="gridfig gridfig-r8")を
    保存する。解答が式や2点のままだと紙で見比べにくいので、解答（講師用）には
@@ -2278,7 +2309,8 @@ function answerGraphSvg(figsvg, ans) {
 }
 
 document.querySelectorAll('.math').forEach(function (el) {
-  el.innerHTML = renderMathToHTML(el.getAttribute('data-math') || '');
+  var src = el.getAttribute('data-math') || '';
+  el.innerHTML = el.hasAttribute('data-ans') ? renderAnswerToHTML(src) : renderMathToHTML(src);
 });
 
 // ===== 解き直しプリント（誤答をアナログで解き直す用紙）=====
@@ -2375,6 +2407,10 @@ document.querySelectorAll('.math').forEach(function (el) {
   // 全体LaTeX / Unicode√混じり日本語文 のどちらもKaTeX整形（共通処理に委譲）
   function fmt(src) {
     return renderMathToHTML(src);
+  }
+  // 生徒の答え（生入力）専用。素のスラッシュの分数を縦組みにする
+  function fmtAns(src) {
+    return renderAnswerToHTML(src);
   }
 
   btn.addEventListener('click', function () {
@@ -2475,7 +2511,7 @@ document.querySelectorAll('.math').forEach(function (el) {
         + '<td class="k-ans">' + fmt(it.a)
         + (ansFig ? '<div class="k-graph">' + scopeFigIds(ansFig, 'k' + m) + '</div>' : '')
         + '</td>'
-        + '<td class="k-wa">' + fmt(it.sa) + '</td></tr>';
+        + '<td class="k-wa">' + fmtAns(it.sa) + '</td></tr>';
     }).join('');
     var keyPage = '<div class="page key-page"><div class="sheet-head">'
       + '<div><div class="sh-title">解答（講師用）</div>'
