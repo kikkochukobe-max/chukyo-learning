@@ -361,4 +361,40 @@ test.describe('2次関数マスター', () => {
     });
     expect(same).toBe(true);
   });
+
+  /* ②平方完成は「答えを言う」だけでなく、平方完成の手順そのものが解説に出ること。
+     途中式が無いと、頂点がどこから出てきたのか生徒が追えない。
+     lv2（一般形）= くくる/たしてひく → 頂点形 の2式以上、
+     lv3（分数が出る）= くくる → たしてひく → かっこをはずす → まとめる の4式以上。 */
+  test('平方完成の解説に途中式が出る', async ({ page }) => {
+    const errs = watchErrors(page);
+    await page.goto(TOOL);
+    for (const [lv, least] of [[2, 2], [3, 4]]) {
+      await page.click('#typeChips .chip[data-mode="heihei"]');
+      await page.click(`#lvSeg .lvbtn[data-lv="${lv}"]`);
+      for (let i = 0; i < 6; i++) {
+        await answerCorrectly(page);
+        const got = await page.evaluate(() => {
+          const box = document.getElementById('explain');
+          const tex = Array.from(box.querySelectorAll('.tex'));
+          return {
+            // 「y=…」の形で出ている式の本数（= 変形のステップ数）
+            steps: tex.map((el) => el.getAttribute('data-tex') || '')
+              .filter((s) => /^y=/.test(s) && s.indexOf('x') >= 0).length,
+            addsub: /たしてひく/.test(box.textContent || ''),
+            vertex: /頂点/.test(box.textContent || ''),
+            raw: tex.filter((el) => !el.querySelector('.katex')).length,
+            err: tex.filter((el) => el.querySelector('.katex-error')).length,
+          };
+        });
+        expect(got.steps, `lv${lv} 途中式の本数`).toBeGreaterThanOrEqual(least);
+        expect(got.addsub, `lv${lv} 「たしてひく」の説明`).toBe(true);
+        expect(got.vertex, `lv${lv} 頂点`).toBe(true);
+        expect(got.raw, `lv${lv} 解説の未描画TeX`).toBe(0);
+        expect(got.err, `lv${lv} 解説のKaTeXエラー`).toBe(0);
+        await page.click('#nextBtn');
+      }
+    }
+    expect(errs).toEqual([]);
+  });
 });

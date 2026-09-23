@@ -511,6 +511,13 @@ function fracTermTex(n,d,v){
   if(dd===1)return s+((nn===1)?v:(nn+v));
   return s+"\\dfrac{"+nn+"}{"+dd+"}"+v;
 }
+/* 符号つきの分数（必ず先頭に +/- が付く。平方完成の途中式で「x+b/2a」を書く用。
+   ⚠ fracTermTex(n,d,"") は約分して ±1 になると文字が消えるので、定数にはこちらを使う */
+function fracSgTex(n,d){
+  if(d<0){n=-n;d=-d;}
+  const g=gcd(n,d);const nn=n/g,dd=d/g;
+  return (nn<0?"-":"+")+((dd===1)?String(Math.abs(nn)):("\\dfrac{"+Math.abs(nn)+"}{"+dd+"}"));
+}
 /* 分数座標の点。n1/d1, n2/d2 */
 function ptFracTex(n1,d1,n2,d2){
   return "\\left("+fracTex(n1,d1)+",\\ "+fracTex(n2,d2)+"\\right)";
@@ -772,13 +779,24 @@ GENS.heihei=function(lv){
         ptTex(-p,q), ptTex(p,-q), ptTex(-p,-q), ptTex(q,p), ptTex(p,c), ptTex(b,c)
       ]),
       plainQ:"2次関数 y="+quad(a,b,c,"x","²")+" のグラフの頂点の座標を求めよ。",
-      ex:[
-        (a===1)?(""+T("x")+" の係数 "+T(String(b))+" の<b>半分の2乗</b>をたしてひく。")
-               :(""+T("x^2")+" の係数 "+T("-1")+" でくくってから、かっこの中を平方完成する。"),
-        '<div class="exFml">'+T("y="+vert(a,p,q,"^2"))+"</div>",
+      ex:(a===1?[
+        "① "+T("x")+" の係数 "+T(String(b))+" の<b>半分</b> "+T(String(b/2))+" の2乗 "+T(String(p*p))
+          +" を<b>たしてひく</b>（同じ数をひくので式の値は変わらない）。",
+        '<div class="exFml">'+T("y=\\left(x^2"+sg(b)+"x"+sg(p*p)+"\\right)"+sg(-p*p)+sg(c))+"</div>",
+        "② かっこの中が "+T("(x"+sg(-p)+")^2")+" にまとまる。残りの定数をまとめる。",
+        '<div class="exFml">'+T("y="+vert(a,p,q,"^2"))+"</div>"
+      ]:[
+        "① "+T("x^2")+" の係数 "+T("-1")+" で<b>2次の項と1次の項だけ</b>をくくる。",
+        '<div class="exFml">'+T("y=-\\left(x^2"+sg(-b)+"x\\right)"+sg(c))+"</div>",
+        "② かっこの中は "+T("x")+" の係数 "+T(String(-b))+" の<b>半分</b> "+T(String(-b/2))
+          +" の2乗 "+T(String(p*p))+" をたしてひく。",
+        '<div class="exFml">'+T("y=-\\left\\{(x"+sg(-p)+")^2"+sg(-p*p)+"\\right\\}"+sg(c))+"</div>",
+        "③ かっこをはずす（"+T("-1")+" をかけるので中の符号が変わる）。",
+        '<div class="exFml">'+T("y="+vert(a,p,q,"^2"))+"</div>"
+      ]).concat([
         "よって頂点は "+T(ptTex(p,q))+"、軸は直線 "+T("x="+p)+"。",
         "検算: "+T("x="+p)+" を代入すると "+T("y="+q)+" になる。"
-      ],
+      ]),
       fig:{t:"idou",a:a,p:p,q:q}
     };
   }
@@ -788,6 +806,7 @@ GENS.heihei=function(lv){
   let b=nzi(-9,9); if(b%2===0)b+=(b>0?1:-1);      /* b は奇数 → 頂点が分数になる */
   const c=ri(-6,6);
   const cor=ptFracTex(-b,2*a,4*a*c-b*b,4*a);
+  const sqTex="\\left(x"+fracSgTex(b,2*a)+"\\right)^2";   /* (x + b/2a)² */
   return {
     lead:"次の2次関数のグラフの頂点の座標を求めよ。",
     disp:"y="+quad(a,b,c,"x","^2"),
@@ -802,10 +821,18 @@ GENS.heihei=function(lv){
     plainQ:"2次関数 y="+quad(a,b,c,"x","²")+" のグラフの頂点の座標を求めよ。",
     plainA:ptFracPlain(-b,2*a,4*a*c-b*b,4*a),
     ex:[
-      "まず "+T("x^2")+" の係数 "+T(String(a))+" で<b>2次の項と1次の項だけ</b>をくくる。",
+      "① "+T("x^2")+" の係数 "+T(String(a))+" で<b>2次の項と1次の項だけ</b>をくくる。",
       '<div class="exFml">'+T("y="+a+"\\left(x^2"+fracTermTex(b,a,"x")+"\\right)"+sg(c))+"</div>",
-      "かっこの中は "+T("x")+" の係数 "+T(fracTex(b,a))+" の半分 "+T(fracTex(b,2*a))+" の2乗をたしてひく。",
-      "頂点の "+T("x")+" 座標は "+T(fracTex(-b,2*a))+"、"+T("y")+" 座標は代入して "+T(fracTex(4*a*c-b*b,4*a))+"。",
+      "② かっこの中は "+T("x")+" の係数 "+T(fracTex(b,a))+" の<b>半分</b> "+T(fracTex(b,2*a))
+        +" の2乗 "+T(fracTex(b*b,4*a*a))+" をたしてひく。",
+      '<div class="exFml">'+T("y="+a+"\\left\\{"+sqTex+fracSgTex(-b*b,4*a*a)+"\\right\\}"+sg(c))+"</div>",
+      "③ かっこをはずす（中身に "+T(String(a))+" をかける）。",
+      '<div class="exFml">'+T("y="+a+sqTex+fracSgTex(-b*b,4*a)+sg(c))+"</div>",
+      (c===0)?("④ 定数項は "+T(fracTex(-b*b,4*a))+" だけ。")
+             :("④ 定数項をまとめる。"+T(fracTex(-b*b,4*a)+sg(c)+"="+fracTex(4*a*c-b*b,4*a))),
+      '<div class="exFml">'+T("y="+a+sqTex+fracSgTex(4*a*c-b*b,4*a))+"</div>",
+      "かっこの中の符号と<b>逆</b>にして、頂点の "+T("x")+" 座標は "+T(fracTex(-b,2*a))
+        +"、軸は直線 "+T("x="+fracTex(-b,2*a))+"。",
       '<div class="exFml">頂点 '+T(cor)+"</div>"
     ]
   };
