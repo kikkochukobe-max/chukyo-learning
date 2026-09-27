@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2026秋 A4横チラシ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&family=Zen+Kaku+Gothic+New:wght@700;900&family=Dela+Gothic+One&family=M+PLUS+1p:wght@700;800&family=Yuji+Syuku&family=Noto+Sans+JP:wght@700;900&display=block" rel="stylesheet">
+<style>
+/*
+  入稿サイズ = 仕上がり A4横 297×210mm ＋ 塗り足し 各辺3mm = 303×216mm。
+  文字・ロゴは仕上がり線から さらに内側5mm（=用紙端から8mm）の安全域に収める。
+  PDF書き出し: Chrome headless の --print-to-pdf（画面の仕上がり線・安全域は印刷時に消える）。
+*/
+@page{size:303mm 216mm;margin:0}
+:root{
+  --navy:#1B3A6B;
+  --navy-deep:#122A52;
+  --shu:#D4351C;
+  --yellow:#FFE45C;
+  /* フォント案（?font=a|b|c で切り替え。既定は a）
+     --f-catch: 左上キャッチ / --f-head: 中央・中段・体験授業 / --f-body: お問い合わせ帯 */
+  --f-catch:"Shippori Mincho B1",serif; --w-catch:800;
+  --f-head:"Zen Kaku Gothic New",sans-serif; --w-head:900;
+  --f-body:"Zen Kaku Gothic New",sans-serif;
+}
+/* b: 太いゴシックで押し出す */
+body[data-font="b"]{
+  --f-catch:"Dela Gothic One",sans-serif; --w-catch:400;
+  --f-head:"M PLUS 1p",sans-serif; --w-head:800;
+  --f-body:"M PLUS 1p",sans-serif;
+}
+/* c: 筆文字で和の季節感 */
+body[data-font="c"]{
+  --f-catch:"Yuji Syuku",serif; --w-catch:400;
+  --f-head:"Noto Sans JP",sans-serif; --w-head:900;
+  --f-body:"Noto Sans JP",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#777}
+body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sheet{
+  position:relative;width:303mm;height:216mm;overflow:hidden;margin:10mm auto;
+  background:#4A90D9 url("back_print.jpg") center/cover no-repeat;
+  font-family:var(--f-body);color:var(--navy);
+}
+.key,.pitch,.badge .txt{font-family:var(--f-head)}
+.key,.pitch,.badge .txt,.key .t,.key .big{font-weight:var(--w-head)!important}
+@media print{html,body{background:none}.sheet{margin:0}.guide{display:none}}
+
+/* ── 仕上がり線・安全域（画面のみ） ── */
+.guide{position:absolute;pointer-events:none;z-index:50}
+.guide.trim{inset:3mm;outline:.3mm solid rgba(255,0,160,.9)}
+.guide.safe{inset:8mm;outline:.25mm dashed rgba(0,200,255,.9)}
+
+/* ── 縁取り文字: 同じ文字を背面に重ねて太いふちを付ける ── */
+.ol{position:relative;display:inline-block}
+.ol::before{
+  content:attr(data-t);position:absolute;left:0;top:0;z-index:-1;
+  -webkit-text-stroke:var(--sw,2mm) var(--sc,#fff);color:var(--sc,#fff);
+  filter:drop-shadow(0 .6mm 1.4mm rgba(20,40,80,.35));
+}
+.stack{position:relative;z-index:0}
+
+/* ── 左上: 学びを変える秋にしよう ──
+   SVG文字で組む（HTMLの background-clip:text は
+   ChromeのPDF書き出しで文字の右端に細い継ぎ目が出るため） */
+.catch{position:absolute;left:12mm;top:12mm;width:124mm;height:82mm;overflow:visible}
+.catch text{font-family:var(--f-catch);font-weight:var(--w-catch)}
+
+/* ── 中央: 2学期攻略のカギは 体系的に 学ぶこと ── */
+.key{position:absolute;left:140mm;top:15mm;width:90mm;white-space:nowrap;text-align:center;font-weight:900;color:#fff;line-height:1.12}
+.key .t{font-size:14mm;text-shadow:0 .5mm 0 var(--navy-deep),0 0 3mm rgba(18,42,82,.55)}
+.key .t small{font-size:10.5mm}
+.key .big{position:relative;display:inline-block;margin:2mm 0 1mm;font-size:21mm;color:var(--yellow);
+  text-shadow:0 .7mm 0 #8A5A00,0 0 3.5mm rgba(18,42,82,.6)}
+.key .big svg{position:absolute;left:-4mm;right:-4mm;bottom:-4.5mm;width:calc(100% + 8mm);height:7mm}
+.key .spark{position:absolute;width:13mm;height:13mm;left:-5mm;top:40mm}
+
+/* ── 中段: 正社員講師による一貫指導で ── */
+.pitch{position:absolute;left:128mm;top:106mm;width:108mm;white-space:nowrap;text-align:center;font-weight:900;line-height:1.25}
+.pitch .p1{font-size:7.4mm;--sw:1.8mm;color:var(--navy)}
+.pitch .p2{font-size:8.8mm;--sw:1.9mm;color:var(--navy);margin-top:1mm}
+.pitch .p2 em{font-style:normal;color:var(--shu)}
+
+/* ── 左中段: 無料体験授業 受付中！ ── */
+.badge{position:absolute;left:22mm;top:108mm;width:98mm;height:44mm;transform:rotate(-5deg)}
+.badge svg{position:absolute;inset:0;width:100%;height:100%}
+.badge .txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;line-height:1.08}
+.badge .b1{font-size:12.5mm;color:var(--shu);text-shadow:0 .5mm 0 #fff}
+.badge .b2{font-size:10mm;color:var(--navy-deep)}
+
+/* ── 下段: お問い合わせ帯 ── */
+.info{
+  position:absolute;left:8mm;right:88mm;bottom:8mm;height:44mm;
+  background:rgba(255,255,255,.94);border-radius:4mm;
+  box-shadow:0 1mm 4mm rgba(18,42,82,.25);
+  display:grid;grid-template-columns:1fr 32mm;gap:0 5mm;padding:4.5mm 5mm 4mm 6mm;
+}
+.brand{display:flex;align-items:center;gap:2.5mm}
+.brand img{height:12mm;width:auto}
+.brand .name{font-size:8.2mm;font-weight:900;color:var(--navy);letter-spacing:.4mm}
+.contact{display:flex;align-items:baseline;gap:3mm;margin-top:2.2mm;font-weight:900;color:var(--navy)}
+.contact .lbl{font-size:3.6mm;background:var(--navy);color:#fff;border-radius:1mm;padding:.6mm 1.8mm;white-space:nowrap}
+.contact .tel{font-size:8.5mm;letter-spacing:.3mm}
+.contact .web{font-size:3.8mm;font-weight:700}
+.rooms{margin-top:2.4mm;display:flex;align-items:center;gap:2mm;font-size:3.9mm;font-weight:700;color:var(--navy)}
+.rooms .lbl{flex:none;font-size:3.4mm;border:.35mm solid var(--navy);border-radius:1mm;padding:.4mm 1.5mm}
+.rooms ul{list-style:none;display:flex;flex-wrap:wrap;gap:0 2.6mm}
+.qr{grid-row:1/4;grid-column:2;align-self:center}
+.qr .box{display:block;width:30mm;height:30mm}
+.qr .cap{font-size:3mm;font-weight:700;text-align:center;margin-top:1mm;color:var(--navy)}
+
+/* 未確定の差し替え箇所（入稿前にすべて外すこと） */
+.todo{outline:.5mm dashed #FF00A0;outline-offset:.6mm;background:rgba(255,0,160,.08);color:#C0007A!important}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <!-- 左上キャッチ -->
+  <svg class="catch" viewBox="0 0 124 82" aria-label="学びを変える秋にしよう">
+    <defs>
+      <linearGradient id="gBrown" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#6B3410"/><stop offset=".45" stop-color="#8E4513"/><stop offset="1" stop-color="#B8561A"/>
+      </linearGradient>
+      <linearGradient id="gFire" x1="0" y1="0" x2=".35" y2="1">
+        <stop offset="0" stop-color="#F7A21B"/><stop offset=".45" stop-color="#E8541E"/><stop offset="1" stop-color="#B31E14"/>
+      </linearGradient>
+    </defs>
+    <path d="M4 79 C 34 71, 76 67, 122 67 C 80 70.5, 40 75, 8 81.5 Z" fill="#E8791E" opacity=".92"/>
+    <!-- 影 → 白ふち → 本体 の3層 -->
+    <g fill="#14305E" stroke="#14305E" stroke-linejoin="round" opacity=".22" transform="translate(.5 .9)">
+      <text x="2" y="17" font-size="16" stroke-width="5">学び<tspan font-size="12">を</tspan>変え<tspan font-size="12">る</tspan></text>
+      <text x="10" y="66" font-size="50" stroke-width="6.5">秋</text>
+      <text x="61" y="61" font-size="13" stroke-width="4.6">にしよう</text>
+    </g>
+    <g fill="#fff" stroke="#fff" stroke-linejoin="round">
+      <text x="2" y="17" font-size="16" stroke-width="4.8">学び<tspan font-size="12">を</tspan>変え<tspan font-size="12">る</tspan></text>
+      <text x="10" y="66" font-size="50" stroke-width="6.4">秋</text>
+      <text x="61" y="61" font-size="13" stroke-width="4.4">にしよう</text>
+    </g>
+    <text x="2" y="17" font-size="16" fill="url(#gBrown)">学び<tspan font-size="12">を</tspan>変え<tspan font-size="12">る</tspan></text>
+    <text x="10" y="66" font-size="50" fill="url(#gFire)">秋</text>
+    <text x="61" y="61" font-size="13" fill="url(#gBrown)">にしよう</text>
+  </svg>
+
+  <!-- 中央 -->
+  <div class="key">
+    <div class="t">2学期攻略<small>の</small></div>
+    <div class="t">カギ<small>は</small></div>
+    <div class="big">体系的<small style="font-size:15mm">に</small>
+      <svg viewBox="0 0 100 7" preserveAspectRatio="none" aria-hidden="true"><path d="M1 5 C 30 1.5, 70 1, 99 2.5 C 70 3.6, 30 5, 3 6.8 Z" fill="#FFE45C"/></svg>
+    </div>
+    <div class="t">学ぶこと</div>
+    <svg class="spark" viewBox="0 0 13 13" aria-hidden="true">
+      <g stroke="#FFE45C" stroke-width="1.3" stroke-linecap="round"><path d="M9 11 L12.2 11.8"/><path d="M8 7.5 L11.5 5"/><path d="M6.5 4.5 L7.5 1"/></g>
+    </svg>
+  </div>
+
+  <!-- 中段 -->
+  <div class="pitch stack">
+    <div class="p1"><span class="ol" data-t="正社員講師による一貫指導で">正社員講師による一貫指導で</span></div>
+    <div class="p2"><span class="ol" data-t="体系的"><em>体系的</em></span><span class="ol" data-t="に学びませんか？">に学びませんか？</span></div>
+  </div>
+
+  <!-- 無料体験 -->
+  <div class="badge">
+    <svg viewBox="0 0 98 44" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M4 9 C 25 3, 70 2, 95 5 L 92 12 C 96 18, 94 26, 97 33 L 90 40 C 60 43, 30 42, 3 39 L 7 31 C 2 25, 5 17, 1 12 Z" fill="#FFE45C"/>
+      <path d="M9 7 C 40 4, 70 4, 90 6" stroke="#FFF3A6" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <path d="M8 37 C 40 40, 70 39, 88 37" stroke="#F2C230" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    </svg>
+    <div class="txt"><div class="b1">無料体験授業</div><div class="b2">受付中！</div></div>
+  </div>
+
+  <!-- お問い合わせ帯 -->
+  <div class="info">
+    <div class="brand">
+      <img src="中京ロゴ500.png" alt="">
+      <span class="name">中京個別指導学院</span>
+    </div>
+    <div class="contact">
+      <span class="lbl">お問い合わせ</span>
+      <span class="tel">052-726-5451</span>
+      <span class="web">chukyokobetsu.com</span>
+    </div>
+    <div class="rooms">
+      <span class="lbl">教室</span>
+      <ul><li>焼山</li><li>吉根</li><li>長久手</li><li>神丘</li><li>高針台</li><li>一社</li><li>貴船</li><li>有松</li></ul>
+    </div>
+    <div class="qr">
+      <img class="box" src="qr_line_print.png" alt="LINE友だち追加のQRコード">
+      <div class="cap">LINEでお問い合わせ</div>
+    </div>
+  </div>
+
+  <div class="guide trim"></div>
+  <div class="guide safe"></div>
+</div>
+<script>
+// フォント案の切り替え（?font=b など）。書体で「秋」の字幅が変わるので、
+// フォント読み込み後に「にしよう」を「秋」の右に寄せ直す。
+(function(){
+  var m=location.search.match(/font=([abc])/);
+  if(m) document.body.setAttribute("data-font",m[1]);
+  document.fonts.ready.then(function(){
+    var t=document.querySelectorAll("svg.catch text");   // 影・白ふち・本体 × [1行目, 秋, にしよう]
+    var aki=t[t.length-2].getBBox();
+    for(var i=2;i<t.length;i+=3) t[i].setAttribute("x",(aki.x+aki.width+1.5).toFixed(2));
+  });
+})();
+</script>
+</body>
+</html>
