@@ -213,7 +213,14 @@ if ($isGuardian) {
             $selfStudy = [];
         }
 
+        // 愛知県大問1を一度でも解いていれば「1日30問」カレンダー（daimon1_calendar.php）への入口を出す
+        $st = $pdo->prepare("SELECT 1 FROM answer_logs WHERE student_id = :id AND unit_key = 'math_js3_aichi_daimon1' LIMIT 1");
+        $st->execute(['id' => $sid]);
+        $hasDaimon1 = (bool)$st->fetchColumn();
+
         $children[] = [
+            'sid' => $sid,
+            'hasDaimon1' => $hasDaimon1,
             'name' => $kid['student_name'],
             'classroom' => $kid['classroom_name'],
             'grade' => $kid['grade'],
@@ -274,6 +281,9 @@ if ($isGuardian) {
     border-top:4px solid var(--ai);padding:18px;margin-bottom:16px}
   .child h2{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:20px;color:var(--ai)}
   .child h2 small{font-size:13px;font-weight:500;color:var(--ink-soft);margin-left:6px}
+  .cal-link{display:inline-block;margin-top:6px;font-size:13px;font-weight:700;color:var(--shu);text-decoration:none;
+    font-family:'Zen Maru Gothic',sans-serif}
+  .cal-link:hover{text-decoration:underline}
   .stats{display:flex;flex-wrap:wrap;gap:12px 22px;margin-top:12px}
   .stat .num{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:32px;line-height:1;font-feature-settings:'tnum'}
   .stat .num small{font-size:14px;font-weight:700;margin-left:2px;color:var(--ink-soft)}
@@ -411,6 +421,9 @@ document.getElementById('lpin').addEventListener('keydown', (e) => { if (e.key =
 <?php foreach ($children as $c): ?>
   <section class="child">
     <h2><?= h($c['name']) ?> さん<small><?= h($c['classroom']) ?>教室<?= $c['grade'] ? '・' . h(grade_label($c['grade'])) : '' ?></small></h2>
+<?php if ($c['hasDaimon1']): ?>
+    <a class="cal-link" href="/daimon1_calendar.php?sid=<?= (int)$c['sid'] ?>">📅 大問1「1日30問」カレンダーを見る →</a>
+<?php endif; ?>
     <div class="stats">
       <div class="stat"><div class="num js-min"><?= $c['minutes'] ?><small>分</small></div><div class="lbl">学習時間</div></div>
       <div class="stat"><div class="num js-solved"><?= $c['solved'] ?><small>問</small></div><div class="lbl">解いた問題</div></div>

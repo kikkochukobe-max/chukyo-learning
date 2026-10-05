@@ -317,6 +317,8 @@ $unitTitle = $unitMeta[GRID_UNIT_KEY]['title'] ?? GRID_UNIT_KEY;
   td.name a{color:var(--ink);text-decoration:none;font-weight:700}
   td.name a:hover{color:var(--ai);text-decoration:underline}
   td.name small{color:var(--ink-soft);font-weight:400;margin-left:4px}
+  td.name a.cal{margin-left:6px;font-weight:400;text-decoration:none}
+  @media print{td.name a.cal{display:none}}
   td.cell{width:30px;min-width:30px;text-align:center;color:var(--ink-soft);font-size:11px;background:var(--white)}
   td.cell.hit{background:var(--shu);color:#fff;font-weight:700}
   td.cell.wknd{background:#FCFBF7}
@@ -408,7 +410,7 @@ $unitTitle = $unitMeta[GRID_UNIT_KEY]['title'] ?? GRID_UNIT_KEY;
     <tbody>
 <?php foreach ($rows as $r): ?>
       <tr>
-        <td class="name"><a href="/teacher.php?student_id=<?= (int)$r['sid'] ?>"><?= h($r['name']) ?></a><small><?= h($r['grade']) ?></small></td>
+        <td class="name"><a href="/teacher.php?student_id=<?= (int)$r['sid'] ?>"><?= h($r['name']) ?></a><small><?= h($r['grade']) ?></small><a class="cal" href="/daimon1_calendar.php?sid=<?= (int)$r['sid'] ?>" title="個人カレンダー（保護者も見られます）">📅</a></td>
 <?php foreach ($days as $d):
         $k = $d->format('Y-m-d');
         $n = $count[$r['sid']][$k] ?? 0;
@@ -436,7 +438,7 @@ $unitTitle = $unitMeta[GRID_UNIT_KEY]['title'] ?? GRID_UNIT_KEY;
   </div>
 <?php endif; ?>
 
-  <p class="note">「達成日数」は期間内で<?= (int)$minCount ?>問以上解いた日の数、「合計問題数」の下の小さい数字は1問でも解いた日数です。生徒名を押すと講師ページの生徒詳細に移ります。</p>
+  <p class="note">「達成日数」は期間内で<?= (int)$minCount ?>問以上解いた日の数、「合計問題数」の下の小さい数字は1問でも解いた日数です。生徒名を押すと講師ページの生徒詳細に、📅 を押すとその生徒の個人カレンダー（8/26〜・保護者にURLを送ればお子さまのPINでログインして見られます）に移ります。</p>
 </section>
 
 </div>
