@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>一般常識バトル｜小学校高学年・6択オンライン対戦｜中京個別指導学院</title>
+<meta name="description" content="中京個別指導学院の生徒向け、小学校高学年の一般常識クイズ一斉対戦。先生が作った部屋に部屋番号で入り、同じ問題をみんなで同時に解いて合計点で順位を競います。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/*
+ * 一般常識バトル（生徒の画面）。講師が /battle_host.php で作った部屋に、4桁の部屋番号で入る。
+ * API は /api/battle_play.php。正解は画面に来ない（サーバーが採点し、締め切り後に発表する）。
+ * 進行（何問目か・締め切り）はサーバーの時刻 start_ms から計算で決まる。
+ * 端末の時計は使わず、応答の now_ms と performance.now() の差で時計を合わせる（CLAUDE.md 5a3）。
+ * 学習記録（Divp.answer / XP / 解き直し / 学習時間）は使わない＝divp-core.js は読まない。
+ *
+ * 失格: スタート後（カウントダウンを含む）に画面を離れたら失格。
+ *   visibilitychange(hidden)=ほかのアプリ・タブ / pagehide=閉じた・開き直した /
+ *   フォーカスが1秒外れたまま=別のウィンドウ（PC）。sendBeacon でサーバーへ送る。
+ *   届かなかった場合も、サーバーが「20秒通信が無い」「対戦中にページを開き直した」で失格にする。
+ */
+:root{
+  --paper:#FBFAF6;--grid:#ECE9E0;--ink:#33312B;--ink-soft:#8B877C;
+  --navy:#0a1628;--gold:#e8a020;--ai:#2C5F8A;--ai-soft:#E8F0F7;
+  --shu:#C73E2E;--ok:#3E8E5A;--white:#fff;
+  --radius:16px;--shadow:0 1px 3px rgba(51,49,43,.08),0 6px 16px rgba(51,49,43,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:'Zen Kaku Gothic New',sans-serif;color:var(--ink);background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;line-height:1.6;-webkit-text-size-adjust:100%}
+/* 対戦中: 引っぱって再読み込み（＝失格）を防ぐ・文字を選んで検索させない */
+html.ingame,html.ingame body{overscroll-behavior:none}
+html.ingame .app{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.app{max-width:720px;margin:0 auto;padding:16px 14px 48px}
+.app > *{position:relative;z-index:10}
+.scr{display:none}
+.scr.on{display:block}
+.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:14px}
+h1.title{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:26px;color:var(--navy);margin:6px 0 2px;text-align:center}
+h1.title span{color:var(--gold)}
+.lead{text-align:center;color:var(--ink-soft);font-size:14px;margin:0 0 14px}
+h2{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:18px;margin:0 0 10px;color:var(--navy)}
+.note{font-size:13px;color:var(--ink-soft)}
+.err{color:var(--shu);font-weight:700;font-size:14px;min-height:20px;margin-top:8px;text-align:center}
+button{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;cursor:pointer;touch-action:manipulation}
+.btn{display:block;width:100%;background:var(--gold);color:var(--navy);border:none;border-radius:999px;padding:14px;font-size:18px;box-shadow:0 3px 0 #b97a10}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #b97a10}
+.btn:disabled{opacity:.5}
+.btn.ghost{background:transparent;color:var(--ink-soft);box-shadow:none;border:1.5px solid var(--grid);font-size:15px;padding:10px}
+/* 部屋番号 */
+.code-in{display:block;width:100%;max-width:280px;margin:6px auto 12px;font-family:'Zen Maru Gothic',sans-serif;font-weight:900;
+  font-size:44px;letter-spacing:.3em;text-align:center;padding:8px 0 8px .3em;border:3px solid var(--grid);border-radius:14px;color:var(--navy)}
+.code-in:focus{outline:none;border-color:var(--gold)}
+.rules{margin:0;padding-left:1.2em;font-size:14px}
+.rules li{margin:4px 0}
+.rules b{color:var(--shu)}
+/* 待合室 */
+.meta{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:6px 0 10px}
+.pill{font-size:13px;font-weight:700;border-radius:999px;padding:3px 12px;background:var(--ai-soft);color:var(--ai)}
+.wait-big{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:19px;text-align:center;color:var(--navy);margin:8px 0}
+.dots::after{content:'';animation:dots 1.5s steps(4) infinite}
+@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+.players{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.pl{background:var(--paper);border:1px solid var(--grid);border-radius:999px;padding:3px 12px;font-size:14px}
+.pl.me{border-color:var(--gold);background:#FFF6E3;font-weight:700}
+.warn{background:#FFF1EF;border:2px solid var(--shu);border-radius:12px;padding:10px 14px;font-size:14px;margin-top:12px}
+.warn b{color:var(--shu)}
+/* カウントダウン */
+.cd{text-align:center;padding:40px 0}
+.cd-num{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:120px;color:var(--gold);line-height:1;text-shadow:0 4px 0 var(--navy)}
+.cd-lbl{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:22px;color:var(--navy);margin-top:10px}
+/* 出題 */
+.top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.qno{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:20px;color:var(--navy)}
+.qno small{font-size:14px;color:var(--ink-soft)}
+.sc{margin-left:auto;font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:18px;color:var(--navy)}
+.sc small{font-size:13px;color:var(--ink-soft);margin-left:6px}
+.timerrow{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bar{flex:1;height:12px;background:var(--grid);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:100%;background:var(--gold);transition:background .3s}
+.bar i.low{background:var(--shu)}
+.sec{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:22px;min-width:3.2em;text-align:right;color:var(--navy)}
+.qcard{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:12px;min-height:110px}
+.qcat{font-size:12px;font-weight:700;color:var(--ai)}
+.qtext{font-size:20px;font-weight:700;line-height:1.6;margin-top:4px;word-break:break-word}
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.choice{position:relative;min-height:64px;text-align:left;font-family:'Zen Kaku Gothic New',sans-serif;font-weight:700;font-size:17px;
+  line-height:1.4;color:var(--ink);background:var(--white);border:3px solid #d9d5ca;border-radius:14px;padding:10px 10px 10px 44px;word-break:break-word}
+.choice .mk{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;
+  background:var(--navy);color:#fff;font-family:'Zen Maru Gothic',sans-serif;font-size:14px;line-height:26px;text-align:center}
+.choice:disabled{cursor:default}
+.choice.sel{border-color:var(--ai);background:var(--ai-soft)}
+.choices.locked .choice:not(.sel):not([data-divp-mark]){opacity:.55}
+/* 正解発表の「せいかい」バッジ（右上）が選択肢の文字に重ならないよう、上をあける */
+.choice[data-divp-mark="answer"]{padding-top:24px}
+.status{min-height:56px;margin-top:12px;text-align:center}
+.status .msg{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:20px}
+.status .msg.ok{color:var(--ok)}
+.status .msg.ng{color:var(--shu)}
+.status .msg.wait{color:var(--ai);font-size:16px}
+.status .sub{font-size:14px;color:var(--ink-soft)}
+.expl{margin-top:8px;font-size:14px;background:var(--white);border-radius:12px;padding:8px 12px;text-align:left;box-shadow:var(--shadow)}
+.net{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);background:var(--navy);color:#fff;font-size:13px;border-radius:999px;padding:6px 14px;display:none;z-index:50}
+.net.on{display:block}
+/* 失格 */
+.dq{text-align:center;padding:24px 10px}
+.dq-stamp{display:inline-block;font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:64px;color:var(--shu);
+  border:6px solid var(--shu);border-radius:16px;padding:0 24px;transform:rotate(-8deg);margin:10px 0 20px}
+/* 結果 */
+.res-top{text-align:center}
+.res-rank{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:64px;color:var(--navy);line-height:1.1}
+.res-rank small{font-size:20px;color:var(--ink-soft)}
+.res-rank.r1{color:var(--gold);text-shadow:0 3px 0 var(--navy)}
+.res-score{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:26px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{padding:7px 6px;border-bottom:1px solid var(--grid);text-align:left}
+th{font-size:12px;color:var(--ink-soft)}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+td.rk{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;width:52px}
+tr.me td{background:#FFF6E3;font-weight:700}
+tr.dq td{color:var(--ink-soft)}
+.dqtag{color:var(--shu);font-size:12px;font-weight:700}
+.rv{border-top:1px solid var(--grid);padding:10px 0}
+.rv .h{font-size:13px;color:var(--ink-soft)}
+.rv .mark{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:18px;margin-right:6px}
+.rv .mark.ok{color:var(--ok)}
+.rv .mark.ng{color:var(--shu)}
+.rv .q{font-weight:700}
+.rv .a-ok{color:var(--ok);font-weight:700}
+.rv .a-ng{color:var(--shu)}
+@media (max-width:420px){
+  .qtext{font-size:18px}
+  .choice{font-size:15px;min-height:58px;padding-left:40px}
+  .choice .mk{left:8px}
+  .res-rank{font-size:52px}
+}
+@media print{.divp-header{display:none!important}}
+</style>
+</head>
+<body>
+<script src="/assets/divp-header.js"></script>
+<div class="app" id="app">
+
+  <h1 class="title">一般常識<span>バトル</span></h1>
+  <p class="lead">小学校高学年・6択 みんなで同時に対戦</p>
+
+  <!-- ログインしていない -->
+  <section class="scr" id="scr-login">
+    <div class="card" style="text-align:center">
+      <h2>ログインしてね</h2>
+      <p id="login-msg">右上の「ログイン」から、生徒コードとPINで入ってください。</p>
+    </div>
+  </section>
+
+  <!-- 部屋番号を入れる -->
+  <section class="scr" id="scr-join">
+    <div class="card" style="text-align:center">
+      <h2>部屋番号を入れてね</h2>
+      <p class="note">先生が教えてくれる4けたの数字です</p>
+      <input class="code-in" id="code" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="0000">
+      <button type="button" class="btn" id="join-btn">部屋に入る</button>
+      <p class="err" id="join-err"></p>
+    </div>
+    <div class="card">
+      <h2>ルール</h2>
+      <ul class="rules">
+        <li>全員が同じ問題を、同じ時間で解きます（6つから1つえらぶ）</li>
+        <li>1問 <b style="color:var(--ink)">10点</b>。合計点で順位が決まります</li>
+        <li>時間内なら、何回でもえらび直せます（最後にえらんだものが答えになります）</li>
+        <li>時間になると、自動で次の問題に進みます</li>
+        <li>スタートしたら、<b>ほかのアプリやタブを開いたり、画面を閉じたりすると失格</b>です</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 待合室 -->
+  <section class="scr" id="scr-lobby">
+    <div class="card" style="text-align:center">
+      <div class="note">部屋番号</div>
+      <div style="font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:40px;color:var(--navy);letter-spacing:.15em" id="lb-code"></div>
+      <div class="meta" id="lb-meta"></div>
+      <div class="wait-big"><span class="dots">先生がスタートするまで待ってね</span></div>
+      <div class="players" id="lb-players"></div>
+      <div class="warn">
+        <b>この画面を開いたまま待ってね。</b>スタートの時に画面を開いていないと参加できません。<br>
+        スタートしたら、<b>ほかのアプリやタブを開く・画面を閉じる・画面を消す</b>と失格です。
+      </div>
+    </div>
+    <button type="button" class="btn ghost" id="leave-btn">部屋から出る</button>
+  </section>
+
+  <!-- カウントダウン -->
+  <section class="scr" id="scr-countdown">
+    <div class="cd"><div class="cd-num" id="cd-num">5</div><div class="cd-lbl">まもなくスタート！</div></div>
+  </section>
+
+  <!-- 出題 -->
+  <section class="scr" id="scr-play">
+    <div class="top">
+      <span class="qno" id="qno"></span>
+      <span class="sc" id="sc">0点</span>
+    </div>
+    <div class="timerrow"><div class="bar"><i id="bar"></i></div><span class="sec" id="sec"></span></div>
+    <div class="qcard"><div class="qcat" id="qcat"></div><div class="qtext" id="qtext"></div></div>
+    <div class="choices" id="choices"></div>
+    <div class="status" id="status"></div>
+  </section>
+
+  <!-- 失格 -->
+  <section class="scr" id="scr-dq">
+    <div class="card dq">
+      <div class="dq-stamp">失格</div>
+      <p style="font-weight:700;font-size:17px" id="dq-why"></p>
+      <p class="note" id="dq-wait">対戦が終わったら、ここに結果が出ます。</p>
+    </div>
+  </section>
+
+  <!-- 結果 -->
+  <section class="scr" id="scr-result">
+    <div class="card res-top" id="res-top"></div>
+    <div class="card"><h2>順位</h2><div id="res-table"></div></div>
+    <div class="card"><h2>ふりかえり</h2><p class="note">まちがえた問題は、正解と解説をたしかめよう</p><div id="res-review"></div></div>
+    <button type="button" class="btn" id="again-btn">次の対戦へ（部屋番号を入れる）</button>
+  </section>
+
+  <!-- 部屋が閉じた -->
+  <section class="scr" id="scr-closed">
+    <div class="card" style="text-align:center">
+      <h2>先生が部屋を閉じました</h2>
+      <p class="note">この対戦の結果は残りません</p>
+      <button type="button" class="btn" id="closed-btn" style="margin-top:12px">部屋番号を入れる</button>
+    </div>
+  </section>
+</div>
+<div class="net" id="net">通信が不安定です…</div>
+
+<script src="/assets/divp-correct.js"></script>
+<script src="/assets/divp-choice-mark.js"></script>
+<script>
+(function () {
+  'use strict';
+  var API = '/api/battle_play.php';
+  var MARKS = ['ア', 'イ', 'ウ', 'エ', 'オ', 'カ'];
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // ---------- サーバーの時計に合わせる（端末の時計は使わない） ----------
+  var clock = { off: null, rtt: Infinity };
+  function nowMs() { return (window.performance && performance.now) ? performance.now() : Date.now(); }
+  function serverNow() { return clock.off === null ? 0 : nowMs() + clock.off; }
+  function syncClock(serverMs, t0, t1) {
+    var rtt = t1 - t0, off = serverMs - (t0 + t1) / 2;
+    // 往復の短い測定ほど正確なのでそれを採る。大きくずれたら（スリープ明けなど）測り直す
+    if (clock.off === null || rtt <= clock.rtt || Math.abs(off - clock.off) > 2000) { clock.off = off; clock.rtt = rtt; }
+  }
+  var netFails = 0;
+  function api(params, body) {
+    var t0 = nowMs();
+    var p = body
+      ? fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(body) })
+      : fetch(API + '?' + new URLSearchParams(params).toString(), { credentials: 'same-origin', cache: 'no-store' });
+    return p.then(function (res) {
+      var t1 = nowMs();
+      return res.json().catch(function () { return null; }).then(function (data) {
+        if (data && typeof data.now_ms === 'number') syncClock(data.now_ms, t0, t1);
+        netFails = 0; $('net').classList.remove('on');
+        return { status: res.status, data: data || { ok: false, error: 'bad_response' } };
+      });
+    }).catch(function () {
+      netFails++;
+      if (netFails >= 2) $('net').classList.add('on');
+      return { status: 0, data: { ok: false, error: 'network' } };
+    });
+  }
+
+  // ---------- 画面の切りかえ ----------
+  var screen = '';
+  function show(name) {
+    if (screen === name) return;
+    screen = name;
+    Array.prototype.forEach.call(document.querySelectorAll('.scr'), function (s) {
+      s.classList.toggle('on', s.id === 'scr-' + name);
+    });
+  }
+
+  var room = null, me = null;
+  var timers = {};
+  function later(key, fn, ms) { clearTimeout(timers[key]); timers[key] = setTimeout(fn, ms); }
+  function cancel(key) { clearTimeout(timers[key]); }
+
+  // ---------- 画面を消さない（自動ロックで失格にならないように） ----------
+  var wake = null;
+  function requestWake() {
+    try {
+      if (wake || !('wakeLock' in navigator) || document.visibilityState !== 'visible') return;
+      navigator.wakeLock.request('screen').then(function (l) {
+        wake = l;
+        l.addEventListener('release', function () { wake = null; });
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  function releaseWake() { try { if (wake) wake.release(); } catch (e) {} wake = null; }
+
+  // ---------- はじめに ----------
+  function boot() {
+    if (hasFocusNow()) focusSeen = true;
+    if (location.protocol === 'file:') { $('login-msg').textContent = 'サーバーに置いて開いてください'; show('login'); return; }
+    fetch('/api/whoami.php', { credentials: 'same-origin', cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+      if (!(d && d.ok && d.actor && d.actor.type === 'student')) {
+        if (d && d.ok && d.actor && d.actor.type === 'teacher') $('login-msg').innerHTML = '先生は <a href="/battle_host.php">講師用の画面</a> から部屋を作ってください。';
+        show('login');
+        return;
+      }
+      api({ action: 'mine' }).then(function (r) {
+        if (!r.data.ok) { showJoin(r.data.error === 'network' ? '通信できませんでした。開き直してください' : ''); return; }
+        route(r.data);
+      });
+    }).catch(function () { show('login'); });
+  }
+
+  function route(d) {
+    room = d.room; me = d.me;
+    if (!room) return showJoin('');
+    if (room.status === 'lobby') return enterLobby();
+    if (room.status === 'playing') {
+      if (me.status === 'dq') return showDQ();
+      if (me.status === 'playing') return enterGame();
+      return showJoin('その部屋はもう始まっています');
+    }
+    if (room.status === 'finished') return loadResult();
+    showClosed();
+  }
+
+  // ---------- 部屋に入る ----------
+  var JOIN_ERR = {
+    invalid_code: '4けたの数字を入れてね',
+    room_not_found: 'その番号の部屋はありません',
+    already_started: 'その部屋はもう始まっています',
+    network: '通信できませんでした。もう一度おしてね'
+  };
+  function showJoin(msg) {
+    room = null;
+    $('join-err').textContent = msg || '';
+    show('join');
+  }
+  $('code').addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 4); });
+  $('code').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('join-btn').click(); });
+  $('join-btn').addEventListener('click', function () {
+    var code = $('code').value;
+    if (code.length !== 4) { $('join-err').textContent = JOIN_ERR.invalid_code; return; }
+    var btn = this;
+    btn.disabled = true;
+    requestWake();   // ボタンを押した瞬間のほうが通りやすい端末がある
+    api(null, { action: 'join', code: code }).then(function (r) {
+      btn.disabled = false;
+      if (!r.data.ok) { $('join-err').textContent = JOIN_ERR[r.data.error] || ('エラー: ' + r.data.error); return; }
+      room = r.data.room; me = r.data.me;
+      enterLobby();
+    });
+  });
+
+  // ---------- 待合室 ----------
+  function metaHTML() {
+    var t = '1問' + room.limit_sec + '秒' + (room.calc_sec && room.calc_sec !== room.limit_sec ? '（計算は' + room.calc_sec + '秒）' : '');
+    return '<span class="pill">' + esc(room.level_label) + '</span><span class="pill">' + room.count + '問</span>'
+      + '<span class="pill">' + t + '</span><span class="pill">1問' + room.point + '点</span>';
+  }
+  // 進行表（サーバーの battle_schedule と同じもの）から、ある時刻が何問目か・その出題と締め切り・終了時刻を出す。
+  // 制限時間は問題ごとにちがう（難しい・超難は計算が要る問題だけ長い）
+  function scheduleAt(now) {
+    var sch = room.schedule || [], rel = now - room.start_ms;
+    if (!sch.length) return { end: true };
+    var last = sch[sch.length - 1];
+    if (rel >= last[0] + (last[1] + room.reveal_sec) * 1000) return { end: true };
+    var seq = 0;
+    for (var i = 0; i < sch.length; i++) { if (sch[i][0] <= rel) seq = i; else break; }
+    var open = room.start_ms + sch[seq][0];
+    return { seq: seq, open: open, close: open + sch[seq][1] * 1000, limit: sch[seq][1] };
+  }
+  function enterLobby() {
+    $('lb-code').textContent = room.code;
+    $('lb-meta').innerHTML = metaHTML();
+    $('lb-players').innerHTML = '';
+    show('lobby');
+    requestWake();
+    lobbyPoll();
+  }
+  function lobbyPoll() {
+    cancel('lobby');
+    if (screen !== 'lobby' || !room) return;
+    api({ action: 'state', room_id: room.room_id }).then(function (r) {
+      if (screen !== 'lobby' || !room) return;
+      var d = r.data;
+      if (!d.ok) {
+        if (d.error === 'not_in_room' || d.error === 'room_not_found') return showJoin('');
+        later('lobby', lobbyPoll, 2000);
+        return;
+      }
+      room = d.room; me = d.me;
+      if (room.status === 'cancelled') return showClosed();
+      if (room.status === 'playing') {
+        if (me.status === 'playing') return enterGame();
+        return showJoin('スタートの時に画面が開いていなかったので、参加できませんでした');
+      }
+      if (me.status === 'left') return showJoin('');
+      if (hasFocusNow()) focusSeen = true;
+      $('lb-players').innerHTML = (d.players || []).map(function (p) {
+        return '<span class="pl">' + esc(p.name) + '</span>';
+      }).join('');
+      later('lobby', lobbyPoll, 2000);
+    });
+  }
+  $('leave-btn').addEventListener('click', function () {
+    if (!room) return showJoin('');
+    var id = room.room_id;
+    cancel('lobby');
+    api(null, { action: 'leave', room_id: id }).then(function () { showJoin(''); });
+  });
+
+  // ---------- 対戦 ----------
+  var inGame = false;
+  var cur = null;          // いまの問題 { seq, open, close, q, choice, locked, reveal, fetchingR }
+  var score = 0, nPlaying = null;   // 対戦中は自分の順位を出さない（サーバーも返さない。結果画面でだけ出す）
+  var loopTimer = null, pingTimer = null;
+
+  function enterGame() {
+    if (inGame) return;
+    inGame = true;
+    cur = null; score = 0; nPlaying = null;
+    unfocusedSince = null;
+    cancel('lobby');
+    document.documentElement.classList.add('ingame');
+    armGuards();
+    requestWake();
+    $('sc').textContent = '0点';
+    loopTimer = setInterval(loop, 100);
+    pingTimer = setInterval(ping, 5000);
+    loop();
+  }
+  function exitGame() {
+    inGame = false;
+    clearInterval(loopTimer); clearInterval(pingTimer);
+    loopTimer = pingTimer = null;
+    cancel('q'); cancel('a');
+    document.documentElement.classList.remove('ingame');
+    releaseWake();
+  }
+
+  function loop() {
+    if (!inGame || !room || clock.off === null) return;
+    checkFocus();
+    if (!inGame) return;
+    var now = serverNow();
+    if (now < room.start_ms) {
+      show('countdown');
+      $('cd-num').textContent = Math.max(1, Math.ceil((room.start_ms - now) / 1000));
+      return;
+    }
+    var at = scheduleAt(now);
+    if (at.end) { exitGame(); loadResult(); return; }
+    var seq = at.seq, close = at.close;
+    if (!cur || cur.seq !== seq) startQuestion(seq, at.open, close);
+    show('play');
+    drawTimer(now);
+    if (now >= close && !cur.locked) lockChoices();
+    if (now >= close + room.grace_ms && !cur.reveal && !cur.fetchingR) fetchReveal();
+  }
+
+  function drawTimer(now) {
+    var left = cur.close - now, bar = $('bar');
+    var pct = Math.max(0, Math.min(100, left / (cur.close - cur.open) * 100));
+    bar.style.width = pct + '%';
+    bar.classList.toggle('low', left <= 5000);
+    $('sec').textContent = left > 0 ? Math.ceil(left / 1000) + '秒' : '';
+  }
+
+  function startQuestion(seq, open, close) {
+    // choice=いま選んでいる答え / accepted=サーバーが受け取った答え / sending=送信中 / pending=送信中に選び直した答え
+    cur = { seq: seq, open: open, close: close, q: null, choice: null, accepted: null, sending: false, pending: null,
+            locked: false, reveal: null, fetchingR: false };
+    $('qno').innerHTML = '第' + (seq + 1) + '問<small> / ' + room.count + '</small>';
+    $('qcat').textContent = '';
+    $('qtext').textContent = '問題を読みこみ中…';
+    $('choices').innerHTML = '';
+    $('choices').classList.remove('locked');
+    $('status').innerHTML = '';
+    // 全員が同じ瞬間に問い合わせるとサーバーが詰まるので、少しだけずらす
+    later('q', function () { fetchQuestion(seq); }, Math.floor(Math.random() * 250));
+  }
+
+  function fetchQuestion(seq) {
+    if (!inGame || !cur || cur.seq !== seq) return;
+    api({ action: 'question', room_id: room.room_id, seq: seq }).then(function (r) {
+      if (!inGame || !cur || cur.seq !== seq) return;
+      var d = r.data;
+      if (d.ok) return renderQuestion(d);
+      if (d.error === 'not_yet') return later('q', function () { fetchQuestion(seq); }, Math.max(100, d.wait_ms || 300));
+      if (d.error === 'not_playing') return out(d);
+      later('q', function () { fetchQuestion(seq); }, 600);
+    });
+  }
+
+  function renderQuestion(d) {
+    cur.q = d.question;
+    var sec = Math.round((cur.close - cur.open) / 1000);
+    $('qcat').textContent = d.question.category + (sec > room.limit_sec ? '　｜ 計算問題・' + sec + '秒' : '');
+    $('qtext').textContent = d.question.text;
+    $('choices').innerHTML = d.question.choices.map(function (c, i) {
+      return '<button type="button" class="choice" data-i="' + i + '"><span class="mk">' + MARKS[i] + '</span>' + esc(c) + '</button>';
+    }).join('');
+    Array.prototype.forEach.call($('choices').children, function (b) {
+      b.addEventListener('click', function () { answer(+b.dataset.i); });
+    });
+    if (d.answered != null) { cur.choice = cur.accepted = d.answered; markSent(); }
+    if (serverNow() >= cur.close) lockChoices();
+  }
+
+  // 締め切りまでは何度でも選び直せる（最後にサーバーへ届いた答えが有効）
+  function answer(i) {
+    if (!inGame || !cur || !cur.q || cur.locked || cur.choice === i) return;
+    if (serverNow() >= cur.close) { lockChoices(); return; }
+    cur.choice = i;
+    markSent();
+    sendAnswer(cur.seq, i, 0);
+  }
+  // 送信は1本ずつ。送っている途中で選び直したら、返事を待ってから最後の1つだけを送る
+  // （並べて送ると、先に押した答えがあとから届いて上書きしてしまうことがあるため）
+  function sendAnswer(seq, i, tries) {
+    if (cur.sending) { cur.pending = i; return; }
+    cur.sending = true;
+    api(null, { action: 'answer', room_id: room.room_id, seq: seq, choice: i }).then(function (r) {
+      if (!inGame || !cur || cur.seq !== seq) return;
+      cur.sending = false;
+      var d = r.data;
+      if (d.ok) {
+        cur.accepted = i;
+      } else if (d.error === 'closed') {
+        // 締め切りに間に合わなかった。前に届いていた答えがあればそれが有効
+        cur.pending = null;
+        cur.choice = cur.accepted;
+        markSent();
+        setStatus('<div class="msg ng">' + (cur.accepted == null ? '時間切れでした' : '時間切れで変えられませんでした') + '</div>');
+        return;
+      } else if (d.error === 'not_playing') {
+        return out(d);
+      } else if (tries < 2) {
+        if (cur.pending == null) cur.pending = i;   // 通信の失敗は少し待って送り直す
+        return later('a', function () { flushPending(seq, tries + 1); }, 400);
+      }
+      flushPending(seq, 0);
+    });
+  }
+  function flushPending(seq, tries) {
+    if (!cur || cur.seq !== seq || cur.pending == null) return;
+    var p = cur.pending;
+    cur.pending = null;
+    if (p !== cur.accepted) sendAnswer(seq, p, tries);
+  }
+  function markSent() {
+    Array.prototype.forEach.call($('choices').children, function (b, k) {
+      b.classList.toggle('sel', k === cur.choice);
+    });
+    if (cur.choice == null) return;
+    setStatus('<div class="msg wait">こたえを送ったよ！</div><div class="sub">時間内なら、ほかのボタンを押してえらび直せるよ</div>');
+  }
+  function lockChoices() {
+    cur.locked = true;
+    $('choices').classList.add('locked');
+    Array.prototype.forEach.call($('choices').children, function (b) { b.disabled = true; });
+    if (cur.choice === null) setStatus('<div class="msg ng">時間切れ！</div>');
+    else setStatus('<div class="msg wait">しめきり！ 正解発表を待とう</div>');
+  }
+  function setStatus(html) { $('status').innerHTML = html; }
+
+  function fetchReveal() {
+    var seq = cur.seq;
+    cur.fetchingR = true;
+    api({ action: 'reveal', room_id: room.room_id, seq: seq }).then(function (r) {
+      if (!inGame || !cur || cur.seq !== seq) return;
+      var d = r.data;
+      if (!d.ok) {
+        if (d.error === 'not_playing') return out(d);
+        later('r', function () { if (cur && cur.seq === seq) cur.fetchingR = false; }, d.error === 'not_yet' ? Math.max(100, d.wait_ms || 300) : 600);
+        return;
+      }
+      cur.reveal = d;
+      score = d.score; nPlaying = d.n_playing;
+      $('sc').textContent = score + '点';
+      if (window.Divp && Divp.markChoices) {
+        Divp.markChoices($('choices').children, { correct: d.correct, selected: d.mine == null ? -1 : d.mine, dimOthers: true, label: 'せいかい' });
+      }
+      var head;
+      if (d.is_correct) {
+        head = '<div class="msg ok">せいかい！ +' + room.point + '点</div>';
+        if (window.Divp && Divp.correct) { try { Divp.correct({ text: '' }); } catch (e) {} }
+      } else if (d.mine == null) {
+        head = '<div class="msg ng">時間切れ… 正解は ' + MARKS[d.correct] + '</div>';
+      } else {
+        head = '<div class="msg ng">ざんねん！ 正解は ' + MARKS[d.correct] + '</div>';
+      }
+      setStatus(head + '<div class="sub">正解した人 ' + d.n_correct + ' / ' + d.n_playing + '人</div>'
+        + (d.explanation ? '<div class="expl">' + esc(d.explanation) + '</div>' : ''));
+    });
+  }
+
+  // 5秒ごとの生存確認（サーバーはこれが20秒途絶えると失格にする）。中止・失格もここで気づく
+  function ping() {
+    if (!inGame || !room) return;
+    api({ action: 'state', room_id: room.room_id }).then(function (r) {
+      if (!inGame || !r.data.ok) return;
+      out(r.data);
+    });
+  }
+
+  // 対戦が続けられない知らせ（失格・中止・終了）が来たら画面を切りかえる
+  function out(d) {
+    if (d.room) room = d.room;
+    if (d.me) me = d.me;
+    if (me && me.status === 'dq') { exitGame(); return showDQ(); }
+    if (room.status === 'cancelled') { exitGame(); return showClosed(); }
+    if (room.status === 'finished') { exitGame(); return loadResult(); }
+  }
+
+  // ---------- 失格の見張り ----------
+  var guardsArmed = false;
+  var REASON = { hidden: 'ほかのアプリ・タブを開いた', blur: '別のウィンドウに切りかえた', pagehide: '画面を閉じた' };
+  function armGuards() {
+    if (guardsArmed) return;
+    guardsArmed = true;
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') disqualify('hidden');
+    });
+    window.addEventListener('pagehide', function () { disqualify('pagehide'); });
+  }
+  // PC で別のウィンドウを使っている（画面は見えたまま＝visibilitychange が来ない）のを見張る。
+  // blur イベントだけだと「スタートの前から別のウィンドウにいた」を取りこぼすので、loop() から毎回見る。
+  //  * 一瞬外れてすぐ戻る誤検知を避けるため、1秒続いたら失格
+  //  * document.hasFocus() が一度も true にならない環境（アプリ内ブラウザ等）では見張らない。
+  //    そういう環境で「ずっと false」を失格と読むと、全員がスタート直後に失格になる
+  var focusSeen = false, unfocusedSince = null;
+  function hasFocusNow() {
+    try { return document.hasFocus(); } catch (e) { return true; }
+  }
+  function checkFocus() {
+    if (hasFocusNow()) { focusSeen = true; unfocusedSince = null; return; }
+    if (!focusSeen) return;
+    if (unfocusedSince === null) unfocusedSince = nowMs();
+    else if (nowMs() - unfocusedSince >= 1000) disqualify('blur');
+  }
+  document.addEventListener('pointerdown', function () { if (hasFocusNow()) focusSeen = true; }, true);
+  function disqualify(reason) {
+    if (!inGame || !room) return;
+    var body = JSON.stringify({ action: 'dq', room_id: room.room_id, reason: reason });
+    var sent = false;
+    // 閉じる途中でも届く sendBeacon。文字列で送る（Content-Type が text/plain になり、どのブラウザでも通る。
+    // サーバーは本文をJSONとして読む）
+    try { sent = !!(navigator.sendBeacon && navigator.sendBeacon(API, body)); } catch (e) {}
+    if (!sent) {
+      try { fetch(API, { method: 'POST', body: body, credentials: 'same-origin', keepalive: true, headers: { 'Content-Type': 'application/json' } }); } catch (e) {}
+    }
+    exitGame();
+    me = { status: 'dq', dq_reason: REASON[reason], dq_no: cur ? cur.seq + 1 : null };
+    showDQ();
+  }
+
+  // ---------- 失格・閉じた ----------
+  function showDQ() {
+    exitGame();
+    $('dq-why').textContent = (me && me.dq_reason ? me.dq_reason : '画面を離れた') + 'ため、失格になりました' + (me && me.dq_no ? '（第' + me.dq_no + '問）' : '');
+    show('dq');
+    later('res', loadResult, 3000);
+  }
+  function showClosed() { exitGame(); cancel('lobby'); show('closed'); }
+  $('closed-btn').addEventListener('click', function () { showJoin(''); });
+
+  // ---------- 結果 ----------
+  function loadResult() {
+    if (!room) return showJoin('');
+    var id = room.room_id;
+    api({ action: 'result', room_id: id }).then(function (r) {
+      if (!room || room.room_id !== id) return;
+      var d = r.data;
+      if (d.ok) return renderResult(d);
+      if (d.error === 'cancelled') return showClosed();
+      // まだ終わっていない（失格して待っている／最後の正解発表の直後）。終了時刻まで待って取り直す
+      var wait = d.wait_ms != null ? d.wait_ms + 800 : 3000;
+      later('res', loadResult, Math.max(1500, Math.min(wait, 10000)));
+    });
+  }
+
+  function renderResult(d) {
+    var mine = d.mine;
+    var top;
+    if (mine && !mine.dq) {
+      var n = d.standings.filter(function (s) { return !s.dq; }).length;
+      top = '<div class="res-rank' + (mine.rank === 1 ? ' r1' : '') + '">' + mine.rank + '位<small> / ' + n + '人</small></div>'
+        + '<div class="res-score">' + mine.score + '点</div><div class="note">' + d.room.count + '問中 ' + mine.correct + '問 正解</div>';
+    } else {
+      top = '<div class="dq-stamp" style="font-size:40px">失格</div><div class="note">' + esc(mine && mine.dq_reason ? mine.dq_reason : '') + '</div>';
+    }
+    $('res-top').innerHTML = top;
+    $('res-table').innerHTML = '<table><tr><th>順位</th><th>名前</th><th>教室</th><th class="num">点数</th></tr>'
+      + d.standings.map(function (s) {
+        return '<tr class="' + (s.me ? 'me' : '') + (s.dq ? ' dq' : '') + '"><td class="rk">' + (s.dq ? '−' : s.rank + '位') + '</td><td>' + esc(s.name)
+          + (s.dq ? ' <span class="dqtag">失格</span>' : '') + '</td><td>' + esc(s.classroom) + '</td><td class="num">' + s.score + '</td></tr>';
+      }).join('') + '</table>';
+    $('res-review').innerHTML = d.review.map(function (q) {
+      var ok = q.mine != null && q.mine === q.correct;
+      var mineTxt = q.mine == null ? '（こたえていない）' : MARKS[q.mine] + ' ' + esc(q.choices[q.mine]);
+      return '<div class="rv"><div class="h"><span class="mark ' + (ok ? 'ok' : 'ng') + '">' + (ok ? '○' : '✕') + '</span>第' + q.no + '問・' + esc(q.category) + '</div>'
+        + '<div class="q">' + esc(q.text) + '</div>'
+        + (ok ? '' : '<div class="a-ng">あなた: ' + mineTxt + '</div>')
+        + '<div class="a-ok">正解: ' + MARKS[q.correct] + ' ' + esc(q.choices[q.correct]) + '</div>'
+        + (q.explanation ? '<div class="note">' + esc(q.explanation) + '</div>' : '') + '</div>';
+    }).join('');
+    show('result');
+    window.scrollTo(0, 0);
+  }
+  $('again-btn').addEventListener('click', function () { $('code').value = ''; showJoin(''); window.scrollTo(0, 0); });
+
+  // PC: 数字キー 1〜6 でも答えられる
+  document.addEventListener('keydown', function (e) {
+    if (screen !== 'play' || !cur || !cur.q) return;
+    var k = '123456'.indexOf(e.key);
+    if (k >= 0) answer(k);
+  });
+
+  // 待合室で画面に戻ってきたら、すぐ状態を見直す（スタートに気づくのを早める）
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && screen === 'lobby') { requestWake(); lobbyPoll(); }
+  });
+  // 戻るボタン等でページがキャッシュから復元された時は、状態が古いので読み直す
+  window.addEventListener('pageshow', function (e) { if (e.persisted) location.reload(); });
+
+  boot();
+})();
+</script>
+</body>
+</html>

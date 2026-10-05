@@ -685,6 +685,50 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    兄弟が別教室でも二重計上しない。保護者は自動ログイン(divp_remember)を発行しないので
    login_logs に訪問のたび1行残る＝「ログイン回数」がそのまま「見に来た回数」になる
    （生徒は自動ログインで記録が残らない回があるため、同じ数え方は生徒に使えない）。
+5i. **一般常識バトル（小学校高学年・6択の一斉対戦）**: 講師が /battle_host.php で部屋を作る
+   （難易度4段階×問題数10〜100の5問きざみ）→ 4桁の部屋番号を生徒に伝える →
+   生徒は learning/game/game_es_joshiki_battle.html で番号を入れて待合室へ → 講師がスタート →
+   全員が同じ問題を同じ並び・同じ時刻に解く（易しい・普通15秒、難しい・超難20秒で**計算が要る問題だけ60秒**。
+   締め切りで自動で次へ）→
+   1問10点の合計点で順位（同点同順位）。部屋を作れるのは講師だけ、講師は解かずに進行・観戦する。
+   **対戦中は生徒に自分の順位を見せない**（点数だけ。api/battle_play.php の reveal は順位を返さない＝
+   画面で隠すだけにしない）。順位は終了後の結果画面でだけ出る。
+   API: api/battle_host.php（講師）/ api/battle_play.php（生徒）/ 共通 api/battle_common.php。
+   テーブル: db/migrations/migrate_joshiki_battle.sql（battle_questions / battle_rooms /
+   battle_room_questions / battle_players / battle_answers）。
+   問題: db/seeds/joshiki_battle/*.json が原本（10カテゴリ×4難易度×100問）。
+   `node db/seeds/joshiki_battle/build_seed.js` で db/seeds/seed_joshiki_battle_lv1〜4.sql を作る
+   （**SQLを手で直さない**。JSONを直して作り直す。id＝src_key は一度振ったら変えない。
+   まちがった問題は消さずに `"off": true`）。作問の基準と品質ルールは同フォルダの README.md、
+   機械チェックは `node validate.js --all`。
+   ⚠ **ほかの学習ツールと設計が逆の点が3つある**（点数を競うので、ここだけサーバーが決める）:
+   - **正解は画面に送らない**。サーバーが採点し、締め切り＋猶予(1.5秒)を過ぎてからしか正解を返さない
+     （1. の「正誤判定はツール側の責務」の例外）。答えた直後も正誤は返さない＝先に答えた子が周りに教えられない。
+     締め切りまでは選び直せる（battle_answers を上書き＝最後に届いた答えが有効）。画面は送信を1本ずつにして、
+     送信中に選び直した答えは返事を待ってから送る（並べて送ると古い答えがあとから届いて上書きすることがあるため）
+   - **制限時間は問題ごと**。問題JSONの `"calc": true`（＝battle_questions.needs_calc）が計算の要る問題で、
+     部屋を作るときに BATTLE_LEVELS の sec / calc_sec を battle_room_questions.limit_sec に書く
+     （列は db/migrations/migrate_joshiki_battle_calc.sql。流す前は全問 time_limit_sec で動く＝battle_has_calc()）。
+     出題時刻は保存せず battle_schedule() が「前の問題の（制限時間＋正解発表）の合計」で毎回作り、
+     画面へも room.schedule で渡す（画面とサーバーが同じ表で何問目かを決める）
+   - **進行はサーバーの時刻だけで決まる**。start_ms + 進行表の offset が出題時刻で、
+     状態を進める cron も講師の画面も要らない（講師が画面を閉じても対戦は続く）。時刻は **PHP の
+     microtime（UNIXミリ秒）だけ**で比べ、DB の NOW() と混ぜない（Heteml は PHP と MySQL が別マシン）。
+     画面は応答の now_ms と performance.now() の差で時計を合わせる（5a3 と同じく端末の時計は使わない）
+   - **学習記録に一切書かない**（answer_logs / XP / 解き直し / 学習時間。divp-core.js も読まない）。
+     ユーザーの判断で「バトルだけで完結」。4点セットの対象外
+   ⚠ **失格**: スタート後（カウントダウンを含む）に画面を離れたら失格＝順位なし。
+   画面側で visibilitychange(hidden)・pagehide・フォーカスが1秒外れたまま（PCの別ウィンドウ）を見て
+   sendBeacon で知らせる。届かなくても、サーバーが「20秒通信が無い」「対戦中にページを開き直した
+   （action=mine が来た）」で失格にする（battle_tick がアクセスのたびに判定）。
+   フォーカスの見張りは **document.hasFocus() が一度でも true になった端末だけ**
+   （常に false を返すアプリ内ブラウザで全員が失格になるのを防ぐ）。待合室では失格にしない。
+   画面の外のカンニング（別の端末・本・となりの人）は防げない。電話の着信・画面の自動ロックでも
+   失格になる（Wake Lock で画面を消さないようにしてあるが、iOS 16.4 未満は効かない）。
+   ⚠ スタートの瞬間に待合室の画面を開いていない（10秒通信が無い）生徒は参加させない
+   （戻ってきたら途中から始まっていて即失格、を避ける）。
+   回帰テストは tests/joshiki-battle.spec.js（偽サーバーは tests/fixtures/battle-fake.js。
+   PHP と同じ約束で動かしているので、API の応答を変えたらこちらも合わせる）。
 6. **実機で1周**: ログイン→解く→answer_logs→マイページ反映まで確認
 7. 平方根が1周通っていれば「計算どぅする？」
    (math_es_keisan_dousuru、13カテゴリのIDをquestion_keyに)も横展開

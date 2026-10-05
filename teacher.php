@@ -1222,6 +1222,8 @@ function ssl_row_html(array $ssl): string
       </span>
       <span class="who-actions">
         <a class="logout" href="/admin.php" style="text-decoration:none;">生徒・保護者登録＆修正</a>
+        <!-- 一般常識バトルの部屋を作る・進行する（授業中にタブレットからも使うのでスマホでも出す） -->
+        <a class="logout" href="/battle_host.php" style="text-decoration:none;">一般常識バトル</a>
         <!-- 教室別利用状況＋人気ツールの共有用資料（印刷前提なのでスマホでは出さない） -->
         <a class="logout sp-hide" href="/report.php" style="text-decoration:none;">利用状況レポート</a>
         <!-- 作問はPC作業なのでスマホでは出さない（.sp-hide） -->
