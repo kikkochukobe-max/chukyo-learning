@@ -209,6 +209,7 @@ input::placeholder{color:#A9A392}
 .ta-l{min-height:150px}
 .ta-m{min-height:110px}
 .ta-s{min-height:64px}
+.ta-s2{min-height:128px}
 
 /* ---------- decisions ---------- */
 .decide{background:var(--card);border:1px solid var(--rule);padding:12px 14px}
@@ -372,6 +373,18 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <span class="sec-note">事実と数字で</span>
     </div>
     <div class="cards">
+      <div class="card wide">
+        <h3>前月所感</h3>
+        <p class="hint">前月をふり返って感じたこと。うまくいったこと・引っかかったことを、ざっくり1〜3行で。</p>
+        <textarea class="ta-s2" id="t-shokan" placeholder="例）体験は増えたが入会につながらず、案内後のフォローが遅れた
+例）夏期講習で中3の通塾日数が安定し、今月に流れを持ち越せている"></textarea>
+      </div>
+      <div class="card wide">
+        <h3>今月の目標</h3>
+        <p class="hint">今月どこを目指したか、ざっくりでよい。数字でも方向性でも、1〜3行で。</p>
+        <textarea class="ta-s2" id="t-mokuhyo" placeholder="例）在籍を中学生中心に +3（体験→入会の取りこぼしを無くす）
+例）中3の定期テスト対策を早めに回して、平均点を前回より上げる"></textarea>
+      </div>
       <div class="card">
         <h3>内部</h3>
         <p class="hint">授業・面談・生徒対応・教室運営。やったこと → 出た結果の順で。</p>
@@ -621,7 +634,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
   function isEmptyState(st){
     if(!st) return true;
-    if(["naibu","hasshin","housaku","sonota"].some(function(k){ return String(st[k] || "").trim(); })) return false;
+    if(["naibu","hasshin","shokan","mokuhyo","housaku","sonota"].some(function(k){ return String(st[k] || "").trim(); })) return false;
     if(st.goals && ["es","jh","hs"].some(function(b){ return String(st.goals[b] || "").trim(); })) return false;
     var rows = st.rows || {};
     if(GRADES.some(function(g){
@@ -808,7 +821,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   }
   function blank(){
     var s = {school:"",author:"",rows:{},goals:{es:"",jh:"",hs:""},
-             naibu:"",hasshin:"",housaku:"",sonota:"",dec:[]};
+             naibu:"",hasshin:"",shokan:"",mokuhyo:"",housaku:"",sonota:"",dec:[]};
     GRADES.forEach(function(g){ s.rows[g.k] = blankRow(); });
     s.dec.push({gidai:"",a:"",b:"",rec:"A",why:""});
     return s;
@@ -979,6 +992,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     });
     $("t-naibu").value = state.naibu;
     $("t-hasshin").value = state.hasshin;
+    $("t-shokan").value = state.shokan;
+    $("t-mokuhyo").value = state.mokuhyo;
     $("t-housaku").value = state.housaku;
     $("t-sonota").value = state.sonota;
     buildDecide();
@@ -1052,7 +1067,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       touch(); return;
     }
     var map = {"f-school":"school","f-author":"author","t-naibu":"naibu",
-               "t-hasshin":"hasshin","t-housaku":"housaku","t-sonota":"sonota"};
+               "t-hasshin":"hasshin","t-shokan":"shokan","t-mokuhyo":"mokuhyo","t-housaku":"housaku","t-sonota":"sonota"};
     if(map[el.id]){ state[map[el.id]] = el.value; touch(); }
   });
   document.addEventListener("change", function(e){
@@ -1082,7 +1097,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     if(!state || typeof state !== "object") state = blank();
     if(!state.rows || typeof state.rows !== "object") state.rows = {};
     if(!state.dec || !state.dec.length) state.dec = [{gidai:"",a:"",b:"",rec:"A",why:""}];
-    ["school","author","naibu","hasshin","housaku","sonota"].forEach(function(k){
+    // shokan・mokuhyo は後から足した欄（古い記録には無い）
+    ["school","author","naibu","hasshin","shokan","mokuhyo","housaku","sonota"].forEach(function(k){
       if(typeof state[k] !== "string") state[k] = "";
     });
     // 古い記録には入会・退会・目標の欄が無いので埋める
@@ -1200,7 +1216,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
     // ② 書いたカードだけ残す
     var any2 = false;
-    ["t-naibu","t-hasshin","t-housaku"].forEach(function(id){
+    ["t-naibu","t-hasshin","t-shokan","t-mokuhyo","t-housaku"].forEach(function(id){
       var ta = $(id), card = ta.closest(".card");
       if(!ta.value.trim()) hide(card);
       else { any2 = true; autosize(ta); }
@@ -1274,6 +1290,10 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
                  sums.all.mg, ["es","jh","hs"].some(hasG), sums.all.tp, sums.all.tc));
     L.push("");
     L.push("■2. 実施したことと結果");
+    L.push("〔前月所感〕"); L.push(state.shokan || "（記載なし）");
+    L.push("");
+    L.push("〔今月の目標〕"); L.push(state.mokuhyo || "（記載なし）");
+    L.push("");
     L.push("〔内部〕");   L.push(state.naibu || "（記載なし）");
     L.push("");
     L.push("〔発信〕");   L.push(state.hasshin || "（記載なし）");
