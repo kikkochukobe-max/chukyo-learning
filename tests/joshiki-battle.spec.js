@@ -139,6 +139,26 @@ test('待合室ではアプリを切りかえても失格にならない', async
   expect(await page.evaluate(() => window.__beacons.length)).toBe(0);
 });
 
+test('カウントダウン中に裏へ回っても失格にならない（iPhone の暗転・通知でスタート同時に失格が続いた）', async ({ page }) => {
+  const fake = makeFake({ count: 3, countdown: 5000 });   // 待合室は2秒ごとに見るので、カウントダウン画面を取りこぼさない長さ
+  await boot(page, fake);
+  await page.fill('#code', '1234');
+  await page.click('#join-btn');
+  await expect(page.locator('#scr-lobby')).toBeVisible();
+  fake.start();
+  await expect(page.locator('#scr-countdown')).toBeVisible({ timeout: 5000 });
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
+    document.dispatchEvent(new Event('visibilitychange'));
+    window.dispatchEvent(new Event('pagehide'));
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(page.locator('#scr-play')).toBeVisible({ timeout: 8000 });
+  expect(await page.evaluate(() => window.__beacons.length)).toBe(0);
+  expect(fake.st.me).toBe('playing');
+});
+
 test('PCで別のウィンドウに1秒以上いたら失格、一瞬なら失格にしない', async ({ page }) => {
   const fake = makeFake({ count: 3 });
   await boot(page, fake);
@@ -179,4 +199,53 @@ test('ない部屋番号はその場で知らせる', async ({ page }) => {
   await page.fill('#code', '9999');
   await page.click('#join-btn');
   await expect(page.locator('#join-err')).toHaveText('その番号の部屋はありません');
+});
+
+test('チーム戦: 待合室でチームを選び、結果にチームの順位（合計点・平均点）が出る', async ({ page }) => {
+  const fake = makeFake({ count: 1, teams: 3 });
+  await boot(page, fake);
+  await page.fill('#code', '1234');
+  await page.click('#join-btn');
+  await expect(page.locator('#scr-lobby')).toBeVisible();
+  // チームのボタンが部屋のチーム数だけ出る。選ぶ前は「えらんでね」
+  await expect(page.locator('#lb-tbtns .tbtn')).toHaveCount(3);
+  await expect(page.locator('#lb-tq')).toHaveText('チームをえらんでね');
+  await expect(page.locator('#lb-meta')).toContainText('3チーム戦');
+  // 赤を選んでから青に選び直す（スタートまでは何度でも）
+  await page.locator('#lb-tbtns .tbtn').nth(0).click();
+  await expect(page.locator('#lb-tq')).toContainText('赤チームに入った');
+  await page.locator('#lb-tbtns .tbtn').nth(1).click();
+  await expect(page.locator('#lb-tq')).toContainText('青チームに入った');
+  await expect(page.locator('#lb-tbtns .tbtn.on')).toHaveText(/青/);
+  expect(fake.st.team).toBe(2);
+  // 顔ぶれはチームごとに分かれる（ライバルも青）
+  await expect(page.locator('#lb-players .tgroup').nth(1)).toContainText('青チーム 2人');
+
+  fake.start();
+  await expect(page.locator('#scr-play')).toBeVisible({ timeout: 8000 });
+  await expect(page.locator('#play-team')).toHaveText('青');
+  await page.locator('#choices .choice').nth(fake.qs[0].correct).click();
+
+  await expect(page.locator('#scr-result')).toBeVisible({ timeout: 8000 });
+  await expect(page.locator('#res-teams-card')).toBeVisible();
+  await expect(page.locator('#res-top')).toContainText('青チーム　1位');
+  // 青＝自分10点＋ライバル0点 → 合計10・平均5.0
+  const row = page.locator('#res-teams tr.me');
+  await expect(row).toContainText('青チーム');
+  await expect(row.locator('td.tt')).toHaveText('10');
+  await expect(row).toContainText('5.0');
+  await expect(page.locator('#res-table-h')).toHaveText('個人の順位');
+});
+
+test('個人戦の部屋ではチームの選択も、チームの順位も出ない', async ({ page }) => {
+  const fake = makeFake({ count: 1 });
+  await boot(page, fake);
+  await page.fill('#code', '1234');
+  await page.click('#join-btn');
+  await expect(page.locator('#scr-lobby')).toBeVisible();
+  await expect(page.locator('#lb-tpick')).toBeHidden();
+  fake.start();
+  await expect(page.locator('#scr-result')).toBeVisible({ timeout: 10000 });
+  await expect(page.locator('#res-teams-card')).toBeHidden();
+  await expect(page.locator('#res-table-h')).toHaveText('順位');
 });

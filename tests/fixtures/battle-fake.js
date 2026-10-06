@@ -1,10 +1,11 @@
 // 一般常識バトルのテスト用: api/battle_play.php と同じ約束で動く偽サーバー（tests/joshiki-battle.spec.js が使う）。
 // 時刻は start_ms からの計算、正解は締め切り＋猶予のあとでしか返さない。1問2秒・正解発表1秒・カウントダウン1.5秒。
+// opts.teams にチーム数を渡すとチーム戦の部屋になる（自分は team アクションで選ぶ。ライバルは2番のチーム）。
 // opts.calc に seq の配列を渡すと、その問題だけ制限時間が calcSec 秒になる（計算問題。PHP の battle_schedule と同じ積み上げ）。
 const PAGE = '/learning/game/game_es_joshiki_battle.html';
 
 function makeFake(opts = {}) {
-  const count = opts.count || 3, limit = 2, calcSec = 4, reveal = 1, grace = 300, countdown = 1500;
+  const count = opts.count || 3, limit = 2, calcSec = 4, reveal = 1, grace = 300, countdown = opts.countdown || 1500;
   const calc = new Set(opts.calc || []);
   const schedule = [];
   for (let i = 0, off = 0; i < count; i++) { const lim = calc.has(i) ? calcSec : limit; schedule.push([off, lim]); off += (lim + reveal) * 1000; }
@@ -17,12 +18,14 @@ function makeFake(opts = {}) {
     correct: (i * 2) % 6,
     explanation: '解説' + (i + 1),
   }));
-  const st = { status: 'lobby', start: null, me: 'none', answers: {}, dqReason: null };
+  const TEAM_DEF = [['赤', '#D9483B'], ['青', '#2F6FB5'], ['黄', '#C99A00'], ['緑', '#3E8E5A']];
+  const teams = Array.from({ length: opts.teams || 0 }, (_, i) => ({ team: i + 1, name: TEAM_DEF[i][0], color: TEAM_DEF[i][1] }));
+  const st = { status: 'lobby', start: null, me: 'none', answers: {}, dqReason: null, team: null };
   const roomPub = () => ({
     room_id: 9, code: '1234', level: 1, level_label: '易しい', count, limit_sec: limit, calc_sec: calcSec, reveal_sec: reveal, schedule,
-    grace_ms: grace, point: 10, status: st.status, start_ms: st.start, phase: null, seq: null, now_ms: Date.now(),
+    grace_ms: grace, point: 10, teams, status: st.status, start_ms: st.start, phase: null, seq: null, now_ms: Date.now(),
   });
-  const mePub = () => ({ status: st.me, dq_reason: st.me === 'dq' ? (st.dqReason || '画面を開き直した') : null, dq_no: null });
+  const mePub = () => ({ status: st.me, team: st.team,dq_reason: st.me === 'dq' ? (st.dqReason || '画面を開き直した') : null, dq_no: null });
   const tick = () => { if (st.status === 'playing' && Date.now() >= st.start + endOff) st.status = 'finished'; };
   const fake = {
     st, qs,
@@ -41,8 +44,14 @@ function makeFake(opts = {}) {
         case 'leave':
           st.me = 'left';
           return { ok: true, ...base };
+        case 'team':
+          if (st.status !== 'lobby') return { ok: false, error: 'already_started', ...base };
+          if (!(+p.team >= 1 && +p.team <= teams.length)) return { ok: false, error: 'invalid_team', ...base };
+          st.team = +p.team;
+          return { ok: true, room: roomPub(), me: mePub(), ...base };
         case 'state':
-          return { ok: true, room: roomPub(), me: mePub(), players: [{ name: 'テスト太郎', classroom: '焼山' }], ...base };
+          return { ok: true, room: roomPub(), me: mePub(),
+            players: [{ name: 'テスト太郎', classroom: '焼山', team: st.team }, { name: 'ライバル', classroom: '一社', team: teams.length ? 2 : null }], ...base };
         case 'question': {
           if (st.me !== 'playing' || st.status !== 'playing') return { ok: false, error: 'not_playing', room: roomPub(), me: mePub(), ...base };
           const seq = +p.seq, open = openAt(seq);
@@ -67,16 +76,27 @@ function makeFake(opts = {}) {
             n_correct: mine === q.correct ? 1 : 0, n_playing: 1, score: correct * 10, me: mePub(), ...base };
         }
         case 'dq':
-          if (st.me === 'playing') { st.me = 'dq'; st.dqReason = p.reason; }
+          // PHP と同じく、カウントダウン中（start_ms より前）の失格は受け付けない
+          if (st.me === 'playing' && now >= st.start) { st.me = 'dq'; st.dqReason = p.reason; }
           return { ok: true, me: mePub(), ...base };
         case 'result': {
           if (st.status !== 'finished') return { ok: false, error: 'not_yet', wait_ms: Math.max(0, st.start + endOff - now), room: roomPub(), me: mePub(), ...base };
           const correct = qs.filter((q, i) => st.answers[i] === q.correct).length;
           const dq = st.me === 'dq';
           const mine = { name: 'テスト太郎', classroom: '焼山', correct, answered: Object.keys(st.answers).length, score: correct * 10,
-            rank: dq ? null : 1, dq, dq_reason: dq ? '失格' : null, dq_no: null, me: true };
-          return { ok: true, room: roomPub(), me: mePub(), mine,
-            standings: [mine, { name: 'ライバル', classroom: '一社', correct: 0, answered: 0, score: 0, rank: dq ? 1 : 2, dq: false, dq_reason: null, dq_no: null, me: false }],
+            rank: dq ? null : 1, dq, dq_reason: dq ? '失格' : null, dq_no: null, me: true, team: st.team };
+          const rival = { name: 'ライバル', classroom: '一社', correct: 0, answered: 0, score: 0, rank: dq ? 1 : 2, dq: false,
+            dq_reason: null, dq_no: null, me: false, team: teams.length ? 2 : null };
+          // チームの順位（PHP の battle_team_standings と同じ形。合計点の多い順、同点は番号の若い順・同じ順位）
+          const team_standings = teams.map((t) => {
+            const mem = [mine, rival].filter((s) => s.team === t.team);
+            const total = mem.reduce((a, s) => a + s.score, 0);
+            return { ...t, members: mem.length, total, correct: total / 10, n_dq: mem.filter((s) => s.dq).length,
+              avg: mem.length ? Math.round(total / mem.length * 10) / 10 : 0 };
+          }).filter((t) => t.members > 0).sort((a, b) => b.total - a.total || a.team - b.team);
+          team_standings.forEach((t, i, arr) => { t.rank = i > 0 && arr[i - 1].total === t.total ? arr[i - 1].rank : i + 1; });
+          return { ok: true, room: roomPub(), me: mePub(), mine, team_standings,
+            standings: [mine, rival],
             review: qs.map((q, i) => ({ no: i + 1, text: q.text, choices: q.choices, category: 'ことば', correct: q.correct,
               explanation: q.explanation, n_correct: 0, mine: st.answers[i] ?? null })), ...base };
         }

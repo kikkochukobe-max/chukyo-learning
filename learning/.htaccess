@@ -1,0 +1,15 @@
+# 学習ツール(.html)用キャッシュ制御（assets/.htaccess と同じ考え方）
+# 指定が無いとブラウザ（特に iPhone の Safari）が古いHTMLを数時間使い続け、
+# 上書きアップロードした修正が生徒の端末に届かない（一般常識バトルの失格修正で踏んだ）。
+# 毎回「変わったか」だけをサーバーに確認させる。変わっていなければ304で速い。
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+<IfModule mod_expires.c>
+  ExpiresActive On
+  <FilesMatch "\.html$">
+    ExpiresDefault "access plus 0 seconds"
+  </FilesMatch>
+</IfModule>

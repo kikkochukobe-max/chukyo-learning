@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 // 常識バトル（講師側）。/battle_host.php の画面が呼ぶ。部屋を作れるのは講師だけ。
 //   GET  ?action=rooms                   … 自分の部屋の一覧（開いている部屋＋最近の対戦）
-//   POST {action:'create', level, count} … 部屋を作る（難易度 1〜4 / 問題数 10〜100 の5問きざみ）。4桁の部屋番号を返す
+//   POST {action:'create', level, count, teams} … 部屋を作る（難易度 1〜4 / 問題数 10〜100 の5問きざみ /
+//                                        チーム数 0=個人戦・2〜6=チーム戦）。4桁の部屋番号を返す
 //   POST {action:'start', room_id}       … スタート（待合室で画面を開いている生徒だけが参加する）
 //   POST {action:'cancel', room_id}      … 部屋を閉じる（待合室・対戦中どちらでも）
 //   GET  ?action=state&room_id=          … 進行状況（待合室の顔ぶれ / いまの問題・回答数・途中順位）
@@ -109,6 +110,8 @@ case 'rooms':
         'rooms'   => $rooms,
         'levels'  => $levels,
         'count'   => ['min' => BATTLE_COUNT_MIN, 'max' => BATTLE_COUNT_MAX, 'step' => BATTLE_COUNT_STEP],
+        // チーム戦で選べるチーム数。migrate_joshiki_battle_team.sql を流していなければ team_ready=false（個人戦だけ）
+        'team'    => ['ready' => battle_has_team($pdo), 'min' => BATTLE_TEAM_MIN, 'max' => count(BATTLE_TEAMS)],
         'now_ms'  => $now,
     ]);
     break;
@@ -122,6 +125,14 @@ case 'create':
     }
     if ($count < BATTLE_COUNT_MIN || $count > BATTLE_COUNT_MAX || ($count - BATTLE_COUNT_MIN) % BATTLE_COUNT_STEP !== 0) {
         fail('invalid_count');
+    }
+    $teamCount = (int)($in['teams'] ?? 0);
+    if ($teamCount !== 0 && ($teamCount < BATTLE_TEAM_MIN || $teamCount > count(BATTLE_TEAMS))) {
+        fail('invalid_teams');
+    }
+    $hasTeam = battle_has_team($pdo);
+    if ($teamCount > 0 && !$hasTeam) {
+        fail('team_not_ready', 409);
     }
     battle_sweep_rooms($pdo, $now);
     // 開いている部屋があるうちは作らせない（閉じ忘れた部屋に生徒が入ってしまうのを防ぐ）
@@ -172,6 +183,9 @@ case 'create':
         'rev' => BATTLE_REVEAL_SEC,
     ]);
     $roomId = (int)$pdo->lastInsertId();
+    if ($hasTeam) {
+        $pdo->prepare('UPDATE battle_rooms SET team_count = :n WHERE room_id = :r')->execute(['n' => $teamCount, 'r' => $roomId]);
+    }
     if ($hasCalc) {
         $ins = $pdo->prepare(
             'INSERT INTO battle_room_questions (room_id, seq, question_id, choice_order, limit_sec)
@@ -221,6 +235,7 @@ case 'start':
         $pdo->rollBack();
         fail('no_players', 409);
     }
+    battle_fill_teams($pdo, $room);   // チーム戦: まだ選んでいない生徒を人数の少ないチームへ
     $pdo->prepare(
         "UPDATE battle_rooms SET status = 'playing', start_ms = :s, started_at = NOW()
          WHERE room_id = :r AND status = 'lobby'"
@@ -278,6 +293,7 @@ case 'state':
         }
         $out['question'] = $q;
         $out['standings'] = battle_standings($pdo, $roomId, $revealed);
+        $out['team_standings'] = battle_team_standings($room, $out['standings']);
     }
     json_response($out);
     break;
@@ -287,10 +303,12 @@ case 'result':
     if ($room['status'] !== 'finished') {
         fail('not_finished', 409, ['room' => battle_room_public($room, $now)]);
     }
+    $standings = battle_standings($pdo, (int)$room['room_id']);
     json_response([
         'ok'        => true,
         'room'      => battle_room_public($room, $now),
-        'standings' => battle_standings($pdo, (int)$room['room_id']),
+        'standings' => $standings,
+        'team_standings' => battle_team_standings($room, $standings),
         'review'    => battle_review($pdo, (int)$room['room_id'], null),
         'now_ms'    => $now,
     ]);

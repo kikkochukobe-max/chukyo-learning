@@ -18,6 +18,8 @@ declare(strict_types=1);
 //
 // 学習記録（answer_logs / XP / 解き直し / 学習時間）には一切書かない。バトルだけで完結する。
 // テーブルは db/migrations/migrate_joshiki_battle.sql、問題は db/seeds/seed_joshiki_battle_lv*.sql。
+// チーム戦（部屋の team_count が2以上）は db/migrations/migrate_joshiki_battle_team.sql。
+// 生徒は待合室でチームを選び、順位はチームの合計点（平均点も並べる）。
 
 require_once __DIR__ . '/bootstrap.php';
 
@@ -55,11 +57,23 @@ const BATTLE_CATEGORIES = [
     'seikatsu' => '生活と文化',
 ];
 
+// チーム戦のチーム（番号 → 名前と色）。部屋の team_count が 2 以上なら、1〜team_count 番を使う。
+// 名前は小学生が読めるように（「紫」は中学の漢字なので「むらさき」）
+const BATTLE_TEAMS = [
+    1 => ['name' => '赤',       'color' => '#D9483B'],
+    2 => ['name' => '青',       'color' => '#2F6FB5'],
+    3 => ['name' => '黄',       'color' => '#C99A00'],
+    4 => ['name' => '緑',       'color' => '#3E8E5A'],
+    5 => ['name' => 'むらさき', 'color' => '#7B4FA8'],
+    6 => ['name' => 'オレンジ', 'color' => '#E07B22'],
+];
+const BATTLE_TEAM_MIN = 2;
+
 // 失格の理由（画面から届くのは hidden / blur / pagehide の3つだけ。reload と lost はサーバーが付ける）
 const BATTLE_DQ_REASONS = [
     'hidden'   => 'ほかのアプリ・タブを開いた',
     'blur'     => '別のウィンドウに切りかえた',
-    'pagehide' => '画面を閉じた',
+    'pagehide' => '画面を閉じた・画面が消えた',   // iPhone は画面が消えた（自動ロック）時も pagehide を先に出す
     'reload'   => '画面を開き直した',
     'lost'     => '通信が途絶えた',
 ];
@@ -75,6 +89,100 @@ function battle_has_calc(PDO $pdo): bool
 {
     return table_has_column($pdo, 'battle_questions', 'needs_calc')
         && table_has_column($pdo, 'battle_room_questions', 'limit_sec');
+}
+
+// migrate_joshiki_battle_team.sql（team_count / team の列）を流してあるか。
+// 流す前に PHP だけ上げても個人戦は動くようにするため（チーム戦の部屋だけ作れない）
+function battle_has_team(PDO $pdo): bool
+{
+    static $has = null;
+    if ($has === null) {
+        $has = table_has_column($pdo, 'battle_rooms', 'team_count')
+            && table_has_column($pdo, 'battle_players', 'team');
+    }
+    return $has;
+}
+
+// 部屋のチーム一覧 [[team, name, color], …]。個人戦なら空
+function battle_room_teams(array $room): array
+{
+    $out = [];
+    for ($t = 1, $n = (int)($room['team_count'] ?? 0); $t <= $n && isset(BATTLE_TEAMS[$t]); $t++) {
+        $out[] = ['team' => $t, 'name' => BATTLE_TEAMS[$t]['name'], 'color' => BATTLE_TEAMS[$t]['color']];
+    }
+    return $out;
+}
+
+// チームの順位。battle_standings() の結果をチームごとに足す。
+//   total = チーム全員の点数の合計（失格した生徒も、失格するまでに取ったぶんは数える）
+//   avg   = 1人あたりの平均点（人数がそろわない時の目安。順位は total で決める）
+// 1人もいないチームは載せない。同点は同じ順位（1,1,3…）
+function battle_team_standings(array $room, array $standings): array
+{
+    $teams = [];
+    foreach (battle_room_teams($room) as $t) {
+        $teams[$t['team']] = $t + ['members' => 0, 'total' => 0, 'correct' => 0, 'n_dq' => 0];
+    }
+    foreach ($standings as $s) {
+        $t = $s['team'] ?? null;
+        if ($t === null || !isset($teams[$t])) {
+            continue;
+        }
+        $teams[$t]['members']++;
+        $teams[$t]['total'] += $s['score'];
+        $teams[$t]['correct'] += $s['correct'];
+        if ($s['dq']) {
+            $teams[$t]['n_dq']++;
+        }
+    }
+    $list = array_values(array_filter($teams, function ($t) { return $t['members'] > 0; }));
+    usort($list, function ($a, $b) { return [$b['total'], $a['team']] <=> [$a['total'], $b['team']]; });
+    $rank = 0;
+    $prev = null;
+    foreach ($list as $i => &$t) {
+        if ($prev === null || $t['total'] !== $prev) {
+            $rank = $i + 1;
+            $prev = $t['total'];
+        }
+        $t['rank'] = $rank;
+        $t['avg'] = round($t['total'] / $t['members'], 1);
+    }
+    unset($t);
+    return $list;
+}
+
+// スタートの時にまだチームを選んでいない参加者を、人数の少ないチームへ入れる（同じ人数なら番号の若い方）
+function battle_fill_teams(PDO $pdo, array $room): void
+{
+    $n = (int)($room['team_count'] ?? 0);
+    if ($n < BATTLE_TEAM_MIN) {
+        return;
+    }
+    $roomId = (int)$room['room_id'];
+    $count = array_fill(1, $n, 0);
+    $stmt = $pdo->prepare(
+        "SELECT team, COUNT(*) AS c FROM battle_players
+         WHERE room_id = :r AND status = 'playing' AND team IS NOT NULL GROUP BY team"
+    );
+    $stmt->execute(['r' => $roomId]);
+    foreach ($stmt->fetchAll() as $row) {
+        if (isset($count[(int)$row['team']])) {
+            $count[(int)$row['team']] = (int)$row['c'];
+        }
+    }
+    $stmt = $pdo->prepare(
+        "SELECT student_id FROM battle_players
+         WHERE room_id = :r AND status = 'playing' AND (team IS NULL OR team < 1 OR team > :n)"
+    );
+    $stmt->execute(['r' => $roomId, 'n' => $n]);
+    $ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    shuffle($ids);
+    $upd = $pdo->prepare('UPDATE battle_players SET team = :t WHERE room_id = :r AND student_id = :s');
+    foreach ($ids as $sid) {
+        $t = array_search(min($count), $count, true);
+        $upd->execute(['t' => $t, 'r' => $roomId, 's' => $sid]);
+        $count[$t]++;
+    }
 }
 
 // 部屋の進行表: seq ごとの [出題までのミリ秒（start_ms から）, 制限時間（秒）]。
@@ -247,6 +355,7 @@ function battle_room_public(array $room, int $now): array
         'schedule'    => battle_schedule($room),
         'grace_ms'    => BATTLE_GRACE_MS,
         'point'       => BATTLE_POINT,
+        'teams'       => battle_room_teams($room),   // チーム戦なら [[team, name, color], …]。個人戦は空
         'status'      => (string)$room['status'],
         'start_ms'    => $room['start_ms'] !== null ? (int)$room['start_ms'] : null,
         'phase'       => $pos['phase'],
@@ -309,8 +418,9 @@ function battle_room_question(PDO $pdo, int $roomId, int $seq): ?array
 function battle_standings(PDO $pdo, int $roomId, ?int $uptoSeq = null): array
 {
     $cond = $uptoSeq === null ? '' : ' AND a.seq <= ' . (int)$uptoSeq;
+    $team = battle_has_team($pdo) ? 'p.team' : 'NULL';
     $stmt = $pdo->prepare(
-        "SELECT p.student_id, p.status, p.dq_reason, p.dq_seq, s.student_name, c.classroom_name,
+        "SELECT p.student_id, p.status, p.dq_reason, p.dq_seq, " . $team . " AS team, s.student_name, c.classroom_name,
                 COALESCE(SUM(a.is_correct), 0) AS correct, COUNT(a.seq) AS answered
          FROM battle_players p
          JOIN students s ON s.student_id = p.student_id
@@ -318,7 +428,7 @@ function battle_standings(PDO $pdo, int $roomId, ?int $uptoSeq = null): array
          LEFT JOIN battle_answers a
            ON a.room_id = p.room_id AND a.student_id = p.student_id" . $cond . "
          WHERE p.room_id = :r AND p.status IN ('playing', 'dq')
-         GROUP BY p.student_id, p.status, p.dq_reason, p.dq_seq, s.student_name, c.classroom_name
+         GROUP BY p.student_id, p.status, p.dq_reason, p.dq_seq, team, s.student_name, c.classroom_name
          ORDER BY (p.status = 'dq'), correct DESC, s.student_name"
     );
     $stmt->execute(['r' => $roomId]);
@@ -340,6 +450,7 @@ function battle_standings(PDO $pdo, int $roomId, ?int $uptoSeq = null): array
             'student_id' => (int)$row['student_id'],
             'name'       => (string)$row['student_name'],
             'classroom'  => (string)($row['classroom_name'] ?? ''),
+            'team'       => $row['team'] !== null ? (int)$row['team'] : null,
             'correct'    => $correct,
             'answered'   => (int)$row['answered'],
             'score'      => $correct * BATTLE_POINT,
@@ -355,8 +466,9 @@ function battle_standings(PDO $pdo, int $roomId, ?int $uptoSeq = null): array
 // 待合室の顔ぶれ（スタート時に参加できる＝最近まで画面を開いていた生徒だけ alive=true）
 function battle_lobby_players(PDO $pdo, int $roomId, int $now): array
 {
+    $team = battle_has_team($pdo) ? 'p.team' : 'NULL';
     $stmt = $pdo->prepare(
-        "SELECT p.student_id, p.last_seen_ms, s.student_name, c.classroom_name
+        "SELECT p.student_id, p.last_seen_ms, " . $team . " AS team, s.student_name, c.classroom_name
          FROM battle_players p
          JOIN students s ON s.student_id = p.student_id
          LEFT JOIN classrooms c ON c.classroom_id = s.classroom_id
@@ -370,6 +482,7 @@ function battle_lobby_players(PDO $pdo, int $roomId, int $now): array
             'student_id' => (int)$row['student_id'],
             'name'       => (string)$row['student_name'],
             'classroom'  => (string)($row['classroom_name'] ?? ''),
+            'team'       => $row['team'] !== null ? (int)$row['team'] : null,
             'alive'      => (int)$row['last_seen_ms'] >= $now - BATTLE_LOBBY_ALIVE_MS,
         ];
     }

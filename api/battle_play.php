@@ -6,6 +6,7 @@ declare(strict_types=1);
 //                                             対戦中に呼ばれた＝画面を開き直した、なので失格にする
 //   POST {action:'join', code}              … 4桁の部屋番号で待合室に入る
 //   POST {action:'leave', room_id}          … 待合室から出る
+//   POST {action:'team', room_id, team}     … チーム戦の部屋で自分のチームを選ぶ（待合室のあいだは選び直せる）
 //   GET  ?action=state&room_id=             … 進行状況（待合室の顔ぶれ・スタート時刻）。生存確認を兼ねる
 //   GET  ?action=question&room_id=&seq=     … 問題（出題時刻になるまで返さない。正解の位置は含めない）
 //   POST {action:'answer', room_id, seq, choice}
@@ -55,6 +56,7 @@ function me_public(?array $p): array
     }
     return [
         'status'    => (string)$p['status'],
+        'team'      => isset($p['team']) ? (int)$p['team'] : null,
         'dq_reason' => $p['status'] === 'dq' ? (BATTLE_DQ_REASONS[$p['dq_reason']] ?? '失格') : null,
         'dq_no'     => ($p['status'] === 'dq' && $p['dq_seq'] !== null) ? (int)$p['dq_seq'] + 1 : null,
     ];
@@ -106,8 +108,9 @@ case 'mine':
     $roomId = (int)$room['room_id'];
     $room = battle_tick($pdo, $room, $now);
     $me = my_player($pdo, $roomId, $studentId);
-    // 対戦中にページが読み込まれた＝閉じた・開き直した。sendBeacon が届かなかった場合もここで失格にする
-    if ($room['status'] === 'playing' && $me && $me['status'] === 'playing') {
+    // 対戦中にページが読み込まれた＝閉じた・開き直した。sendBeacon が届かなかった場合もここで失格にする。
+    // カウントダウン中（1問目が出る前）は失格にしない＝開き直した画面がそのまま対戦に入る（dq と同じ線引き）
+    if ($room['status'] === 'playing' && $now >= (int)$room['start_ms'] && $me && $me['status'] === 'playing') {
         $pdo->prepare(
             "UPDATE battle_players SET status = 'dq', dq_reason = 'reload', dq_seq = :seq, dq_at = NOW()
              WHERE room_id = :r AND student_id = :s AND status = 'playing'"
@@ -168,13 +171,36 @@ case 'leave':
     json_response(['ok' => true, 'now_ms' => $now]);
     break;
 
+case 'team':
+    if (!$isPost) {
+        fail('method_not_allowed', 405);
+    }
+    [$room, $me] = load_for_me($pdo, $in, $studentId, $now);
+    if ($room['status'] !== 'lobby') {
+        fail('already_started', 409);
+    }
+    if ($me['status'] !== 'waiting') {
+        fail('not_in_room', 403);
+    }
+    $team = (int)($in['team'] ?? 0);
+    if ($team < 1 || $team > (int)($room['team_count'] ?? 0)) {
+        fail('invalid_team');
+    }
+    $pdo->prepare(
+        "UPDATE battle_players SET team = :t, last_seen_ms = :n
+         WHERE room_id = :r AND student_id = :s AND status = 'waiting'"
+    )->execute(['t' => $team, 'n' => $now, 'r' => $room['room_id'], 's' => $studentId]);
+    $me = my_player($pdo, (int)$room['room_id'], $studentId);
+    json_response(['ok' => true, 'room' => battle_room_public($room, $now), 'me' => me_public($me), 'now_ms' => $now]);
+    break;
+
 case 'state':
     [$room, $me] = load_for_me($pdo, $in, $studentId, $now);
     touch_me($pdo, (int)$room['room_id'], $studentId, $now);
     $out = ['ok' => true, 'room' => battle_room_public($room, $now), 'me' => me_public($me), 'now_ms' => $now];
     if ($room['status'] === 'lobby') {
         $out['players'] = array_values(array_map(
-            function ($p) { return ['name' => $p['name'], 'classroom' => $p['classroom']]; },
+            function ($p) { return ['name' => $p['name'], 'classroom' => $p['classroom'], 'team' => $p['team']]; },
             array_filter(battle_lobby_players($pdo, (int)$room['room_id'], $now), function ($p) { return $p['alive']; })
         ));
     }
@@ -309,8 +335,11 @@ case 'dq':
         $reason = 'hidden';
     }
     [$room, $me] = load_for_me($pdo, $in, $studentId, $now);
-    // 対戦中（カウントダウンを含む）だけ。終わったあとに画面を閉じても失格にはしない
-    if ($room['status'] === 'playing' && $now < battle_end_ms($room) && $me['status'] === 'playing') {
+    // 1問目が出てから終わるまでだけ。カウントダウン中は問題が見えていない＝離れても調べられるものが無いので
+    // 失格にしない（iPhone が画面の暗転・通知で「裏に回った」を出し、スタートと同時の失格が続いたため）。
+    // 終わったあとに画面を閉じても失格にはしない
+    if ($room['status'] === 'playing' && $now >= (int)$room['start_ms'] && $now < battle_end_ms($room)
+        && $me['status'] === 'playing') {
         $pdo->prepare(
             "UPDATE battle_players SET status = 'dq', dq_reason = :why, dq_seq = :seq, dq_at = NOW()
              WHERE room_id = :r AND student_id = :s AND status = 'playing'"
@@ -335,6 +364,7 @@ case 'result':
         fail('not_yet', 409, ['wait_ms' => $wait, 'room' => battle_room_public($room, $now), 'me' => me_public($me)]);
     }
     $standings = battle_standings($pdo, (int)$room['room_id']);
+    $teamStandings = battle_team_standings($room, $standings);
     $mine = null;
     foreach ($standings as &$s) {
         $s['me'] = $s['student_id'] === $studentId;
@@ -350,6 +380,7 @@ case 'result':
         'me'        => me_public($me),
         'mine'      => $mine,
         'standings' => $standings,
+        'team_standings' => $teamStandings,   // チーム戦の順位（個人戦は空）。自分のチームは mine.team で分かる
         'review'    => battle_review($pdo, (int)$room['room_id'], $studentId),
         'now_ms'    => $now,
     ]);

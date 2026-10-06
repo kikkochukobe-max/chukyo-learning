@@ -15,7 +15,7 @@
  * 端末の時計は使わず、応答の now_ms と performance.now() の差で時計を合わせる（CLAUDE.md 5a3）。
  * 学習記録（Divp.answer / XP / 解き直し / 学習時間）は使わない＝divp-core.js は読まない。
  *
- * 失格: スタート後（カウントダウンを含む）に画面を離れたら失格。
+ * 失格: 1問目が出たあと（カウントダウンは含まない）に画面を離れたら失格。
  *   visibilitychange(hidden)=ほかのアプリ・タブ / pagehide=閉じた・開き直した /
  *   フォーカスが1秒外れたまま=別のウィンドウ（PC）。sendBeacon でサーバーへ送る。
  *   届かなかった場合も、サーバーが「20秒通信が無い」「対戦中にページを開き直した」で失格にする。
@@ -61,11 +61,27 @@ button{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;cursor:pointer;t
 .meta{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:6px 0 10px}
 .pill{font-size:13px;font-weight:700;border-radius:999px;padding:3px 12px;background:var(--ai-soft);color:var(--ai)}
 .wait-big{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:19px;text-align:center;color:var(--navy);margin:8px 0}
+.wake-hint{background:#FFF6DD;border:2px dashed var(--gold);border-radius:12px;padding:8px 12px;margin:8px 0;
+  font-weight:700;font-size:15px;text-align:center;color:var(--navy)}
 .dots::after{content:'';animation:dots 1.5s steps(4) infinite}
 @keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
 .players{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .pl{background:var(--paper);border:1px solid var(--grid);border-radius:999px;padding:3px 12px;font-size:14px}
 .pl.me{border-color:var(--gold);background:#FFF6E3;font-weight:700}
+/* チーム戦 */
+.tpick h3{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:17px;margin:4px 0 8px;color:var(--navy)}
+.tbtns{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px}
+.tbtn{border:3px solid var(--tc);background:var(--white);color:var(--tc);border-radius:14px;padding:10px 4px;font-size:18px;font-weight:900}
+.tbtn.on{background:var(--tc);color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.tbtn small{display:block;font-size:12px;font-weight:700;opacity:.85}
+.tgroups{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:12px;text-align:left}
+.tgroup{border:2px solid var(--tc,var(--grid));border-top-width:5px;border-radius:12px;padding:6px 8px}
+.tgroup b{font-family:'Zen Maru Gothic',sans-serif;color:var(--tc,var(--ink-soft));font-size:14px}
+.tgroup .players{justify-content:flex-start;margin-top:4px}
+.myteam{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:18px;margin:6px 0}
+.tm{display:inline-block;color:#fff;border-radius:999px;padding:0 9px;font-size:12px;font-weight:700;white-space:nowrap}
+table.teams td.tn{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:17px}
+table.teams td.tt{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:20px}
 .warn{background:#FFF1EF;border:2px solid var(--shu);border-radius:12px;padding:10px 14px;font-size:14px;margin-top:12px}
 .warn b{color:var(--shu)}
 /* カウントダウン */
@@ -169,6 +185,7 @@ tr.dq td{color:var(--ink-soft)}
       <ul class="rules">
         <li>全員が同じ問題を、同じ時間で解きます（6つから1つえらぶ）</li>
         <li>1問 <b style="color:var(--ink)">10点</b>。合計点で順位が決まります</li>
+        <li>チーム戦のときは、待合室で自分のチームをえらびます。チームみんなの点数の合計で競います</li>
         <li>時間内なら、何回でもえらび直せます（最後にえらんだものが答えになります）</li>
         <li>時間になると、自動で次の問題に進みます</li>
         <li>スタートしたら、<b>ほかのアプリやタブを開いたり、画面を閉じたりすると失格</b>です</li>
@@ -182,7 +199,13 @@ tr.dq td{color:var(--ink-soft)}
       <div class="note">部屋番号</div>
       <div style="font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:40px;color:var(--navy);letter-spacing:.15em" id="lb-code"></div>
       <div class="meta" id="lb-meta"></div>
+      <div class="tpick" id="lb-tpick" hidden>
+        <h3 id="lb-tq">チームをえらんでね</h3>
+        <div class="tbtns" id="lb-tbtns"></div>
+        <p class="err" id="lb-terr"></p>
+      </div>
       <div class="wait-big"><span class="dots">先生がスタートするまで待ってね</span></div>
+      <p class="wake-hint" id="lb-wake" hidden></p>
       <div class="players" id="lb-players"></div>
       <div class="warn">
         <b>この画面を開いたまま待ってね。</b>スタートの時に画面を開いていないと参加できません。<br>
@@ -201,6 +224,7 @@ tr.dq td{color:var(--ink-soft)}
   <section class="scr" id="scr-play">
     <div class="top">
       <span class="qno" id="qno"></span>
+      <span id="play-team"></span>
       <span class="sc" id="sc">0点</span>
     </div>
     <div class="timerrow"><div class="bar"><i id="bar"></i></div><span class="sec" id="sec"></span></div>
@@ -221,7 +245,8 @@ tr.dq td{color:var(--ink-soft)}
   <!-- 結果 -->
   <section class="scr" id="scr-result">
     <div class="card res-top" id="res-top"></div>
-    <div class="card"><h2>順位</h2><div id="res-table"></div></div>
+    <div class="card" id="res-teams-card" hidden><h2>チームの順位</h2><div id="res-teams"></div></div>
+    <div class="card"><h2 id="res-table-h">順位</h2><div id="res-table"></div></div>
     <div class="card"><h2>ふりかえり</h2><p class="note">まちがえた問題は、正解と解説をたしかめよう</p><div id="res-review"></div></div>
     <button type="button" class="btn" id="again-btn">次の対戦へ（部屋番号を入れる）</button>
   </section>
@@ -296,17 +321,34 @@ tr.dq td{color:var(--ink-soft)}
   function cancel(key) { clearTimeout(timers[key]); }
 
   // ---------- 画面を消さない（自動ロックで失格にならないように） ----------
-  var wake = null;
+  // ⚠ iPhone の Safari は、最初の1回を「画面をタップしたその場」で頼まないと断る
+  //   （通信の返事を待ってから頼むと黙って失敗する）。そのため pointerdown と「部屋に入る」の
+  //   クリックの中で頼む。1回取れればそのページの間は、タップ無しで取り直せる。
+  //   取れていないと30秒ほどで自動ロックがかかり、カウントダウン中に画面が消えて失格になった
+  //   （iPhone は画面が消える時に pagehide を先に出すので、理由は「画面を閉じた」と出ていた）
+  var wake = null, wakeWanted = false;
   function requestWake() {
     try {
       if (wake || !('wakeLock' in navigator) || document.visibilityState !== 'visible') return;
       navigator.wakeLock.request('screen').then(function (l) {
         wake = l;
-        l.addEventListener('release', function () { wake = null; });
+        drawWakeHint();
+        l.addEventListener('release', function () { wake = null; drawWakeHint(); });
       }).catch(function () {});
     } catch (e) {}
   }
-  function releaseWake() { try { if (wake) wake.release(); } catch (e) {} wake = null; }
+  function releaseWake() { wakeWanted = false; try { if (wake) wake.release(); } catch (e) {} wake = null; }
+  // 待合室の「画面が消えないように、一度タップしてね」。取れたら消す
+  function drawWakeHint() {
+    var el = $('lb-wake');
+    if (!el) return;
+    if (wake) { el.hidden = true; return; }
+    el.hidden = false;
+    el.textContent = ('wakeLock' in navigator)
+      ? '画面が消えないように、いちど画面をタップしてね'
+      : 'スタートまで、画面が消えないように ときどき画面にさわってね';
+  }
+  document.addEventListener('pointerdown', function () { if (wakeWanted) requestWake(); }, true);
 
   // ---------- はじめに ----------
   function boot() {
@@ -370,7 +412,8 @@ tr.dq td{color:var(--ink-soft)}
   function metaHTML() {
     var t = '1問' + room.limit_sec + '秒' + (room.calc_sec && room.calc_sec !== room.limit_sec ? '（計算は' + room.calc_sec + '秒）' : '');
     return '<span class="pill">' + esc(room.level_label) + '</span><span class="pill">' + room.count + '問</span>'
-      + '<span class="pill">' + t + '</span><span class="pill">1問' + room.point + '点</span>';
+      + '<span class="pill">' + t + '</span><span class="pill">1問' + room.point + '点</span>'
+      + (isTeamRoom() ? '<span class="pill">' + room.teams.length + 'チーム戦</span>' : '');
   }
   // 進行表（サーバーの battle_schedule と同じもの）から、ある時刻が何問目か・その出題と締め切り・終了時刻を出す。
   // 制限時間は問題ごとにちがう（難しい・超難は計算が要る問題だけ長い）
@@ -384,11 +427,76 @@ tr.dq td{color:var(--ink-soft)}
     var open = room.start_ms + sch[seq][0];
     return { seq: seq, open: open, close: open + sch[seq][1] * 1000, limit: sch[seq][1] };
   }
+  // ---------- チーム戦 ----------
+  function isTeamRoom() { return !!(room && room.teams && room.teams.length); }
+  function teamOf(no) {
+    var ts = (room && room.teams) || [];
+    for (var i = 0; i < ts.length; i++) if (ts[i].team === no) return ts[i];
+    return null;
+  }
+  function teamTag(no) {
+    var t = teamOf(no);
+    return t ? '<span class="tm" style="background:' + esc(t.color) + '">' + esc(t.name) + '</span>' : '';
+  }
+  var teamSending = false, teamPickKey = null;
+  function drawTeamPick() {
+    if (!isTeamRoom()) { $('lb-tpick').hidden = true; teamPickKey = null; return; }
+    $('lb-tpick').hidden = false;
+    var mine = me && me.team;
+    // 2秒ごとの見直しで毎回ボタンを作り直すと、押している途中のタップが消えることがあるので、変わった時だけ描く
+    var key = room.room_id + ':' + room.teams.length + ':' + mine;
+    if (key === teamPickKey) return;
+    teamPickKey = key;
+    $('lb-tq').textContent = teamOf(mine) ? teamOf(mine).name + 'チームに入ったよ！（スタートまでえらび直せるよ）' : 'チームをえらんでね';
+    $('lb-tbtns').innerHTML = room.teams.map(function (t) {
+      return '<button type="button" class="tbtn' + (t.team === mine ? ' on' : '') + '" data-team="' + t.team + '" style="--tc:' + esc(t.color) + '">'
+        + esc(t.name) + '<small>チーム</small></button>';
+    }).join('');
+    Array.prototype.forEach.call($('lb-tbtns').children, function (b) {
+      b.addEventListener('click', function () { pickTeam(+b.dataset.team); });
+    });
+  }
+  function pickTeam(no) {
+    if (!room || teamSending || (me && me.team === no)) return;
+    teamSending = true;
+    $('lb-terr').textContent = '';
+    api(null, { action: 'team', room_id: room.room_id, team: no }).then(function (r) {
+      teamSending = false;
+      if (!r.data.ok) {
+        $('lb-terr').textContent = r.data.error === 'already_started' ? 'もうスタートしています' : '通信できませんでした。もう一度おしてね';
+        return;
+      }
+      me = r.data.me;
+      drawTeamPick();
+      lobbyPoll();   // 顔ぶれの列もすぐ入れかえる
+    });
+  }
+  // 待合室の顔ぶれ。チーム戦ならチームごとに分けて出す（まだ選んでいない子は最後に）
+  function lobbyPlayersHTML(players) {
+    function pill(p) { return '<span class="pl">' + esc(p.name) + '</span>'; }
+    if (!isTeamRoom()) return players.map(pill).join('');
+    var groups = room.teams.map(function (t) {
+      var mem = players.filter(function (p) { return p.team === t.team; });
+      return '<div class="tgroup" style="--tc:' + esc(t.color) + '"><b>' + esc(t.name) + 'チーム ' + mem.length + '人</b>'
+        + '<div class="players">' + mem.map(pill).join('') + '</div></div>';
+    });
+    var none = players.filter(function (p) { return !teamOf(p.team); });
+    if (none.length) {
+      groups.push('<div class="tgroup"><b>まだえらんでいない ' + none.length + '人</b><div class="players">' + none.map(pill).join('') + '</div></div>');
+    }
+    return '<div class="tgroups">' + groups.join('') + '</div>';
+  }
+
   function enterLobby() {
     $('lb-code').textContent = room.code;
     $('lb-meta').innerHTML = metaHTML();
     $('lb-players').innerHTML = '';
+    $('lb-terr').textContent = '';
+    teamPickKey = null;
+    drawTeamPick();
     show('lobby');
+    wakeWanted = true;
+    drawWakeHint();
     requestWake();
     lobbyPoll();
   }
@@ -411,9 +519,8 @@ tr.dq td{color:var(--ink-soft)}
       }
       if (me.status === 'left') return showJoin('');
       if (hasFocusNow()) focusSeen = true;
-      $('lb-players').innerHTML = (d.players || []).map(function (p) {
-        return '<span class="pl">' + esc(p.name) + '</span>';
-      }).join('');
+      if (!teamSending) drawTeamPick();
+      $('lb-players').innerHTML = lobbyPlayersHTML(d.players || []);
       later('lobby', lobbyPoll, 2000);
     });
   }
@@ -438,8 +545,10 @@ tr.dq td{color:var(--ink-soft)}
     cancel('lobby');
     document.documentElement.classList.add('ingame');
     armGuards();
+    wakeWanted = true;
     requestWake();
     $('sc').textContent = '0点';
+    $('play-team').innerHTML = isTeamRoom() && me ? teamTag(me.team) : '';
     loopTimer = setInterval(loop, 100);
     pingTimer = setInterval(ping, 5000);
     loop();
@@ -463,6 +572,8 @@ tr.dq td{color:var(--ink-soft)}
       $('cd-num').textContent = Math.max(1, Math.ceil((room.start_ms - now) / 1000));
       return;
     }
+    // カウントダウン中に裏へ回ったまま1問目が出た（PC の別タブなど、裏でも動き続ける端末）
+    if (document.visibilityState === 'hidden' && !inCountdown()) { disqualify('hidden'); return; }
     var at = scheduleAt(now);
     if (at.end) { exitGame(); loadResult(); return; }
     var seq = at.seq, close = at.close;
@@ -615,6 +726,8 @@ tr.dq td{color:var(--ink-soft)}
     if (!inGame || !room) return;
     api({ action: 'state', room_id: room.room_id }).then(function (r) {
       if (!inGame || !r.data.ok) return;
+      // チームを選ばずに始まった子は、スタートの時にサーバーがチームを決める。ここで名札を出し直す
+      if (r.data.me && isTeamRoom()) $('play-team').innerHTML = teamTag(r.data.me.team);
       out(r.data);
     });
   }
@@ -630,7 +743,7 @@ tr.dq td{color:var(--ink-soft)}
 
   // ---------- 失格の見張り ----------
   var guardsArmed = false;
-  var REASON = { hidden: 'ほかのアプリ・タブを開いた', blur: '別のウィンドウに切りかえた', pagehide: '画面を閉じた' };
+  var REASON = { hidden: 'ほかのアプリ・タブを開いた', blur: '別のウィンドウに切りかえた', pagehide: '画面を閉じた・画面が消えた' };
   function armGuards() {
     if (guardsArmed) return;
     guardsArmed = true;
@@ -644,19 +757,39 @@ tr.dq td{color:var(--ink-soft)}
   //  * 一瞬外れてすぐ戻る誤検知を避けるため、1秒続いたら失格
   //  * document.hasFocus() が一度も true にならない環境（アプリ内ブラウザ等）では見張らない。
   //    そういう環境で「ずっと false」を失格と読むと、全員がスタート直後に失格になる
+  //  * スマホ・タブレット（タッチ端末）では見張らない。「別のウィンドウ」が無く、アプリ・タブの
+  //    切りかえは visibilitychange で拾える。一方で hasFocus() は画面を見たままでも一時的に
+  //    false を返すことがあり、生徒がスタートと同時に「別のウィンドウに切りかえた」で失格になった
+  //    （iPadOS は Mac の顔をするので UA ではなく maxTouchPoints で見る）
+  var touchDevice = (function () {
+    try {
+      return (navigator.maxTouchPoints || 0) > 0
+        || ('ontouchstart' in window)
+        || !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    } catch (e) { return false; }
+  })();
   var focusSeen = false, unfocusedSince = null;
   function hasFocusNow() {
     try { return document.hasFocus(); } catch (e) { return true; }
   }
   function checkFocus() {
+    if (touchDevice) return;
     if (hasFocusNow()) { focusSeen = true; unfocusedSince = null; return; }
     if (!focusSeen) return;
     if (unfocusedSince === null) unfocusedSince = nowMs();
     else if (nowMs() - unfocusedSince >= 1000) disqualify('blur');
   }
   document.addEventListener('pointerdown', function () { if (hasFocusNow()) focusSeen = true; }, true);
+  // カウントダウン中（まだ1問目が出ていない）は失格にしない。問題が見えていない間に離れても
+  // 調べられるものが無い＝カンニング防止は弱まらない。一方、iPhone は画面が暗くなる・
+  // 通知が来るなどで「裏に回った」を出すことがあり、スタートと同時に失格になる子が続いた（2026-10）。
+  // サーバーも start_ms より前の失格は受け付けない。端末の時計合わせの誤差でサーバーだけが
+  // 受け付けない（画面は失格・記録は対戦中）ずれを避けるため、画面側は少し遅らせて判定する
+  var DQ_AFTER_START_MS = 300;
+  function inCountdown() { return serverNow() < room.start_ms + DQ_AFTER_START_MS; }
   function disqualify(reason) {
     if (!inGame || !room) return;
+    if (inCountdown()) return;
     var body = JSON.stringify({ action: 'dq', room_id: room.room_id, reason: reason });
     var sent = false;
     // 閉じる途中でも届く sendBeacon。文字列で送る（Content-Type が text/plain になり、どのブラウザでも通る。
@@ -696,6 +829,7 @@ tr.dq td{color:var(--ink-soft)}
   }
 
   function renderResult(d) {
+    if (d.room) room = d.room;
     var mine = d.mine;
     var top;
     if (mine && !mine.dq) {
@@ -705,11 +839,29 @@ tr.dq td{color:var(--ink-soft)}
     } else {
       top = '<div class="dq-stamp" style="font-size:40px">失格</div><div class="note">' + esc(mine && mine.dq_reason ? mine.dq_reason : '') + '</div>';
     }
+    // チーム戦: 自分のチームの順位を一番上に。チームの表（合計点で順位・平均点も）を個人の順位の上に出す
+    var teams = (d.team_standings || []), isTeam = isTeamRoom() && teams.length > 0;
+    var myTeamNo = mine ? mine.team : (d.me ? d.me.team : null);
+    if (isTeam) {
+      var mt = teams.filter(function (t) { return t.team === myTeamNo; })[0];
+      if (mt) {
+        top = '<div class="myteam" style="color:' + esc(mt.color) + '">' + esc(mt.name) + 'チーム　' + mt.rank + '位<small style="color:var(--ink-soft)"> / ' + teams.length + 'チーム</small></div>' + top;
+      }
+      $('res-teams').innerHTML = '<table class="teams"><tr><th>順位</th><th>チーム</th><th class="num">人数</th><th class="num">合計点</th><th class="num">平均点</th></tr>'
+        + teams.map(function (t) {
+          return '<tr class="' + (t.team === myTeamNo ? 'me' : '') + '"><td class="rk">' + t.rank + '位</td>'
+            + '<td class="tn" style="color:' + esc(t.color) + '">' + esc(t.name) + 'チーム</td><td class="num">' + t.members + '人</td>'
+            + '<td class="num tt">' + t.total + '</td><td class="num">' + t.avg.toFixed(1) + '</td></tr>';
+        }).join('') + '</table><p class="note">順位はチームの合計点で決まります。平均点は1人あたりの点数です</p>';
+    }
+    $('res-teams-card').hidden = !isTeam;
+    $('res-table-h').textContent = isTeam ? '個人の順位' : '順位';
     $('res-top').innerHTML = top;
-    $('res-table').innerHTML = '<table><tr><th>順位</th><th>名前</th><th>教室</th><th class="num">点数</th></tr>'
+    $('res-table').innerHTML = '<table><tr><th>順位</th><th>名前</th>' + (isTeam ? '<th>チーム</th>' : '') + '<th>教室</th><th class="num">点数</th></tr>'
       + d.standings.map(function (s) {
         return '<tr class="' + (s.me ? 'me' : '') + (s.dq ? ' dq' : '') + '"><td class="rk">' + (s.dq ? '−' : s.rank + '位') + '</td><td>' + esc(s.name)
-          + (s.dq ? ' <span class="dqtag">失格</span>' : '') + '</td><td>' + esc(s.classroom) + '</td><td class="num">' + s.score + '</td></tr>';
+          + (s.dq ? ' <span class="dqtag">失格</span>' : '') + '</td>' + (isTeam ? '<td>' + teamTag(s.team) + '</td>' : '')
+          + '<td>' + esc(s.classroom) + '</td><td class="num">' + s.score + '</td></tr>';
       }).join('') + '</table>';
     $('res-review').innerHTML = d.review.map(function (q) {
       var ok = q.mine != null && q.mine === q.correct;
