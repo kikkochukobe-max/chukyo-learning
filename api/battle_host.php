@@ -3,12 +3,16 @@ declare(strict_types=1);
 
 // 常識バトル（講師側）。/battle_host.php の画面が呼ぶ。部屋を作れるのは講師だけ。
 //   GET  ?action=rooms                   … 自分の部屋の一覧（開いている部屋＋最近の対戦）
-//   POST {action:'create', level, count, teams} … 部屋を作る（難易度 1〜4 / 問題数 10〜100 の5問きざみ /
-//                                        チーム数 0=個人戦・2〜6=チーム戦）。4桁の部屋番号を返す
+//   POST {action:'create', level, count, teams, practice} … 部屋を作る（難易度 1〜4 / 問題数 10〜100 の5問きざみ /
+//                                        チーム数 0=個人戦・2〜6=チーム戦 / practice=true で練習＝合算に入らない）。
+//                                        4桁の部屋番号を返す
 //   POST {action:'start', room_id}       … スタート（待合室で画面を開いている生徒だけが参加する）
 //   POST {action:'cancel', room_id}      … 部屋を閉じる（待合室・対戦中どちらでも）
+//   POST {action:'practice', room_id, practice} … 本番⇔練習を切りかえる（作ったあとの付けまちがい用）
 //   GET  ?action=state&room_id=          … 進行状況（待合室の顔ぶれ / いまの問題・回答数・途中順位）
 //   GET  ?action=result&room_id=         … 最終順位と全問の正答数
+//   GET  ?action=total_rooms             … 合算に選べる回（自分の部屋のうち、終了した本番）
+//   GET  ?action=total&room_ids=3,5,8    … 合算（選んだ回の点数を足した順位。練習の回は選べない）
 // 操作できるのは部屋を作った講師と統括（super_admin）。
 require_once __DIR__ . '/battle_common.php';
 
@@ -112,6 +116,8 @@ case 'rooms':
         'count'   => ['min' => BATTLE_COUNT_MIN, 'max' => BATTLE_COUNT_MAX, 'step' => BATTLE_COUNT_STEP],
         // チーム戦で選べるチーム数。migrate_joshiki_battle_team.sql を流していなければ team_ready=false（個人戦だけ）
         'team'    => ['ready' => battle_has_team($pdo), 'min' => BATTLE_TEAM_MIN, 'max' => count(BATTLE_TEAMS)],
+        // 練習モード。migrate_joshiki_battle_practice.sql を流していなければ ready=false（本番だけ）
+        'practice' => ['ready' => battle_has_practice($pdo)],
         'now_ms'  => $now,
     ]);
     break;
@@ -133,6 +139,10 @@ case 'create':
     $hasTeam = battle_has_team($pdo);
     if ($teamCount > 0 && !$hasTeam) {
         fail('team_not_ready', 409);
+    }
+    $practice = !empty($in['practice']);
+    if ($practice && !battle_has_practice($pdo)) {
+        fail('practice_not_ready', 409);
     }
     battle_sweep_rooms($pdo, $now);
     // 開いている部屋があるうちは作らせない（閉じ忘れた部屋に生徒が入ってしまうのを防ぐ）
@@ -185,6 +195,9 @@ case 'create':
     $roomId = (int)$pdo->lastInsertId();
     if ($hasTeam) {
         $pdo->prepare('UPDATE battle_rooms SET team_count = :n WHERE room_id = :r')->execute(['n' => $teamCount, 'r' => $roomId]);
+    }
+    if ($practice) {
+        $pdo->prepare('UPDATE battle_rooms SET is_practice = 1 WHERE room_id = :r')->execute(['r' => $roomId]);
     }
     if ($hasCalc) {
         $ins = $pdo->prepare(
@@ -312,6 +325,76 @@ case 'result':
         'review'    => battle_review($pdo, (int)$room['room_id'], null),
         'now_ms'    => $now,
     ]);
+    break;
+
+case 'practice':
+    require_post_action($isPost);
+    if (!battle_has_practice($pdo)) {
+        fail('practice_not_ready', 409);
+    }
+    $room = load_my_room($pdo, $in, $teacherId, $isSuper, $now);
+    $flag = !empty($in['practice']) ? 1 : 0;
+    $pdo->prepare('UPDATE battle_rooms SET is_practice = :p WHERE room_id = :r')
+        ->execute(['p' => $flag, 'r' => $room['room_id']]);
+    json_response(['ok' => true, 'room_id' => (int)$room['room_id'], 'practice' => $flag === 1, 'now_ms' => $now]);
+    break;
+
+case 'total_rooms':
+    // 合算に選べる回: 自分の部屋のうち、終了した本番（練習・中止は出さない）。新しい順
+    battle_sweep_rooms($pdo, $now);
+    $stmt = $pdo->prepare(
+        "SELECT r.*,
+                (SELECT COUNT(*) FROM battle_players p
+                  WHERE p.room_id = r.room_id AND p.status IN ('playing', 'dq')) AS n_players
+         FROM battle_rooms r
+         WHERE r.host_teacher_id = :t AND r.status = 'finished'"
+        . (battle_has_practice($pdo) ? ' AND r.is_practice = 0' : '') . "
+         ORDER BY r.room_id DESC LIMIT 100"
+    );
+    $stmt->execute(['t' => $teacherId]);
+    $rooms = [];
+    foreach ($stmt->fetchAll() as $r) {
+        $rooms[] = [
+            'room_id'     => (int)$r['room_id'],
+            'code'        => (string)$r['room_code'],
+            'date'        => (string)($r['started_at'] ?? $r['created_at']),
+            'level_label' => BATTLE_LEVELS[(int)$r['level']]['label'] ?? '',
+            'count'       => (int)$r['question_count'],
+            'teams'       => count(battle_room_teams($r)),
+            'n_players'   => (int)$r['n_players'],
+        ];
+    }
+    json_response(['ok' => true, 'rooms' => $rooms, 'today' => date('Y-m-d'), 'max' => BATTLE_TOTAL_MAX, 'now_ms' => $now]);
+    break;
+
+case 'total':
+    $ids = [];
+    foreach (explode(',', (string)($in['room_ids'] ?? '')) as $v) {
+        $id = (int)trim($v);
+        if ($id > 0) {
+            $ids[$id] = true;
+        }
+    }
+    $ids = array_keys($ids);
+    if (!$ids) {
+        fail('no_rooms');
+    }
+    if (count($ids) > BATTLE_TOTAL_MAX) {
+        fail('too_many_rooms', 400, ['max' => BATTLE_TOTAL_MAX]);
+    }
+    sort($ids);   // 部屋を作った順＝対戦した順に並べる
+    $rooms = [];
+    foreach ($ids as $id) {
+        $room = load_my_room($pdo, ['room_id' => $id], $teacherId, $isSuper, $now);
+        if ($room['status'] !== 'finished') {
+            fail('not_finished', 409, ['code' => (string)$room['room_code']]);
+        }
+        if (battle_is_practice($room)) {
+            fail('practice_room', 409, ['code' => (string)$room['room_code']]);
+        }
+        $rooms[] = $room;
+    }
+    json_response(['ok' => true] + battle_total_standings($pdo, $rooms) + ['now_ms' => $now]);
     break;
 
 default:

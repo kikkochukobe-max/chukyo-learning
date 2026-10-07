@@ -60,6 +60,8 @@ button{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;cursor:pointer;t
 /* 待合室 */
 .meta{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:6px 0 10px}
 .pill{font-size:13px;font-weight:700;border-radius:999px;padding:3px 12px;background:var(--ai-soft);color:var(--ai)}
+.pill.prac{background:#FFF1D6;color:#8A5A00}
+.prac-note{display:inline-block;margin-top:8px;background:#FFF1D6;color:#8A5A00;border-radius:999px;padding:3px 14px;font-size:13px;font-weight:700}
 .wait-big{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:19px;text-align:center;color:var(--navy);margin:8px 0}
 .wake-hint{background:#FFF6DD;border:2px dashed var(--gold);border-radius:12px;padding:8px 12px;margin:8px 0;
   font-weight:700;font-size:15px;text-align:center;color:var(--navy)}
@@ -413,7 +415,8 @@ tr.dq td{color:var(--ink-soft)}
     var t = '1問' + room.limit_sec + '秒' + (room.calc_sec && room.calc_sec !== room.limit_sec ? '（計算は' + room.calc_sec + '秒）' : '');
     return '<span class="pill">' + esc(room.level_label) + '</span><span class="pill">' + room.count + '問</span>'
       + '<span class="pill">' + t + '</span><span class="pill">1問' + room.point + '点</span>'
-      + (isTeamRoom() ? '<span class="pill">' + room.teams.length + 'チーム戦</span>' : '');
+      + (isTeamRoom() ? '<span class="pill">' + room.teams.length + 'チーム戦</span>' : '')
+      + (room.practice ? '<span class="pill prac">れんしゅう</span>' : '');
   }
   // 進行表（サーバーの battle_schedule と同じもの）から、ある時刻が何問目か・その出題と締め切り・終了時刻を出す。
   // 制限時間は問題ごとにちがう（難しい・超難は計算が要る問題だけ長い）
@@ -856,6 +859,8 @@ tr.dq td{color:var(--ink-soft)}
     }
     $('res-teams-card').hidden = !isTeam;
     $('res-table-h').textContent = isTeam ? '個人の順位' : '順位';
+    // 練習の回: 講師の「合算」には入らない
+    if (room && room.practice) top += '<div class="prac-note">れんしゅうの回なので、合計（合算）には入りません</div>';
     $('res-top').innerHTML = top;
     $('res-table').innerHTML = '<table><tr><th>順位</th><th>名前</th>' + (isTeam ? '<th>チーム</th>' : '') + '<th>教室</th><th class="num">点数</th></tr>'
       + d.standings.map(function (s) {

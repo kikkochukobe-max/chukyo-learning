@@ -91,6 +91,8 @@ if ((int)$me['must_change_password'] === 1) {
     exit;
 }
 $viewRoom = (int)($_GET['room'] ?? 0);
+// 合算の表示（?total=3,5,8）。開き直しても同じ合算が出るようにURLに残す
+$totalIds = array_values(array_filter(array_map('intval', explode(',', (string)($_GET['total'] ?? ''))), function ($v) { return $v > 0; }));
 ?><!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -122,6 +124,8 @@ $viewRoom = (int)($_GET['room'] ?? 0);
   .btn.big{font-size:20px;padding:16px 40px}
   .btn.ghost{background:transparent;color:var(--ai);border:1.5px solid var(--ai)}
   .btn.danger{background:transparent;color:var(--shu);border:1.5px solid var(--shu)}
+  a.btn{display:inline-block;text-decoration:none;font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
+  .btn.award{background:var(--gold)}
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .lv{border:2px solid var(--grid);background:var(--white);border-radius:12px;padding:10px 16px;min-width:120px;text-align:left}
   .lv b{display:block;font-size:17px;color:var(--ink)}
@@ -174,6 +178,23 @@ $viewRoom = (int)($_GET['room'] ?? 0);
   table.teams td.total{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:22px}
   table.teams td.tname{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:18px}
   .status{font-size:12px;font-weight:700}
+  /* 練習（合算に入らない回） */
+  .pill.prac{background:#FFF1D6;color:#8A5A00}
+  .prac-tag{display:inline-block;background:#FFF1D6;color:#8A5A00;border-radius:999px;padding:0 9px;font-size:12px;font-weight:700}
+  .lnk{background:none;border:none;color:var(--ai);font-size:12px;text-decoration:underline;padding:0 0 0 6px;font-family:inherit;font-weight:400}
+  /* 合算 */
+  .tpick-tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+  .btn.sm{font-size:13px;padding:7px 14px}
+  table.pick td:first-child,table.pick th:first-child{width:36px;text-align:center}
+  table.pick input{width:18px;height:18px;cursor:pointer}
+  table.pick tr.sel td{background:var(--ai-soft)}
+  .rounds{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px}
+  .rounds span{font-size:12px;background:var(--paper);border:1px solid var(--grid);border-radius:8px;padding:3px 9px}
+  .tot-wrap{overflow-x:auto}
+  table.tot td.per,table.tot th.per{text-align:right;font-size:13px;color:var(--ink-soft);white-space:nowrap}
+  table.tot td.per b{color:var(--ink);font-weight:700}
+  table.tot td.per .x{color:var(--shu);font-weight:700;font-size:11px;margin-left:2px}
+  table.tot td.total{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:18px}
   @media (max-width:600px){.code{font-size:64px}.choices{grid-template-columns:1fr}}
 </style>
 </head>
@@ -189,6 +210,12 @@ $viewRoom = (int)($_GET['room'] ?? 0);
     <h2>これまでの部屋</h2>
     <div id="hist" class="note">読み込み中…</div>
   </div>
+  <div class="card" id="total-card">
+    <h2>合算（何回かの対戦の点数を足す）</h2>
+    <p class="note">終了した本番の回にチェックを入れて「合算する」を押すと、点数を足した順位が出ます。練習の回はここに出ません（合算に入りません）。</p>
+    <div id="tpick" class="note" style="margin-top:8px">読み込み中…</div>
+    <div id="tres"></div>
+  </div>
 </main>
 <script>
 (function () {
@@ -196,6 +223,7 @@ $viewRoom = (int)($_GET['room'] ?? 0);
   var API = '/api/battle_host.php';
   var STUDENT_URL = location.origin + '/learning/game/game_es_joshiki_battle.html';
   var VIEW_ROOM = <?= $viewRoom ?>;
+  var TOTAL_IDS = <?= json_encode($totalIds) ?>;
   var view = document.getElementById('view');
 
   // ---- サーバーの時計に合わせる（端末の時計は使わない。performance.now 基準） ----
@@ -232,14 +260,25 @@ $viewRoom = (int)($_GET['room'] ?? 0);
     no_players: '待合室で画面を開いている生徒がいません',
     not_lobby: 'この部屋はもうスタートしています',
     team_not_ready: 'チーム戦の準備ができていません（db/migrations/migrate_joshiki_battle_team.sql を流してください）',
+    practice_not_ready: '練習モードの準備ができていません（db/migrations/migrate_joshiki_battle_practice.sql を流してください）',
+    no_rooms: '合算する回を選んでください',
+    too_many_rooms: '一度に合算できるのは20回までです',
+    not_finished: 'まだ終わっていない回が入っています',
+    practice_room: '練習の回は合算に入れられません',
+    room_not_found: 'その部屋は見つかりません',
+    forbidden: 'ほかの先生の部屋は合算できません',
     network: '通信できませんでした。もう一度押してください',
     unauthenticated: 'ログインが切れました。ページを開き直してください'
   };
-  function errText(d) { return ERR[d && d.error] || ('エラー: ' + ((d && d.error) || '不明')); }
+  function errText(d) {
+    return (ERR[d && d.error] || ('エラー: ' + ((d && d.error) || '不明'))) + (d && d.code ? '（部屋 ' + d.code + '）' : '');
+  }
 
   // ---- 状態 ----
   var levels = [], countDef = { min: 10, max: 100, step: 5 }, teamDef = { ready: false, min: 2, max: 6 };
+  var practiceDef = { ready: false };
   var selLevel = 1, selCount = 20, selTeams = 0;   // selTeams: 0=個人戦 / 2〜=チーム数
+  var selPractice = false;                         // true=練習（合算に入らない）
   var current = null;      // 開いている部屋の room_id
   var last = null;         // 直近の state 応答
   var pollTimer = null, tickTimer = null;
@@ -258,6 +297,8 @@ $viewRoom = (int)($_GET['room'] ?? 0);
       levels = d.levels; countDef = d.count;
       if (d.team) teamDef = d.team;
       if (!teamDef.ready) selTeams = 0;
+      if (d.practice) practiceDef = d.practice;
+      if (!practiceDef.ready) selPractice = false;
       renderHistory(d.rooms);
       if (VIEW_ROOM) { var id = VIEW_ROOM; VIEW_ROOM = 0; openRoom(id); }
       else if (d.open) openRoom(d.open);
@@ -269,13 +310,30 @@ $viewRoom = (int)($_GET['room'] ?? 0);
     var box = document.getElementById('hist');
     if (!rooms.length) { box.textContent = 'まだありません'; return; }
     var st = { lobby: '待合室', playing: '対戦中', finished: '終了', cancelled: '中止' };
-    box.innerHTML = '<table class="hist"><tr><th>作成</th><th>部屋番号</th><th>難易度</th><th>問題数</th><th>参加</th><th>状態</th><th></th></tr>'
+    box.innerHTML = '<table class="hist"><tr><th>作成</th><th>部屋番号</th><th>難易度</th><th>問題数</th><th>参加</th><th>状態</th><th>区分</th><th></th></tr>'
       + rooms.map(function (r) {
+        // 区分: 本番＝合算に入れられる / 練習＝入らない。付けまちがいはここで切りかえる（中止の回は合算に出ないので出さない）
+        var kind = r.status === 'cancelled' ? '' : (r.practice ? '<span class="prac-tag">練習</span>' : '本番')
+          + (practiceDef.ready ? '<button type="button" class="lnk" data-prac="' + r.room_id + '" data-to="' + (r.practice ? 0 : 1) + '">'
+            + (r.practice ? '本番にする' : '練習にする') + '</button>' : '');
         return '<tr><td>' + esc(r.created_at.slice(5, 16)) + '</td><td>' + esc(r.code) + '</td><td>' + esc(r.level_label)
           + (r.teams && r.teams.length ? '・' + r.teams.length + 'チーム' : '')
           + '</td><td class="num">' + r.count + '問</td><td class="num">' + r.n_players + '人</td><td class="status">' + esc(st[r.status] || r.status)
-          + '</td><td>' + (r.status === 'cancelled' ? '' : '<a href="?room=' + r.room_id + '">' + (r.status === 'finished' ? '結果' : '開く') + '</a>') + '</td></tr>';
+          + '</td><td style="white-space:nowrap">' + kind + '</td>'
+          + '<td>' + (r.status === 'cancelled' ? '' : '<a href="?room=' + r.room_id + '">' + (r.status === 'finished' ? '結果' : '開く') + '</a>') + '</td></tr>';
       }).join('') + '</table>';
+    Array.prototype.forEach.call(box.querySelectorAll('[data-prac]'), function (b) {
+      b.addEventListener('click', function () {
+        b.disabled = true;
+        api(null, { action: 'practice', room_id: +b.dataset.prac, practice: b.dataset.to === '1' }).then(function (r) {
+          if (!r.data.ok) { b.disabled = false; alert(errText(r.data)); return; }
+          loadHistoryOnly();
+          loadTotalRooms();
+          // いま開いている部屋なら、部屋番号の下の「練習」の札も直す
+          if (current === +b.dataset.prac && last) { last.room.practice = r.data.practice; if (last.room.status !== 'finished') render(); else loadResult(); }
+        });
+      });
+    });
   }
 
   // ---- 部屋を作る ----
@@ -303,6 +361,13 @@ $viewRoom = (int)($_GET['room'] ?? 0);
       }).join('') + '</div>'
       + (teamDef.ready ? '<p class="note" style="margin-top:6px">チーム戦: 生徒は待合室で自分のチームを選びます。スタートの時に選んでいない生徒は、人数の少ないチームへ自動で入ります。</p>'
         : '<p class="note" style="margin-top:6px">チーム戦を使うには db/migrations/migrate_joshiki_battle_team.sql を流してください。</p>')
+      + '<p style="margin-top:14px;font-weight:700">本番・練習</p><div class="row" id="prs">'
+      + [false, true].map(function (p) {
+        return '<button type="button" class="lv' + (p === selPractice ? ' on' : '') + '" data-pr="' + (p ? 1 : 0) + '"' + (p && !practiceDef.ready ? ' disabled' : '') + '>'
+          + '<b>' + (p ? '練習' : '本番') + '</b><span>' + (p ? '合算に入らない' : 'あとで何回分かを合算できる') + '</span></button>';
+      }).join('') + '</div>'
+      + (practiceDef.ready ? '<p class="note" style="margin-top:6px">練習でも対戦のしかた（失格・順位・結果）は本番と同じです。生徒の画面に「れんしゅう」と出ます。作ったあとでも「これまでの部屋」から切りかえられます。</p>'
+        : '<p class="note" style="margin-top:6px">練習モードを使うには db/migrations/migrate_joshiki_battle_practice.sql を流してください。</p>')
       + '<div style="margin-top:18px"><button type="button" class="btn big" id="mk">部屋を作る</button></div>'
       + '<p class="err" id="mkerr"></p></div>';
     var est = function () {
@@ -328,12 +393,18 @@ $viewRoom = (int)($_GET['room'] ?? 0);
         Array.prototype.forEach.call(document.querySelectorAll('#tms .lv'), function (x) { x.classList.toggle('on', x === b); });
       });
     });
+    Array.prototype.forEach.call(document.querySelectorAll('#prs .lv'), function (b) {
+      b.addEventListener('click', function () {
+        selPractice = b.dataset.pr === '1';
+        Array.prototype.forEach.call(document.querySelectorAll('#prs .lv'), function (x) { x.classList.toggle('on', x === b); });
+      });
+    });
     document.getElementById('cnt').addEventListener('change', function (e) { selCount = +e.target.value; est(); });
     est();
     document.getElementById('mk').addEventListener('click', function () {
       var btn = this;
       btn.disabled = true;
-      api(null, { action: 'create', level: selLevel, count: selCount, teams: selTeams }).then(function (r) {
+      api(null, { action: 'create', level: selLevel, count: selCount, teams: selTeams, practice: selPractice }).then(function (r) {
         btn.disabled = false;
         if (r.data.ok) { openRoom(r.data.room_id); loadHistoryOnly(); }
         else if (r.data.error === 'room_open') { openRoom(r.data.room_id); }
@@ -382,7 +453,7 @@ $viewRoom = (int)($_GET['room'] ?? 0);
       last = r.data;
       render();
       var st = last.room.status;
-      if (st === 'finished') { stopTimers(); loadResult(); if (prevStatus !== 'finished') loadHistoryOnly(); return; }
+      if (st === 'finished') { stopTimers(); loadResult(); if (prevStatus !== 'finished') { loadHistoryOnly(); loadTotalRooms(); } return; }
       if (st === 'cancelled') { stopTimers(); loadHistoryOnly(); return; }
       pollTimer = setTimeout(poll, st === 'lobby' ? 2000 : 1000);
     });
@@ -393,7 +464,8 @@ $viewRoom = (int)($_GET['room'] ?? 0);
       + '問</span><span class="pill">1問' + room.limit_sec + '秒'
       + (room.calc_sec && room.calc_sec !== room.limit_sec ? '（計算は' + room.calc_sec + '秒）' : '')
       + '</span><span class="pill">1問' + room.point + '点</span>'
-      + (room.teams && room.teams.length ? '<span class="pill">' + room.teams.length + 'チーム戦</span>' : '') + '</div>';
+      + (room.teams && room.teams.length ? '<span class="pill">' + room.teams.length + 'チーム戦</span>' : '')
+      + (room.practice ? '<span class="pill prac">練習（合算に入らない）</span>' : '') + '</div>';
   }
 
   // 待合室の顔ぶれ。チーム戦ならチームごとの列に分け、まだ選んでいない生徒は最後の列に
@@ -541,7 +613,9 @@ $viewRoom = (int)($_GET['room'] ?? 0);
       var isTeam = room.teams && room.teams.length;
       view.innerHTML = (isTeam ? '<div class="card"><h2>チームの結果　部屋 ' + esc(room.code) + '</h2>' + roomMeta(room) + teamTable(d.team_standings) + '</div>' : '')
         + '<div class="card"><h2>' + (isTeam ? '個人の順位' : '結果　部屋 ' + esc(room.code)) + '</h2>' + (isTeam ? '' : roomMeta(room)) + standingsTable(d.standings, room)
-        + '<div class="row" style="margin-top:16px"><button type="button" class="btn" id="again">新しい部屋を作る</button></div></div>'
+        + '<div class="row" style="margin-top:16px"><button type="button" class="btn" id="again">新しい部屋を作る</button>'
+        + (d.standings.length ? '<a class="btn award" href="/battle_award.php?room=' + room.room_id + '" target="_blank" rel="noopener">賞状を印刷'
+          + (isTeam ? '（優勝チーム・個人1〜3位）' : '（個人1〜3位）') + '</a>' : '') + '</div></div>'
         + '<div class="card"><details><summary style="cursor:pointer;font-weight:700;color:var(--ai)">出題した ' + d.review.length + ' 問と正解した人数</summary>'
         + d.review.map(function (q) {
           return '<div class="rq"><div class="qcat">第' + q.no + '問・' + esc(q.category) + '　正解 ' + q.n_correct + ' / ' + nPlay + '人</div>'
@@ -553,7 +627,135 @@ $viewRoom = (int)($_GET['room'] ?? 0);
     });
   }
 
+  // ---- 合算（何回かの対戦の点数を足す） ----
+  // 回はあとから選ぶ（「20問を3回やって合算」のように、やる前に回数を決めなくてよい）。
+  // 選べるのは終了した本番の回だけ。練習の回は一覧に出ない＝合算に入らない
+  var totalRooms = [], totalSel = {}, totalToday = '', totalMax = 20;
+  function fmtDate(s) { return s ? s.slice(5, 7).replace(/^0/, '') + '/' + s.slice(8, 10).replace(/^0/, '') + ' ' + s.slice(11, 16) : ''; }
+
+  function loadTotalRooms() {
+    return api({ action: 'total_rooms' }).then(function (r) {
+      var box = document.getElementById('tpick');
+      if (!r.data.ok) { box.innerHTML = '<p class="err">' + esc(errText(r.data)) + '</p>'; return; }
+      totalRooms = r.data.rooms; totalToday = r.data.today; totalMax = r.data.max || 20;
+      // もう一覧に無い回（練習に切りかえた等）は選択からはずす
+      var keep = {};
+      totalRooms.forEach(function (x) { if (totalSel[x.room_id]) keep[x.room_id] = true; });
+      totalSel = keep;
+      renderTotalPicker();
+    });
+  }
+
+  function renderTotalPicker() {
+    var box = document.getElementById('tpick');
+    if (!totalRooms.length) { box.innerHTML = 'まだ終了した本番の回がありません'; return; }
+    var n = Object.keys(totalSel).length;
+    box.innerHTML = '<div class="tpick-tools">'
+      + '<button type="button" class="btn ghost sm" id="t-today">今日の回をすべて選ぶ</button>'
+      + '<button type="button" class="btn ghost sm" id="t-none">選択をはずす</button></div>'
+      + '<div class="tot-wrap"><table class="pick"><tr><th></th><th>日時</th><th>部屋番号</th><th>難易度</th><th class="num">問題数</th><th class="num">参加</th></tr>'
+      + totalRooms.map(function (x) {
+        var on = !!totalSel[x.room_id];
+        return '<tr class="' + (on ? 'sel' : '') + '"><td><input type="checkbox" data-tr="' + x.room_id + '"' + (on ? ' checked' : '') + '></td>'
+          + '<td>' + esc(fmtDate(x.date)) + '</td><td>' + esc(x.code) + '</td><td>' + esc(x.level_label) + (x.teams ? '・' + x.teams + 'チーム' : '') + '</td>'
+          + '<td class="num">' + x.count + '問</td><td class="num">' + x.n_players + '人</td></tr>';
+      }).join('') + '</table></div>'
+      + '<div class="row" style="margin-top:12px"><button type="button" class="btn" id="t-run"' + (n ? '' : ' disabled') + '>'
+      + (n ? '選んだ ' + n + ' 回を合算する' : '回を選んでください') + '</button></div><p class="err" id="t-err"></p>';
+    Array.prototype.forEach.call(box.querySelectorAll('[data-tr]'), function (c) {
+      c.addEventListener('change', function () {
+        if (c.checked) totalSel[c.dataset.tr] = true; else delete totalSel[c.dataset.tr];
+        renderTotalPicker();
+      });
+    });
+    document.getElementById('t-today').addEventListener('click', function () {
+      totalRooms.forEach(function (x) { if (x.date.slice(0, 10) === totalToday) totalSel[x.room_id] = true; });
+      renderTotalPicker();
+    });
+    document.getElementById('t-none').addEventListener('click', function () { totalSel = {}; renderTotalPicker(); });
+    document.getElementById('t-run').addEventListener('click', function () {
+      var ids = Object.keys(totalSel).map(Number);
+      if (ids.length > totalMax) { document.getElementById('t-err').textContent = '一度に合算できるのは' + totalMax + '回までです'; return; }
+      runTotal(ids);
+    });
+  }
+
+  function runTotal(ids) {
+    var res = document.getElementById('tres');
+    res.innerHTML = '<p class="note" style="margin-top:12px">集計中…</p>';
+    api({ action: 'total', room_ids: ids.join(',') }).then(function (r) {
+      if (!r.data.ok) { res.innerHTML = '<p class="err">' + esc(errText(r.data)) + '</p>'; return; }
+      // 開き直しても同じ合算が出るよう、URLに残す（部屋を開いている時の ?room= は消さない）
+      var q = new URLSearchParams(location.search);
+      q.set('total', ids.slice().sort(function (a, b) { return a - b; }).join(','));
+      history.replaceState(null, '', location.pathname + '?' + q.toString());
+      renderTotal(r.data);
+      document.getElementById('total-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  function renderTotal(d) {
+    var rounds = d.rounds, n = rounds.length;
+    var showPer = n <= 10;   // 回ごとの列は10回まで（それより多いと表が読めない）
+    var perHead = showPer ? rounds.map(function (x) { return '<th class="per">' + x.no + '回目</th>'; }).join('') : '';
+    var ids = rounds.map(function (x) { return x.room_id; }).join(',');
+    var html = '<h2 style="margin-top:18px">' + n + ' 回の合算</h2>'
+      + (d.standings.length ? '<div class="row" style="margin-bottom:8px"><a class="btn award sm" href="/battle_award.php?total=' + ids + '" target="_blank" rel="noopener">賞状を印刷'
+        + (d.team_standings && d.team_standings.length ? '（優勝チーム・個人1〜3位）' : '（個人1〜3位）') + '</a></div>' : '')
+      + '<div class="rounds">' + rounds.map(function (x) {
+        return '<span>' + x.no + '回目　' + esc(fmtDate(x.date)) + '　部屋' + esc(x.code) + '・' + esc(x.level_label) + '・' + x.count + '問'
+          + (x.teams ? '・' + x.teams + 'チーム' : '') + '・' + x.n_players + '人</span>';
+      }).join('') + '</div>';
+
+    if (d.team_standings && d.team_standings.length) {
+      html += '<h3 style="font-size:15px;margin-bottom:6px">チームの合算</h3><div class="tot-wrap"><table class="tot teams"><tr><th>順位</th><th>チーム</th>' + perHead
+        + '<th class="num">合計点</th><th class="num">平均点</th></tr>'
+        + d.team_standings.map(function (t) {
+          var per = showPer ? t.per.map(function (p) {
+            return '<td class="per">' + (p ? '<b>' + p.total + '</b>（' + p.rank + '位）' : '−') + '</td>';
+          }).join('') : '';
+          return '<tr class="' + (t.rank === 1 ? 'top1' : '') + '"><td class="rank">' + t.rank + '位</td>'
+            + '<td class="tname" style="color:' + esc(t.color) + '">' + esc(t.name) + 'チーム</td>' + per
+            + '<td class="num total">' + t.total + '</td><td class="num">' + t.avg.toFixed(1) + '</td></tr>';
+        }).join('') + '</table></div>'
+        + '<p class="note" style="margin:6px 0 16px">チームは色で足しています（回ごとに顔ぶれが変わっていても、同じ色のチームの合計）。平均点は1人1回あたりの点数です。</p>';
+    } else if (rounds.some(function (x) { return x.teams; })) {
+      html += '<p class="note" style="margin-bottom:12px">個人戦の回が入っているので、チームの合算は出していません（チームの合算は、選んだ回がすべてチーム戦のときだけ出ます）。</p>';
+    }
+
+    var list = d.standings;
+    html += '<h3 style="font-size:15px;margin-bottom:6px">個人の合算</h3>';
+    if (!list.length) {
+      html += '<p class="note">参加者がいません</p>';
+    } else {
+      html += '<div class="tot-wrap"><table class="tot"><tr><th>順位</th><th>名前</th><th>教室</th>' + perHead
+        + '<th class="num">参加</th><th class="num">合計点</th><th class="num">正答率</th></tr>'
+        + list.map(function (s) {
+          var per = showPer ? s.per.map(function (p) {
+            return '<td class="per">' + (p ? '<b>' + p.score + '</b>' + (p.dq ? '<span class="x">失格</span>' : '') : '−') + '</td>';
+          }).join('') : '';
+          return '<tr class="' + (s.rank === 1 ? 'top1' : '') + '"><td class="rank">' + s.rank + '位</td><td>' + esc(s.name) + '</td><td>' + esc(s.classroom) + '</td>' + per
+            + '<td class="num">' + s.rounds + '/' + n + '回' + (s.n_dq ? '<br><span class="dqtag">失格' + s.n_dq + '</span>' : '') + '</td>'
+            + '<td class="num total">' + s.total + '</td><td class="num">' + s.rate.toFixed(1) + '%</td></tr>';
+        }).join('') + '</table></div>'
+        + '<p class="note" style="margin-top:6px">順位は合計点で決めています。出ていない回は0点（「−」）です。'
+        + '参加回数がちがう生徒を比べるときは正答率（正解 ÷ 出た回の問題数）も見てください。'
+        + '失格した回は、失格するまでに取った点を数えています（チーム戦の合計と同じ考え方）。'
+        + (showPer ? '' : '回ごとの点数は、10回を超えると表がせまくなるので出していません。') + '</p>';
+    }
+    document.getElementById('tres').innerHTML = html;
+  }
+
   loadRooms();
+  loadTotalRooms().then(function () {
+    if (!TOTAL_IDS.length) return;
+    // チェックは一覧にある回だけ付ける（合算そのものは URL のとおりに出す。練習に切りかえた回などはエラーで知らせる）
+    TOTAL_IDS.forEach(function (id) {
+      if (totalRooms.some(function (x) { return x.room_id === id; })) totalSel[id] = true;
+    });
+    renderTotalPicker();
+    runTotal(TOTAL_IDS);
+  });
 })();
 </script>
 </body>

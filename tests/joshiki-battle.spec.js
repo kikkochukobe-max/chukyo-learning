@@ -63,6 +63,8 @@ test('部屋に入って3問解き、結果まで進む', async ({ page }) => {
   await expect(page.locator('#res-top')).toContainText('10点');
   await expect(page.locator('#res-review .rv')).toHaveCount(3);
   await expect(page.locator('#res-review .rv .mark.ok')).toHaveCount(1);
+  // 本番の回には「れんしゅう」を出さない
+  await expect(page.locator('#res-top')).not.toContainText('れんしゅう');
   // 失格は送られていない
   expect(await page.evaluate(() => window.__beacons.length)).toBe(0);
 });
@@ -137,6 +139,18 @@ test('待合室ではアプリを切りかえても失格にならない', async
   });
   await expect(page.locator('#scr-lobby')).toBeVisible();
   expect(await page.evaluate(() => window.__beacons.length)).toBe(0);
+});
+
+test('練習の回は待合室と結果に「れんしゅう」と出る（合算に入らない）', async ({ page }) => {
+  const fake = makeFake({ count: 1, practice: true });
+  await boot(page, fake);
+  await page.fill('#code', '1234');
+  await page.click('#join-btn');
+  await expect(page.locator('#lb-meta')).toContainText('れんしゅう');
+  fake.start();
+  await expect(page.locator('#scr-play')).toBeVisible({ timeout: 8000 });
+  await expect(page.locator('#scr-result')).toBeVisible({ timeout: 10000 });
+  await expect(page.locator('#res-top')).toContainText('合計（合算）には入りません');
 });
 
 test('カウントダウン中に裏へ回っても失格にならない（iPhone の暗転・通知でスタート同時に失格が続いた）', async ({ page }) => {

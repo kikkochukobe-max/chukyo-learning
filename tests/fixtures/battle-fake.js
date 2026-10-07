@@ -23,7 +23,7 @@ function makeFake(opts = {}) {
   const st = { status: 'lobby', start: null, me: 'none', answers: {}, dqReason: null, team: null };
   const roomPub = () => ({
     room_id: 9, code: '1234', level: 1, level_label: '易しい', count, limit_sec: limit, calc_sec: calcSec, reveal_sec: reveal, schedule,
-    grace_ms: grace, point: 10, teams, status: st.status, start_ms: st.start, phase: null, seq: null, now_ms: Date.now(),
+    grace_ms: grace, point: 10, teams, practice: !!opts.practice, status: st.status, start_ms: st.start, phase: null, seq: null, now_ms: Date.now(),
   });
   const mePub = () => ({ status: st.me, team: st.team,dq_reason: st.me === 'dq' ? (st.dqReason || '画面を開き直した') : null, dq_no: null });
   const tick = () => { if (st.status === 'playing' && Date.now() >= st.start + endOff) st.status = 'finished'; };

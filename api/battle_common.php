@@ -103,6 +103,138 @@ function battle_has_team(PDO $pdo): bool
     return $has;
 }
 
+// migrate_joshiki_battle_practice.sql（is_practice の列）を流してあるか。
+// 流す前は全部の部屋が本番あつかい（練習の部屋が作れないだけで、対戦と合算は動く）
+function battle_has_practice(PDO $pdo): bool
+{
+    static $has = null;
+    if ($has === null) {
+        $has = table_has_column($pdo, 'battle_rooms', 'is_practice');
+    }
+    return $has;
+}
+
+function battle_is_practice(array $room): bool
+{
+    return (int)($room['is_practice'] ?? 0) === 1;
+}
+
+// 合算に選べる回の上限（1回の合算で足す部屋の数）
+const BATTLE_TOTAL_MAX = 20;
+
+// 合算: 何回かの対戦（終了した本番の部屋）の点数を足した順位。$rooms は battle_rooms の行を古い順に。
+//  * 1回ぶんの点数は battle_standings() のまま＝失格した回も、失格するまでに取った点は数える
+//    （チーム戦の合計と同じ考え方。失格した回には印を付け、失格の回数も並べる）
+//  * 出ていない回は 0点（列は空欄）。参加回数がそろわない時に講師が判断できるよう、参加回数と
+//    正答率（正解 ÷ 出ていた回の問題数）も並べる。順位は合計点だけで決める（同点は同じ順位）
+//  * チームの合算は、選んだ回がすべてチーム戦のときだけ。チームは番号（色）で足す
+//    （回ごとに顔ぶれが変わってもよい。1人1回あたりの平均点も出す）
+function battle_total_standings(PDO $pdo, array $rooms): array
+{
+    $n = count($rooms);
+    $rounds = [];
+    $students = [];
+    $teams = [];
+    $allTeam = $n > 0;
+    foreach ($rooms as $i => $room) {
+        $roomId = (int)$room['room_id'];
+        $standings = battle_standings($pdo, $roomId);
+        $rounds[] = [
+            'room_id'     => $roomId,
+            'no'          => $i + 1,
+            'code'        => (string)$room['room_code'],
+            'date'        => (string)($room['started_at'] ?? $room['created_at']),
+            'level_label' => BATTLE_LEVELS[(int)$room['level']]['label'] ?? '',
+            'count'       => (int)$room['question_count'],
+            'teams'       => count(battle_room_teams($room)),
+            'n_players'   => count($standings),
+        ];
+        foreach ($standings as $s) {
+            $sid = $s['student_id'];
+            if (!isset($students[$sid])) {
+                $students[$sid] = [
+                    'student_id' => $sid,
+                    'name'       => $s['name'],
+                    'classroom'  => $s['classroom'],
+                    'total'      => 0,
+                    'correct'    => 0,
+                    'asked'      => 0,
+                    'rounds'     => 0,
+                    'n_dq'       => 0,
+                    'per'        => array_fill(0, $n, null),
+                ];
+            }
+            $p = &$students[$sid];
+            $p['total'] += $s['score'];
+            $p['correct'] += $s['correct'];
+            $p['asked'] += (int)$room['question_count'];
+            $p['rounds']++;
+            if ($s['dq']) {
+                $p['n_dq']++;
+            }
+            $p['per'][$i] = ['score' => $s['score'], 'rank' => $s['rank'], 'dq' => $s['dq'], 'team' => $s['team']];
+            unset($p);
+        }
+        if (count(battle_room_teams($room)) === 0) {
+            $allTeam = false;
+            continue;
+        }
+        foreach (battle_team_standings($room, $standings) as $t) {
+            $no = $t['team'];
+            if (!isset($teams[$no])) {
+                $teams[$no] = [
+                    'team'    => $no,
+                    'name'    => $t['name'],
+                    'color'   => $t['color'],
+                    'total'   => 0,
+                    'members' => 0,   // 延べ人数（回ごとの人数の合計）。平均点＝1人1回あたり
+                    'n_dq'    => 0,
+                    'per'     => array_fill(0, $n, null),
+                ];
+            }
+            $teams[$no]['total'] += $t['total'];
+            $teams[$no]['members'] += $t['members'];
+            $teams[$no]['n_dq'] += $t['n_dq'];
+            $teams[$no]['per'][$i] = ['total' => $t['total'], 'rank' => $t['rank'], 'members' => $t['members']];
+        }
+    }
+
+    $list = array_values($students);
+    usort($list, function ($a, $b) {
+        return [$b['total'], $a['name']] <=> [$a['total'], $b['name']];
+    });
+    $rank = 0;
+    $prev = null;
+    foreach ($list as $i => &$s) {
+        if ($prev === null || $s['total'] !== $prev) {
+            $rank = $i + 1;
+            $prev = $s['total'];
+        }
+        $s['rank'] = $rank;
+        $s['rate'] = $s['asked'] > 0 ? round(100 * $s['correct'] / $s['asked'], 1) : 0.0;
+    }
+    unset($s);
+
+    $teamList = null;
+    if ($allTeam) {
+        $teamList = array_values($teams);
+        usort($teamList, function ($a, $b) { return [$b['total'], $a['team']] <=> [$a['total'], $b['team']]; });
+        $rank = 0;
+        $prev = null;
+        foreach ($teamList as $i => &$t) {
+            if ($prev === null || $t['total'] !== $prev) {
+                $rank = $i + 1;
+                $prev = $t['total'];
+            }
+            $t['rank'] = $rank;
+            $t['avg'] = $t['members'] > 0 ? round($t['total'] / $t['members'], 1) : 0.0;
+        }
+        unset($t);
+    }
+
+    return ['rounds' => $rounds, 'standings' => $list, 'team_standings' => $teamList];
+}
+
 // 部屋のチーム一覧 [[team, name, color], …]。個人戦なら空
 function battle_room_teams(array $room): array
 {
@@ -356,6 +488,7 @@ function battle_room_public(array $room, int $now): array
         'grace_ms'    => BATTLE_GRACE_MS,
         'point'       => BATTLE_POINT,
         'teams'       => battle_room_teams($room),   // チーム戦なら [[team, name, color], …]。個人戦は空
+        'practice'    => battle_is_practice($room),  // 練習の回（合算に入らない）
         'status'      => (string)$room['status'],
         'start_ms'    => $room['start_ms'] !== null ? (int)$room['start_ms'] : null,
         'phase'       => $pos['phase'],
