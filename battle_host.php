@@ -357,9 +357,9 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
       + '<p style="margin-top:14px;font-weight:700">対戦のしかた</p><div class="row" id="tms">'
       + teamOpts().map(function (n) {
         return '<button type="button" class="lv' + (n === selTeams ? ' on' : '') + '" data-tm="' + n + '"' + (n && !teamDef.ready ? ' disabled' : '') + '>'
-          + '<b>' + (n ? n + 'チーム' : '個人戦') + '</b><span>' + (n ? 'チームの合計点で競う' : '1人ずつの点数で順位') + '</span></button>';
+          + '<b>' + (n ? n + 'チーム' : '個人戦') + '</b><span>' + (n ? 'チームの平均点で競う' : '1人ずつの点数で順位') + '</span></button>';
       }).join('') + '</div>'
-      + (teamDef.ready ? '<p class="note" style="margin-top:6px">チーム戦: 生徒は待合室で自分のチームを選びます。スタートの時に選んでいない生徒は、人数の少ないチームへ自動で入ります。</p>'
+      + (teamDef.ready ? '<p class="note" style="margin-top:6px">チーム戦: 生徒は待合室で自分のチームを選びます。スタートの時に選んでいない生徒は、人数の少ないチームへ自動で入ります。順位はチームの平均点（1人あたりの点数）で決まるので、人数がそろわなくても公平です。</p>'
         : '<p class="note" style="margin-top:6px">チーム戦を使うには db/migrations/migrate_joshiki_battle_team.sql を流してください。</p>')
       + '<p style="margin-top:14px;font-weight:700">本番・練習</p><div class="row" id="prs">'
       + [false, true].map(function (p) {
@@ -489,18 +489,18 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
     return '<div class="tgrid">' + cols.join('') + '</div>';
   }
 
-  // チームの順位表（合計点で順位。平均点は人数がそろわない時の目安）
+  // チームの順位表（平均点＝1人あたりの点数で順位。人数の多いチームが合計点で有利にならないように）
   function teamTable(list) {
     if (!list || !list.length) return '<p class="note">まだチームに入った生徒がいません</p>';
-    return '<table class="teams"><tr><th>順位</th><th>チーム</th><th class="num">人数</th><th class="num">合計点</th><th class="num">平均点</th></tr>'
+    return '<table class="teams"><tr><th>順位</th><th>チーム</th><th class="num">人数</th><th class="num">平均点</th><th class="num">合計点</th></tr>'
       + list.map(function (t) {
         return '<tr class="' + (t.rank === 1 ? 'top1' : '') + '"><td class="rank">' + t.rank + '位</td>'
           + '<td class="tname" style="color:' + esc(t.color) + '">' + esc(t.name) + 'チーム</td>'
           + '<td class="num">' + t.members + '人' + (t.n_dq ? '<br><span class="dqtag">失格' + t.n_dq + '</span>' : '') + '</td>'
-          + '<td class="num total">' + t.total + '</td><td class="num">' + t.avg.toFixed(1) + '</td></tr>';
+          + '<td class="num total">' + t.avg.toFixed(1) + '</td><td class="num">' + t.total + '</td></tr>';
       }).join('') + '</table>'
-      + '<p class="note" style="margin-top:6px">順位は合計点で決めています。人数がちがうときは平均点（1人あたり）も見てください。'
-      + '失格した生徒の点は、失格するまでに取ったぶんを合計に入れています。</p>';
+      + '<p class="note" style="margin-top:6px">順位は平均点（チームの合計点 ÷ 人数）で決めています。人数がちがっても公平に比べられます。'
+      + '失格した生徒も人数に入り、失格するまでに取った点を合計に入れています。</p>';
   }
 
   function render() {
@@ -709,16 +709,18 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
 
     if (d.team_standings && d.team_standings.length) {
       html += '<h3 style="font-size:15px;margin-bottom:6px">チームの合算</h3><div class="tot-wrap"><table class="tot teams"><tr><th>順位</th><th>チーム</th>' + perHead
-        + '<th class="num">合計点</th><th class="num">平均点</th></tr>'
+        + '<th class="num">平均点</th><th class="num">合計点</th></tr>'
         + d.team_standings.map(function (t) {
+          // 回ごとのセルも平均点（その回の順位も平均点で決まっている）
           var per = showPer ? t.per.map(function (p) {
-            return '<td class="per">' + (p ? '<b>' + p.total + '</b>（' + p.rank + '位）' : '−') + '</td>';
+            return '<td class="per">' + (p ? '<b>' + (p.members ? (p.total / p.members).toFixed(1) : '0.0') + '</b>（' + p.rank + '位）' : '−') + '</td>';
           }).join('') : '';
           return '<tr class="' + (t.rank === 1 ? 'top1' : '') + '"><td class="rank">' + t.rank + '位</td>'
             + '<td class="tname" style="color:' + esc(t.color) + '">' + esc(t.name) + 'チーム</td>' + per
-            + '<td class="num total">' + t.total + '</td><td class="num">' + t.avg.toFixed(1) + '</td></tr>';
+            + '<td class="num total">' + t.avg.toFixed(1) + '</td><td class="num">' + t.total + '</td></tr>';
         }).join('') + '</table></div>'
-        + '<p class="note" style="margin:6px 0 16px">チームは色で足しています（回ごとに顔ぶれが変わっていても、同じ色のチームの合計）。平均点は1人1回あたりの点数です。</p>';
+        + '<p class="note" style="margin:6px 0 16px">順位は平均点（1人1回あたり＝全回の合計点 ÷ のべ人数）で決めています。'
+        + 'チームは色で足しています（回ごとに顔ぶれが変わっていても、同じ色のチームの合計）。回ごとの欄はその回の平均点と順位です。</p>';
     } else if (rounds.some(function (x) { return x.teams; })) {
       html += '<p class="note" style="margin-bottom:12px">個人戦の回が入っているので、チームの合算は出していません（チームの合算は、選んだ回がすべてチーム戦のときだけ出ます）。</p>';
     }

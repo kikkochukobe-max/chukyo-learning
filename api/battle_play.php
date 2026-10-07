@@ -57,7 +57,7 @@ function me_public(?array $p): array
     return [
         'status'    => (string)$p['status'],
         'team'      => isset($p['team']) ? (int)$p['team'] : null,
-        'dq_reason' => $p['status'] === 'dq' ? (BATTLE_DQ_REASONS[$p['dq_reason']] ?? '失格') : null,
+        'dq_reason' => $p['status'] === 'dq' ? battle_dq_label($p['dq_reason']) : null,
         'dq_no'     => ($p['status'] === 'dq' && $p['dq_seq'] !== null) ? (int)$p['dq_seq'] + 1 : null,
     ];
 }

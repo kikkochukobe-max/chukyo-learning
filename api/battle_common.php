@@ -19,7 +19,7 @@ declare(strict_types=1);
 // 学習記録（answer_logs / XP / 解き直し / 学習時間）には一切書かない。バトルだけで完結する。
 // テーブルは db/migrations/migrate_joshiki_battle.sql、問題は db/seeds/seed_joshiki_battle_lv*.sql。
 // チーム戦（部屋の team_count が2以上）は db/migrations/migrate_joshiki_battle_team.sql。
-// 生徒は待合室でチームを選び、順位はチームの合計点（平均点も並べる）。
+// 生徒は待合室でチームを選び、順位はチームの平均点（1人あたり。合計点も並べる）。
 
 require_once __DIR__ . '/bootstrap.php';
 
@@ -41,6 +41,7 @@ const BATTLE_COUNTDOWN_MS   = 5000;   // スタートを押してから1問目�
 const BATTLE_GRACE_MS       = 1500;   // 締め切り後も受け付ける通信の遅れ
 const BATTLE_EARLY_MS       = 500;    // 出題時刻より少し早い問い合わせも受ける（端末の時計合わせの誤差）
 const BATTLE_LOST_MS        = 20000;  // 対戦中にこれだけ通信が無ければ失格（画面を閉じた・電波が切れた）
+const BATTLE_ROOM_QUIET_MS  = 10000;  // 部屋の全員からこれだけ通信が無い＝サーバーか教室の Wi-Fi の止まり。失格にしない（battle_tick）
 const BATTLE_LOBBY_ALIVE_MS = 10000;  // スタートの時にこれより前から通信が無い生徒は参加させない（画面を開いていない）
 const BATTLE_LOBBY_EXPIRE_H = 3;      // 待合室のまま放置された部屋はこの時間で自動で閉じる
 
@@ -69,7 +70,18 @@ const BATTLE_TEAMS = [
 ];
 const BATTLE_TEAM_MIN = 2;
 
-// 失格の理由（画面から届くのは hidden / blur / pagehide の3つだけ。reload と lost はサーバーが付ける）
+// 失格の理由の表示名。DB の dq_reason → 画面の文言（'lost:23' は「最後の通信から23秒」を添える）
+function battle_dq_label(?string $reason): string
+{
+    $r = (string)$reason;
+    if (strncmp($r, 'lost:', 5) === 0) {
+        return BATTLE_DQ_REASONS['lost'] . '（最後の通信から' . (int)substr($r, 5) . '秒）';
+    }
+    return BATTLE_DQ_REASONS[$r] ?? '失格';
+}
+
+// 失格の理由（画面から届くのは hidden / blur / pagehide の3つだけ。reload と lost はサーバーが付ける。
+// lost は DB では 'lost:秒数'＝最後の通信から何秒たって失格にしたか。表示は battle_dq_label() を通す）
 const BATTLE_DQ_REASONS = [
     'hidden'   => 'ほかのアプリ・タブを開いた',
     'blur'     => '別のウィンドウに切りかえた',
@@ -126,9 +138,10 @@ const BATTLE_TOTAL_MAX = 20;
 //  * 1回ぶんの点数は battle_standings() のまま＝失格した回も、失格するまでに取った点は数える
 //    （チーム戦の合計と同じ考え方。失格した回には印を付け、失格の回数も並べる）
 //  * 出ていない回は 0点（列は空欄）。参加回数がそろわない時に講師が判断できるよう、参加回数と
-//    正答率（正解 ÷ 出ていた回の問題数）も並べる。順位は合計点だけで決める（同点は同じ順位）
+//    正答率（正解 ÷ 出ていた回の問題数）も並べる。個人の順位は合計点だけで決める（同点は同じ順位）
 //  * チームの合算は、選んだ回がすべてチーム戦のときだけ。チームは番号（色）で足す
-//    （回ごとに顔ぶれが変わってもよい。1人1回あたりの平均点も出す）
+//    （回ごとに顔ぶれが変わってもよい）。チームの順位は 1人1回あたりの平均点
+//    （＝全回の合計点 ÷ 延べ人数。battle_rank_teams()）
 function battle_total_standings(PDO $pdo, array $rooms): array
 {
     $n = count($rooms);
@@ -215,24 +228,39 @@ function battle_total_standings(PDO $pdo, array $rooms): array
     }
     unset($s);
 
-    $teamList = null;
-    if ($allTeam) {
-        $teamList = array_values($teams);
-        usort($teamList, function ($a, $b) { return [$b['total'], $a['team']] <=> [$a['total'], $b['team']]; });
-        $rank = 0;
-        $prev = null;
-        foreach ($teamList as $i => &$t) {
-            if ($prev === null || $t['total'] !== $prev) {
-                $rank = $i + 1;
-                $prev = $t['total'];
-            }
-            $t['rank'] = $rank;
-            $t['avg'] = $t['members'] > 0 ? round($t['total'] / $t['members'], 1) : 0.0;
-        }
-        unset($t);
-    }
+    // チームの合算も平均点（1人1回あたり＝合計点 ÷ 延べ人数）で順位を決める
+    $teamList = $allTeam ? battle_rank_teams(array_values($teams)) : null;
 
     return ['rounds' => $rounds, 'standings' => $list, 'team_standings' => $teamList];
+}
+
+// チームの順位付け（1回ぶん・合算の共通）。**平均点（合計点 ÷ 人数）で順位を決める**
+// （2026-10 ユーザーの判断で合計点から変更。合計点だと人数の多いチームが必ず1位になるため）。
+// 平均点は表示と同じ小数1けたで比べる＝表で同じ平均点に見えるチームは同じ順位（1,1,3…）。
+// 同じ平均点の中の並びは合計点の多い順、それも同じならチーム番号の若い順（順位は同じ）。
+// members が0のチームは呼ぶ側で外しておく
+function battle_rank_teams(array $list): array
+{
+    foreach ($list as &$t) {
+        $t['avg10'] = $t['members'] > 0 ? (int)round(10 * $t['total'] / $t['members']) : 0;   // 平均点×10（整数で比べる）
+        $t['avg'] = $t['avg10'] / 10;
+    }
+    unset($t);
+    usort($list, function ($a, $b) {
+        return [$b['avg10'], $b['total'], $a['team']] <=> [$a['avg10'], $a['total'], $b['team']];
+    });
+    $rank = 0;
+    $prev = null;
+    foreach ($list as $i => &$t) {
+        if ($prev === null || $t['avg10'] !== $prev) {
+            $rank = $i + 1;
+            $prev = $t['avg10'];
+        }
+        $t['rank'] = $rank;
+        unset($t['avg10']);
+    }
+    unset($t);
+    return $list;
 }
 
 // 部屋のチーム一覧 [[team, name, color], …]。個人戦なら空
@@ -247,8 +275,8 @@ function battle_room_teams(array $room): array
 
 // チームの順位。battle_standings() の結果をチームごとに足す。
 //   total = チーム全員の点数の合計（失格した生徒も、失格するまでに取ったぶんは数える）
-//   avg   = 1人あたりの平均点（人数がそろわない時の目安。順位は total で決める）
-// 1人もいないチームは載せない。同点は同じ順位（1,1,3…）
+//   avg   = 1人あたりの平均点。**順位はこれで決める**（battle_rank_teams()。失格した生徒も人数に入る）
+// 1人もいないチームは載せない。同じ平均点は同じ順位（1,1,3…）
 function battle_team_standings(array $room, array $standings): array
 {
     $teams = [];
@@ -267,20 +295,7 @@ function battle_team_standings(array $room, array $standings): array
             $teams[$t]['n_dq']++;
         }
     }
-    $list = array_values(array_filter($teams, function ($t) { return $t['members'] > 0; }));
-    usort($list, function ($a, $b) { return [$b['total'], $a['team']] <=> [$a['total'], $b['team']]; });
-    $rank = 0;
-    $prev = null;
-    foreach ($list as $i => &$t) {
-        if ($prev === null || $t['total'] !== $prev) {
-            $rank = $i + 1;
-            $prev = $t['total'];
-        }
-        $t['rank'] = $rank;
-        $t['avg'] = round($t['total'] / $t['members'], 1);
-    }
-    unset($t);
-    return $list;
+    return battle_rank_teams(array_values(array_filter($teams, function ($t) { return $t['members'] > 0; })));
 }
 
 // スタートの時にまだチームを選んでいない参加者を、人数の少ないチームへ入れる（同じ人数なら番号の若い方）
@@ -417,31 +432,58 @@ function battle_load_room(PDO $pdo, int $roomId): ?array
 //  * 対戦中に通信が途絶えた生徒を失格にする（画面を閉じて sendBeacon も届かなかった場合の歯止め）
 //  * 終了時刻を過ぎていたら finished にする
 // 途絶えの判定は「終了時刻まで」で切る。終わったあとで結果を見に来た時に、
-// 最後まで解いた生徒が「終わってから通信が無い」せいで失格にされないように
+// 最後まで解いた生徒が「終わってから通信が無い」せいで失格にされないように。
+//
+// ⚠ 部屋の全員から BATTLE_ROOM_QUIET_MS 以上通信が無いときは、生徒ではなく
+//   サーバー（混雑・停止）か教室の Wi-Fi が止まっていたとみなし、その間を全員ぶん見逃す
+//   （全員の last_seen_ms を「いま」に寄せ、その回は失格にしない）。
+//   時計だけで判定すると、サーバーが20秒止まって戻った瞬間に、最初に届いた通信の時点で
+//   ほぼ全員が「通信が途絶えた」になる（生徒に落ち度が無いのに）。
+//   ふだんは30人が5秒前後ごとに生存確認を送るので、部屋が10秒静かになることは無い。
+//   1人だけ途絶えた子は、ほかの子の通信が続いているので今までどおり20秒で失格になる
 function battle_tick(PDO $pdo, array $room, int $now): array
 {
     if ($room['status'] !== 'playing') {
         return $room;
     }
     $end = battle_end_ms($room);
-    $limit = min($now, $end) - BATTLE_LOST_MS;
+    $at = min($now, $end);
+    $limit = $at - BATTLE_LOST_MS;
     if ($limit > (int)$room['start_ms']) {
-        $stmt = $pdo->prepare(
-            "SELECT student_id, last_seen_ms FROM battle_players
-             WHERE room_id = :r AND status = 'playing' AND last_seen_ms < :lim"
-        );
-        $stmt->execute(['r' => $room['room_id'], 'lim' => $limit]);
-        $upd = $pdo->prepare(
-            "UPDATE battle_players
-             SET status = 'dq', dq_reason = 'lost', dq_seq = :seq, dq_at = NOW()
-             WHERE room_id = :r AND student_id = :s AND status = 'playing'"
-        );
-        foreach ($stmt->fetchAll() as $p) {
-            $upd->execute([
-                'seq' => battle_seq_at($room, (int)$p['last_seen_ms']),
-                'r'   => $room['room_id'],
-                's'   => $p['student_id'],
-            ]);
+        $stmt = $pdo->prepare("SELECT MAX(last_seen_ms) FROM battle_players WHERE room_id = :r AND status = 'playing'");
+        $stmt->execute(['r' => $room['room_id']]);
+        $maxSeen = $stmt->fetchColumn();
+        if ($maxSeen !== false && $maxSeen !== null && $at - (int)$maxSeen > BATTLE_ROOM_QUIET_MS) {
+            $pdo->prepare(
+                "UPDATE battle_players SET last_seen_ms = :n
+                 WHERE room_id = :r AND status = 'playing' AND last_seen_ms < :n2"
+            )->execute(['n' => $at, 'n2' => $at, 'r' => $room['room_id']]);
+            error_log('[battle] room ' . $room['room_id'] . ': no player contact for ' . ($at - (int)$maxSeen)
+                . 'ms (server stall or classroom network down) - lost-check skipped');
+        } else {
+            $stmt = $pdo->prepare(
+                "SELECT student_id, last_seen_ms FROM battle_players
+                 WHERE room_id = :r AND status = 'playing' AND last_seen_ms < :lim"
+            );
+            $stmt->execute(['r' => $room['room_id'], 'lim' => $limit]);
+            // 理由に「最後の通信から何秒」を添える（'lost:23'。VARCHAR(16) に収まる）。
+            // 講師画面の失格の欄に出る＝次に起きたとき、端末側かサーバー側かの切り分けに使う
+            $upd = $pdo->prepare(
+                "UPDATE battle_players
+                 SET status = 'dq', dq_reason = :why, dq_seq = :seq, dq_at = NOW()
+                 WHERE room_id = :r AND student_id = :s AND status = 'playing'"
+            );
+            foreach ($stmt->fetchAll() as $p) {
+                $gap = $at - (int)$p['last_seen_ms'];
+                $upd->execute([
+                    'why' => 'lost:' . min(9999, (int)round($gap / 1000)),
+                    'seq' => battle_seq_at($room, (int)$p['last_seen_ms']),
+                    'r'   => $room['room_id'],
+                    's'   => $p['student_id'],
+                ]);
+                error_log('[battle] room ' . $room['room_id'] . ': student ' . $p['student_id'] . ' lost (no contact for '
+                    . $gap . 'ms, latest contact in room ' . ($at - (int)$maxSeen) . 'ms ago)');
+            }
         }
     }
     if ($now >= $end) {
@@ -589,7 +631,7 @@ function battle_standings(PDO $pdo, int $roomId, ?int $uptoSeq = null): array
             'score'      => $correct * BATTLE_POINT,
             'rank'       => $isDq ? null : $rank,
             'dq'         => $isDq,
-            'dq_reason'  => $isDq ? (BATTLE_DQ_REASONS[$row['dq_reason']] ?? '失格') : null,
+            'dq_reason'  => $isDq ? battle_dq_label($row['dq_reason']) : null,
             'dq_no'      => ($isDq && $row['dq_seq'] !== null) ? (int)$row['dq_seq'] + 1 : null,   // 画面は1始まり
         ];
     }

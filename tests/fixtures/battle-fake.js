@@ -29,6 +29,10 @@ function makeFake(opts = {}) {
   const tick = () => { if (st.status === 'playing' && Date.now() >= st.start + endOff) st.status = 'finished'; };
   const fake = {
     st, qs,
+    // 届いた通信の記録 [{action, t, failed}] と、わざと失敗させるしかけ。
+    // trouble = { action: 'state' | '*', mode: '500' | 'hang', count: 回数 }
+    //   '500' = サーバーのエラーを返す / 'hang' = 応答しない（画面側の打ち切りを確かめる）
+    calls: [], trouble: null,
     start() { st.status = 'playing'; st.start = Date.now() + countdown; if (st.me === 'waiting') st.me = 'playing'; },
     handle(action, p) {
       tick();
@@ -87,16 +91,20 @@ function makeFake(opts = {}) {
             rank: dq ? null : 1, dq, dq_reason: dq ? '失格' : null, dq_no: null, me: true, team: st.team };
           const rival = { name: 'ライバル', classroom: '一社', correct: 0, answered: 0, score: 0, rank: dq ? 1 : 2, dq: false,
             dq_reason: null, dq_no: null, me: false, team: teams.length ? 2 : null };
-          // チームの順位（PHP の battle_team_standings と同じ形。合計点の多い順、同点は番号の若い順・同じ順位）
+          // opts.others: ほかの参加者 [{name, team, score}]（人数のちがうチームを作るため）
+          const others = (opts.others || []).map((o) => ({ name: o.name, classroom: '吉根', correct: o.score / 10, answered: 1,
+            score: o.score, rank: null, dq: false, dq_reason: null, dq_no: null, me: false, team: o.team }));
+          // チームの順位（PHP の battle_rank_teams と同じ約束。平均点＝合計÷人数を小数1けたで比べ、高い順。
+          // 同じ平均点は同じ順位で、並びは合計点の多い順→番号の若い順）
           const team_standings = teams.map((t) => {
-            const mem = [mine, rival].filter((s) => s.team === t.team);
+            const mem = [mine, rival].concat(others).filter((s) => s.team === t.team);
             const total = mem.reduce((a, s) => a + s.score, 0);
-            return { ...t, members: mem.length, total, correct: total / 10, n_dq: mem.filter((s) => s.dq).length,
-              avg: mem.length ? Math.round(total / mem.length * 10) / 10 : 0 };
-          }).filter((t) => t.members > 0).sort((a, b) => b.total - a.total || a.team - b.team);
-          team_standings.forEach((t, i, arr) => { t.rank = i > 0 && arr[i - 1].total === t.total ? arr[i - 1].rank : i + 1; });
+            const avg10 = mem.length ? Math.round(10 * total / mem.length) : 0;
+            return { ...t, members: mem.length, total, correct: total / 10, n_dq: mem.filter((s) => s.dq).length, avg10, avg: avg10 / 10 };
+          }).filter((t) => t.members > 0).sort((a, b) => b.avg10 - a.avg10 || b.total - a.total || a.team - b.team);
+          team_standings.forEach((t, i, arr) => { t.rank = i > 0 && arr[i - 1].avg10 === t.avg10 ? arr[i - 1].rank : i + 1; delete t.avg10; });
           return { ok: true, room: roomPub(), me: mePub(), mine, team_standings,
-            standings: [mine, rival],
+            standings: [mine, rival].concat(others),
             review: qs.map((q, i) => ({ no: i + 1, text: q.text, choices: q.choices, category: 'ことば', correct: q.correct,
               explanation: q.explanation, n_correct: 0, mine: st.answers[i] ?? null })), ...base };
         }
@@ -122,6 +130,15 @@ async function boot(page, fake, { loggedIn = true } = {}) {
     let p;
     if (req.method() === 'POST') p = JSON.parse(req.postData() || '{}');
     else p = Object.fromEntries(new URL(req.url()).searchParams);
+    const t = fake.trouble;
+    const hit = !!(t && t.count > 0 && (t.action === '*' || t.action === p.action));
+    fake.calls.push({ action: p.action, t: Date.now(), failed: hit });
+    if (hit) {
+      t.count--;
+      if (t.mode === 'hang') return;   // 応答しない（route を放っておく）
+      route.fulfill({ status: 500, contentType: 'text/html', body: '<h1>500 Internal Server Error</h1>' });
+      return;
+    }
     const body = fake.handle(p.action, p);
     route.fulfill({ status: body.ok ? 200 : 409, contentType: 'application/json', body: JSON.stringify(body) });
   });

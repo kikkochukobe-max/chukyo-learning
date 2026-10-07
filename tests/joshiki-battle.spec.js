@@ -173,6 +173,43 @@ test('カウントダウン中に裏へ回っても失格にならない（iPhon
   expect(fake.st.me).toBe('playing');
 });
 
+// ---- 通信が詰まっても「通信が途絶えた」で失格にならないように（2026-10） ----
+// 生存確認がサーバーに20秒届かないと失格になる。以前は通信に待ち時間の上限が無く、死んだ接続に
+// 詰まると何十秒も待ち続けて失格になり、サーバーのエラーも黙って「成功」あつかいだった。
+test('生存確認がサーバーのエラーで失敗したら、1〜1.5秒で送り直す', async ({ page }) => {
+  const fake = makeFake({ count: 10 });
+  await boot(page, fake);
+  await joinAndStart(page, fake);
+  fake.trouble = { action: 'state', mode: '500', count: 1 };
+  await expect.poll(() => fake.calls.filter((c) => c.action === 'state' && c.failed).length, { timeout: 8000 }).toBe(1);
+  const failedAt = fake.calls.find((c) => c.action === 'state' && c.failed).t;
+  await expect.poll(() => fake.calls.filter((c) => c.action === 'state' && c.t > failedAt).length, { timeout: 3000 }).toBeGreaterThan(0);
+  const next = fake.calls.find((c) => c.action === 'state' && c.t > failedAt).t;
+  expect(next - failedAt).toBeLessThan(2500);   // ふだんの間隔（4〜6秒）を待たない
+});
+
+test('応答の来ない通信は6秒で打ち切って、生存確認を送り直す', async ({ page }) => {
+  const fake = makeFake({ count: 10 });
+  await boot(page, fake);
+  await joinAndStart(page, fake);
+  fake.trouble = { action: 'state', mode: 'hang', count: 1 };
+  await expect.poll(() => fake.calls.filter((c) => c.action === 'state' && c.failed).length, { timeout: 8000 }).toBe(1);
+  const hungAt = fake.calls.find((c) => c.action === 'state' && c.failed).t;
+  await expect.poll(() => fake.calls.filter((c) => c.action === 'state' && c.t > hungAt).length, { timeout: 10000 }).toBeGreaterThan(0);
+  const next = fake.calls.find((c) => c.action === 'state' && c.t > hungAt).t;
+  expect(next - hungAt).toBeLessThan(9000);   // 打ち切り6秒＋送り直し1〜1.5秒（20秒の失格ラインより十分前）
+  await expect(page.locator('#scr-play')).toBeVisible();
+});
+
+test('サーバーのエラーが続くと「通信できません」を出し、直れば消す', async ({ page }) => {
+  const fake = makeFake({ count: 10 });
+  await boot(page, fake);
+  await joinAndStart(page, fake);
+  fake.trouble = { action: '*', mode: '500', count: 4 };
+  await expect(page.locator('#net')).toHaveClass(/\bon\b/, { timeout: 8000 });
+  await expect(page.locator('#net')).not.toHaveClass(/\bon\b/, { timeout: 10000 });
+});
+
 test('PCで別のウィンドウに1秒以上いたら失格、一瞬なら失格にしない', async ({ page }) => {
   const fake = makeFake({ count: 3 });
   await boot(page, fake);
@@ -215,7 +252,7 @@ test('ない部屋番号はその場で知らせる', async ({ page }) => {
   await expect(page.locator('#join-err')).toHaveText('その番号の部屋はありません');
 });
 
-test('チーム戦: 待合室でチームを選び、結果にチームの順位（合計点・平均点）が出る', async ({ page }) => {
+test('チーム戦: 待合室でチームを選び、結果にチームの順位（平均点・合計点）が出る', async ({ page }) => {
   const fake = makeFake({ count: 1, teams: 3 });
   await boot(page, fake);
   await page.fill('#code', '1234');
@@ -243,12 +280,37 @@ test('チーム戦: 待合室でチームを選び、結果にチームの順位
   await expect(page.locator('#scr-result')).toBeVisible({ timeout: 8000 });
   await expect(page.locator('#res-teams-card')).toBeVisible();
   await expect(page.locator('#res-top')).toContainText('青チーム　1位');
-  // 青＝自分10点＋ライバル0点 → 合計10・平均5.0
+  // 青＝自分10点＋ライバル0点 → 平均5.0（大きく出す）・合計10
   const row = page.locator('#res-teams tr.me');
   await expect(row).toContainText('青チーム');
-  await expect(row.locator('td.tt')).toHaveText('10');
-  await expect(row).toContainText('5.0');
+  await expect(row.locator('td.tt')).toHaveText('5.0');
+  await expect(row).toContainText('10');
   await expect(page.locator('#res-table-h')).toHaveText('個人の順位');
+});
+
+test('チーム戦の順位は平均点で決まる（人数の多いチームが合計点で上でも勝てない）', async ({ page }) => {
+  // 赤＝3人で10・10・0点（合計20・平均6.7）／黄＝自分1人で10点（合計10・平均10.0）／青＝ライバル0点
+  const fake = makeFake({ count: 1, teams: 3, others: [
+    { name: '赤の子1', team: 1, score: 10 }, { name: '赤の子2', team: 1, score: 10 }, { name: '赤の子3', team: 1, score: 0 },
+  ] });
+  await boot(page, fake);
+  await page.fill('#code', '1234');
+  await page.click('#join-btn');
+  await expect(page.locator('#scr-lobby')).toBeVisible();
+  await page.locator('#lb-tbtns .tbtn').nth(2).click();
+  await expect(page.locator('#lb-tq')).toContainText('黄チームに入った');
+  fake.start();
+  await expect(page.locator('#scr-play')).toBeVisible({ timeout: 8000 });
+  await page.locator('#choices .choice').nth(fake.qs[0].correct).click();
+  await expect(page.locator('#scr-result')).toBeVisible({ timeout: 8000 });
+  await expect(page.locator('#res-top')).toContainText('黄チーム　1位');
+  const rows = page.locator('#res-teams tr');   // 1行目は見出し
+  await expect(rows.nth(1)).toContainText('黄チーム');
+  await expect(rows.nth(1).locator('td.tt')).toHaveText('10.0');
+  await expect(rows.nth(2)).toContainText('赤チーム');
+  await expect(rows.nth(2)).toContainText('2位');
+  await expect(rows.nth(2).locator('td.tt')).toHaveText('6.7');
+  await expect(page.locator('#res-teams')).toContainText('平均点');
 });
 
 test('個人戦の部屋ではチームの選択も、チームの順位も出ない', async ({ page }) => {

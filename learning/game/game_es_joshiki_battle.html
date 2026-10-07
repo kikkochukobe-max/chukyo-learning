@@ -65,6 +65,7 @@ button{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;cursor:pointer;t
 .wait-big{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:19px;text-align:center;color:var(--navy);margin:8px 0}
 .wake-hint{background:#FFF6DD;border:2px dashed var(--gold);border-radius:12px;padding:8px 12px;margin:8px 0;
   font-weight:700;font-size:15px;text-align:center;color:var(--navy)}
+.wake-hint.play{font-size:13px;padding:5px 10px;margin-top:12px;border-width:1.5px}
 .dots::after{content:'';animation:dots 1.5s steps(4) infinite}
 @keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
 .players{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
@@ -233,6 +234,7 @@ tr.dq td{color:var(--ink-soft)}
     <div class="qcard"><div class="qcat" id="qcat"></div><div class="qtext" id="qtext"></div></div>
     <div class="choices" id="choices"></div>
     <div class="status" id="status"></div>
+    <p class="wake-hint play" id="pl-wake" hidden>画面が消えないように、ときどき画面にさわってね</p>
   </section>
 
   <!-- 失格 -->
@@ -287,25 +289,47 @@ tr.dq td{color:var(--ink-soft)}
     // 往復の短い測定ほど正確なのでそれを採る。大きくずれたら（スリープ明けなど）測り直す
     if (clock.off === null || rtt <= clock.rtt || Math.abs(off - clock.off) > 2000) { clock.off = off; clock.rtt = rtt; }
   }
+  // 通信。⚠ 1本ごとに待ち時間の上限（REQ_TIMEOUT_MS）を付ける。
+  //   上限が無いと、Wi-Fi が一瞬切れて死んだ接続に通信が詰まり、応答の来ないまま何十秒も待ち続ける。
+  //   そのあいだ生存確認がサーバーに1本も届かず「通信が途絶えた」で失格になるのに、
+  //   画面は進行表どおりに進むので本人も気づけなかった。打ち切って次の通信を出し直す。
+  //   サーバーのエラー（500番台・JSONでない応答）も失敗として数える（以前は「応答あり」で黙っていた）
+  var REQ_TIMEOUT_MS = 6000;
   var netFails = 0;
+  function netResult(ok) {
+    if (ok) { netFails = 0; $('net').classList.remove('on'); return; }
+    netFails++;
+    if (netFails >= 2) $('net').classList.add('on');
+  }
   function api(params, body) {
     var t0 = nowMs();
-    var p = body
-      ? fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(body) })
-      : fetch(API + '?' + new URLSearchParams(params).toString(), { credentials: 'same-origin', cache: 'no-store' });
-    return p.then(function (res) {
+    var ctl = null, timer = null;
+    try { ctl = new AbortController(); } catch (e) { ctl = null; }   // 古い端末は上限なしで動く
+    var opt = body
+      ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(body) }
+      : { credentials: 'same-origin', cache: 'no-store' };
+    if (ctl) { opt.signal = ctl.signal; timer = setTimeout(function () { try { ctl.abort(); } catch (e) {} }, REQ_TIMEOUT_MS); }
+    var url = body ? API : API + '?' + new URLSearchParams(params).toString();
+    return fetch(url, opt).then(function (res) {
       var t1 = nowMs();
       return res.json().catch(function () { return null; }).then(function (data) {
-        if (data && typeof data.now_ms === 'number') syncClock(data.now_ms, t0, t1);
-        netFails = 0; $('net').classList.remove('on');
-        return { status: res.status, data: data || { ok: false, error: 'bad_response' } };
+        clearTimeout(timer);
+        if (!data || res.status >= 500) {
+          netResult(false);
+          return { status: res.status, data: data || { ok: false, error: 'bad_response' } };
+        }
+        if (typeof data.now_ms === 'number') syncClock(data.now_ms, t0, t1);
+        netResult(true);
+        return { status: res.status, data: data };
       });
     }).catch(function () {
-      netFails++;
-      if (netFails >= 2) $('net').classList.add('on');
+      clearTimeout(timer);
+      netResult(false);
       return { status: 0, data: { ok: false, error: 'network' } };
     });
   }
+  // 失敗したあとの送り直しの待ち時間。全員が同じ瞬間に送り直してサーバーを詰まらせないよう、ばらつかせる
+  function jitter(base, spread) { return base + Math.floor(Math.random() * spread); }
 
   // ---------- 画面の切りかえ ----------
   var screen = '';
@@ -342,13 +366,19 @@ tr.dq td{color:var(--ink-soft)}
   function releaseWake() { wakeWanted = false; try { if (wake) wake.release(); } catch (e) {} wake = null; }
   // 待合室の「画面が消えないように、一度タップしてね」。取れたら消す
   function drawWakeHint() {
-    var el = $('lb-wake');
-    if (!el) return;
-    if (wake) { el.hidden = true; return; }
-    el.hidden = false;
-    el.textContent = ('wakeLock' in navigator)
-      ? '画面が消えないように、いちど画面をタップしてね'
-      : 'スタートまで、画面が消えないように ときどき画面にさわってね';
+    var el = $('lb-wake'), pl = $('pl-wake');
+    if (el) {
+      el.hidden = !!wake;
+      if (!wake) {
+        el.textContent = ('wakeLock' in navigator)
+          ? '画面が消えないように、いちど画面をタップしてね'
+          : 'スタートまで、画面が消えないように ときどき画面にさわってね';
+      }
+    }
+    // 対戦中: 画面を消さない仕組みが効いていない（未対応の端末・取れなかった・外れた）ときだけ出す。
+    // 計算問題（60秒）で考えこんで30秒さわらないと、iPhone は自動ロックで画面が消えて失格になる
+    // （サーバーには「通信が途絶えた（最後の通信から20秒）」と残る。2026-10 に39問目で起きた）
+    if (pl) pl.hidden = !!wake || !inGame;
   }
   document.addEventListener('pointerdown', function () { if (wakeWanted) requestWake(); }, true);
 
@@ -553,12 +583,13 @@ tr.dq td{color:var(--ink-soft)}
     $('sc').textContent = '0点';
     $('play-team').innerHTML = isTeamRoom() && me ? teamTag(me.team) : '';
     loopTimer = setInterval(loop, 100);
-    pingTimer = setInterval(ping, 5000);
+    // 最初の生存確認は1〜4秒後のばらばら（全員が同じ瞬間にスタートを知るので、そろえると毎回いっしょに送ることになる）
+    schedulePing(jitter(1000, 3000));
     loop();
   }
   function exitGame() {
     inGame = false;
-    clearInterval(loopTimer); clearInterval(pingTimer);
+    clearInterval(loopTimer); clearTimeout(pingTimer);
     loopTimer = pingTimer = null;
     cancel('q'); cancel('a');
     document.documentElement.classList.remove('ingame');
@@ -584,7 +615,7 @@ tr.dq td{color:var(--ink-soft)}
     show('play');
     drawTimer(now);
     if (now >= close && !cur.locked) lockChoices();
-    if (now >= close + room.grace_ms && !cur.reveal && !cur.fetchingR) fetchReveal();
+    if (now >= cur.revealAt && !cur.reveal && !cur.fetchingR) fetchReveal();
   }
 
   function drawTimer(now) {
@@ -597,8 +628,10 @@ tr.dq td{color:var(--ink-soft)}
 
   function startQuestion(seq, open, close) {
     // choice=いま選んでいる答え / accepted=サーバーが受け取った答え / sending=送信中 / pending=送信中に選び直した答え
+    // revealAt: 正解発表を取りに行く時刻。締め切り＋猶予に、人ごとに0〜0.5秒のずれを足す
+    // （全員が同じ瞬間に取りに行くとサーバーが詰まる。問題を取りに行くときと同じ考え方）
     cur = { seq: seq, open: open, close: close, q: null, choice: null, accepted: null, sending: false, pending: null,
-            locked: false, reveal: null, fetchingR: false };
+            locked: false, reveal: null, fetchingR: false, revealAt: close + room.grace_ms + jitter(0, 500) };
     $('qno').innerHTML = '第' + (seq + 1) + '問<small> / ' + room.count + '</small>';
     $('qcat').textContent = '';
     $('qtext').textContent = '問題を読みこみ中…';
@@ -617,7 +650,7 @@ tr.dq td{color:var(--ink-soft)}
       if (d.ok) return renderQuestion(d);
       if (d.error === 'not_yet') return later('q', function () { fetchQuestion(seq); }, Math.max(100, d.wait_ms || 300));
       if (d.error === 'not_playing') return out(d);
-      later('q', function () { fetchQuestion(seq); }, 600);
+      later('q', function () { fetchQuestion(seq); }, jitter(500, 500));
     });
   }
 
@@ -701,7 +734,7 @@ tr.dq td{color:var(--ink-soft)}
       var d = r.data;
       if (!d.ok) {
         if (d.error === 'not_playing') return out(d);
-        later('r', function () { if (cur && cur.seq === seq) cur.fetchingR = false; }, d.error === 'not_yet' ? Math.max(100, d.wait_ms || 300) : 600);
+        later('r', function () { if (cur && cur.seq === seq) cur.fetchingR = false; }, d.error === 'not_yet' ? Math.max(100, d.wait_ms || 300) : jitter(500, 500));
         return;
       }
       cur.reveal = d;
@@ -724,14 +757,31 @@ tr.dq td{color:var(--ink-soft)}
     });
   }
 
-  // 5秒ごとの生存確認（サーバーはこれが20秒途絶えると失格にする）。中止・失格もここで気づく
+  // 生存確認（サーバーはこれが20秒途絶えると失格にする）。中止・失格もここで気づく。
+  //  * 間隔は4〜6秒のばらばら。きっかり5秒だと、1問の周期（15＋5秒＝20秒）の倍数になり、
+  //    全員の生存確認が毎回「問題が出る瞬間」「正解発表の瞬間」の混雑に重なっていた
+  //  * 1本ずつ送る（前の返事か打ち切りを待ってから次）。失敗したら1〜1.5秒で送り直す
+  //    ＝上限6秒で打ち切っても、次が早く出るので20秒の失格ラインに届きにくい
+  function schedulePing(ms) {
+    clearTimeout(pingTimer);
+    pingTimer = setTimeout(ping, ms);
+  }
   function ping() {
     if (!inGame || !room) return;
+    // 画面を消さない仕組み（Wake Lock）が途中で外れていたら取り直す。iPhone は最初の1回をタップで
+    // 取れていれば、あとはタップ無しで取り直せる（以前はタップするまで取り直さず、外れたまま自動ロックに入った）
+    if (wakeWanted && !wake) requestWake();
+    drawWakeHint();
     api({ action: 'state', room_id: room.room_id }).then(function (r) {
-      if (!inGame || !r.data.ok) return;
+      if (!inGame) return;
+      if (!r.data.ok) {
+        var netErr = r.status === 0 || r.status >= 500 || r.data.error === 'bad_response';
+        return schedulePing(netErr ? jitter(1000, 500) : jitter(4000, 2000));
+      }
       // チームを選ばずに始まった子は、スタートの時にサーバーがチームを決める。ここで名札を出し直す
       if (r.data.me && isTeamRoom()) $('play-team').innerHTML = teamTag(r.data.me.team);
       out(r.data);
+      if (inGame) schedulePing(jitter(4000, 2000));
     });
   }
 
@@ -842,7 +892,8 @@ tr.dq td{color:var(--ink-soft)}
     } else {
       top = '<div class="dq-stamp" style="font-size:40px">失格</div><div class="note">' + esc(mine && mine.dq_reason ? mine.dq_reason : '') + '</div>';
     }
-    // チーム戦: 自分のチームの順位を一番上に。チームの表（合計点で順位・平均点も）を個人の順位の上に出す
+    // チーム戦: 自分のチームの順位を一番上に。チームの表（平均点で順位・合計点も）を個人の順位の上に出す
+    // （順位はサーバーが平均点で付けたものをそのまま出す。人数の多いチームが合計点で有利にならないように）
     var teams = (d.team_standings || []), isTeam = isTeamRoom() && teams.length > 0;
     var myTeamNo = mine ? mine.team : (d.me ? d.me.team : null);
     if (isTeam) {
@@ -850,12 +901,12 @@ tr.dq td{color:var(--ink-soft)}
       if (mt) {
         top = '<div class="myteam" style="color:' + esc(mt.color) + '">' + esc(mt.name) + 'チーム　' + mt.rank + '位<small style="color:var(--ink-soft)"> / ' + teams.length + 'チーム</small></div>' + top;
       }
-      $('res-teams').innerHTML = '<table class="teams"><tr><th>順位</th><th>チーム</th><th class="num">人数</th><th class="num">合計点</th><th class="num">平均点</th></tr>'
+      $('res-teams').innerHTML = '<table class="teams"><tr><th>順位</th><th>チーム</th><th class="num">人数</th><th class="num">平均点</th><th class="num">合計点</th></tr>'
         + teams.map(function (t) {
           return '<tr class="' + (t.team === myTeamNo ? 'me' : '') + '"><td class="rk">' + t.rank + '位</td>'
             + '<td class="tn" style="color:' + esc(t.color) + '">' + esc(t.name) + 'チーム</td><td class="num">' + t.members + '人</td>'
-            + '<td class="num tt">' + t.total + '</td><td class="num">' + t.avg.toFixed(1) + '</td></tr>';
-        }).join('') + '</table><p class="note">順位はチームの合計点で決まります。平均点は1人あたりの点数です</p>';
+            + '<td class="num tt">' + t.avg.toFixed(1) + '</td><td class="num">' + t.total + '</td></tr>';
+        }).join('') + '</table><p class="note">順位はチームの平均点（1人あたりの点数）で決まります。人数がちがっても公平です</p>';
     }
     $('res-teams-card').hidden = !isTeam;
     $('res-table-h').textContent = isTeam ? '個人の順位' : '順位';
