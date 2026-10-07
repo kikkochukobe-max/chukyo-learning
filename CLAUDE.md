@@ -709,6 +709,10 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    - **制限時間は問題ごと**。問題JSONの `"calc": true`（＝battle_questions.needs_calc）が計算の要る問題で、
      部屋を作るときに BATTLE_LEVELS の sec / calc_sec を battle_room_questions.limit_sec に書く
      （列は db/migrations/migrate_joshiki_battle_calc.sql。流す前は全問 time_limit_sec で動く＝battle_has_calc()）。
+     ⚠ **列を足しただけでは60秒にならない**。足した直後は全問 needs_calc=0 なので、そのあと
+     seed_joshiki_battle_lv3.sql・lv4.sql を流し直して印を入れる（src_key で上書きするので何度流しても増えない）。
+     2026-10 に「超難の計算問題が60秒にならない」で踏んだ。講師画面の「部屋を作る」は難易度ごとに
+     「うち計算 N問」を出し、計算の秒数があるのに0問なら赤字で流し直しを促す（リポジトリの印は 難しい103問・超難175問）。
      出題時刻は保存せず battle_schedule() が「前の問題の（制限時間＋正解発表）の合計」で毎回作り、
      画面へも room.schedule で渡す（画面とサーバーが同じ表で何問目かを決める）
    - **進行はサーバーの時刻だけで決まる**。start_ms + 進行表の offset が出題時刻で、

@@ -348,10 +348,19 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
       + '<p class="note">難易度と問題数を決めて部屋を作ると、4桁の部屋番号が出ます。生徒は「学習ツール一覧」の一般常識バトルを開いて、その番号を入れます。</p>'
       + '<p style="margin-top:14px;font-weight:700">難易度</p><div class="row" id="lvs">'
       + levels.map(function (l) {
+        // 計算問題（60秒）のある難易度は「うち計算 N問」も出す。0問なら、DBの問題に「計算が要る」の印
+        // （needs_calc）が入っていない＝全部20秒で出る（2026-10 に超難でそうなった）
         return '<button type="button" class="lv' + (l.level === selLevel ? ' on' : '') + '" data-lv="' + l.level + '"' + (l.available < countDef.min ? ' disabled' : '') + '>'
           + '<b>' + esc(l.label) + '</b><span>1問' + l.sec + '秒' + (l.calc_sec !== l.sec ? '（計算は' + l.calc_sec + '秒）' : '')
-          + '・' + l.available + '問から出題</span></button>';
+          + '・' + l.available + '問から出題'
+          + (l.calc_sec !== l.sec ? '・うち計算' + l.calc + '問' : '') + '</span></button>';
       }).join('') + '</div>'
+      + (levels.some(function (l) { return l.calc_sec !== l.sec && l.available > 0 && !l.calc; })
+        ? '<p class="err">' + levels.filter(function (l) { return l.calc_sec !== l.sec && l.available > 0 && !l.calc; })
+            .map(function (l) { return esc(l.label); }).join('・')
+          + 'の問題に「計算が要る」の印が入っていません。このままだと計算問題もふつうの問題と同じ秒数（60秒にならない）で出ます。'
+          + 'phpMyAdmin で db/seeds/seed_joshiki_battle_lv3.sql・lv4.sql を流し直してください（何度流しても問題は増えません）。</p>'
+        : '')
       + '<p style="margin-top:14px;font-weight:700">問題数</p><div class="row"><select id="cnt">' + opts + '</select>'
       + '<span class="note" id="est"></span></div>'
       + '<p style="margin-top:14px;font-weight:700">対戦のしかた</p><div class="row" id="tms">'
