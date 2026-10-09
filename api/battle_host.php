@@ -2,13 +2,16 @@
 declare(strict_types=1);
 
 // 常識バトル（講師側）。/battle_host.php の画面が呼ぶ。部屋を作れるのは講師だけ。
-//   GET  ?action=rooms                   … 自分の部屋の一覧（開いている部屋＋最近の対戦）
+//   GET  ?action=rooms[&hist=all]        … 自分の部屋の一覧（開いている部屋＋最近の対戦。ふだんは新しい15件、
+//                                        hist=all で BATTLE_HIST_ALL 件まで。more=true ならまだ古い部屋がある）
 //   POST {action:'create', level, count, teams, practice} … 部屋を作る（難易度 1〜4 / 問題数 10〜100 の5問きざみ /
 //                                        チーム数 0=個人戦・2〜6=チーム戦 / practice=true で練習＝合算に入らない）。
 //                                        4桁の部屋番号を返す
 //   POST {action:'start', room_id}       … スタート（待合室で画面を開いている生徒だけが参加する）
 //   POST {action:'cancel', room_id}      … 部屋を閉じる（待合室・対戦中どちらでも）
 //   POST {action:'practice', room_id, practice} … 本番⇔練習を切りかえる（作ったあとの付けまちがい用）
+//   POST {action:'delete', room_ids:[3,5]} … 終わった部屋・中止した部屋を消す（参加者・解答ごと。元に戻せない）。
+//                                        待合室・対戦中の部屋は消せない（先に閉じる）
 //   GET  ?action=state&room_id=          … 進行状況（待合室の顔ぶれ / いまの問題・回答数・途中順位）
 //   GET  ?action=result&room_id=         … 最終順位と全問の正答数
 //   GET  ?action=total_rooms             … 合算に選べる回（自分の部屋のうち、終了した本番）
@@ -65,18 +68,22 @@ switch ($action) {
 
 case 'rooms':
     battle_sweep_rooms($pdo, $now);
+    // 1件多く読んで、まだ古い部屋があるか（「もっと前の部屋も表示」を出すか）を知る
+    $histLimit = ($in['hist'] ?? '') === 'all' ? BATTLE_HIST_ALL : BATTLE_HIST_RECENT;
     $stmt = $pdo->prepare(
         "SELECT r.*,
                 (SELECT COUNT(*) FROM battle_players p
                   WHERE p.room_id = r.room_id AND p.status IN ('playing', 'dq')) AS n_players
          FROM battle_rooms r
          WHERE r.host_teacher_id = :t
-         ORDER BY r.room_id DESC LIMIT 15"
+         ORDER BY r.room_id DESC LIMIT " . ($histLimit + 1)
     );
     $stmt->execute(['t' => $teacherId]);
+    $rows = $stmt->fetchAll();
+    $more = count($rows) > $histLimit;
     $rooms = [];
     $open = null;
-    foreach ($stmt->fetchAll() as $r) {
+    foreach (array_slice($rows, 0, $histLimit) as $r) {
         $pub = battle_room_public($r, $now);
         unset($pub['schedule']);   // 一覧には要らない（1部屋100件ぶんの進行表）
         $pub['n_players'] = (int)$r['n_players'];
@@ -112,6 +119,7 @@ case 'rooms':
         'ok'      => true,
         'open'    => $open,
         'rooms'   => $rooms,
+        'more'    => $more,
         'levels'  => $levels,
         'count'   => ['min' => BATTLE_COUNT_MIN, 'max' => BATTLE_COUNT_MAX, 'step' => BATTLE_COUNT_STEP],
         // チーム戦で選べるチーム数。migrate_joshiki_battle_team.sql を流していなければ team_ready=false（個人戦だけ）
@@ -337,6 +345,52 @@ case 'practice':
     $pdo->prepare('UPDATE battle_rooms SET is_practice = :p WHERE room_id = :r')
         ->execute(['p' => $flag, 'r' => $room['room_id']]);
     json_response(['ok' => true, 'room_id' => (int)$room['room_id'], 'practice' => $flag === 1, 'now_ms' => $now]);
+    break;
+
+case 'delete':
+    // 終わった・中止した部屋を、参加者と解答ごと消す（テストで作った部屋・やり直した回の片付け用）。
+    // 消した回は合算の一覧からも消え、賞状も出せなくなる。元に戻せないので画面で確認してから呼ぶ
+    require_post_action($isPost);
+    $ids = [];
+    foreach ((array)($in['room_ids'] ?? []) as $v) {
+        $id = (int)$v;
+        if ($id > 0) {
+            $ids[$id] = true;
+        }
+    }
+    $ids = array_keys($ids);
+    if (!$ids) {
+        fail('no_rooms');
+    }
+    if (count($ids) > BATTLE_HIST_ALL) {
+        fail('too_many_rooms', 400, ['max' => BATTLE_HIST_ALL]);
+    }
+    $targets = [];
+    foreach ($ids as $id) {
+        $room = battle_load_room($pdo, $id);
+        if (!$room) {
+            continue;   // もう無い（別のタブで消した・二度押し）＝消えているので、そのまま進める
+        }
+        if ((int)$room['host_teacher_id'] !== $teacherId && !$isSuper) {
+            fail('forbidden', 403, ['code' => (string)$room['room_code']]);
+        }
+        $room = battle_tick($pdo, $room, $now);   // 終了時刻を過ぎた対戦は finished になる
+        if (!in_array($room['status'], ['finished', 'cancelled'], true)) {
+            fail('room_active', 409, ['code' => (string)$room['room_code']]);
+        }
+        $targets[] = (int)$room['room_id'];
+    }
+    if ($targets) {
+        // 外部キーの CASCADE に任せず、子の表から順に明示的に消す（delete_student.php と同じ考え方）
+        $idList = implode(',', $targets);   // すべて int に通してある
+        $pdo->beginTransaction();
+        $pdo->exec('DELETE FROM battle_answers WHERE room_id IN (' . $idList . ')');
+        $pdo->exec('DELETE FROM battle_players WHERE room_id IN (' . $idList . ')');
+        $pdo->exec('DELETE FROM battle_room_questions WHERE room_id IN (' . $idList . ')');
+        $pdo->exec('DELETE FROM battle_rooms WHERE room_id IN (' . $idList . ')');
+        $pdo->commit();
+    }
+    json_response(['ok' => true, 'deleted' => $targets, 'now_ms' => $now]);
     break;
 
 case 'total_rooms':

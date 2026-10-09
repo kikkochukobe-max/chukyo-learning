@@ -188,6 +188,8 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
   table.pick td:first-child,table.pick th:first-child{width:36px;text-align:center}
   table.pick input{width:18px;height:18px;cursor:pointer}
   table.pick tr.sel td{background:var(--ai-soft)}
+  table.hist tr.sel td{background:#FBEAE7}   /* 消すために選んだ行（朱のうすい色） */
+  .tpick-tools .note{align-self:center}
   .rounds{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px}
   .rounds span{font-size:12px;background:var(--paper);border:1px solid var(--grid);border-radius:8px;padding:3px 9px}
   .tot-wrap{overflow-x:auto}
@@ -267,6 +269,7 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
     practice_room: '練習の回は合算に入れられません',
     room_not_found: 'その部屋は見つかりません',
     forbidden: 'ほかの先生の部屋は合算できません',
+    room_active: 'まだ終わっていない部屋は消せません。先に部屋を閉じてください',
     network: '通信できませんでした。もう一度押してください',
     unauthenticated: 'ログインが切れました。ページを開き直してください'
   };
@@ -282,6 +285,9 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
   var current = null;      // 開いている部屋の room_id
   var last = null;         // 直近の state 応答
   var pollTimer = null, tickTimer = null;
+  // 「これまでの部屋」: 一覧・消すために選んだ部屋・古い部屋まで出すか
+  var histRooms = [], histMore = false, histSel = {}, histAll = false;
+  var ROOM_STATUS = { lobby: '待合室', playing: '対戦中', finished: '終了', cancelled: '中止' };
 
   function stopTimers() {
     if (pollTimer) clearTimeout(pollTimer);
@@ -290,8 +296,10 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
   }
 
   // ---- 部屋一覧（最初とひと区切りごと） ----
+  function roomsParams() { return histAll ? { action: 'rooms', hist: 'all' } : { action: 'rooms' }; }
+
   function loadRooms() {
-    return api({ action: 'rooms' }).then(function (r) {
+    return api(roomsParams()).then(function (r) {
       var d = r.data;
       if (!d.ok) { view.innerHTML = '<div class="card"><p class="err">' + esc(errText(d)) + '</p></div>'; return; }
       levels = d.levels; countDef = d.count;
@@ -299,29 +307,66 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
       if (!teamDef.ready) selTeams = 0;
       if (d.practice) practiceDef = d.practice;
       if (!practiceDef.ready) selPractice = false;
-      renderHistory(d.rooms);
+      renderHistory(d.rooms, d.more);
       if (VIEW_ROOM) { var id = VIEW_ROOM; VIEW_ROOM = 0; openRoom(id); }
       else if (d.open) openRoom(d.open);
       else renderCreate();
     });
   }
 
-  function renderHistory(rooms) {
+  // 消せるのは終わった部屋と中止した部屋だけ（待合室・対戦中の部屋は先に閉じる）
+  function deletable(r) { return r.status === 'finished' || r.status === 'cancelled'; }
+
+  function renderHistory(rooms, more) {
+    histRooms = rooms; histMore = !!more;
     var box = document.getElementById('hist');
+    // もう一覧に無い部屋（ほかのタブで消した等）は選択からはずす
+    var keep = {};
+    rooms.forEach(function (r) { if (histSel[r.room_id] && deletable(r)) keep[r.room_id] = true; });
+    histSel = keep;
     if (!rooms.length) { box.textContent = 'まだありません'; return; }
-    var st = { lobby: '待合室', playing: '対戦中', finished: '終了', cancelled: '中止' };
-    box.innerHTML = '<table class="hist"><tr><th>作成</th><th>部屋番号</th><th>難易度</th><th>問題数</th><th>参加</th><th>状態</th><th>区分</th><th></th></tr>'
+    var n = Object.keys(histSel).length;
+    var nDel = rooms.filter(deletable).length;
+    box.innerHTML = (nDel ? '<div class="tpick-tools"><button type="button" class="btn danger sm" id="h-del"' + (n ? '' : ' disabled') + '>'
+        + (n ? '選んだ ' + n + ' 件を消す' : '消す部屋にチェックを入れてください') + '</button>'
+        + (n ? '<button type="button" class="btn ghost sm" id="h-none">選択をはずす</button>' : '')
+        + '<span class="note">終わった部屋・中止した部屋を消せます（参加した生徒の点数ごと消え、元に戻せません）</span></div>' : '')
+      + '<div class="tot-wrap"><table class="hist pick"><tr><th>'
+      + (nDel ? '<input type="checkbox" id="h-all" title="すべて選ぶ"' + (n === nDel ? ' checked' : '') + '>' : '')
+      + '</th><th>作成</th><th>部屋番号</th><th>難易度</th><th>問題数</th><th>参加</th><th>状態</th><th>区分</th><th></th></tr>'
       + rooms.map(function (r) {
+        var on = !!histSel[r.room_id];
         // 区分: 本番＝合算に入れられる / 練習＝入らない。付けまちがいはここで切りかえる（中止の回は合算に出ないので出さない）
         var kind = r.status === 'cancelled' ? '' : (r.practice ? '<span class="prac-tag">練習</span>' : '本番')
           + (practiceDef.ready ? '<button type="button" class="lnk" data-prac="' + r.room_id + '" data-to="' + (r.practice ? 0 : 1) + '">'
             + (r.practice ? '本番にする' : '練習にする') + '</button>' : '');
-        return '<tr><td>' + esc(r.created_at.slice(5, 16)) + '</td><td>' + esc(r.code) + '</td><td>' + esc(r.level_label)
+        return '<tr class="' + (on ? 'sel' : '') + '"><td>' + (deletable(r) ? '<input type="checkbox" data-hd="' + r.room_id + '"' + (on ? ' checked' : '') + '>' : '')
+          + '</td><td>' + esc(r.created_at.slice(5, 16)) + '</td><td>' + esc(r.code) + '</td><td>' + esc(r.level_label)
           + (r.teams && r.teams.length ? '・' + r.teams.length + 'チーム' : '')
-          + '</td><td class="num">' + r.count + '問</td><td class="num">' + r.n_players + '人</td><td class="status">' + esc(st[r.status] || r.status)
+          + '</td><td class="num">' + r.count + '問</td><td class="num">' + r.n_players + '人</td><td class="status">' + esc(ROOM_STATUS[r.status] || r.status)
           + '</td><td style="white-space:nowrap">' + kind + '</td>'
           + '<td>' + (r.status === 'cancelled' ? '' : '<a href="?room=' + r.room_id + '">' + (r.status === 'finished' ? '結果' : '開く') + '</a>') + '</td></tr>';
-      }).join('') + '</table>';
+      }).join('') + '</table></div>'
+      + (more ? '<p style="margin-top:8px">' + (histAll ? '<span class="note">新しい ' + rooms.length + ' 件まで出しています</span>'
+        : '<button type="button" class="lnk" id="h-more" style="padding-left:0">もっと前の部屋も表示</button>') + '</p>' : '');
+    Array.prototype.forEach.call(box.querySelectorAll('[data-hd]'), function (c) {
+      c.addEventListener('change', function () {
+        if (c.checked) histSel[c.dataset.hd] = true; else delete histSel[c.dataset.hd];
+        renderHistory(histRooms, histMore);
+      });
+    });
+    var all = document.getElementById('h-all');
+    if (all) all.addEventListener('change', function () {
+      histSel = {};
+      if (all.checked) histRooms.forEach(function (r) { if (deletable(r)) histSel[r.room_id] = true; });
+      renderHistory(histRooms, histMore);
+    });
+    var none = document.getElementById('h-none');
+    if (none) none.addEventListener('click', function () { histSel = {}; renderHistory(histRooms, histMore); });
+    var del = document.getElementById('h-del');
+    if (del) del.addEventListener('click', deleteRooms);
+    var moreBtn = document.getElementById('h-more');
+    if (moreBtn) moreBtn.addEventListener('click', function () { moreBtn.disabled = true; histAll = true; loadHistoryOnly(); });
     Array.prototype.forEach.call(box.querySelectorAll('[data-prac]'), function (b) {
       b.addEventListener('click', function () {
         b.disabled = true;
@@ -333,6 +378,49 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
           if (current === +b.dataset.prac && last) { last.room.practice = r.data.practice; if (last.room.status !== 'finished') render(); else loadResult(); }
         });
       });
+    });
+  }
+
+  // 選んだ部屋を消す（参加者の点数・答えごと。元に戻せないので、何を消すかを並べて確かめる）
+  function deleteRooms() {
+    var picked = histRooms.filter(function (r) { return histSel[r.room_id]; });
+    if (!picked.length) return;
+    var LIST_MAX = 10;
+    var msg = '選んだ ' + picked.length + ' 件の部屋を消しますか？\n\n'
+      + picked.slice(0, LIST_MAX).map(function (r) {
+        return '・' + r.created_at.slice(5, 16) + '　部屋 ' + r.code + '（' + r.level_label + '・' + r.count + '問・'
+          + (ROOM_STATUS[r.status] || r.status) + (r.practice ? '・練習' : '') + '）';
+      }).join('\n')
+      + (picked.length > LIST_MAX ? '\n　ほか ' + (picked.length - LIST_MAX) + ' 件' : '')
+      + '\n\n' + (picked.some(function (r) { return r.status === 'finished'; })
+        ? '参加した生徒の点数・答えもすべて消え、合算や賞状にも使えなくなります。\n' : '')
+      + '消した部屋は元に戻せません。';
+    if (!confirm(msg)) return;
+    var btn = document.getElementById('h-del');
+    if (btn) btn.disabled = true;
+    var ids = picked.map(function (r) { return r.room_id; });
+    api(null, { action: 'delete', room_ids: ids }).then(function (r) {
+      if (!r.data.ok) {
+        if (btn) btn.disabled = false;
+        alert(r.data.error === 'forbidden' ? 'ほかの先生の部屋は消せません' : errText(r.data));
+        return;
+      }
+      var gone = {};
+      ids.forEach(function (id) { gone[id] = true; });
+      histSel = {};
+      var q = new URLSearchParams(location.search);
+      // 消した回が入った合算の表は、もう作り直せないので片付ける
+      if (shownTotal.some(function (id) { return gone[id]; })) {
+        shownTotal = [];
+        document.getElementById('tres').innerHTML = '';
+        q.delete('total');
+      }
+      var lostCurrent = !!(current && gone[current]);
+      if (lostCurrent) q.delete('room');
+      history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q.toString() : ''));
+      loadTotalRooms();
+      // いま結果を出している部屋を消した: 部屋を作る画面（開いている部屋があればそちら）へ
+      if (lostCurrent) loadRooms(); else loadHistoryOnly();
     });
   }
 
@@ -438,7 +526,7 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
   }
 
   function loadHistoryOnly() {
-    api({ action: 'rooms' }).then(function (r) { if (r.data.ok) renderHistory(r.data.rooms); });
+    api(roomsParams()).then(function (r) { if (r.data.ok) renderHistory(r.data.rooms, r.data.more); });
   }
 
   // ---- 開いている部屋 ----
@@ -640,6 +728,7 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
   // 回はあとから選ぶ（「20問を3回やって合算」のように、やる前に回数を決めなくてよい）。
   // 選べるのは終了した本番の回だけ。練習の回は一覧に出ない＝合算に入らない
   var totalRooms = [], totalSel = {}, totalToday = '', totalMax = 20;
+  var shownTotal = [];   // いま表を出している合算の回（部屋を消したら、その回が入った表を片付ける）
   function fmtDate(s) { return s ? s.slice(5, 7).replace(/^0/, '') + '/' + s.slice(8, 10).replace(/^0/, '') + ' ' + s.slice(11, 16) : ''; }
 
   function loadTotalRooms() {
@@ -698,6 +787,7 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
       var q = new URLSearchParams(location.search);
       q.set('total', ids.slice().sort(function (a, b) { return a - b; }).join(','));
       history.replaceState(null, '', location.pathname + '?' + q.toString());
+      shownTotal = ids.slice();
       renderTotal(r.data);
       document.getElementById('total-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });

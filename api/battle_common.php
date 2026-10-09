@@ -134,6 +134,10 @@ function battle_is_practice(array $room): bool
 // 合算に選べる回の上限（1回の合算で足す部屋の数）
 const BATTLE_TOTAL_MAX = 20;
 
+// 講師画面の「これまでの部屋」に出す件数（ふだん / 「もっと前の部屋も表示」）。1回に消せる部屋の数も ALL まで
+const BATTLE_HIST_RECENT = 15;
+const BATTLE_HIST_ALL    = 100;
+
 // 合算: 何回かの対戦（終了した本番の部屋）の点数を足した順位。$rooms は battle_rooms の行を古い順に。
 //  * 1回ぶんの点数は battle_standings() のまま＝失格した回も、失格するまでに取った点は数える
 //    （チーム戦の合計と同じ考え方。失格した回には印を付け、失格の回数も並べる）

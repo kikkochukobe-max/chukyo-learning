@@ -797,6 +797,13 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
      付けまちがいは「これまでの部屋」の区分の列で本番⇔練習を切りかえられる（action=practice）。
      列は db/migrations/migrate_joshiki_battle_practice.sql。流す前は battle_has_practice()=false で
      全部の部屋が本番あつかい（練習ボタンが押せないだけで、対戦と合算は動く）。
+   - **部屋を消す**: 「これまでの部屋」で終わった部屋・中止した部屋にチェックを入れて「選んだ N 件を消す」
+     （action=delete、複数まとめて）。**参加者・解答ごと DELETE する＝元に戻せない**（論理削除の列は持たない。
+     SQL の追加も要らない）。確認ダイアログに消す部屋を並べ、終わった部屋が入っていれば
+     「点数も消え、合算・賞状に使えなくなる」と出す。待合室・対戦中の部屋は消せない（room_active。先に閉じる）。
+     子の表（battle_answers → battle_players → battle_room_questions）から順に明示的に消す（CASCADE に任せない）。
+     消した回が入った合算の表・?room= で開いている結果は画面から片付け、URL からも外す。
+     一覧はふだん新しい15件、「もっと前の部屋も表示」で100件まで（BATTLE_HIST_RECENT / BATTLE_HIST_ALL）。
    - **賞状（A4縦・縦書き）**: /battle_award.php?room=ID または ?total=3,5,8（講師画面の結果・合算の
      「賞状を印刷」ボタンが別タブで開く）。**優勝チーム（平均点で rank=1。同じ平均点なら全チーム）のメンバー全員**と
      **個人の1〜3位（同点は全員）**に1枚ずつ。順位は battle_standings / battle_team_standings /
