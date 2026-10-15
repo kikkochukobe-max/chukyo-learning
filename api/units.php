@@ -286,4 +286,11 @@ return [
         'sub'   => '理科・中2',
         'url'   => '/learning/science/science_js2_seibutsu.html',
     ],
+    // 中2「地球の大気と天気の変化」。question_key はモード（taiki/kansoku/suijouki/zensen/shiki/keisan）。
+    // 解き直しは静的問題が {id}、生成問題が {gen,…} で、どちらもツール側で同じ問題を作り直す
+    'science_js2_kishou' => [
+        'title' => '気象マスター',
+        'sub'   => '理科・中2',
+        'url'   => '/learning/science/science_js2_kishou.html',
+    ],
 ];

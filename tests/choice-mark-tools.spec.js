@@ -136,6 +136,14 @@ const TOOLS = [
     grade: '#grade',         // 選んでから「答え合わせ」で採点する
     next: '#next',
   },
+  {
+    name: '気象マスター',
+    url: '/learning/science/science_js2_kishou.html',
+    start: async (page) => { await page.locator('#startMix').click(); },
+    choices: '#choices .ch',
+    grade: '#grade',
+    next: '#next',
+  },
 ];
 
 for (const t of TOOLS) {

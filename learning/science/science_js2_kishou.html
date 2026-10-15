@@ -1,0 +1,2254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- ⚠ タイトルの2番目のセグメントに「・」を3つ以上入れないこと。
+     learning/index.php の parse_title() が「・」3つ以上のセグメントをSEO地名リストと
+     みなして捨てるため、一覧カードの副題が空になる（単元名はキーワードでなく description 側に書く）。 -->
+<title>気象マスター｜中2理科 地球の大気と天気の変化｜中京個別指導学院</title>
+<meta name="description" content="中2理科「地球の大気と天気の変化」の総合6択クイズ。大気圧と圧力／気象観測(天気記号・乾湿計・湿度表)／雲と水蒸気(露点・飽和水蒸気量・湿度)／気圧と前線(等圧線・気団・寒冷前線・温暖前線)／日本の四季(偏西風・季節風・台風)／計算特集を細かく確認できる無料教材。名古屋市・長久手市・焼山・吉根・神丘・高針台・一社・貴船・有松・植田・志段味エリアの中学生向け。中京個別指導学院。">
+<meta name="keywords" content="中2理科,気象,地球の大気と天気の変化,圧力,大気圧,ヘクトパスカル,天気記号,天気図記号,風向,風力,乾湿計,湿度表,飽和水蒸気量,露点,湿度,雲のでき方,上昇気流,高気圧,低気圧,等圧線,気団,前線,寒冷前線,温暖前線,停滞前線,閉塞前線,偏西風,季節風,海風,陸風,西高東低,梅雨前線,台風,6択クイズ,無料教材,中京個別指導学院,名古屋,長久手">
+<meta name="author" content="中京個別指導学院">
+<meta property="og:title" content="気象マスター｜中2理科">
+<meta property="og:description" content="中2理科「地球の大気と天気の変化」を大気圧・気象観測・雲と水蒸気・前線・四季・計算の6モードで総ざらい。名古屋・長久手の個別指導塾「中京個別指導学院」提供の無料教材。">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="中京個別指導学院">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBFAF6; --grid:#ECE9E0; --ink:#33312B; --ink-soft:#8B877C;
+  --shu:#C73E2E; --shu-soft:#F6E3DF;
+  --ai:#2C5F8A; --kin:#C9A227;
+  --midori:#4A7C59; --midori-d:#3B6349; --midori-soft:#E6EFE8;
+  --daidai:#D89A45;
+  --white:#fff; --radius:14px;
+  --shadow:0 1px 3px rgba(51,49,43,.08), 0 6px 16px rgba(51,49,43,.06);
+  /* 採点表示（divp-choice-mark.js）の色。正解の緑は全ツール共通の #3E8E5A に合わせ、
+     誤答は理科シリーズの「赤で責めない」橙にそろえる（結果画面の低正答率と同じ色）。 */
+  --divp-mark-ng:#D89A45; --divp-mark-ng-bg:#FBF1E1;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{
+  font-family:'Zen Kaku Gothic New',sans-serif;color:var(--ink);
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;line-height:1.7;-webkit-font-smoothing:antialiased;min-height:100vh;
+}
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px 90px}
+:root{--fs:clamp(15px,1.15vw,18px)}
+@media (pointer:coarse){:root{--fs:clamp(16px,2.2vw,26px)}}
+h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif}
+
+.page-head{text-align:center;margin:6px 0 22px}
+.page-head .eyebrow{display:inline-block;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;
+  font-size:12px;letter-spacing:.16em;color:var(--midori);background:var(--midori-soft);
+  border-radius:999px;padding:5px 14px;margin-bottom:12px}
+.page-head h1{font-weight:900;font-size:clamp(22px,4.4vw,32px);letter-spacing:.03em;line-height:1.35}
+.page-head p{font-size:14px;color:var(--ink-soft);margin-top:8px}
+
+.card-panel{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
+  border-top:5px solid var(--midori);padding:20px 18px;margin-bottom:18px}
+.card-panel h2{font-weight:900;font-size:17px;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.card-panel h2 .dot{width:9px;height:9px;border-radius:3px;background:var(--midori)}
+.card-panel .lead{font-size:13.5px;color:var(--ink-soft);margin-bottom:16px}
+
+/* モード選択カード */
+.mode-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px}
+.mode-card{display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;
+  background:var(--paper);border:1.6px solid var(--grid);border-radius:12px;padding:9px 12px;
+  cursor:pointer;font-family:inherit;color:var(--ink);transition:transform .12s,box-shadow .12s,border-color .12s}
+.mode-card:hover{transform:translateY(-2px);border-color:var(--midori);box-shadow:0 5px 16px rgba(74,124,89,.18)}
+.mode-card.active{border-color:var(--midori);background:var(--midori-soft);box-shadow:0 4px 14px rgba(74,124,89,.2)}
+.mode-card .nm{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:16px}
+.mode-card .nm .ct{font-weight:700;font-size:12px;color:var(--midori-d)}
+.mode-card .ds{font-size:11px;color:var(--ink-soft);line-height:1.35}
+
+/* モード詳細パネル */
+.mode-panel{margin-top:16px;border-top:1px dashed var(--grid);padding-top:16px}
+.mode-panel h3{font-weight:900;font-size:16px;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.chip-lbl{font-size:12px;color:var(--ink-soft);width:100%;font-weight:700}
+.chip-btn{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;cursor:pointer;
+  background:var(--white);border:1.5px solid var(--grid);color:var(--ink);border-radius:999px;
+  padding:7px 14px;transition:all .12s}
+.chip-btn:hover{border-color:var(--midori);background:var(--midori-soft);color:var(--midori-d)}
+.chip-btn .n{color:var(--ink-soft);font-weight:400;font-size:11px;margin-left:3px}
+
+.big-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}
+.btn{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:16px;cursor:pointer;border:none;
+  border-radius:12px;padding:14px 22px;transition:transform .12s,box-shadow .12s,background .12s;
+  display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:var(--midori);color:#fff;box-shadow:0 3px 0 var(--midori-d)}
+.btn-primary:hover{background:var(--midori-d);transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(2px);box-shadow:none}
+.btn-outline{background:var(--white);color:var(--midori-d);border:1.5px solid var(--midori)}
+.btn-outline:hover{background:var(--midori-soft)}
+.btn-ghost{background:transparent;color:var(--ink-soft);font-size:13px;padding:8px 12px}
+.btn-ghost:hover{color:var(--ink)}
+.grow{flex:1;justify-content:center;min-width:170px}
+.btn.sm{font-size:14px;padding:10px 16px}
+
+#quiz[hidden],#result[hidden],#start[hidden]{display:none}
+.quiz-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.badge-cat{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;background:var(--midori-soft);
+  color:var(--midori-d);border-radius:999px;padding:5px 14px;display:inline-flex;gap:6px;align-items:center}
+.quiz-meta{display:flex;gap:14px;align-items:center;font-size:13px;color:var(--ink-soft)}
+.quiz-meta b{font-family:'Zen Maru Gothic',sans-serif;color:var(--ink);font-size:16px}
+.quiz-meta .sc b{color:var(--shu)}
+.progress-wrap{height:6px;background:var(--grid);border-radius:3px;overflow:hidden;margin-bottom:16px}
+.progress-bar{height:100%;width:0;background:var(--midori);border-radius:3px;transition:width .3s}
+
+#qcard{position:relative;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 20px;overflow:hidden}
+#qnum{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:12px;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:6px}
+#qtext{font-size:calc(var(--fs) + 2px);font-weight:500;line-height:1.75;color:#1a1a1a;margin-bottom:18px}
+#qtbl{margin:-6px 0 18px}
+#qtbl:empty{display:none}
+#qtbl table{border-collapse:collapse;font-size:14px;margin:0 auto;background:var(--white)}
+#qtbl svg{display:block;margin:2px auto;max-width:100%;height:auto}
+#qtbl th,#qtbl td{border:1.4px solid var(--grid);padding:6px 12px;text-align:center;white-space:nowrap}
+#qtbl th{background:var(--midori-soft);font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--midori-d)}
+#qtbl td:first-child{font-weight:700;color:var(--ink)}
+#qtbl .figrow{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:flex-end}
+#qtbl .figrow .figcell{text-align:center}
+#qtbl .figrow .figcell .cap{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;color:var(--midori-d)}
+/* 波形の候補ア〜カは3つ×2段でならべる。幅なりに任せると4＋2に割れて見くらべにくい。
+   480pxは「候補3つは入るが4つは入らない」幅。狭い画面では flex-wrap が2つずつに落とす */
+#qtbl .figrow.cands{max-width:480px;margin:0 auto}
+#choices{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
+@media (max-width:520px){
+  #choices{grid-template-columns:1fr;gap:7px}
+  /* スマホでは6択の縦を詰める */
+  #qcard{padding:16px 15px 74px}   /* 下は固定フッターのぶん空ける */
+  #qtext{margin-bottom:12px;line-height:1.55}
+  #qtbl{margin:-2px 0 12px}
+  .ch{padding:8px 12px;gap:9px;line-height:1.3}
+  .ch .no{width:22px;height:22px;font-size:13px}
+  /* 操作ボタンを画面下に固定＝解説が伸びても「答え合わせ／次へ」を常にスクロールなしで押せる */
+  .qfoot{position:fixed;left:0;right:0;bottom:0;margin:0;padding:10px 14px;box-sizing:border-box;
+    background:rgba(255,255,255,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+    box-shadow:0 -2px 12px rgba(0,0,0,.1);z-index:200}
+}
+/* position:relative は divp-choice-mark の「正解」バッジ（絶対配置）の基準。
+   モジュール側でも当てているが、最初から相対にしておかないと採点の瞬間に基準が変わる */
+.ch{position:relative;display:flex;align-items:center;gap:10px;text-align:left;background:var(--paper);border:1.6px solid var(--grid);
+  border-radius:12px;padding:13px 14px;cursor:pointer;font-family:inherit;font-size:var(--fs);color:var(--ink);
+  line-height:1.5;transition:border-color .12s,background .12s,transform .1s}
+.ch .no{flex:none;width:26px;height:26px;border-radius:50%;background:var(--white);border:1.5px solid var(--grid);
+  display:flex;align-items:center;justify-content:center;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:14px;color:var(--ink-soft)}
+.ch:hover:not(:disabled){border-color:var(--midori);background:var(--midori-soft);transform:translateY(-1px)}
+.ch:disabled{cursor:default}
+.ch.sel{border-color:var(--midori);background:var(--midori-soft);box-shadow:0 0 0 2px var(--midori) inset}
+.ch.sel .no{background:var(--midori);color:#fff;border-color:var(--midori)}
+/* ↓ divp-choice-mark.js が読めなかったときだけ効くフォールバック（採点色が一切つかないのを防ぐ） */
+.ch.ok{border-color:var(--midori);background:var(--midori-soft)}
+.ch.ok .no{background:var(--midori);color:#fff;border-color:var(--midori)}
+.ch.ng{border-color:var(--daidai);background:#FBF1E1;opacity:.85}
+.ch.ng .no{background:var(--daidai);color:#fff;border-color:var(--daidai)}
+#explain{margin-top:16px;font-size:14px;line-height:1.8;background:var(--midori-soft);border-left:5px solid var(--midori);
+  border-radius:8px;padding:13px 15px;color:#2f3a32;display:none}
+#explain.show{display:block;animation:fadeUp .25s ease}
+#explain .lbl{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--midori-d);margin-right:6px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.qfoot{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
+.qfoot-right{display:flex;gap:10px;align-items:center}
+#next{display:none}
+#next.show{display:inline-flex}
+#grade{display:none}
+#grade.show{display:inline-flex}
+#grade:disabled{opacity:.45;cursor:default}
+.retry-banner{background:#FFF7E8;border:1.5px solid var(--kin);border-radius:12px;padding:11px 15px;margin-bottom:16px;
+  font-size:13.5px;color:#7a5f14;display:flex;align-items:center;gap:8px}
+
+.result-head{text-align:center;margin-bottom:20px}
+.result-head .face{font-size:52px;line-height:1}
+.result-head h2{font-weight:900;font-size:24px;margin-top:6px}
+.result-score{text-align:center;margin:14px 0 22px}
+.result-score .big{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:52px;color:var(--midori);line-height:1}
+.result-score .big .of{font-size:24px;color:var(--ink-soft)}
+.result-score .pct{font-size:15px;color:var(--ink-soft);margin-top:2px}
+.bd-row{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px dashed var(--grid);font-size:14px}
+.bd-row:last-child{border-bottom:none}
+.bd-row .nm{flex:1;font-weight:500}
+.bd-row .sc{font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
+.bd-row .maruicon{color:var(--shu);font-weight:900}
+.bd-bar{flex:none;width:84px;height:7px;background:var(--grid);border-radius:4px;overflow:hidden}
+.bd-bar span{display:block;height:100%;background:var(--midori);border-radius:4px}
+.bd-bar span.low{background:var(--daidai)}
+
+.modal{position:fixed;inset:0;z-index:9000;background:rgba(51,49,43,.5);backdrop-filter:blur(3px);
+  display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto}
+.modal[hidden]{display:none}
+.modal-box{background:var(--paper);border-radius:18px;max-width:920px;width:100%;box-shadow:0 18px 60px rgba(0,0,0,.35);
+  border-top:6px solid var(--midori);overflow:hidden}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--grid)}
+.modal-hd h2{font-weight:900;font-size:18px;display:flex;gap:8px;align-items:center}
+.modal-close{background:transparent;border:none;font-size:26px;color:var(--ink-soft);cursor:pointer;line-height:1;padding:2px 8px}
+.modal-close:hover{color:var(--ink)}
+.ref-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:12px 16px 0}
+.ref-tab{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;cursor:pointer;background:var(--white);
+  border:1.5px solid var(--grid);color:var(--ink-soft);border-radius:999px;padding:6px 13px}
+.ref-tab.active{background:var(--midori);border-color:var(--midori);color:#fff}
+.ref-body{padding:14px 18px 20px}
+.ref-pane{display:none}
+.ref-pane.active{display:block}
+.ref-pane h4{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:15px;color:var(--midori-d);
+  margin:14px 0 6px;border-left:5px solid var(--midori);padding-left:9px}
+.ref-pane h4:first-child{margin-top:0}
+.ref-pane p,.ref-pane li{font-size:13.5px;line-height:1.85}
+.ref-pane ul{margin:2px 0 2px 1.1em}
+.ref-pane .formula{background:var(--white);border:1.5px solid var(--midori);border-radius:10px;padding:11px 14px;
+  font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--midori-d);margin:6px 0;font-size:15px;
+  overflow-x:auto}
+.ref-pane .hl{background:#FBF1E1;border-radius:4px;padding:0 4px;font-weight:700;color:#8a5a12}
+/* CSSだけで分数（横線）表記を作る */
+.frac{display:inline-flex;flex-direction:column;text-align:center;vertical-align:middle;margin:0 4px}
+.frac .nu{border-bottom:1.7px solid currentColor;padding:0 8px 1px}
+.frac .de{padding:1px 8px 0}
+.table-scroll{overflow-x:auto}
+table.gas{border-collapse:collapse;width:100%;min-width:640px;font-size:12.5px;margin-top:4px}
+table.gas th,table.gas td{border:1px solid #ddd7cb;padding:7px 9px;text-align:center;vertical-align:middle}
+table.gas thead th{background:var(--midori);color:#fff;font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
+table.gas td.name{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--ink);background:#fff}
+table.gas tbody tr:nth-child(even) td{background:#fdfcf8}
+.chip{display:inline-block;font-size:11px;border-radius:6px;padding:2px 6px;font-weight:700;font-family:'Zen Maru Gothic',sans-serif}
+.chip.up{background:#E3F0FB;color:#2C5F8A}
+.chip.down{background:#F6E3DF;color:#B23325}
+.chip.water{background:var(--midori-soft);color:var(--midori-d)}
+.ref-pane .fig{display:block;margin:8px auto;max-width:100%;height:auto}
+
+footer{text-align:center;font-size:11px;color:var(--ink-soft);letter-spacing:.06em;margin-top:26px}
+footer a{color:var(--ink-soft);text-decoration:none}
+footer a:hover{text-decoration:underline}
+/* 紙に共通ヘッダーは出さない（divp-header.js 側でも消しているが、HTMLだけ先に上げたときの保険） */
+@media print{.divp-header{display:none!important}}
+/* 観測記録の表（5列）がスマホ幅に収まるよう、狭い画面ではセルを詰める。収まらないときは横スクロール */
+#qtbl{overflow-x:auto}
+@media (max-width:520px){
+  #qtbl table{font-size:13px}
+  #qtbl th,#qtbl td{padding:5px 6px}
+}
+/* まとめ表の図 */
+.ref-pane .mini table{border-collapse:collapse;font-size:12.5px;margin:4px 0;background:#fff}
+.ref-pane .mini th,.ref-pane .mini td{border:1px solid #ddd7cb;padding:4px 9px;text-align:center}
+.ref-pane .mini th{background:var(--midori);color:#fff;font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
+.wx-ref{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 6px}
+.wx-ref .it{background:#fff;border:1px solid var(--grid);border-radius:10px;padding:4px 8px 6px;text-align:center;font-size:12px;font-weight:700;min-width:62px}
+.wx-ref svg{width:46px;height:46px;display:block;margin:0 auto}
+table.gas td svg{display:block;margin:0 auto;max-width:150px;height:auto}
+</style>
+</head>
+<body>
+
+<!-- 共通モジュール（ヘッダー＋ログイン窓 / 中学生用 正解スタンプ / 採点表示 / 学習記録クライアント）-->
+<script src="/assets/divp-header.js"></script>
+<script src="/assets/divp-correct-jh.js"></script>
+<script src="/assets/divp-choice-mark.js"></script>
+<script src="/assets/divp-core.js"></script>
+<script>Divp.init('science_js2_kishou');</script>
+
+<div class="wrap">
+  <!-- ══════ スタート ══════ -->
+  <section id="start">
+    <div class="page-head">
+      <span class="eyebrow">中2 理科 ／ 地球の大気と天気の変化</span>
+      <h1>気象マスター</h1>
+      <p>大気圧・気象観測・雲と水蒸気・前線・四季・計算の6モードで、<br>「天気の変化」を すみずみまでチェック！</p>
+    </div>
+
+    <div class="card-panel">
+      <h2><span class="dot"></span>モードをえらぶ</h2>
+      <p class="lead">まずモードをタップ。分野をしぼって集中れんしゅうもできます。</p>
+      <div class="mode-grid" id="modeGrid"></div>
+      <div class="mode-panel" id="modePanel" hidden></div>
+    </div>
+
+    <div class="card-panel">
+      <h2><span class="dot"></span>まとめて / まとめ表</h2>
+      <div class="big-actions">
+        <button class="btn btn-primary grow" id="startMix">🎲 6モードからミックス20問</button>
+        <button class="btn btn-outline grow" id="openTable">📋 まとめ表を見る</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ クイズ ══════ -->
+  <section id="quiz" hidden>
+    <div id="retryBanner" class="retry-banner" hidden>🔁 解き直しモード：まちがえた問題だけ出しています</div>
+    <div class="quiz-top">
+      <span class="badge-cat" id="badgeCat"></span>
+      <div class="quiz-meta">
+        <span>第 <b id="qCur">1</b> / <span id="qTot">10</span> 問</span>
+        <span class="sc">正解 <b id="qScore">0</b></span>
+      </div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="progBar"></div></div>
+    <div id="qcard">
+      <div id="qnum"></div>
+      <div id="qtext"></div>
+      <div id="qtbl"></div>
+      <div id="choices"></div>
+      <div id="explain"></div>
+      <div class="qfoot">
+        <button class="btn btn-ghost" id="quitBtn">← ホームに戻る</button>
+        <div class="qfoot-right">
+          <button class="btn btn-primary" id="grade">答え合わせ</button>
+          <button class="btn btn-primary" id="next">次へ →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 結果 ══════ -->
+  <section id="result" hidden>
+    <div class="card-panel" style="border-top-color:var(--kin)">
+      <div class="result-head">
+        <div class="face" id="resFace">💮</div>
+        <h2 id="resTitle">おつかれさま！</h2>
+      </div>
+      <div class="result-score">
+        <div class="big"><span id="resCorrect">0</span><span class="of"> / <span id="resTotal">0</span></span></div>
+        <div class="pct" id="resPct"></div>
+      </div>
+      <div id="breakdown"></div>
+      <div class="big-actions" style="margin-top:22px">
+        <button class="btn btn-primary grow" id="againBtn">🔁 同じ範囲でもう一度</button>
+        <button class="btn btn-outline grow" id="backBtn">↩ モードをえらぶ</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>© 中京個別指導学院 ／ <a href="https://chukyokobetsu.com/" target="_blank" rel="noopener">chukyokobetsu.com</a></footer>
+</div>
+
+<!-- ══════ まとめ表モーダル ══════ -->
+<div class="modal" id="tableModal" hidden>
+  <div class="modal-box">
+    <div class="modal-hd">
+      <h2>📋 地球の大気と天気の変化 まとめ表</h2>
+      <button class="modal-close" id="tableClose" aria-label="とじる">×</button>
+    </div>
+    <div class="ref-tabs" id="refTabs">
+      <button class="ref-tab active" data-ref="taiki">大気圧</button>
+      <button class="ref-tab" data-ref="kansoku">気象観測</button>
+      <button class="ref-tab" data-ref="suijouki">雲と水蒸気</button>
+      <button class="ref-tab" data-ref="zensen">気圧と前線</button>
+      <button class="ref-tab" data-ref="shiki">日本の四季</button>
+      <button class="ref-tab" data-ref="keisan">計算</button>
+    </div>
+    <div class="ref-body">
+      <!-- 大気圧と圧力 -->
+      <div class="ref-pane active" data-ref="taiki">
+        <h4>圧力</h4>
+        <ul>
+          <li><b>圧力</b>＝一定面積（1m²など）あたりの面を<span class="hl">垂直に押す力</span>の大きさ</li>
+          <li>単位は<b>パスカル（記号 Pa）</b>。1Pa＝<b>1N/m²</b>（ニュートン毎平方メートル）</li>
+          <li>1m²＝<b>10000cm²</b>。cm²で出した面積は10000でわってm²にする</li>
+          <li>100gの物体にはたらく重力の大きさを<b>1N</b>とする（1kg→10N）</li>
+        </ul>
+        <div class="formula">圧力〔Pa〕＝<span class="frac"><span class="nu">面を垂直に押す力の大きさ〔N〕</span><span class="de">力がはたらく面積〔m²〕</span></span></div>
+        <ul>
+          <li>力の大きさが同じなら、面積が<b>小さい</b>ほど圧力は<b>大きい</b>（スポンジが深くへこむ）</li>
+          <li>板の面積が半分になると、へこみぐあい（圧力）は<b>2倍</b></li>
+          <li>同じ物体を2個重ねると、面積は同じで力が2倍→圧力も<b>2倍</b></li>
+          <li>置く向きを変えても力は同じ。<span class="hl">下にする面がいちばん小さい</span>とき圧力が最大</li>
+        </ul>
+        <h4>大気圧（気圧）</h4>
+        <ul>
+          <li><b>大気圧（気圧）</b>＝<span class="hl">大気（地球を包む気体の層）の重さ</span>によって生じる圧力</li>
+          <li>単位は<b>ヘクトパスカル（記号 hPa）</b>。<b>1hPa＝100Pa</b></li>
+          <li>海面と同じ高さで平均<b>約1013hPa</b>＝<b>1気圧</b>（約101300N/m²）</li>
+          <li>大気圧は<b>あらゆる向き</b>から物体の面に垂直にはたらく</li>
+          <li>上空へ行くほど、その上にある大気の重さが小さくなるので、大気圧は<b>小さくなる</b>
+            （富士山頂は約640hPa）</li>
+          <li>密封した菓子袋を標高の高いところに持っていくと<b>ふくらむ</b>（外の気圧が小さくなるため）</li>
+          <li>空き缶の中の空気をぬく・熱して冷やすと<b>つぶれる</b>（外の大気圧に押される）</li>
+        </ul>
+      </div>
+
+      <!-- 気象観測 -->
+      <div class="ref-pane" data-ref="kansoku">
+        <h4>気象要素と雲量</h4>
+        <ul>
+          <li><b>気象要素</b>＝大気の状態を表す要素（気温・湿度・気圧・風向・風速・雲量・降水量など）</li>
+          <li><b>雲量</b>＝空全体を10としたときの、雲が空をしめる割合</li>
+        </ul>
+        <div class="table-scroll">
+          <table class="gas">
+            <thead><tr><th>雲量</th><th>0〜1</th><th>2〜8</th><th>9〜10</th></tr></thead>
+            <tbody><tr><td class="name">天気（雨・雪がないとき）</td><td><b>快晴</b></td><td><b>晴れ</b></td><td><b>くもり</b></td></tr></tbody>
+          </table>
+        </div>
+        <h4>天気記号</h4>
+        <div id="refSymbols"></div>
+        <h4>風向・風速・風力</h4>
+        <ul>
+          <li><b>風向</b>＝風が<span class="hl">ふいてくる</span>方位。<b>16方位</b>で表す。風向計・ふき流しで調べる</li>
+          <li>ふき流しが<b>南東</b>になびいている → 風は北西からふいている → 風向は<b>北西</b></li>
+          <li><b>風速</b>（単位 <b>m/s</b>）は風速計で調べる。風速計がないときは<b>風力階級表</b>で<b>風力</b>（0〜12の13段階）を決める</li>
+          <li>天気図記号：<b>矢の軸</b>を風がふいてくる方位に向けてかき、<b>風力をはねの数</b>で表す</li>
+        </ul>
+        <h4>気温・湿度のはかり方</h4>
+        <ul>
+          <li>地上から約<b>1.5m</b>の高さで、<span class="hl">風通しのよい日かげ</span>に置いた<b>乾湿計</b>で測定する（直射日光はさける）</li>
+          <li><b>気温</b>＝<b>乾球</b>温度計の示度</li>
+          <li><b>湿度</b>＝乾球と<b>湿球</b>の示度の<b>差</b>から<b>湿度表</b>で求める（湿球は水でぬらした布で包んである）</li>
+          <li>湿球は水が蒸発するとき熱をうばうので、ふつう乾球より<b>低い</b>示度になる。差が<b>0</b>なら湿度<b>100%</b></li>
+          <li>差が<b>大きい</b>ほど湿度は<b>低い</b>（空気が乾燥しているほど水がよく蒸発する）</li>
+          <li><b>気圧</b>はアネロイド気圧計などで測定する</li>
+        </ul>
+        <div class="formula">湿度表の読み方：たて＝乾球の示度、よこ＝乾球と湿球の示度の差 → 交わったところが湿度〔%〕</div>
+        <h4>天気と気温・湿度・気圧</h4>
+        <div class="table-scroll">
+          <table class="gas">
+            <thead><tr><th></th><th>晴れの日</th><th>くもり・雨の日</th></tr></thead>
+            <tbody>
+              <tr><td class="name">気温</td><td>1日の変化が<b>大きい</b>。昼すぎ（14時ごろ）に最高、明け方に最低</td><td>1日の変化が<b>小さい</b></td></tr>
+              <tr><td class="name">湿度</td><td>気温と<b>逆</b>の変化をする（気温が上がると湿度は下がる）</td><td>1日の変化が<b>小さく</b>、高いまま</td></tr>
+              <tr><td class="name">気圧</td><td><b>高い（大きい）</b>ことが多い</td><td><b>低い（小さい）</b>ことが多い</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 雲と水蒸気 -->
+      <div class="ref-pane" data-ref="suijouki">
+        <h4>霧・雲のでき方</h4>
+        <ul>
+          <li><b>霧</b>＝水蒸気を多くふくんだ空気が<span class="hl">地表付近で</span>冷やされ、水蒸気が小さな水滴になって地表付近にただよっているもの。気温が上がると水滴が水蒸気になって消える</li>
+          <li><b>雲</b>＝<span class="hl">上昇する空気</span>の中にできた小さな水滴や氷の粒の集まり</li>
+          <li><b>上昇気流</b>＝上昇する空気の動き／<b>下降気流</b>＝下降する空気の動き（雲ができにくい）</li>
+          <li>上昇気流ができる例：① 太陽の熱で地表付近の空気があたためられる ② 空気が山の斜面に沿って上昇する ③ あたたかい空気が冷たい空気の上にはい上がる（冷たい空気があたたかい空気をおし上げる）</li>
+        </ul>
+        <div class="formula">空気が上昇 → 上空ほど気圧が低いので<b>膨張</b> → 温度が<b>下がる</b> → <b>露点</b>に達する → 水蒸気が水滴（0℃以下で氷の粒）になる → 雲</div>
+        <ul>
+          <li>雲ができはじめる高さ＝空気の温度が露点に達する高さ。上昇する空気は100mにつき約<b>1℃</b>温度が下がる</li>
+          <li>雲の中の水滴や氷の粒がぶつかって大きくなり落ちてくる＝<b>降水</b>。とけずに落ちれば<b>雪</b>、とけて落ちれば<b>雨</b></li>
+          <li><b>水の循環</b>：<span class="hl">太陽光（太陽のエネルギー）</span>をエネルギー源として、水は気体・液体・固体とすがたを変えながら地表と大気の間を循環している</li>
+        </ul>
+        <h4>雲をつくる実験（フラスコと注射器）</h4>
+        <ul>
+          <li>フラスコの内側をぬるま湯でぬらし、<b>線香のけむり</b>を入れる（けむりは水滴ができるときの<b>芯</b>になる）</li>
+          <li>ピストンを<b>引く</b> → 空気が<b>膨張</b> → 温度が<b>下がる</b> → 白く<b>くもる</b></li>
+          <li>ピストンを<b>押す</b> → 空気が<b>圧縮</b> → 温度が<b>上がる</b> → くもりが<b>消える</b></li>
+        </ul>
+        <h4>飽和水蒸気量・露点・湿度</h4>
+        <ul>
+          <li><b>飽和水蒸気量</b>＝空気1m³中にふくむことのできる水蒸気の<b>最大量</b>（単位 <b>g/m³</b>）。<span class="hl">気温が高いほど大きい</span></li>
+          <li><b>露点</b>＝冷やされた空気中の水蒸気が水滴に変わりはじめるときの温度。このとき湿度は<b>100%</b></li>
+          <li>露点は<b>空気中の水蒸気量</b>で決まる（水蒸気量が多いほど露点は高い）</li>
+          <li>露点より低い温度まで冷やすと、<b>飽和水蒸気量をこえた分</b>が水滴になる</li>
+          <li>金属製のコップを使うのは<b>熱を伝えやすく</b>、コップの表面の空気の温度が水温とほぼ同じになるから</li>
+        </ul>
+        <div class="formula">湿度〔%〕＝<span class="frac"><span class="nu">空気1m³中にふくまれる水蒸気量〔g/m³〕</span><span class="de">その温度での飽和水蒸気量〔g/m³〕</span></span>×100</div>
+        <ul>
+          <li>水蒸気量が変わらなければ、温度が<b>低い</b>ほど湿度は<b>高い</b></li>
+          <li>同じ温度なら、水蒸気量が<b>多い</b>ほど湿度は<b>高い</b></li>
+        </ul>
+        <div class="table-scroll" id="refSatTable"></div>
+      </div>
+
+      <!-- 気圧と前線 -->
+      <div class="ref-pane" data-ref="zensen">
+        <h4>高気圧・低気圧と風</h4>
+        <ul>
+          <li><b>等圧線</b>＝気圧が等しい地点を結んだ曲線。<b>1000hPa</b>を基準に<b>4hPa</b>ごとに細線、<b>20hPa</b>ごとに太線</li>
+          <li><b>高気圧</b>＝等圧線が閉じ、まわりより気圧が<b>高い</b>ところ／<b>低気圧</b>＝まわりより気圧が<b>低い</b>ところ</li>
+          <li><b>天気図</b>＝気圧配置（気圧の分布のようす）を示した地図に、天気図記号で天気や風のようすを表したもの</li>
+          <li>風は気圧の<b>高い</b>ほうから<b>低い</b>ほうへふく。<span class="hl">等圧線の間隔がせまいほど風が強い</span></li>
+        </ul>
+        <div class="table-scroll">
+          <table class="gas">
+            <thead><tr><th>北半球</th><th>高気圧</th><th>低気圧</th></tr></thead>
+            <tbody>
+              <tr><td class="name">地表の風</td><td>中心から<b>時計回り</b>にふき出す</td><td>中心へ<b>反時計回り</b>にふきこむ</td></tr>
+              <tr><td class="name">中心付近の気流</td><td><span class="chip down">下降気流</span></td><td><span class="chip up">上昇気流</span></td></tr>
+              <tr><td class="name">天気</td><td>雲ができにくく<b>晴れ</b>が多い</td><td>雲ができやすく<b>くもりや雨</b>が多い</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h4>気団と前線</h4>
+        <ul>
+          <li><b>気団</b>＝気温や湿度などの性質がほぼ一様な、大規模な大気のかたまり</li>
+          <li><b>前線面</b>＝寒気と暖気が接する境界面／<b>前線</b>＝前線面が地面と交わってできる線</li>
+          <li>寒気は暖気より<b>密度が大きい</b>（重い）ので下にもぐりこむ</li>
+        </ul>
+        <div class="table-scroll">
+          <table class="gas">
+            <thead><tr><th>前線</th><th>でき方・進み方</th><th>記号</th></tr></thead>
+            <tbody>
+              <tr><td class="name">寒冷前線</td><td>寒気が暖気の下にもぐりこみ、暖気を<b>急激に押し上げる</b>ように進む</td><td id="refF0"></td></tr>
+              <tr><td class="name">温暖前線</td><td>暖気が寒気の上に<b>はい上がり</b>、寒気を押しながら進む</td><td id="refF1"></td></tr>
+              <tr><td class="name">停滞前線</td><td>ほぼ同じ勢力の寒気と暖気がぶつかり、ほとんど動かない（梅雨前線・秋雨前線）</td><td id="refF2"></td></tr>
+              <tr><td class="name">閉塞前線</td><td>寒冷前線が温暖前線に<b>追いついて</b>できる</td><td id="refF3"></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h4>温帯低気圧と前線の通過</h4>
+        <ul>
+          <li><b>温帯低気圧</b>＝中緯度で発生する低気圧。日本付近では中心の<b>東側に温暖前線</b>、<b>西側に寒冷前線</b>をともなうことが多い</li>
+          <li>2つの前線にはさまれた南側は<b>暖気</b>におおわれている</li>
+          <li>低気圧は偏西風の影響で<b>西から東</b>へ移動する</li>
+        </ul>
+        <div class="table-scroll">
+          <table class="gas">
+            <thead><tr><th></th><th>寒冷前線</th><th>温暖前線</th></tr></thead>
+            <tbody>
+              <tr><td class="name">できる雲</td><td><b>積乱雲</b>（強い上昇気流）</td><td><b>乱層雲</b>など（巻雲・巻層雲・高層雲も）</td></tr>
+              <tr><td class="name">雨</td><td><b>せまい</b>範囲に<b>強いにわか雨</b>が<b>短時間</b>。雷・突風をともなうことも</td><td><b>広い</b>範囲に<b>おだやかな雨</b>が<b>長時間</b></td></tr>
+              <tr><td class="name">通過後の気温</td><td>急に<b>下がる</b></td><td><b>上がる</b></td></tr>
+              <tr><td class="name">通過後の風向</td><td><b>北より</b>（北西など）に変わる</td><td><b>南より</b>（南西など）に変わる</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h4>天気の移り変わり</h4>
+        <ul>
+          <li>日本付近の低気圧や移動性高気圧は、1日におよそ<b>1000km</b>の速さで<b>西から東</b>へ移動する → 天気も西から東へ変わる</li>
+          <li>気圧が<b>下がる</b>と天気はくもりや雨に、気圧が<b>上がる</b>と晴れになることが多い</li>
+        </ul>
+      </div>
+
+      <!-- 日本の四季 -->
+      <div class="ref-pane" data-ref="shiki">
+        <h4>地球規模での大気の動き</h4>
+        <ul>
+          <li>大気の動きは、地球の半径約6400kmに対して大気の層の底の<b>約10km</b>の中で起こる</li>
+          <li><b>偏西風</b>＝<span class="hl">中緯度帯の上空</span>を1年中ふいている<b>西よりの風</b>。日本付近の低気圧・移動性高気圧が<b>西から東</b>へ移動するのはこのため</li>
+          <li>低緯度の地表付近では<b>東よりの風</b>、高緯度の地表付近でも<b>東よりの風</b>がふく</li>
+          <li>赤道付近では<b>上昇気流</b>、北極付近では<b>下降気流</b></li>
+        </ul>
+        <h4>海風・陸風と季節風</h4>
+        <ul>
+          <li>陸は海より<b>あたたまりやすく冷えやすい</b>（海はあたたまりにくく冷えにくい）</li>
+          <li>晴れた日の<b>昼</b>：陸上の気温が高い → 陸上に上昇気流 → 陸上の気圧が<b>低く</b>なる → 海から陸へ<b>海風</b></li>
+          <li>晴れた日の<b>夜</b>：陸上の気温が低い → 陸上に下降気流 → 陸上の気圧が<b>高く</b>なる → 陸から海へ<b>陸風</b></li>
+          <li>朝夕、風が止まることを<b>なぎ</b>という</li>
+          <li><b>季節風</b>＝大陸と海洋のあたたまり方のちがいで、季節に特徴的にふく風。<b>冬は北西</b>、<b>夏は南東</b></li>
+          <li>夏の季節風は海風、冬の季節風は陸風と同じしくみ</li>
+        </ul>
+        <h4>日本周辺の気団</h4>
+        <div class="table-scroll">
+          <table class="gas">
+            <thead><tr><th>気団</th><th>性質</th><th>季節</th></tr></thead>
+            <tbody>
+              <tr><td class="name">シベリア気団</td><td><b>冷たく乾燥</b>（北・大陸）</td><td>冬</td></tr>
+              <tr><td class="name">オホーツク海気団</td><td><b>冷たく湿っている</b>（北・海洋）</td><td>梅雨・夏の前</td></tr>
+              <tr><td class="name">小笠原気団</td><td><b>あたたかく湿っている</b>（南・海洋）</td><td>夏</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul>
+          <li>北の気団は南の気団より<b>低温</b>／大陸の気団は海洋の気団より<b>乾燥</b></li>
+        </ul>
+        <h4>日本の四季の天気</h4>
+        <div class="table-scroll">
+          <table class="gas">
+            <thead><tr><th>季節</th><th>気圧配置・特徴</th></tr></thead>
+            <tbody>
+              <tr><td class="name">冬</td><td>シベリア気団が発達 → <b>西高東低</b>。<b>北西の季節風</b>。日本海側は<b>雪</b>、太平洋側は<b>乾燥した晴れ</b>。等圧線が南北にせまい間隔で並ぶ・すじ状の雲</td></tr>
+              <tr><td class="name">春・秋</td><td><b>移動性高気圧</b>と低気圧が交互に西から東へ通過 → <b>4〜7日</b>の周期で天気が変わる</td></tr>
+              <tr><td class="name">つゆ（梅雨）</td><td>初夏、小笠原気団とオホーツク海気団の間に<b>停滞前線（梅雨前線）</b> → 雨やくもりの日が続く。夏の終わりは<b>秋雨前線</b></td></tr>
+              <tr><td class="name">夏</td><td>小笠原気団がはり出し<b>南高北低</b>。<b>南東の季節風</b>で蒸し暑い。強い日ざしで<b>積乱雲</b>が発達し雷雨も</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul>
+          <li>冬の日本海側の雪：冷たく乾燥した季節風が、比較的あたたかい<b>日本海</b>の上で<b>水蒸気を多量にふくみ</b>、山脈にあたって上昇気流となり雲をつくる。山をこえた太平洋側は乾燥した風になる</li>
+          <li><b>台風</b>＝熱帯の海上で発生した<b>熱帯低気圧</b>が発達し、最大風速が<b>17.2m/s以上</b>になったもの。<span class="hl">前線をともなわない</span>。等圧線は同心円状で間隔がせまい</li>
+          <li>台風は太平洋高気圧のふちに沿って北上し、やがて<b>偏西風</b>に流されて北東へ進む</li>
+        </ul>
+        <h4>天気の変化がもたらす恵みと災害</h4>
+        <ul>
+          <li>恵み：豊富な<b>水資源</b>（つゆや台風の雨）→ 農業・工業用水・生活用水・発電。雪はスキーなどのレジャーや夏の冷房・冷蔵に利用</li>
+          <li>災害：大雪・<b>高潮</b>・洪水・土砂災害・低温（霜）による農作物の被害など</li>
+          <li><b>高潮</b>＝台風などで気圧が下がって海面が吸い上げられたり、強い風で海水がふき寄せられたりして、海面が異常に上昇する現象</li>
+          <li>備え：ダム・堤防・<b>遊水地</b>（河川沿いの低地に一時的に水をたくわえる）。地域の地理的な特徴をふまえ、<b>気象情報</b>を活用する</li>
+        </ul>
+      </div>
+
+      <!-- 計算 -->
+      <div class="ref-pane" data-ref="keisan">
+        <h4>圧力</h4>
+        <div class="formula">圧力〔Pa〕＝<span class="frac"><span class="nu">力〔N〕</span><span class="de">面積〔m²〕</span></span>　　力〔N〕＝質量〔g〕÷100　　面積〔m²〕＝面積〔cm²〕÷10000</div>
+        <ul>
+          <li>（例）重さ10Nで底面積2m² → 10÷2＝<b>5Pa</b></li>
+          <li>（例）質量2.4kg（24N）の物体を8cm×15cm（0.012m²）の面で置く → 24÷0.012＝<b>2000Pa</b></li>
+          <li>（例）大気圧1000hPa（100000Pa）が1cm²（0.0001m²）を押す力 → 100000×0.0001＝<b>10N</b>（1kgの物体の重さと同じ）</li>
+        </ul>
+        <h4>湿度</h4>
+        <div class="formula">湿度〔%〕＝<span class="frac"><span class="nu">空気1m³中の水蒸気量</span><span class="de">その温度での飽和水蒸気量</span></span>×100</div>
+        <ul>
+          <li>（例）20℃（飽和水蒸気量17.3g/m³）で1m³中に12.1g → 12.1÷17.3×100＝69.9…→ 約<b>70%</b></li>
+          <li>水蒸気量＝飽和水蒸気量×湿度÷100（例：20℃・湿度60% → 17.3×0.6＝<b>10.4g</b>）</li>
+          <li>部屋全体の水蒸気量＝1m³あたりの水蒸気量×部屋の容積〔m³〕</li>
+        </ul>
+        <h4>露点と水滴</h4>
+        <ul>
+          <li>露点＝<span class="hl">空気中の水蒸気量と飽和水蒸気量が等しくなる温度</span>（表で同じ値をさがす）</li>
+          <li>あと何g水蒸気をふくめるか＝飽和水蒸気量－実際の水蒸気量</li>
+          <li>出てくる水滴の量＝実際の水蒸気量－冷やした温度での飽和水蒸気量</li>
+          <li>（例）1m³中12.1gの空気（露点14℃）を10℃（9.4g/m³）まで冷やす → 12.1－9.4＝<b>2.7g</b>の水滴</li>
+        </ul>
+        <h4>雲ができる高さ</h4>
+        <div class="formula">雲ができはじめる高さ〔m〕＝（地上の気温－露点）×100　（雲ができるまでは100mにつき約1℃下がる）</div>
+        <ul>
+          <li>（例）地上20℃・露点8℃の空気 → (20－8)×100＝<b>1200m</b></li>
+          <li>フェーン現象：雲ができてからは100mにつき約<b>0.5℃</b>しか下がらず、山をふき下りる空気は100mにつき<b>1℃</b>上がる → 風下側は<b>高温で乾燥</b></li>
+        </ul>
+        <h4>天気図</h4>
+        <ul>
+          <li>等圧線は<b>4hPa</b>ごと（20hPaごとに太線）。太線1000hPaから数えて気圧を読む</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* 学習記録（divp-core.js 経由）。未ログイン・file://・API未疎通では黙ってスキップ。
+   question_key = モード（taiki/kansoku/suijouki/zensen/shiki/keisan）。
+   question_params = {id} … 同一問題の判定キー。?retry=1 の解き直しで再出題される。
+   動的生成問題は {gen:'…', …生成パラメータ} を持ち、REBUILDERS で同じ問題を復元する。 */
+function safeDivpAnswer(ok,info){ if(window.Divp&&typeof Divp.answer==='function'){try{Divp.answer(ok,info);}catch(e){}} }
+function safeDivpCorrect(sel){ if(window.Divp&&typeof Divp.correct==='function'){try{Divp.correct(sel);}catch(e){}} }
+function safeDivpIncorrect(sel){ if(window.Divp&&typeof Divp.incorrect==='function'){try{Divp.incorrect(sel);}catch(e){}} }
+function safeDivpClear(sel){ var c=document.querySelector(sel); if(c){c.querySelectorAll('.divp-hanko,.divp-nice').forEach(function(el){el.remove();});} }
+
+/* モード定義（表示順）。出典の問題集「講座6〜9」と同じ順にならべ、最後に計算特集 */
+var MODES = {
+  taiki:   {label:'大気圧と圧力', ico:'🎈', desc:'圧力の公式・単位・大気圧の大きさと向き'},
+  kansoku: {label:'気象観測',     ico:'🌡️', desc:'気象要素・雲量・天気記号・風向風力・乾湿計'},
+  suijouki:{label:'雲と水蒸気',   ico:'☁️', desc:'霧・雲のでき方・降水・飽和水蒸気量・露点・湿度'},
+  zensen:  {label:'気圧と前線',   ico:'🌀', desc:'高気圧・低気圧・等圧線・気団・前線・天気の変化'},
+  shiki:   {label:'日本の四季',   ico:'🗾', desc:'偏西風・海風陸風・季節風・四季の天気・台風・災害'},
+  keisan:  {label:'計算特集',     ico:'🧮', desc:'圧力・湿度・水蒸気量・露点・湿度表・雲のできる高さ'}
+};
+
+/* 分野（サブカテゴリ）ラベル */
+var CATS = {
+  ta_atsu:'圧力', ta_taiki:'大気圧',
+  ka_youso:'気象要素・雲量', ka_kigou:'天気記号・風向風力', ka_kanshitsu:'乾湿計・湿度表', ka_henka:'天気と気温・湿度・気圧',
+  su_kumo:'霧・雲のでき方', su_jikken:'雲・霧をつくる実験', su_kousui:'降水・水の循環',
+  su_houwa:'飽和水蒸気量・露点', su_shitsudo:'湿度',
+  ze_kiatsu:'高気圧・低気圧と風', ze_touatsu:'等圧線・天気図', ze_kidan:'気団・前線',
+  ze_tsuuka:'前線の通過と天気', ze_utsuri:'天気の移り変わり',
+  sh_junkan:'地球規模の大気の動き', sh_kaze:'海風・陸風・季節風', sh_kidan:'日本周辺の気団',
+  sh_shiki:'日本の四季', sh_taifu:'台風', sh_saigai:'恵みと災害',
+  kc_atsu:'圧力の計算', kc_shitsudo:'湿度の計算', kc_suijouki:'水蒸気量・露点・水滴',
+  kc_hyo:'湿度表の読みとり', kc_kumo:'雲ができる高さ・フェーン現象', kc_graph:'グラフ・天気図の読みとり'
+};
+
+/* 分野 → モード */
+var CAT_MODE = {
+  ta_atsu:'taiki', ta_taiki:'taiki',
+  ka_youso:'kansoku', ka_kigou:'kansoku', ka_kanshitsu:'kansoku', ka_henka:'kansoku',
+  su_kumo:'suijouki', su_jikken:'suijouki', su_kousui:'suijouki', su_houwa:'suijouki', su_shitsudo:'suijouki',
+  ze_kiatsu:'zensen', ze_touatsu:'zensen', ze_kidan:'zensen', ze_tsuuka:'zensen', ze_utsuri:'zensen',
+  sh_junkan:'shiki', sh_kaze:'shiki', sh_kidan:'shiki', sh_shiki:'shiki', sh_taifu:'shiki', sh_saigai:'shiki',
+  kc_atsu:'keisan', kc_shitsudo:'keisan', kc_suijouki:'keisan', kc_hyo:'keisan', kc_kumo:'keisan', kc_graph:'keisan'
+};
+/* ==========================================================================
+   図（SVG）の共通部品
+   ⚠ 講師ページの解き直しプリントに生HTMLとして出るため、
+     api/save_answer.php の figure_is_safe() を通る書き方だけを使う。
+     ・属性値は必ずダブルクォート（シングルクォートは丸ごと弾かれる）
+     ・marker（矢印）はホワイトリストに無いので、矢の先は polygon で描く
+     ・タグ／属性は FIG_TAGS / FIG_ATTRS にあるものだけ（stroke-opacity は不可）
+   ========================================================================== */
+var FIG={ink:'#33312B',sub:'#8B877C',grid:'#E4E0D4',shu:'#C73E2E',ai:'#2C5F8A',
+         midori:'#4A7C59',mizu:'#DDEBF4',mizuD:'#2C5F8A',suna:'#DCCFAE',sunaD:'#B29B70',
+         kabe:'#EDE7DA',kabeD:'#B0A896',lens:'#D8E8F2',kami:'#5A5650',shiro:'#FDFDFB'};
+function n1(v){ return (Math.round(v*10)/10).toString(); }
+function svgOpen(w,h,label){
+  return '<svg viewBox="0 0 '+n1(w)+' '+n1(h)+'" width="'+Math.min(360,w)+'" role="img" aria-label="'+label+'">';
+}
+function figRect(x,y,w,h,fill,stroke,sw){
+  return '<rect x="'+n1(x)+'" y="'+n1(y)+'" width="'+n1(w)+'" height="'+n1(h)+'" fill="'+(fill||'none')+'"'
+    +(stroke?' stroke="'+stroke+'" stroke-width="'+(sw||1.4)+'"':'')+'/>';
+}
+function figLine(x1,y1,x2,y2,col,sw,dash){
+  return '<line x1="'+n1(x1)+'" y1="'+n1(y1)+'" x2="'+n1(x2)+'" y2="'+n1(y2)+'" stroke="'+(col||FIG.ink)
+    +'" stroke-width="'+(sw||1.4)+'"'+(dash?' stroke-dasharray="'+dash+'"':'')+'/>';
+}
+function figCircle(x,y,r,fill,stroke,sw){
+  return '<circle cx="'+n1(x)+'" cy="'+n1(y)+'" r="'+n1(r)+'" fill="'+(fill||'none')+'"'
+    +(stroke?' stroke="'+stroke+'" stroke-width="'+(sw||1.4)+'"':'')+'/>';
+}
+function figText(x,y,t,col,size,anchor){
+  return '<text x="'+n1(x)+'" y="'+n1(y)+'" fill="'+(col||FIG.ink)+'" font-size="'+(size||12.5)
+    +'" font-weight="700" text-anchor="'+(anchor||'middle')+'">'+t+'</text>';
+}
+/* 矢印。marker が使えないので先端は polygon */
+function figHalo(x,y,t,col,size,anchor){   /* 下に紙色の太字を敷いて重なっても読めるようにする */
+  return '<text x="'+n1(x)+'" y="'+n1(y)+'" fill="'+FIG.shiro+'" stroke="'+FIG.shiro+'" stroke-width="3.4" font-size="'+(size||12.5)+'" font-weight="700" text-anchor="'+(anchor||'middle')+'">'+t+'</text>'
+    +figText(x,y,t,col,size,anchor);
+}
+function figArrow(x1,y1,x2,y2,col,sw,hs){
+  var dx=x2-x1,dy=y2-y1,L=Math.sqrt(dx*dx+dy*dy)||1,ux=dx/L,uy=dy/L,s=hs||9,c=col||FIG.ink;
+  return figLine(x1,y1,x2-ux*s*0.75,y2-uy*s*0.75,c,sw||2.2)
+    +'<polygon points="'+n1(x2)+','+n1(y2)
+    +' '+n1(x2-ux*s-uy*s*0.5)+','+n1(y2-uy*s+ux*s*0.5)
+    +' '+n1(x2-ux*s+uy*s*0.5)+','+n1(y2-uy*s-ux*s*0.5)+'" fill="'+c+'"/>';
+}
+function figArrow2(x1,y1,x2,y2,col){ return figArrow(x1,y1,x2,y2,col,1.5,8)+figArrow(x2,y2,x1,y1,col,1.5,8); }
+
+/* ==========================================================================
+   気象の図（SVG）とデータ
+   ⚠ 解き直しプリントでも描けるよう、色・線はすべて属性で書く（CSSクラスにしない）。
+   ⚠ BANK の中から呼ぶので、var の定数はこのブロックで先に定義しておく（BANK より前）。
+   ========================================================================== */
+/* 飽和水蒸気量〔g/m³〕（出典の問題集・教科書の表と同じ値） */
+var SAT={0:4.8,1:5.2,2:5.6,3:6.0,4:6.4,5:6.8,6:7.3,7:7.8,8:8.3,9:8.8,10:9.4,11:10.0,12:10.7,13:11.4,
+  14:12.1,15:12.8,16:13.6,17:14.5,18:15.4,19:16.3,20:17.3,21:18.3,22:19.4,23:20.6,24:21.8,25:23.1,
+  26:24.4,27:25.8,28:27.2,29:28.8,30:30.4};
+function f1(v){ return (Math.round(v*10)/10).toFixed(1); }          /* 小数第1位まで（6.0 も 6.0 と書く） */
+function r10(v){ return Math.round(v*10)/10; }
+/* 気温と飽和水蒸気量の表（温度｜飽和水蒸気量 を2組ならべる。横1列だとスマホではみ出す） */
+function satTableHTML(ts){
+  var half=Math.ceil(ts.length/2), s='<table><tr><th>気温〔℃〕</th><th>飽和水蒸気量〔g/m³〕</th>';
+  if(ts.length>1) s+='<th>気温〔℃〕</th><th>飽和水蒸気量〔g/m³〕</th>';
+  s+='</tr>';
+  for(var i=0;i<half;i++){
+    s+='<tr><td>'+ts[i]+'</td><td>'+f1(SAT[ts[i]])+'</td>';
+    if(ts.length>1) s+= (i+half<ts.length) ? '<td>'+ts[i+half]+'</td><td>'+f1(SAT[ts[i+half]])+'</td>' : '<td></td><td></td>';
+    s+='</tr>';
+  }
+  return s+'</table>';
+}
+function rangeArr(a,b){ var r=[]; for(var i=a;i<=b;i++) r.push(i); return r; }
+
+/* 湿度表（出典の湿度表の値そのまま）。FINE＝示度の差0.5℃きざみ、COARSE＝1℃きざみ */
+var HYO_FINE_D=[0,0.5,1,1.5,2];
+var HYO_FINE={20:[100,95,91,86,81],19:[100,95,90,85,81],18:[100,95,90,85,80],17:[100,95,90,85,80],
+  16:[100,95,89,84,79],15:[100,94,89,84,78],14:[100,94,89,83,78],13:[100,94,88,83,77],
+  12:[100,94,88,82,76],11:[100,94,87,81,75]};
+var HYO_COARSE_D=[0,1,2,3,4,5];
+var HYO_COARSE={24:[100,91,83,75,68,60],23:[100,91,83,75,67,59],22:[100,91,82,74,66,58],
+  21:[100,91,82,73,65,57],20:[100,91,81,73,64,56],19:[100,90,81,72,63,54],18:[100,90,80,71,62,53],
+  17:[100,90,80,70,61,51],16:[100,89,79,69,59,50]};
+function hyoTableHTML(fine,top,n){
+  var D=fine?HYO_FINE_D:HYO_COARSE_D, T=fine?HYO_FINE:HYO_COARSE, i, j;
+  var s='<table><tr><th rowspan="2">乾球の<br>示度〔℃〕</th><th colspan="'+D.length+'">乾球と湿球の示度の差〔℃〕</th></tr><tr>';
+  for(j=0;j<D.length;j++) s+='<th>'+f1(D[j])+'</th>';
+  s+='</tr>';
+  for(i=0;i<n;i++){
+    var t=top-i; s+='<tr><td>'+t+'</td>';
+    for(j=0;j<D.length;j++) s+='<td>'+T[t][j]+'</td>';
+    s+='</tr>';
+  }
+  return s+'</table>';
+}
+
+/* ── 天気記号 ── */
+var WX=['快晴','晴れ','くもり','雨','雪','あられ','雷','霧','天気不明'];
+/* 円の中身だけを返す（外枠の円も含む）。r は外円の半径 */
+function wxGlyph(w,cx,cy,r){
+  var k=FIG.ink, s='', i;
+  if(w==='雨') return figCircle(cx,cy,r,k,k,1.6);
+  s+=figCircle(cx,cy,r,'#fff',k,1.6);
+  if(w==='晴れ') s+=figLine(cx,cy-r,cx,cy+r,k,1.6);
+  else if(w==='くもり') s+=figCircle(cx,cy,r*0.5,'none',k,1.6);
+  else if(w==='霧'){ s+=figCircle(cx,cy,r*0.62,'none',k,1.6)+figCircle(cx,cy,r*0.4,k); }
+  else if(w==='雪'){ for(i=0;i<3;i++){ var a=i*Math.PI/3; s+=figLine(cx-r*Math.sin(a),cy-r*Math.cos(a),cx+r*Math.sin(a),cy+r*Math.cos(a),k,1.4); } }
+  else if(w==='あられ'){ var p=[]; for(i=0;i<3;i++){ var b=-Math.PI/2+i*2*Math.PI/3; p.push(n1(cx+r*0.82*Math.cos(b))+','+n1(cy+r*0.82*Math.sin(b))); }
+    s+='<polygon points="'+p.join(' ')+'" fill="none" stroke="'+k+'" stroke-width="1.4"/>'; }
+  else if(w==='雷'){ var q=[]; for(i=0;i<=12;i++){ var c=Math.PI*i/12; q.push(n1(cx+r*Math.cos(c))+','+n1(cy+r*Math.sin(c))); }
+    s+='<polygon points="'+q.join(' ')+'" fill="'+k+'"/>'; }
+  else if(w==='天気不明'){ var d=r*0.707; s+=figLine(cx-d,cy-d,cx+d,cy+d,k,1.4)+figLine(cx-d,cy+d,cx+d,cy-d,k,1.4); }
+  return s;
+}
+function wxBoxSVG(w){ return svgOpen(90,90,'天気記号')+wxGlyph(w,45,45,26)+'</svg>'; }
+
+/* ── 天気図記号（天気＋風向＋風力）──
+   矢の軸は風がふいてくる方位に向けてかき、はねは軸の時計回り側に風力の数だけつける
+   （出典の図と同じ向き。北北東の風なら軸は右上、はねは右へ出る）。 */
+var DIR16=['北','北北東','北東','東北東','東','東南東','南東','南南東','南','南南西','南西','西南西','西','西北西','北西','北北西'];
+function dirIdx(name){ return DIR16.indexOf(name); }
+function windGlyph(cx,cy,r,di,force,L){
+  var b=di*22.5*Math.PI/180, ux=Math.sin(b), uy=-Math.cos(b), s='', k=FIG.ink, i;
+  L=L||64;
+  if(force<=0) return '';
+  s+=figLine(cx+ux*r,cy+uy*r,cx+ux*L,cy+uy*L,k,1.8);
+  var t=75*Math.PI/180, vx=ux*Math.cos(t)-uy*Math.sin(t), vy=ux*Math.sin(t)+uy*Math.cos(t);
+  var gap=L>=60?8:6.5, len=L>=60?15:12;
+  for(i=0;i<force;i++){
+    var d=L-i*gap, px=cx+ux*d, py=cy+uy*d;
+    s+=figLine(px,py,px+vx*len,py+vy*len,k,1.8);
+  }
+  return s;
+}
+/* 方位の補助線つき（大きい図）。guide=true で16方位の破線をかく */
+function kigouSVG(w,di,force,guide){
+  var W=230,H=230,cx=115,cy=118,s=svgOpen(W,H,'天気図記号'),i;
+  if(guide){
+    for(i=0;i<16;i++){ var b=i*22.5*Math.PI/180;
+      s+=figLine(cx+Math.sin(b)*18,cy-Math.cos(b)*18,cx+Math.sin(b)*86,cy-Math.cos(b)*86,'#B8B2A4',1,'3 3'); }
+  } else {
+    s+=figLine(cx,cy-86,cx,cy+86,'#B8B2A4',1,'3 3')+figLine(cx-86,cy,cx+86,cy,'#B8B2A4',1,'3 3');
+  }
+  s+=figText(cx,cy-92,'北',FIG.ink,13)+figText(cx,cy+104,'南',FIG.ink,13)
+    +figText(cx+100,cy+5,'東',FIG.ink,13)+figText(cx-100,cy+5,'西',FIG.ink,13);
+  s+=windGlyph(cx,cy,12,di,force,70)+wxGlyph(w,cx,cy,12);
+  return s+'</svg>';
+}
+/* 候補ア〜エ用の小さい図 */
+function kigouMiniSVG(w,di,force){
+  var W=130,H=130,cx=65,cy=67,s=svgOpen(W,H,'天気図記号');
+  s+=figLine(cx,cy-52,cx,cy+52,'#C9C3B5',1,'3 3')+figLine(cx-52,cy,cx+52,cy,'#C9C3B5',1,'3 3');
+  s+=figText(cx,cy-56,'北',FIG.sub,11);
+  s+=windGlyph(cx,cy,9,di,force,48)+wxGlyph(w,cx,cy,9);
+  return s+'</svg>';
+}
+function figCandRow(svgs,labels){
+  var h='<div class="figrow">';
+  for(var i=0;i<svgs.length;i++) h+='<div class="figcell"><div class="cap">'+labels[i]+'</div>'+svgs[i]+'</div>';
+  return h+'</div>';
+}
+
+/* ── 前線の記号 ── kind: 0寒冷 1温暖 2停滞 3閉塞（向きは上側が進む向き） */
+var FRONT_NAMES=['寒冷前線','温暖前線','停滞前線','閉塞前線'];
+function triAt(x,y,dir,sz){   /* dir=-1:上向き +1:下向き */
+  return '<polygon points="'+n1(x-sz)+','+n1(y)+' '+n1(x+sz)+','+n1(y)+' '+n1(x)+','+n1(y+dir*sz*1.25)+'" fill="'+FIG.ink+'"/>';
+}
+function semiAt(x,y,dir,sz){
+  var p=[],i; for(i=0;i<=10;i++){ var a=Math.PI*i/10; p.push(n1(x-sz*Math.cos(a))+','+n1(y+dir*sz*Math.sin(a))); }
+  return '<polygon points="'+p.join(' ')+'" fill="'+FIG.ink+'"/>';
+}
+function frontSymbolSVG(kind,W){
+  W=W||210; var H=46, y=28, s=svgOpen(W,H,'前線の記号'), x, i=0;
+  s+=figLine(10,y,W-10,y,FIG.ink,2.2);
+  for(x=30;x<=W-24;x+=34){
+    if(kind===0) s+=triAt(x,y,-1,7);
+    else if(kind===1) s+=semiAt(x,y,-1,7);
+    else if(kind===2) s+=(i%2===0)?triAt(x,y,-1,7):semiAt(x,y,1,7);
+    else s+=(i%2===0)?triAt(x,y,-1,7):semiAt(x,y,-1,7);
+    i++;
+  }
+  return s+'</svg>';
+}
+
+/* ── 温帯低気圧と前線の天気図（点A・B・C）──
+   A＝寒冷前線の西側（後ろ）、B＝2つの前線にはさまれた南側（暖気）、C＝温暖前線の東側（前） */
+function polyAlong(pts,kind,every,side){
+  /* 折れ線に沿って前線の記号を置く。side=+1 で進む向きの右側（画面上で時計回り側） */
+  var s='', acc=0, i, next=every*0.6;
+  var str=[]; for(i=0;i<pts.length;i++) str.push(n1(pts[i][0])+','+n1(pts[i][1]));
+  s+='<polyline points="'+str.join(' ')+'" fill="none" stroke="'+FIG.ink+'" stroke-width="2.2"/>';
+  for(i=0;i<pts.length-1;i++){
+    var x0=pts[i][0],y0=pts[i][1],x1=pts[i+1][0],y1=pts[i+1][1];
+    var dx=x1-x0,dy=y1-y0,L=Math.sqrt(dx*dx+dy*dy), ux=dx/L, uy=dy/L, nx=-uy*side, ny=ux*side;
+    while(acc+L>=next){
+      var t=next-acc, px=x0+ux*t, py=y0+uy*t, sz=7, j, p=[];
+      if(kind==='c'){
+        p=[[px-ux*sz,py-uy*sz],[px+ux*sz,py+uy*sz],[px+nx*sz*1.3,py+ny*sz*1.3]];
+      } else {
+        for(j=0;j<=10;j++){ var a=Math.PI*j/10; p.push([px-ux*sz*Math.cos(a)+nx*sz*Math.sin(a), py-uy*sz*Math.cos(a)+ny*sz*Math.sin(a)]); }
+      }
+      s+='<polygon points="'+p.map(function(q){return n1(q[0])+','+n1(q[1]);}).join(' ')+'" fill="'+FIG.ink+'"/>';
+      next+=every;
+    }
+    acc+=L;
+  }
+  return s;
+}
+function lowFrontSVG(){
+  var W=300,H=230, s=svgOpen(W,H,'温帯低気圧と前線'), cx=150, cy=74;
+  s+=figRect(1,1,W-2,H-2,'#fff',FIG.sub,1.2);
+  /* 等圧線（低気圧のまわり） */
+  s+='<ellipse cx="'+cx+'" cy="'+cy+'" rx="36" ry="26" fill="none" stroke="'+FIG.sub+'" stroke-width="1.2"/>';
+  s+='<ellipse cx="'+(cx-6)+'" cy="'+(cy+8)+'" rx="76" ry="56" fill="none" stroke="'+FIG.sub+'" stroke-width="1.2"/>';
+  s+='<ellipse cx="'+(cx-12)+'" cy="'+(cy+18)+'" rx="122" ry="94" fill="none" stroke="'+FIG.sub+'" stroke-width="1.2"/>';
+  /* 寒冷前線（中心から南西へ）・温暖前線（中心から南東へ） */
+  s+=polyAlong([[cx,cy],[cx-22,cy+48],[cx-52,cy+96],[cx-92,cy+138]],'c',30,-1);
+  s+=polyAlong([[cx,cy],[cx+40,cy+26],[cx+84,cy+46],[cx+130,cy+58]],'w',30,-1);
+  s+=figCircle(cx,cy,13,'#fff',FIG.ink,1.6)+figText(cx,cy+5,'低',FIG.ink,14);
+  /* 地点 */
+  s+=figCircle(cx-96,cy+66,3.4,FIG.ink)+figHalo(cx-96,cy+56,'A',FIG.ink,14);
+  s+=figCircle(cx+10,cy+96,3.4,FIG.ink)+figHalo(cx+10,cy+86,'B',FIG.ink,14);
+  s+=figCircle(cx+96,cy+18,3.4,FIG.ink)+figHalo(cx+96,cy+8,'C',FIG.ink,14);
+  /* 方位 */
+  s+=figArrow(26,58,26,22,FIG.ink,1.6,8)+figText(26,72,'北',FIG.ink,12);
+  return s+'</svg>';
+}
+
+/* ── 等圧線の図（低気圧・高気圧のまわり）──
+   円の中心を少しずつ左へずらしてあるので、右側ほど等圧線の間隔がせまい（＝風が強い）。
+   o={t:'L'|'H', v0:中心のすぐ外の等圧線の値, n:本数, lab:[値を書く等圧線の番号], pts:[{k,ang,lab}]} */
+function isobarSVG(o){
+  var W=320,H=250,cx=176,cy=126, s=svgOpen(W,H,'等圧線'), i;
+  s+=figRect(1,1,W-2,H-2,'#fff',FIG.sub,1.2);
+  var step=(o.t==='L')?4:-4;
+  for(i=0;i<o.n;i++){
+    var v=o.v0+step*i, r=30+30*i, ox=cx-10*i;
+    s+=figCircle(ox,cy,r,'none',FIG.ink,(v%20===0)?2.6:1.2);
+  }
+  for(i=0;i<o.lab.length;i++){
+    var k=o.lab[i], vv=o.v0+step*k, rr=30+30*k, oxx=cx-10*k;
+    var a=-125*Math.PI/180, lx=oxx+rr*Math.cos(a), ly=cy+rr*Math.sin(a);
+    s+=figHalo(lx,ly+4,String(vv),FIG.ink,11.5);
+  }
+  if(!o.hideC) s+=figText(cx,cy+6,(o.t==='L')?'低':'高',FIG.ink,16);
+  else s+=figText(cx,cy+6,'？',FIG.ink,16);
+  (o.pts||[]).forEach(function(p){
+    var rk=p.r, ox2=cx-10*p.k, a2=p.ang*Math.PI/180;
+    var px=ox2+rk*Math.cos(a2), py=cy+rk*Math.sin(a2);
+    s+=figCircle(px,py,3.6,FIG.shu)+figHalo(px+(p.dx||10),py+(p.dy||-6),p.lab,FIG.shu,13,'start');
+  });
+  s+=figArrow(26,58,26,22,FIG.ink,1.6,8)+figText(26,72,'北',FIG.ink,12);
+  return s+'</svg>';
+}
+
+/* ── 気温と飽和水蒸気量のグラフ（点つき）── */
+function satGraphSVG(points){
+  var W=330,H=250, x0=50,y0=16,x1=310,y1=208, s=svgOpen(W,H,'気温と飽和水蒸気量のグラフ'), i;
+  function X(t){ return x0+(x1-x0)*t/30; }
+  function Y(v){ return y1-(y1-y0)*v/35; }
+  var g=[];
+  for(i=0;i<=30;i+=5) g.push('M'+n1(X(i))+' '+n1(y0)+'V'+n1(y1));
+  for(i=0;i<=35;i+=5) g.push('M'+n1(x0)+' '+n1(Y(i))+'H'+n1(x1));
+  s+='<path d="'+g.join('')+'" fill="none" stroke="#E2DED1" stroke-width="1"/>';
+  s+=figRect(x0,y0,x1-x0,y1-y0,'none',FIG.sub,1.2);
+  for(i=0;i<=30;i+=10) s+=figText(X(i),y1+16,String(i),FIG.ink,11);
+  for(i=0;i<=35;i+=10) s+=figText(x0-6,Y(i)+4,String(i),FIG.ink,11,'end');
+  s+=figText((x0+x1)/2,y1+34,'気温〔℃〕',FIG.ink,11.5);
+  s+=figText(x0-4,y0-4,'〔g/m³〕',FIG.ink,10.5,'end');
+  var pts=[]; for(i=0;i<=30;i++) pts.push(n1(X(i))+','+n1(Y(SAT[i])));
+  s+='<polyline points="'+pts.join(' ')+'" fill="none" stroke="'+FIG.ai+'" stroke-width="2.4"/>';
+  s+=figHalo(X(13),Y(SAT[30])+18,'飽和水蒸気量',FIG.ai,11.5);
+  (points||[]).forEach(function(p){
+    s+=figCircle(X(p.t),Y(p.w),3.8,FIG.shu)+figHalo(X(p.t)+7,Y(p.w)-6,p.lab,FIG.shu,13,'start');
+  });
+  return s+'</svg>';
+}
+
+/* ── 乾湿計（乾球・湿球の温度計）── 10〜30℃、1℃ごとの目もり */
+function kanshitsuSVG(dry,wet){
+  var W=230,H=260, s=svgOpen(W,H,'乾湿計'), lo=10, hi=30, yTop=28, yBot=208;
+  function Y(t){ return yBot-(yBot-yTop)*(t-lo)/(hi-lo); }
+  function one(x,val,lab){
+    var r='', t;
+    r+=figRect(x-6,yTop-10,12,yBot-yTop+18,'#fff',FIG.ink,1.4);
+    r+=figRect(x-3.5,Y(val),7,yBot+6-Y(val),FIG.shu);
+    r+=figCircle(x,yBot+14,9,FIG.shu,FIG.ink,1.4);
+    for(t=lo;t<=hi;t++){
+      var big=(t%5===0), len=big?12:6;
+      r+=figLine(x+6,Y(t),x+6+len,Y(t),FIG.ink,big?1.4:0.9);
+      if(t%10===0) r+=figText(x+24,Y(t)+4,String(t),FIG.ink,11,'start');
+    }
+    r+=figText(x+6,yBot+44,lab,FIG.ink,12);
+    return r;
+  }
+  s+=one(55,dry,'乾球')+one(150,wet,'湿球');
+  s+=figText(20,yTop-14,'〔℃〕',FIG.ink,10.5,'start');
+  return s+'</svg>';
+}
+
+/* ── 寒冷前線・温暖前線の断面（候補）──
+   pat: 0=寒冷前線（正）1=温暖前線（正）2=暖気が寒気の下にもぐる（誤）3=寒気が暖気の上をはい上がる（誤） */
+function sectionSVG(pat){
+  var W=200,H=110, s=svgOpen(W,H,'前線の断面'), base=92;
+  s+=figLine(8,base,W-8,base,FIG.ink,1.6);
+  var steep=(pat===0||pat===2), coldBelow=(pat===0||pat===1);
+  /* 図はどれも右へ進む前線。急な前線面は地面の点から後ろ（左）へ立ち上がり、
+     ゆるやかな前線面は地面の点から前（右）へ長くのびる */
+  var path= steep ? 'M128 '+base+' C116 '+(base-4)+' 104 '+(base-30)+' 80 '+(base-74)
+                  : 'M30 '+base+' C80 '+(base-8)+' 140 '+(base-30)+' 192 '+(base-46);
+  s+='<path d="'+path+'" fill="none" stroke="'+FIG.ai+'" stroke-width="2"/>';
+  if(steep){
+    var lowL=coldBelow?'寒気':'暖気', upL=coldBelow?'暖気':'寒気';
+    s+=figText(44,base-10,lowL,coldBelow?FIG.ai:FIG.shu,12)+figArrow(22,base-28,84,base-28,coldBelow?FIG.ai:FIG.shu,1.8,8);
+    s+=figText(168,base-10,upL,coldBelow?FIG.shu:FIG.ai,12)+figArrow(150,base-26,128,base-80,coldBelow?FIG.shu:FIG.ai,1.8,8);
+  } else {
+    var lo2=coldBelow?'寒気':'暖気', up2=coldBelow?'暖気':'寒気';
+    s+=figText(150,base-6,lo2,coldBelow?FIG.ai:FIG.shu,12);
+    s+=figText(56,base-44,up2,coldBelow?FIG.shu:FIG.ai,12)+figArrow(46,base-30,130,base-58,coldBelow?FIG.shu:FIG.ai,1.8,8);
+  }
+  return s+'</svg>';
+}
+
+/* ── 問題バンク（中2理科・地球の大気と天気の変化）──
+   各問: id(不変), cat(分野), q, c(選択肢), a(正解), exp, tbl(図・表があれば)。mode は CAT_MODE から自動判定。
+   ⚠ id は一度振ったら変えない（解き直しの question_params が {id} なので、変えると pending が引けなくなる）。
+   ⚠ 選択肢に生の「<」を書かない（save_answer.php が選択肢を丸ごと捨てる）。{ } \ ^ _ も使わない。
+   数値計算の問題は下の GENERATORS で毎回ちがう数値で作る。 */
+var BANK = [
+  /* ========== 大気圧と圧力：圧力 ========== */
+  {id:'ta_a1',cat:'ta_atsu',q:'一定面積（1m²など）あたりの面を垂直に押す力の大きさを何という？',c:['圧力','重力','大気圧','弾性力','摩擦力','浮力'],a:'圧力',exp:'一定面積あたりの面を垂直に押す力の大きさを圧力という。'},
+  {id:'ta_a2',cat:'ta_atsu',q:'圧力を求める式として正しいのは？',c:['面を垂直に押す力〔N〕÷力がはたらく面積〔m²〕','力がはたらく面積〔m²〕÷面を垂直に押す力〔N〕','面を垂直に押す力〔N〕×力がはたらく面積〔m²〕','質量〔g〕÷面積〔cm²〕','面を垂直に押す力〔N〕＋力がはたらく面積〔m²〕','面積〔m²〕×100'],a:'面を垂直に押す力〔N〕÷力がはたらく面積〔m²〕',exp:'圧力〔Pa〕＝面を垂直に押す力の大きさ〔N〕÷力がはたらく面積〔m²〕。'},
+  {id:'ta_a3',cat:'ta_atsu',q:'圧力の単位「Pa」の読み方は？',c:['パスカル','ヘクトパスカル','ニュートン','ヘルツ','ジュール','ワット'],a:'パスカル',exp:'圧力の単位はパスカル（記号Pa）。1Pa＝1N/m²。'},
+  {id:'ta_a4',cat:'ta_atsu',q:'1Pa と同じ大きさを表すのは？',c:['1N/m²','1N/cm²','100N/m²','1hPa','10N/m²','1g/m²'],a:'1N/m²',exp:'1Pa は 1m² の面を 1N の力で垂直に押すときの圧力。ニュートン毎平方メートル（N/m²）と同じ。'},
+  {id:'ta_a5',cat:'ta_atsu',q:'1m² は何cm²か。',c:['10000cm²','100cm²','1000cm²','100000cm²','10cm²','1000000cm²'],a:'10000cm²',exp:'1m＝100cm なので、1m²＝100cm×100cm＝10000cm²。cm²で出した面積は10000でわってm²にする。'},
+  {id:'ta_a6',cat:'ta_atsu',q:'同じ重さのペットボトルを、面積の大きい板と小さい板にのせてスポンジに置いた。スポンジが深くへこむのは？',c:['面積の小さい板','面積の大きい板','どちらも同じ','重さによって変わる','スポンジの色で変わる','へこまない'],a:'面積の小さい板',exp:'力の大きさが同じなら、力がはたらく面積が小さいほど圧力が大きくなり、深くへこむ。'},
+  {id:'ta_a7',cat:'ta_atsu',q:'力の大きさが同じとき、力がはたらく面積を半分にすると、圧力は何倍になる？',c:['2倍','半分','4倍','変わらない','4分の1','3倍'],a:'2倍',exp:'圧力＝力÷面積。面積が1/2になると圧力は2倍（スポンジのへこみぐあいも2倍）。'},
+  {id:'ta_a8',cat:'ta_atsu',q:'正方形の板の1辺の長さを半分にした。同じ力で押したとき、圧力は何倍になる？',c:['4倍','2倍','半分','4分の1','変わらない','8倍'],a:'4倍',exp:'1辺が1/2になると面積は1/2×1/2＝1/4。圧力は面積に反比例するので4倍になる。'},
+  {id:'ta_a9',cat:'ta_atsu',q:'同じ直方体を2個、同じ面を下にして重ねて置いた。机が受ける圧力は1個のときの何倍？',c:['2倍','変わらない','半分','4倍','3倍','4分の1'],a:'2倍',exp:'面積は同じで、机を押す力（重さ）が2倍になるので、圧力も2倍。'},
+  {id:'ta_a10',cat:'ta_atsu',q:'直方体の物体の、下にする面を変えて机に置いた。机が受ける圧力について正しいのは？',c:['下にする面の面積が小さいほど大きい','下にする面の面積が大きいほど大きい','どの面を下にしても同じ','物体が高いほど小さい','面の形で決まり面積は関係ない','下にする面を変えると重さも変わる'],a:'下にする面の面積が小さいほど大きい',exp:'押す力（重さ）はどの面でも同じなので、面積が小さい面を下にしたときほど圧力は大きい。'},
+  {id:'ta_a11',cat:'ta_atsu',q:'圧力の計算で、100gの物体にはたらく重力の大きさは何Nとして計算する？',c:['1N','10N','100N','0.1N','0.01N','1000N'],a:'1N',exp:'100gの物体にはたらく重力の大きさを約1Nとする。1kgなら10N。'},
+  {id:'ta_a12',cat:'ta_atsu',q:'雪の上でスキー板をはくと沈みにくいのはなぜ？',c:['雪に接する面積が大きくなり、圧力が小さくなるから','雪に接する面積が小さくなり、圧力が大きくなるから','体重が軽くなるから','重力が小さくなるから','大気圧が大きくなるから','雪がとけるから'],a:'雪に接する面積が大きくなり、圧力が小さくなるから',exp:'体重（力）は同じでも、面積が大きくなると雪が受ける圧力が小さくなるので沈みにくい。'},
+  /* ========== 大気圧と圧力：大気圧 ========== */
+  {id:'ta_t1',cat:'ta_taiki',q:'大気の重さによって生じる圧力を何という？',c:['大気圧（気圧）','水圧','圧力差','重力','浮力','弾性力'],a:'大気圧（気圧）',exp:'空気にも重さがあり、地球を包む大気の重さによって生じる圧力を大気圧（気圧）という。'},
+  {id:'ta_t2',cat:'ta_taiki',q:'大気圧の大きさを表すのにふつう使う単位は？',c:['hPa（ヘクトパスカル）','N（ニュートン）','m/s（メートル毎秒）','g/m³','℃','Hz（ヘルツ）'],a:'hPa（ヘクトパスカル）',exp:'大気圧はふつうヘクトパスカル（記号hPa）で表す。'},
+  {id:'ta_t3',cat:'ta_taiki',q:'1hPa は何Paか。',c:['100Pa','10Pa','1000Pa','1Pa','0.01Pa','10000Pa'],a:'100Pa',exp:'ヘクトは100倍の意味。1hPa＝100Pa。'},
+  {id:'ta_t4',cat:'ta_taiki',q:'海面と同じ高さのところの大気圧は、平均約何hPaか。',c:['約1013hPa','約100hPa','約640hPa','約1300hPa','約10130hPa','約101hPa'],a:'約1013hPa',exp:'海面と同じ高さでの大気圧は平均約1013hPa。これを1気圧という。'},
+  {id:'ta_t5',cat:'ta_taiki',q:'1気圧はおよそ何hPaか。',c:['1013hPa','1000Pa','100hPa','1300hPa','640hPa','10hPa'],a:'1013hPa',exp:'1気圧＝約1013hPa＝約101300Pa（N/m²）。'},
+  {id:'ta_t6',cat:'ta_taiki',q:'1気圧（約1013hPa）を N/m² で表すとおよそいくら？',c:['約101300N/m²','約1013N/m²','約10130N/m²','約1013000N/m²','約101.3N/m²','約10.13N/m²'],a:'約101300N/m²',exp:'1hPa＝100Pa＝100N/m² なので、1013hPa＝101300N/m²。'},
+  {id:'ta_t7',cat:'ta_taiki',q:'上空へ行くほど大気圧が小さくなるのはなぜ？',c:['その上にある大気の重さが小さくなるから','気温が上がるから','空気が重くなるから','太陽に近づくから','風が強くなるから','雲が多くなるから'],a:'その上にある大気の重さが小さくなるから',exp:'大気圧はその上にある大気の重さによる。上空ほど上にある大気が少ないので大気圧は小さい。'},
+  {id:'ta_t8',cat:'ta_taiki',q:'ふつう、海面と富士山の山頂では、どちらの大気圧が大きい？',c:['海面','富士山の山頂','どちらも同じ','天気によって必ず逆になる','季節で決まる','比べられない'],a:'海面',exp:'標高が高いほど大気圧は小さい。富士山頂は約640hPaで、海面（約1013hPa）より小さい。'},
+  {id:'ta_t9',cat:'ta_taiki',q:'富士山の山頂の大気圧はおよそいくら？',c:['約640hPa','約1013hPa','約100hPa','約900hPa','約1300hPa','約300hPa'],a:'約640hPa',exp:'標高約3776mの富士山頂では、大気圧は約640hPaまで小さくなる。'},
+  {id:'ta_t10',cat:'ta_taiki',q:'密封した菓子袋を標高の高いところに持っていくとどうなる？',c:['ふくらむ','しぼむ','変わらない','破れて中身が出る','重くなる','冷たくなる'],a:'ふくらむ',exp:'標高が高いところでは外側の大気圧が小さくなるので、袋の中の空気が押し広げてふくらむ。'},
+  {id:'ta_t11',cat:'ta_taiki',q:'大気圧がはたらく向きについて正しいのは？',c:['あらゆる向きから面に垂直にはたらく','上から下へだけはたらく','下から上へだけはたらく','横向きにだけはたらく','風がふく向きにだけはたらく','地面に平行にだけはたらく'],a:'あらゆる向きから面に垂直にはたらく',exp:'大気圧は物体のあらゆる面に、垂直に、どの向きからもはたらく。'},
+  {id:'ta_t12',cat:'ta_taiki',q:'空き缶に少量の水を入れて加熱し、湯気が出たら口をふさいで冷やすと、缶がつぶれた。その理由は？',c:['缶の中の気圧が小さくなり、外の大気圧に押されたから','缶の中の気圧が大きくなったから','水が氷になってふくらんだから','缶が熱でとけたから','外の気温が下がったから','缶が重くなったから'],a:'缶の中の気圧が小さくなり、外の大気圧に押されたから',exp:'中の水蒸気が冷えて水にもどり、缶の中の気体が減って気圧が小さくなる。外からの大気圧のほうが大きくなるのでつぶれる。'},
+  {id:'ta_t13',cat:'ta_taiki',q:'大気圧の大きさを1000hPaとすると、1cm²の面を押す大気の力はおよそ何N？',c:['10N','1N','100N','1000N','0.1N','10000N'],a:'10N',exp:'1000hPa＝100000Pa、1cm²＝0.0001m²。力＝圧力×面積＝100000×0.0001＝10N（1kgの物体の重さと同じ）。'},
+  {id:'ta_t14',cat:'ta_taiki',q:'私たちの体は大きな大気圧を受けているのに、つぶれないのはなぜ？',c:['体の内側からも同じくらいの力で押し返しているから','大気圧は人には はたらかないから','大気圧は上からしかはたらかないから','体が重いから','空気が軽いから','服を着ているから'],a:'体の内側からも同じくらいの力で押し返しているから',exp:'大気圧はあらゆる向きからはたらくが、体の内側からも同じ大きさの力で押し返しているので、つぶれない。'},
+
+  /* ========== 気象観測：気象要素・雲量 ========== */
+  {id:'ka_y1',cat:'ka_youso',q:'気温・湿度・気圧・風向・風速・雲量など、大気の状態を表す要素を何という？',c:['気象要素','気団','天気図','気象衛星','前線','気圧配置'],a:'気象要素',exp:'ある場所・ある時間の大気の状態を表す要素（気温・湿度・気圧・風向・風速・雲量・降水量など）を気象要素という。'},
+  {id:'ka_y2',cat:'ka_youso',q:'空全体を10としたときの、雲が空をしめる割合を何という？',c:['雲量','降水量','湿度','雲形','視程','日照率'],a:'雲量',exp:'空全体を10としたときに雲がしめる割合を雲量という（0〜10）。'},
+  {id:'ka_y3',cat:'ka_youso',q:'雨や雪が降っていないとき、雲量0〜1の天気は？',c:['快晴','晴れ','くもり','霧','雨','天気不明'],a:'快晴',exp:'雲量0〜1は快晴、2〜8は晴れ、9〜10はくもり。'},
+  {id:'ka_y4',cat:'ka_youso',q:'雨や雪が降っていないとき、雲量2〜8の天気は？',c:['晴れ','快晴','くもり','霧','あられ','雷'],a:'晴れ',exp:'雲量2〜8は晴れ。雲が多くても8までなら晴れになる。'},
+  {id:'ka_y5',cat:'ka_youso',q:'雨や雪が降っていないとき、雲量9〜10の天気は？',c:['くもり','晴れ','快晴','雨','霧','天気不明'],a:'くもり',exp:'雲量9〜10はくもり。'},
+  {id:'ka_y6',cat:'ka_youso',q:'快晴・晴れ・くもりは何によって決める？',c:['雲量','気温','湿度','気圧','風力','雲の色'],a:'雲量',exp:'雨や雪が降っていなければ、快晴・晴れ・くもりは雲量で決める。'},
+  {id:'ka_y7',cat:'ka_youso',q:'雲量を観測するときのしかたとして正しいのは？',c:['空全体を見わたし、雲がしめる割合を10段階で見積もる','真上の空だけを見る','雲の厚さをはかる','雲の色で判断する','太陽が見えるかどうかだけで決める','雲が動く速さで決める'],a:'空全体を見わたし、雲がしめる割合を10段階で見積もる',exp:'空全体を10として、雲がどれだけをしめているかを見積もる。'},
+  {id:'ka_y8',cat:'ka_youso',q:'雲量が7で雨が降っていないとき、天気は？',c:['晴れ','くもり','快晴','雨','雪','霧'],a:'晴れ',exp:'雲量2〜8は晴れ。雲の切れ間から青空が見えている状態。'},
+  {id:'ka_y9',cat:'ka_youso',q:'気圧をはかるのにふつう使う器具は？',c:['アネロイド気圧計','乾湿計','風向計','風速計','雨量計','百葉箱'],a:'アネロイド気圧計',exp:'気圧はアネロイド気圧計などで測定する。'},
+  {id:'ka_y10',cat:'ka_youso',q:'風速をはかるときの単位は？',c:['m/s','km/s','hPa','N','g/m³','%'],a:'m/s',exp:'風速は1秒間に空気が進む距離で表し、単位は m/s（メートル毎秒）。'},
+  {id:'ka_y11',cat:'ka_youso',q:'風向や風速はどのような場所で観測する？',c:['障害物のない開けた場所','建物のかげ','室内','木の下','地面の近く','日かげの狭い場所'],a:'障害物のない開けた場所',exp:'建物や木の影響を受けないよう、障害物のない開けた場所で調べる。'},
+  /* ========== 気象観測：天気記号・風向風力 ========== */
+  {id:'ka_k1',cat:'ka_kigou',q:'この天気記号が表す天気は？',tbl:wxBoxSVG('快晴'),c:['快晴','晴れ','くもり','霧','天気不明','雪'],a:'快晴',exp:'中に何もかかない円は快晴。'},
+  {id:'ka_k2',cat:'ka_kigou',q:'この天気記号が表す天気は？',tbl:wxBoxSVG('晴れ'),c:['晴れ','快晴','くもり','雷','天気不明','雪'],a:'晴れ',exp:'円の中に縦線を1本かいた記号は晴れ。'},
+  {id:'ka_k3',cat:'ka_kigou',q:'この天気記号が表す天気は？',tbl:wxBoxSVG('くもり'),c:['くもり','霧','快晴','晴れ','雨','あられ'],a:'くもり',exp:'二重丸（中は白）がくもり。中が黒くぬってあれば霧なので注意。'},
+  {id:'ka_k4',cat:'ka_kigou',q:'この天気記号が表す天気は？',tbl:wxBoxSVG('雨'),c:['雨','霧','雷','くもり','雪','あられ'],a:'雨',exp:'黒くぬりつぶした円が雨。'},
+  {id:'ka_k5',cat:'ka_kigou',q:'この天気記号が表す天気は？',tbl:wxBoxSVG('雪'),c:['雪','天気不明','あられ','晴れ','雷','霧'],a:'雪',exp:'円の中に線を3本交差させた記号は雪。線2本の「×」なら天気不明。'},
+  {id:'ka_k6',cat:'ka_kigou',q:'この天気記号が表す天気は？',tbl:wxBoxSVG('あられ'),c:['あられ','雪','雷','霧','晴れ','天気不明'],a:'あられ',exp:'円の中に三角形をかいた記号はあられ。'},
+  {id:'ka_k7',cat:'ka_kigou',q:'この天気記号が表す天気は？',tbl:wxBoxSVG('雷'),c:['雷','雨','霧','くもり','あられ','晴れ'],a:'雷',exp:'円の下半分を黒くぬった記号は雷。'},
+  {id:'ka_k8',cat:'ka_kigou',q:'この天気記号が表す天気は？',tbl:wxBoxSVG('霧'),c:['霧','くもり','雨','雷','快晴','あられ'],a:'霧',exp:'二重丸の中を黒くぬった記号は霧。中が白い二重丸はくもり。'},
+  {id:'ka_k9',cat:'ka_kigou',q:'この天気記号が表す天気は？',tbl:wxBoxSVG('天気不明'),c:['天気不明','雪','あられ','晴れ','霧','快晴'],a:'天気不明',exp:'円の中に×をかいた記号は天気不明。線が3本なら雪。'},
+  {id:'ka_k10',cat:'ka_kigou',q:'風向とは何か。',c:['風がふいてくる方位','風がふいていく方位','風の強さ','風がふいた時間','雲が流れていく方位','気圧が下がる方位'],a:'風がふいてくる方位',exp:'風向は風がふいてくる方位。北から南へふく風は「北の風」。'},
+  {id:'ka_k11',cat:'ka_kigou',q:'風向はふつういくつの方位で表す？',c:['16方位','4方位','8方位','12方位','24方位','32方位'],a:'16方位',exp:'風向は北・北北東・北東…のように16方位で表す。'},
+  {id:'ka_k12',cat:'ka_kigou',q:'ふき流しが南東になびいていた。このときの風向は？',c:['北西','南東','北東','南西','東','西'],a:'北西',exp:'ふき流しは風がふいていく向きになびく。南東になびいていれば、風は反対の北西からふいている＝風向は北西。'},
+  {id:'ka_k13',cat:'ka_kigou',q:'天気図記号で、風力は何で表す？',c:['矢ばねの数','矢の軸の長さ','円の大きさ','円の中の記号','矢の太さ','矢の色'],a:'矢ばねの数',exp:'風力は矢の軸につけるはねの数で表す。風向は矢の軸の向き、天気は円の中の記号。'},
+  {id:'ka_k14',cat:'ka_kigou',q:'天気図記号で、風向は何で表す？',c:['矢の軸を風がふいてくる方位に向ける','矢の軸を風がふいていく方位に向ける','はねの数','円の中の記号','矢の軸の長さ','矢ばねの向き'],a:'矢の軸を風がふいてくる方位に向ける',exp:'矢の軸は、風がふいてくる方位に向けてかく。'},
+  {id:'ka_k15',cat:'ka_kigou',q:'風速計がないとき、風の強さは何を使って決める？',c:['風力階級表','湿度表','天気記号表','気圧計','乾湿計','雨量計'],a:'風力階級表',exp:'風速計がないときは、けむりのなびき方や木の葉のゆれ方などから風力階級表を使って風力を決める。'},
+  {id:'ka_k16',cat:'ka_kigou',q:'風力は何段階に分けられている？',c:['0〜12の13段階','1〜10の10段階','0〜10の11段階','1〜5の5段階','0〜8の9段階','1〜16の16段階'],a:'0〜12の13段階',exp:'風力階級は0〜12の13段階。数が大きいほど風が強い。'},
+  {id:'ka_k17',cat:'ka_kigou',q:'風向計で調べることができるのは？',c:['風向','風速','気圧','湿度','気温','雲量'],a:'風向',exp:'風向は風向計やふき流しで調べる。風速は風速計で調べる。'},
+  /* ========== 気象観測：乾湿計・湿度表 ========== */
+  {id:'ka_h1',cat:'ka_kanshitsu',q:'気温と湿度を測定するのに用いるものは？',c:['乾湿計','アネロイド気圧計','風向計','風速計','雨量計','ガラス管'],a:'乾湿計',exp:'乾湿計は乾球温度計と湿球温度計の2本でできていて、気温と湿度を調べられる。'},
+  {id:'ka_h2',cat:'ka_kanshitsu',q:'気温をはかるとき、温度計（乾湿計）は地上からおよそ何mの高さに置く？',c:['約1.5m','約0.1m','約0.8m','約3m','約5m','地面に直接置く'],a:'約1.5m',exp:'気温は地上から約1.5mの高さで測定する（地面の熱の影響を受けないため）。'},
+  {id:'ka_h3',cat:'ka_kanshitsu',q:'乾湿計を置く場所として正しいのは？',c:['風通しのよい日かげ','直射日光がよく当たる場所','風が当たらない密閉した箱の中','建物のすぐ横の日なた','暖房のきいた室内','地面の上'],a:'風通しのよい日かげ',exp:'直射日光が当たると正しい気温がはかれない。風通しのよい日かげに置く。'},
+  {id:'ka_h4',cat:'ka_kanshitsu',q:'気温として読みとるのは、どちらの温度計の示度か。',c:['乾球温度計','湿球温度計','2本の平均','2本の差','高いほうから低いほうを引いた値','どちらでもよい'],a:'乾球温度計',exp:'気温は乾球温度計の示度。湿度は乾球と湿球の示度の差から湿度表で求める。'},
+  {id:'ka_h5',cat:'ka_kanshitsu',q:'湿度を求めるときに使うのは？',c:['乾球の示度と、乾球と湿球の示度の差','湿球の示度だけ','乾球の示度だけ','乾球と湿球の示度の和','気圧と気温','風速と気温'],a:'乾球の示度と、乾球と湿球の示度の差',exp:'湿度表のたてに乾球の示度、よこに乾球と湿球の示度の差をとり、交わったところを読む。'},
+  {id:'ka_h6',cat:'ka_kanshitsu',q:'湿球温度計の示度が、ふつう乾球温度計より低くなるのはなぜ？',c:['湿球を包む布から水が蒸発するとき、熱をうばうから','湿球のほうが日光を受けるから','湿球のガラスが厚いから','水が熱を出すから','湿球は地面に近いから','湿球には液体が少ないから'],a:'湿球を包む布から水が蒸発するとき、熱をうばうから',exp:'湿球は水でぬらした布で包まれている。水が蒸発するときにまわりから熱をうばうので示度が低くなる。'},
+  {id:'ka_h7',cat:'ka_kanshitsu',q:'乾球と湿球の示度の差が大きいほど、湿度はどうなる？',c:['低い','高い','100%になる','変わらない','気温と同じになる','0%になる'],a:'低い',exp:'空気が乾燥しているほど水がよく蒸発し、湿球の示度が下がって差が大きくなる。差が大きいほど湿度は低い。'},
+  {id:'ka_h8',cat:'ka_kanshitsu',q:'乾球と湿球の示度が同じとき、湿度は何%？',c:['100%','0%','50%','気温と同じ%','決められない','80%'],a:'100%',exp:'示度の差が0のときは、水が蒸発しない（空気が水蒸気でいっぱい）ので湿度100%。'},
+  {id:'ka_h9',cat:'ka_kanshitsu',q:'湿球温度計の球部は何で包まれている？',c:['水でぬらした布（ガーゼ）','乾いた紙','アルミニウムはく','黒い布','綿でできた乾いた布','ビニール'],a:'水でぬらした布（ガーゼ）',exp:'湿球は水でしめらせた布で包み、布の下は水の入った容器につけておく。'},
+  /* ========== 気象観測：天気と気温・湿度・気圧 ========== */
+  {id:'ka_e1',cat:'ka_henka',q:'晴れの日の気温の変化について正しいのは？',c:['1日の変化が大きく、昼すぎに最高になる','1日の変化が小さい','朝に最高になる','夜中に最高になる','1日中ほとんど変わらない','正午ちょうどに最低になる'],a:'1日の変化が大きく、昼すぎに最高になる',exp:'晴れの日は日ざしで気温がよく上がり、1日の変化が大きい。最高気温は昼すぎ（14時ごろ）。'},
+  {id:'ka_e2',cat:'ka_henka',q:'晴れの日、気温が上がると湿度はふつうどうなる？',c:['下がる','上がる','変わらない','100%になる','気温と同じだけ上がる','0%になる'],a:'下がる',exp:'晴れの日は湿度が気温と逆の変化をする。気温が上がると飽和水蒸気量が大きくなるので湿度は下がる。'},
+  {id:'ka_e3',cat:'ka_henka',q:'くもりや雨の日の気温と湿度の変化について正しいのは？',c:['1日の変化が小さい','1日の変化が大きい','気温だけ大きく変化する','湿度だけ大きく変化する','昼に湿度が0%になる','夜に気温が急上昇する'],a:'1日の変化が小さい',exp:'くもりや雨の日は日ざしが弱く、気温も湿度も1日の変化が小さい（湿度は高いまま）。'},
+  {id:'ka_e4',cat:'ka_henka',q:'気圧が大きい（高い）日に多い天気は？',c:['晴れ','雨','雪','雷','霧','天気不明'],a:'晴れ',exp:'晴れのときは気圧が大きく、雨のときは気圧が小さいことが多い。'},
+  {id:'ka_e5',cat:'ka_henka',q:'天気が雨のときの気圧は、晴れのときと比べてどうであることが多い？',c:['小さい（低い）','大きい（高い）','同じ','0になる','2倍になる','決まっていない'],a:'小さい（低い）',exp:'雨やくもりの日は気圧が小さい（低い）ことが多い。'},
+  {id:'ka_e6',cat:'ka_henka',q:'湿度の変化が気温の変化とちょうど逆になっている日に多い天気は？',c:['晴れ','雨','くもり','雪','霧','あられ'],a:'晴れ',exp:'晴れの日は、気温が上がると湿度が下がり、気温が下がると湿度が上がる（逆の変化）。'},
+  {id:'ka_e7',cat:'ka_henka',q:'晴れの日、1日のうちで気温が最も低くなるのはいつごろ？',c:['日の出前の明け方','正午','昼すぎ','夕方','日の入り直後','真夜中の0時ちょうど'],a:'日の出前の明け方',exp:'夜の間に地面から熱が逃げつづけるので、日の出前の明け方に気温が最も低くなる。'},
+  {id:'ka_e8',cat:'ka_henka',q:'1日の気温の変化が小さく、湿度が1日中高い日の天気として考えられるのは？',c:['雨','快晴','晴れ','移動性高気圧におおわれた日','冬の太平洋側の晴れ','雲量0の日'],a:'雨',exp:'雨やくもりの日は、気温・湿度ともに1日の変化が小さく、湿度は高いまま。'},
+  {id:'ka_e9',cat:'ka_henka',q:'晴れた日の湿度が最も低くなるのは、ふつういつごろ？',c:['気温が最も高くなる昼すぎ','明け方','真夜中','日の出直後','夕方の日の入り後','1日中変わらない'],a:'気温が最も高くなる昼すぎ',exp:'空気中の水蒸気量があまり変わらなければ、気温が最も高いとき（昼すぎ）に湿度は最も低くなる。'}
+];
+
+/* ── 問題バンク つづき（雲と水蒸気）── */
+BANK.push.apply(BANK, [
+  /* ========== 雲と水蒸気：霧・雲のでき方 ========== */
+  {id:'su_k1',cat:'su_kumo',q:'空気中の水蒸気が水滴に変わるのは、空気がどうなったときか。',c:['冷やされたとき','あたためられたとき','乾燥したとき','圧縮されたとき','風が止まったとき','明るくなったとき'],a:'冷やされたとき',exp:'空気が冷やされて露点より低くなると、ふくみきれなくなった水蒸気が水滴に変わる。'},
+  {id:'su_k2',cat:'su_kumo',q:'水蒸気を多くふくんだ空気が地表付近で冷やされ、水蒸気が小さな水滴になって地表付近にただよっているものを何という？',c:['霧','雲','露','霜','雨','もや'],a:'霧',exp:'地表付近で冷やされてできた水滴が地表付近にただよっているものが霧。上空でできれば雲。'},
+  {id:'su_k3',cat:'su_kumo',q:'上空で水蒸気が冷やされてできるのは、霧と雲のどちらか。',c:['雲','霧','どちらでもない','どちらも同じもの','霜','露'],a:'雲',exp:'上昇する空気の中で水蒸気が冷やされてできた水滴や氷の粒の集まりが雲。'},
+  {id:'su_k4',cat:'su_kumo',q:'雲とは何か。',c:['上昇する空気中にできた小さな水滴や氷の粒の集まり','空気中の水蒸気そのもの','地表付近にただよう水滴','空気中のちりの集まり','空気中の二酸化炭素','上空の冷たい気体'],a:'上昇する空気中にできた小さな水滴や氷の粒の集まり',exp:'雲は水蒸気（気体）ではなく、水滴や氷の粒（液体・固体）の集まり。'},
+  {id:'su_k5',cat:'su_kumo',q:'太陽が出て気温が上がると霧が消えるのはなぜ？',c:['霧の水滴が水蒸気になるから','霧の水滴が凍るから','霧が上空へ飛んでいくから','霧が雨になるから','霧が地面にしみこむから','空気が冷えるから'],a:'霧の水滴が水蒸気になるから',exp:'気温が上がると飽和水蒸気量が大きくなり、霧の水滴が蒸発して水蒸気になるので消える。'},
+  {id:'su_k6',cat:'su_kumo',q:'上昇する空気の動きを何という？',c:['上昇気流','下降気流','偏西風','季節風','海風','前線'],a:'上昇気流',exp:'上昇する空気の動きを上昇気流、下降する空気の動きを下降気流という。'},
+  {id:'su_k7',cat:'su_kumo',q:'上昇する空気の温度はどうなる？',c:['下がる','上がる','変わらない','0℃になる','いったん上がってから下がる','露点より高くなる'],a:'下がる',exp:'上空ほど気圧が低いので、上昇した空気は膨張し、温度が下がる。'},
+  {id:'su_k8',cat:'su_kumo',q:'空気のかたまりが上昇すると膨張するのはなぜ？',c:['上空ほど気圧が低いから','上空ほど気温が高いから','上空ほど水蒸気が多いから','上空ほど気圧が高いから','太陽に近づくから','風が強いから'],a:'上空ほど気圧が低いから',exp:'まわりの気圧が低くなるので、空気のかたまりは押し広げられて膨張する。膨張すると温度が下がる。'},
+  {id:'su_k9',cat:'su_kumo',q:'雲ができやすいのは、上昇気流と下降気流のどちらがあるところか。',c:['上昇気流があるところ','下降気流があるところ','どちらでも同じ','風のないところだけ','気圧の高いところ','どちらでもできない'],a:'上昇気流があるところ',exp:'上昇気流で空気が上昇→膨張→温度が下がる→露点に達して雲ができる。下降気流では雲ができにくい。'},
+  {id:'su_k10',cat:'su_kumo',q:'上昇気流ができるしくみとしてまちがっているものは？',c:['冷たい空気が山の斜面に沿って下降する','太陽の熱で地表付近の空気があたためられる','空気が山の斜面に沿って上昇する','あたたかい空気が冷たい空気の上にはい上がる','冷たい空気があたたかい空気を押し上げる','低気圧の中心に風がふきこむ'],a:'冷たい空気が山の斜面に沿って下降する',exp:'山をこえて下降する空気は下降気流。ほかはどれも上昇気流ができるしくみ。'},
+  {id:'su_k11',cat:'su_kumo',q:'空気のかたまりが上昇して雲ができはじめる高さでは、空気の温度は何に達している？',c:['露点','0℃','沸点','融点','気温の最高','湿度0%'],a:'露点',exp:'上昇して温度が下がった空気が露点に達すると、水蒸気が水滴に変わりはじめ、雲ができる。'},
+  {id:'su_k12',cat:'su_kumo',q:'雲の中で、温度が0℃以下になると何ができる？',c:['氷の粒','水蒸気','水滴だけ','ちり','二酸化炭素','雨粒だけ'],a:'氷の粒',exp:'さらに上昇して0℃以下になると、水滴の一部が氷の粒になる（氷の粒が成長すると雪の結晶）。'},
+  {id:'su_k13',cat:'su_kumo',q:'雲ができるまでの順序として正しいのは？',c:['上昇→膨張→温度が下がる→露点に達する→水滴ができる','上昇→圧縮→温度が上がる→水滴ができる','下降→膨張→温度が下がる→水滴ができる','上昇→膨張→温度が上がる→水蒸気がふえる','下降→圧縮→温度が下がる→水滴ができる','上昇→圧縮→温度が下がる→氷がとける'],a:'上昇→膨張→温度が下がる→露点に達する→水滴ができる',exp:'上昇した空気は膨張して温度が下がり、露点に達すると水蒸気が水滴になって雲ができる。'},
+  {id:'su_k14',cat:'su_kumo',q:'冷たい空気があたたかい空気の下にもぐりこんだとき、あたたかい空気はどうなる？',c:['押し上げられて上昇し、雲ができやすい','下降して晴れる','そのまま動かない','冷たい空気と混ざって消える','地面の下にもぐる','急に圧縮される'],a:'押し上げられて上昇し、雲ができやすい',exp:'冷たい空気は密度が大きく下にもぐりこむので、あたたかい空気は押し上げられて上昇気流ができる。'},
+  /* ========== 雲と水蒸気：雲・霧をつくる実験 ========== */
+  {id:'su_j1',cat:'su_jikken',q:'丸底フラスコの内側をぬるま湯でぬらし、大型注射器のピストンをすばやく引いた。フラスコ内はどうなる？',c:['白くくもる','くもりが消える','水がたまる','変化しない','あたたかくなる','氷ができる'],a:'白くくもる',exp:'ピストンを引くと中の空気が膨張して温度が下がり、露点に達して水蒸気が水滴になるので白くくもる。'},
+  {id:'su_j2',cat:'su_jikken',q:'ピストンを引いたとき、フラスコ内の空気の体積と温度はどうなる？',c:['体積は大きくなり、温度は下がる','体積は小さくなり、温度は上がる','体積は大きくなり、温度は上がる','体積は小さくなり、温度は下がる','どちらも変わらない','体積だけ大きくなる'],a:'体積は大きくなり、温度は下がる',exp:'ピストンを引くと空気が膨張（体積が大きくなる）し、温度が下がる。'},
+  {id:'su_j3',cat:'su_jikken',q:'白くくもった状態からピストンをすばやく押すと、どうなる？',c:['くもりが消える','さらに白くくもる','水滴が大きくなる','フラスコが割れる','温度が下がる','変化しない'],a:'くもりが消える',exp:'ピストンを押すと空気が圧縮されて温度が上がり、水滴が水蒸気にもどるのでくもりが消える。'},
+  {id:'su_j4',cat:'su_jikken',q:'ピストンを押したとき、フラスコ内の空気の温度はどうなる？',c:['上がる','下がる','変わらない','0℃になる','露点より下がる','はかれない'],a:'上がる',exp:'空気が圧縮されると温度が上がる。'},
+  {id:'su_j5',cat:'su_jikken',q:'雲をつくる実験で、フラスコに線香のけむりを入れるのはなぜ？',c:['水蒸気が水滴になるときの芯（核）になり、水滴ができやすくなるから','フラスコをあたためるため','においで変化を知るため','空気を減らすため','温度を下げるため','酸素をふやすため'],a:'水蒸気が水滴になるときの芯（核）になり、水滴ができやすくなるから',exp:'線香のけむりの小さな粒は、大気中のちりと同じように、水蒸気が水滴になるときの芯になる。'},
+  {id:'su_j6',cat:'su_jikken',q:'雲をつくる実験で、フラスコの内側をぬるま湯でぬらしておくのはなぜ？',c:['フラスコ内の空気に水蒸気を多くふくませるため','フラスコを冷やすため','けむりを消すため','温度計を正しく動かすため','空気をぬくため','フラスコを洗うため'],a:'フラスコ内の空気に水蒸気を多くふくませるため',exp:'ぬるま湯でぬらして、中の空気を水蒸気の多い（しめった）状態にしておく。'},
+  {id:'su_j7',cat:'su_jikken',q:'ピストンを引いてフラスコ内がくもった。自然界でこれと同じしくみで雲ができるのは？',c:['空気が山の斜面に沿って上昇するとき','山をこえた空気が斜面に沿って下降するとき','冷たい空気が地表付近にたまるとき','空気が圧縮されるとき','高気圧の中心付近','雨が降ったあと'],a:'空気が山の斜面に沿って上昇するとき',exp:'空気が上昇すると膨張して温度が下がる。ピストンを引いて空気を膨張させたのと同じしくみ。'},
+  {id:'su_j8',cat:'su_jikken',q:'ペットボトルに簡易加圧器で空気を入れてから、栓をはずして空気を出すと、中が白くくもった。その理由は？',c:['気圧が急に小さくなって空気が膨張し、温度が下がったから','気圧が大きくなって温度が上がったから','外の空気が入って冷えたから','水が蒸発したから','光が反射したから','けむりがふえたから'],a:'気圧が急に小さくなって空気が膨張し、温度が下がったから',exp:'栓をはずすと容器内の気圧が急に小さくなり、空気が膨張して温度が下がり、露点に達して水滴ができる。'},
+  {id:'su_j9',cat:'su_jikken',q:'ペットボトル内の白いくもりが消えるのは、簡易加圧器でどうしたときか。',c:['空気を入れて気圧を大きくしたとき','栓をはずしたとき','ボトルを冷やしたとき','けむりを足したとき','水を減らしたとき','ボトルを横にしたとき'],a:'空気を入れて気圧を大きくしたとき',exp:'空気を押しこむと容器内の気圧が大きくなって温度が上がり、水滴が水蒸気にもどってくもりが消える。'},
+  {id:'su_j10',cat:'su_jikken',q:'ビーカーA（ぬるま湯入り）とB（空）に線香のけむりを入れ、冷やした保冷剤でふたをした。よくくもったのは？',c:['ビーカーA','ビーカーB','どちらも同じ','どちらもくもらない','保冷剤の上','温度による'],a:'ビーカーA',exp:'Aは水蒸気を多くふくんだ空気なので、冷やされるとよくくもる。霧は水蒸気を多くふくんだ空気が冷やされたときにできる。'},
+  {id:'su_j11',cat:'su_jikken',q:'ぬるま湯を入れたビーカーに氷水入りのフラスコをのせたら、ビーカー内に白いくもりができた。空のビーカーでは変化がなかった。この比較からわかる、霧ができる条件は？',c:['空気が水蒸気を多くふくんでいること','空気があたためられること','空気中にちりがないこと','空気が乾燥していること','光が当たること','気圧が高いこと'],a:'空気が水蒸気を多くふくんでいること',exp:'冷やす条件は同じで、ちがいは水蒸気の量。水蒸気を多くふくんだ空気でなければ霧はできない。'},
+  {id:'su_j12',cat:'su_jikken',q:'ぬるま湯を入れたビーカーに、氷水入りのフラスコをのせたときだけくもり、空のフラスコをのせたときはくもらなかった。この比較からわかる霧ができる条件は？',c:['空気が冷やされること','空気があたためられること','空気が乾燥していること','空気中にちりが多いこと','気圧が高いこと','光が当たること'],a:'空気が冷やされること',exp:'水蒸気の量は同じで、ちがいは冷やすかどうか。水蒸気を多くふくんだ空気が冷やされると霧ができる。'},
+  /* ========== 雲と水蒸気：降水・水の循環 ========== */
+  {id:'su_s1',cat:'su_kousui',q:'雲をつくる水滴や氷の粒が大きくなり、雨や雪として落ちてくるものをまとめて何という？',c:['降水','蒸発','凝結','循環','蒸散','流水'],a:'降水',exp:'地上に降ってきた雨や雪などをまとめて降水という。'},
+  {id:'su_s2',cat:'su_kousui',q:'雲の中の水滴や氷の粒が大きくなるのはなぜ？',c:['たがいにぶつかって合体したりして成長するから','上昇気流で温度が上がるから','水蒸気にもどるから','ちりがなくなるから','光を吸収するから','気圧が上がるから'],a:'たがいにぶつかって合体したりして成長するから',exp:'水滴や氷の粒がぶつかって合体するなどして大きくなり、上昇気流で支えられなくなると落ちてくる。'},
+  {id:'su_s3',cat:'su_kousui',q:'氷の粒が成長して落ちてくるとき、とけずに地上に落ちてきたものは？',c:['雪','雨','霧','露','霜','もや'],a:'雪',exp:'氷の粒（雪の結晶）がとけずに落ちれば雪、とちゅうでとければ雨になる。'},
+  {id:'su_s4',cat:'su_kousui',q:'氷の粒が落ちてくるとちゅうでとけたものは？',c:['雨','雪','あられ','霧','雲','霜'],a:'雨',exp:'地表付近の気温が高いと、氷の粒はとちゅうでとけて雨になる。'},
+  {id:'su_s5',cat:'su_kousui',q:'地球上の水が、地表と大気の間を循環するエネルギー源は？',c:['太陽光（太陽のエネルギー）','地球内部の熱','風のエネルギー','月の引力','電気エネルギー','海水の重さ'],a:'太陽光（太陽のエネルギー）',exp:'水は太陽光をエネルギー源として、気体・液体・固体とすがたを変えながら地表と大気の間を循環している。'},
+  {id:'su_s6',cat:'su_kousui',q:'地球上の水の大部分はどこにある？',c:['海','川','湖','地下水','大気中','氷河'],a:'海',exp:'地球上の水の大部分（約97%）は海水である。'},
+  {id:'su_s7',cat:'su_kousui',q:'水の循環で、地表の水が太陽の熱であたためられて水蒸気になることを何という？',c:['蒸発','凝結','降水','融解','凝固','沈殿'],a:'蒸発',exp:'海や地表の水は太陽の熱であたためられて蒸発し、水蒸気として大気中へふくまれていく。植物からは蒸散で出ていく。'},
+  {id:'su_s8',cat:'su_kousui',q:'水の循環について正しいのは？',c:['水は気体・液体・固体とすがたを変えながら循環している','水は液体のままで循環している','水は大気中にとどまり地表にもどらない','海の水は蒸発しない','循環のエネルギー源は地熱である','雲は水蒸気そのものである'],a:'水は気体・液体・固体とすがたを変えながら循環している',exp:'水は水蒸気（気体）・水（液体）・氷（固体）とすがたを変えながら、地表と大気の間を循環している。'},
+  /* ========== 雲と水蒸気：飽和水蒸気量・露点 ========== */
+  {id:'su_h1',cat:'su_houwa',q:'空気1m³中にふくむことができる水蒸気の最大量を何という？',c:['飽和水蒸気量','露点','湿度','降水量','水蒸気圧','雲量'],a:'飽和水蒸気量',exp:'空気1m³中にふくむことのできる水蒸気の最大量を飽和水蒸気量という。'},
+  {id:'su_h2',cat:'su_houwa',q:'飽和水蒸気量の単位は？',c:['g/m³','g/cm³','%','hPa','℃','N/m²'],a:'g/m³',exp:'空気1m³あたりの水蒸気の質量なので g/m³。'},
+  {id:'su_h3',cat:'su_houwa',q:'飽和水蒸気量は、気温が高くなるほどどうなる？',c:['大きくなる','小さくなる','変わらない','0になる','一度大きくなってから小さくなる','湿度と同じになる'],a:'大きくなる',exp:'気温が高いほど、空気がふくむことのできる水蒸気の量（飽和水蒸気量）は大きくなる。'},
+  {id:'su_h4',cat:'su_houwa',q:'冷やされた空気中の水蒸気が水滴に変わりはじめるときの温度を何という？',c:['露点','沸点','融点','凝固点','気温','飽和点'],a:'露点',exp:'空気中の水蒸気が水滴に変わりはじめるときの温度を、その空気の露点という。'},
+  {id:'su_h5',cat:'su_houwa',q:'空気が露点に達したとき、湿度は何%？',c:['100%','0%','50%','気温と同じ%','70%','決まらない'],a:'100%',exp:'露点では空気中の水蒸気量と飽和水蒸気量が等しく、湿度は100%。'},
+  {id:'su_h6',cat:'su_houwa',q:'露点は何によって決まる？',c:['空気中にふくまれる水蒸気の量','気温だけ','気圧だけ','風の強さ','雲量','時刻'],a:'空気中にふくまれる水蒸気の量',exp:'その空気がふくむ水蒸気量と飽和水蒸気量が等しくなる温度が露点。水蒸気量が多いほど露点は高い。'},
+  {id:'su_h7',cat:'su_houwa',q:'空気中の水蒸気量が多いほど、露点はどうなる？',c:['高くなる','低くなる','変わらない','0℃になる','気温より高くなる','湿度で決まる'],a:'高くなる',exp:'水蒸気量が多いほど、少し冷やしただけで飽和水蒸気量と等しくなるので、露点は高い。'},
+  {id:'su_h8',cat:'su_houwa',q:'露点より低い温度まで空気を冷やすと、どれだけの水蒸気が水滴になる？',c:['実際の水蒸気量のうち、その温度での飽和水蒸気量をこえた分','空気中の水蒸気すべて','飽和水蒸気量の半分','露点と気温の差と同じg数','実際の水蒸気量の10%','水滴にはならない'],a:'実際の水蒸気量のうち、その温度での飽和水蒸気量をこえた分',exp:'冷やした温度での飽和水蒸気量をこえた分の水蒸気が、ふくみきれずに水滴になる。'},
+  {id:'su_h9',cat:'su_houwa',q:'露点を調べる実験で、金属製のコップを使うのはなぜ？',c:['熱を伝えやすく、コップの表面の空気の温度が水温とほぼ同じになるから','さびにくいから','光を反射するから','中の水が見えやすいから','重くて倒れにくいから','電気を通すから'],a:'熱を伝えやすく、コップの表面の空気の温度が水温とほぼ同じになるから',exp:'金属は熱を伝えやすいので、水温＝コップの表面にふれている空気の温度と考えられる。'},
+  {id:'su_h10',cat:'su_houwa',q:'金属製のコップに水を入れ、氷水で水温を下げていくと、表面がくもりはじめた。このときの水温は、まわりの空気の何を表す？',c:['露点','気温','湿度','飽和水蒸気量','沸点','気圧'],a:'露点',exp:'コップの表面がくもりはじめた（水滴がつきはじめた）ときの温度が、その空気の露点。'},
+  {id:'su_h11',cat:'su_houwa',q:'コップの表面がくもりはじめたとき、コップに接している空気の水蒸気量と飽和水蒸気量の関係は？',c:['等しい','水蒸気量のほうが少ない','水蒸気量のほうがずっと多い','関係はない','飽和水蒸気量が0になる','水蒸気量が0になる'],a:'等しい',exp:'露点では、空気中の水蒸気量がその温度の飽和水蒸気量と等しくなっている。'},
+  {id:'su_h12',cat:'su_houwa',q:'室温と同じ温度の水と氷水をそれぞれ別の金属のコップに入れた。表面に水滴がつくのはどちら？',c:['氷水を入れたコップ','室温の水を入れたコップ','どちらにもつく','どちらにもつかない','室温によって逆になる','コップの大きさで決まる'],a:'氷水を入れたコップ',exp:'氷水でコップの表面の空気が露点より低く冷やされると、水蒸気が水滴になってつく。'},
+  {id:'su_h13',cat:'su_houwa',q:'露点を調べる実験で、くみ置きの水を使うのはなぜ？',c:['水温を室温と同じにしておくため','水を冷たくするため','水をきれいにするため','においを消すため','水を重くするため','水を蒸発させるため'],a:'水温を室温と同じにしておくため',exp:'くみ置きの水は室温と同じ温度になっているので、そこから少しずつ水温を下げて露点を調べられる。'},
+  {id:'su_h14',cat:'su_houwa',q:'冬の朝、窓ガラスの内側に水滴がつくのはなぜ？',c:['室内の空気が冷たいガラスで露点より低く冷やされたから','外の雨がしみこんだから','ガラスから水が出てきたから','室内の空気が乾燥しているから','暖房で水滴が運ばれたから','ガラスがあたたかいから'],a:'室内の空気が冷たいガラスで露点より低く冷やされたから',exp:'ガラスの近くの空気が冷やされて露点に達し、水蒸気が水滴に変わってガラスにつく。'},
+  /* ========== 雲と水蒸気：湿度 ========== */
+  {id:'su_d1',cat:'su_shitsudo',q:'空気1m³中にふくまれる水蒸気量が、その温度での飽和水蒸気量の何%にあたるかを表した値を何という？',c:['湿度','露点','雲量','降水確率','気圧','水蒸気率'],a:'湿度',exp:'湿度〔%〕＝空気1m³中の水蒸気量÷その温度での飽和水蒸気量×100。'},
+  {id:'su_d2',cat:'su_shitsudo',q:'湿度を求める式として正しいのは？',c:['空気1m³中の水蒸気量÷その温度での飽和水蒸気量×100','その温度での飽和水蒸気量÷空気1m³中の水蒸気量×100','空気1m³中の水蒸気量×飽和水蒸気量÷100','気温÷露点×100','露点÷気温×100','飽和水蒸気量－水蒸気量'],a:'空気1m³中の水蒸気量÷その温度での飽和水蒸気量×100',exp:'分子が「実際にふくまれている水蒸気量」、分母が「その温度での飽和水蒸気量」。'},
+  {id:'su_d3',cat:'su_shitsudo',q:'空気中の水蒸気量がその温度での飽和水蒸気量と等しいとき、湿度は何%？',c:['100%','0%','50%','10%','気温と同じ%','決まらない'],a:'100%',exp:'水蒸気量＝飽和水蒸気量なら、湿度＝100%。'},
+  {id:'su_d4',cat:'su_shitsudo',q:'空気中の水蒸気量が変わらないとき、気温が下がると湿度はどうなる？',c:['高くなる','低くなる','変わらない','0%になる','気温と同じだけ下がる','決まらない'],a:'高くなる',exp:'気温が下がると飽和水蒸気量（式の分母）が小さくなるので、湿度は高くなる。'},
+  {id:'su_d5',cat:'su_shitsudo',q:'同じ気温の空気AとBで、Aのほうが水蒸気を多くふくんでいる。湿度が高いのは？',c:['A','B','どちらも同じ','気圧で決まる','風で決まる','比べられない'],a:'A',exp:'同じ気温なら飽和水蒸気量（分母）は同じなので、水蒸気量が多いほど湿度は高い。'},
+  {id:'su_d6',cat:'su_shitsudo',q:'晴れた日の昼、空気中の水蒸気量はほとんど変わらないのに湿度が下がった。その理由は？',c:['気温が上がって飽和水蒸気量が大きくなったから','気温が下がって飽和水蒸気量が小さくなったから','水蒸気が水滴になったから','気圧が上がったから','風が弱まったから','雲がふえたから'],a:'気温が上がって飽和水蒸気量が大きくなったから',exp:'水蒸気量（分子）が同じでも、気温が上がると飽和水蒸気量（分母）が大きくなるので湿度は下がる。'},
+  {id:'su_d7',cat:'su_shitsudo',q:'気温を下げていくと湿度が上がりつづけ、ある温度で100%になった。この温度を何という？',c:['露点','沸点','気温','飽和温度','融点','最低気温'],a:'露点',exp:'湿度が100%になる温度＝水蒸気が水滴に変わりはじめる温度＝露点。'},
+  {id:'su_d8',cat:'su_shitsudo',q:'気温20℃・湿度60%の空気と、気温10℃・湿度60%の空気では、1m³中の水蒸気量が多いのは？',c:['気温20℃の空気','気温10℃の空気','どちらも同じ','湿度が同じなので比べられない','気圧で決まる','10℃のほうが2倍多い'],a:'気温20℃の空気',exp:'湿度が同じでも、気温が高いほど飽和水蒸気量が大きいので、ふくまれる水蒸気量も多い。'}
+]);
+
+/* ── 問題バンク つづき（気圧と前線）── */
+var FIG_LOW = lowFrontSVG();
+BANK.push.apply(BANK, [
+  /* ========== 気圧と前線：高気圧・低気圧と風 ========== */
+  {id:'ze_k1',cat:'ze_kiatsu',q:'等圧線が閉じていて、中心の気圧がまわりより高いところを何という？',c:['高気圧','低気圧','前線','気団','台風','移動性高気圧'],a:'高気圧',exp:'まわりより気圧が高いところを高気圧、低いところを低気圧という。'},
+  {id:'ze_k2',cat:'ze_kiatsu',q:'等圧線が閉じていて、中心の気圧がまわりより低いところを何という？',c:['低気圧','高気圧','気団','停滞前線','季節風','偏西風'],a:'低気圧',exp:'等圧線が丸く閉じ、まわりより気圧が低いところが低気圧。'},
+  {id:'ze_k3',cat:'ze_kiatsu',q:'風は気圧の（　）ほうから（　）ほうへふく。正しい組み合わせは？',c:['高い・低い','低い・高い','高い・高い','低い・低い','東の・西の','北の・南の'],a:'高い・低い',exp:'風は気圧の高い（大きい）ほうから低い（小さい）ほうへ向かってふく。'},
+  {id:'ze_k4',cat:'ze_kiatsu',q:'北半球の高気圧で、地表付近の風のふき方として正しいのは？',c:['中心から時計回りにふき出す','中心へ反時計回りにふきこむ','中心から反時計回りにふき出す','中心へ時計回りにふきこむ','中心に向かってまっすぐふきこむ','風はふかない'],a:'中心から時計回りにふき出す',exp:'北半球の高気圧では、風が中心から時計回りにふき出す。'},
+  {id:'ze_k5',cat:'ze_kiatsu',q:'北半球の低気圧で、地表付近の風のふき方として正しいのは？',c:['中心へ反時計回りにふきこむ','中心から時計回りにふき出す','中心へ時計回りにふきこむ','中心から反時計回りにふき出す','中心からまっすぐふき出す','風はふかない'],a:'中心へ反時計回りにふきこむ',exp:'北半球の低気圧では、風がまわりから中心へ反時計回りにふきこむ。'},
+  {id:'ze_k6',cat:'ze_kiatsu',q:'高気圧の中心付近にできる気流は？',c:['下降気流','上昇気流','水平な気流だけ','気流はできない','偏西風','季節風'],a:'下降気流',exp:'高気圧の中心付近では下降気流ができ、雲が発生しにくいので晴れることが多い。'},
+  {id:'ze_k7',cat:'ze_kiatsu',q:'低気圧の中心付近にできる気流は？',c:['上昇気流','下降気流','水平な気流だけ','気流はできない','偏西風','季節風'],a:'上昇気流',exp:'低気圧ではまわりからふきこんだ空気が中心付近で上昇し、雲が発生しやすい。'},
+  {id:'ze_k8',cat:'ze_kiatsu',q:'中心付近に下降気流があるため雲ができにくく、晴れることが多いのは？',c:['高気圧','低気圧','寒冷前線','温暖前線','停滞前線','台風'],a:'高気圧',exp:'高気圧の中心付近は下降気流で雲ができにくく、晴れることが多い。'},
+  {id:'ze_k9',cat:'ze_kiatsu',q:'低気圧の付近でくもりや雨になりやすいのはなぜ？',c:['中心付近に上昇気流があり、雲が発生しやすいから','中心付近に下降気流があるから','気圧が高いから','風がふき出しているから','気温が上がるから','空気が乾燥しているから'],a:'中心付近に上昇気流があり、雲が発生しやすいから',exp:'低気圧の中心付近では上昇気流が生じ、空気が上昇して雲ができやすい。'},
+  {id:'ze_k10',cat:'ze_kiatsu',q:'等圧線の間隔と風の強さの関係として正しいのは？',c:['間隔がせまいほど風が強い','間隔が広いほど風が強い','間隔と風の強さは関係ない','間隔がせまいほど風が弱い','等圧線の数が多いほど風が弱い','太い等圧線の上だけ風が強い'],a:'間隔がせまいほど風が強い',exp:'等圧線の間隔がせまいほど、気圧の差が大きく、風が強くふく。'},
+  {id:'ze_k11',cat:'ze_kiatsu',q:'高気圧の中心から地表付近にふき出した空気は、どこへ向かう？',c:['まわりの気圧の低いほう（低気圧のほう）','高気圧の中心へもどる','真上へ上昇する','地面の中へ','必ず東へ','必ず北へ'],a:'まわりの気圧の低いほう（低気圧のほう）',exp:'風は気圧の高いところから低いところへふく。高気圧からふき出した風は低気圧のほうへ向かう。'},
+  /* ========== 気圧と前線：等圧線・天気図 ========== */
+  {id:'ze_t1',cat:'ze_touatsu',q:'気圧が等しい地点を結んだ曲線を何という？',c:['等圧線','等高線','前線','等温線','緯線','経線'],a:'等圧線',exp:'気圧が等しい地点を結んだ曲線を等圧線という。'},
+  {id:'ze_t2',cat:'ze_touatsu',q:'気圧の分布のようす（高気圧・低気圧などの位置）を何という？',c:['気圧配置','天気図記号','気象要素','気団','風力階級','前線面'],a:'気圧配置',exp:'高気圧・低気圧の位置など、気圧の分布のようすを気圧配置という。'},
+  {id:'ze_t3',cat:'ze_touatsu',q:'気圧配置を示した地図に、天気図記号で天気や風のようすを表したものを何という？',c:['天気図','地形図','雲画像','白地図','等高線図','気象衛星'],a:'天気図',exp:'等圧線などで気圧配置を示し、各地の天気・風向・風力を天気図記号で表したものが天気図。'},
+  {id:'ze_t4',cat:'ze_touatsu',q:'天気図の等圧線は、1000hPaを基準に何hPaごとに細い線で引く？',c:['4hPa','2hPa','5hPa','10hPa','20hPa','1hPa'],a:'4hPa',exp:'等圧線は1000hPaを基準に4hPaごとに細い実線で引く。'},
+  {id:'ze_t5',cat:'ze_touatsu',q:'天気図の等圧線は、何hPaごとに太い線で引く？',c:['20hPa','4hPa','10hPa','8hPa','40hPa','100hPa'],a:'20hPa',exp:'4hPaごとの細線に加えて、20hPaごとに太線にする（1000・1020hPaなど）。'},
+  {id:'ze_t6',cat:'ze_touatsu',q:'天気図で、太い等圧線のとなりの細い等圧線の気圧は？（太線が1020hPaで、外側に向かって気圧が下がっている）',c:['1016hPa','1018hPa','1010hPa','1024hPa','1000hPa','1019hPa'],a:'1016hPa',exp:'等圧線は4hPaごとなので、1020hPaのとなりは1016hPa（または1024hPa）。気圧が下がる側なので1016hPa。'},
+  {id:'ze_t7',cat:'ze_touatsu',q:'天気図で、低気圧や高気圧の中心付近に書かれている数字は何を表す？',c:['中心の気圧〔hPa〕','中心の気温〔℃〕','中心の湿度〔%〕','中心の風速〔m/s〕','中心の雲量','中心の標高〔m〕'],a:'中心の気圧〔hPa〕',exp:'「低 996」のように、中心の気圧をhPaで書いてある。'},
+  /* ========== 気圧と前線：気団・前線 ========== */
+  {id:'ze_d1',cat:'ze_kidan',q:'気温や湿度などの性質がほぼ一様で、大規模な大気のかたまりを何という？',c:['気団','前線','高気圧','低気圧','雲','偏西風'],a:'気団',exp:'気温や湿度などの性質がほぼ一様な大規模な大気のかたまりを気団という。'},
+  {id:'ze_d2',cat:'ze_kidan',q:'寒気と暖気が接する境界面を何という？',c:['前線面','前線','等圧線','気団','地表面','上昇気流'],a:'前線面',exp:'性質のちがう気団（寒気と暖気）が接する境界面を前線面という。'},
+  {id:'ze_d3',cat:'ze_kidan',q:'前線面が地面と交わってできる線を何という？',c:['前線','等圧線','前線面','境界線','赤道','気圧線'],a:'前線',exp:'前線面が地表面と交わってできる線を前線という。'},
+  {id:'ze_d4',cat:'ze_kidan',q:'寒気と暖気で、密度が大きいのはどちら？',c:['寒気','暖気','どちらも同じ','湿度で決まる','気圧で決まる','季節で変わる'],a:'寒気',exp:'冷たい空気（寒気）のほうが密度が大きく重いので、暖気の下にもぐりこむ。'},
+  {id:'ze_d5',cat:'ze_kidan',q:'寒気が暖気の下にもぐりこみ、暖気を急激に押し上げるように進む前線は？',c:['寒冷前線','温暖前線','停滞前線','閉塞前線','梅雨前線','秋雨前線'],a:'寒冷前線',exp:'寒気が暖気の下にもぐりこみ、暖気を押し上げながら進む前線が寒冷前線。'},
+  {id:'ze_d6',cat:'ze_kidan',q:'暖気が寒気の上にはい上がり、寒気を押しながら進む前線は？',c:['温暖前線','寒冷前線','停滞前線','閉塞前線','梅雨前線','秋雨前線'],a:'温暖前線',exp:'暖気が寒気の上にゆるやかにはい上がりながら進む前線が温暖前線。'},
+  {id:'ze_d7',cat:'ze_kidan',q:'ほぼ同じ勢力の寒気と暖気がぶつかってできる、ほとんど動かない前線は？',c:['停滞前線','閉塞前線','寒冷前線','温暖前線','前線面','気団'],a:'停滞前線',exp:'寒気と暖気の勢力がほぼ同じで、ほとんど同じ場所に停滞する前線が停滞前線。'},
+  {id:'ze_d8',cat:'ze_kidan',q:'寒冷前線が温暖前線に追いついてできる前線は？',c:['閉塞前線','停滞前線','梅雨前線','秋雨前線','寒冷前線','温暖前線'],a:'閉塞前線',exp:'寒冷前線は温暖前線より速く進むので、やがて追いついて閉塞前線ができる。'},
+  {id:'ze_d9',cat:'ze_kidan',q:'この記号で表される前線は？',tbl:frontSymbolSVG(0),c:['寒冷前線','温暖前線','停滞前線','閉塞前線','梅雨前線','等圧線'],a:'寒冷前線',exp:'三角形（▲）が並んだ記号は寒冷前線。三角形の向きが前線の進む向き。'},
+  {id:'ze_d10',cat:'ze_kidan',q:'この記号で表される前線は？',tbl:frontSymbolSVG(1),c:['温暖前線','寒冷前線','停滞前線','閉塞前線','秋雨前線','等圧線'],a:'温暖前線',exp:'半円が並んだ記号は温暖前線。'},
+  {id:'ze_d11',cat:'ze_kidan',q:'この記号で表される前線は？',tbl:frontSymbolSVG(2),c:['停滞前線','閉塞前線','寒冷前線','温暖前線','偏西風','等圧線'],a:'停滞前線',exp:'三角形と半円が線の両側に交互についた記号は停滞前線（梅雨前線・秋雨前線も停滞前線）。'},
+  {id:'ze_d12',cat:'ze_kidan',q:'この記号で表される前線は？',tbl:frontSymbolSVG(3),c:['閉塞前線','停滞前線','寒冷前線','温暖前線','梅雨前線','等圧線'],a:'閉塞前線',exp:'三角形と半円が線の同じ側に交互についた記号は閉塞前線。両側に分かれていれば停滞前線。'},
+  {id:'ze_d13',cat:'ze_kidan',q:'中緯度で発生し、前線をともなうことが多い低気圧を何という？',c:['温帯低気圧','熱帯低気圧','台風','移動性高気圧','シベリア高気圧','太平洋高気圧'],a:'温帯低気圧',exp:'中緯度で発生する低気圧を温帯低気圧という。寒冷前線と温暖前線をともなうことが多い。'},
+  {id:'ze_d14',cat:'ze_kidan',q:'日本付近の温帯低気圧で、中心の東側にできることが多い前線は？',c:['温暖前線','寒冷前線','停滞前線','閉塞前線','梅雨前線','前線はできない'],a:'温暖前線',exp:'日本付近の温帯低気圧では、東側に温暖前線、西側に寒冷前線ができることが多い。'},
+  {id:'ze_d15',cat:'ze_kidan',q:'日本付近の温帯低気圧で、中心の西側にできることが多い前線は？',c:['寒冷前線','温暖前線','停滞前線','閉塞前線','秋雨前線','前線はできない'],a:'寒冷前線',exp:'温帯低気圧の中心から南西にのびるのが寒冷前線、南東にのびるのが温暖前線。'},
+  {id:'ze_d16',cat:'ze_kidan',q:'停滞前線ができるのは、寒気と暖気の勢力がどのようなときか。',c:['ほぼ同じとき','寒気が強いとき','暖気が強いとき','寒気がないとき','暖気がないとき','両方ともないとき'],a:'ほぼ同じとき',exp:'寒気と暖気の勢力がほぼつり合うと、前線はほとんど動かず停滞前線になる。'},
+  {id:'ze_d17',cat:'ze_kidan',q:'閉塞前線ができると、地表付近はどうなることが多い？',c:['寒気におおわれ、低気圧はやがて衰える','暖気におおわれ、低気圧は発達する','雨がやまなくなる','気温が急に上がる','高気圧に変わる','台風になる'],a:'寒気におおわれ、低気圧はやがて衰える',exp:'寒冷前線が温暖前線に追いつくと、暖気は上空へ押し上げられて地表は寒気におおわれ、低気圧は衰えていく。'},
+  /* ========== 気圧と前線：前線の通過と天気（図つき）========== */
+  {id:'ze_f1',cat:'ze_tsuuka',q:'図は温帯低気圧と前線のようすである。A〜Cのうち、暖気におおわれている地点はどこか。',tbl:FIG_LOW,c:['B','A','C','AとC','すべて','どこもおおわれていない'],a:'B',exp:'寒冷前線と温暖前線にはさまれた南側（B）が暖気におおわれている。AとCは寒気側。'},
+  {id:'ze_f2',cat:'ze_tsuuka',q:'図の地点Cは、このあと温暖前線が近づいてくる。Cの天気は今どうなっていると考えられるか。',tbl:FIG_LOW,c:['広い範囲で雲が広がり、おだやかな雨が長時間降りやすい','積乱雲が発達し、強いにわか雨が降る','雲ひとつない快晴が続く','気温が急に下がり北風がふく','雪がやんで晴れる','前線の影響はまったくない'],a:'広い範囲で雲が広がり、おだやかな雨が長時間降りやすい',exp:'温暖前線の前方（東側）には乱層雲などの雲が広い範囲にでき、おだやかな雨が長時間降りやすい。'},
+  {id:'ze_f3',cat:'ze_tsuuka',q:'図の地点Aは寒冷前線が通過したあとである。Aの風向として考えられるのは？',tbl:FIG_LOW,c:['北西','南西','南東','東','南','北東'],a:'北西',exp:'寒冷前線の通過後は風向が北よりに変わる。Aは北西の風になっている。'},
+  {id:'ze_f4',cat:'ze_tsuuka',q:'図の地点Bの風向として考えられるのは？',tbl:FIG_LOW,c:['南西','北西','北東','北','東','西'],a:'南西',exp:'2つの前線にはさまれた暖気の中のBでは、南よりの風（南西など）がふく。'},
+  {id:'ze_f5',cat:'ze_tsuuka',q:'図の低気圧はこのあと、どの向きへ移動すると考えられるか。',tbl:FIG_LOW,c:['東（北東）へ','西へ','南へ','北西へ','その場にとどまる','南西へ'],a:'東（北東）へ',exp:'日本付近の温帯低気圧は偏西風の影響で西から東へ移動する。前線の記号も東側を向いている。'},
+  {id:'ze_f6',cat:'ze_tsuuka',q:'図の地点Bに、このあと最初に通過するのはどちらの前線か。',tbl:FIG_LOW,c:['寒冷前線','温暖前線','停滞前線','閉塞前線','どちらも通過しない','両方同時'],a:'寒冷前線',exp:'低気圧と前線は東へ進むので、Bには西側から寒冷前線が近づいてくる。'},
+  {id:'ze_f7',cat:'ze_tsuuka',q:'寒冷前線付近にできる雲は？',c:['積乱雲','乱層雲','巻雲','高層雲','巻層雲','層雲'],a:'積乱雲',exp:'寒冷前線では暖気が急激に押し上げられ、強い上昇気流で積乱雲が発達する。'},
+  {id:'ze_f8',cat:'ze_tsuuka',q:'温暖前線付近の広い範囲にできる雲は？',c:['乱層雲','積乱雲','積雲','高積雲','層積雲','巻積雲'],a:'乱層雲',exp:'温暖前線では暖気がゆるやかにはい上がるので、乱層雲などの雲が広い範囲にできる。'},
+  {id:'ze_f9',cat:'ze_tsuuka',q:'寒冷前線付近の雨の降り方として正しいのは？',c:['せまい範囲に強いにわか雨が短時間降る','広い範囲におだやかな雨が長時間降る','雨は降らない','1週間ずっと弱い雨が降る','雪しか降らない','霧雨が長時間降る'],a:'せまい範囲に強いにわか雨が短時間降る',exp:'積乱雲によって、せまい範囲に強い雨が短時間降る。雷や突風をともなうこともある。'},
+  {id:'ze_f10',cat:'ze_tsuuka',q:'温暖前線付近の雨の降り方として正しいのは？',c:['広い範囲におだやかな雨が長時間降る','せまい範囲に強いにわか雨が短時間降る','雷をともなう大雨が降る','雨は降らない','ひょうが降る','一瞬だけ雨が降る'],a:'広い範囲におだやかな雨が長時間降る',exp:'乱層雲などによって、広い範囲におだやかな雨が長時間降る。'},
+  {id:'ze_f11',cat:'ze_tsuuka',q:'寒冷前線が通過したあとの気温と風向の変化は？',c:['気温が急に下がり、風向は北よりに変わる','気温が上がり、風向は南よりに変わる','気温が急に下がり、風向は南よりに変わる','気温が上がり、風向は北よりに変わる','気温も風向も変わらない','気温は変わらず、風が止まる'],a:'気温が急に下がり、風向は北よりに変わる',exp:'寒冷前線の通過後は寒気におおわれるので、気温が急に下がり、北よりの風に変わる。'},
+  {id:'ze_f12',cat:'ze_tsuuka',q:'温暖前線が通過したあとの気温と風向の変化は？',c:['気温が上がり、風向は南よりに変わる','気温が急に下がり、風向は北よりに変わる','気温が上がり、風向は北よりに変わる','気温が下がり、風向は南よりに変わる','気温も風向も変わらない','気温が下がり、風が止まる'],a:'気温が上がり、風向は南よりに変わる',exp:'温暖前線の通過後は暖気におおわれるので、気温が上がり、南よりの風に変わる。'},
+  {id:'ze_f13',cat:'ze_tsuuka',q:'寒冷前線付近で、雷や突風をともなうことがあるのはなぜ？',c:['強い上昇気流で積乱雲が発達するから','下降気流で雲が消えるから','暖気がゆるやかにはい上がるから','高気圧におおわれるから','気温が上がるから','風が弱まるから'],a:'強い上昇気流で積乱雲が発達するから',exp:'寒気が暖気を急激に押し上げるため強い上昇気流が生じ、積乱雲が発達して雷や突風をもたらす。'},
+  {id:'ze_f14',cat:'ze_tsuuka',q:'温暖前線が近づくとき、雲はふつうどの順に見えてくる？',c:['巻雲→巻層雲→高層雲→乱層雲','乱層雲→高層雲→巻層雲→巻雲','積乱雲→積雲→巻雲','積雲→積乱雲→乱層雲','雲は現れない','高層雲→巻雲→積乱雲'],a:'巻雲→巻層雲→高層雲→乱層雲',exp:'温暖前線の前線面はゆるやかなので、まず高いところの巻雲が見え、しだいに低く厚い雲（乱層雲）に変わって雨になる。'},
+  {id:'ze_f15',cat:'ze_tsuuka',q:'寒冷前線と温暖前線で、雨の降る範囲が広いのはどちら？',c:['温暖前線','寒冷前線','どちらも同じ','どちらも雨は降らない','季節によって必ず逆','前線の長さで決まる'],a:'温暖前線',exp:'温暖前線は前線面の傾きがゆるやかで雲が広い範囲にできるので、雨の範囲も広い。'},
+  {id:'ze_f16',cat:'ze_tsuuka',q:'寒冷前線の前線面の傾きについて正しいのは？',c:['温暖前線より急である','温暖前線よりゆるやかである','温暖前線と同じ','水平である','地面より下にある','傾きはない'],a:'温暖前線より急である',exp:'寒気が暖気の下にもぐりこんで急激に押し上げるので、寒冷前線の前線面の傾きは急。'},
+  /* ========== 気圧と前線：天気の移り変わり ========== */
+  {id:'ze_u1',cat:'ze_utsuri',q:'日本付近で温帯低気圧や移動性高気圧が移動する向きは？',c:['西から東','東から西','北から南','南から北','その場にとどまる','決まっていない'],a:'西から東',exp:'上空の偏西風の影響で、日本付近の低気圧や移動性高気圧は西から東へ移動する。'},
+  {id:'ze_u2',cat:'ze_utsuri',q:'日本付近の低気圧や高気圧は、1日におよそどれくらい移動する？',c:['約1000km','約10km','約100km','約10000km','約50km','約5000km'],a:'約1000km',exp:'日本付近の低気圧や移動性高気圧は、1日（24時間）でおよそ1000km程度移動する。'},
+  {id:'ze_u3',cat:'ze_utsuri',q:'日本付近の天気が西から東へ変わっていくことが多いのはなぜ？',c:['低気圧や高気圧が偏西風によって西から東へ移動するから','季節風が東からふくから','太陽が東から西へ動くから','海が東にあるから','地球が西へ自転しているから','台風が西へ進むから'],a:'低気圧や高気圧が偏西風によって西から東へ移動するから',exp:'天気をもたらす低気圧や高気圧が偏西風で西から東へ流されるので、天気も西から東へ移り変わる。'},
+  {id:'ze_u4',cat:'ze_utsuri',q:'ある地点で気圧がだんだん下がってきた。このあとの天気として考えやすいのは？',c:['くもりや雨になる','晴れてくる','雪がやむ','気温が急に上がる','必ず快晴になる','変わらない'],a:'くもりや雨になる',exp:'気圧が下がるのは低気圧が近づいているときで、天気はくもりや雨に変わりやすい。'},
+  {id:'ze_u5',cat:'ze_utsuri',q:'西の大陸上にある高気圧が近づいてくると、天気はどうなると考えられる？',c:['晴れる','雨になる','雷雨になる','雪になる','台風になる','くもりが続く'],a:'晴れる',exp:'高気圧が近づくと下降気流で雲ができにくくなり、晴れると考えられる。'},
+  {id:'ze_u6',cat:'ze_utsuri',q:'連続した3日間の天気図で、低気圧の位置の変化を調べるとどうなっていることが多いか。',c:['西から東へ移動している','東から西へ移動している','南から北へ移動している','毎日同じ位置にある','北から南へ移動している','ばらばらに動いている'],a:'西から東へ移動している',exp:'日付順に並べると、低気圧や高気圧が西から東へ移動していることがわかる。これを使って翌日の天気を予想できる。'},
+  {id:'ze_u7',cat:'ze_utsuri',q:'天気図・雲画像・各地の気象データをもとに、明日の天気を予想するときの考え方として正しいのは？',c:['低気圧や高気圧の移動の規則性から、翌日の位置を予想する','前の日と同じ天気になると考える','東の地域の天気をそのまま使う','気温だけで予想する','月の形で予想する','季節に関係なく晴れると考える'],a:'低気圧や高気圧の移動の規則性から、翌日の位置を予想する',exp:'数日分の天気図を日付順に並べて移動の規則性を読みとり、翌日の低気圧・高気圧の位置から天気を予想する。'}
+]);
+
+/* ── 問題バンク つづき（日本の四季）── */
+BANK.push.apply(BANK, [
+  /* ========== 日本の四季：地球規模の大気の動き ========== */
+  {id:'sh_j1',cat:'sh_junkan',q:'中緯度帯の上空を1年中ふいている、西よりの風を何という？',c:['偏西風','季節風','貿易風','海風','陸風','やませ'],a:'偏西風',exp:'中緯度帯の上空には、1年中西よりの風（偏西風）がふいている。'},
+  {id:'sh_j2',cat:'sh_junkan',q:'偏西風の影響で、日本付近の低気圧や移動性高気圧はどの向きに移動する？',c:['西から東','東から西','南から北','北から南','その場で回転','決まっていない'],a:'西から東',exp:'偏西風に流されて、日本付近の低気圧や移動性高気圧は西から東へ移動する。'},
+  {id:'sh_j3',cat:'sh_junkan',q:'低緯度地方の地表付近でいつもふいている風の向きは？',c:['東より','西より','北より','南より','決まっていない','真上向き'],a:'東より',exp:'低緯度の地表付近では東よりの風がふいている（中緯度の上空は西よりの偏西風）。'},
+  {id:'sh_j4',cat:'sh_junkan',q:'地球規模の大気の動きが起こっているのは、大気の層のどのくらいの範囲か。',c:['底の約10km','約100km','約1000km','約6400km','約1km','約50m'],a:'底の約10km',exp:'地球の半径約6400kmに対して、天気の変化を起こす大気の動きは大気の層の底のわずか約10kmの中で起こる。'},
+  {id:'sh_j5',cat:'sh_junkan',q:'地球規模で大気が動くおもな原因は？',c:['緯度によって太陽から受けとる熱の量がちがうから','月の引力','地球内部の熱','海流の重さ','火山の噴火','地震'],a:'緯度によって太陽から受けとる熱の量がちがうから',exp:'赤道付近はあたためられやすく、極付近は冷えやすい。この温度差を小さくするように大気が地球規模で動く。'},
+  {id:'sh_j6',cat:'sh_junkan',q:'赤道付近の地表であたためられた空気はどうなる？',c:['上昇する','下降する','動かない','北極へ地表をまっすぐ進む','地面にしみこむ','すぐに冷えて雪になる'],a:'上昇する',exp:'赤道付近では、あたためられた空気が上昇（上昇気流）する。北極付近では下降気流がある。'},
+  {id:'sh_j7',cat:'sh_junkan',q:'北極付近の大気の動きとして正しいのは？',c:['下降気流がある','上昇気流がある','偏西風の中心である','大気は動かない','季節風の発生場所である','台風が発生する'],a:'下降気流がある',exp:'冷やされた北極付近の空気は重くなって下降する（下降気流）。'},
+  /* ========== 日本の四季：海風・陸風・季節風 ========== */
+  {id:'sh_k1',cat:'sh_kaze',q:'陸と海で、あたたまりやすく冷えやすいのはどちら？',c:['陸','海','どちらも同じ','季節で入れかわる','天気で入れかわる','深さで決まる'],a:'陸',exp:'陸（岩石や土）は海（水）よりあたたまりやすく冷えやすい。海はあたたまりにくく冷えにくい。'},
+  {id:'sh_k2',cat:'sh_kaze',q:'海岸付近で、晴れた日の昼に海から陸に向かってふく風を何という？',c:['海風','陸風','季節風','偏西風','やませ','からっ風'],a:'海風',exp:'昼は陸があたたまって陸上に上昇気流ができ、気圧が低くなるので、海から陸へ海風がふく。'},
+  {id:'sh_k3',cat:'sh_kaze',q:'海岸付近で、晴れた日の夜に陸から海に向かってふく風を何という？',c:['陸風','海風','季節風','偏西風','南風','貿易風'],a:'陸風',exp:'夜は陸が冷えて陸上の気圧が高くなるので、陸から海へ陸風がふく。'},
+  {id:'sh_k4',cat:'sh_kaze',q:'晴れた日の昼、陸上の気温と気圧はどうなっている？',c:['気温が海上より高く、気圧が低い','気温が海上より低く、気圧が高い','気温も気圧も海上より高い','気温も気圧も海上より低い','気温も気圧も海上と同じ','気温だけ高く、気圧は同じ'],a:'気温が海上より高く、気圧が低い',exp:'昼の陸上は気温が高く、上昇気流が生じて気圧が低くなる。'},
+  {id:'sh_k5',cat:'sh_kaze',q:'陸上の気圧が海上の気圧より高くなってふく風は、海風と陸風のどちらか。',c:['陸風','海風','どちらでもない','季節風だけ','偏西風','両方'],a:'陸風',exp:'風は気圧の高いほうから低いほうへふく。陸上の気圧が高いと陸から海へ陸風がふく。'},
+  {id:'sh_k6',cat:'sh_kaze',q:'朝や夕方に、海風と陸風が入れかわるとき風が止まることを何という？',c:['なぎ','つむじ風','突風','やませ','フェーン','木枯らし'],a:'なぎ',exp:'海風と陸風が入れかわる朝夕に、風がほとんどふかなくなることをなぎという。'},
+  {id:'sh_k7',cat:'sh_kaze',q:'大陸と海洋のあたたまりやすさのちがいによって生じる、季節に特徴的な風を何という？',c:['季節風','偏西風','海風','陸風','貿易風','台風'],a:'季節風',exp:'大陸と海洋のあたたまり方・冷え方のちがいで生じる、季節ごとに特徴的な風を季節風という。'},
+  {id:'sh_k8',cat:'sh_kaze',q:'日本付近でふく冬の季節風の風向は？',c:['北西','南東','北東','南西','東','西'],a:'北西',exp:'冬は大陸が冷えて高気圧ができ、大陸から海洋へ北西の季節風がふく。'},
+  {id:'sh_k9',cat:'sh_kaze',q:'日本付近でふく夏の季節風の風向は？',c:['南東','北西','北東','南西','北','西'],a:'南東',exp:'夏は大陸があたたまって気圧が低くなり、太平洋から大陸へ南東の季節風がふく。'},
+  {id:'sh_k10',cat:'sh_kaze',q:'冬、大陸に高気圧ができるのはなぜ？',c:['大陸が海洋より冷えて、大陸上の空気が冷やされるから','大陸が海洋よりあたたまるから','大陸に雨が多いから','偏西風がふかないから','太陽に近いから','海洋が冷えるから'],a:'大陸が海洋より冷えて、大陸上の空気が冷やされるから',exp:'陸は冷えやすいので冬の大陸は冷え、空気が冷やされて重くなり高気圧ができる。そこから海洋へ風がふき出す。'},
+  {id:'sh_k11',cat:'sh_kaze',q:'海風が昼にふくのと同じしくみでふくのは、夏と冬どちらの季節風か。',c:['夏の季節風','冬の季節風','どちらでもない','両方','春の風','秋の風'],a:'夏の季節風',exp:'夏は大陸（陸）があたたまって気圧が低くなり、海洋から大陸へ風がふく。昼の海風と同じしくみ。冬の季節風は夜の陸風と同じしくみ。'},
+  {id:'sh_k12',cat:'sh_kaze',q:'砂と水を入れた容器に光を当てて線香のけむりの動きを調べた。けむりはどう動く？',c:['砂の上で上昇し、水の上で下降する','水の上で上昇し、砂の上で下降する','どちらの上でも上昇する','どちらの上でも下降する','動かない','水の中にしみこむ'],a:'砂の上で上昇し、水の上で下降する',exp:'砂（陸）のほうがあたたまりやすく、砂の上の空気があたたまって上昇する。水（海）の上では下降し、水から砂へ向かう流れ（海風）ができる。'},
+  {id:'sh_k13',cat:'sh_kaze',q:'砂と水に光を当てる実験で、砂の上の空気について正しいのは？',c:['密度が小さくなり、気圧が低くなる','密度が大きくなり、気圧が高くなる','密度は変わらず、気圧が高くなる','温度が下がり、気圧が低くなる','温度が下がり、密度が小さくなる','変化しない'],a:'密度が小さくなり、気圧が低くなる',exp:'あたためられた空気は膨張して密度が小さくなり、上昇するので、砂の上の気圧は低くなる。'},
+  /* ========== 日本の四季：日本周辺の気団 ========== */
+  {id:'sh_d1',cat:'sh_kidan',q:'冬に発達する、冷たく乾燥した気団は？',c:['シベリア気団','小笠原気団','オホーツク海気団','揚子江気団','赤道気団','太平洋気団'],a:'シベリア気団',exp:'冬はユーラシア大陸のシベリア気団が発達する。大陸の北の気団なので冷たく乾燥している。'},
+  {id:'sh_d2',cat:'sh_kidan',q:'夏に発達する、あたたかく湿った気団は？',c:['小笠原気団','シベリア気団','オホーツク海気団','北極気団','大陸気団','シベリア高気圧'],a:'小笠原気団',exp:'夏は太平洋上の小笠原気団が発達する。南の海洋の気団なのであたたかく湿っている。'},
+  {id:'sh_d3',cat:'sh_kidan',q:'つゆ（梅雨）のころに発達する、冷たく湿った気団は？',c:['オホーツク海気団','小笠原気団','シベリア気団','赤道気団','揚子江気団','北極気団'],a:'オホーツク海気団',exp:'初夏にオホーツク海上に発達するオホーツク海気団は、北の海洋の気団なので冷たく湿っている。'},
+  {id:'sh_d4',cat:'sh_kidan',q:'シベリア気団の性質は？',c:['冷たく乾燥している','冷たく湿っている','あたたかく湿っている','あたたかく乾燥している','気温も湿度も平均的','季節で変わる'],a:'冷たく乾燥している',exp:'北にあるので冷たく、大陸上にあるので乾燥している。'},
+  {id:'sh_d5',cat:'sh_kidan',q:'オホーツク海気団の性質は？',c:['冷たく湿っている','冷たく乾燥している','あたたかく湿っている','あたたかく乾燥している','高温で乾燥','とても暑く湿っている'],a:'冷たく湿っている',exp:'北にあるので冷たく、海洋上にあるので湿っている。'},
+  {id:'sh_d6',cat:'sh_kidan',q:'小笠原気団の性質は？',c:['あたたかく湿っている','あたたかく乾燥している','冷たく湿っている','冷たく乾燥している','寒冷で乾燥','とても乾燥している'],a:'あたたかく湿っている',exp:'南にあるのであたたかく、海洋上にあるので湿っている。'},
+  {id:'sh_d7',cat:'sh_kidan',q:'日本周辺の気団について正しいのは？',c:['北の気団は南の気団より低温で、大陸の気団は海洋の気団より乾燥している','北の気団は南の気団より高温である','大陸の気団は海洋の気団より湿っている','すべての気団は同じ性質である','海洋の気団は乾燥している','南の気団は冷たい'],a:'北の気団は南の気団より低温で、大陸の気団は海洋の気団より乾燥している',exp:'気団の性質は、できた場所の緯度（北か南か）と、大陸か海洋かで決まる。'},
+  {id:'sh_d8',cat:'sh_kidan',q:'日本の四季の天気に大きく影響しているのは、日本周辺の決まった位置に発達する高気圧がつくる何か？',c:['気団','前線面','等圧線','雲画像','偏西風の流れ','台風'],a:'気団',exp:'日本周辺の高気圧がつくる気団（シベリア・オホーツク海・小笠原）が、四季の天気に影響を与えている。'},
+  /* ========== 日本の四季：四季の天気 ========== */
+  {id:'sh_s1',cat:'sh_shiki',q:'冬に日本付近で見られる特徴的な気圧配置は？',c:['西高東低','南高北低','東高西低','北高南低','移動性高気圧が交互に通過','停滞前線が日本付近にのびる'],a:'西高東低',exp:'冬はシベリア高気圧が西に、低気圧が東の海上にあり、西高東低の気圧配置になる。'},
+  {id:'sh_s2',cat:'sh_shiki',q:'夏に日本付近で見られる特徴的な気圧配置は？',c:['南高北低','西高東低','北高南低','東高西低','低気圧が交互に通過','停滞前線が南の海上にのびる'],a:'南高北低',exp:'夏は小笠原気団（太平洋高気圧）が南に張り出し、南高北低の気圧配置になる。'},
+  {id:'sh_s3',cat:'sh_shiki',q:'日本付近の気圧配置が西高東低になる季節は？',c:['冬','夏','春','秋','つゆ','どの季節でも'],a:'冬',exp:'西高東低は冬の代表的な気圧配置。'},
+  {id:'sh_s4',cat:'sh_shiki',q:'冬の天気図で、等圧線はどのように並ぶことが多い？',c:['南北にのびて、せまい間隔で並ぶ','東西にのびて、広い間隔で並ぶ','日本付近にほとんど等圧線がない','同心円状に日本の真上にある','日本の南に停滞前線がある','間隔が広く丸い'],a:'南北にのびて、せまい間隔で並ぶ',exp:'西高東低の冬は、日本付近で等圧線が南北にのび、せまい間隔で並ぶ。そのため北西の季節風が強い。'},
+  {id:'sh_s5',cat:'sh_shiki',q:'冬、日本海側と太平洋側の天気の特徴は？',c:['日本海側は雪、太平洋側は乾燥した晴れ','日本海側は晴れ、太平洋側は雪','どちらも雪','どちらも晴れ','日本海側は雨、太平洋側は雷雨','どちらも蒸し暑い'],a:'日本海側は雪、太平洋側は乾燥した晴れ',exp:'北西の季節風が日本海で水蒸気をふくみ、山脈にあたって日本海側に雪を降らせる。山をこえた太平洋側は乾燥した晴れになる。'},
+  {id:'sh_s6',cat:'sh_shiki',q:'冷たく乾燥したシベリア気団からの風が、日本海側に多量の雪を降らせるのはなぜ？',c:['日本海の上で水蒸気を多量にふくみ、山脈にあたって上昇気流となって雲ができるから','風がもともと湿っているから','太平洋から水蒸気を運ぶから','日本海の上で冷やされて乾燥するから','偏西風がとまるから','海風になるから'],a:'日本海の上で水蒸気を多量にふくみ、山脈にあたって上昇気流となって雲ができるから',exp:'比較的あたたかい日本海の上を通るときに水蒸気を多量にふくみ、日本列島の山脈にあたって上昇し、雲が発達して雪を降らせる。'},
+  {id:'sh_s7',cat:'sh_shiki',q:'冬の太平洋側にふく風の性質は？',c:['乾燥している','湿っている','あたたかく湿っている','雨を多量にふくむ','雪を多量にふくむ','霧をふくむ'],a:'乾燥している',exp:'日本海側で雪を降らせて水蒸気を失った風が山をこえてくるので、太平洋側は乾燥した風になる。'},
+  {id:'sh_s8',cat:'sh_shiki',q:'冬の雲画像で、日本海上に見られる特徴的な雲は？',c:['季節風に沿ったすじ状の雲','日本列島をおおう東西にのびる帯状の雲','うずを巻く台風の雲','雲がほとんどない','南の海上の大きな積乱雲','日本の真上の丸い雲'],a:'季節風に沿ったすじ状の雲',exp:'冬は北西の季節風に沿って、日本海上にすじ状の雲が並ぶ。'},
+  {id:'sh_s9',cat:'sh_shiki',q:'春と秋の天気の特徴は？',c:['移動性高気圧と低気圧が交互に通過し、天気が周期的に変わる','雨やくもりの日が長く続く','日本海側は雪の日が続く','蒸し暑い晴れの日が続く','台風が毎日来る','1日中天気が変わらない'],a:'移動性高気圧と低気圧が交互に通過し、天気が周期的に変わる',exp:'春と秋は移動性高気圧と低気圧が交互に西から東へ通過するので、天気が周期的に変わる。'},
+  {id:'sh_s10',cat:'sh_shiki',q:'春や秋に天気が変わる周期はおよそ何日か。',c:['4〜7日','1日','1〜2週間','1か月','12時間','30日'],a:'4〜7日',exp:'移動性高気圧と低気圧が交互にやってくるので、4〜7日くらいの周期で天気が変わる。'},
+  {id:'sh_s11',cat:'sh_shiki',q:'春や秋に、低気圧と交互に日本付近を通過する高気圧を何という？',c:['移動性高気圧','シベリア高気圧','太平洋高気圧','オホーツク海高気圧','温帯低気圧','熱帯低気圧'],a:'移動性高気圧',exp:'春と秋は、偏西風に流されて西から東へ移動する移動性高気圧が通過する。'},
+  {id:'sh_s12',cat:'sh_shiki',q:'つゆの時期に日本付近にできる停滞前線を何という？',c:['梅雨前線','秋雨前線','寒冷前線','温暖前線','閉塞前線','台風前線'],a:'梅雨前線',exp:'初夏、小笠原気団とオホーツク海気団の間にできる停滞前線を梅雨前線という。'},
+  {id:'sh_s13',cat:'sh_shiki',q:'梅雨前線は、どの気団とどの気団の間にできる？',c:['小笠原気団とオホーツク海気団','シベリア気団と小笠原気団','シベリア気団とオホーツク海気団','小笠原気団と赤道の気団','2つのシベリア気団','オホーツク海気団と大陸の気団'],a:'小笠原気団とオホーツク海気団',exp:'あたたかく湿った小笠原気団と、冷たく湿ったオホーツク海気団の勢力がつり合い、その間に停滞前線ができる。'},
+  {id:'sh_s14',cat:'sh_shiki',q:'夏の終わりにできる停滞前線を何という？',c:['秋雨前線','梅雨前線','閉塞前線','寒冷前線','温暖前線','季節前線'],a:'秋雨前線',exp:'夏の終わりにも停滞前線（秋雨前線）ができ、雨やくもりの日が続く（秋雨）。'},
+  {id:'sh_s15',cat:'sh_shiki',q:'つゆ（梅雨）の時期の天気の特徴は？',c:['雨やくもりの日が長く続く','乾燥した晴れの日が続く','4〜7日周期で天気が変わる','日本海側は大雪になる','雲ひとつない日が続く','毎日夕方だけ雷雨'],a:'雨やくもりの日が長く続く',exp:'梅雨前線が日本付近に長くとどまるので、雨やくもりの日が続く。'},
+  {id:'sh_s16',cat:'sh_shiki',q:'夏の天気の特徴として正しいのは？',c:['南東の季節風がふき、蒸し暑い日が続く','北西の季節風がふき、乾燥する','4〜7日周期で天気が変わる','日本海側は雪が多い','梅雨前線で雨が続く','気温が下がり霜がおりる'],a:'南東の季節風がふき、蒸し暑い日が続く',exp:'小笠原気団におおわれ、南東の季節風がふいて蒸し暑い日が続く。'},
+  {id:'sh_s17',cat:'sh_shiki',q:'夏の昼間、地表付近の空気が強く熱せられて発達し、夕立や雷雨をもたらす雲は？',c:['積乱雲','乱層雲','巻雲','高層雲','層雲','巻積雲'],a:'積乱雲',exp:'強い日ざしで地表があたためられると上昇気流が生じ、積乱雲が発達して雷雨（夕立）になることがある。'},
+  {id:'sh_s18',cat:'sh_shiki',q:'夏の日本付近の天気図の特徴として正しいのは？',c:['日本の南の太平洋上に高気圧があり、等圧線の間隔は広い','西に高気圧、東に低気圧があり等圧線がせまい','日本付近に停滞前線がのびている','高気圧と低気圧が交互に並ぶ','日本海に台風がある','日本の北に強い高気圧がある'],a:'日本の南の太平洋上に高気圧があり、等圧線の間隔は広い',exp:'夏は太平洋高気圧（小笠原気団）が日本の南に広がる南高北低の気圧配置。等圧線の間隔は広く、風は弱めのことが多い。'},
+  {id:'sh_s19',cat:'sh_shiki',q:'冬の天気図の特徴として正しいのは？',c:['西の大陸に高気圧、東の海上に低気圧があり、等圧線が南北にせまく並ぶ','日本の南に高気圧があり、等圧線が広い','日本付近に東西にのびる停滞前線がある','移動性高気圧が日本の真上にある','台風が日本に近づいている','等圧線がほとんどない'],a:'西の大陸に高気圧、東の海上に低気圧があり、等圧線が南北にせまく並ぶ',exp:'西高東低の冬型の気圧配置。等圧線が南北にのびてせまく並び、北西の季節風が強くふく。'},
+  {id:'sh_s20',cat:'sh_shiki',q:'天気図で、日本付近に東西にのびる停滞前線が見られる季節は？',c:['つゆ（梅雨）','冬','夏','真冬だけ','どの季節にも見られない','台風のときだけ'],a:'つゆ（梅雨）',exp:'つゆの時期は梅雨前線（停滞前線）が日本付近に東西にのびる。夏の終わりの秋雨前線も同じ形。'},
+  /* ========== 日本の四季：台風 ========== */
+  {id:'sh_t1',cat:'sh_taifu',q:'熱帯の海上で発生した熱帯低気圧が発達し、最大風速が17.2m/s以上になったものを何という？',c:['台風','温帯低気圧','移動性高気圧','梅雨前線','季節風','竜巻'],a:'台風',exp:'熱帯低気圧のうち、最大風速が17.2m/s以上になったものを台風という。'},
+  {id:'sh_t2',cat:'sh_taifu',q:'台風と呼ばれるのは、最大風速が何m/s以上になったものか。',c:['17.2m/s','10.0m/s','25.0m/s','5.5m/s','30.0m/s','1.0m/s'],a:'17.2m/s',exp:'熱帯低気圧の最大風速が17.2m/s以上になると台風と呼ばれる。'},
+  {id:'sh_t3',cat:'sh_taifu',q:'台風が温帯低気圧と異なる点は？',c:['前線をともなわない','前線をともなう','気圧が高い','風がふき出している','中心に下降気流がある','雨を降らせない'],a:'前線をともなわない',exp:'台風（熱帯低気圧）は前線をともなわない。温帯低気圧は寒冷前線・温暖前線をともなうことが多い。'},
+  {id:'sh_t4',cat:'sh_taifu',q:'天気図での台風の等圧線のようすは？',c:['ほぼ同心円状で、間隔がせまい','南北にまっすぐのびる','間隔がとても広い','前線から枝分かれしている','等圧線は1本もない','中心ほど間隔が広い'],a:'ほぼ同心円状で、間隔がせまい',exp:'台風の等圧線はほぼ同心円状で間隔がせまく、中心付近では非常に強い風がふく。'},
+  {id:'sh_t5',cat:'sh_taifu',q:'日本に接近する台風が、はじめ北西へ進み、その後北東へ向きを変えるのはなぜ？',c:['上空の偏西風に流されるから','季節風がふき出すから','海風と陸風が入れかわるから','地球の自転が止まるから','前線に引き寄せられるから','気温が下がるから'],a:'上空の偏西風に流されるから',exp:'台風は太平洋高気圧のふちに沿って北上し、日本付近では上空の偏西風に流されて北東へ進路を変え、速さを増す。'},
+  {id:'sh_t6',cat:'sh_taifu',q:'台風が日本に接近しやすいのは、おもにいつごろか。',c:['7月〜10月（夏から秋）','12月〜2月（冬）','3月〜4月（春）','1年中同じ','5月だけ','11月だけ'],a:'7月〜10月（夏から秋）',exp:'台風は夏から秋（7〜10月ごろ）に日本へ接近・上陸することが多い。'},
+  {id:'sh_t7',cat:'sh_taifu',q:'台風の中心付近で、雲がなく風が弱い部分を何という？',c:['台風の目','前線','うず','気団','なぎ','すじ雲'],a:'台風の目',exp:'発達した台風の中心付近には、雲がなく風が弱い「台風の目」ができることがある。'},
+  /* ========== 日本の四季：恵みと災害 ========== */
+  {id:'sh_m1',cat:'sh_saigai',q:'つゆや台風の雨がもたらす資源は？',c:['水資源','石油','鉱物資源','森林資源だけ','風力資源だけ','天然ガス'],a:'水資源',exp:'つゆや台風の雨は豊富な水資源となり、農業・工業用水・生活用水・発電に利用される。'},
+  {id:'sh_m2',cat:'sh_saigai',q:'台風などで気圧が低下して海面が吸い上げられたり、強い風で海水がふき寄せられたりして、海面が異常に上昇する現象は？',c:['高潮','津波','洪水','土砂災害','竜巻','やませ'],a:'高潮',exp:'気圧の低下による海面の吸い上げや、強風による海水のふき寄せで海面が異常に上昇する現象を高潮という。'},
+  {id:'sh_m3',cat:'sh_saigai',q:'河川のはんらんなどを防ぐため、河川沿いの低地に一時的に水をたくわえるところを何という？',c:['遊水地','ダム湖','ため池','用水路','堤防','干潟'],a:'遊水地',exp:'大雨のとき河川の水を一時的にたくわえて、はんらんを防ぐ低地を遊水地という。'},
+  {id:'sh_m4',cat:'sh_saigai',q:'天気の変化がもたらす恵みとして当てはまらないものは？',c:['高潮で海面が上昇する','雨が水資源になる','雪がスキーなどのレジャーに利用される','雪が夏の冷房や冷蔵に利用される','局地的な風が発電に利用される','豊かな水が森を育てる'],a:'高潮で海面が上昇する',exp:'高潮は災害。雨・雪・風は水資源やレジャー、発電などの恵みにもなる。'},
+  {id:'sh_m5',cat:'sh_saigai',q:'天気の変化による災害として当てはまらないものは？',c:['地震によるゆれ','大雪','洪水','土砂災害','低温（霜）による農作物の被害','高潮'],a:'地震によるゆれ',exp:'地震は大地の変化による災害で、天気の変化による災害ではない。'},
+  {id:'sh_m6',cat:'sh_saigai',q:'天気による災害に備えるために大切なこととして正しいのは？',c:['地域の地理的な特徴をふまえ、気象情報を活用する','天気予報は見ないようにする','どこでも同じ対策をする','災害は起こらないと考える','川の近くにだけ注意する','気象情報は専門家だけが見ればよい'],a:'地域の地理的な特徴をふまえ、気象情報を活用する',exp:'ダム・堤防・遊水地などの整備に加え、地域の地理的な特徴をふまえ、気象情報（警報・注意報など）を適切に活用することが大切。'},
+  {id:'sh_m7',cat:'sh_saigai',q:'雪がもたらす恵みとして正しいのは？',c:['スキーなどのレジャーや、夏の冷房・冷蔵に利用される','高潮を防ぐ','台風を弱める','気圧を上げる','偏西風を強める','霜を防ぐ'],a:'スキーなどのレジャーや、夏の冷房・冷蔵に利用される',exp:'雪はスキー場などのレジャーに利用されるほか、たくわえた雪を夏の冷房や冷蔵に使うこともある。'}
+]);
+
+/* ── 問題バンク つづき（教科書の本文・図・コラムから）──
+   問題集の「学習のまとめ」に出てこない、教科書だけにある内容。id は tx_ で始める。 */
+BANK.push.apply(BANK, [
+  /* 気圧と前線 */
+  {id:'tx_z1',cat:'ze_touatsu',q:'いろいろな場所で同時刻に測定した気圧を比べるとき、測定値をどのように直してから比べる？',c:['海面と同じ高さでの値に直す（海面更正）','その地点の気温で割る','すべて1013hPaに置きかえる','測定した高さをかける','いちばん高い地点の値にそろえる','直さずにそのまま比べる'],a:'海面と同じ高さでの値に直す（海面更正）',exp:'気圧は高さによって異なるので、高さのちがいによる差をなくすため、海面と同じ高さの気圧に直してから比べる（海面更正）。'},
+  {id:'tx_z2',cat:'ze_touatsu',q:'海面更正では、測定地点が海面から10m高くなるごとに、測定した気圧に約何hPaずつ加える？',c:['約1.2hPa','約12hPa','約0.12hPa','約4hPa','約1013hPa','約100hPa'],a:'約1.2hPa',exp:'海面から10m高くなるごとに約1.2hPaずつ加える。例：高さ100mで1000hPaなら 1000＋1.2×10＝1012hPa。'},
+  {id:'tx_z3',cat:'ze_touatsu',q:'天気図の等圧線について正しいものはどれか。',c:['途中で新しく始まったり、なくなったり、枝分かれ・交差したりしない','気圧のちがう線どうしが交わることがある','とちゅうで枝分かれすることがある','海の上ではとちゅうで消える','必ずまっすぐな線で引く','1hPaごとに引く'],a:'途中で新しく始まったり、なくなったり、枝分かれ・交差したりしない',exp:'等圧線は気圧が等しいところを結んだなめらかな曲線なので、途中で始まったり消えたり、枝分かれ・交差したりしない。'},
+  {id:'tx_z4',cat:'ze_touatsu',q:'天気図で、必要に応じて2hPaごとに引く等圧線はどんな線か。',c:['破線','太い実線','細い実線','二重線','点線と太線の組み合わせ','色のついた線'],a:'破線',exp:'1000hPaを基準に4hPaごとに細い実線、20hPaごとに太い実線。必要に応じて2hPaごとに破線を引くこともある。'},
+  {id:'tx_z5',cat:'ze_kiatsu',q:'等圧線の間隔がせまいところを、地図の等高線にたとえると、どのようなところにあたる？',c:['傾斜が急なところ','傾斜がゆるやかなところ','山頂','谷底','平地','海面'],a:'傾斜が急なところ',exp:'高気圧を山、低気圧をくぼんだ土地と考えると、等圧線は等高線と同じ。間隔がせまい＝傾斜が急で、風（水の流れ）が強い。'},
+  {id:'tx_z6',cat:'ze_kiatsu',q:'北半球で、風が等圧線に垂直な向きではなく、右に傾いた向きにふくのはおもに何のためか。',c:['地球が1日に1回自転しているため','太陽が東から西へ動くため','月の引力のため','海の水が動くため','前線があるため','山脈があるため'],a:'地球が1日に1回自転しているため',exp:'風は気圧の大きいほうから小さいほうへふこうとするが、地球の自転などの影響で、北半球では右に傾いた向きにふく。そのため低気圧では反時計回り、高気圧では時計回りになる。'},
+  {id:'tx_z7',cat:'ze_kiatsu',q:'高気圧の中心付近で下降気流が生じるのはなぜか。',c:['地表付近でふき出した大気を補うため','上空で大気がふき出すため','地面があたためられるため','前線ができるため','水蒸気が水滴になるため','海から風がふきこむため'],a:'地表付近でふき出した大気を補うため',exp:'高気圧の中心付近では、地表付近でふき出した大気を補うように上空から下降気流が生じるので、雲ができにくく晴れることが多い。'},
+  {id:'tx_z8',cat:'ze_utsuri',q:'雲画像で低気圧のまわりの雲が、中心に向かって反時計回りに巻きこまれているように見えるのはなぜか。',c:['低気圧のまわりの風のふき方と雲の動きが一致しているから','雲が風と逆向きに動くから','高気圧の雲が流れこむから','雲は動かないから','偏西風が北へふくから','太陽の光の当たり方のため'],a:'低気圧のまわりの風のふき方と雲の動きが一致しているから',exp:'雲は風に流されて動くので、雲の動きから大気の動きがわかる。低気圧には反時計回りに風がふきこんでいる。'},
+  {id:'tx_z9',cat:'ze_kidan',q:'気団はどのようにしてできるか。',c:['広い大陸や海洋上の大規模な高気圧の中で、大気があまり動かず気温や湿度がほぼ一様になる','前線の上で空気がうずを巻いてできる','台風が衰えてできる','上空の偏西風が地上におりてできる','雨が降ったあとに地面から出てくる','山をこえた風がたまってできる'],a:'広い大陸や海洋上の大規模な高気圧の中で、大気があまり動かず気温や湿度がほぼ一様になる',exp:'広大な大陸や海洋上にできた高気圧の中の大気があまり動かないと、大陸や海洋の影響を受けて気温や湿度がほぼ一様になり、気団ができる。'},
+  {id:'tx_z10',cat:'ze_kidan',q:'水そうを仕切り板で分け、片側の空気を保冷剤で冷やしてから仕切り板をはずした。冷やした空気はどう動くか。',c:['密度が大きいため、反対側の空気の下にもぐりこむように進む','密度が小さいため、反対側の空気の上に進む','その場にとどまって動かない','上へ上昇して消える','反対側の空気と同じ速さで混ざり合う','水そうの外へ出ていく'],a:'密度が大きいため、反対側の空気の下にもぐりこむように進む',exp:'冷えた空気は密度が大きいので、あたたかい空気の下にもぐりこむ。寒冷前線で寒気が暖気の下にもぐりこむのと同じ。'},
+  {id:'tx_z11',cat:'ze_kidan',q:'寒気と暖気が接したとき、2つの気団はどうなるか。',c:['すぐには混じり合わず、間に境界面（前線面）ができる','すぐに混じり合って1つになる','暖気が消えてしまう','寒気が上、暖気が下に重なる','気団どうしははね返る','どちらも動かなくなり消える'],a:'すぐには混じり合わず、間に境界面（前線面）ができる',exp:'冷たい気団とあたたかい気団が接すると、すぐには混じり合わず、間に前線面ができる。前線面では上昇気流が生じ、雲ができやすい。'},
+  {id:'tx_z12',cat:'ze_kidan',q:'温帯低気圧の地上の暖気の範囲が、しだいにせまくなるのはなぜか。',c:['寒冷前線の進み方が温暖前線より速いから','温暖前線の進み方が寒冷前線より速いから','暖気が上空へ逃げないから','寒気がとけるから','停滞前線になるから','偏西風が弱まるから'],a:'寒冷前線の進み方が温暖前線より速いから',exp:'寒冷前線は温暖前線より速く進むので、2つの前線にはさまれた暖気の範囲はせまくなり、やがて追いついて閉塞前線ができる。'},
+  {id:'tx_z13',cat:'ze_kidan',q:'停滞前線の上に大気のうず（低気圧）が発生すると、うずの西側にできる前線は？',c:['寒冷前線','温暖前線','閉塞前線','梅雨前線','秋雨前線','前線は消える'],a:'寒冷前線',exp:'前線上で低気圧が発生すると、うずの西側では寒気が暖気を押しながら進む寒冷前線、東側では暖気が寒気の上にはい上がって進む温暖前線ができる。'},
+  {id:'tx_z14',cat:'ze_kidan',q:'閉塞前線で接しているのは、どのような空気どうしか。',c:['寒気と寒気（気温が異なる）','暖気と暖気','寒気と暖気だけ','水蒸気と雲','上空の空気と海水','偏西風と季節風'],a:'寒気と寒気（気温が異なる）',exp:'閉塞前線では寒気と寒気が接しているが、同じ寒気どうしでも気温が異なるので前線は消えない。寒冷型と温暖型の2種類の断面ができる。'},
+  {id:'tx_z15',cat:'ze_tsuuka',q:'雲の名前に使われる漢字「乱」は、どんな雲であることを表す？',c:['雨や雪を降らせる雲','上層の雲','中層の雲','かたまり状の雲','空を層状におおう雲','すじ状の雲'],a:'雨や雪を降らせる雲',exp:'「乱」は雨や雪を降らせる雲（乱層雲・積乱雲）。巻＝上層、高＝中層、積＝かたまり状、層＝層状。'},
+  {id:'tx_z16',cat:'ze_tsuuka',q:'雲の名前に使われる漢字「巻」は、どんな雲であることを表す？',c:['上層の雲','中層の雲','下層の雲','雨や雪を降らせる雲','かたまり状の雲','層状の雲'],a:'上層の雲',exp:'「巻」は上層（5〜13km）の雲。巻雲・巻積雲・巻層雲など。'},
+  {id:'tx_z17',cat:'ze_tsuuka',q:'雲の名前に使われる漢字「高」は、どんな雲であることを表す？',c:['中層の雲','上層の雲','とても背の高い雲','雨を降らせる雲','かたまり状の雲','地表付近の雲'],a:'中層の雲',exp:'「高」は中層（2〜7km）の雲。高積雲・高層雲など。'},
+  {id:'tx_z18',cat:'ze_tsuuka',q:'雲の名前に使われる漢字「積」は、どんな雲であることを表す？',c:['かたまり状になっている雲（垂直方向に上昇気流が起こっているところに発生しやすい）','空を層状におおう雲','上層の雲','中層の雲','雪だけを降らせる雲','霧のように地表をおおう雲'],a:'かたまり状になっている雲（垂直方向に上昇気流が起こっているところに発生しやすい）',exp:'「積」はかたまり状の雲。「層」は空を層状または幕状におおう雲で、多くは斜面をはい上がるような上昇気流で生じる。'},
+  {id:'tx_z19',cat:'ze_tsuuka',q:'雲は形やできる高さによって、何種類に分けられる？',c:['10種類','4種類','6種類','16種類','3種類','20種類'],a:'10種類',exp:'雲は10種類（十種雲形）に分けられる。積乱雲・乱層雲・巻雲・高層雲などはそのなかま。'},
+  {id:'tx_z20',cat:'ze_tsuuka',q:'上層の雲がよく現れる高さはどれくらいか。',c:['約5〜13km','約2〜7km','約2km以下','約0.5km以下','約20〜30km','約100km'],a:'約5〜13km',exp:'上層は約5〜13km、中層は約2〜7km、下層は約2km以下。'},
+  {id:'tx_z21',cat:'ze_tsuuka',q:'雲を観測していると、巻雲から巻層雲・高層雲へとしだいに変化し、天気も晴れからくもりへ変わってきた。近づいてきている前線は？',c:['温暖前線','寒冷前線','閉塞前線','前線は近づいていない','停滞前線が遠ざかっている','台風の目'],a:'温暖前線',exp:'温暖前線の前線面はゆるやかなので、前線が近づくと高い雲（巻雲）から低く厚い雲（高層雲→乱層雲）へと変わり、雨になる。'},
+  {id:'tx_z22',cat:'ze_tsuuka',q:'前線が近づいて天気が急に変わったときの観測記録の特徴として正しいのは？',c:['気温が急に下がったり、短時間に激しい雨が降ったり、風向が大きく変化したりする','気温・気圧・風向がまったく変わらない','湿度が急に0%になる','気圧が急に1013hPaに戻る','雲量が0になる','気温だけがゆっくり上がる'],a:'気温が急に下がったり、短時間に激しい雨が降ったり、風向が大きく変化したりする',exp:'天気が急に変わるとき（寒冷前線の通過など）には、気温の急な低下・短時間の激しい雨・風向の大きな変化などが記録される。'},
+  /* 地球規模の大気の動き */
+  {id:'tx_s1',cat:'sh_junkan',q:'偏西風がいっぱんにふいている高度はどれくらいか。（教科書の発展）',c:['約5.5〜14km','約0〜1km','約1〜2km','約50〜100km','約200km','地表すれすれ'],a:'約5.5〜14km',exp:'偏西風はいっぱんに高度5.5〜14kmあたりにふいており、風速は100m/sをこえることもある。地表にいるわたしたちは直接感じないが、飛行機はその影響を受ける高さを飛んでいる。'},
+  {id:'tx_s2',cat:'sh_junkan',q:'偏西風のうち、特に強いものを何という？（教科書の発展）',c:['ジェット気流','季節風','貿易風','やませ','海陸風','からっ風'],a:'ジェット気流',exp:'特に強い偏西風はジェット気流とよばれ、地上の低気圧や高気圧の発生にも影響を与えている。'},
+  {id:'tx_s3',cat:'sh_junkan',q:'日本上空を飛ぶ飛行機は、同じ区間でも西から東へ向かう便のほうが飛行時間が短い。その理由は？',c:['上空を西から東へふく偏西風に後押しされるから','東へ向かうと地球の重力が小さくなるから','東向きは下り坂だから','季節風が東からふくから','東へ向かう便は空気がうすいところを飛ぶから','時差があるから'],a:'上空を西から東へふく偏西風に後押しされるから',exp:'飛行機は偏西風の影響を受ける高さを飛ぶので、東へ向かう便は追い風、西へ向かう便は向かい風になる。'},
+  {id:'tx_s4',cat:'sh_junkan',q:'偏西風はどのように地球をまわっている？',c:['南北に蛇行しながら、中緯度帯を西から東へ1周する','まっすぐ北から南へふく','赤道の上を東から西へふく','北極の上だけで回っている','地表付近を東から西へふく','季節ごとに向きが逆になる'],a:'南北に蛇行しながら、中緯度帯を西から東へ1周する',exp:'偏西風は南北に蛇行しながら、地球の中緯度帯を西から東へ1周して移動する大気の動きである。'},
+  {id:'tx_s5',cat:'sh_junkan',q:'地表が太陽から受ける光の量は、同じ面積では低緯度と高緯度のどちらが多い？',c:['低緯度','高緯度','どちらも同じ','季節で必ず逆になる','北極がいちばん多い','緯度とは関係ない'],a:'低緯度',exp:'同じ面積で受ける光の量は低緯度地方のほうが多い。そのため緯度によって気温のちがいが生じ、地球規模での大気の動きが起こる原因になる。'},
+  {id:'tx_s6',cat:'sh_junkan',q:'空気があたためられると上昇しやすくなるのはなぜか。',c:['膨張して密度が小さくなるから','収縮して密度が大きくなるから','重さが大きくなるから','水蒸気が水滴になるから','気圧が大きくなるから','風が止まるから'],a:'膨張して密度が小さくなるから',exp:'空気はあたためられると膨張して密度が小さくなり上昇しやすくなる。逆に冷やされると収縮して密度が大きくなり下降しやすくなる。'},
+  {id:'tx_s7',cat:'sh_junkan',q:'気温が高いところの地表付近の気圧は、ふつうどうなることが多いか。',c:['低くなる（上昇気流が起こるため）','高くなる（下降気流が起こるため）','変わらない','0になる','必ず1013hPaになる','気温と同じ値になる'],a:'低くなる（上昇気流が起こるため）',exp:'気温が高いところでは上昇気流が起こり、地表付近の気圧は低くなることが多い。気温が低いところでは下降気流が起こり、気圧が高くなることが多い。'},
+  {id:'tx_s8',cat:'sh_junkan',q:'北半球も南半球も、緯度20〜30°付近に砂漠が多いのはなぜか。（教科書の発展）',c:['1年中大規模な高気圧があり、下降気流で雲ができにくく降水が少ないから','1年中低気圧があり雨が多いから','偏西風が雨をすべて運び去るから','太陽の光がほとんど届かないから','海から遠いところだけにあるから','台風が毎日通るから'],a:'1年中大規模な高気圧があり、下降気流で雲ができにくく降水が少ないから',exp:'熱帯付近で上昇した空気が緯度20〜30°の上空で集まって下降し、移動しにくい高気圧ができる。雲ができにくく降水が少ないので、陸では乾燥して砂漠になりやすい。'},
+  {id:'tx_s9',cat:'sh_junkan',q:'赤道付近と極付近の大気の動きが地球全体に与えるはたらきとして正しいのは？（教科書の発展）',c:['低緯度から高緯度へ熱を運び、地球全体の気温差を小さくする','高緯度から低緯度へ熱を運び、気温差を大きくする','熱を宇宙へ逃がして地球を冷やすだけ','雨を赤道付近だけに集める','地球の自転を止める','気温差には関係しない'],a:'低緯度から高緯度へ熱を運び、地球全体の気温差を小さくする',exp:'気温の差から生じた気圧の差によって大気が動き、低緯度から高緯度へ熱を運ぶため、地球全体の気温差が小さくなる。'},
+  /* 海風・陸風・季節風 */
+  {id:'tx_k1',cat:'sh_kaze',q:'晴れた日に海岸付近で昼は海風、夜は陸風がふく。このような風をまとめて何という？',c:['海陸風','季節風','偏西風','貿易風','山谷風','ジェット気流'],a:'海陸風',exp:'海辺に近い地域で、陸上と海上の気圧差によって昼と夜で向きが変わる風を海陸風という。季節風よりずっとスケールは小さい。'},
+  {id:'tx_k2',cat:'sh_kaze',q:'陸に比べて、海の温度変化が小さいのはなぜか。（教科書の注）',c:['風や波などによって海水がかき混ぜられるため','海水が黒いため','海には太陽の光が届かないため','海水は熱を通さないため','海の上は気圧が低いため','海水が凍らないため'],a:'風や波などによって海水がかき混ぜられるため',exp:'陸に比べて海の温度変化が小さいのは、風や波などによって海水がかき混ぜられるためでもある。'},
+  {id:'tx_k3',cat:'sh_kaze',q:'冬、大陸のほうが海洋より気圧が大きくなるのはなぜか。',c:['大陸のほうが冷えやすく、温度が低くなるから','大陸のほうがあたたまりやすく、温度が高くなるから','大陸には雨が多いから','海洋の上に台風があるから','大陸は標高が低いから','海洋の水蒸気が少ないから'],a:'大陸のほうが冷えやすく、温度が低くなるから',exp:'温度が低いほうは温度が高いほうより気圧が大きくなる。冬は大陸が冷えてシベリア高気圧ができ、夏は海洋のほうが低温で太平洋高気圧ができる。'},
+  {id:'tx_k4',cat:'sh_kaze',q:'岩手県花巻市の家には、西側と北側に防風林が植えられていることがある。おもに何に備えるためか。',c:['冬の北西の季節風','夏の南東の季節風','昼の海風','台風の東風','春一番の南風','秋の東風'],a:'冬の北西の季節風',exp:'冬には北西の冷たい季節風がふくので、家の西側と北側に防風林を設けて風を防いでいる。'},
+  {id:'tx_k5',cat:'sh_kaze',q:'夏、海岸付近で海風や陸風がはっきり現れやすいのは、どんなときか。',c:['晴れて風が弱いとき','雨が強く降っているとき','台風が近づいているとき','冬型の気圧配置のとき','前線が通過するとき','等圧線の間隔がせまいとき'],a:'晴れて風が弱いとき',exp:'夏に晴れて風が弱いときは、陸と海のあたたまり方のちがいがそのまま現れ、海岸付近で海風や陸風がはっきり現れやすい。'},
+  /* 四季 */
+  {id:'tx_h1',cat:'sh_shiki',q:'冬の終わり、日本海上で低気圧が発達したときにふきこむ南よりの強い風のうち、立春以降最初にふき、風速8m/s以上などの条件を満たすものを何という？',c:['春一番','木枯らし','やませ','からっ風','海風','偏西風'],a:'春一番',exp:'日本海上で発達した低気圧に向かってふきこむ南よりの強い風のうち、立春（2月4日ごろ）以降最初にふき、風速8m/s以上などの条件を満たすものを春一番という。'},
+  {id:'tx_h2',cat:'sh_shiki',q:'春の天気が「寒暖をくり返しながら、しだいにあたたかくなる」のはなぜか。',c:['日本海上の低気圧が東へ遠ざかると、ふたたび冬型の気圧配置になるから','毎日台風が通過するから','梅雨前線が北上と南下をくり返すから','偏西風が止まるから','太平洋高気圧が毎日消えるから','シベリア気団が夏に発達するから'],a:'日本海上の低気圧が東へ遠ざかると、ふたたび冬型の気圧配置になるから',exp:'冬の終わりにはシベリア高気圧がおとろえて南風で気温が上がることがあるが、低気圧が東へ遠ざかるとふたたび冬型になって寒くなる。これをくり返す。'},
+  {id:'tx_h3',cat:'sh_shiki',q:'典型的な冬型の気圧配置になるのは、シベリア高気圧が発達し、低気圧がどこを通過するときか。',c:['北海道の東の太平洋上','九州の南の海上','日本海の中央','中国大陸の内陸','赤道付近','オホーツク海の北'],a:'北海道の東の太平洋上',exp:'シベリア高気圧が発達し、北海道の東の太平洋上を低気圧が通過すると、西高東低の気圧配置が現れる。'},
+  {id:'tx_h4',cat:'sh_shiki',q:'冬の大気が日本海の上で多量の水蒸気をふくむことができるのは、日本海に何が流れているからか。',c:['南からのあたたかい海流（暖流）','北からの冷たい海流（寒流）','大きな川の水','氷山','偏西風','ジェット気流'],a:'南からのあたたかい海流（暖流）',exp:'シベリア高気圧からの大気はもともと冷たく乾燥しているが、暖流の流れる日本海の上を通過する間に多量の水蒸気をふくんで性質が変わる。'},
+  {id:'tx_h5',cat:'sh_shiki',q:'すじ状の雲をつくる実験で、ドライアイスで冷やした空気とぬるま湯は、それぞれ何のモデルか。',c:['冷気＝シベリア高気圧からふき出す大気、ぬるま湯＝日本海の海水','冷気＝小笠原気団、ぬるま湯＝太平洋','冷気＝偏西風、ぬるま湯＝梅雨前線','冷気＝台風、ぬるま湯＝日本列島','冷気＝海風、ぬるま湯＝陸','冷気＝雲、ぬるま湯＝雨'],a:'冷気＝シベリア高気圧からふき出す大気、ぬるま湯＝日本海の海水',exp:'ドライアイスの冷気はシベリア高気圧からふき出す大気、ぬるま湯は日本海の海水のモデル。バットの上にすじ状の雲ができる。'},
+  {id:'tx_h6',cat:'sh_shiki',q:'梅雨前線は、オホーツク海気団と小笠原気団の間のどのようなところにできるか。',c:['東西に長くのびた気圧の低いところ（気圧の谷）','南北にのびた気圧の高いところ','気団の中心','台風の目','日本海の真上の高気圧','北極の上空'],a:'東西に長くのびた気圧の低いところ（気圧の谷）',exp:'2つの気団の勢力がほぼ同じなので、間に東西に長くのびた気圧の低いところ（気圧の谷）ができて停滞前線（梅雨前線）が発生する。'},
+  {id:'tx_h7',cat:'sh_shiki',q:'梅雨が明けるのは、ふつうどのようになったときか。',c:['7月下旬ごろ、オホーツク海高気圧がおとろえ、太平洋高気圧が発達して南からはり出したとき','シベリア高気圧が発達したとき','台風が発生したとき','移動性高気圧が通過したとき','偏西風が止まったとき','秋雨前線ができたとき'],a:'7月下旬ごろ、オホーツク海高気圧がおとろえ、太平洋高気圧が発達して南からはり出したとき',exp:'7月下旬になるとオホーツク海高気圧がおとろえ、太平洋高気圧がいっそう発達して南からはり出し、梅雨が明ける。'},
+  {id:'tx_h8',cat:'sh_shiki',q:'秋に、日本が寒い本格的な冬を迎えるまでの流れとして正しいのは？',c:['秋雨前線が南下→移動性高気圧と低気圧が交互に通過→11月中旬からシベリア高気圧が発達→12月下旬に冬型','シベリア高気圧が8月に発達→梅雨前線ができる→冬型','台風が来る→梅雨になる→冬型','太平洋高気圧が発達→梅雨明け→冬型','偏西風が止まる→秋雨→冬型','冬型→秋雨前線→移動性高気圧'],a:'秋雨前線が南下→移動性高気圧と低気圧が交互に通過→11月中旬からシベリア高気圧が発達→12月下旬に冬型',exp:'10月中旬に秋雨前線が南下し、移動性高気圧と低気圧が交互に通過する。11月中旬からシベリア高気圧が発達しはじめ、12月下旬には冬型の気圧配置が現れる。'},
+  {id:'tx_h9',cat:'sh_shiki',q:'日本で季節や地域によってさまざまな天気の変化が起こる理由としてあてはまらないものは？',c:['赤道の真下にあるから','北の寒気と南の暖気がぶつかる中緯度にあるから','偏西風の影響を受けやすいから','大陸と海洋の間にあるから','山脈や山地で起伏に富んでいるから','季節ごとに異なる気団の影響を受けるから'],a:'赤道の真下にあるから',exp:'日本列島は起伏に富み、北の寒気と南の暖気がぶつかる中緯度にあり、偏西風の影響を受けやすく、大陸と海洋の間にある。これらが関係して変化に富んだ天気になる。'},
+  /* 台風 */
+  {id:'tx_t1',cat:'sh_taifu',q:'台風の中心付近で、雲がほとんどない「目」ができるのはなぜか。',c:['中心に下降気流が生じているから','中心に強い上昇気流があるから','中心に前線があるから','中心の気圧が高いから','中心は海面が冷たいから','中心では雨がすべて蒸発するから'],a:'中心に下降気流が生じているから',exp:'台風の中心には下降気流が生じて雲がほとんど分布しない部分があり、「目」とよばれる。そのまわりには激しい上昇気流で積乱雲が発達している。'},
+  {id:'tx_t2',cat:'sh_taifu',q:'台風が発達するもとになっているものは？',c:['あたたかい海から供給された多量の水蒸気','冷たい陸から出る乾いた空気','偏西風の運ぶ雪','前線の寒気','上空の氷の粒だけ','地球内部の熱'],a:'あたたかい海から供給された多量の水蒸気',exp:'台風はあたたかい海から供給された多量の水蒸気をもとに発達する。中心に向かって強い風がふきこんで激しい上昇気流が生じ、積乱雲が分布する。'},
+  {id:'tx_t3',cat:'sh_taifu',q:'台風が日本列島に上陸したり、海水の温度が低いところまで北上したりすると、勢力はどうなることが多いか。',c:['水蒸気の供給が減っておとろえ、温帯低気圧や熱帯低気圧になる','さらに発達して巨大になる','高気圧に変わる','前線が消えて強くなる','速さが0になって止まる','雪雲に変わって大雪を降らせる'],a:'水蒸気の供給が減っておとろえ、温帯低気圧や熱帯低気圧になる',exp:'勢力のもとになる水蒸気の供給が減るなどしておとろえ、温帯低気圧や熱帯低気圧になることが多い。'},
+  {id:'tx_t4',cat:'sh_taifu',q:'8月から秋にかけて、台風の進路がしだいに南に下がっていくのはなぜか。',c:['8月にもっとも発達していた太平洋高気圧がしりぞくから','シベリア高気圧が南へ移動するから','偏西風が東から西へふくようになるから','梅雨前線が北上するから','海水温が上がるから','日本列島が移動するから'],a:'8月にもっとも発達していた太平洋高気圧がしりぞくから',exp:'台風は太平洋高気圧のふちに沿って進む。8月にもっとも発達していた太平洋高気圧がしりぞくとともに、台風の進路も南下していく。'},
+  {id:'tx_t5',cat:'sh_taifu',q:'台風の進行方向に向かって右側の半円で、地上付近の風が強くなることが多いのはなぜか。',c:['台風の風と、台風を移動させるまわりの風が同じ方向にふくから','右側では気圧が高いから','右側には前線があるから','右側には雨が降らないから','右側では台風の風が逆向きになるから','地球の自転が右側だけ止まるから'],a:'台風の風と、台風を移動させるまわりの風が同じ方向にふくから',exp:'進行方向に向かって右の半円では、台風の風と台風を移動させるまわりの風の向きが同じになるため、風が強くなることが多い。'},
+  {id:'tx_t6',cat:'sh_taifu',q:'台風の実際の高さと横の広がりの比は、どれくらいか。',c:['CDを2枚重ねたものと同じくらい平べったい','高さのほうが10倍大きい','高さと広がりがほぼ同じ球の形','高さが広がりの半分くらい','電柱のように細長い','高さだけで100km以上ある'],a:'CDを2枚重ねたものと同じくらい平べったい',exp:'台風は高さ十数kmに対して横の広がりは数百km。実際の比は、CDを2枚重ねたものとほぼ同じくらい平べったい。'},
+  /* 恵みと災害 */
+  {id:'tx_m1',cat:'sh_saigai',q:'日本の年間降水量はおよそどれくらいか。',c:['約1700mm（世界の平均降水量の2倍近く）','約170mm','約17000mm','約500mm（世界平均の半分）','約100mm','約1000mm（世界平均と同じ）'],a:'約1700mm（世界の平均降水量の2倍近く）',exp:'日本の年間降水量は約1700mmで、世界の平均降水量の2倍近くある。台風による降水もその一端を担っている。'},
+  {id:'tx_m2',cat:'sh_saigai',q:'地下空間の利用や、地面がアスファルトにおおわれることによる排水能力の低下が原因で生じる災害を何という？',c:['都市型水害','高潮','雪崩','竜巻','干ばつ','土石流'],a:'都市型水害',exp:'都市型水害は、地下空間の利用や地面がアスファルトにおおわれて雨水がしみこみにくくなること（排水能力の低下）が原因で生じる。'},
+  {id:'tx_m3',cat:'sh_saigai',q:'首都圏外郭放水路（埼玉県春日部市）の調圧水そうは、どんな役割をしているか。',c:['あふれた地上の水を一時的に地下にとりこみ、広い範囲を水害から守る','雪をたくわえて夏の冷房に使う','海水を真水に変える','台風の風を弱める','地下水をくみ上げて発電する','高潮を防ぐ堤防になる'],a:'あふれた地上の水を一時的に地下にとりこみ、広い範囲を水害から守る',exp:'あふれた地上の水を一時的に地下にとりこむことで、広い範囲を水害から守っている。'},
+  {id:'tx_m4',cat:'sh_saigai',q:'同じ気象現象でも、生じる災害が地域によって異なるのはなぜか。',c:['海や河川の有無、地形などの地理的な特徴がちがうから','気象現象は地域で必ず同じ強さになるから','地域ごとに太陽の大きさがちがうから','地域によって重力がちがうから','災害は気象と関係ないから','住んでいる人の数だけで決まるから'],a:'海や河川の有無、地形などの地理的な特徴がちがうから',exp:'同じ気象現象でも、海や河川の有無や地形などの地理的な特徴によって生じる災害は異なる。住んでいる地域の特徴を知って備えることが大切。'},
+  {id:'tx_m5',cat:'sh_saigai',q:'積乱雲が発達して起こる災害としてあてはまるものは？',c:['落雷や竜巻','高潮だけ','冬の大雪だけ','霜による農作物の被害だけ','雪崩だけ','地震'],a:'落雷や竜巻',exp:'積乱雲の発達で、落雷（電子機器の故障・停電・感電事故）や竜巻による被害が生じることがある。'},
+  {id:'tx_m6',cat:'sh_saigai',q:'台風の暴風に備えて、石垣や低い屋根の家屋が見られる地域の例は？',c:['沖縄県竹富島','北海道新得町','新潟県南魚沼市','富山県南砺市','山形県蔵王','長野県の高原'],a:'沖縄県竹富島',exp:'台風がよく通過する地域では、暴風に備えた家屋がある（沖縄県竹富島など）。雪の多い地域では積雪に備えた家屋や融雪のしくみがある。'},
+  {id:'tx_m7',cat:'sh_saigai',q:'気象情報について正しいものはどれか。',c:['観測技術の発展や研究の進歩で天気をかなり正確に予測でき、防災・減災に役立てられている','天気は予測できないので気象情報は役に立たない','気象情報は専門家しか見てはいけない','気象情報は晴れの日にだけ出される','気象情報は災害が起きたあとにしか出ない','気象情報は全国どこでも同じ内容である'],a:'観測技術の発展や研究の進歩で天気をかなり正確に予測でき、防災・減災に役立てられている',exp:'雨雲の動きや土砂災害・浸水・洪水の危険などをWebサイトなどで知ることができ、適切な避難行動や防災活動につなげられる。'}
+]);
+
+/* ── 問題バンク つづき（計算特集の考え方）── */
+BANK.push.apply(BANK, [
+  {id:'kc_s1',cat:'kc_suijouki',q:'空気中の水蒸気量がその温度での飽和水蒸気量より少ないとき、その空気はあと何gの水蒸気をふくむことができるか。求め方として正しいのは？',c:['飽和水蒸気量－空気中の水蒸気量','空気中の水蒸気量－飽和水蒸気量','飽和水蒸気量＋空気中の水蒸気量','飽和水蒸気量×湿度','空気中の水蒸気量÷2','露点－気温'],a:'飽和水蒸気量－空気中の水蒸気量',exp:'飽和水蒸気量（最大量）までの残りがふくむことのできる量。'},
+  {id:'kc_s2',cat:'kc_suijouki',q:'露点より低い温度まで冷やしたとき、出てくる水滴の量の求め方は？',c:['空気中の水蒸気量－冷やした温度での飽和水蒸気量','冷やした温度での飽和水蒸気量－空気中の水蒸気量','もとの温度での飽和水蒸気量－空気中の水蒸気量','空気中の水蒸気量×湿度','気温の差×1g','露点での飽和水蒸気量×2'],a:'空気中の水蒸気量－冷やした温度での飽和水蒸気量',exp:'冷やした温度でふくみきれる量（飽和水蒸気量）をこえた分が水滴になる。'},
+  {id:'kc_s3',cat:'kc_suijouki',q:'部屋全体の空気にふくまれる水蒸気の量を求めるには？',c:['空気1m³中の水蒸気量×部屋の容積〔m³〕','空気1m³中の水蒸気量÷部屋の容積','飽和水蒸気量×部屋の床面積','湿度×部屋の容積','気温×部屋の容積','空気1m³中の水蒸気量×100'],a:'空気1m³中の水蒸気量×部屋の容積〔m³〕',exp:'1m³あたりの水蒸気量に、部屋の容積（m³）をかける。'},
+  {id:'kc_s4',cat:'kc_kumo',q:'雲ができるまで（露点に達するまで）、上昇する空気の温度は100mにつき約何℃下がる？',c:['約1℃','約0.1℃','約0.5℃','約5℃','約10℃','下がらない'],a:'約1℃',exp:'水蒸気が水滴にならないうちは、上昇する空気の温度は100mにつき約1℃下がる。'},
+  {id:'kc_s5',cat:'kc_kumo',q:'雲ができはじめてからは、上昇する空気の温度は100mにつき約何℃下がる？（教科書の発展）',c:['約0.5℃','約1℃','約2℃','約0.1℃','約5℃','上がる'],a:'約0.5℃',exp:'水蒸気が水滴に変わるときに熱を放出するので、雲ができてからの温度の下がり方は小さくなり、100mにつき約0.5℃。'},
+  {id:'kc_s6',cat:'kc_kumo',q:'山をこえてふき下りる空気が、風上側の同じ高さより高温で乾燥する現象を何という？',c:['フェーン現象','ヒートアイランド現象','エルニーニョ現象','温室効果','逆転層','なぎ'],a:'フェーン現象',exp:'風上側で雲をつくって水蒸気を失った空気が、山をふき下りるとき100mにつき約1℃ずつ上がるので、風下側は高温で乾燥する。'},
+  {id:'kc_s7',cat:'kc_kumo',q:'雲ができはじめる高さを求める式は？（地上の気温と露点がわかっているとき）',c:['（地上の気温－露点）×100m','（地上の気温＋露点）×100m','露点×100m','地上の気温×100m','（地上の気温－露点）÷100m','（露点－地上の気温）×10m'],a:'（地上の気温－露点）×100m',exp:'100mにつき約1℃下がるので、気温が露点まで下がる高さ＝（気温－露点）×100m。'},
+  {id:'kc_s8',cat:'kc_hyo',q:'湿度表で湿度を読みとるとき、たての列（行）とよこの列は何を表す？',c:['たて＝乾球の示度、よこ＝乾球と湿球の示度の差','たて＝湿球の示度、よこ＝乾球の示度','たて＝気温、よこ＝露点','たて＝乾球と湿球の差、よこ＝湿球の示度','たて＝時刻、よこ＝気温','たて＝気圧、よこ＝湿度'],a:'たて＝乾球の示度、よこ＝乾球と湿球の示度の差',exp:'乾球の示度の行と、示度の差の列が交わったところの数値が湿度〔%〕。'},
+  {id:'kc_s9',cat:'kc_atsu',q:'面積を cm² で求めたとき、圧力〔Pa〕を出す前にすることは？',c:['10000でわって m² にする','100でわって m² にする','10000をかけて m² にする','100をかけて m² にする','そのまま計算する','1000でわる'],a:'10000でわって m² にする',exp:'1m²＝10000cm² なので、cm² の値を10000でわると m² になる。'}
+]);
+/* save_answer.php は question_text を255バイト、答えを100バイトでバイト単位に切る（substr）。
+   文字の途中で切れると不正なUTF-8になるので、送る前に文字の境目で切っておく
+   （計算問題は条件文が長く、255バイト＝和文約85字をこえやすい） */
+function capBytes(s,max){
+  s=String(s==null?'':s);
+  var parts=[], total=0, i=0;
+  while(i<s.length){
+    var c=s.charCodeAt(i), ch, b;
+    if(c>=0xD800&&c<=0xDBFF&&i+1<s.length){ ch=s.substr(i,2); b=4; i+=2; }
+    else { ch=s.charAt(i); b=(c<0x80)?1:(c<0x800?2:3); i++; }
+    parts.push([ch,b]); total+=b;
+  }
+  if(total<=max) return s;
+  var out='', n=0;
+  for(var j=0;j<parts.length;j++){ if(n+parts[j][1]+3>max) break; out+=parts[j][0]; n+=parts[j][1]; }
+  return out+'…';
+}
+
+/* ── 状態 ── */
+var MARU = ['①','②','③','④','⑤','⑥'];
+var state = { queue:[], idx:0, correct:0, byCat:{}, spec:null, retry:false, retryQueue:null, selMode:null };
+
+function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;} return a; }
+function byId(id){ return document.getElementById(id); }
+/* 生成器の本数（＝1回の出題で増える問題数）。GENERATORSはこの関数より後に定義されるが、
+   呼ばれるのは描画時（スクリプト実行後）なので参照できる */
+function genCountCat(c){ return (typeof GENERATORS!=='undefined' && GENERATORS[c]) ? GENERATORS[c].length : 0; }
+function countMode(m){ var n=0; for(var i=0;i<BANK.length;i++) if(CAT_MODE[BANK[i].cat]===m) n++;
+  Object.keys(CAT_MODE).forEach(function(c){ if(CAT_MODE[c]===m) n+=genCountCat(c); }); return n; }
+function countCat(c){ var n=0; for(var i=0;i<BANK.length;i++) if(BANK[i].cat===c) n++; return n+genCountCat(c); }
+function catsOfMode(m){ var s=[]; Object.keys(CATS).forEach(function(c){ if(CAT_MODE[c]===m && countCat(c)>0) s.push(c); }); return s; }
+
+/* ── モードカード ──（GENERATORS定義後にスクリプト末尾で呼ぶ。
+   即時実行だと生成問題の本数が0で数えられてしまうため） */
+function buildModeGrid(){
+  var g=byId('modeGrid'), html='';
+  Object.keys(MODES).forEach(function(m){
+    var d=MODES[m];
+    html+='<button class="mode-card" data-mode="'+m+'">'
+        +'<span class="nm">'+d.label+' <span class="ct">'+countMode(m)+'問</span></span>'
+        +'<span class="ds">'+d.desc+'</span></button>';
+  });
+  g.innerHTML=html;
+  g.addEventListener('click',function(e){ var b=e.target.closest('.mode-card'); if(b) selectMode(b.getAttribute('data-mode')); });
+}
+
+function selectMode(m){
+  state.selMode=m;
+  byId('modeGrid').querySelectorAll('.mode-card').forEach(function(el){ el.classList.toggle('active', el.getAttribute('data-mode')===m); });
+  var d=MODES[m], total=countMode(m), cats=catsOfMode(m);
+  var html='<h3>'+d.label+'</h3>';
+  html+='<div class="big-actions"><button class="btn btn-primary sm" id="startModeAll">この単元を全部（'+total+'問）</button>';
+  if(total>15) html+='<button class="btn btn-outline sm" id="startModeRand">ランダム15問</button>';
+  html+='</div>';
+  html+='<div class="chip-row"><span class="chip-lbl">分野をしぼる：</span>';
+  cats.forEach(function(c){ html+='<button class="chip-btn" data-cat="'+c+'">'+CATS[c]+'<span class="n">'+countCat(c)+'</span></button>'; });
+  html+='</div>';
+  var p=byId('modePanel'); p.innerHTML=html; p.hidden=false;
+  byId('startModeAll').addEventListener('click',function(){ startQuiz({mode:m}); });
+  var r=byId('startModeRand'); if(r) r.addEventListener('click',function(){ startQuiz({mode:m,cap:15}); });
+  p.querySelectorAll('.chip-btn').forEach(function(b){ b.addEventListener('click',function(){ startQuiz({cat:b.getAttribute('data-cat')}); }); });
+  try{ p.scrollIntoView({behavior:'smooth',block:'nearest'}); }catch(e){}
+}
+
+/* ── 動的生成問題（毎回ランダムな数値で作る）── */
+function ri(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function pick(a){ return a[ri(0,a.length-1)]; }
+function numStr(n){ return (Math.round(n*100000)/100000).toString(); }   /* 末尾0を落として表示 */
+function r1(n){ return Math.round(n*100)/100; }                          /* 割り切れない誤答は小数第2位に丸め */
+/* 割り切れる値か（小数第5位まででぴったり表せる＝numStrが丸め表示にならない）。
+   166.66667Hz のような割り切れない選択肢を出さないための判定 */
+function isClean(x){ return isFinite(x) && x>0 && Math.abs(x*100000-Math.round(x*100000))<1e-9; }
+/* 正解＋誤答候補から重複なし6択を作る。fmt=表示整形。正解は必ず含み、正の有限値のみ採用。
+   誤答は「割り切れるもの」を優先し、6個に届かないときだけ丸めた端数で埋める */
+function assemble(correct, wrongs, fmt){
+  var a=fmt(correct), seen={}, out=[a], later=[]; seen[a]=1;
+  function add(w){
+    if(out.length>=6) return;
+    var t=fmt(w); if(!seen[t]){ seen[t]=1; out.push(t); }
+  }
+  /* 正解と桁が離れすぎた候補（800Hzに対する0.00125Hzなど）は誤答としても選ばれないので後回し */
+  shuffle(wrongs).forEach(function(w){
+    if(isClean(w) && w>=correct/1000 && w<=correct*1000) add(w);
+    else if(isFinite(w) && w>0) later.push(w);
+  });
+  var step=correct>=10?10:(correct>=1?1:(correct>=0.1?0.1:(correct>=0.01?0.01:0.001)));
+  var cand=[correct*2, correct/2, correct*3, correct*1.5, correct*0.8,
+            correct+step, correct+2*step, correct*4, correct*10, correct/10, correct+3*step];
+  for(var i=0;i<cand.length && out.length<6;i++){
+    if(isClean(cand[i])) add(cand[i]); else later.push(cand[i]);
+  }
+  for(var j=0;j<later.length && out.length<6;j++){
+    var v=r1(later[j]); if(v>0) add(v);
+  }
+  return {c:shuffle(out), a:a};
+}
+/* 生成問題は「値を選ぶ gen」と「値から問題を組む build」に分離する。
+   build が返す question には params(=完全な生成情報)を持たせ、Divp.answer にそのまま渡す。
+   解き直し(?retry=1)では params から build を呼び直して同じ問題を再現する。
+   → params_hash が問題ごとに一意になり、2連続正解のmastered判定も正しく働く。 */
+
+/* ==========================================================================
+   生成問題（毎回ちがう数値・図で作る）
+   「値を選ぶ gen」と「値から問題を組む build」に分ける。build が返す問題は
+   params（＝完全な生成情報）を持ち、Divp.answer にそのまま渡す。
+   解き直し(?retry=1)では params から build を呼び直して同じ問題を再現する。
+   ⚠ build の中では乱数を使わない（shuffle で選択肢をならべかえるのは描画側でもう一度やるので問題ない
+     ＝正解・選択肢の中身さえ params だけで決まればよい）。
+   ========================================================================== */
+/* 文字列の選択肢を「正解＋誤答候補」から重複なしで n 個そろえる（誤答は先頭から優先） */
+function pickChoices(correct, wrongs, n){
+  var out=[correct], seen={}; seen[correct]=1;
+  for(var i=0;i<wrongs.length && out.length<(n||6);i++){ var w=wrongs[i]; if(w!=null && !seen[w]){ seen[w]=1; out.push(w); } }
+  return out;
+}
+/* 決まった順の誤答（build の中で使う。乱数を使わないので params から同じ問題が再現できる） */
+function rot(a,k){ k=((k%a.length)+a.length)%a.length; return a.slice(k).concat(a.slice(0,k)); }
+
+/* ========== 圧力の計算 ========== */
+function buildAtsuBasic(p){
+  var P=p.F/p.A;
+  var a=assemble(P,[p.A/p.F, p.F*p.A, P/10, P*10, P*2],function(n){return numStr(n)+'Pa';});
+  return {cat:'kc_atsu',q:'重さ '+numStr(p.F)+'N の物体を、底面積 '+numStr(p.A)+'m² の面を下にして床に置いた。床が受ける圧力は何Paか。',
+    c:a.c,a:a.a,exp:'圧力＝力÷面積＝'+numStr(p.F)+'÷'+numStr(p.A)+'＝'+numStr(P)+'Pa。',
+    params:{gen:'atsuBasic',F:p.F,A:p.A}};
+}
+function genAtsuBasic(){ return buildAtsuBasic({F:pick([10,20,30,60,80,120,150,300]),A:pick([0.2,0.5,2,3,4,5])}); }
+
+function buildAtsuMass(p){   /* 質量（kg または g）と底面積 m² */
+  var F=p.g/100, P=F/p.A, mass=(p.g>=1000)?numStr(p.g/1000)+'kg':numStr(p.g)+'g';
+  var a=assemble(P,[p.g/p.A, F*p.A, P/10, P*10, P*2],function(n){return numStr(n)+'Pa';});
+  return {cat:'kc_atsu',q:'底面積が '+numStr(p.A)+'m² で、質量が '+mass+' の物体が机に加える圧力は何Paか。（100gの物体にはたらく重力の大きさを1Nとする）',
+    c:a.c,a:a.a,exp:'力＝'+numStr(p.g)+'g÷100＝'+numStr(F)+'N。圧力＝'+numStr(F)+'÷'+numStr(p.A)+'＝'+numStr(P)+'Pa。',
+    params:{gen:'atsuMass',g:p.g,A:p.A}};
+}
+function genAtsuMass(){
+  var A=pick([0.2,0.4,0.5,0.6,2]), P=pick([6,10,12,15,20,30,50]);
+  return buildAtsuMass({g:Math.round(P*A*100),A:A});
+}
+
+function buildAtsuCm(p){   /* 直方体の面（cm）を下にして置く */
+  var F=p.g/100, Am=p.x*p.y/10000, P=F/Am, mass=(p.g>=1000)?numStr(p.g/1000)+'kg':numStr(p.g)+'g';
+  var a=assemble(P,[F/(p.x*p.y), p.g/(p.x*p.y), P/10, P*10, P/100],function(n){return numStr(n)+'Pa';});
+  return {cat:'kc_atsu',q:'質量 '+mass+' の直方体を、たて '+p.x+'cm・横 '+p.y+'cm の面を下にして机の上に置いた。机が受ける圧力は何Paか。（100gの物体にはたらく重力の大きさを1Nとする）',
+    c:a.c,a:a.a,
+    exp:'力＝'+numStr(p.g)+'÷100＝'+numStr(F)+'N。面積＝'+p.x+'×'+p.y+'＝'+(p.x*p.y)+'cm²＝'+numStr(Am)+'m²（10000でわる）。圧力＝'+numStr(F)+'÷'+numStr(Am)+'＝'+numStr(P)+'Pa。',
+    params:{gen:'atsuCm',g:p.g,x:p.x,y:p.y}};
+}
+function genAtsuCm(){
+  var t=pick([[8,15],[10,15],[8,10],[10,20],[5,20],[20,25],[10,10],[4,5]]);
+  var P=pick([500,800,1000,1200,1500,2000,2500]);
+  var g=P*t[0]*t[1]/100;
+  if(g!==Math.round(g)) g=Math.round(g);
+  return buildAtsuCm({g:g,x:t[0],y:t[1]});
+}
+
+function buildAtsuRatio(p){   /* 置く面を変えたときの圧力の比 */
+  var areas=[p.x*p.y, p.y*p.z, p.x*p.z], mx=Math.max.apply(null,areas), mn=Math.min.apply(null,areas), r=mx/mn;
+  var a=assemble(r,[1/r, r*2, r/2, r+1, mx-mn],function(n){return numStr(n)+'倍';});
+  return {cat:'kc_atsu',q:'たて '+p.x+'cm・横 '+p.y+'cm・高さ '+p.z+'cm の直方体の、下にする面を変えて机に置いた。机が受ける圧力がもっとも大きいときの圧力は、もっとも小さいときの何倍か。',
+    c:a.c,a:a.a,
+    exp:'重さ（力）はどの面でも同じなので、圧力は面積に反比例する。面積は '+areas.join('cm²・')+'cm²。最大の圧力÷最小の圧力＝最大の面積÷最小の面積＝'+mx+'÷'+mn+'＝'+numStr(r)+'倍。',
+    params:{gen:'atsuRatio',x:p.x,y:p.y,z:p.z}};
+}
+function genAtsuRatio(){ var t=pick([[5,10,20],[10,20,5],[4,8,16],[5,10,10],[3,6,12],[6,12,24]]); return buildAtsuRatio({x:t[0],y:t[1],z:t[2]}); }
+
+function buildTaikiForce(p){   /* 大気が面を押す力 */
+  var Pa=p.hpa*100, Am=(p.u==='cm')?p.A/10000:p.A, F=Pa*Am;
+  var a=assemble(F,[F/10, F*10, F/100, F*100, p.hpa*p.A],function(n){return numStr(n)+'N';});
+  return {cat:'kc_atsu',q:'大気圧が '+p.hpa+'hPa のとき、面積 '+numStr(p.A)+(p.u==='cm'?'cm²':'m²')+' の面を大気が押す力の大きさは何Nか。',
+    c:a.c,a:a.a,
+    exp:p.hpa+'hPa＝'+Pa+'Pa（1hPa＝100Pa）。'+(p.u==='cm'?'面積は '+numStr(p.A)+'÷10000＝'+numStr(Am)+'m²。':'')+'力＝圧力×面積＝'+Pa+'×'+numStr(Am)+'＝'+numStr(F)+'N。',
+    params:{gen:'taikiForce',hpa:p.hpa,A:p.A,u:p.u}};
+}
+function genTaikiForce(){
+  if(ri(0,1)===0) return buildTaikiForce({hpa:1000,A:pick([1,2,5,10,20]),u:'cm'});
+  return buildTaikiForce({hpa:pick([1000,1010,1020]),A:pick([0.5,1.5,1.7,2]),u:'m'});
+}
+
+function buildSponge(p){   /* 正方形の板の1辺を変えたときのへこみ（圧力）の比 */
+  var r=(p.a*p.a)/(p.b*p.b);
+  var a=assemble(r,[1/r, p.a/p.b, p.b/p.a, r*2, r/2],function(n){return '約'+numStr(n)+'倍';});
+  return {cat:'kc_atsu',q:'水を入れたペットボトルを、1辺 '+p.a+'cm の正方形の板にのせてスポンジに置いた。板を1辺 '+p.b+'cm の正方形に変えると、スポンジのへこむ深さは約何倍になるか。（へこむ深さは圧力に比例するものとする）',
+    c:a.c,a:a.a,
+    exp:'力は同じで、面積は '+p.a+'×'+p.a+'＝'+(p.a*p.a)+'cm² から '+p.b+'×'+p.b+'＝'+(p.b*p.b)+'cm² になる。圧力は面積に反比例するので '+(p.a*p.a)+'÷'+(p.b*p.b)+'＝'+numStr(r)+'倍。',
+    params:{gen:'sponge',a:p.a,b:p.b}};
+}
+function genSponge(){ var t=pick([[8,4],[4,8],[6,3],[10,5],[6,2],[3,6],[9,3]]); return buildSponge({a:t[0],b:t[1]}); }
+
+/* ========== 湿度・水蒸気量の計算 ========== */
+function pctFmt(n){ return numStr(n)+'%'; }
+function gFmt(n){ return f1(n)+'g'; }
+/* 割り切れない湿度は小数第1位を四捨五入した整数にする */
+function buildShitsudo(p){   /* 気温と1m³中の水蒸気量 → 湿度 */
+  var s=SAT[p.T], h=Math.round(p.W/s*100);
+  var a=assemble(h,[h+3, h-3, h+8, h-8, Math.round((s-p.W)/s*100), Math.round(p.W/SAT[Math.min(30,p.T+4)]*100)],pctFmt);
+  return {cat:'kc_shitsudo',q:'気温 '+p.T+'℃ で、1m³ 中に '+f1(p.W)+'g の水蒸気をふくんでいる空気の湿度は約何%か。小数第1位を四捨五入して整数で答えよ。（'+p.T+'℃ の飽和水蒸気量は '+f1(s)+'g/m³）',
+    c:a.c,a:a.a,
+    exp:'湿度＝水蒸気量÷飽和水蒸気量×100＝'+f1(p.W)+'÷'+f1(s)+'×100＝'+(Math.round(p.W/s*1000)/10)+'… → 約'+h+'%。',
+    params:{gen:'shitsudo',T:p.T,W:p.W}};
+}
+function genShitsudo(){
+  var T=ri(10,30), td=ri(Math.max(0,T-14),T-2);
+  return buildShitsudo({T:T,W:SAT[td]});
+}
+function buildShitsudoDew(p){   /* 気温と露点 → 湿度（表つき） */
+  var s=SAT[p.T], w=SAT[p.D], h=Math.round(w/s*100);
+  var a=assemble(h,[Math.round(s/w*100), h+5, h-5, h+10, h-10, Math.round(p.D/p.T*100)],pctFmt);
+  return {cat:'kc_shitsudo',q:'気温 '+p.T+'℃ の空気の露点を調べたら '+p.D+'℃ であった。この空気の湿度は約何%か。表を使い、小数第1位を四捨五入して整数で答えよ。',
+    tbl:satTableHTML(uniqSort([p.D,p.T,p.D-2,p.D+2,p.T-2,p.T+2])),
+    c:a.c,a:a.a,
+    exp:'露点 '+p.D+'℃ なので、空気1m³中の水蒸気量は '+p.D+'℃ の飽和水蒸気量と同じ '+f1(w)+'g。湿度＝'+f1(w)+'÷'+f1(s)+'×100＝'+(Math.round(w/s*1000)/10)+'… → 約'+h+'%。',
+    params:{gen:'shitsudoDew',T:p.T,D:p.D}};
+}
+function uniqSort(a){ var s={},o=[]; a.forEach(function(v){ if(v>=0&&v<=30&&!s[v]){s[v]=1;o.push(v);} }); return o.sort(function(x,y){return x-y;}); }
+function genShitsudoDew(){ var T=ri(14,30); return buildShitsudoDew({T:T,D:ri(Math.max(2,T-14),T-3)}); }
+
+function buildSuijoukiFromH(p){   /* 気温と湿度 → 水蒸気量 */
+  var s=SAT[p.T], w=r10(s*p.H/100);
+  var a=assemble(w,[r10(s*(100-p.H)/100), r10(s/p.H*10), r10(p.H/s), r10(s-p.H/10), r10(w+1), r10(w*2)],gFmt);
+  return {cat:'kc_suijouki',q:'気温 '+p.T+'℃、湿度 '+p.H+'% の空気 1m³ 中にふくまれている水蒸気は約何gか。小数第2位を四捨五入して答えよ。（'+p.T+'℃ の飽和水蒸気量は '+f1(s)+'g/m³）',
+    c:a.c,a:a.a,
+    exp:'水蒸気量＝飽和水蒸気量×湿度÷100＝'+f1(s)+'×'+p.H+'÷100＝'+(Math.round(s*p.H)/100)+' → 約'+f1(w)+'g。',
+    params:{gen:'suijoukiFromH',T:p.T,H:p.H}};
+}
+function genSuijoukiFromH(){ return buildSuijoukiFromH({T:pick([16,18,20,22,24,25,26,28,30]),H:pick([40,50,60,65,70,75,80,85])}); }
+
+function buildAtoNan(p){   /* あと何gふくめるか */
+  var s=SAT[p.T], v=r10(s-p.W);
+  var a=assemble(v,[r10(s+p.W), p.W, s, r10(v+1), r10(v/2), r10(s-SAT[Math.max(0,p.T-5)])],gFmt);
+  return {cat:'kc_suijouki',q:'気温 '+p.T+'℃ で、1m³ 中に '+f1(p.W)+'g の水蒸気をふくむ空気がある。この空気 1m³ は、あと何gの水蒸気をふくむことができるか。（'+p.T+'℃ の飽和水蒸気量は '+f1(s)+'g/m³）',
+    c:a.c,a:a.a,
+    exp:'あとふくめる量＝飽和水蒸気量－水蒸気量＝'+f1(s)+'－'+f1(p.W)+'＝'+f1(v)+'g。',
+    params:{gen:'atoNan',T:p.T,W:p.W}};
+}
+function genAtoNan(){ var T=ri(12,30); return buildAtoNan({T:T,W:SAT[ri(Math.max(0,T-15),T-2)]}); }
+
+function buildRoten(p){   /* 水蒸気量 → 露点（表つき） */
+  var w=SAT[p.D];
+  var ts=uniqSort([p.D-3,p.D-2,p.D-1,p.D,p.D+1,p.D+2,p.D+3,p.T]);
+  var c=pickChoices(p.D+'℃',[(p.D+1)+'℃',(p.D-1)+'℃',p.T+'℃',(p.D+2)+'℃',(p.D-2)+'℃',Math.round(w)+'℃'],6);
+  return {cat:'kc_suijouki',q:'気温 '+p.T+'℃ で、1m³ 中に '+f1(w)+'g の水蒸気をふくむ空気がある。この空気の露点は何℃か。表を使って答えよ。',
+    tbl:satTableHTML(ts),c:c,a:p.D+'℃',
+    exp:'露点は、空気中の水蒸気量（'+f1(w)+'g/m³）が飽和水蒸気量と等しくなる温度。表で '+f1(w)+'g/m³ になるのは '+p.D+'℃。',
+    params:{gen:'roten',T:p.T,D:p.D}};
+}
+function genRoten(){ var T=ri(15,30); return buildRoten({T:T,D:ri(Math.max(3,T-12),T-3)}); }
+
+function buildSuiteki(p){   /* 冷やしたときにできる水滴 */
+  var w=SAT[p.D], s=SAT[p.C], v=r10(w-s);
+  var a=assemble(v,[r10(SAT[p.T]-w), r10(SAT[p.T]-s), s, w, r10(v+1), r10(v*2)],gFmt);
+  return {cat:'kc_suijouki',q:'気温 '+p.T+'℃ で、1m³ 中に '+f1(w)+'g の水蒸気をふくむ空気を '+p.C+'℃ まで冷やした。空気 1m³ あたり何gの水滴ができるか。表を使って答えよ。',
+    tbl:satTableHTML(uniqSort([p.C,p.D,p.T,p.C+2,p.D-2])),c:a.c,a:a.a,
+    exp:p.C+'℃ の飽和水蒸気量は '+f1(s)+'g/m³。ふくみきれなくなった分が水滴になるので '+f1(w)+'－'+f1(s)+'＝'+f1(v)+'g。（露点は '+p.D+'℃）',
+    params:{gen:'suiteki',T:p.T,D:p.D,C:p.C}};
+}
+function genSuiteki(){ var T=ri(16,30), D=ri(Math.max(6,T-10),T-2); return buildSuiteki({T:T,D:D,C:ri(Math.max(0,D-10),D-2)}); }
+
+function buildHiyashiH(p){   /* 冷やしたときの湿度（露点より上 / 露点以下） */
+  var w=SAT[p.D], s=SAT[p.C], h=(p.C<=p.D)?100:Math.round(w/s*100);
+  var a=assemble(h,[Math.round(w/SAT[p.T]*100), h===100?90:100, Math.min(99,h+8), Math.max(10,h-8), Math.round(s/SAT[p.T]*100), 50],pctFmt);
+  return {cat:'kc_shitsudo',q:'気温 '+p.T+'℃ で、1m³ 中に '+f1(w)+'g の水蒸気をふくむ空気を '+p.C+'℃ まで冷やした。このときの湿度は約何%か。表を使い、整数で答えよ。',
+    tbl:satTableHTML(uniqSort([p.C,p.D,p.T,p.C+2])),c:a.c,a:a.a,
+    exp:(p.C<=p.D)
+      ? p.C+'℃ は露点（'+p.D+'℃）以下なので、空気は水蒸気で飽和していて湿度は100%（ふくみきれない分は水滴になっている）。'
+      : p.C+'℃ の飽和水蒸気量は '+f1(s)+'g/m³。湿度＝'+f1(w)+'÷'+f1(s)+'×100＝'+(Math.round(w/s*1000)/10)+'… → 約'+h+'%。',
+    params:{gen:'hiyashiH',T:p.T,D:p.D,C:p.C}};
+}
+function genHiyashiH(){
+  var T=ri(18,30), D=ri(Math.max(6,T-12),T-4);
+  return buildHiyashiH({T:T,D:D,C:(ri(0,2)===0)?ri(D-6,D):ri(D+1,T-1)});
+}
+
+function buildHeya(p){   /* 部屋全体の水蒸気量 */
+  var s=SAT[p.T], w=s*p.H/100, tot=Math.round(w*p.V*10)/10;
+  var a=assemble(tot,[r10(s*p.V), r10(w), r10(tot*2), r10(s*(100-p.H)/100*p.V), r10(tot/2)],function(n){return numStr(n)+'g';});
+  return {cat:'kc_suijouki',q:'容積が '+p.V+'m³ の部屋がある。この部屋の気温は '+p.T+'℃、湿度は '+p.H+'% であった。部屋の空気全体にふくまれる水蒸気は何gか。（'+p.T+'℃ の飽和水蒸気量は '+f1(s)+'g/m³）',
+    c:a.c,a:a.a,
+    exp:'1m³中の水蒸気量＝'+f1(s)+'×'+p.H+'÷100＝'+numStr(Math.round(w*1000)/1000)+'g。部屋全体＝'+numStr(Math.round(w*1000)/1000)+'×'+p.V+'＝'+numStr(tot)+'g。',
+    params:{gen:'heya',T:p.T,H:p.H,V:p.V}};
+}
+function genHeya(){ return buildHeya({T:pick([18,20,22,24,25,26]),H:pick([40,50,60,70,80]),V:pick([10,15,20,25,30,50])}); }
+
+function buildKashitsu(p){   /* 加湿器で増えた水蒸気量（室温一定） */
+  var s=SAT[p.T], inc=Math.round(s*(p.H2-p.H1)/100*p.V*10)/10;
+  var a=assemble(inc,[r10(s*p.H2/100*p.V), r10(s*p.H1/100*p.V), r10(s*(p.H2-p.H1)/100), r10(inc*2), r10((p.H2-p.H1)*p.V)],function(n){return numStr(n)+'g';});
+  return {cat:'kc_suijouki',q:'容積が '+p.V+'m³ の部屋の気温は '+p.T+'℃、湿度は '+p.H1+'% であった。しめ切って加湿器を使ったところ、室温は '+p.T+'℃ のままで湿度が '+p.H2+'% になった。空気中の水蒸気量は何g増加したか。（'+p.T+'℃ の飽和水蒸気量は '+f1(s)+'g/m³）',
+    c:a.c,a:a.a,
+    exp:'1m³あたりの増加＝'+f1(s)+'×('+p.H2+'－'+p.H1+')÷100＝'+numStr(Math.round(s*(p.H2-p.H1)*10)/1000)+'g。部屋全体＝それ×'+p.V+'＝'+numStr(inc)+'g。',
+    params:{gen:'kashitsu',T:p.T,H1:p.H1,H2:p.H2,V:p.V}};
+}
+function genKashitsu(){ var H1=pick([30,40,50]); return buildKashitsu({T:pick([20,22,24,25,26]),H1:H1,H2:H1+pick([10,20,30]),V:pick([10,20,25,50])}); }
+
+/* ========== 湿度表の読みとり ========== */
+function hyoWindow(fine,dry){
+  var keys=Object.keys(fine?HYO_FINE:HYO_COARSE).map(Number), top=Math.max.apply(null,keys), bot=Math.min.apply(null,keys);
+  var n=5, t=Math.min(top,dry+2); if(t-n+1<bot) t=bot+n-1;
+  return {top:t,n:n};
+}
+function buildHyoRead(p){   /* p={f:1/0, dry, di(差の番号), ask:'h'|'wet', fig} */
+  var fine=!!p.f, D=fine?HYO_FINE_D:HYO_COARSE_D, T=fine?HYO_FINE:HYO_COARSE, d=D[p.di], wet=r10(p.dry-d), h=T[p.dry][p.di];
+  var w=hyoWindow(fine,p.dry), tbl=hyoTableHTML(fine,w.top,w.n);
+  var dryS=fine?f1(p.dry):String(p.dry), wetS=fine?f1(wet):String(wet);
+  if(p.fig) tbl='<div class="figrow"><div class="figcell">'+kanshitsuSVG(p.dry,wet)+'</div><div class="figcell">'+tbl+'</div></div>';
+  var row=T[p.dry], i, wr=[];
+  if(p.ask==='wet'){
+    for(i=0;i<D.length;i++) if(i!==p.di) wr.push(f1(p.dry-D[i])+'℃');
+    wr.push(f1(p.dry+d)+'℃'); wr.push(f1(d)+'℃');
+    return {cat:(p.m==='k'?'ka_kanshitsu':'kc_hyo'),q:'ある地点の気温は '+dryS+'℃、湿度は '+h+'% であった。このとき湿球温度計の示度は何℃か。湿度表を使って答えよ。',
+      tbl:tbl,c:pickChoices(f1(wet)+'℃',wr,6),a:f1(wet)+'℃',
+      exp:'気温＝乾球の示度 '+dryS+'℃。湿度表の '+p.dry+'℃ の行で '+h+'% になるのは示度の差 '+f1(d)+'℃ の列。湿球の示度＝'+dryS+'－'+f1(d)+'＝'+f1(wet)+'℃。',
+      params:{gen:'hyoRead',f:p.f,dry:p.dry,di:p.di,ask:'wet',fig:0,m:p.m||''}};
+  }
+  for(i=0;i<row.length;i++) if(i!==p.di) wr.push(row[i]+'%');
+  if(T[p.dry-1]) wr.push(T[p.dry-1][p.di]+'%');
+  if(T[p.dry+1]) wr.push(T[p.dry+1][p.di]+'%');
+  if(T[Math.round(wet)]) wr.push(T[Math.round(wet)][p.di]+'%');
+  var q=p.fig ? '図は乾湿計の示度を表したものである。表の湿度表を使うと、このときの湿度は何%か。'
+              : '乾球温度計の示度が '+dryS+'℃、湿球温度計の示度が '+wetS+'℃ のとき、湿度は何%か。湿度表を使って答えよ。';
+  return {cat:(p.m==='k'?'ka_kanshitsu':'kc_hyo'),q:q,tbl:tbl,c:pickChoices(h+'%',wr,6),a:h+'%',
+    exp:'乾球 '+dryS+'℃、湿球 '+wetS+'℃ なので示度の差は '+f1(d)+'℃。湿度表の '+p.dry+'℃ の行と '+f1(d)+' の列が交わるところを読んで '+h+'%。'+(d===0?'（差が0なら湿度100%）':''),
+    params:{gen:'hyoRead',f:p.f,dry:p.dry,di:p.di,ask:'h',fig:p.fig?1:0,m:p.m||''}};
+}
+function genHyoRead(){
+  var fine=ri(0,1)===1, keys=Object.keys(fine?HYO_FINE:HYO_COARSE).map(Number);
+  return buildHyoRead({f:fine?1:0,dry:pick(keys),di:ri(1,(fine?HYO_FINE_D:HYO_COARSE_D).length-1),ask:'h',fig:0});
+}
+/* 気象観測モードの1問（記録は気象観測に入るよう m:'k' を持たせる） */
+function genHyoReadK(){ var q=genHyoRead(); q.params.m='k'; return buildHyoRead(q.params); }
+function genHyoFig(){
+  var keys=Object.keys(HYO_COARSE).map(Number);
+  return buildHyoRead({f:0,dry:pick(keys),di:ri(1,5),ask:'h',fig:1});
+}
+function genHyoWet(){
+  var fine=ri(0,1)===1, keys=Object.keys(fine?HYO_FINE:HYO_COARSE).map(Number);
+  return buildHyoRead({f:fine?1:0,dry:pick(keys),di:ri(1,(fine?HYO_FINE_D:HYO_COARSE_D).length-1),ask:'wet',fig:0});
+}
+
+/* ========== 雲ができる高さ・フェーン現象 ========== */
+function buildKumoDew(p){   /* 地上の気温と露点 → 雲ができる高さ */
+  var h=(p.T-p.D)*100;
+  var a=assemble(h,[p.D*100, p.T*100, (p.T+p.D)*100, h/2, h*2, (p.T-p.D)*10],function(n){return numStr(n)+'m';});
+  return {cat:'kc_kumo',q:'地上（標高0m）で気温 '+p.T+'℃、露点 '+p.D+'℃ の空気のかたまりが上昇した。雲ができはじめるのは標高約何mか。（雲ができるまで、空気の温度は100mにつき1℃下がるものとする）',
+    c:a.c,a:a.a,
+    exp:'空気の温度が露点まで '+p.T+'－'+p.D+'＝'+(p.T-p.D)+'℃ 下がると雲ができる。100mで1℃なので '+(p.T-p.D)+'×100＝'+h+'m。',
+    params:{gen:'kumoDew',T:p.T,D:p.D}};
+}
+function genKumoDew(){ var T=ri(14,30); return buildKumoDew({T:T,D:ri(Math.max(2,T-16),T-4)}); }
+
+function buildKumoH(p){   /* 地上の気温と湿度 → 水蒸気量 → 露点 → 高さ（表つき） */
+  var s=SAT[p.T], w=r10(s*p.H/100), h=(p.T-p.D)*100;
+  var a=assemble(h,[p.D*100, (p.T-p.D)*10, h+200, h-200, (p.T+p.D)*100, p.H*10],function(n){return numStr(n)+'m';});
+  return {cat:'kc_kumo',q:'地上（標高0m）で気温 '+p.T+'℃、湿度 '+p.H+'% の空気のかたまりが山の斜面に沿って上昇した。雲ができはじめるのは標高約何mか。表を使って求めよ。（雲ができるまで、空気の温度は100mにつき1℃下がるものとする）',
+    tbl:satTableHTML(uniqSort([p.D-1,p.D,p.D+1,p.T])),c:a.c,a:a.a,
+    exp:'水蒸気量＝'+f1(s)+'×'+p.H+'÷100＝'+f1(w)+'g/m³。表でこれに最も近い飽和水蒸気量は '+p.D+'℃（'+f1(SAT[p.D])+'g/m³）なので露点は約'+p.D+'℃。'+p.T+'－'+p.D+'＝'+(p.T-p.D)+'℃ 下がる高さ＝'+h+'m。',
+    params:{gen:'kumoH',T:p.T,D:p.D,H:p.H}};
+}
+function genKumoH(){
+  for(var k=0;k<30;k++){
+    var T=ri(16,30), D=ri(Math.max(3,T-14),T-4), H=Math.round(SAT[D]/SAT[T]*100), w=r10(SAT[T]*H/100);
+    /* 求めた水蒸気量に最も近い表の値が D℃ のときだけ出題する（あいまいな問題を作らない） */
+    var best=0, bd=1e9; for(var t=0;t<=30;t++){ var dd=Math.abs(SAT[t]-w); if(dd<bd){bd=dd;best=t;} }
+    if(best===D && bd<=0.15) return buildKumoH({T:T,D:D,H:H});
+  }
+  return buildKumoH({T:20,D:8,H:48});
+}
+
+function buildKumoBack(p){   /* 雲ができた高さと気温 → 地上の湿度 */
+  var Tg=p.Tc+p.h/100, w=SAT[p.Tc], s=SAT[Tg], H=Math.round(w/s*100);
+  var a=assemble(H,[H+5, H-5, H+10, H-10, 100, Math.round(w/SAT[Math.min(30,Tg+3)]*100)],pctFmt);
+  return {cat:'kc_kumo',q:'地上（標高0m）の空気のかたまりが上昇し、標高 '+p.h+'m で雲ができはじめた。このときの空気の温度は '+p.Tc+'℃ であった。この空気のかたまりの地上での湿度は約何%か。表を使い、整数で答えよ。（雲ができるまで100mにつき1℃下がる）',
+    tbl:satTableHTML(uniqSort([p.Tc,Tg,p.Tc+2,Tg-2])),c:a.c,a:a.a,
+    exp:'雲ができはじめた高さで露点に達したので露点は '+p.Tc+'℃、水蒸気量は '+f1(w)+'g/m³。地上の気温は '+p.Tc+'＋'+(p.h/100)+'＝'+Tg+'℃（飽和水蒸気量 '+f1(s)+'g/m³）。湿度＝'+f1(w)+'÷'+f1(s)+'×100＝'+(Math.round(w/s*1000)/10)+'… → 約'+H+'%。',
+    params:{gen:'kumoBack',Tc:p.Tc,h:p.h}};
+}
+function genKumoBack(){ var Tc=ri(4,16), h=pick([400,600,800,1000,1200]); if(Tc+h/100>30) Tc=30-h/100; return buildKumoBack({Tc:Tc,h:h}); }
+
+function buildFoehn(p){   /* 風上の気温・露点・山の高さ → 風下の気温 */
+  var hb=(p.T-p.D)*100, top=p.D-0.5*(p.M-hb)/100, lee=top+p.M/100;
+  var fmt=function(n){ return numStr(n)+'℃'; };
+  var a=assemble(lee,[p.T, top, lee+1, lee-1, lee+2, top+p.M/200],fmt);
+  return {cat:'kc_kumo',q:'気温 '+p.T+'℃、露点 '+p.D+'℃ の空気が、標高0mの地点Aから山の斜面に沿って上昇し、標高 '+p.M+'m の山頂をこえて反対側の標高0mの地点Bにふき下りた。地点Bでの気温は何℃か。（雲ができるまでは100mにつき1℃、雲ができてからは100mにつき0.5℃下がり、ふき下りるときは100mにつき1℃上がる。山頂をこえると雲は消える）',
+    c:a.c,a:a.a,
+    exp:'雲ができはじめる高さ＝('+p.T+'－'+p.D+')×100＝'+hb+'m（このとき '+p.D+'℃）。山頂まで残り '+(p.M-hb)+'m で 0.5×'+((p.M-hb)/100)+'＝'+numStr(0.5*(p.M-hb)/100)+'℃ 下がり、山頂は '+numStr(top)+'℃。'+p.M+'m ふき下りて '+(p.M/100)+'℃ 上がるので、B は '+numStr(lee)+'℃（Aより高温で乾燥＝フェーン現象）。',
+    params:{gen:'foehn',T:p.T,D:p.D,M:p.M}};
+}
+function genFoehn(){
+  var T=ri(16,26), D=ri(T-10,T-4), M=pick([1500,1700,2000,2200,2400,3000]);
+  if((T-D)*100>=M) M=(T-D)*100+800;
+  return buildFoehn({T:T,D:D,M:M});
+}
+
+/* ========== 天気図記号（図）========== */
+var WX_SEL=['快晴','晴れ','くもり','雨','雪'];
+/* 天気図記号を読む。ask: w(天気) d(風向) f(風力) all(組み合わせ) */
+function buildKigouRead(p){
+  var w=WX_SEL[p.w], d=DIR16[p.d], fig=kigouSVG(w,p.d,p.f,true), opp=DIR16[(p.d+8)%16];
+  var base={cat:'ka_kigou',tbl:fig,params:{gen:'kigouRead',w:p.w,d:p.d,f:p.f,ask:p.ask}};
+  if(p.ask==='w'){
+    base.q='図の天気図記号が表す天気は何か。';
+    base.c=pickChoices(w,rot(['快晴','晴れ','くもり','雨','雪','霧','雷','あられ','天気不明'].filter(function(x){return x!==w;}),p.d),6);
+    base.a=w; base.exp='円の中の記号が天気を表す。この記号は「'+w+'」。';
+  } else if(p.ask==='d'){
+    base.q='図の天気図記号が表す風向は何か。';
+    base.c=pickChoices(d,[opp,DIR16[(p.d+1)%16],DIR16[(p.d+15)%16],DIR16[(p.d+4)%16],DIR16[(p.d+12)%16],DIR16[(p.d+2)%16]],6);
+    base.a=d; base.exp='矢の軸は風がふいてくる方位に向けてかく。軸が「'+d+'」を向いているので風向は'+d+'。（'+opp+'は風がふいていく向き）';
+  } else if(p.ask==='f'){
+    base.q='図の天気図記号が表す風力はいくつか。';
+    var fc=[]; for(var i=0;i<=7;i++) if(i!==p.f) fc.push('風力'+i);
+    base.c=pickChoices('風力'+p.f,rot(fc,p.f),6);
+    base.a='風力'+p.f; base.exp='風力ははねの数で表す。はねが'+p.f+'本なので風力'+p.f+'。';
+  } else {
+    var ans=w+'・'+d+'・風力'+p.f;
+    base.q='図の天気図記号が表す天気・風向・風力の組み合わせとして正しいものはどれか。';
+    var w2=WX_SEL[(p.w+1)%5];
+    base.c=pickChoices(ans,[w+'・'+opp+'・風力'+p.f, w+'・'+d+'・風力'+(p.f+1), w2+'・'+d+'・風力'+p.f,
+      w+'・'+opp+'・風力'+(p.f+1), w+'・'+DIR16[(p.d+4)%16]+'・風力'+p.f, w2+'・'+opp+'・風力'+p.f],6);
+    base.a=ans;
+    base.exp='天気は円の中の記号で「'+w+'」。矢の軸がのびる向きが風がふいてくる方位で「'+d+'」。はねの数が'+p.f+'本で風力'+p.f+'。';
+  }
+  return base;
+}
+function genKigouRead(){ return buildKigouRead({w:ri(0,4),d:ri(0,15),f:ri(1,6),ask:pick(['w','d','f','all','all','d'])}); }
+
+/* 天気・風向・風力から正しい記号をア〜エで選ぶ */
+function buildKigouPick(p){
+  var w=WX_SEL[p.w], d=p.d;
+  var cands=[{w:w,d:d,f:p.f,ok:1},{w:w,d:(d+8)%16,f:p.f},{w:w,d:d,f:(p.f>1?p.f-1:p.f+1)},{w:WX_SEL[(p.w+(p.w===1?1:4))%5],d:d,f:p.f}];
+  cands=rot(cands,p.pat);
+  var svgs=cands.map(function(c){ return kigouMiniSVG(c.w,c.d,c.f); }), L=['ア','イ','ウ','エ'], ans='ア';
+  for(var i=0;i<4;i++) if(cands[i].ok) ans=L[i];
+  return {cat:'ka_kigou',q:'天気が「'+w+'」、風向が「'+DIR16[d]+'」、風力が「'+p.f+'」のときの天気図記号として正しいものを、図のア〜エから選べ。（図の上が北）',
+    tbl:figCandRow(svgs,L),c:L.slice(),a:ans,
+    exp:'円の中を'+w+'の記号にし、矢の軸を風がふいてくる方位（'+DIR16[d]+'）に向け、はねを'+p.f+'本かく。軸を反対向き（風がふいていく向き）にかくまちがいに注意。',
+    params:{gen:'kigouPick',w:p.w,d:p.d,f:p.f,pat:p.pat}};
+}
+function genKigouPick(){ return buildKigouPick({w:ri(0,4),d:ri(0,15),f:ri(2,5),pat:ri(0,3)}); }
+
+/* ふき流し → 風向 */
+function buildFukinagashi(p){
+  var to=DIR16[p.d], from=DIR16[(p.d+8)%16];
+  return {cat:'ka_kigou',q:'ふき流しが '+to+' の方向になびいていた。このときの風向は何か。',
+    c:pickChoices(from,[to,DIR16[(p.d+4)%16],DIR16[(p.d+12)%16],DIR16[(p.d+7)%16],DIR16[(p.d+9)%16]],6),a:from,
+    exp:'ふき流しは風がふいていく向きになびく。'+to+'へなびくのは、反対の '+from+' から風がふいているから。風向は「ふいてくる方位」なので'+from+'。',
+    params:{gen:'fukinagashi',d:p.d}};
+}
+function genFukinagashi(){ return buildFukinagashi({d:ri(0,15)}); }
+
+/* 雲量 → 天気 */
+function buildUnryo(p){
+  var a=(p.n<=1)?'快晴':(p.n<=8?'晴れ':'くもり');
+  return {cat:'ka_youso',q:'雨や雪は降っていない。空全体を見わたすと雲量は '+p.n+' であった。このときの天気は何か。',
+    c:['快晴','晴れ','くもり','雨','霧','天気不明'],a:a,
+    exp:'雲量0〜1は快晴、2〜8は晴れ、9〜10はくもり。雲量'+p.n+'なので'+a+'。',
+    params:{gen:'unryo',n:p.n}};
+}
+function genUnryo(){ return buildUnryo({n:pick([0,1,2,3,5,7,8,9,10])}); }
+
+/* ========== 等圧線（図）========== */
+/* t:L/H, v0:中心のすぐ外の等圧線, ask:'p'(地点の気圧) 'kind'(高・低) 'wind'(風が強い地点) */
+function buildIsobar(p){
+  var step=(p.t==='L')?4:-4, n=4, lab=[], i, q, c, a, exp, pts=[];
+  for(i=0;i<n;i++) if((p.v0+step*i)%20===0) lab.push(i);
+  if(!lab.length) lab=[0];
+  if(p.ask==='p'){
+    var k=p.k, val=p.v0+step*k;
+    pts=[{k:k,r:30+30*k,ang:p.ang,lab:'X'}];
+    q='図は、ある日の等圧線の一部である（等圧線は4hPaごと、太線は20hPaごと）。地点Xの気圧は何hPaか。';
+    a=val+'hPa';
+    c=pickChoices(a,[(val+step)+'hPa',(val-step)+'hPa',(val+2*step)+'hPa',(val+2)+'hPa',(val-2*step)+'hPa',(val+10)+'hPa'],6);
+    exp='等圧線は4hPaごとに引いてある。数字の書いてある線（'+lab.map(function(j){return p.v0+step*j;}).join('・')+'hPa）から数えると、Xを通る線は'+val+'hPa。';
+  } else if(p.ask==='kind'){
+    q='図は、ある日の等圧線の一部である（等圧線は4hPaごと、太線は20hPaごと）。図の中心付近は高気圧・低気圧のどちらか。また、中心付近の気流はどうなっているか。';
+    var ans=(p.t==='L')?'低気圧で、上昇気流がある':'高気圧で、下降気流がある';
+    c=['低気圧で、上昇気流がある','高気圧で、下降気流がある','低気圧で、下降気流がある','高気圧で、上昇気流がある','どちらでもなく、気流はない','前線で、上昇気流がある'];
+    a=ans;
+    exp='数値は中心から外へ'+(p.t==='L'?'大きく':'小さく')+'なっているので、中心は'+(p.t==='L'?'まわりより気圧が低い低気圧。中心付近では上昇気流ができる。':'まわりより気圧が高い高気圧。中心付近では下降気流ができる。');
+  } else {
+    /* 1本目と2本目の間の3か所。右側ほど間隔がせまい */
+    var spots=[{ang:0,lab:'P'},{ang:-90,lab:'Q'},{ang:180,lab:'R'}];
+    spots=rot(spots,p.pat);
+    var names=['P','Q','R'];
+    spots.forEach(function(s,j){ s.lab=names[j]; });
+    var strong=spots.filter(function(s){return s.ang===0;})[0].lab;
+    pts=spots.map(function(s){ return {k:0.5,r:45,ang:s.ang,lab:s.lab,dx:(s.ang===180?-18:8),dy:(s.ang===-90?-8:-6)}; });
+    q='図の地点P・Q・Rのうち、風がもっとも強くふいていると考えられるのはどこか。';
+    a=strong; c=['P','Q','R','どこも同じ','風はふいていない','決められない'];
+    exp='等圧線の間隔がせまいところほど風が強い。'+strong+'のあたりは等圧線の間隔がいちばんせまい。';
+  }
+  return {cat:(p.ask==='p'?'ze_touatsu':(p.ask==='kind'?'ze_kiatsu':'ze_touatsu')),q:q,
+    tbl:isobarSVG({t:p.t,v0:p.v0,n:n,lab:(p.ask==='kind'?[0,1,2,3]:lab),pts:pts,hideC:(p.ask==='kind')}),c:c,a:a,exp:exp,
+    params:{gen:'isobar',t:p.t,v0:p.v0,ask:p.ask,k:p.k||0,ang:p.ang||0,pat:p.pat||0}};
+}
+function isobarV0(t){
+  /* 1000 か 1020 の太線が4本のうちに1本は入るように選ぶ */
+  return (t==='L') ? pick([988,992,996,1000,1004,1008,1012,1016]) : pick([1032,1028,1024,1020,1016,1012,1008]);
+}
+function genIsobarP(){
+  var t=pick(['L','H']), v0=isobarV0(t), step=(t==='L')?4:-4, ks=[], i;
+  /* 数字の書いてある線の上には X を置かない（読むだけの問題になる） */
+  var lab=[]; for(i=0;i<4;i++) if((v0+step*i)%20===0) lab.push(i);
+  if(!lab.length) lab=[0];
+  for(i=1;i<4;i++) if(lab.indexOf(i)<0) ks.push(i);
+  return buildIsobar({t:t,v0:v0,ask:'p',k:pick(ks),ang:pick([20,45,70,110,160,200])});
+}
+function genIsobarKind(){ var t=pick(['L','H']); return buildIsobar({t:t,v0:isobarV0(t),ask:'kind'}); }
+function genIsobarWind(){ var t=pick(['L','H']); return buildIsobar({t:t,v0:isobarV0(t),ask:'wind',pat:ri(0,2)}); }
+
+/* 高気圧・低気圧の風のふき方（図ア〜エ） */
+function windPatSVG(cw,out){
+  var W=120,H=120,cx=60,cy=60, s=svgOpen(W,H,'風のふき方'), i;
+  s+=figCircle(cx,cy,44,'none','#C9C3B5',1)+figCircle(cx,cy,24,'none','#C9C3B5',1);
+  for(i=0;i<4;i++){
+    var a=i*Math.PI/2+Math.PI/4, r0=out?14:46, r1=out?46:14;
+    var tw=(cw?1:-1)*0.55;   /* 回る向き（時計回り＝角度が増える）だけで決まる。ふき出し・ふきこみは r0→r1 で表す */
+    var x0=cx+r0*Math.cos(a), y0=cy+r0*Math.sin(a), x1=cx+r1*Math.cos(a+tw), y1=cy+r1*Math.sin(a+tw);
+    s+=figArrow(x0,y0,x1,y1,FIG.ai,1.8,8);
+  }
+  return s+'</svg>';
+}
+function buildWindPat(p){
+  var c4=[{cw:1,out:1},{cw:0,out:0},{cw:1,out:0},{cw:0,out:1}];   /* 0=高気圧の正解 1=低気圧の正解 */
+  var order=rot([0,1,2,3],p.pat), L=['ア','イ','ウ','エ'], ans='ア', want=(p.t==='H')?0:1;
+  var svgs=order.map(function(k){ return windPatSVG(c4[k].cw,c4[k].out); });
+  for(var i=0;i<4;i++) if(order[i]===want) ans=L[i];
+  return {cat:'ze_kiatsu',q:'図のア〜エは、上から見た地表付近の風のふき方を表している。北半球の'+(p.t==='H'?'高気圧':'低気圧')+'のまわりの風のふき方を表しているものはどれか。',
+    tbl:figCandRow(svgs,L),c:L.slice(),a:ans,
+    exp:(p.t==='H')?'北半球の高気圧では、風が中心から時計回りにふき出す。':'北半球の低気圧では、風がまわりから中心へ反時計回りにふきこむ。',
+    params:{gen:'windPat',t:p.t,pat:p.pat}};
+}
+function genWindPat(){ return buildWindPat({t:pick(['H','L']),pat:ri(0,3)}); }
+
+/* 前線の断面（ア〜エ） */
+function buildSection(p){
+  var order=rot([0,1,2,3],p.pat), L=['ア','イ','ウ','エ'], ans='ア', want=(p.k==='c')?0:1;
+  for(var i=0;i<4;i++) if(order[i]===want) ans=L[i];
+  return {cat:'ze_kidan',q:'図のア〜エは、右へ進む前線を垂直に切った断面を模式的に表したものである。'+(p.k==='c'?'寒冷前線':'温暖前線')+'を表しているものはどれか。',
+    tbl:figCandRow(order.map(sectionSVG),L),c:L.slice(),a:ans,
+    exp:(p.k==='c')?'寒冷前線は、寒気が暖気の下にもぐりこんで暖気を急激に押し上げる。前線面の傾きは急で、積乱雲ができる。'
+                   :'温暖前線は、暖気が寒気の上をゆるやかにはい上がる。前線面の傾きはゆるやかで、乱層雲などが広い範囲にできる。',
+    params:{gen:'section',k:p.k,pat:p.pat}};
+}
+function genSection(){ return buildSection({k:pick(['c','w']),pat:ri(0,3)}); }
+
+/* 前線の名前 → 記号（ア〜エ） */
+function buildFrontPick(p){
+  var order=rot([0,1,2,3],p.pat), L=['ア','イ','ウ','エ'], ans='ア';
+  for(var i=0;i<4;i++) if(order[i]===p.k) ans=L[i];
+  return {cat:'ze_kidan',q:FRONT_NAMES[p.k]+'を表す記号を、図のア〜エから選べ。',
+    tbl:figCandRow(order.map(function(k){ return frontSymbolSVG(k,170); }),L),c:L.slice(),a:ans,
+    exp:'寒冷前線＝三角形、温暖前線＝半円、停滞前線＝三角形と半円が線の両側に交互、閉塞前線＝三角形と半円が同じ側に交互。',
+    params:{gen:'frontPick',k:p.k,pat:p.pat}};
+}
+function genFrontPick(){ return buildFrontPick({k:ri(0,3),pat:ri(0,3)}); }
+
+/* ========== 前線の通過（観測記録の表）========== */
+var TS_H=[0,3,6,9,12,15,18,21];
+function tsuukaData(p){   /* p={kind:'c'|'w', k:通過直前の番号(1〜5), T0, P0} → 各時刻の値 */
+  var rows=[], i;
+  for(i=0;i<8;i++){
+    var t,pr,wd,wx;
+    if(p.kind==='c'){
+      if(i<=p.k){ t=p.T0+Math.min(i,3); pr=p.P0-2*i; wd=['南南西','南','南西','南南西','南西','南'][i%6]; wx=(i>=p.k-1)?'くもり':'晴れ'; }
+      else { t=p.T0+Math.min(p.k,3)-6-(i-p.k-1); pr=p.P0-2*p.k+2*(i-p.k); wd=['北北西','北西','北','北西','西北西','北北西'][(i-p.k-1)%6]; wx=(i===p.k+1)?'雨':'晴れ'; }
+    } else {
+      if(i<=p.k){ t=p.T0+(i>=p.k-1?1:0); pr=p.P0-2*i; wd=['東','東南東','南東','東','東南東','南東'][i%6]; wx=(i>=p.k-2)?'雨':'くもり'; }
+      else { t=p.T0+5+(i-p.k-1); pr=p.P0-2*p.k-(i-p.k); wd=['南','南南西','南西','南','南南西'][(i-p.k-1)%5]; wx='くもり'; }
+    }
+    rows.push({h:TS_H[i],t:t,p:pr,w:wd,x:wx});
+  }
+  return rows;
+}
+function tsuukaTable(rows){
+  var s='<table><tr><th>時刻<br>〔時〕</th><th>気温<br>〔℃〕</th><th>気圧<br>〔hPa〕</th><th>風向</th><th>天気</th></tr>';
+  rows.forEach(function(r){ s+='<tr><td>'+r.h+'</td><td>'+r.t+'</td><td>'+r.p+'</td><td>'+r.w+'</td><td>'+r.x+'</td></tr>'; });
+  return s+'</table>';
+}
+function buildTsuuka(p){
+  var rows=tsuukaData(p), name=(p.kind==='c')?'寒冷前線':'温暖前線', ans, c, q, exp;
+  var iv=function(i){ return TS_H[i]+'時〜'+TS_H[i+1]+'時'; };
+  if(p.ask==='time'){
+    q='表は、ある地点で '+name+' が通過した日の3時間ごとの気象観測の記録である。'+name+'が通過したのは何時から何時の間と考えられるか。';
+    ans=iv(p.k);
+    var wr=[]; for(var i=0;i<7;i++) if(i!==p.k) wr.push(iv(i));
+    c=pickChoices(ans,rot(wr,p.k),6);
+    exp=(p.kind==='c')
+      ? TS_H[p.k]+'時から'+TS_H[p.k+1]+'時の間に、気温が急に下がり、風向が南よりから北よりに変わっている。これは寒冷前線が通過したときの特徴。'
+      : TS_H[p.k]+'時から'+TS_H[p.k+1]+'時の間に、気温が上がり、風向が東よりから南よりに変わっている。雨もやんでいる。これは温暖前線が通過したときの特徴。';
+  } else {
+    q='表は、ある地点の3時間ごとの気象観測の記録である。この日、この地点を通過した前線は何か。理由とともに正しいものを選べ。';
+    var C1='寒冷前線（気温が急に下がり、風向が北よりに変わったから）', W1='温暖前線（気温が上がり、風向が南よりに変わったから）';
+    ans=(p.kind==='c')?C1:W1;
+    c=[C1,W1,'寒冷前線（気温が上がり、風向が南よりに変わったから）','温暖前線（気温が急に下がり、風向が北よりに変わったから）',
+       '停滞前線（気温も風向も変わらなかったから）','閉塞前線（気圧が急に上がったから）'];
+    exp=(p.kind==='c')?'気温が急に下がり、風向が南よりから北よりに変わっているので寒冷前線。':'気温が上がり、風向が東よりから南よりに変わっているので温暖前線。';
+  }
+  return {cat:'ze_tsuuka',q:q,tbl:tsuukaTable(rows),c:c,a:ans,exp:exp,
+    params:{gen:'tsuuka',kind:p.kind,k:p.k,T0:p.T0,P0:p.P0,ask:p.ask}};
+}
+function genTsuukaTime(){ return buildTsuuka({kind:pick(['c','w']),k:ri(2,5),T0:ri(12,20),P0:pick([1004,1006,1008,1010]),ask:'time'}); }
+function genTsuukaKind(){ return buildTsuuka({kind:pick(['c','w']),k:ri(2,5),T0:ri(12,20),P0:pick([1004,1006,1008,1010]),ask:'kind'}); }
+
+/* ========== 台風の進路（風向の変化）========== */
+function buildTaifu(p){
+  var E=['東','東南東','南東','南南東','南','南南西','南西'], Wd=['東北東','北東','北北東','北','北北西','北西','西北西'];
+  var seq=(p.side==='E')?E:Wd, times=['12時','15時','18時','21時','24時','3時'], pres=[1000,994,985,978,986,995];
+  var off=p.o, s='<table><tr><th>時刻</th><th>気圧〔hPa〕</th><th>風向</th></tr>', i;
+  for(i=0;i<6;i++) s+='<tr><td>'+times[i]+'</td><td>'+(pres[i]+p.dp)+'</td><td>'+seq[Math.min(i+off,seq.length-1)]+'</td></tr>';
+  s+='</table>';
+  var A1='台風の中心は観測地点の西側を北へ進んだ', B1='台風の中心は観測地点の東側を北へ進んだ';
+  return {cat:'sh_taifu',q:'表は、台風が北上して近くを通過したときの、ある地点での気圧と風向の記録である。台風の中心はどこを通ったと考えられるか。',
+    tbl:s,c:[A1,B1,'台風の中心は観測地点の真上を通った','台風の中心は観測地点の西側を南へ進んだ','台風の中心は観測地点の東側を南へ進んだ','台風は観測地点に近づかなかった'],
+    a:(p.side==='E')?A1:B1,
+    exp:(p.side==='E')
+      ? '風向が東→南東→南→南西と時計回りに変わっている。北へ進む台風の進路の右側（東側）では風向が時計回りに変わるので、観測地点は進路の東側＝台風の中心は西側を通った。気圧が最も低い21時ごろに最も近づいた。'
+      : '風向が北東→北→北西と反時計回りに変わっている。北へ進む台風の進路の左側（西側）では風向が反時計回りに変わるので、観測地点は進路の西側＝台風の中心は東側を通った。気圧が最も低い21時ごろに最も近づいた。',
+    params:{gen:'taifu',side:p.side,o:p.o,dp:p.dp}};
+}
+function genTaifu(){ return buildTaifu({side:pick(['E','W']),o:ri(0,1),dp:pick([0,-6,4,8])}); }
+
+/* ========== 海風・陸風（表から海の方位）========== */
+function buildUmikaze(p){
+  var sea=['北','東','南','西'][p.s], si=dirIdx(sea), land=(si+8)%16;
+  var times=['4時','8時','12時','16時','20時','24時'];
+  var w=[DIR16[land], DIR16[(si+15)%16], DIR16[si], DIR16[(si+1)%16], DIR16[(land+1)%16], DIR16[(land+15)%16]];
+  var f=[2,1,2,3,1,2], s='<table><tr><th>時刻</th>';
+  times.forEach(function(t){ s+='<th>'+t+'</th>'; });
+  s+='</tr><tr><td>風向</td>'; w.forEach(function(x){ s+='<td>'+x+'</td>'; });
+  s+='</tr><tr><td>風力</td>'; f.forEach(function(x){ s+='<td>'+x+'</td>'; });
+  s+='</tr></table>';
+  return {cat:'sh_kaze',q:'表は、晴れた日の海岸地域の風向と風力の記録である。この地域では、陸から見て東西南北のどちら側に海があると考えられるか。',
+    tbl:s,c:['北','東','南','西'],a:sea,
+    exp:'晴れた日の昼は海から陸へ海風がふく。昼（12時・16時）の風向は'+DIR16[si]+'より＝'+sea+'からふいてくるので、海は'+sea+'側。夜は反対に陸風（'+DIR16[land]+'より）になっている。',
+    params:{gen:'umikaze',s:p.s}};
+}
+function genUmikaze(){ return buildUmikaze({s:ri(0,3)}); }
+
+/* ========== 飽和水蒸気量のグラフ（点A〜D）========== */
+function satPts(p){   /* p.seed から決まる4点（params だけで同じ点が出る） */
+  var cand=[], t, w;
+  for(t=5;t<=30;t+=5) for(w=5;w<=25;w+=5) if(w<SAT[t]-0.5) cand.push([t,w]);
+  var out=[], used={}, x=p.seed;
+  for(var i=0;out.length<4 && i<200;i++){
+    x=(x*9301+49297)%233280; var k=Math.floor(x/233280*cand.length), c=cand[k], key=c[0]+'_'+c[1];
+    if(!used[key]){ used[key]=1; out.push(c); }
+  }
+  return out;
+}
+function buildSatGraph(p){
+  var P=satPts(p), L=['A','B','C','D'], i, best=0, val=function(q){ return (p.ask==='lowH')?q[1]/SAT[q[0]]:(p.ask==='highH'?-q[1]/SAT[q[0]]:-q[1]); };
+  for(i=1;i<4;i++) if(val(P[i])<val(P[best])) best=i;
+  var pts=P.map(function(q,j){ return {t:q[0],w:q[1],lab:L[j]}; });
+  var qq={lowH:'湿度がもっとも低い',highH:'湿度がもっとも高い',dew:'露点がもっとも高い'}[p.ask];
+  var exp={lowH:'湿度＝水蒸気量÷飽和水蒸気量×100。点と飽和水蒸気量の曲線との「すき間」が大きい（割合が小さい）ほど湿度は低い。各点の湿度は '+P.map(function(q,j){return L[j]+'：約'+Math.round(q[1]/SAT[q[0]]*100)+'%';}).join('、')+'。',
+           highH:'点が飽和水蒸気量の曲線に近い（割合が大きい）ほど湿度は高い。各点の湿度は '+P.map(function(q,j){return L[j]+'：約'+Math.round(q[1]/SAT[q[0]]*100)+'%';}).join('、')+'。',
+           dew:'露点は空気中の水蒸気量だけで決まる。水蒸気量（グラフのたての位置）が多いほど露点は高い。'}[p.ask];
+  return {cat:'kc_graph',q:'図は気温と飽和水蒸気量の関係を表したグラフで、点A〜Dは空気の状態を表している。A〜Dのうち、'+qq+'空気はどれか。',
+    tbl:satGraphSVG(pts),c:['A','B','C','D'],a:L[best],exp:exp,
+    params:{gen:'satGraph',seed:p.seed,ask:p.ask}};
+}
+function genSatGraph(){
+  /* 答えが1つに決まる（同点がない）組み合わせになるまで種を引き直す */
+  for(var k=0;k<40;k++){
+    var p={seed:ri(1,233000),ask:pick(['lowH','highH','dew'])}, P=satPts(p);
+    if(P.length<4) continue;
+    var v=P.map(function(q){ return p.ask==='dew'?q[1]:Math.round(q[1]/SAT[q[0]]*1000); });
+    var ext=(p.ask==='lowH')?Math.min.apply(null,v):Math.max.apply(null,v);
+    if(v.filter(function(x){return x===ext;}).length===1) return buildSatGraph(p);
+  }
+  return buildSatGraph({seed:12345,ask:'lowH'});
+}
+
+/* 海面更正（教科書 p.94 の注：10m高くなるごとに約1.2hPa加える） */
+function buildKaimen(p){
+  var add=r10(1.2*p.h/10), v=r10(p.P+add);
+  var a=assemble(v,[r10(p.P-add), r10(p.P+1.2*p.h), r10(p.P+add*10), r10(p.P+add/10), p.P],function(n){return numStr(n)+'hPa';});
+  return {cat:'kc_atsu',q:'標高 '+p.h+'m の地点で測定した気圧は '+numStr(p.P)+'hPa であった。海面と同じ高さでの値に直す（海面更正）と何hPaか。（海面から10m高くなるごとに約1.2hPaずつ加えるものとする）',
+    c:a.c,a:a.a,
+    exp:'加える量＝1.2×('+p.h+'÷10)＝'+numStr(add)+'hPa。'+numStr(p.P)+'＋'+numStr(add)+'＝'+numStr(v)+'hPa。高いところほど気圧は小さく測定されるので、加えて直す。',
+    params:{gen:'kaimen',h:p.h,P:p.P}};
+}
+function genKaimen(){ return buildKaimen({h:pick([50,100,150,200,250,300,400,500]),P:pick([940,950,960,975,980,990,996,1000,1004])}); }
+
+/* ========== 登録 ========== */
+var GENERATORS={
+  ka_youso:[genUnryo],
+  ka_kigou:[genKigouRead, genKigouRead, genKigouPick, genFukinagashi],
+  ka_kanshitsu:[genHyoReadK],
+  ze_kiatsu:[genWindPat, genIsobarKind],
+  ze_touatsu:[genIsobarP, genIsobarWind],
+  ze_kidan:[genFrontPick, genSection],
+  ze_tsuuka:[genTsuukaTime, genTsuukaKind],
+  sh_kaze:[genUmikaze],
+  sh_taifu:[genTaifu],
+  kc_atsu:[genKaimen, genAtsuBasic, genAtsuMass, genAtsuCm, genAtsuRatio, genTaikiForce, genSponge],
+  kc_shitsudo:[genShitsudo, genShitsudoDew, genHiyashiH],
+  kc_suijouki:[genSuijoukiFromH, genAtoNan, genRoten, genSuiteki, genHeya, genKashitsu],
+  kc_hyo:[genHyoRead, genHyoFig, genHyoWet],
+  kc_kumo:[genKumoDew, genKumoH, genKumoBack, genFoehn],
+  kc_graph:[genSatGraph, genSatGraph]
+};
+/* params.gen → build関数（解き直しで同じ問題を復元する） */
+var REBUILDERS={
+  atsuBasic:buildAtsuBasic, atsuMass:buildAtsuMass, atsuCm:buildAtsuCm, atsuRatio:buildAtsuRatio,
+  taikiForce:buildTaikiForce, sponge:buildSponge,
+  shitsudo:buildShitsudo, shitsudoDew:buildShitsudoDew, hiyashiH:buildHiyashiH,
+  suijoukiFromH:buildSuijoukiFromH, atoNan:buildAtoNan, roten:buildRoten, suiteki:buildSuiteki,
+  heya:buildHeya, kashitsu:buildKashitsu,
+  hyoRead:buildHyoRead,
+  kumoDew:buildKumoDew, kumoH:buildKumoH, kumoBack:buildKumoBack, foehn:buildFoehn,
+  kigouRead:buildKigouRead, kigouPick:buildKigouPick, fukinagashi:buildFukinagashi, unryo:buildUnryo,
+  isobar:buildIsobar, windPat:buildWindPat, section:buildSection, frontPick:buildFrontPick,
+  kaimen:buildKaimen, tsuuka:buildTsuuka, taifu:buildTaifu, umikaze:buildUmikaze, satGraph:buildSatGraph
+};
+function rebuildFromParams(p){
+  if(!p||!p.gen||!REBUILDERS[p.gen]) return null;
+  try{ return REBUILDERS[p.gen](p); }catch(e){ return null; }
+}
+
+/* ── 出題キューを作る ── */
+function buildQueue(spec){
+  if(spec.queue) return spec.queue.slice();
+  var pool;
+  if(spec.cat) pool=BANK.filter(function(q){return q.cat===spec.cat;});
+  else if(spec.mode) pool=BANK.filter(function(q){return CAT_MODE[q.cat]===spec.mode;});
+  else pool=BANK.slice();
+  /* 動的生成問題を該当スコープに追加（毎回ちがう数値で作られる） */
+  Object.keys(GENERATORS).forEach(function(c){
+    var inScope = spec.cat ? (spec.cat===c) : spec.mode ? (CAT_MODE[c]===spec.mode) : true;
+    if(inScope) GENERATORS[c].forEach(function(fn){ pool=pool.concat(fn()); });
+  });
+  pool=shuffle(pool);
+  if(spec.cap) pool=pool.slice(0,Math.min(spec.cap,pool.length));
+  return pool;
+}
+
+/* ── クイズ開始 ── */
+function startQuiz(spec){
+  state.spec=spec; state.idx=0; state.correct=0; state.byCat={}; state.retry=!!spec.retry;
+  state.queue=buildQueue(spec);
+  byId('retryBanner').hidden=!state.retry;
+  byId('start').hidden=true; byId('result').hidden=true; byId('quiz').hidden=false;
+  byId('qTot').textContent=state.queue.length;
+  window.scrollTo(0,0); renderQ();
+}
+
+/* ── 1問描画 ── */
+function renderQ(){
+  var q=state.queue[state.idx], m=CAT_MODE[q.cat], md=MODES[m]||{ico:''}, cat=CATS[q.cat]||q.cat;
+  byId('badgeCat').innerHTML=(md.ico||'')+' '+cat;
+  byId('qCur').textContent=state.idx+1;
+  byId('qScore').textContent=state.correct;
+  byId('progBar').style.width=(state.idx/state.queue.length*100)+'%';
+  byId('qnum').textContent='Q'+(state.idx+1);
+  byId('qtext').textContent=q.q;
+  byId('qtbl').innerHTML=q.tbl||'';
+  var exp=byId('explain'); exp.className=''; exp.innerHTML='';
+  var next=byId('next'); next.className='btn btn-primary';
+  next.textContent=(state.idx===state.queue.length-1)?'結果を見る →':'次へ →';
+  var grade=byId('grade'); grade.className='btn btn-primary'; grade.disabled=false;
+  state.selected=null; state.graded=false;
+  safeDivpClear('#qcard');
+  var choices=shuffle(q.c), box=byId('choices'); box.innerHTML='';
+  choices.forEach(function(txt,i){
+    var b=document.createElement('button'); b.className='ch'; b.type='button';
+    b.innerHTML='<span class="no">'+MARU[i]+'</span><span class="tx"></span>';
+    b.querySelector('.tx').textContent=txt;      /* 選択肢は textContent で入れる（記号の混入で崩れない） */
+    b.addEventListener('click',function(){ onSelect(txt,b); });
+    box.appendChild(b);
+  });
+}
+
+/* ── 選択（まだ採点しない）── */
+function onSelect(txt,btn){
+  if(state.graded) return;
+  state.selected={txt:txt,btn:btn};
+  byId('choices').querySelectorAll('.ch').forEach(function(el){ el.classList.remove('sel'); });
+  btn.classList.add('sel');
+  byId('grade').classList.add('show');   /* 選んだら「答え合わせ」を出す */
+}
+
+/* ── 採点（「答え合わせ」ボタンで実行）── */
+function gradeCurrent(){
+  if(!state.selected||state.graded) return;
+  var q=state.queue[state.idx], chosen=state.selected.txt, btn=state.selected.btn;
+  state.graded=true;
+  var ok=(chosen===q.a);
+  /* 採点表示は共通モジュール divp-choice-mark.js に任せる
+     （正解=緑 / 選んだ誤答=橙 / 選ばなかった正解=緑＋「正解」バッジ / 残りは薄く）。
+     モジュールが無い環境では従来の .ok/.ng クラスで最低限の色をつける。 */
+  var els=[], ci=-1, si=-1;
+  byId('choices').querySelectorAll('.ch').forEach(function(el,i){
+    els.push(el); el.disabled=true; el.classList.remove('sel');
+    if(el.querySelector('.tx').textContent===q.a) ci=i;
+    if(el===btn) si=i;
+  });
+  if(window.Divp&&typeof Divp.markChoices==='function'){
+    Divp.markChoices(els,{correct:ci,selected:si,dimOthers:true});
+  }else{
+    if(ci>=0) els[ci].classList.add('ok');
+    if(!ok&&si>=0) els[si].classList.add('ng');
+  }
+  if(ok) state.correct++;
+  var bc=state.byCat[q.cat]||(state.byCat[q.cat]={s:0,c:0}); bc.s++; if(ok) bc.c++;
+  byId('qScore').textContent=state.correct;
+  if(ok) safeDivpCorrect('#qcard'); else safeDivpIncorrect('#qcard');
+  var exp=byId('explain');
+  exp.innerHTML='<span class="lbl">'+(ok?'正解！':'正解は「'+q.a+'」')+'</span>'+q.exp;
+  exp.className='show';
+  /* 図・表つきの問題は、図が無いと講師ページの解き直しプリントで成立しない。
+     また「正しく述べたものを選ぶ」型は選択肢そのものが問題の中身なので、
+     画面に出したものをそのまま渡す（どちらも誤答のときだけ保存される）。 */
+  safeDivpAnswer(ok,{question_key:CAT_MODE[q.cat],question_params:q.params||{id:q.id},question_text:capBytes(q.q,255),
+    question_figure:q.tbl||null,
+    question_choices:q.c.map(function(t){return {t:'tex',v:capBytes(t,300)};}),
+    correct_answer:capBytes(q.a,100),wrong_answer:capBytes(chosen,100)});
+  byId('grade').classList.remove('show');   /* 採点したら「答え合わせ」を隠して「次へ」を出す */
+  byId('next').classList.add('show');
+  byId('progBar').style.width=((state.idx+1)/state.queue.length*100)+'%';
+}
+byId('grade').addEventListener('click',gradeCurrent);
+
+byId('next').addEventListener('click',function(){
+  if(state.idx<state.queue.length-1){ state.idx++; renderQ(); window.scrollTo(0,0); } else showResult();
+});
+
+/* ── 結果 ── */
+function showResult(){
+  byId('quiz').hidden=true; byId('result').hidden=false; window.scrollTo(0,0);
+  var total=state.queue.length, correct=state.correct, pct=total?Math.round(correct/total*100):0;
+  byId('resCorrect').textContent=correct; byId('resTotal').textContent=total; byId('resPct').textContent='正答率 '+pct+'%';
+  var face,title;
+  if(pct===100){face='💮';title='パーフェクト！さすが！';}
+  else if(pct>=80){face='🌸';title='とてもよくできました！';}
+  else if(pct>=60){face='✏️';title='あと少し！復習しよう';}
+  else{face='📒';title='まとめ表でおさらいしよう';}
+  byId('resFace').textContent=face; byId('resTitle').textContent=title;
+  var bd=byId('breakdown'); bd.innerHTML='';
+  Object.keys(state.byCat).forEach(function(c){
+    var d=state.byCat[c], md=MODES[CAT_MODE[c]]||{ico:''}, r=d.s?Math.round(d.c/d.s*100):0, low=r<60;
+    var maru=r>=90?'<span class="maruicon">◎</span>':'';
+    bd.innerHTML+='<div class="bd-row"><span class="nm">'+(md.ico||'')+' '+(CATS[c]||c)+'</span>'
+      +'<span class="bd-bar"><span class="'+(low?'low':'')+'" style="width:'+r+'%"></span></span>'
+      +'<span class="sc">'+d.c+'/'+d.s+' '+maru+'</span></div>';
+  });
+}
+
+byId('startMix').addEventListener('click',function(){ startQuiz({cap:20}); });
+byId('quitBtn').addEventListener('click',backToStart);
+byId('backBtn').addEventListener('click',backToStart);
+byId('againBtn').addEventListener('click',function(){ startQuiz(state.spec||{cap:20}); });
+function backToStart(){ byId('quiz').hidden=true; byId('result').hidden=true; byId('start').hidden=false; window.scrollTo(0,0); }
+
+/* モードカードを描画（GENERATORS定義後なので生成問題の本数も正しく数えられる） */
+buildModeGrid();
+
+/* ── まとめ表モーダル ── */
+byId('openTable').addEventListener('click',function(){
+  byId('tableModal').hidden=false;
+  if(state.selMode) switchRef(state.selMode);
+});
+byId('tableClose').addEventListener('click',function(){ byId('tableModal').hidden=true; });
+byId('tableModal').addEventListener('click',function(e){ if(e.target===this) this.hidden=true; });
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') byId('tableModal').hidden=true; });
+byId('refTabs').addEventListener('click',function(e){ var b=e.target.closest('.ref-tab'); if(b) switchRef(b.getAttribute('data-ref')); });
+function switchRef(ref){
+  byId('refTabs').querySelectorAll('.ref-tab').forEach(function(t){ t.classList.toggle('active',t.getAttribute('data-ref')===ref); });
+  document.querySelectorAll('.ref-pane').forEach(function(p){ p.classList.toggle('active',p.getAttribute('data-ref')===ref); });
+}
+
+/* ── 解き直しモード（?retry=1）──
+   question_params は静的問題が {id}、生成問題が {gen,…}。
+   生成問題は REBUILDERS で同じ数値の問題を作り直す（params_hash が一致するので
+   2連続正解で mastered になり、解き直しリストから消える）。 */
+(function checkRetry(){
+  var params=new URLSearchParams(location.search);
+  if(params.get('retry')!=='1' || !(window.Divp&&typeof Divp.getRetries==='function')) return;
+  Divp.getRetries().then(function(items){
+    if(!items||!items.length) return;
+    var queue=[], seenStatic={};
+    items.forEach(function(it){
+      var p=it.question_params; if(typeof p==='string'){try{p=JSON.parse(p);}catch(e){p=null;}}
+      if(!p) return;
+      if(p.gen){                                   /* 生成問題：paramsから同じ問題を復元 */
+        var g=rebuildFromParams(p); if(g) queue.push(g);
+      } else if(p.id && !seenStatic[p.id]){        /* 静的問題：BANKからidで取得 */
+        seenStatic[p.id]=true;
+        var b=BANK.filter(function(q){return q.id===p.id;})[0]; if(b) queue.push(b);
+      }
+    });
+    queue=shuffle(queue);
+    if(!queue.length) return;
+    state.retryQueue=queue; startQuiz({queue:queue,retry:true});
+  }).catch(function(){});
+})();
+
+/* ── まとめ表の図（天気記号・前線の記号・飽和水蒸気量の表）は、問題の図と同じ関数で描く ── */
+(function fillRef(){
+  var h='<div class="wx-ref">';
+  WX.forEach(function(w){ h+='<div class="it">'+wxBoxSVG(w)+w+'</div>'; });
+  byId('refSymbols').innerHTML=h+'</div>';
+  for(var k=0;k<4;k++) byId('refF'+k).innerHTML=frontSymbolSVG(k,150);
+  byId('refSatTable').innerHTML='<div class="mini">'+satTableHTML(rangeArr(0,30))+'</div>';
+})();
+</script>
+</body>
+</html>
