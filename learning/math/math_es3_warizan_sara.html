@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>わり算 おさらとボール（説明ボード）｜中京個別指導学院</title>
+<meta name="description" content="わり算の説明用ボード。ボールとおさらを好きな数だけ出して指で動かし、1こずつくばって「わける」を見せられます。ペンで書きこみ・消しゴムつき。電子黒板（MAXHUB）向け。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* 電子黒板（MAXHUB 16:9 / タッチ）向けの説明ボード。
+   盤面は論理幅1600pxで組み、画面幅に合わせて丸ごと拡大する（4K・フルHDのどちらでも同じ見た目）。
+   ツールバーは手の届く画面の下に置く。文字の大きさは画面幅から決め、1行に収まらなければJSが縮める。 */
+:root{
+  --paper:#FBFAF6; --grid:#ECE9E0; --ink:#33312B; --sub:#8B877C;
+  --shu:#C73E2E; --ai:#2C5F8A; --kin:#C9A227; --line:#DAD5C8;
+}
+html{font-size:17px}
+html,body{margin:0;height:100%}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:"Zen Maru Gothic","Noto Sans JP",sans-serif;
+  overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.divp-header{position:relative;z-index:11}
+
+/* ヘッダーの下を全部使う（top はヘッダーの高さをJSが入れる） */
+.app{
+  position:fixed;left:0;right:0;bottom:0;top:var(--hh,0px);
+  display:flex;flex-direction:column;
+  background:var(--paper);touch-action:none;
+}
+.app:fullscreen{top:0 !important}
+.app:-webkit-full-screen{top:0 !important}
+
+/* ===== 盤面 ===== */
+.board{
+  position:relative;flex:1;min-height:0;overflow:hidden;
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:calc(var(--s,1) * 40px) calc(var(--s,1) * 40px);
+}
+.stage{position:absolute;left:0;top:0;width:1600px;transform-origin:0 0;z-index:1}
+
+.tray{
+  position:absolute;border:4px dashed #CFC9B8;border-radius:28px;
+  background:rgba(255,255,255,.6);box-sizing:border-box;
+}
+.tray-label{position:absolute;left:24px;top:10px;font-size:30px;font-weight:700;color:var(--sub)}
+.tray-rem{position:absolute;right:24px;top:6px;font-size:34px;font-weight:700;color:var(--ink)}
+.tray-rem b{font-size:46px;color:var(--shu);margin:0 4px}
+
+.formula{
+  position:absolute;top:28px;right:28px;width:380px;box-sizing:border-box;
+  padding:14px 10px 18px;text-align:center;
+  background:#fff;border:3px solid var(--line);border-radius:24px;
+  box-shadow:0 4px 14px rgba(0,0,0,.06);
+}
+.formula .fq{font-size:84px;font-weight:700;line-height:1.1;letter-spacing:.02em;white-space:nowrap}
+.formula .fa{font-size:50px;font-weight:700;color:var(--shu);line-height:1.2;margin-top:6px;white-space:nowrap}
+
+.plate{
+  position:absolute;border-radius:50%;z-index:1;touch-action:none;
+  background:radial-gradient(circle at 50% 50%,
+    #ffffff 0 56%, #f4f2ec 60%, #e6e1d4 70%, #fdfcf8 74%, #ebe6d9 92%, #d9d3c3 100%);
+  box-shadow:0 8px 18px rgba(60,50,30,.20), inset 0 -5px 10px rgba(0,0,0,.06);
+}
+.plate.grab{box-shadow:0 18px 36px rgba(60,50,30,.30), inset 0 -5px 10px rgba(0,0,0,.06)}
+.plate .cnt{
+  position:absolute;left:50%;bottom:0;transform:translate(-50%,45%);
+  background:var(--ai);color:#fff;border-radius:999px;padding:.02em .6em .06em;
+  font-weight:700;white-space:nowrap;pointer-events:none;
+  box-shadow:0 2px 6px rgba(0,0,0,.18);
+}
+.board.nocount .cnt,.board.nocount .tray-rem{display:none}
+
+.ball{
+  position:absolute;border-radius:50%;z-index:1000;touch-action:none;
+  background:radial-gradient(circle at 34% 30%,
+    #ffffff 0 7%, #ff9a84 18%, #ec4a33 50%, #b3261a 88%, #8e1c13 100%);
+  box-shadow:0 4px 7px rgba(80,20,10,.32);
+  transition:transform .12s;
+}
+.ball.grab{transform:scale(1.18);box-shadow:0 12px 18px rgba(80,20,10,.35)}
+.ball.anim{
+  transition:left .45s cubic-bezier(.25,.8,.3,1),top .45s cubic-bezier(.25,.8,.3,1);
+  animation:hop .45s ease-out;
+}
+@keyframes hop{0%{transform:scale(1)}45%{transform:scale(1.28)}100%{transform:scale(1)}}
+
+/* 書きこみ（ペン・消しゴムのときだけ指を受ける） */
+#ink{position:absolute;left:0;top:0;width:100%;height:100%;z-index:5;pointer-events:none}
+.board.inking #ink{pointer-events:auto;cursor:crosshair}
+.ring{
+  position:absolute;z-index:6;display:none;pointer-events:none;border-radius:50%;
+  border:3px solid rgba(80,80,80,.7);background:rgba(255,255,255,.35);box-sizing:border-box;
+}
+
+/* ===== 下のツールバー ===== */
+.bar{
+  flex:none;display:flex;flex-wrap:nowrap;align-items:center;justify-content:center;
+  gap:.45rem;padding:.45rem .7rem;overflow:hidden;
+  background:#fff;border-top:2px solid var(--grid);box-shadow:0 -2px 10px rgba(0,0,0,.05);
+}
+.grp{display:flex;align-items:center;gap:.3rem;flex:none}
+.sep{width:2px;align-self:stretch;background:var(--grid);margin:0 .15rem;flex:none}
+.btn{
+  height:4.2rem;min-width:4.2rem;padding:0 .55rem;box-sizing:border-box;
+  border:2px solid var(--line);border-radius:.9rem;background:#fff;color:var(--ink);
+  font:inherit;font-weight:700;font-size:1rem;line-height:1.15;
+  display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:.12rem;
+  cursor:pointer;touch-action:none;flex:none;
+}
+.btn svg{width:1.8rem;height:1.8rem;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.btn small{font-size:.86rem;white-space:nowrap}
+.btn:active{background:#F1EEE6}
+.btn.on{background:var(--ai);border-color:var(--ai);color:#fff}
+.btn.deal{background:#FFF6F2;border-color:#EBB5A8;color:var(--shu);font-size:1.05rem;min-width:5.6rem}
+.btn.deal:active{background:#FBE5DD}
+.btn[disabled]{opacity:.4}
+
+.step{display:flex;align-items:center;gap:.2rem;flex:none}
+.step .pm{font-size:2.2rem;width:3.9rem;min-width:3.9rem;padding:0}
+.step .val{
+  height:4.2rem;min-width:5.2rem;box-sizing:border-box;padding:.1rem .4rem;
+  border:2px solid var(--ink);border-radius:.9rem;background:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;
+}
+.step .val small{font-size:.78rem;color:var(--sub);font-weight:700;line-height:1}
+.step .val b{font-size:2.1rem;line-height:1.05}
+
+.sw{
+  width:3rem;height:3rem;border-radius:50%;flex:none;cursor:pointer;padding:0;
+  border:3px solid #fff;box-shadow:0 0 0 2px var(--line);
+}
+.sw.on{box-shadow:0 0 0 4px var(--ai)}
+
+/* ===== 数字パッド ===== */
+.np-back{position:absolute;inset:0;z-index:30;background:rgba(30,28,24,.35);display:flex;align-items:center;justify-content:center}
+.np-back[hidden]{display:none}
+.np{background:#fff;border-radius:1.4rem;padding:1.2rem 1.4rem 1.4rem;box-shadow:0 20px 50px rgba(0,0,0,.25);width:22rem}
+.np h2{margin:0 0 .5rem;font-size:1.4rem;text-align:center}
+.np .disp{font-size:4rem;font-weight:700;text-align:center;border:2px solid var(--line);border-radius:1rem;line-height:1.2;margin-bottom:.4rem}
+.np .disp.over{color:var(--shu)}
+.np .note{text-align:center;color:var(--shu);font-size:1rem;min-height:1.3rem;margin-bottom:.4rem}
+.np .keys{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+.np .keys .btn{height:5rem;font-size:2.2rem;width:100%}
+.np .row{display:grid;grid-template-columns:1fr 1.4fr;gap:.5rem;margin-top:.6rem}
+.np .row .btn{width:100%;font-size:1.3rem}
+.np .row .ok{background:var(--shu);border-color:var(--shu);color:#fff}
+
+.toast{
+  position:absolute;left:50%;bottom:7rem;transform:translate(-50%,20px);z-index:25;
+  background:rgba(51,49,43,.92);color:#fff;font-size:1.6rem;font-weight:700;
+  padding:.7rem 1.6rem;border-radius:999px;opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .25s;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<!-- 共通ヘッダー(ロゴ・ログイン窓)の差し込み先。script は body 直後に置くこと -->
+<div class="divp-header"></div>
+<script src="/assets/divp-header.js" defer></script>
+
+<div class="app" id="app">
+  <div class="board" id="board">
+    <div class="stage" id="stage">
+      <div class="tray" id="tray">
+        <div class="tray-label">ボールばこ</div>
+        <div class="tray-rem">のこり<b id="trayRem">0</b>こ</div>
+      </div>
+      <div class="formula" id="formula">
+        <div class="fq" id="fq"></div>
+        <div class="fa" id="fa"></div>
+      </div>
+    </div>
+    <canvas id="ink"></canvas>
+    <div class="ring" id="ring"></div>
+  </div>
+
+  <div class="bar" id="bar">
+    <div class="step">
+      <button class="btn pm" id="bMinus" aria-label="ボールをへらす">−</button>
+      <div class="val" id="bVal" role="button" aria-label="ボールのかずを入力"><small>ボール</small><b id="bNum">12</b></div>
+      <button class="btn pm" id="bPlus" aria-label="ボールをふやす">＋</button>
+    </div>
+    <div class="step">
+      <button class="btn pm" id="pMinus" aria-label="おさらをへらす">−</button>
+      <div class="val" id="pVal" role="button" aria-label="おさらのかずを入力"><small>おさら</small><b id="pNum">3</b></div>
+      <button class="btn pm" id="pPlus" aria-label="おさらをふやす">＋</button>
+    </div>
+    <span class="sep"></span>
+    <div class="grp">
+      <button class="btn deal" id="dealOne">1こずつ<br>くばる</button>
+      <button class="btn deal" id="dealAll">ぜんぶ<br>くばる</button>
+      <button class="btn" id="reset"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v5h-5"/></svg><small>はじめから</small></button>
+    </div>
+    <span class="sep"></span>
+    <div class="grp">
+      <button class="btn" id="tgCount"><b style="font-size:1.35rem">3こ</b><small>かず</small></button>
+      <button class="btn" id="tgFormula"><b style="font-size:1.35rem">÷</b><small>しき</small></button>
+      <button class="btn" id="tgAnswer"><b style="font-size:1.35rem">＝</b><small>こたえ</small></button>
+    </div>
+    <span class="sep"></span>
+    <div class="grp">
+      <button class="btn" id="tHand"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M12 2 9 5M12 2l3 3M12 22l-3-3M12 22l3-3M2 12l3-3M2 12l3 3M22 12l-3-3M22 12l-3 3"/></svg><small>うごかす</small></button>
+      <button class="btn" id="tPen"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z"/><path d="M14 7l3 3"/></svg><small>ペン</small></button>
+      <button class="btn" id="tEraser"><svg viewBox="0 0 24 24"><path d="M9 20h11"/><path d="M4 15 13 6l6 6-8 8H9z"/><path d="M8.5 10.5l6 6"/></svg><small>けしゴム</small></button>
+    </div>
+    <div class="grp" id="swatches"></div>
+    <button class="btn" id="tWidth"><svg viewBox="0 0 24 24"><path id="wLine" d="M4 12h16"/></svg><small id="wLabel">ふつう</small></button>
+    <span class="sep"></span>
+    <div class="grp">
+      <button class="btn" id="undo"><svg viewBox="0 0 24 24"><path d="M5 9h10a5 5 0 0 1 0 10H9"/><path d="M9 5 5 9l4 4"/></svg><small>1つもどす</small></button>
+      <button class="btn" id="clearInk"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><small>字をぜんぶけす</small></button>
+      <button class="btn" id="full"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><small id="fullLabel">ぜんがめん</small></button>
+    </div>
+  </div>
+
+  <div class="np-back" id="npBack" hidden>
+    <div class="np">
+      <h2 id="npTitle"></h2>
+      <div class="disp" id="npDisp">0</div>
+      <div class="note" id="npNote"></div>
+      <div class="keys" id="npKeys"></div>
+      <div class="row">
+        <button class="btn" id="npCancel">やめる</button>
+        <button class="btn ok" id="npOk">けってい</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+function $(id){ return document.getElementById(id); }
+
+var LW = 1600;            // 盤面の論理幅（画面幅に合わせて拡大する）
+var MAX = { balls:100, plates:10 };
+var DUR = 450;            // くばるアニメーションの時間（CSS の .anim とそろえる）
+var PEN_W = [4, 8, 16], PEN_W_LABEL = ['ほそい', 'ふつう', 'ふとい'];
+var ERASE_W = 64;
+var COLORS = [
+  { c:'#222222', name:'くろ' }, { c:'#D93025', name:'あか' },
+  { c:'#1A63C7', name:'あお' }, { c:'#1E8E3E', name:'みどり' }
+];
+
+var app = $('app'), board = $('board'), stage = $('stage'), bar = $('bar');
+var canvas = $('ink'), ctx = canvas.getContext('2d'), ring = $('ring');
+var trayEl = $('tray'), remEl = $('trayRem'), formulaEl = $('formula');
+
+/* ---- 設定（数・表示・ペン）はこの端末に覚えておく ---- */
+var S = { balls:12, plates:3, showCount:true, showFormula:true, showAnswer:false, color:'#222222', widthIdx:1 };
+var KEY = 'divp_warizan_sara';
+try {
+  var sv = JSON.parse(localStorage.getItem(KEY) || 'null');
+  if (sv) for (var k in S) if (k in sv && typeof sv[k] === typeof S[k]) S[k] = sv[k];
+} catch (e) {}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function clampInt(v, a, b){ v = Math.round(+v); if (!isFinite(v)) v = a; return Math.max(a, Math.min(b, v)); }
+S.balls = clampInt(S.balls, 0, MAX.balls);
+S.plates = clampInt(S.plates, 0, MAX.plates);
+S.widthIdx = clampInt(S.widthIdx, 0, PEN_W.length - 1);
+
+var sc = 1, LH = 800;     // 拡大率と論理の高さ
+var balls = [], plates = [], bd = 60;
+var zBall = 1000, zPlate = 1;
+var pristine = true;      // まだ誰も触っていない＝画面サイズが変わったら並べ直してよい
+var busy = false, timers = [];
+var tool = 'hand';
+
+/* ================= 画面サイズ ================= */
+function syncHeader(){
+  var h = document.querySelector('.divp-header');
+  var hh = h ? Math.max(0, h.getBoundingClientRect().bottom) : 0;
+  app.style.setProperty('--hh', hh + 'px');
+}
+function fitBar(){
+  // 文字の大きさは画面幅で決め、ツールバーが1行に収まらなければ縮める
+  var fs = Math.max(10, Math.min(40, Math.min(window.innerWidth * 0.009, window.innerHeight * 0.017)));
+  var root = document.documentElement;
+  root.style.fontSize = fs + 'px';
+  var guard = 0;
+  while (bar.scrollWidth > bar.clientWidth + 1 && fs > 8 && guard++ < 60) {
+    fs -= 0.4; root.style.fontSize = fs + 'px';
+  }
+}
+function resize(){
+  var w = board.clientWidth, h = board.clientHeight;
+  if (!w || !h) return;
+  var oldLH = LH;
+  sc = w / LW; LH = h / sc;
+  stage.style.transform = 'scale(' + sc + ')';
+  stage.style.height = LH + 'px';
+  board.style.setProperty('--s', sc);
+  var dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+  redrawInk();
+  if (pristine) layout(); else rescaleY(LH / oldLH);
+}
+// 動かしたあとに盤面の高さが変わったら（全画面の切りかえなど）、たての位置だけ同じ割合でのばす。
+// おさらに乗っているボールはおさらといっしょに動かし、並びをくずさない
+function rescaleY(k){
+  if (!isFinite(k) || Math.abs(k - 1) < 0.002) { clampAll(); return; }
+  var on = balls.map(function(b){ return plateIndexAt(b.x, b.y); });
+  var oldY = plates.map(function(p){ return p.y; });
+  plates.forEach(function(p){ p.y *= k; });
+  balls.forEach(function(b, i){
+    if (on[i] >= 0) b.y = plates[on[i]].y + (b.y - oldY[on[i]]);
+    else b.y *= k;
+  });
+  tray.y *= k; tray.h *= k; placeTray();
+  clampAll();
+}
+var tray = { x:0, y:0, w:0, h:0 };
+function placeTray(){
+  trayEl.style.left = tray.x + 'px'; trayEl.style.top = tray.y + 'px';
+  trayEl.style.width = tray.w + 'px'; trayEl.style.height = tray.h + 'px';
+}
+function toL(e, rect){
+  var r = rect || board.getBoundingClientRect();
+  return { x:(e.clientX - r.left) / sc, y:(e.clientY - r.top) / sc };
+}
+
+/* ================= 並べる ================= */
+// おさらの中に置く場所（六角形に詰めた点を、中心に近い順に）
+// ox,oy で格子をずらす: 2こ・4こは「辺のまん中」、3こは「三角形の重心」を中心にすると
+// まとまりがおさらの真ん中に来る
+function hexSlots(D, b, ox, oy){
+  ox = ox || 0; oy = oy || 0;
+  var s = b * 1.1, R = D / 2 * 0.86 - b / 2, out = [];
+  if (R < 0) return b <= D * 0.95 ? [[0, 0]] : [];
+  var dy = s * 0.866, N = Math.ceil(R / dy) + 2;
+  for (var r = -N; r <= N; r++) {
+    var y = r * dy - oy, off = (r & 1) ? s / 2 : 0;
+    for (var c = -N - 1; c <= N + 1; c++) {
+      var x = c * s + off - ox;
+      if (x * x + y * y <= R * R + 0.01) out.push([x, y]);
+    }
+  }
+  out.sort(function(p, q){
+    var d = (p[0]*p[0] + p[1]*p[1]) - (q[0]*q[0] + q[1]*q[1]);
+    if (Math.abs(d) > 1) return d;
+    return ang(p) - ang(q);
+  });
+  return out;
+}
+// 1まいに k こ のせるとき、いちばん小さくまとまる格子のずらし方を選ぶ
+function plateSlots(D, b, k){
+  var s = b * 1.1, best = null, bestR = Infinity;
+  [[0, 0], [s / 2, 0], [s / 2, s * 0.2887]].forEach(function(o){
+    var sl = hexSlots(D, b, o[0], o[1]);
+    if (sl.length < k) return;
+    var p = sl[k - 1], r = Math.sqrt(p[0] * p[0] + p[1] * p[1]);
+    if (r < bestR - 0.5) { bestR = r; best = sl; }
+  });
+  return best || hexSlots(D, b);
+}
+function ang(p){ var a = Math.atan2(p[0], -p[1]); return a < 0 ? a + Math.PI * 2 : a; } // 真上から時計回り
+
+// ボールばこの並べ方。10こ（5こ＋5こ）ずつの列を優先する
+function trayGrid(n, b, iw, ih){
+  var g = b * 1.18, rowsMax = Math.floor(ih / g);
+  if (n === 0) return { cols:1, rows:0, g:g };
+  if (rowsMax < 1) return null;
+  function gw(c){ return c * g + Math.floor((c - 1) / 5) * g * 0.4; }
+  var cands = [];
+  if (n <= 10) cands.push(n);
+  else for (var c = 10; c < n + 10; c += 10) cands.push(c);
+  for (var i = 0; i < cands.length; i++) {
+    var cc = cands[i];
+    if (gw(cc) <= iw && Math.ceil(n / cc) <= rowsMax) return { cols:cc, rows:Math.ceil(n / cc), g:g, gw:gw(cc) };
+  }
+  if (b < 44) { // 小さくなりすぎるときは10こ区切りをあきらめて詰める
+    for (var c2 = n; c2 >= 1; c2--) {
+      if (gw(c2) <= iw && Math.ceil(n / c2) <= rowsMax) return { cols:c2, rows:Math.ceil(n / c2), g:g, gw:gw(c2) };
+    }
+  }
+  return null;
+}
+
+function geom(n, P, m, th, rows){
+  // ボールばこ（左上）。右上は式の場所
+  var g = { tx:m, ty:m, tw:LW - 2 * m - 410, th:th, rows:rows };
+  g.ix = g.tx + 22; g.iy = g.ty + 64; g.iw = g.tw - 44; g.ih = th - 64 - 16;
+  // おさら（下）
+  g.py0 = g.ty + th + 22;
+  var py1 = LH - m - 26;
+  g.cols = Math.max(1, Math.ceil(P / rows));
+  g.cellW = (LW - 2 * m) / g.cols; g.cellH = (py1 - g.py0) / rows;
+  // 「Nこ」のバッジがおさらの下にはみ出すぶん（約36）をあけて、2段のとき下の段に重ねない
+  g.D = Math.max(70, Math.min(g.cellW * 0.86, (g.cellH - 36) * 0.94, 420));
+  // ボールの大きさ: 1まいに ceil(n/P) こ のり、ボールばこにも入る大きさ
+  var per = P > 0 ? Math.max(1, Math.ceil(n / P)) : 1, b = 92;
+  if (P > 0) while (b > 14 && hexSlots(g.D, b).length < per) b *= 0.95;
+  while (b > 12 && !trayGrid(n, b, g.iw, g.ih)) b *= 0.95;
+  g.bd = b;
+  return g;
+}
+
+function layout(){
+  cancelAnim();
+  balls.forEach(function(b){ b.el.remove(); });
+  plates.forEach(function(p){ p.el.remove(); });
+  balls = []; plates = []; zBall = 1000; zPlate = 1;
+
+  var n = S.balls, P = S.plates, m = 28;
+  // ボールばこの高さ（3とおり）× おさらの段数（1段・2段）を試して、
+  // ボールがいちばん大きく、つぎにおさらがいちばん大きくなる組み合わせを使う
+  var best = null;
+  [0.4, 0.33, 0.26].forEach(function(f){
+    var th = Math.max(170, Math.min(LH * f, LH - 2 * m - 220));
+    [1, 2].forEach(function(rows){
+      if (rows === 2 && P < 4) return;
+      var g = geom(n, P, m, th, rows);
+      if (!best || g.bd > best.bd + 0.5 || (Math.abs(g.bd - best.bd) <= 0.5 && g.D > best.D)) best = g;
+    });
+  });
+  var G = best;
+  tray = { x:G.tx, y:G.ty, w:G.tw, h:G.th }; placeTray();
+  var ix = G.ix, iy = G.iy, iw = G.iw, ih = G.ih;
+  var py0 = G.py0, rows = G.rows, cols = G.cols, cellW = G.cellW, cellH = G.cellH, D = G.D;
+  bd = G.bd;
+
+  // ボール
+  var tg = trayGrid(n, bd, iw, ih) || { cols:Math.max(1, Math.min(n, 20)), rows:Math.ceil(n / 20), g:bd * 1.1 };
+  var gw = tg.gw || tg.cols * tg.g;
+  var x0 = ix + (iw - gw) / 2, y0 = iy + Math.max(0, (ih - tg.rows * tg.g) / 2);
+  for (var i = 0; i < n; i++) {
+    var c = i % tg.cols, r = Math.floor(i / tg.cols);
+    var el = document.createElement('div');
+    el.className = 'ball';
+    el.style.width = el.style.height = bd + 'px';
+    var ball = { el:el, x:x0 + c * tg.g + Math.floor(c / 5) * tg.g * 0.4 + tg.g / 2, y:y0 + r * tg.g + tg.g / 2, order:i, drag:false };
+    el._obj = ball;
+    el.style.zIndex = ++zBall;
+    stage.appendChild(el);
+    placeBall(ball);
+    balls.push(ball);
+  }
+
+  // おさら
+  var slots = P > 0 ? plateSlots(D, bd, Math.max(1, Math.floor(n / P))) : [];
+  var badge = Math.max(26, Math.min(44, D * 0.13));
+  for (var j = 0; j < P; j++) {
+    var row = rows === 1 ? 0 : (j < cols ? 0 : 1);
+    var inRow = rows === 1 ? P : (row === 0 ? cols : P - cols);
+    var idx = row === 0 ? j : j - cols;
+    var rowW = inRow * cellW, sx = (LW - rowW) / 2;
+    var pel = document.createElement('div');
+    pel.className = 'plate';
+    pel.style.width = pel.style.height = D + 'px';
+    var cnt = document.createElement('div');
+    cnt.className = 'cnt'; cnt.style.fontSize = badge + 'px';
+    pel.appendChild(cnt);
+    var plate = { el:pel, cntEl:cnt, x:sx + cellW * (idx + 0.5), y:py0 + cellH * (row + 0.5) - 16, r:D / 2, slots:slots, drag:false };
+    pel._obj = plate;
+    pel.style.zIndex = ++zPlate;
+    stage.appendChild(pel);
+    placePlate(plate);
+    plates.push(plate);
+  }
+  pristine = true;
+  updateCounts();
+  updateFormula();
+}
+
+function placeBall(b){ b.el.style.left = (b.x - bd / 2) + 'px'; b.el.style.top = (b.y - bd / 2) + 'px'; }
+function placePlate(p){ p.el.style.left = (p.x - p.r) + 'px'; p.el.style.top = (p.y - p.r) + 'px'; }
+function clampXY(o, r){
+  o.x = Math.max(r * 0.4, Math.min(LW - r * 0.4, o.x));
+  o.y = Math.max(r * 0.4, Math.min(LH - r * 0.4, o.y));
+}
+function clampAll(){
+  plates.forEach(function(p){ clampXY(p, p.r); placePlate(p); });
+  balls.forEach(function(b){ clampXY(b, bd / 2); placeBall(b); });
+  updateCounts();
+}
+
+/* ================= 数える ================= */
+function plateIndexAt(x, y){
+  var best = -1, bestD = Infinity;
+  for (var i = 0; i < plates.length; i++) {
+    var p = plates[i], dx = x - p.x, dy = y - p.y, d = dx * dx + dy * dy;
+    if (d < (p.r * 0.97) * (p.r * 0.97) && d < bestD) { best = i; bestD = d; }
+  }
+  return best;
+}
+function updateCounts(){
+  var cnt = plates.map(function(){ return 0; }), rem = 0;
+  balls.forEach(function(b){ var i = plateIndexAt(b.x, b.y); if (i < 0) rem++; else cnt[i]++; });
+  plates.forEach(function(p, i){ p.cntEl.textContent = cnt[i] + 'こ'; });
+  remEl.textContent = rem;
+}
+function updateFormula(){
+  var n = S.balls, P = S.plates;
+  $('fq').textContent = n + ' ÷ ' + P;
+  if (P > 0) {
+    var q = Math.floor(n / P), r = n % P;
+    $('fa').textContent = '＝ ' + q + (r ? ' あまり ' + r : '');
+  }
+  formulaEl.style.display = (S.showFormula && P > 0) ? '' : 'none';
+  $('fa').style.display = S.showAnswer ? '' : 'none';
+}
+
+/* ================= 指で動かす ================= */
+var drags = {};
+stage.addEventListener('pointerdown', function(e){
+  if (tool !== 'hand') return;
+  var t = e.target.closest('.ball,.plate');
+  if (!t || !t._obj) return;
+  e.preventDefault();
+  var o = t._obj, pt = toL(e), d;
+  if (o.drag) return;
+  o.drag = true;
+  t.classList.remove('anim');
+  t.classList.add('grab');
+  if (t.classList.contains('ball')) {
+    t.style.zIndex = ++zBall;
+    d = { o:o, ball:true, dx:o.x - pt.x, dy:o.y - pt.y };
+  } else {
+    t.style.zIndex = ++zPlate;
+    var pi = plates.indexOf(o);
+    // おさらに乗っているボールはいっしょに動く
+    var riders = balls.filter(function(b){ return !b.drag && plateIndexAt(b.x, b.y) === pi; })
+      .map(function(b){ b.drag = true; b.el.classList.remove('anim'); return { b:b, ox:b.x - o.x, oy:b.y - o.y }; });
+    d = { o:o, ball:false, dx:o.x - pt.x, dy:o.y - pt.y, riders:riders };
+  }
+  pristine = false;
+  drags[e.pointerId] = d;
+  try { t.setPointerCapture(e.pointerId); } catch (_) {}
+});
+stage.addEventListener('pointermove', function(e){
+  var d = drags[e.pointerId];
+  if (!d) return;
+  var pt = toL(e), o = d.o;
+  o.x = pt.x + d.dx; o.y = pt.y + d.dy;
+  if (d.ball) { clampXY(o, bd / 2); placeBall(o); }
+  else {
+    clampXY(o, o.r); placePlate(o);
+    d.riders.forEach(function(r){ r.b.x = o.x + r.ox; r.b.y = o.y + r.oy; placeBall(r.b); });
+  }
+  updateCounts();
+});
+function endDrag(e){
+  var d = drags[e.pointerId];
+  if (!d) return;
+  delete drags[e.pointerId];
+  d.o.drag = false;
+  d.o.el.classList.remove('grab');
+  if (d.riders) d.riders.forEach(function(r){ r.b.drag = false; clampXY(r.b, bd / 2); placeBall(r.b); });
+  updateCounts();
+}
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function(ev){ stage.addEventListener(ev, endDrag); });
+
+/* ================= くばる ================= */
+function remaining(){
+  return balls.filter(function(b){ return !b.drag && plateIndexAt(b.x, b.y) < 0; })
+    .sort(function(a, b){ return a.order - b.order; });
+}
+function pickSlot(pl, occ){
+  var lim = bd * 0.85;
+  for (var i = 0; i < pl.slots.length; i++) {
+    var s = pl.slots[i], ok = true;
+    for (var j = 0; j < occ.length; j++) {
+      var dx = s[0] - occ[j].x, dy = s[1] - occ[j].y;
+      if (dx * dx + dy * dy < lim * lim) { ok = false; break; }
+    }
+    if (ok) return { x:s[0], y:s[1] };
+  }
+  var a = Math.random() * Math.PI * 2, rr = Math.random() * Math.max(0, pl.r * 0.7 - bd / 2);
+  return { x:Math.cos(a) * rr, y:Math.sin(a) * rr };
+}
+function deal(all){
+  if (busy) return;
+  var P = plates.length;
+  if (!P) { toast('おさらが ないよ'); return; }
+  var rem = remaining();
+  if (rem.length < P) {
+    toast(rem.length ? 'のこり ' + rem.length + 'こ。ぜんぶの おさらに 1こずつは くばれないね'
+                     : 'ボールばこに ボールは もう ないよ');
+    return;
+  }
+  var occ = plates.map(function(p, i){
+    return balls.filter(function(b){ return plateIndexAt(b.x, b.y) === i; })
+      .map(function(b){ return { x:b.x - p.x, y:b.y - p.y }; });
+  });
+  var steps = [];
+  do {
+    for (var i = 0; i < P; i++) {
+      var s = pickSlot(plates[i], occ[i]);
+      occ[i].push(s);
+      steps.push({ b:rem.pop(), pl:plates[i], ox:s.x, oy:s.y });
+    }
+  } while (all && rem.length >= P);
+  var left = rem.length;
+  var iv = all ? Math.max(70, Math.min(320, 3600 / steps.length)) : 300;
+  run(steps, iv, function(){
+    if (left) toast('のこりの ' + left + 'こは くばれないね（あまり ' + left + '）');
+  });
+}
+function run(steps, iv, done){
+  busy = true; pristine = false; setBusy(true);
+  steps.forEach(function(st, i){
+    timers.push(setTimeout(function(){
+      var b = st.b;
+      if (b.drag || st.pl.drag) return;  // 途中で指でつかまれたら飛ばす
+      b.el.classList.add('anim');
+      b.x = st.pl.x + st.ox; b.y = st.pl.y + st.oy;
+      b.el.style.zIndex = ++zBall;
+      placeBall(b);
+      timers.push(setTimeout(function(){ b.el.classList.remove('anim'); updateCounts(); }, DUR + 20));
+    }, i * iv));
+  });
+  timers.push(setTimeout(function(){
+    busy = false; setBusy(false); updateCounts();
+    if (done) done();
+  }, (steps.length - 1) * iv + DUR + 80));
+}
+function cancelAnim(){
+  timers.forEach(clearTimeout); timers = [];
+  busy = false; setBusy(false);
+  balls.forEach(function(b){ b.el.classList.remove('anim'); });
+}
+function setBusy(on){ $('dealOne').disabled = on; $('dealAll').disabled = on; }
+
+/* ================= 書きこみ ================= */
+var strokes = [], live = {};
+function inkStyle(st){
+  ctx.globalCompositeOperation = st.t === 'e' ? 'destination-out' : 'source-over';
+  ctx.strokeStyle = ctx.fillStyle = st.t === 'e' ? '#000' : st.c;
+  ctx.lineWidth = st.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+}
+function inkTransform(){ var dpr = window.devicePixelRatio || 1; ctx.setTransform(dpr * sc, 0, 0, dpr * sc, 0, 0); }
+function drawDot(st, x, y){ inkStyle(st); ctx.beginPath(); ctx.arc(x, y, st.w / 2, 0, Math.PI * 2); ctx.fill(); }
+function drawSeg(st, x1, y1, x2, y2){ inkStyle(st); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+function redrawInk(){
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  inkTransform();
+  var from = 0;
+  for (var i = strokes.length - 1; i >= 0; i--) if (strokes[i].t === 'clear') { from = i + 1; break; }
+  for (var k = from; k < strokes.length; k++) {
+    var st = strokes[k], p = st.pts;
+    if (p.length <= 2) { drawDot(st, p[0], p[1]); continue; }
+    inkStyle(st); ctx.beginPath(); ctx.moveTo(p[0], p[1]);
+    for (var j = 2; j < p.length; j += 2) ctx.lineTo(p[j], p[j + 1]);
+    ctx.stroke();
+  }
+}
+function showRing(e){
+  var r = board.getBoundingClientRect(), size = ERASE_W * sc;
+  ring.style.width = ring.style.height = size + 'px';
+  ring.style.left = (e.clientX - r.left - size / 2) + 'px';
+  ring.style.top = (e.clientY - r.top - size / 2) + 'px';
+  ring.style.display = 'block';
+}
+canvas.addEventListener('pointerdown', function(e){
+  if (tool === 'hand') return;
+  e.preventDefault();
+  var pt = toL(e);
+  var st = tool === 'eraser' ? { t:'e', w:ERASE_W, pts:[pt.x, pt.y] }
+                             : { t:'p', c:S.color, w:PEN_W[S.widthIdx], pts:[pt.x, pt.y] };
+  strokes.push(st);
+  live[e.pointerId] = st;
+  inkTransform();
+  drawDot(st, pt.x, pt.y);
+  if (tool === 'eraser') showRing(e);
+  try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+});
+canvas.addEventListener('pointermove', function(e){
+  if (tool === 'eraser' && (live[e.pointerId] || e.pointerType === 'mouse')) showRing(e);
+  var st = live[e.pointerId];
+  if (!st) return;
+  var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+  if (!evs.length) evs = [e];
+  var r = board.getBoundingClientRect();
+  inkTransform();
+  for (var i = 0; i < evs.length; i++) {
+    var pt = toL(evs[i], r), n = st.pts.length, lx = st.pts[n - 2], ly = st.pts[n - 1];
+    if (Math.abs(pt.x - lx) + Math.abs(pt.y - ly) < 0.8) continue;
+    st.pts.push(pt.x, pt.y);
+    drawSeg(st, lx, ly, pt.x, pt.y);
+  }
+});
+function endInk(e){
+  if (!live[e.pointerId]) return;
+  delete live[e.pointerId];
+  if (e.pointerType !== 'mouse' && !Object.keys(live).length) ring.style.display = 'none';
+}
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function(ev){ canvas.addEventListener(ev, endInk); });
+canvas.addEventListener('pointerleave', function(){ if (!Object.keys(live).length) ring.style.display = 'none'; });
+
+function undoInk(){
+  if (!strokes.length) return;
+  var st = strokes.pop();
+  for (var id in live) if (live[id] === st) delete live[id];
+  redrawInk();
+}
+function clearInk(){
+  var has = false;
+  for (var i = strokes.length - 1; i >= 0; i--) { if (strokes[i].t === 'clear') break; has = true; }
+  if (!has) return;
+  strokes.push({ t:'clear' });   // 「1つもどす」で取り消せるように印を積む
+  redrawInk();
+  toast('字を ぜんぶ けしました（「1つもどす」で もどせます）');
+}
+
+/* ================= ツールバー ================= */
+function setTool(t){
+  tool = t;
+  board.classList.toggle('inking', t !== 'hand');
+  $('tHand').classList.toggle('on', t === 'hand');
+  $('tPen').classList.toggle('on', t === 'pen');
+  $('tEraser').classList.toggle('on', t === 'eraser');
+  if (t !== 'eraser') ring.style.display = 'none';
+}
+function paintSettings(){
+  $('bNum').textContent = S.balls;
+  $('pNum').textContent = S.plates;
+  $('tgCount').classList.toggle('on', S.showCount);
+  $('tgFormula').classList.toggle('on', S.showFormula);
+  $('tgAnswer').classList.toggle('on', S.showAnswer);
+  board.classList.toggle('nocount', !S.showCount);
+  var sws = $('swatches').children;
+  for (var i = 0; i < sws.length; i++) sws[i].classList.toggle('on', sws[i]._c === S.color);
+  $('tPen').style.color = $('tPen').classList.contains('on') ? '' : S.color;
+  $('wLine').setAttribute('stroke-width', [1.6, 3.2, 6][S.widthIdx]);
+  $('wLabel').textContent = PEN_W_LABEL[S.widthIdx];
+}
+COLORS.forEach(function(c){
+  var b = document.createElement('button');
+  b.className = 'sw'; b.style.background = c.c; b._c = c.c;
+  b.setAttribute('aria-label', 'ペンの色 ' + c.name);
+  b.addEventListener('click', function(){ S.color = c.c; save(); setTool('pen'); paintSettings(); });
+  $('swatches').appendChild(b);
+});
+
+function setCount(key, v){
+  v = clampInt(v, 0, MAX[key]);
+  if (v === S[key]) return false;
+  S[key] = v; save(); paintSettings(); layout();
+  return true;
+}
+function bindHold(btn, fn){
+  var t1 = null, t2 = null;
+  function stop(){ clearTimeout(t1); clearInterval(t2); t1 = t2 = null; }
+  btn.addEventListener('pointerdown', function(e){
+    e.preventDefault(); stop(); fn();
+    t1 = setTimeout(function(){ t2 = setInterval(fn, 90); }, 420);
+    try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function(ev){ btn.addEventListener(ev, stop); });
+}
+bindHold($('bMinus'), function(){ setCount('balls', S.balls - 1); });
+bindHold($('bPlus'),  function(){ setCount('balls', S.balls + 1); });
+bindHold($('pMinus'), function(){ setCount('plates', S.plates - 1); });
+bindHold($('pPlus'),  function(){ setCount('plates', S.plates + 1); });
+
+$('dealOne').addEventListener('click', function(){ deal(false); });
+$('dealAll').addEventListener('click', function(){ deal(true); });
+$('reset').addEventListener('click', function(){ layout(); });
+$('tgCount').addEventListener('click', function(){ S.showCount = !S.showCount; save(); paintSettings(); });
+$('tgFormula').addEventListener('click', function(){ S.showFormula = !S.showFormula; save(); paintSettings(); updateFormula(); });
+$('tgAnswer').addEventListener('click', function(){ S.showAnswer = !S.showAnswer; save(); paintSettings(); updateFormula(); });
+$('tHand').addEventListener('click', function(){ setTool('hand'); paintSettings(); });
+$('tPen').addEventListener('click', function(){ setTool('pen'); paintSettings(); });
+$('tEraser').addEventListener('click', function(){ setTool('eraser'); paintSettings(); });
+$('tWidth').addEventListener('click', function(){ S.widthIdx = (S.widthIdx + 1) % PEN_W.length; save(); setTool('pen'); paintSettings(); });
+$('undo').addEventListener('click', undoInk);
+$('clearInk').addEventListener('click', clearInk);
+
+/* ---- 全画面（ヘッダーを消して盤面を広く） ---- */
+var fsEl = function(){ return document.fullscreenElement || document.webkitFullscreenElement; };
+if (!(app.requestFullscreen || app.webkitRequestFullscreen)) $('full').style.display = 'none';
+$('full').addEventListener('click', function(){
+  if (fsEl()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
+  var p = (app.requestFullscreen || app.webkitRequestFullscreen).call(app);
+  if (p && p.catch) p.catch(function(){});
+});
+function onFs(){ $('fullLabel').textContent = fsEl() ? 'もとにもどす' : 'ぜんがめん'; fitBar(); }
+document.addEventListener('fullscreenchange', onFs);
+document.addEventListener('webkitfullscreenchange', onFs);
+
+/* ---- 数字パッド（数字をタップすると開く。電子黒板でキーボードを出さずに済む） ---- */
+var np = { key:null, val:'0', fresh:true };
+['7','8','9','4','5','6','1','2','3','C','0','⌫'].forEach(function(k){
+  var b = document.createElement('button');
+  b.className = 'btn'; b.textContent = k;
+  if (k === 'C' || k === '⌫') b.style.fontSize = '1.6rem';
+  b.addEventListener('click', function(){
+    if (k === 'C') { np.val = '0'; np.fresh = false; }
+    else if (k === '⌫') { np.val = np.val.slice(0, -1) || '0'; np.fresh = false; }
+    else {
+      if (np.fresh) np.val = '';
+      np.fresh = false;
+      if (np.val.length < 3) np.val = String(+(np.val + k));
+    }
+    paintNp();
+  });
+  $('npKeys').appendChild(b);
+});
+function paintNp(){
+  var over = +np.val > MAX[np.key];
+  $('npDisp').textContent = np.val;
+  $('npDisp').classList.toggle('over', over);
+  $('npNote').textContent = over ? 'いちばん おおくて ' + MAX[np.key] + ' まで' : '';
+}
+function openNp(key){
+  np.key = key; np.val = String(S[key]); np.fresh = true;
+  $('npTitle').textContent = key === 'balls' ? 'ボールの かず' : 'おさらの かず';
+  paintNp();
+  $('npBack').hidden = false;
+}
+function closeNp(){ $('npBack').hidden = true; }
+$('bVal').addEventListener('click', function(){ openNp('balls'); });
+$('pVal').addEventListener('click', function(){ openNp('plates'); });
+$('npCancel').addEventListener('click', closeNp);
+$('npOk').addEventListener('click', function(){ closeNp(); setCount(np.key, +np.val); });
+$('npBack').addEventListener('click', function(e){ if (e.target === this) closeNp(); });
+
+/* ---- おしらせ ---- */
+var toastTimer = null;
+function toast(msg){
+  var t = $('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 3200);
+}
+
+/* ---- キーボード（パソコンからの操作用） ---- */
+document.addEventListener('keydown', function(e){
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); undoInk(); }
+});
+// 長押しで右クリックメニューが出ないように
+app.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+
+/* ---- はじめ ---- */
+paintSettings();
+setTool('hand');
+paintSettings();
+syncHeader(); fitBar();
+if (window.ResizeObserver) {
+  new ResizeObserver(function(){ resize(); }).observe(board);
+  var hdr = document.querySelector('.divp-header');
+  if (hdr) new ResizeObserver(function(){ syncHeader(); }).observe(hdr);
+}
+window.addEventListener('resize', function(){ syncHeader(); fitBar(); resize(); });
+// 共通ヘッダーは後から差しこまれるので、しばらく高さを見張る
+var hhTries = 0, hhTimer = setInterval(function(){ syncHeader(); if (++hhTries > 20) clearInterval(hhTimer); }, 250);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBar);
+resize();
+})();
+</script>
+</body>
+</html>
