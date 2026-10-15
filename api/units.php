@@ -46,6 +46,12 @@ return [
         'sub'   => '数学・高校（数学I 2次関数）',
         'url'   => '/learning/math/math_hs_nijikansu.html',
     ],
+    // 数学I「2次不等式」とその応用（判別式の利用・解の配置・文字係数まで11タイプ）。解き直しは同じ種(seed)方式
+    'math_hs_niji_futoushiki' => [
+        'title' => '2次不等式マスター',
+        'sub'   => '数学・高校（数学I 2次不等式）',
+        'url'   => '/learning/math/math_hs_niji_futoushiki.html',
+    ],
     // 解き直しは question_params の {m:サブモード, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
     'math_es5_baisu_yakusu' => [
         'title' => '倍数・約数マスター',
@@ -248,6 +254,12 @@ return [
         'title' => '時差計算練習',
         'sub'   => '社会・中学',
         'url'   => '/learning/social/social_js_jisa.html',
+    ],
+    // 中1地理「世界の諸地域」（第8〜17章・確認問題200問の6択）。question_key は州、解き直しは {id} で BANK から引く
+    'social_js1_sekai_chiri' => [
+        'title' => '世界の諸地域マスター',
+        'sub'   => '社会・中1（地理 世界の諸地域）',
+        'url'   => '/learning/social/social_js1_sekai_chiri.html',
     ],
     'science_js1_busshitsu' => [
         'title' => '身のまわりの物質マスター',

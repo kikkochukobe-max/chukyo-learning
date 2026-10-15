@@ -84,11 +84,13 @@ assets/                共通モジュール（全ツールがscriptタグで読
                          --divp-mark-ok-text は「正解」の文字色だけを分けたいとき用
                          (既定は枠と同色。イオンのしくみラボのような暗い背景の
                          ツールで、枠は明るい緑・文字は読める薄い色にするために使う)。
-                         組み込み済み16本: 一次関数・愛知県大問1・方程式の利用・
+                         組み込み済み18本: 一次関数・愛知県大問1・方程式の利用・
                          連立方程式の利用・一次関数の利用・計算特集(中2)・二次方程式・
                          二次方程式の利用・イオンのしくみラボ・光と音と力・
                          立体の体積マスター・倍数約数マスター・数列完全マスター・
-                         漸化式マスター・円と方程式マスター・2次関数マスター
+                         漸化式マスター・円と方程式マスター・2次関数マスター・
+                         2次不等式マスター・世界の諸地域マスター
+                         （ほかに一般常識バトルも読むが、学習記録の外のツール）
                          （`grep -rln markChoice learning/` が正。数え直したら増えていた）。
                          回帰テスト tests/choice-mark.spec.js(仕様) と
                          tests/choice-mark-tools.spec.js(各ツールの配線)
@@ -118,9 +120,9 @@ assets/                共通モジュール（全ツールがscriptタグで読
                          そもそもランクを出すかが未決なので、別モジュールにする。
                          ⚠ 4点セット(記録・正解エフェクト・解き直し・図)とは別の
                          任意機能。セット制で出題するツールだけが読めばよい。
-                         組み込み済み6本: math_js3_aichi_daimon1 / math_js2_ichijikansu /
+                         組み込み済み7本: math_js3_aichi_daimon1 / math_js2_ichijikansu /
                          math_hs_suuretsu / math_hs_zenkashiki / math_hs_en_houteishiki /
-                         math_hs_nijikansu
+                         math_hs_nijikansu / math_hs_niji_futoushiki
                          （`grep -rln resultInit learning/` が正）。
                          ⚠ **終わりのない練習モードにも入れること**。大問1は最初
                          「本番セット10問」だけに入れたが、生徒が触るのは
@@ -346,7 +348,8 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    math_js2_ichijikansu_riyou（`{m:STEPキー, s:種}`。連立の文章題編と同じ形。
    答えが「式(y=ax+b)」の種類と「数値」の種類が混ざるので、選択肢づくりだけ
    `buildChoices()` で1か所に寄せてある）/
-   math_hs_zenkashiki・math_hs_en_houteishiki・math_hs_nijikansu（どれも
+   math_hs_zenkashiki・math_hs_en_houteishiki・math_hs_nijikansu・
+   math_hs_niji_futoushiki（どれも
    `{m:タイプ, lv:レベル, s:種}`。レベルは question_key を増やさず params に持つ
    ＝カルテはタイプ単位で読める。⚠ 2次関数マスターは**タイプごとにレベルの数が違う**
    （発展を持たないタイプは2つまで）ので、出題時に `lv > lvCount(m)` なら
@@ -384,6 +387,15 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    和文の選択肢は 2乗=「²」・ルート=「√」の素の文字で書き、**画面側も KaTeX に通さない**
    （円と方程式マスターは `ans.plain=true` で出し分けている）。
    回帰テストは tests/en-houteishiki.spec.js の「選択肢に生の「<」が入らない」。
+   ⚠ **question_text は255バイト、correct_answer / student_answer は100バイトで切られる**
+   （save_answer.php がバイト単位の substr で切る。日本語は1文字3バイトなので問題文は約85字・答えは約33字）。
+   場合分けの答え（「a＜1 のとき …、a=1 のとき …」）は100バイトを超えやすく、文字の途中で
+   切れると不正なUTF-8になる。2次不等式マスターは `capBytes()` で文字の境目に合わせて切ってから送り、
+   回帰テストで「正解・選択肢が100バイト以内」を見張っている（作るときに文言を短くそろえた）。
+   ⚠ **練習プリントの選択肢の CSS は `.ch>span{display:flex}`（子セレクタ）にする**。
+   `.ch span` だと KaTeX が出す内側の span まで flex になり、紙の上で分数・不等号が縦に
+   ばらばらに崩れる（画面では起きないので気づきにくい）。2次関数マスター・円と方程式マスターは
+   `.ch span` のまま（2026-10 時点）。
 3. **question_key はツールのモード変数をそのまま使う**。命名ブレ防止のため
    question_catalog が台帳を兼ね、カタログに無い question_key が飛んできたら
    save_answer.php が警告ログを出す

@@ -120,6 +120,22 @@ const TOOLS = [
     grade: '#checkBtn',
     next: '#nextBtn',
   },
+  {
+    name: '世界の諸地域マスター',
+    url: '/learning/social/social_js1_sekai_chiri.html',
+    start: async (page) => {
+      // テスト運用中は合言葉画面が先に出る（一度通るとその端末では出ない）
+      const gate = page.locator('#gateInput');
+      if (await gate.isVisible()) {
+        await gate.fill('test');
+        await gate.press('Enter');
+      }
+      await page.locator('#startMix').click();
+    },
+    choices: '#choices .ch',
+    grade: '#grade',         // 選んでから「答え合わせ」で採点する
+    next: '#next',
+  },
 ];
 
 for (const t of TOOLS) {
