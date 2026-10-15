@@ -4,8 +4,9 @@ declare(strict_types=1);
 // 常識バトル（講師側）。/battle_host.php の画面が呼ぶ。部屋を作れるのは講師だけ。
 //   GET  ?action=rooms[&hist=all]        … 自分の部屋の一覧（開いている部屋＋最近の対戦。ふだんは新しい15件、
 //                                        hist=all で BATTLE_HIST_ALL 件まで。more=true ならまだ古い部屋がある）
-//   POST {action:'create', level, count, teams, practice} … 部屋を作る（難易度 1〜4 / 問題数 10〜100 の5問きざみ /
-//                                        チーム数 0=個人戦・2〜6=チーム戦 / practice=true で練習＝合算に入らない）。
+//   POST {action:'create', level, count, teams, practice, categories} … 部屋を作る（難易度 1〜4 / 問題数 10〜100 の5問きざみ /
+//                                        チーム数 0=個人戦・2〜6=チーム戦 / practice=true で練習＝合算に入らない /
+//                                        categories=出題単元のキーの配列（省略・全部＝全単元））。
 //                                        4桁の部屋番号を返す
 //   POST {action:'start', room_id}       … スタート（待合室で画面を開いている生徒だけが参加する）
 //   POST {action:'cancel', room_id}      … 部屋を閉じる（待合室・対戦中どちらでも）
@@ -94,15 +95,18 @@ case 'rooms':
         }
     }
     // 難易度ごとの出題できる問題数（seed を流し忘れていると部屋が作れないので、画面に出す）と、
-    // そのうち計算が要る問題の数（終わるまでの時間の目安に使う）
+    // そのうち計算が要る問題の数（終わるまでの時間の目安に使う）。単元をしぼった時の数も出せるよう単元ごとに持つ
     $hasCalc = battle_has_calc($pdo);
     $avail = [];
     $calcN = [];
-    $sql = 'SELECT level, COUNT(*) AS n, ' . ($hasCalc ? 'SUM(needs_calc)' : '0') . ' AS c
-            FROM battle_questions WHERE is_active = 1 GROUP BY level';
+    $byCat = [];
+    $sql = 'SELECT level, category, COUNT(*) AS n, ' . ($hasCalc ? 'SUM(needs_calc)' : '0') . ' AS c
+            FROM battle_questions WHERE is_active = 1 GROUP BY level, category';
     foreach ($pdo->query($sql)->fetchAll() as $row) {
-        $avail[(int)$row['level']] = (int)$row['n'];
-        $calcN[(int)$row['level']] = (int)$row['c'];
+        $lv = (int)$row['level'];
+        $avail[$lv] = ($avail[$lv] ?? 0) + (int)$row['n'];
+        $calcN[$lv] = ($calcN[$lv] ?? 0) + (int)$row['c'];
+        $byCat[$lv][(string)$row['category']] = ['n' => (int)$row['n'], 'c' => (int)$row['c']];
     }
     $levels = [];
     foreach (BATTLE_LEVELS as $lv => $def) {
@@ -113,7 +117,12 @@ case 'rooms':
             'calc_sec'  => $hasCalc ? $def['calc_sec'] : $def['sec'],
             'available' => $avail[$lv] ?? 0,
             'calc'      => $calcN[$lv] ?? 0,
+            'by_cat'    => (object)($byCat[$lv] ?? []),   // 単元キー → {n:問題数, c:計算問題の数}
         ];
+    }
+    $categories = [];
+    foreach (BATTLE_CATEGORIES as $k => $label) {
+        $categories[] = ['key' => $k, 'label' => $label];
     }
     json_response([
         'ok'      => true,
@@ -126,6 +135,8 @@ case 'rooms':
         'team'    => ['ready' => battle_has_team($pdo), 'min' => BATTLE_TEAM_MIN, 'max' => count(BATTLE_TEAMS)],
         // 練習モード。migrate_joshiki_battle_practice.sql を流していなければ ready=false（本番だけ）
         'practice' => ['ready' => battle_has_practice($pdo)],
+        // 出題単元。migrate_joshiki_battle_category.sql を流していなければ ready=false（全単元だけ）
+        'categories' => ['ready' => battle_has_categories($pdo), 'list' => $categories],
         'now_ms'  => $now,
     ]);
     break;
@@ -152,6 +163,16 @@ case 'create':
     if ($practice && !battle_has_practice($pdo)) {
         fail('practice_not_ready', 409);
     }
+    $cats = battle_parse_categories($in['categories'] ?? null);   // null＝全単元
+    if ($cats === false) {
+        fail('invalid_categories');
+    }
+    if ($cats === []) {
+        fail('no_categories');
+    }
+    if ($cats !== null && !battle_has_categories($pdo)) {
+        fail('categories_not_ready', 409);
+    }
     battle_sweep_rooms($pdo, $now);
     // 開いている部屋があるうちは作らせない（閉じ忘れた部屋に生徒が入ってしまうのを防ぐ）
     $stmt = $pdo->prepare(
@@ -164,13 +185,49 @@ case 'create':
     if ($openId !== false) {
         fail('room_open', 409, ['room_id' => (int)$openId]);
     }
-    // 出題する問題（難易度の中からランダム。カテゴリは混ざる）。計算が要る問題は制限時間を長くする
+    // 出題する問題。計算が要る問題は制限時間を長くする
     $hasCalc = battle_has_calc($pdo);
-    $picked = $pdo->query(
-        'SELECT question_id, ' . ($hasCalc ? 'needs_calc' : '0') . ' AS needs_calc FROM battle_questions
-         WHERE level = ' . $level . ' AND is_active = 1
-         ORDER BY RAND() LIMIT ' . $count
-    )->fetchAll();
+    $cols = 'question_id, category, ' . ($hasCalc ? 'needs_calc' : '0') . ' AS needs_calc';
+    if ($cats === null) {
+        // 全単元: 難易度の中からランダム（単元は混ざる）
+        $picked = $pdo->query(
+            'SELECT ' . $cols . ' FROM battle_questions
+             WHERE level = ' . $level . ' AND is_active = 1
+             ORDER BY RAND() LIMIT ' . $count
+        )->fetchAll();
+    } else {
+        // 単元をしぼった: 選んだ単元から同じくらいずつ（「地理と歴史で10問」なら5問ずつ）。
+        // 足りない単元があれば、ほかの単元で埋める。並びは最後に混ぜる
+        $stmt = $pdo->prepare(
+            'SELECT ' . $cols . ' FROM battle_questions
+             WHERE level = ? AND is_active = 1 AND category IN (' . implode(',', array_fill(0, count($cats), '?')) . ')
+             ORDER BY RAND()'
+        );
+        $stmt->execute(array_merge([$level], $cats));
+        $pool = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $pool[(string)$row['category']][] = $row;
+        }
+        $picked = [];
+        while (count($picked) < $count && $pool) {
+            foreach (array_keys($pool) as $k) {
+                if (count($picked) >= $count) {
+                    break;
+                }
+                $picked[] = array_shift($pool[$k]);
+                if (!$pool[$k]) {
+                    unset($pool[$k]);
+                }
+            }
+        }
+        // 1周ごとに単元の順で取っているので、そのままだと「地理・歴史・地理・歴史…」と交互になる
+        for ($i = count($picked) - 1; $i > 0; $i--) {
+            $j = random_int(0, $i);
+            $t = $picked[$i];
+            $picked[$i] = $picked[$j];
+            $picked[$j] = $t;
+        }
+    }
     if (count($picked) < $count) {
         fail('not_enough_questions', 409, ['available' => count($picked)]);
     }
@@ -206,6 +263,9 @@ case 'create':
     }
     if ($practice) {
         $pdo->prepare('UPDATE battle_rooms SET is_practice = 1 WHERE room_id = :r')->execute(['r' => $roomId]);
+    }
+    if ($cats !== null) {
+        $pdo->prepare('UPDATE battle_rooms SET categories = :c WHERE room_id = :r')->execute(['c' => implode(',', $cats), 'r' => $roomId]);
     }
     if ($hasCalc) {
         $ins = $pdo->prepare(
@@ -413,6 +473,7 @@ case 'total_rooms':
             'code'        => (string)$r['room_code'],
             'date'        => (string)($r['started_at'] ?? $r['created_at']),
             'level_label' => BATTLE_LEVELS[(int)$r['level']]['label'] ?? '',
+            'categories'  => battle_room_categories($r),
             'count'       => (int)$r['question_count'],
             'teams'       => count(battle_room_teams($r)),
             'n_players'   => (int)$r['n_players'],

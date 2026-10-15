@@ -61,6 +61,7 @@ button{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;cursor:pointer;t
 .meta{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:6px 0 10px}
 .pill{font-size:13px;font-weight:700;border-radius:999px;padding:3px 12px;background:var(--ai-soft);color:var(--ai)}
 .pill.prac{background:#FFF1D6;color:#8A5A00}
+.pill.cats{background:#EAF3EC;color:#2F6B45}
 .prac-note{display:inline-block;margin-top:8px;background:#FFF1D6;color:#8A5A00;border-radius:999px;padding:3px 14px;font-size:13px;font-weight:700}
 .wait-big{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:19px;text-align:center;color:var(--navy);margin:8px 0}
 .wake-hint{background:#FFF6DD;border:2px dashed var(--gold);border-radius:12px;padding:8px 12px;margin:8px 0;
@@ -443,7 +444,9 @@ tr.dq td{color:var(--ink-soft)}
   // ---------- 待合室 ----------
   function metaHTML() {
     var t = '1問' + room.limit_sec + '秒' + (room.calc_sec && room.calc_sec !== room.limit_sec ? '（計算は' + room.calc_sec + '秒）' : '');
-    return '<span class="pill">' + esc(room.level_label) + '</span><span class="pill">' + room.count + '問</span>'
+    return '<span class="pill">' + esc(room.level_label) + '</span>'
+      + (room.categories && room.categories.length ? '<span class="pill cats">' + esc(room.categories.join('・')) + '</span>' : '')
+      + '<span class="pill">' + room.count + '問</span>'
       + '<span class="pill">' + t + '</span><span class="pill">1問' + room.point + '点</span>'
       + (isTeamRoom() ? '<span class="pill">' + room.teams.length + 'チーム戦</span>' : '')
       + (room.practice ? '<span class="pill prac">れんしゅう</span>' : '');
@@ -528,6 +531,7 @@ tr.dq td{color:var(--ink-soft)}
     teamPickKey = null;
     drawTeamPick();
     show('lobby');
+    trapBack();   // スワイプで戻って失格にならないように（下の「左右のスワイプ」）
     wakeWanted = true;
     drawWakeHint();
     requestWake();
@@ -578,6 +582,7 @@ tr.dq td{color:var(--ink-soft)}
     cancel('lobby');
     document.documentElement.classList.add('ingame');
     armGuards();
+    trapBack();
     wakeWanted = true;
     requestWake();
     $('sc').textContent = '0点';
@@ -805,6 +810,23 @@ tr.dq td{color:var(--ink-soft)}
     });
     window.addEventListener('pagehide', function () { disqualify('pagehide'); });
   }
+  // 左右のスワイプ（iPhone の画面の端からのスワイプ・Android の戻るジェスチャー）で前のページへ戻ると、
+  // ページを離れた＝失格になる。CSS（overscroll-behavior）では止められないので、同じページの履歴を1つ
+  // 積んでおき、戻る操作はその履歴が受け止める（ページは離れず popstate が来るだけ）。
+  //  * 積むのは待合室に入る時（「はいる」を押した直後＝ユーザー操作の中。Chrome は操作なしで積んだ
+  //    履歴を戻るときに飛ばすため）。対戦中に受け止めたら積み直す
+  //  * 対戦中でなければ、受け止めた分はそのまま本当に戻す（待合室・結果画面で戻るが1回空振りしないように）
+  var histTrapped = false;
+  function trapBack() {
+    if (histTrapped) return;
+    try { history.pushState({ battleTrap: 1 }, ''); histTrapped = true; } catch (e) {}
+  }
+  window.addEventListener('popstate', function () {
+    if (!histTrapped) return;
+    histTrapped = false;
+    if (inGame) trapBack();
+    else history.back();
+  });
   // PC で別のウィンドウを使っている（画面は見えたまま＝visibilitychange が来ない）のを見張る。
   // blur イベントだけだと「スタートの前から別のウィンドウにいた」を取りこぼすので、loop() から毎回見る。
   //  * 一瞬外れてすぐ戻る誤検知を避けるため、1秒続いたら失格

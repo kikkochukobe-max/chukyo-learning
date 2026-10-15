@@ -132,6 +132,14 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
   .lv span{font-size:12px;color:var(--ink-soft)}
   .lv.on{border-color:var(--ai);background:var(--ai-soft)}
   .lv:disabled{opacity:.45;cursor:default}
+  /* 出題単元（複数選べる） */
+  .cats{display:flex;flex-wrap:wrap;gap:8px}
+  .cat{border:2px solid var(--grid);background:var(--white);border-radius:999px;padding:6px 14px;font-size:15px;color:var(--ink)}
+  .cat small{font-size:11px;color:var(--ink-soft);margin-left:4px;font-family:'Zen Kaku Gothic New',sans-serif;font-weight:400}
+  .cat.on{border-color:var(--ai);background:var(--ai-soft);color:var(--ai)}
+  .cat.on::before{content:'✓ '}
+  .cat:disabled{opacity:.45;cursor:default}
+  .pill.cats-pill{background:#EAF3EC;color:#2F6B45}
   select{font-size:16px;padding:8px 10px;border-radius:8px;border:1px solid #cbd5e1;font-family:inherit}
   .code-box{text-align:center;padding:10px 0 4px}
   .code-label{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--ink-soft);font-size:15px}
@@ -259,6 +267,9 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
   var ERR = {
     room_open: 'まだ開いている部屋があります。先にその部屋を閉じてください',
     not_enough_questions: 'この難易度の問題が足りません（問題のSQLが流れていない可能性があります）',
+    no_categories: '出題単元を1つ以上選んでください',
+    invalid_categories: '出題単元の指定がおかしいです。ページを開き直してください',
+    categories_not_ready: '単元をしぼるには db/migrations/migrate_joshiki_battle_category.sql を流してください',
     no_players: '待合室で画面を開いている生徒がいません',
     not_lobby: 'この部屋はもうスタートしています',
     team_not_ready: 'チーム戦の準備ができていません（db/migrations/migrate_joshiki_battle_team.sql を流してください）',
@@ -274,6 +285,9 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
     unauthenticated: 'ログインが切れました。ページを開き直してください'
   };
   function errText(d) {
+    if (d && d.error === 'not_enough_questions' && typeof d.available === 'number' && selCatKeys().length < catDef.list.length) {
+      return '選んだ単元の問題が' + d.available + '問しかありません。単元を増やすか、問題数を減らしてください';
+    }
     return (ERR[d && d.error] || ('エラー: ' + ((d && d.error) || '不明'))) + (d && d.code ? '（部屋 ' + d.code + '）' : '');
   }
 
@@ -282,6 +296,8 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
   var practiceDef = { ready: false };
   var selLevel = 1, selCount = 20, selTeams = 0;   // selTeams: 0=個人戦 / 2〜=チーム数
   var selPractice = false;                         // true=練習（合算に入らない）
+  var catDef = { ready: false, list: [] };
+  var selCats = null;                              // 出題単元 { キー: true }。null＝まだ一覧を読んでいない（読んだら全部選ぶ）
   var current = null;      // 開いている部屋の room_id
   var last = null;         // 直近の state 応答
   var pollTimer = null, tickTimer = null;
@@ -307,6 +323,8 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
       if (!teamDef.ready) selTeams = 0;
       if (d.practice) practiceDef = d.practice;
       if (!practiceDef.ready) selPractice = false;
+      if (d.categories) catDef = d.categories;
+      if (selCats === null || !catDef.ready) { selCats = {}; catDef.list.forEach(function (c) { selCats[c.key] = true; }); }
       renderHistory(d.rooms, d.more);
       if (VIEW_ROOM) { var id = VIEW_ROOM; VIEW_ROOM = 0; openRoom(id); }
       else if (d.open) openRoom(d.open);
@@ -333,7 +351,7 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
         + '<span class="note">終わった部屋・中止した部屋を消せます（参加した生徒の点数ごと消え、元に戻せません）</span></div>' : '')
       + '<div class="tot-wrap"><table class="hist pick"><tr><th>'
       + (nDel ? '<input type="checkbox" id="h-all" title="すべて選ぶ"' + (n === nDel ? ' checked' : '') + '>' : '')
-      + '</th><th>作成</th><th>部屋番号</th><th>難易度</th><th>問題数</th><th>参加</th><th>状態</th><th>区分</th><th></th></tr>'
+      + '</th><th>作成</th><th>部屋番号</th><th>難易度</th><th>単元</th><th>問題数</th><th>参加</th><th>状態</th><th>区分</th><th></th></tr>'
       + rooms.map(function (r) {
         var on = !!histSel[r.room_id];
         // 区分: 本番＝合算に入れられる / 練習＝入らない。付けまちがいはここで切りかえる（中止の回は合算に出ないので出さない）
@@ -343,7 +361,7 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
         return '<tr class="' + (on ? 'sel' : '') + '"><td>' + (deletable(r) ? '<input type="checkbox" data-hd="' + r.room_id + '"' + (on ? ' checked' : '') + '>' : '')
           + '</td><td>' + esc(r.created_at.slice(5, 16)) + '</td><td>' + esc(r.code) + '</td><td>' + esc(r.level_label)
           + (r.teams && r.teams.length ? '・' + r.teams.length + 'チーム' : '')
-          + '</td><td class="num">' + r.count + '問</td><td class="num">' + r.n_players + '人</td><td class="status">' + esc(ROOM_STATUS[r.status] || r.status)
+          + '</td><td>' + esc(catText(r.categories)) + '</td><td class="num">' + r.count + '問</td><td class="num">' + r.n_players + '人</td><td class="status">' + esc(ROOM_STATUS[r.status] || r.status)
           + '</td><td style="white-space:nowrap">' + kind + '</td>'
           + '<td>' + (r.status === 'cancelled' ? '' : '<a href="?room=' + r.room_id + '">' + (r.status === 'finished' ? '結果' : '開く') + '</a>') + '</td></tr>';
       }).join('') + '</table></div>'
@@ -433,14 +451,14 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
       opts += '<option value="' + n + '"' + (n === selCount ? ' selected' : '') + '>' + n + '問</option>';
     }
     view.innerHTML = '<div class="card"><h2>部屋を作る</h2>'
-      + '<p class="note">難易度と問題数を決めて部屋を作ると、4桁の部屋番号が出ます。生徒は「学習ツール一覧」の一般常識バトルを開いて、その番号を入れます。</p>'
+      + '<p class="note">難易度・出題単元・問題数を決めて部屋を作ると、4桁の部屋番号が出ます。生徒は「学習ツール一覧」の一般常識バトルを開いて、その番号を入れます。</p>'
       + '<p style="margin-top:14px;font-weight:700">難易度</p><div class="row" id="lvs">'
       + levels.map(function (l) {
         // 計算問題（60秒）のある難易度は「うち計算 N問」も出す。0問なら、DBの問題に「計算が要る」の印
         // （needs_calc）が入っていない＝全部20秒で出る（2026-10 に超難でそうなった）
         return '<button type="button" class="lv' + (l.level === selLevel ? ' on' : '') + '" data-lv="' + l.level + '"' + (l.available < countDef.min ? ' disabled' : '') + '>'
           + '<b>' + esc(l.label) + '</b><span>1問' + l.sec + '秒' + (l.calc_sec !== l.sec ? '（計算は' + l.calc_sec + '秒）' : '')
-          + '・' + l.available + '問から出題'
+          + '・<i class="lvn" style="font-style:normal">' + l.available + '</i>問から出題'
           + (l.calc_sec !== l.sec ? '・うち計算' + l.calc + '問' : '') + '</span></button>';
       }).join('') + '</div>'
       + (levels.some(function (l) { return l.calc_sec !== l.sec && l.available > 0 && !l.calc; })
@@ -449,6 +467,15 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
           + 'の問題に「計算が要る」の印が入っていません。このままだと計算問題もふつうの問題と同じ秒数（60秒にならない）で出ます。'
           + 'phpMyAdmin で db/seeds/seed_joshiki_battle_lv3.sql・lv4.sql を流し直してください（何度流しても問題は増えません）。</p>'
         : '')
+      + '<p style="margin-top:14px;font-weight:700">出題単元 <span class="note" style="font-weight:400">（複数選べます）</span></p>'
+      + '<div class="cats" id="cats">' + catDef.list.map(function (c) {
+        return '<button type="button" class="cat' + (selCats[c.key] ? ' on' : '') + '" data-cat="' + esc(c.key) + '"' + (catDef.ready ? '' : ' disabled') + '>'
+          + esc(c.label) + '<small></small></button>';
+      }).join('') + '</div>'
+      + (catDef.ready ? '<div class="tpick-tools"><button type="button" class="btn ghost sm" id="cat-all">すべて選ぶ</button>'
+          + '<button type="button" class="btn ghost sm" id="cat-none">すべてはずす</button></div>'
+          + '<p class="note">しぼると、選んだ単元から同じくらいずつ出します（2単元で10問なら5問ずつ）。かっこの数は、いま選んでいる難易度の問題数です。</p>'
+        : '<p class="note" style="margin-top:6px">単元をしぼるには db/migrations/migrate_joshiki_battle_category.sql を流してください（いまは全単元から出ます）。</p>')
       + '<p style="margin-top:14px;font-weight:700">問題数</p><div class="row"><select id="cnt">' + opts + '</select>'
       + '<span class="note" id="est"></span></div>'
       + '<p style="margin-top:14px;font-weight:700">対戦のしかた</p><div class="row" id="tms">'
@@ -468,10 +495,12 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
       + '<div style="margin-top:18px"><button type="button" class="btn big" id="mk">部屋を作る</button></div>'
       + '<p class="err" id="mkerr"></p></div>';
     var est = function () {
+      refreshCats();
       var l = levels.filter(function (x) { return x.level === selLevel; })[0];
       if (!l) return;
+      var av = levelAvail(l);
       // 計算問題がどれだけ混ざるかはくじ引きなので、問題バンクの割合で見こむ
-      var ratio = l.available ? l.calc / l.available : 0;
+      var ratio = av.n ? av.c / av.n : 0;
       var per = l.sec + ratio * (l.calc_sec - l.sec);
       var sec = selCount * (per + 5) + 5;
       document.getElementById('est').textContent = '終わるまで 約' + Math.ceil(sec / 60) + '分（1問' + l.sec + '秒'
@@ -484,6 +513,23 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
         est();
       });
     });
+    Array.prototype.forEach.call(document.querySelectorAll('#cats .cat'), function (b) {
+      b.addEventListener('click', function () {
+        if (selCats[b.dataset.cat]) delete selCats[b.dataset.cat]; else selCats[b.dataset.cat] = true;
+        b.classList.toggle('on', !!selCats[b.dataset.cat]);
+        est();
+      });
+    });
+    function setAllCats(on) {
+      selCats = {};
+      if (on) catDef.list.forEach(function (c) { selCats[c.key] = true; });
+      Array.prototype.forEach.call(document.querySelectorAll('#cats .cat'), function (x) { x.classList.toggle('on', on); });
+      est();
+    }
+    if (catDef.ready) {
+      document.getElementById('cat-all').addEventListener('click', function () { setAllCats(true); });
+      document.getElementById('cat-none').addEventListener('click', function () { setAllCats(false); });
+    }
     Array.prototype.forEach.call(document.querySelectorAll('#tms .lv'), function (b) {
       b.addEventListener('click', function () {
         selTeams = +b.dataset.tm;
@@ -501,14 +547,54 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
     document.getElementById('mk').addEventListener('click', function () {
       var btn = this;
       btn.disabled = true;
-      api(null, { action: 'create', level: selLevel, count: selCount, teams: selTeams, practice: selPractice }).then(function (r) {
-        btn.disabled = false;
+      var cats = selCatKeys();
+      api(null, { action: 'create', level: selLevel, count: selCount, teams: selTeams, practice: selPractice,
+        categories: cats.length < catDef.list.length ? cats : null }).then(function (r) {
+        refreshCats();
         if (r.data.ok) { openRoom(r.data.room_id); loadHistoryOnly(); }
         else if (r.data.error === 'room_open') { openRoom(r.data.room_id); }
         else document.getElementById('mkerr').textContent = errText(r.data);
       });
     });
   }
+
+  // 出題単元
+  function selCatKeys() {
+    return catDef.list.filter(function (c) { return selCats && selCats[c.key]; }).map(function (c) { return c.key; });
+  }
+  // その難易度で、いま選んでいる単元から出せる問題数 {n, c(計算問題)}。全単元なら問題バンク全体
+  function levelAvail(l) {
+    var keys = selCatKeys();
+    if (!catDef.ready || keys.length === catDef.list.length) return { n: l.available, c: l.calc };
+    var n = 0, c = 0;
+    keys.forEach(function (k) { var x = l.by_cat && l.by_cat[k]; if (x) { n += x.n; c += x.c; } });
+    return { n: n, c: c };
+  }
+  // 単元・難易度・問題数を選びかえるたびに: 難易度ボタンの問題数・押せるか、単元ボタンの問題数、作るボタンを書き直す
+  function refreshCats() {
+    var keys = selCatKeys();
+    Array.prototype.forEach.call(document.querySelectorAll('#lvs .lv'), function (b) {
+      var l = levels.filter(function (x) { return x.level === +b.dataset.lv; })[0];
+      if (!l) return;
+      var av = levelAvail(l);
+      var lvn = b.querySelector('.lvn');
+      if (lvn) lvn.textContent = av.n;
+      b.disabled = l.available < countDef.min || (keys.length > 0 && av.n < countDef.min);
+    });
+    var cur = levels.filter(function (x) { return x.level === selLevel; })[0];
+    Array.prototype.forEach.call(document.querySelectorAll('#cats .cat'), function (b) {
+      var x = cur && cur.by_cat && cur.by_cat[b.dataset.cat];
+      b.querySelector('small').textContent = (x ? x.n : 0) + '問';
+    });
+    var mk = document.getElementById('mk'), err = document.getElementById('mkerr');
+    if (!mk) return;
+    var av = cur ? levelAvail(cur) : { n: 0 };
+    var msg = !keys.length ? '出題単元を1つ以上選んでください'
+      : (av.n < selCount ? '選んだ単元・難易度の問題は' + av.n + '問です。単元を増やすか、問題数を減らしてください' : '');
+    mk.disabled = !!msg;
+    err.textContent = msg;
+  }
+  function catText(cats) { return cats && cats.length ? cats.join('・') : '全単元'; }
 
   function teamOpts() {
     var a = [0];
@@ -557,7 +643,9 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
   }
 
   function roomMeta(room) {
-    return '<div class="meta"><span class="pill">' + esc(room.level_label) + '</span><span class="pill">' + room.count
+    return '<div class="meta"><span class="pill">' + esc(room.level_label) + '</span>'
+      + (room.categories && room.categories.length ? '<span class="pill cats-pill">' + esc(room.categories.join('・')) + '</span>' : '')
+      + '<span class="pill">' + room.count
       + '問</span><span class="pill">1問' + room.limit_sec + '秒'
       + (room.calc_sec && room.calc_sec !== room.limit_sec ? '（計算は' + room.calc_sec + '秒）' : '')
       + '</span><span class="pill">1問' + room.point + '点</span>'
@@ -755,7 +843,7 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
       + totalRooms.map(function (x) {
         var on = !!totalSel[x.room_id];
         return '<tr class="' + (on ? 'sel' : '') + '"><td><input type="checkbox" data-tr="' + x.room_id + '"' + (on ? ' checked' : '') + '></td>'
-          + '<td>' + esc(fmtDate(x.date)) + '</td><td>' + esc(x.code) + '</td><td>' + esc(x.level_label) + (x.teams ? '・' + x.teams + 'チーム' : '') + '</td>'
+          + '<td>' + esc(fmtDate(x.date)) + '</td><td>' + esc(x.code) + '</td><td>' + esc(x.level_label) + (x.categories && x.categories.length ? '（' + esc(x.categories.join('・')) + '）' : '') + (x.teams ? '・' + x.teams + 'チーム' : '') + '</td>'
           + '<td class="num">' + x.count + '問</td><td class="num">' + x.n_players + '人</td></tr>';
       }).join('') + '</table></div>'
       + '<div class="row" style="margin-top:12px"><button type="button" class="btn" id="t-run"' + (n ? '' : ' disabled') + '>'
@@ -802,7 +890,7 @@ $totalIds = array_values(array_filter(array_map('intval', explode(',', (string)(
       + (d.standings.length ? '<div class="row" style="margin-bottom:8px"><a class="btn award sm" href="/battle_award.php?total=' + ids + '" target="_blank" rel="noopener">賞状を印刷'
         + (d.team_standings && d.team_standings.length ? '（優勝チーム・個人1〜3位）' : '（個人1〜3位）') + '</a></div>' : '')
       + '<div class="rounds">' + rounds.map(function (x) {
-        return '<span>' + x.no + '回目　' + esc(fmtDate(x.date)) + '　部屋' + esc(x.code) + '・' + esc(x.level_label) + '・' + x.count + '問'
+        return '<span>' + x.no + '回目　' + esc(fmtDate(x.date)) + '　部屋' + esc(x.code) + '・' + esc(x.level_label) + (x.categories && x.categories.length ? '（' + esc(x.categories.join('・')) + '）' : '') + '・' + x.count + '問'
           + (x.teams ? '・' + x.teams + 'チーム' : '') + '・' + x.n_players + '人</span>';
       }).join('') + '</div>';
 

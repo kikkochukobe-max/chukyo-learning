@@ -20,6 +20,7 @@ declare(strict_types=1);
 // テーブルは db/migrations/migrate_joshiki_battle.sql、問題は db/seeds/seed_joshiki_battle_lv*.sql。
 // チーム戦（部屋の team_count が2以上）は db/migrations/migrate_joshiki_battle_team.sql。
 // 生徒は待合室でチームを選び、順位はチームの平均点（1人あたり。合計点も並べる）。
+// 出題単元をしぼった部屋（categories にキーが入る）は db/migrations/migrate_joshiki_battle_category.sql。
 
 require_once __DIR__ . '/bootstrap.php';
 
@@ -131,6 +132,53 @@ function battle_is_practice(array $room): bool
     return (int)($room['is_practice'] ?? 0) === 1;
 }
 
+// migrate_joshiki_battle_category.sql（categories の列）を流してあるか。
+// 流す前は全単元の部屋だけ作れる（単元をしぼると、どの単元の回だったかが残らないので作らせない）
+function battle_has_categories(PDO $pdo): bool
+{
+    static $has = null;
+    if ($has === null) {
+        $has = table_has_column($pdo, 'battle_rooms', 'categories');
+    }
+    return $has;
+}
+
+// 講師が選んだ出題単元 → BATTLE_CATEGORIES の並びにそろえたキーの配列。
+// null＝全単元（選ばなかった・全部選んだ）。知らないキーが入っていれば false
+function battle_parse_categories($in)
+{
+    if ($in === null || $in === '') {
+        return null;
+    }
+    if (!is_array($in)) {
+        return false;
+    }
+    $want = [];
+    foreach ($in as $k) {
+        if (!is_string($k) || !isset(BATTLE_CATEGORIES[$k])) {
+            return false;
+        }
+        $want[$k] = true;
+    }
+    $keys = array_values(array_filter(array_keys(BATTLE_CATEGORIES), function ($k) use ($want) { return isset($want[$k]); }));
+    if (!$keys) {
+        return [];   // 1つも選んでいない（呼ぶ側で弾く）
+    }
+    return count($keys) === count(BATTLE_CATEGORIES) ? null : $keys;
+}
+
+// 部屋の出題単元（表示名の配列）。全単元の部屋（categories が NULL・列が無い）は空
+function battle_room_categories(array $room): array
+{
+    $out = [];
+    foreach (explode(',', (string)($room['categories'] ?? '')) as $k) {
+        if (isset(BATTLE_CATEGORIES[$k])) {
+            $out[] = BATTLE_CATEGORIES[$k];
+        }
+    }
+    return $out;
+}
+
 // 合算に選べる回の上限（1回の合算で足す部屋の数）
 const BATTLE_TOTAL_MAX = 20;
 
@@ -162,6 +210,7 @@ function battle_total_standings(PDO $pdo, array $rooms): array
             'code'        => (string)$room['room_code'],
             'date'        => (string)($room['started_at'] ?? $room['created_at']),
             'level_label' => BATTLE_LEVELS[(int)$room['level']]['label'] ?? '',
+            'categories'  => battle_room_categories($room),
             'count'       => (int)$room['question_count'],
             'teams'       => count(battle_room_teams($room)),
             'n_players'   => count($standings),
@@ -535,6 +584,7 @@ function battle_room_public(array $room, int $now): array
         'point'       => BATTLE_POINT,
         'teams'       => battle_room_teams($room),   // チーム戦なら [[team, name, color], …]。個人戦は空
         'practice'    => battle_is_practice($room),  // 練習の回（合算に入らない）
+        'categories'  => battle_room_categories($room),   // 出題単元の表示名。全単元の部屋は空
         'status'      => (string)$room['status'],
         'start_ms'    => $room['start_ms'] !== null ? (int)$room['start_ms'] : null,
         'phase'       => $pos['phase'],

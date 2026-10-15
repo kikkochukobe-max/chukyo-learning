@@ -1,6 +1,7 @@
 // 一般常識バトルのテスト用: api/battle_play.php と同じ約束で動く偽サーバー（tests/joshiki-battle.spec.js が使う）。
 // 時刻は start_ms からの計算、正解は締め切り＋猶予のあとでしか返さない。1問2秒・正解発表1秒・カウントダウン1.5秒。
 // opts.teams にチーム数を渡すとチーム戦の部屋になる（自分は team アクションで選ぶ。ライバルは2番のチーム）。
+// opts.categories に単元の表示名の配列を渡すと、単元をしぼった部屋になる（PHP の battle_room_categories と同じ形。空＝全単元）。
 // opts.calc に seq の配列を渡すと、その問題だけ制限時間が calcSec 秒になる（計算問題。PHP の battle_schedule と同じ積み上げ）。
 const PAGE = '/learning/game/game_es_joshiki_battle.html';
 
@@ -23,7 +24,7 @@ function makeFake(opts = {}) {
   const st = { status: 'lobby', start: null, me: 'none', answers: {}, dqReason: null, team: null };
   const roomPub = () => ({
     room_id: 9, code: '1234', level: 1, level_label: '易しい', count, limit_sec: limit, calc_sec: calcSec, reveal_sec: reveal, schedule,
-    grace_ms: grace, point: 10, teams, practice: !!opts.practice, status: st.status, start_ms: st.start, phase: null, seq: null, now_ms: Date.now(),
+    grace_ms: grace, point: 10, teams, practice: !!opts.practice, categories: opts.categories || [], status: st.status, start_ms: st.start, phase: null, seq: null, now_ms: Date.now(),
   });
   const mePub = () => ({ status: st.me, team: st.team,dq_reason: st.me === 'dq' ? (st.dqReason || '画面を開き直した') : null, dq_no: null });
   const tick = () => { if (st.status === 'playing' && Date.now() >= st.start + endOff) st.status = 'finished'; };

@@ -125,6 +125,32 @@ test('対戦中にほかのアプリ・タブを開いたら失格になる', as
   expect(JSON.parse(beacons[0].body)).toMatchObject({ action: 'dq', room_id: 9, reason: 'hidden' });
 });
 
+test('対戦中に左右スワイプ（ブラウザの戻る）をしてもページを離れず、失格にならない', async ({ page }) => {
+  const fake = makeFake({ count: 3 });
+  await boot(page, fake);
+  await joinAndStart(page, fake);
+  const url = page.url();
+  // 何度スワイプしても受け止める（受け止めるたびに履歴を積み直す）
+  for (let i = 0; i < 3; i++) {
+    await page.evaluate(() => history.back());
+    await page.waitForTimeout(300);
+  }
+  expect(page.url()).toBe(url);
+  await expect(page.locator('#scr-play')).toBeVisible();
+  expect(await page.evaluate(() => window.__beacons.length)).toBe(0);
+});
+
+test('対戦中でなければ、戻るはそのまま前のページへ戻る（1回空振りしない）', async ({ page }) => {
+  const fake = makeFake({ count: 1 });
+  await page.goto('/learning/math/math_es_hyakumasu.html');   // 一覧から開いた想定の「前のページ」
+  await boot(page, fake);
+  await page.fill('#code', '1234');
+  await page.click('#join-btn');
+  await expect(page.locator('#scr-lobby')).toBeVisible();
+  await page.evaluate(() => history.back());
+  await expect.poll(() => page.url()).toContain('math_es_hyakumasu.html');
+});
+
 test('待合室ではアプリを切りかえても失格にならない', async ({ page }) => {
   const fake = makeFake({ count: 3 });
   await boot(page, fake);
@@ -151,6 +177,23 @@ test('練習の回は待合室と結果に「れんしゅう」と出る（合�
   await expect(page.locator('#scr-play')).toBeVisible({ timeout: 8000 });
   await expect(page.locator('#scr-result')).toBeVisible({ timeout: 10000 });
   await expect(page.locator('#res-top')).toContainText('合計（合算）には入りません');
+});
+
+test('単元をしぼった部屋は待合室に単元が出る', async ({ page }) => {
+  const fake = makeFake({ count: 1, categories: ['地理', '歴史'] });
+  await boot(page, fake);
+  await page.fill('#code', '1234');
+  await page.click('#join-btn');
+  await expect(page.locator('#lb-meta .pill.cats')).toHaveText('地理・歴史');
+});
+
+test('全単元の部屋は待合室に単元の札を出さない', async ({ page }) => {
+  const fake = makeFake({ count: 1 });
+  await boot(page, fake);
+  await page.fill('#code', '1234');
+  await page.click('#join-btn');
+  await expect(page.locator('#lb-meta')).toContainText('易しい');
+  await expect(page.locator('#lb-meta .pill.cats')).toHaveCount(0);
 });
 
 test('カウントダウン中に裏へ回っても失格にならない（iPhone の暗転・通知でスタート同時に失格が続いた）', async ({ page }) => {
