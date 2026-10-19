@@ -2202,6 +2202,26 @@ function prtAnsBox(a){
   if(n<=22) return '<div class="al">答<span class="ln"></span></div>';
   return '<div class="al al2">答<span class="lns"><span class="ln"></span><span class="ln"></span></span></div>';
 }
+/* 図は「図の1単位＝PRT_MM mm」の同じ倍率で描く。以前は図ごとに枠(78×44mm)いっぱいへ縮めていたので、
+   図の大きさしだいで図の中の文字が大きくなったり小さくなったりしていた。
+   図の文字は既定 12.5 単位なので、0.27 で約3.4mm＝本文の10ptとほぼ同じ大きさになる */
+var PRT_MM=0.27;
+function prtFig(html){
+  var ws=[];
+  var out=String(html).replace(/<svg viewBox="0 0 ([\d.]+) ([\d.]+)" width="[\d.]+"/g,function(_,w,h){
+    ws.push(w*PRT_MM);
+    return '<svg viewBox="0 0 '+w+' '+h+'" style="width:'+(w*PRT_MM).toFixed(1)+'mm;height:'+(h*PRT_MM).toFixed(1)+'mm"';
+  });
+  /* ア〜エの候補が1列（紙の幅 180mm）に入らないときは2つずつ2段にする（3つ＋1つに割れると見くらべにくい） */
+  if(ws.length>=4 && /class="figrow"/.test(out)){
+    var sum=ws.reduce(function(a,b){return a+b;},0)+(ws.length-1)*4;
+    if(sum>176) out=out.replace('class="figrow"','class="figrow" style="max-width:'+Math.ceil(Math.max.apply(null,ws)*2+6)+'mm"');
+  }
+  /* 図が1枚だけで幅が紙の半分くらいまでなら、問題文の右にならべる（同じ倍率にしたぶん図が大きいので、
+     下に置くと1問で紙を大きく食う）。表・候補のならびは幅が読めないので従来どおり下に置く */
+  var side=ws.length===1 && ws[0]<=92 && !/<table|figrow/.test(out);
+  return {html:out, side:side};
+}
 function prtHtml(m,items){
   var md=MODES[m]||{label:m};
   var label='気象マスター　'+md.label+'　全'+items.length+'問';
@@ -2214,58 +2234,73 @@ function prtHtml(m,items){
       +'<div class="pr"><div>名前：<span class="nm"></span></div><div class="dt">'+date+'</div></div></div>';
   };
   var probs=items.map(function(it,i){
-    var s='<div class="p"><div class="q"><span class="no">('+(i+1)+')</span><span>'+prtEsc(it.q)+'</span></div>';
-    if(it.tbl) s+='<div class="fg">'+it.tbl+'</div>';
-    return s+prtAnsBox(it.a)+'</div>';
+    var q='<div class="q"><span class="no">('+(i+1)+')</span><span>'+prtEsc(it.q)+'</span></div>';
+    var f=it.tbl?prtFig(it.tbl):null;
+    if(f && f.side) return '<div class="p side"><div class="qa">'+q+prtAnsBox(it.a)+'</div><div class="fg">'+f.html+'</div></div>';
+    return '<div class="p">'+q+(f?'<div class="fg">'+f.html+'</div>':'')+prtAnsBox(it.a)+'</div>';
   }).join('');
   var answ=items.map(function(it,i){
     return '<div class="a"><div class="ar"><span class="no">('+(i+1)+')</span><b>'+prtEsc(it.a)+'</b></div>'
       +(it.exp?'<div class="ex">'+prtEsc(it.exp)+'</div>':'')+'</div>';
   }).join('');
   return '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">'
-    +'<title>気象マスター 練習プリント｜中京個別指導学院</title><style>'
+    +'<title>気象マスター 練習プリント｜中京個別指導学院</title>'
+    /* 書体は画面の見出しと同じ Zen Maru Gothic。display=block＝読みこむ前の代わりの書体で紙にしない
+       （印刷は読みこみが終わってから。下の script） */
+    +'<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+    +'<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=block" rel="stylesheet">'
+    +'<style>'
     +'@page{size:A4 portrait;margin:12mm 15mm;}'
     +'*{box-sizing:border-box;margin:0;padding:0;}'
-    +'body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;color:#111;font-size:10pt;}'
+    /* 文字の大きさは見出し(.pt)だけ13pt、ほかはすべて10ptにそろえる */
+    +'body{font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;font-weight:500;color:#111;font-size:10pt;}'
+    +'b,th,.no,.pt,.cap{font-weight:700;}'
     +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}'
     +wmCss
     +'.wm{position:fixed;}'
     +'.ph{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2.5px solid #0a1628;padding-bottom:7px;margin-bottom:8px;}'
-    +'.pb{font-size:8pt;letter-spacing:.2em;color:#4a5568;}'
-    +'.pt{font-size:13pt;font-weight:700;margin-top:2px;}'
-    +'.pr{text-align:right;font-size:9pt;}'
+    +'.pb{letter-spacing:.2em;color:#4a5568;}'
+    +'.pt{font-size:13pt;margin-top:2px;}'
+    +'.pr{text-align:right;}'
     +'.nm{display:inline-block;width:32mm;border-bottom:1px solid #333;}'
-    +'.dt{color:#666;font-size:8pt;margin-top:4px;}'
+    +'.dt{color:#666;margin-top:2px;}'
     +'.p{border-bottom:1px dotted #bbb;padding:6px 0 8px;break-inside:avoid;page-break-inside:avoid;}'
     +'.q{display:flex;gap:6px;line-height:1.65;}'
-    +'.no{font-weight:700;color:#4A7C59;flex:0 0 auto;}'
-    /* 図・表。SVGは属性で色を持つので大きさだけ決める */
+    +'.no{color:#4A7C59;flex:0 0 auto;}'
+    /* 図・表。SVGは属性で色を持ち、大きさは prtFig() が mm で決める */
     +'.fg{margin:5px 0 2px;display:flex;justify-content:center;}'
-    +'.fg svg{display:block;max-width:78mm;max-height:44mm;width:auto;height:auto;}'
-    +'.fg table{border-collapse:collapse;font-size:8.5pt;}'
-    +'.fg th,.fg td{border:1px solid #888;padding:2px 7px;text-align:center;white-space:nowrap;}'
-    +'.fg th{background:#EEF3EF;font-weight:700;}'
-    +'.fg .figrow{display:flex;flex-wrap:wrap;gap:6px 10px;justify-content:center;align-items:flex-end;}'
-    +'.fg .figrow.cands{max-width:150mm;}'
+    /* 図を右に置く問題：左に問題文と解答欄（解答欄は下にそろえる）、右に図 */
+    +'.p.side{display:flex;gap:6mm;align-items:stretch;}'
+    +'.p.side .qa{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;}'
+    +'.p.side .fg{flex:0 0 auto;margin:0;}'
+    +'.fg svg{display:block;max-width:100%;}'
+    +'.fg table{border-collapse:collapse;}'
+    +'.fg th,.fg td{border:1px solid #888;padding:2px 8px;text-align:center;white-space:nowrap;}'
+    +'.fg th{background:#EEF3EF;}'
+    +'.fg .figrow{display:flex;flex-wrap:wrap;gap:3mm 4mm;justify-content:center;align-items:flex-end;}'
     +'.fg .figcell{text-align:center;}'
-    +'.fg .figcell svg{max-width:34mm;max-height:34mm;margin:0 auto;}'
-    +'.fg .cap{font-weight:700;font-size:9pt;}'
-    +'.al{margin-top:6px;font-size:9pt;color:#555;display:flex;align-items:flex-end;gap:6px;}'
+    +'.fg .figcell svg{margin:0 auto;}'
+    +'.al{margin-top:6px;color:#555;display:flex;align-items:flex-end;gap:6px;}'
     +'.ln{display:inline-block;flex:1;border-bottom:1px solid #333;height:7mm;}'
     +'.ln.s{flex:0 0 40mm;}'
     +'.lns{flex:1;display:flex;flex-direction:column;}'
     +'.lns .ln{flex:none;width:100%;height:8mm;}'
     +'.pg{page-break-before:always;break-before:page;}'
-    +'.cmt{font-size:8.5pt;color:#555;margin-bottom:4px;}'
+    +'.cmt{color:#555;margin-bottom:4px;}'
     +'.a{padding:4px 0 5px;border-bottom:1px dotted #ddd;break-inside:avoid;page-break-inside:avoid;}'
-    +'.ar{display:flex;gap:8px;align-items:baseline;font-size:10.5pt;}'
+    +'.ar{display:flex;gap:8px;align-items:baseline;}'
     +'.ar b{color:#C73E2E;}'
-    +'.ex{font-size:8.5pt;color:#444;line-height:1.55;margin:1px 0 0 2.2em;}'
+    +'.ex{color:#444;line-height:1.6;margin:1px 0 0 2.2em;}'
     +'</style></head><body>'
     +wmImg+head(label)+probs
     +'<div class="pg">'+wmImg+head(label+'　解答')
     +'<div class="cmt">※ ことばや文で答える問題の答えは一例です。同じ内容が書けていれば正解です。</div>'
     +answ+'</div>'
+    /* 書体が届いてから印刷ダイアログを出す（届く前に出すと代わりの書体で紙になる）。
+       書体が取れない環境でも4秒で印刷に進む */
+    +'<scr'+'ipt>(function(){var done=false;function go(){if(done)return;done=true;setTimeout(function(){try{window.focus();window.print();}catch(e){}},150);}'
+    +'window.addEventListener("load",function(){if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go,go);}else{go();}});'
+    +'setTimeout(go,4000);})();</scr'+'ipt>'
     +'</body></html>';
 }
 function printSheet(m){
@@ -2275,8 +2310,7 @@ function printSheet(m){
   if(!w){ alert('ポップアップがブロックされました。ブラウザの設定でこのサイトのポップアップを許可してください。'); return; }
   w.document.write(prtHtml(m,items));
   w.document.close();
-  w.focus();
-  setTimeout(function(){ try{ w.print(); }catch(e){} },700);
+  w.focus();   /* 印刷ダイアログは子ウィンドウ側が書体の読みこみを待ってから出す */
 }
 
 /* ── まとめ表モーダル ── */

@@ -24,7 +24,13 @@ test('6モードとも記述式10問の練習プリントが開く', async ({ pa
       choiceButtons: document.querySelectorAll('.ch, button').length,
       pageBreak: !!document.querySelector('.pg'),
       text: Array.from(document.querySelectorAll('.p .q')).map(e => e.textContent),
+      // 見出し以外の文字（問題文・表・解答欄・答え・解説）はすべて同じ大きさ
+      sizes: Array.from(new Set(Array.from(document.querySelectorAll('.q span, .fg td, .fg th, .al, .ar b, .ex, .cmt, .cap'))
+        .map(e => getComputedStyle(e).fontSize))),
+      family: getComputedStyle(document.body).fontFamily,
     }));
+    expect(info.sizes, m).toHaveLength(1);
+    expect(info.family, m).toMatch(/^"?Zen Maru Gothic/);
     expect(info.probs, m).toBe(10);
     expect(info.answers, m).toBe(10);
     expect(info.boxes, m).toBe(10);
