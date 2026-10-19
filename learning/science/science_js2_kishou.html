@@ -250,6 +250,8 @@ table.gas td svg{display:block;margin:0 auto;max-width:150px;height:auto}
 <script src="/assets/divp-correct-jh.js"></script>
 <script src="/assets/divp-choice-mark.js"></script>
 <script src="/assets/divp-core.js"></script>
+<!-- 練習プリントのロゴ透かし（無くても透かし無しで印刷できる） -->
+<script src="/assets/print-watermark.js"></script>
 <script>Divp.init('science_js2_kishou');</script>
 
 <div class="wrap">
@@ -1358,6 +1360,7 @@ function selectMode(m){
   var html='<h3>'+d.label+'</h3>';
   html+='<div class="big-actions"><button class="btn btn-primary sm" id="startModeAll">この単元を全部（'+total+'問）</button>';
   if(total>15) html+='<button class="btn btn-outline sm" id="startModeRand">ランダム15問</button>';
+  html+='<button class="btn btn-outline sm" id="printMode" title="この単元からランダムに10問、答えを書きこむ形の練習プリント（A4・問題＋解答）を作る">🖨 印刷（記述10問）</button>';
   html+='</div>';
   html+='<div class="chip-row"><span class="chip-lbl">分野をしぼる：</span>';
   cats.forEach(function(c){ html+='<button class="chip-btn" data-cat="'+c+'">'+CATS[c]+'<span class="n">'+countCat(c)+'</span></button>'; });
@@ -1365,6 +1368,7 @@ function selectMode(m){
   var p=byId('modePanel'); p.innerHTML=html; p.hidden=false;
   byId('startModeAll').addEventListener('click',function(){ startQuiz({mode:m}); });
   var r=byId('startModeRand'); if(r) r.addEventListener('click',function(){ startQuiz({mode:m,cap:15}); });
+  byId('printMode').addEventListener('click',function(){ printSheet(m); });
   p.querySelectorAll('.chip-btn').forEach(function(b){ b.addEventListener('click',function(){ startQuiz({cat:b.getAttribute('data-cat')}); }); });
   try{ p.scrollIntoView({behavior:'smooth',block:'nearest'}); }catch(e){}
 }
@@ -2133,6 +2137,147 @@ function backToStart(){ byId('quiz').hidden=true; byId('result').hidden=true; by
 
 /* モードカードを描画（GENERATORS定義後なので生成問題の本数も正しく数えられる） */
 buildModeGrid();
+
+/* ================================================================
+   練習プリント（A4・別ウィンドウ・記述式）
+   モードの問題（BANK＋生成問題）からランダムに10問。選択肢は出さず、答えを書きこむ欄だけ置く。
+   「問題」→改ページ→「解答」（解説つき）。
+   ⚠ 6択のための問題文（「正しいのは？」「まちがっているものは？」）は選択肢が無いと解けない。
+     kijutsuOf() で記述式の問い方に言いかえ、言いかえられないものは出さない。
+     図の中にア〜エ・A〜Dが描いてある問題（記号を選ぶ型）は、記号を書かせればよいのでそのまま出す。
+   ⚠ 図(q.tbl)は属性で色・線を持つSVGと素の表なので、子ウィンドウにツールのCSSが無くても描ける。
+     表の罫線とならべ方（.figrow）だけ印刷用CSSに写してある。
+   ================================================================ */
+var PRT_N=10;
+/* 言いかえでは文がおかしくなるもの・選択肢が無いと答えが1つに決まらないもの
+   （ze_f2 は「今の天気」を選択肢の中の一番近いもので答えさせる問い、ze_u7 は「考え方」の選択肢を選ぶ問い） */
+var KIJUTSU_SKIP={su_k10:1, su_s8:1, sh_d7:1, tx_z3:1, ze_f2:1, ze_u7:1};
+/* 問題文を個別に書きかえるもの（選択肢が答えの形を教えていた問題） */
+var KIJUTSU_Q={
+  ze_k3:'風は気圧の（　）ほうから（　）ほうへふく。（　）にあてはまることばを順に答えよ。',
+  tx_m5:'積乱雲が発達して起こる災害を答えよ。',
+  ka_h5:'湿度表で湿度を求めるときに使う2つの値は何か。',            /* 「乾湿計」「湿度表」でも答えになってしまう */
+  su_k13:'雲ができるまでのようすを、「上昇」「膨張」「露点」ということばを使って順に説明せよ。',
+  su_j7:'ピストンを引いてフラスコ内がくもった。自然界で、これと同じしくみで雲ができる例を1つ答えよ。',
+  sh_j4:'地球規模の大気の動きが起こっているのは、大気の層の底から約何kmまでの範囲か。'
+};
+/* 答えを個別に書きかえるもの（6択では正解が1つでも、記述だとほかの答えも正しくなる問題） */
+var KIJUTSU_A={
+  ka_e8:'雨（くもりでも正解）',
+  su_j7:'空気が山の斜面に沿って上昇するとき（前線で暖気が押し上げられるとき・地表があたためられて上昇気流ができるとき なども正解）',
+  sh_j4:'約10km'
+};
+function kijutsuOf(q){
+  if(q.id && KIJUTSU_SKIP[q.id]) return null;
+  var t=(q.id && KIJUTSU_Q[q.id]) || q.q;
+  t=t.replace(/の組み合わせとして正しいものはどれか。$/,'をそれぞれ答えよ。')   /* 天気図記号の読みとり */
+     .replace(/として正しいものを、図の/,'を、図の')                        /* 図のア〜エから選ぶ型 */
+     .replace(/について正しい(?:の|もの)(?:は|はどれか)[？?。]?$/,'について説明せよ。')
+     .replace(/として正しい(?:の|もの)(?:は|はどれか)[？?。]?$/,'を答えよ。')
+     .replace(/正しいものを選べ。$/,'答えよ。');
+  if(/正しい|まちがって|あてはまるもの|組み合わせ/.test(t)) return null;
+  return {q:t, tbl:q.tbl||'', a:(q.id && KIJUTSU_A[q.id]) || q.a, exp:q.exp||'', cat:q.cat};
+}
+function prtPick(m){
+  var pool=BANK.filter(function(q){ return CAT_MODE[q.cat]===m; });
+  Object.keys(GENERATORS).forEach(function(c){
+    if(CAT_MODE[c]!==m) return;
+    GENERATORS[c].forEach(function(fn){ try{ pool.push(fn()); }catch(e){} });
+  });
+  var out=[], seen={};
+  shuffle(pool).forEach(function(q){
+    if(out.length>=PRT_N) return;
+    var k=kijutsuOf(q); if(!k) return;
+    var sig=k.q+'|'+k.a+'|'+k.tbl;           /* 同じ文面の静的問題（天気記号など）は図で区別する */
+    if(seen[sig]) return;
+    seen[sig]=1; out.push(k);
+  });
+  return out;
+}
+function prtEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+/* 解答欄：記号・数値は短い欄、ことばは1行、文で答えるものは2行 */
+function prtAnsBox(a){
+  var n=String(a).length;
+  if(n<=8) return '<div class="al">答<span class="ln s"></span></div>';
+  if(n<=22) return '<div class="al">答<span class="ln"></span></div>';
+  return '<div class="al al2">答<span class="lns"><span class="ln"></span><span class="ln"></span></span></div>';
+}
+function prtHtml(m,items){
+  var md=MODES[m]||{label:m};
+  var label='気象マスター　'+md.label+'　全'+items.length+'問';
+  var d=new Date();
+  var date=d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
+  var wmCss=(window.ChukyoPrint&&ChukyoPrint.css)?ChukyoPrint.css():'';
+  var wmImg=(window.ChukyoPrint&&ChukyoPrint.img)?ChukyoPrint.img():'';
+  var head=function(t){
+    return '<div class="ph"><div><div class="pb">中京個別指導学院</div><div class="pt">'+prtEsc(t)+'</div></div>'
+      +'<div class="pr"><div>名前：<span class="nm"></span></div><div class="dt">'+date+'</div></div></div>';
+  };
+  var probs=items.map(function(it,i){
+    var s='<div class="p"><div class="q"><span class="no">('+(i+1)+')</span><span>'+prtEsc(it.q)+'</span></div>';
+    if(it.tbl) s+='<div class="fg">'+it.tbl+'</div>';
+    return s+prtAnsBox(it.a)+'</div>';
+  }).join('');
+  var answ=items.map(function(it,i){
+    return '<div class="a"><div class="ar"><span class="no">('+(i+1)+')</span><b>'+prtEsc(it.a)+'</b></div>'
+      +(it.exp?'<div class="ex">'+prtEsc(it.exp)+'</div>':'')+'</div>';
+  }).join('');
+  return '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">'
+    +'<title>気象マスター 練習プリント｜中京個別指導学院</title><style>'
+    +'@page{size:A4 portrait;margin:12mm 15mm;}'
+    +'*{box-sizing:border-box;margin:0;padding:0;}'
+    +'body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;color:#111;font-size:10pt;}'
+    +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}'
+    +wmCss
+    +'.wm{position:fixed;}'
+    +'.ph{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2.5px solid #0a1628;padding-bottom:7px;margin-bottom:8px;}'
+    +'.pb{font-size:8pt;letter-spacing:.2em;color:#4a5568;}'
+    +'.pt{font-size:13pt;font-weight:700;margin-top:2px;}'
+    +'.pr{text-align:right;font-size:9pt;}'
+    +'.nm{display:inline-block;width:32mm;border-bottom:1px solid #333;}'
+    +'.dt{color:#666;font-size:8pt;margin-top:4px;}'
+    +'.p{border-bottom:1px dotted #bbb;padding:6px 0 8px;break-inside:avoid;page-break-inside:avoid;}'
+    +'.q{display:flex;gap:6px;line-height:1.65;}'
+    +'.no{font-weight:700;color:#4A7C59;flex:0 0 auto;}'
+    /* 図・表。SVGは属性で色を持つので大きさだけ決める */
+    +'.fg{margin:5px 0 2px;display:flex;justify-content:center;}'
+    +'.fg svg{display:block;max-width:78mm;max-height:44mm;width:auto;height:auto;}'
+    +'.fg table{border-collapse:collapse;font-size:8.5pt;}'
+    +'.fg th,.fg td{border:1px solid #888;padding:2px 7px;text-align:center;white-space:nowrap;}'
+    +'.fg th{background:#EEF3EF;font-weight:700;}'
+    +'.fg .figrow{display:flex;flex-wrap:wrap;gap:6px 10px;justify-content:center;align-items:flex-end;}'
+    +'.fg .figrow.cands{max-width:150mm;}'
+    +'.fg .figcell{text-align:center;}'
+    +'.fg .figcell svg{max-width:34mm;max-height:34mm;margin:0 auto;}'
+    +'.fg .cap{font-weight:700;font-size:9pt;}'
+    +'.al{margin-top:6px;font-size:9pt;color:#555;display:flex;align-items:flex-end;gap:6px;}'
+    +'.ln{display:inline-block;flex:1;border-bottom:1px solid #333;height:7mm;}'
+    +'.ln.s{flex:0 0 40mm;}'
+    +'.lns{flex:1;display:flex;flex-direction:column;}'
+    +'.lns .ln{flex:none;width:100%;height:8mm;}'
+    +'.pg{page-break-before:always;break-before:page;}'
+    +'.cmt{font-size:8.5pt;color:#555;margin-bottom:4px;}'
+    +'.a{padding:4px 0 5px;border-bottom:1px dotted #ddd;break-inside:avoid;page-break-inside:avoid;}'
+    +'.ar{display:flex;gap:8px;align-items:baseline;font-size:10.5pt;}'
+    +'.ar b{color:#C73E2E;}'
+    +'.ex{font-size:8.5pt;color:#444;line-height:1.55;margin:1px 0 0 2.2em;}'
+    +'</style></head><body>'
+    +wmImg+head(label)+probs
+    +'<div class="pg">'+wmImg+head(label+'　解答')
+    +'<div class="cmt">※ ことばや文で答える問題の答えは一例です。同じ内容が書けていれば正解です。</div>'
+    +answ+'</div>'
+    +'</body></html>';
+}
+function printSheet(m){
+  var items=prtPick(m);
+  if(!items.length){ alert('印刷する問題を作れませんでした'); return; }
+  var w=window.open('','_blank');
+  if(!w){ alert('ポップアップがブロックされました。ブラウザの設定でこのサイトのポップアップを許可してください。'); return; }
+  w.document.write(prtHtml(m,items));
+  w.document.close();
+  w.focus();
+  setTimeout(function(){ try{ w.print(); }catch(e){} },700);
+}
 
 /* ── まとめ表モーダル ── */
 byId('openTable').addEventListener('click',function(){
