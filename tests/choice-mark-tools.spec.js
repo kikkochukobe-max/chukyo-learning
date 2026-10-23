@@ -137,11 +137,39 @@ const TOOLS = [
     next: '#next',
   },
   {
+    name: '歴史一問一答マスター',
+    url: '/learning/social/social_js_rekishi_ichimon.html',
+    start: async (page) => {
+      // 世界の諸地域マスターと同じ作り（テスト運用中の合言葉画面が先に出る）
+      const gate = page.locator('#gateInput');
+      if (await gate.isVisible()) {
+        await gate.fill('test');
+        await gate.press('Enter');
+      }
+      await page.locator('#startMix').click();
+    },
+    choices: '#choices .ch',
+    grade: '#grade',
+    next: '#next',
+  },
+  {
     name: '気象マスター',
     url: '/learning/science/science_js2_kishou.html',
     start: async (page) => { await page.locator('#startMix').click(); },
     choices: '#choices .ch',
     grade: '#grade',
+    next: '#next',
+  },
+  {
+    name: '現代文 文法四択問題',
+    url: '/learning/japanese/japanese_js_bunpou_yontaku.html',
+    start: async (page) => {
+      await page.locator('#goUnits').click();        // はじめの画面で「単元別トレーニング」
+      await page.locator('#unitList .unit-btn').first().click();
+      await page.locator('#startRand').click();
+    },
+    choices: '#opts .opt',
+    grade: null,             // 選択肢を押した時点で採点される
     next: '#next',
   },
 ];

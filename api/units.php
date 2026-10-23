@@ -90,6 +90,13 @@ return [
         'sub'   => '国語・小学〜中学（語彙クロスワード）',
         'url'   => '/learning/japanese/japanese_esjs_goi_crossword.html',
     ],
+    // 中学国語の文法（単元別トレーニング＋総合問題編を1本に統合）。question_key は文法の単元（u1〜u14）。
+    // 解き直しは {qid}（問題文・対象の文・正解の選択肢から作ったハッシュ）でツール内の台帳から引く
+    'japanese_js_bunpou_yontaku' => [
+        'title' => '現代文 文法四択問題',
+        'sub'   => '国語・中学（文法）',
+        'url'   => '/learning/japanese/japanese_js_bunpou_yontaku.html',
+    ],
     'math_js1_seihu' => [
         'title' => '正負の計算マスター',
         'sub'   => '数学・中1',
@@ -260,6 +267,13 @@ return [
         'title' => '世界の諸地域マスター',
         'sub'   => '社会・中1（地理 世界の諸地域）',
         'url'   => '/learning/social/social_js1_sekai_chiri.html',
+    ],
+    // 中学歴史（古代〜日露戦争・25章×確認問題20問＝500問の6択）。question_key は時代（6区分）、
+    // 解き直しは {id} で BANK から引く（世界の諸地域マスターと同じ作り）
+    'social_js_rekishi_ichimon' => [
+        'title' => '歴史一問一答マスター',
+        'sub'   => '社会・中学（歴史 古代〜日露戦争）',
+        'url'   => '/learning/social/social_js_rekishi_ichimon.html',
     ],
     'science_js1_busshitsu' => [
         'title' => '身のまわりの物質マスター',
