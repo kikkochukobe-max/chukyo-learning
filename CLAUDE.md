@@ -63,7 +63,7 @@ assets/                共通モジュール（全ツールがscriptタグで読
                          この :where() は詳細度0なので**セレクタから漏れた要素は
                          ツール側CSSで前面に出すこと**（`.app > *` のようにまとめて
                          上げておくのが安全。DivpKirakira.clearPile() で消せる）
-                         組み込み済み1本: math_es6_rittai_taiseki
+                         組み込み済み2本: math_es6_rittai_taiseki / math_es5_menseki
   divp-correct-jh.js     中学・高校用 正解スタンプエフェクト（es用Divp.correctとは別物）
   divp-choice-mark.js    選択肢の「答え合わせ表示」。正解=緑 / 選んだ誤答=朱 /
                          選ばなかった正解=緑＋「正解」バッジ / 残り=薄く。
@@ -84,10 +84,10 @@ assets/                共通モジュール（全ツールがscriptタグで読
                          --divp-mark-ok-text は「正解」の文字色だけを分けたいとき用
                          (既定は枠と同色。イオンのしくみラボのような暗い背景の
                          ツールで、枠は明るい緑・文字は読める薄い色にするために使う)。
-                         組み込み済み22本: 一次関数・愛知県大問1・方程式の利用・
+                         組み込み済み23本: 一次関数・愛知県大問1・方程式の利用・
                          連立方程式の利用・一次関数の利用・計算特集(中2)・二次方程式・
                          二次方程式の利用・イオンのしくみラボ・光と音と力・
-                         立体の体積マスター・倍数約数マスター・数列完全マスター・
+                         立体の体積マスター・図形の面積マスター・倍数約数マスター・数列完全マスター・
                          漸化式マスター・円と方程式マスター・2次関数マスター・
                          2次不等式マスター・世界の諸地域マスター・気象マスター・
                          現代文 文法四択問題・歴史一問一答マスター・英単語練習
@@ -281,7 +281,7 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    プリントに出る（正解分は保存しない＝容量の無駄）。question_text と同じ「人間用の
    表現」で、**question_params から図を復元する実装をPHPに持たせない**という
    2. の原則をそのまま守る形。組み込み済み: math_js3_aichi_daimon1（`q.tableHtml`）/
-   理科4本（`q.tbl`）/ math_es6_rittai_taiseki（`q.fig`）/
+   理科4本（`q.tbl`）/ math_es6_rittai_taiseki（`q.fig`）/ math_es5_menseki（`q.fig`）/
    math_js1_kankeishiki（規則性の図 `q.fig`）/
    math_js3_heihokon の利用モード（かざりの図 `prob.fig`）/
    math_js2_ichijikansu_riyou（`表`・動く点の`長方形`・`座標平面`・`ダイヤグラム`
@@ -332,7 +332,7 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    条件は**ツール内の乱数が1か所に集まっていること**（`ri()` だけが乱数を使う形。
    `Math.random()` を各所で直接呼んでいると種で再現できない）。
    組み込み済み: math_js2_ichijikansu（生成関数50個以上・モード13種）/
-   math_es5_baisu_yakusu / math_es5_tsuubun_kagen / math_es6_rittai_taiseki /
+   math_es5_baisu_yakusu / math_es5_tsuubun_kagen / math_es6_rittai_taiseki / math_es5_menseki /
    math_js1_kankeishiki（`{g:生成関数のid, s:種}`。モードではなく**生成関数そのもの**を
    保存する形＝「カテゴリ×等式/不等式」で選ぶツールでも、実際に出た1本を復元できる。
    id は「カテゴリ＋通し番号」を読み込み時に自動で振るので、**新しい生成関数は

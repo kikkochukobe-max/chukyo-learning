@@ -70,6 +70,12 @@ return [
         'url'   => '/learning/math/math_es5_yakubun.html',
     ],
     // 解き直しは question_params の {m:question_key, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
+    'math_es5_menseki' => [
+        'title' => '図形の面積マスター',
+        'sub'   => '算数・小5',
+        'url'   => '/learning/math/math_es5_menseki.html',
+    ],
+    // 解き直しは question_params の {m:question_key, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
     'math_es6_rittai_taiseki' => [
         'title' => '立体の体積マスター',
         'sub'   => '算数・小6',

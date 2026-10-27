@@ -121,6 +121,16 @@ const TOOLS = [
     next: '#nextBtn',
   },
   {
+    name: '図形の面積マスター',
+    url: '/learning/math/math_es5_menseki.html',
+    start: async (page) => {
+      await page.locator('.m-card[data-mode="mix"]').click();
+    },
+    choices: '.optBtn',
+    grade: '#checkBtn',
+    next: '#nextBtn',
+  },
+  {
     name: '世界の諸地域マスター',
     url: '/learning/social/social_js1_sekai_chiri.html',
     start: async (page) => {

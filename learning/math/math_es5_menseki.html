@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="only light">
+<title>図形の面積マスター｜中京個別指導学院</title>
+<meta name="description" content="小5算数の図形の面積を練習。三角形・平行四辺形・台形・ひし形の面積と、面積から高さや底辺をもとめる問題、工夫して求める面積（分ける・ひく・道をよせる）まで。「なぜその公式になるのか」をアニメーションで解説。中京個別指導学院(神丘)の学習ツール。">
+<!-- 本番(Heteml)ではサブセット自己ホストに差し替え -->
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBFAF6;
+    --grid:#ECE9E0;
+    --sumi:#33312B;
+    --usuzumi:#8B877C;
+    --shu:#C73E2E;
+    --kin:#C9A227;
+    --ai:#2C5F8A;
+    /* 答え合わせの色は共通モジュール(divp-choice-mark.js)の既定にそろえる */
+    --divp-mark-ok:#3E8E5A;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html{ scrollbar-gutter:stable; }
+  html,body{ margin:0; padding:0; }
+  /* ⚠ body は flex にしない（共通ヘッダーが本体の兄弟として挿されるため。CLAUDE.md） */
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:24px 24px;
+    color:var(--sumi);
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    min-height:100dvh;
+    touch-action:manipulation;
+  }
+  .app{
+    width:100%;
+    max-width:560px;
+    margin:0 auto;
+    padding:12px 14px calc(90px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  /* ---- ヘッダー ---- */
+  header{ display:flex; align-items:center; gap:8px; }
+  header h1{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700; margin:0;
+    letter-spacing:.04em;
+  }
+  header h1 .sub{
+    display:block;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    letter-spacing:.1em;
+  }
+  .mode-back{
+    margin-left:auto;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.5px solid var(--ai);
+    background:#fff;
+    border-radius:8px;
+    padding:5px 9px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+
+  /* ---- スコア ---- */
+  .score{
+    display:flex; align-items:baseline; gap:12px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700; color:var(--usuzumi);
+  }
+  .score b{ color:var(--shu); font-size:17px; }
+  .score .streak b{ color:var(--kin); }
+  .score .qno{ margin-left:auto; color:var(--ai); }
+
+  /* ---- 問題カード ---- */
+  .card{
+    position:relative;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:16px;
+    box-shadow:0 2px 0 rgba(51,49,43,.06);
+    padding:16px 16px 14px;
+  }
+  .card .qtag{
+    display:inline-block;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.2px solid var(--ai);
+    border-radius:999px;
+    padding:2px 10px;
+    margin-bottom:8px;
+    letter-spacing:.06em;
+  }
+  .card .qtext{
+    font-size:16px; line-height:1.85;
+    letter-spacing:.02em;
+  }
+  .card .qtext b{ color:var(--shu); }
+
+  /* ---- 問題の図 ---- */
+  .figwrap{
+    display:flex; justify-content:center;
+    margin:10px 0 0;
+  }
+  .figwrap svg{
+    width:100%; max-width:330px; height:auto;
+    /* 図は白地に置く。方眼の上だと寸法の文字が読みにくい */
+    background:#FFFDF7;
+    border-radius:10px;
+  }
+  .fignote{
+    text-align:center;
+    font-size:11.5px; color:var(--usuzumi);
+    margin-top:4px; line-height:1.6;
+  }
+
+  /* ---- 解答パーツ ---- */
+  .part{ display:flex; flex-direction:column; gap:8px; }
+  .p-label{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700;
+    color:var(--ai);
+    letter-spacing:.04em;
+  }
+  .opts{ display:flex; flex-wrap:wrap; gap:8px; }
+  .optBtn{
+    position:relative;          /* 「正解」バッジの基準（divp-choice-mark.js） */
+    flex:1 1 calc(50% - 4px);
+    min-width:120px;
+    min-height:54px;
+    padding:8px 12px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:11px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:19px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    line-height:1.4;
+  }
+  .optBtn.on{
+    background:#FDECE9;
+    border-color:var(--shu);
+    border-bottom-color:var(--shu);
+    color:var(--shu);
+  }
+  .optBtn:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .optBtn:disabled{ cursor:default; transform:none; }
+  .optBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- フィードバック ---- */
+  .feedback{ display:none; }
+  .feedback.show{ display:flex; flex-direction:column; gap:10px; }
+  .fb-msg{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    text-align:center;
+    letter-spacing:.06em;
+  }
+  .fb-msg.good{ color:var(--shu); }
+  .fb-msg.bad{ color:var(--ai); }
+  .expl{
+    background:#fff;
+    border:1.5px dashed var(--kin);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:14px; line-height:1.95;
+  }
+  .expl b{ color:var(--shu); }
+  .expl .ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--kin);
+    letter-spacing:.08em;
+    display:block; margin-bottom:4px;
+  }
+  .expl .step{ display:block; }
+  .expl .kufu{
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px dashed var(--grid);
+    font-size:13px; color:var(--ai);
+  }
+  .expl .naze{
+    display:inline-block;
+    margin-top:8px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700;
+    color:var(--ai);
+    border:1.2px solid var(--ai);
+    background:#F5F9FC;
+    border-radius:999px;
+    padding:4px 12px;
+    cursor:pointer;
+  }
+  .toast{
+    text-align:center;
+    font-size:13px; font-weight:700; color:var(--ai);
+    min-height:20px;
+  }
+
+  /* ---- 下の大きなボタン ---- */
+  .bottom{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--paper) 62%, rgba(251,250,246,0));
+    z-index:20;
+  }
+  .bottom .inner{ max-width:560px; margin:0 auto; }
+  .bigBtn{
+    width:100%;
+    height:54px;
+    border:none;
+    border-radius:13px;
+    background:var(--shu);
+    color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    letter-spacing:.2em; text-indent:.2em;
+    box-shadow:0 3px 0 #9E2F22;
+    cursor:pointer;
+  }
+  .bigBtn:active{ transform:translateY(2px); box-shadow:0 1px 0 #9E2F22; }
+  .bigBtn.next{ background:var(--ai); box-shadow:0 3px 0 #1E466A; }
+  .bigBtn.next:active{ box-shadow:0 1px 0 #1E466A; }
+  .bigBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- モード選択画面（立体の体積マスターと同じ作り） ---- */
+  .mode-screen{ display:none; }
+  body.choosing .app,
+  body.choosing .bottom{ display:none; }
+  body.choosing .mode-screen{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:100%;
+    max-width:520px;
+    margin:0 auto;
+    padding:34px 18px 48px;
+  }
+  .m-logo{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:25px; font-weight:700;
+    text-align:center;
+    letter-spacing:.08em;
+  }
+  .m-sub{
+    text-align:center;
+    font-size:13px; color:var(--usuzumi);
+    margin-bottom:8px;
+  }
+  /* .m-link は「別の画面へのリンク」。見た目は .m-card と同じだが、
+     クリック処理(startMode)は .m-card だけに付いているので class は分けておく */
+  .m-card,
+  .m-link{
+    display:flex; align-items:center; gap:13px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:4px solid #D8D4C8;
+    border-radius:16px;
+    padding:14px 16px;
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;
+    width:100%;
+  }
+  .m-card:active,
+  .m-link:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .m-card.kufuu{ border-color:#BFD4C6; border-bottom-color:#8FB9A0; background:#F7FBF8; }
+  .m-card.nagasa{ border-color:#BCD0E2; border-bottom-color:#8FAECB; background:#F5F9FC; }
+  .m-card.mix{ border-color:var(--kin); border-bottom-color:var(--kin); }
+  .m-link{
+    text-decoration:none; color:inherit;
+    border-color:var(--ai); border-bottom-color:#1E466A;
+    background:#F5F9FC;
+  }
+  .m-link .m-name{ color:var(--ai); }
+  .m-sep{
+    display:flex; align-items:center; gap:8px;
+    margin-top:14px;
+    font-size:11.5px; color:var(--usuzumi); letter-spacing:.06em;
+  }
+  .m-sep::before, .m-sep::after{
+    content:""; flex:1; height:1px; background:var(--grid);
+  }
+  .m-ico{ flex:0 0 46px; height:40px; }
+  .m-ico svg{ width:46px; height:40px; display:block; }
+  .m-body{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .m-name{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700;
+  }
+  .m-desc{ font-size:11.5px; color:var(--usuzumi); line-height:1.5; }
+
+  /* 解き直し(?retry=1)の案内帯 */
+  #retryBanner{
+    background:#FBF3E0;
+    border:1.5px solid var(--kin);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:12.5px; line-height:1.6;
+    color:#6E5518;
+  }
+
+  /* ---- しくみの部屋（なぜ その 公式に なるの？） ---- */
+  .lab{ display:none; }
+  body.labbing .app,
+  body.labbing .bottom,
+  body.labbing .mode-screen{ display:none !important; }
+  body.labbing .lab{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    width:100%;
+    max-width:560px;
+    margin:0 auto;
+    padding:14px 14px calc(28px + env(safe-area-inset-bottom));
+  }
+  .lab-head{ display:flex; align-items:center; gap:8px; }
+  .lab-head h2{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700; margin:0;
+    letter-spacing:.04em;
+  }
+  .lab-head h2 .sub{
+    display:block;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    letter-spacing:.1em;
+  }
+  .lab-card{
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:16px;
+    box-shadow:0 2px 0 rgba(51,49,43,.06);
+    padding:13px 14px 14px;
+  }
+  .lab-ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--ai);
+    letter-spacing:.06em;
+    margin-bottom:8px;
+  }
+  .lab-chips{ display:flex; flex-wrap:wrap; gap:7px; }
+  .lab-chip{
+    flex:1 1 auto;
+    min-width:96px; min-height:44px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:10px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:14px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+  }
+  .lab-chip.on{
+    background:#FDECE9; border-color:var(--shu);
+    border-bottom-color:var(--shu); color:var(--shu);
+  }
+  .lab-chip:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .lab-stage{ display:flex; justify-content:center; margin:10px 0 0; }
+  .lab-stage svg{
+    width:100%; max-width:340px; height:auto;
+    background:#FFFDF7; border-radius:10px;
+  }
+  .lab-shiki{
+    margin-top:10px;
+    background:var(--paper);
+    border:1.5px solid var(--grid);
+    border-radius:12px;
+    padding:10px 12px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:14px; font-weight:700;
+    text-align:center; line-height:1.9;
+    letter-spacing:.02em;
+    min-height:50px;
+  }
+  .lab-shiki .vv{ color:var(--shu); font-size:1.1em; }
+  .lab-shiki .wait{ color:var(--usuzumi); font-size:13px; }
+  .lab-play{
+    width:100%; height:48px; margin-top:10px;
+    border:none; border-radius:12px;
+    background:var(--ai); color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:16px; font-weight:700; letter-spacing:.12em;
+    box-shadow:0 3px 0 #1E466A; cursor:pointer;
+  }
+  .lab-play:active{ transform:translateY(2px); box-shadow:0 1px 0 #1E466A; }
+  .lab-step{
+    display:flex; gap:9px;
+    padding:9px 0;
+    border-top:1px dashed var(--grid);
+    font-size:13.5px; line-height:1.85;
+  }
+  .lab-step:first-child{ border-top:none; }
+  .lab-step .no{
+    flex:0 0 22px; height:22px;
+    border-radius:50%;
+    background:var(--ai); color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    margin-top:3px;
+  }
+  .lab-step.now .no{ background:var(--shu); }
+  .lab-step b{ color:var(--shu); }
+  .lab-matome{
+    background:#FBF3E0;
+    border:1.5px solid var(--kin);
+    border-radius:14px;
+    padding:12px 14px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:14px; font-weight:700;
+    line-height:2;
+    color:#6E5518;
+  }
+  .lab-matome .ttl{ display:block; text-align:center; font-size:15px; margin-bottom:4px; }
+  .lab-matome .row{ display:flex; gap:8px; border-top:1px dashed #E5D3A0; }
+  .lab-matome .row:first-of-type{ border-top:none; }
+  .lab-matome .nm{ flex:0 0 5.5em; }
+  .lab-matome .fx{ color:var(--shu); }
+
+  /* 積もったキラキラ(divp-correct-kirakira の pile, z-index:5)にうもれないように。
+     モジュール側の :where() は詳細度0で、div/span だけで組んだ帯は
+     セレクタから漏れるため、画面の直下の子をまとめて前面に出しておく */
+  .divp-header{ position:relative; z-index:11; }
+  .app > *, .mode-screen > *, .lab > *,
+  .feedback > *, .lab-card > *{ position:relative; z-index:10; }
+
+  @media print{
+    /* 共通ヘッダーは紙に出さない（assets/divp-header.js と同じ方針） */
+    .divp-header{ display:none !important; }
+    .bottom{ display:none !important; }
+  }
+</style>
+</head>
+<body class="choosing" data-theme="es" data-effect="kirakira">
+
+<!-- 共通ヘッダー(ロゴ・ログイン窓)の差し込み先。script は body 直後に置くこと -->
+<div class="divp-header"></div>
+<!-- 学習記録システム共通モジュール -->
+<script src="/assets/divp-core.js" defer></script>
+<script src="/assets/divp-header.js" defer></script>
+<!-- 小学生ツールなので正解演出は星バースト。
+     data-effect="kirakira" なので、星が そのまま 画面の下に 積もっていく
+     （divp-core.js より後ろに置くこと） -->
+<script src="/assets/divp-correct-kirakira.js" defer></script>
+<!-- 選択肢の答え合わせ表示（正解=緑 / 選んだ誤答=朱） -->
+<script src="/assets/divp-choice-mark.js" defer></script>
+
+<div class="mode-screen" id="modeScreen">
+  <div class="m-logo">図形の面積マスター</div>
+  <div class="m-sub">小5 算数 ／ れんしゅうしたいものを えらんでね</div>
+  <div id="retryBannerSlot"></div>
+
+  <button type="button" class="m-card" data-mode="sankaku">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M4,34 L42,34 L16,6 Z" fill="#F6DCD6" stroke="#C73E2E" stroke-width="2.2" stroke-linejoin="round"/></svg></span>
+    <span class="m-body"><span class="m-name">三角形</span>
+    <span class="m-desc">底辺 × 高さ ÷ 2。直角三角形・高さが 外に ある 三角形・
+    長い 辺が 下に ある 直角三角形も</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="heikou">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M14,8 L43,8 L32,32 L3,32 Z" fill="#F6DCD6" stroke="#C73E2E" stroke-width="2.2" stroke-linejoin="round"/></svg></span>
+    <span class="m-body"><span class="m-name">平行四辺形</span>
+    <span class="m-desc">底辺 × 高さ。ななめの 辺に まどわされない・
+    高さが 外に ある・たてむきの 平行四辺形も</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="daikei">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M14,8 L30,8 L43,32 L3,32 Z" fill="#F6DCD6" stroke="#C73E2E" stroke-width="2.2" stroke-linejoin="round"/></svg></span>
+    <span class="m-body"><span class="m-name">台形</span>
+    <span class="m-desc">(上底 ＋ 下底) × 高さ ÷ 2。直角のある 台形・
+    さかさま・たてむきの 台形も</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="hishi">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M23,3 L43,20 L23,37 L3,20 Z" fill="#F6DCD6" stroke="#C73E2E" stroke-width="2.2" stroke-linejoin="round"/></svg></span>
+    <span class="m-body"><span class="m-name">ひし形</span>
+    <span class="m-desc">対角線 × 対角線 ÷ 2。辺の 長さに まどわされない・
+    正方形を 対角線で もとめる 問題も</span></span>
+  </button>
+
+  <button type="button" class="m-card kufuu" data-mode="kufuu">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M3,14 L23,3 L43,14 L43,37 L3,37 Z" fill="#F6DCD6" stroke="#C73E2E" stroke-width="2.2" stroke-linejoin="round"/><path d="M3,14 L43,14" stroke="#2C5F8A" stroke-width="1.5" stroke-dasharray="3 2"/></svg></span>
+    <span class="m-body"><span class="m-name">工夫して 求める</span>
+    <span class="m-desc">分けて たす・大きいのから ひく・道を よせる。
+    五角形・四角形・色のついた 部分の 面積</span></span>
+  </button>
+
+  <button type="button" class="m-card nagasa" data-mode="nagasa">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M4,34 L42,34 L16,6 Z" fill="#EAF1F7" stroke="#2C5F8A" stroke-width="2.2" stroke-linejoin="round"/><path d="M16,6 L16,34" stroke="#C73E2E" stroke-width="1.5" stroke-dasharray="3 2"/><text x="23" y="25" font-size="11" font-weight="700" fill="#C73E2E">□</text></svg></span>
+    <span class="m-body"><span class="m-name">長さを 求める</span>
+    <span class="m-desc">面積が わかって いる 形の 高さ・底辺・上底・対角線を もとめる。
+    三角形・平行四辺形・台形・ひし形</span></span>
+  </button>
+
+  <button type="button" class="m-card mix" data-mode="mix">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M3,34 L19,34 L9,14 Z M24,14 L43,14 L38,34 L19,34 Z" fill="#FBF3E0" stroke="#C9A227" stroke-width="2.2" stroke-linejoin="round"/></svg></span>
+    <span class="m-body"><span class="m-name">ランダム</span>
+    <span class="m-desc">ぜんぶの 形を ごちゃまぜで 出題（しあげ用）。
+    面積の 問題と 長さの 問題の 両方が 出ます</span></span>
+  </button>
+
+  <div class="m-sep">「なぜ その 公式に なるの？」が 気になったら</div>
+
+  <button type="button" class="m-link" id="labBtn">
+    <span class="m-body"><span class="m-name">公式の ひみつを 見る →</span>
+    <span class="m-desc">切って うつす・2つ くっつける アニメーションで、
+    平行四辺形・三角形・台形・ひし形の 公式が できる わけを たしかめられる</span></span>
+  </button>
+</div>
+
+<div class="app" id="app">
+  <header>
+    <h1>図形の面積マスター<span class="sub" id="modeLabel">三角形</span></h1>
+    <button type="button" class="mode-back" id="homeBtn">ホームに戻る</button>
+  </header>
+
+  <div class="score">
+    <span>せいかい <b id="scoreOk">0</b> / <span id="scoreAll">0</span></span>
+    <span class="streak">れんぞく <b id="scoreStreak">0</b></span>
+    <span class="qno" id="qNo"></span>
+  </div>
+
+  <div class="card">
+    <span class="qtag" id="qTag">問題</span>
+    <div class="qtext" id="qText"></div>
+    <div class="figwrap" id="figArea"></div>
+    <div class="fignote" id="figNote"></div>
+  </div>
+
+  <div id="partArea" style="display:flex;flex-direction:column;gap:14px"></div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="feedback" id="feedback">
+    <div class="fb-msg" id="fbMsg"></div>
+    <div class="expl" id="expl"></div>
+  </div>
+</div>
+
+<div class="bottom" id="bottom">
+  <div class="inner">
+    <button type="button" class="bigBtn" id="checkBtn">こたえあわせ</button>
+    <button type="button" class="bigBtn next" id="nextBtn" style="display:none">つぎの問題 ➜</button>
+  </div>
+</div>
+
+<!-- しくみの部屋（なぜ その 公式に なるの？） -->
+<div class="lab" id="lab">
+  <div class="lab-head">
+    <h2>公式の ひみつ<span class="sub">知っている 形に かえて 考える</span></h2>
+    <button type="button" class="mode-back" id="labBack">もどる</button>
+  </div>
+
+  <div class="lab-card">
+    <div class="lab-ttl">形を えらぶ</div>
+    <div class="lab-chips" id="labChips"></div>
+    <div class="lab-stage" id="labStage"></div>
+    <div class="lab-shiki" id="labShiki"></div>
+    <button type="button" class="lab-play" id="labPlay">うごかして みる ▶</button>
+  </div>
+
+  <div class="lab-card" id="labSteps"></div>
+
+  <div class="lab-matome">
+    <span class="ttl">面積の 公式 まとめ</span>
+    <div class="row"><span class="nm">長方形</span><span class="fx">たて × 横</span></div>
+    <div class="row"><span class="nm">平行四辺形</span><span class="fx">底辺 × 高さ</span></div>
+    <div class="row"><span class="nm">三角形</span><span class="fx">底辺 × 高さ ÷ 2</span></div>
+    <div class="row"><span class="nm">台形</span><span class="fx">(上底 ＋ 下底) × 高さ ÷ 2</span></div>
+    <div class="row"><span class="nm">ひし形</span><span class="fx">対角線 × 対角線 ÷ 2</span></div>
+  </div>
+</div>
+<script>
+"use strict";
+/* =====================================================================
+   図形の面積マスター（算数・小5）
+   unit_key = math_es5_menseki
+
+   ■ モードと question_key
+     三角形     → sankaku
+     平行四辺形 → heikou
+     台形       → daikei
+     ひし形     → hishi
+     工夫       → kufuu（7種類の形を 1つの キーで）
+     長さ       → sankaku_gyaku（面積から 高さ・底辺）/ heikou_gyaku /
+                  daikei_gyaku（面積から 高さ・上底）/ hishi_gyaku（面積から 対角線）
+     ランダム   → 上の ぜんぶを ごちゃまぜ（question_key は実際に出た種類）
+     日本語ラベルは db/seeds/seed_math_es5_menseki.sql で question_catalog へ。
+
+   ■ 解き直し（?retry=1）は「種(seed)方式」＝ CLAUDE.md 2d
+     乱数は ri()/pick() に一本化してあり、出題のたびに種を1つ引いて
+     question_params:{m:question_key, s:種} だけを保存する。?retry=1 では同じ種で
+     同じ生成関数を回すだけで まったく同じ問題が出る。
+     ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
+       （params_hash は同じままなので解き直し自体は成立する）。
+
+   ■ 図（question_figure）＝ CLAUDE.md 2b
+     面積の問題は 図が無いと解けないので、画面に出したSVGを そのまま
+     Divp.answer に渡す（誤答のときだけ保存され、解き直しプリントに出る）。
+     色・線は ぜんぶ SVG の属性で書く（解き直しプリントには ツールの CSS が無い）。
+     使っているタグ・属性は save_answer.php の FIG_TAGS / FIG_ATTRS の範囲内。
+
+   ■ 図は 長さの 比を そのまま 描く（ななめの 辺の 長さを 出す 問題は
+     ピタゴラス数 3:4:5 などで 作るので、図の 長さと 書いた 数が 合っている）
+   ===================================================================== */
+
+var UNIT_KEY = "math_es5_menseki";
+
+/* ---------- 共通モジュールの安全呼び出し（未読込でも壊れない） ---------- */
+function safeDivp(fn){
+  try{
+    if(window.Divp && typeof window.Divp[fn] === "function"){
+      return window.Divp[fn].apply(window.Divp, [].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return null;
+}
+/* 経過時間は端末の時計ではなく performance.now() で測る（CLAUDE.md 5a3） */
+function nowMs(){
+  return (window.performance && typeof performance.now === "function")
+    ? performance.now() : Date.now();
+}
+
+/* ---------- RNG（xorshift32・種から決まった順に出る） ---------- */
+var _rngState = 1;
+function rngSeed(s){ _rngState = (s>>>0) || 1; }
+function rngPick(){ return (Math.floor(Math.random()*4294967296)>>>0) || 1; }  /* 種そのものだけ真の乱数 */
+function rngNext(){
+  var x = _rngState;
+  x ^= x<<13; x >>>= 0; x ^= x>>>17; x ^= x<<5; x >>>= 0;
+  _rngState = x;
+  return x/4294967296;
+}
+function ri(min,max){ return Math.floor(rngNext()*(max-min+1))+min; }
+function pick(arr){ return arr[ri(0,arr.length-1)]; }
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i=a.length-1;i>0;i--){ var j=ri(0,i); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+
+function fmt(x){ return String(Math.round(x*10000)/10000); }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function n2(x){ return Math.round(x*100)/100; }
+
+/* =====================================================================
+   図のためのSVG部品
+   ===================================================================== */
+var SVGFONT = "Zen Maru Gothic,Hiragino Maru Gothic ProN,HGMaruGothicMPRO,"
+            + "M PLUS Rounded 1c,Yu Gothic,sans-serif";
+var C = {
+  base:"#F6DCD6",     /* もとめる 面（色のついた ところ） */
+  paper:"#FFFDF7",
+  edge:"#C73E2E",     /* りんかく（朱） */
+  dim:"#2C5F8A",      /* 長さ（藍） */
+  guide:"#A9A498",    /* のばした線・直角マーク */
+  road:"#FFFDF7"
+};
+
+/* 文字。まわりに紙色のふちを付けて、線の上でも読めるようにする */
+function tx(x,y,s,color,anchor,size){
+  return '<text x="'+n2(x)+'" y="'+n2(y)+'" text-anchor="'+(anchor||"middle")+'"'
+    + ' dominant-baseline="middle" font-size="'+(size||13)+'" font-weight="700"'
+    + ' font-family="'+SVGFONT+'" fill="'+(color||C.dim)+'"'
+    + ' paint-order="stroke" stroke="'+C.paper+'" stroke-width="4.5"'
+    + ' stroke-linejoin="round">'+esc(s)+'</text>';
+}
+/* 文字の はばの めやす（ラベルを 辺から はなす 量に つかう） */
+function twEst(s,size){
+  var w = 0, i;
+  for(i=0;i<s.length;i++) w += (s.charCodeAt(i) < 128 ? 0.6 : 1.0)*size;
+  return w;
+}
+function svgWrap(W,H,inner){
+  return '<svg viewBox="0 0 '+n2(W)+' '+n2(H)+'" role="img" aria-label="問題の図">'
+    + inner + '</svg>';
+}
+
+/* どの図も 同じ はば(FIG_W)の 紙に のせる。
+   viewBox が せまい図ほど 文字だけが 大きく 引きのばされるので、
+   足りないぶんは 左右に 足して 中央におく（立体の体積マスターと同じ） */
+var FIG_W = 330;
+function padX(W){ return Math.max(0, (FIG_W - W)/2); }
+
+/* ---------------------------------------------------------------------
+   図の 組み立て。座標は ぜんぶ cm（右が x、下が y）。
+   sp = {
+     shapes:[{pts:[[x,y],…], fill, stroke, sw}],      … 面
+     lines: [{a:[x,y], b:[x,y], color, dash, sw}],     … 高さ・対角線・のばした線
+     rights:[{p:[x,y], u:[dx,dy], v:[dx,dy]}],         … 直角マーク
+     edges: [{a, b, s, ref:[x,y], color}],             … 辺の 長さ（ref から はなれる むきに 出す）
+     labels:[{at:[x,y], dx, dy, s, color, anchor}]     … 自由な 文字（dx,dy は px）
+   }
+   --------------------------------------------------------------------- */
+function Fig(){ return { shapes:[], lines:[], rights:[], edges:[], labels:[] }; }
+function cm(n,u){ return fmt(n) + (u || "cm"); }
+var Q_LABEL = "□cm";
+
+/* 辺の 長さ */
+function edge(sp,a,b,s,ref,color){ sp.edges.push({ a:a, b:b, s:s, ref:ref, color:color }); }
+/* たての 高さ（点線）。y1 が 頂点、y2 が 足（直角マークを つける がわ）。
+   side = 文字を 出す がわ（1=右 / -1=左）、mside = 直角マークを 出す がわ */
+function vHeight(sp,x,y1,y2,s,side,mside,color){
+  sp.lines.push({ a:[x,y1], b:[x,y2], dash:true });
+  sp.rights.push({ p:[x,y2], u:[0, y1<y2 ? -1 : 1], v:[mside,0] });
+  sp.labels.push({ at:[x,(y1+y2)/2], dx:side*(6+twEst(s,13)/2), dy:0, s:s, color:color });
+}
+/* よこの 高さ（点線）。x1 が 頂点、x2 が 足。side = 文字を 出す がわ（-1=上 / 1=下） */
+function hHeight(sp,y,x1,x2,s,side,mside,color){
+  sp.lines.push({ a:[x1,y], b:[x2,y], dash:true });
+  sp.rights.push({ p:[x2,y], u:[x1<x2 ? -1 : 1, 0], v:[0,mside] });
+  sp.labels.push({ at:[(x1+x2)/2,y], dx:0, dy:side*12, s:s, color:color });
+}
+/* 底辺を のばした 線（灰色の 点線） */
+function extLine(sp,a,b){ sp.lines.push({ a:a, b:b, dash:true, color:C.guide, sw:1.3 }); }
+
+/* 左右・上下を 反転する（同じ形が いつも 同じ むきに ならないように） */
+function mirrorX(sp){
+  function m(p){ return [-p[0], p[1]]; }
+  sp.shapes.forEach(function(s){ s.pts = s.pts.map(m); });
+  sp.lines.forEach(function(l){ l.a = m(l.a); l.b = m(l.b); });
+  sp.rights.forEach(function(r){ r.p = m(r.p); r.u = [-r.u[0], r.u[1]]; r.v = [-r.v[0], r.v[1]]; });
+  sp.edges.forEach(function(e){ e.a = m(e.a); e.b = m(e.b); e.ref = m(e.ref); });
+  sp.labels.forEach(function(l){
+    l.at = m(l.at); l.dx = -(l.dx||0);
+    if(l.anchor === "start") l.anchor = "end"; else if(l.anchor === "end") l.anchor = "start";
+  });
+  return sp;
+}
+function mirrorY(sp){
+  function m(p){ return [p[0], -p[1]]; }
+  sp.shapes.forEach(function(s){ s.pts = s.pts.map(m); });
+  sp.lines.forEach(function(l){ l.a = m(l.a); l.b = m(l.b); });
+  sp.rights.forEach(function(r){ r.p = m(r.p); r.u = [r.u[0], -r.u[1]]; r.v = [r.v[0], -r.v[1]]; });
+  sp.edges.forEach(function(e){ e.a = m(e.a); e.b = m(e.b); e.ref = m(e.ref); });
+  sp.labels.forEach(function(l){ l.at = m(l.at); l.dy = -(l.dy||0); });
+  return sp;
+}
+
+function figSVG(sp){
+  var all = [];
+  sp.shapes.forEach(function(s){ s.pts.forEach(function(p){ all.push(p); }); });
+  sp.lines.forEach(function(l){ all.push(l.a); all.push(l.b); });
+  var minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
+  all.forEach(function(p){
+    if(p[0] < minx) minx = p[0]; if(p[0] > maxx) maxx = p[0];
+    if(p[1] < miny) miny = p[1]; if(p[1] > maxy) maxy = p[1];
+  });
+  var w = Math.max(maxx-minx, 0.5), h = Math.max(maxy-miny, 0.5);
+  var k = Math.max(7, Math.min(Math.min(220/w, 160/h), 30));
+  var PL = 58, PR = 58, PT = 28, PB = 30;
+  var W = w*k + PL + PR, pad = padX(W);
+  var H = h*k + PT + PB;
+  function X(x){ return PL + pad + (x-minx)*k; }
+  function Y(y){ return PT + (y-miny)*k; }
+  function pp(p){ return n2(X(p[0]))+","+n2(Y(p[1])); }
+  var out = "";
+
+  /* ① 面 */
+  sp.shapes.forEach(function(s){
+    out += '<path d="M'+s.pts.map(pp).join(" L")+' Z" fill="'+(s.fill||C.base)+'"'
+        +  ' stroke="'+(s.stroke||C.edge)+'" stroke-width="'+(s.sw||2.4)+'"'
+        +  ' stroke-linejoin="round"/>';
+  });
+  /* ② 高さ・対角線・のばした線 */
+  sp.lines.forEach(function(l){
+    out += '<path d="M'+pp(l.a)+' L'+pp(l.b)+'" stroke="'+(l.color||C.dim)+'"'
+        +  ' stroke-width="'+(l.sw||1.6)+'" fill="none"'
+        +  (l.dash ? ' stroke-dasharray="5 3"' : '') + '/>';
+  });
+  /* ③ 直角マーク */
+  sp.rights.forEach(function(r){
+    var s = 8, P = [X(r.p[0]), Y(r.p[1])];
+    var ul = Math.sqrt(r.u[0]*r.u[0]+r.u[1]*r.u[1]) || 1;
+    var vl = Math.sqrt(r.v[0]*r.v[0]+r.v[1]*r.v[1]) || 1;
+    var u = [r.u[0]/ul*s, r.u[1]/ul*s], v = [r.v[0]/vl*s, r.v[1]/vl*s];
+    out += '<path d="M'+n2(P[0]+u[0])+','+n2(P[1]+u[1])
+        +  ' L'+n2(P[0]+u[0]+v[0])+','+n2(P[1]+u[1]+v[1])
+        +  ' L'+n2(P[0]+v[0])+','+n2(P[1]+v[1])+'"'
+        +  ' stroke="'+C.guide+'" stroke-width="1.3" fill="none"/>';
+  });
+  /* ④ 辺の 長さ。辺の まん中から、ref と 反対の むきへ はなして 書く */
+  sp.edges.forEach(function(e){
+    var ax = X(e.a[0]), ay = Y(e.a[1]), bx = X(e.b[0]), by = Y(e.b[1]);
+    var mx = (ax+bx)/2, my = (ay+by)/2, dx = bx-ax, dy = by-ay;
+    var len = Math.sqrt(dx*dx+dy*dy) || 1;
+    var nx = -dy/len, ny = dx/len;
+    var rx = X(e.ref[0]) - mx, ry = Y(e.ref[1]) - my;
+    if(nx*rx + ny*ry > 0){ nx = -nx; ny = -ny; }
+    var d = 7 + Math.abs(nx)*twEst(e.s,13)/2 + Math.abs(ny)*7.5;
+    out += tx(mx + nx*d, my + ny*d, e.s, e.color || C.dim);
+  });
+  /* ⑤ 自由な 文字（高さ・対角線の 長さなど） */
+  sp.labels.forEach(function(l){
+    out += tx(X(l.at[0]) + (l.dx||0), Y(l.at[1]) + (l.dy||0), l.s, l.color || C.dim, l.anchor);
+  });
+  return svgWrap(W + pad*2, H, out);
+}
+
+/* =====================================================================
+   出題の 部品
+   ===================================================================== */
+/* 数の4択。まぎらわしい数(cands)から えらび、足りなければ ずらした数でうめる。
+   cands は「よくある まちがい」＝÷2忘れ・ななめの辺を つかう・上底を たし忘れ など */
+function numChoices(correct, cands, unit){
+  var out = [correct], cs = shuffle(cands || []), i, c, k = 1;
+  function has(v){
+    for(var j=0;j<out.length;j++) if(Math.abs(out[j]-v) < 1e-6) return true;
+    return false;
+  }
+  for(i=0;i<cs.length && out.length<4;i++){
+    c = Math.round(cs[i]*100)/100;
+    if(c > 0 && !has(c)) out.push(c);
+  }
+  while(out.length < 4 && k <= 12){
+    c = Math.round(correct*(1 + k*0.25)*100)/100;
+    if(!has(c)) out.push(c);
+    else{
+      c = Math.round(correct/(1 + k*0.2)*100)/100;
+      if(c > 0 && !has(c)) out.push(c);
+    }
+    k++;
+  }
+  while(out.length < 4) out.push(Math.round((correct + out.length*7.5)*100)/100);
+  var arr = shuffle(out);
+  return {
+    options: arr.map(function(v){ return fmt(v) + " " + unit; }),
+    correct: arr.indexOf(correct)
+  };
+}
+
+/* 「なぜ その 公式？」の部屋への 入口（LABS の 番号） */
+var LAB_ASK = [
+  "平行四辺形は なぜ 底辺 × 高さ？",
+  "三角形は なぜ ÷2 するの？",
+  "台形は なぜ 上底 ＋ 下底？",
+  "ひし形は なぜ ÷2 するの？"
+];
+
+/* 問題を くみたてる（どの生成関数も これを 通す） */
+function mk(o){
+  var unit = o.unit || "cm²";
+  var ch = numChoices(o.ans, o.cands, unit);
+  return {
+    key: o.key, tag: o.tag,
+    kind: o.kind || 0,          /* 生成関数の中の 形の 種類（テストで 全種類 出るかを 見る） */
+    trap: o.trap || 0,          /* 図に 書いた ひっかけの 長さの 数（つかわない 長さ） */
+    qHtml: o.q, plainQ: o.plain, fig: figSVG(o.sp), note: o.note || "",
+    label: o.label || ("面積は 何" + unit + "？"),
+    options: ch.options, correct: ch.correct,
+    ansText: fmt(o.ans) + " " + unit,
+    expl: '<span class="ttl">とき方</span>'
+        + '<span class="step">' + o.shiki + '</span>'
+        + (o.kufu ? '<div class="kufu">💡 ' + o.kufu + '</div>' : "")
+        + (o.lab != null ? '<button type="button" class="naze" data-lab="'+o.lab+'">'
+                           + LAB_ASK[o.lab] + ' →</button>' : "")
+  };
+}
+
+/* 長さが 整数に なる 直角三角形 [よこ, たて, ななめ]（よこ・たて 16cm まで）。
+   ひっかけの 長さ（ななめの 辺）を 書く 問題は、ここから 形を 作る
+   ＝図の 長さと 書いた 数が 合う（ななめの 辺だけ 図と ちがう、を しない） */
+var TRI = (function(){
+  var out = [], a, b, c;
+  for(a=1;a<=16;a++) for(b=1;b<=16;b++){
+    c = Math.sqrt(a*a+b*b);
+    if(Math.abs(c-Math.round(c)) < 1e-9) out.push([a,b,Math.round(c)]);
+  }
+  return out;
+})();
+/* 条件に 合う 組を 1つ（よこ x・たて y で しぼる） */
+function pickTri(ok){
+  return pick(TRI.filter(function(t){ return ok(t[0],t[1]); }));
+}
+/* よこ a・たて b の ななめの 長さ。整数で なければ 0（＝書かない） */
+function nice(a,b){
+  var c = Math.sqrt(a*a+b*b);
+  return Math.abs(c-Math.round(c)) < 1e-9 ? Math.round(c) : 0;
+}
+/* 「ななめの 5cm と 13cm」のような 書き方 */
+function andCm(c,c2){ return c+"cm" + (c2 ? " と "+c2+"cm" : ""); }
+function andPl(c,c2){ return c+"cm" + (c2 ? "と"+c2+"cm" : ""); }
+
+/* =====================================================================
+   ① 三角形
+   ===================================================================== */
+function gen_sankaku(){
+  var t = pick([1,1,2,3,4]), sp = Fig(), b, h, c, c2 = 0, s, e, tt, a, bb, tr, area,
+      cands, plain, shiki, kufu, trap = 1;
+  var q = "下の 三角形の <b>面積</b>を もとめましょう。";
+  if(t === 1){                                  /* ふつうの 三角形（ななめの 辺も 書く） */
+    tr = pickTri(function(x,y){ return x <= 9 && y >= 3 && y <= 12; });
+    s = tr[0]; h = tr[1]; c = tr[2];
+    tt = ri(2,7); if(((s+tt)*h) % 2) tt++;
+    b = s + tt; c2 = nice(tt,h);
+    var side = (s < b/2) ? 1 : -1;
+    sp.shapes.push({ pts:[[0,h],[b,h],[s,0]] });
+    edge(sp, [0,h], [b,h], cm(b), [s,0]);
+    edge(sp, [0,h], [s,0], cm(c), [b,h]);
+    if(c2) edge(sp, [s,0], [b,h], cm(c2), [0,h]);
+    vHeight(sp, s, 0, h, cm(h), side, side);
+    area = b*h/2; trap = c2 ? 2 : 1;
+    cands = [b*c/2, b*h, c*h/2, c2 ? b*c2/2 : b*c];
+    plain = "三角形(底辺"+b+"cm・高さ"+h+"cm・ななめの辺"+andPl(c,c2)+")の面積";
+    shiki = "高さは 底辺に 垂直な 点線の "+h+"cm。ななめの "+andCm(c,c2)+" は つかわない。<br>"
+          + "底辺 × 高さ ÷ 2 ＝ "+b+" × "+h+" ÷ 2 ＝ <b>"+area+" cm²</b>";
+    kufu = "高さは「底辺と 直角に 交わる 長さ」。直角の マークを さがそう。";
+  }else if(t === 2){                            /* 直角三角形（ななめの 辺も 書く） */
+    tr = pickTri(function(x,y){ return x >= 3 && x <= 12 && y >= 3 && y <= 12; });
+    b = tr[0]; h = tr[1]; c = tr[2];
+    sp.shapes.push({ pts:[[0,0],[0,h],[b,h]] });
+    edge(sp, [0,0], [0,h], cm(h), [b,h]);
+    edge(sp, [0,h], [b,h], cm(b), [0,0]);
+    edge(sp, [0,0], [b,h], cm(c), [0,h]);
+    sp.rights.push({ p:[0,h], u:[0,-1], v:[1,0] });
+    area = b*h/2;
+    cands = [b*c/2, h*c/2, b*h, b*c];
+    plain = "直角三角形(直角をはさむ辺"+b+"cmと"+h+"cm・ななめの辺"+c+"cm)の面積";
+    shiki = "直角を はさむ 2つの 辺が 底辺と 高さ。ななめの "+c+"cm は つかわない。<br>"
+          + b+" × "+h+" ÷ 2 ＝ <b>"+area+" cm²</b>";
+    kufu = "いちばん 長い "+c+"cm の 辺は、どの 辺とも 直角に なって いないので 高さには ならない。";
+  }else if(t === 3){                            /* 高さが 外に ある 三角形 */
+    tr = pickTri(function(x,y){ return x <= 9 && y >= 3 && y <= 12; });
+    e = tr[0]; h = tr[1]; c = tr[2];
+    /* 長い方の 辺も 整数に なる 底辺が あれば、たいてい それを えらぶ */
+    var longs = TRI.filter(function(u){ return u[1] === h && u[0] > e+1 && u[0]-e <= 10; });
+    if(longs.length && ri(0,2) > 0) b = pick(longs)[0] - e;
+    else{ b = ri(2,8); if((b*h) % 2) b++; }
+    c2 = nice(b+e, h);
+    sp.shapes.push({ pts:[[0,h],[b,h],[b+e,0]] });
+    edge(sp, [0,h], [b,h], cm(b), [b+e,0]);
+    edge(sp, [b,h], [b+e,0], cm(c), [0,h]);
+    if(c2) edge(sp, [0,h], [b+e,0], cm(c2), [b,h]);
+    extLine(sp, [b,h], [b+e,h]);
+    vHeight(sp, b+e, 0, h, cm(h), 1, -1);
+    area = b*h/2; trap = c2 ? 2 : 1;
+    cands = [b*c/2, c*h/2, b*h, c2 ? b*c2/2 : b+h];
+    plain = "高さが外にある三角形(底辺"+b+"cm・高さ"+h+"cm・辺"+andPl(c,c2)+")の面積";
+    shiki = "高さは 三角形の 外に ある 点線の "+h+"cm。辺の "+andCm(c,c2)+" は つかわない。<br>"
+          + "底辺 × 高さ ÷ 2 ＝ "+b+" × "+h+" ÷ 2 ＝ <b>"+area+" cm²</b>";
+    kufu = "かたむいた 三角形でも、底辺を のばした 線に 垂直に おろした 長さが 高さ。";
+  }else{                                        /* ななめの 辺が 下に ある 直角三角形 */
+    tr = pick([[3,4,5],[4,3,5],[6,8,10],[8,6,10],[9,12,15],[5,12,13]]);
+    a = tr[0]; bb = tr[1]; c = tr[2];
+    var H = a*bb/c, fx = a*a/c;
+    sp.shapes.push({ pts:[[0,H],[c,H],[fx,0]] });
+    edge(sp, [0,H], [c,H], cm(c), [fx,0]);
+    edge(sp, [0,H], [fx,0], cm(a), [c,H]);
+    edge(sp, [fx,0], [c,H], cm(bb), [0,H]);
+    sp.rights.push({ p:[fx,0], u:[-fx,H], v:[c-fx,H] });
+    area = a*bb/2;
+    cands = [a*c/2, bb*c/2, a*bb, a+bb+c];
+    plain = "直角三角形(辺"+a+"cm・"+bb+"cm・"+c+"cm、"+c+"cmの辺が下)の面積";
+    shiki = "直角を はさむ "+a+"cm と "+bb+"cm を 底辺と 高さに する。下の "+c+"cm は つかわない。<br>"
+          + a+" × "+bb+" ÷ 2 ＝ <b>"+area+" cm²</b>";
+    kufu = "底辺は 下の 辺とは かぎらない。"+c+"cm を 底辺に すると 高さが わからないので、"
+         + "直角の ある ところを さがそう。";
+  }
+  if(ri(0,1) === 1) mirrorX(sp);
+  return mk({ key:"sankaku", tag:"三角形の 面積", q:q, plain:plain, sp:sp, kind:t, trap:trap,
+              ans:area, cands:cands, shiki:shiki, kufu:kufu, lab:1 });
+}
+
+/* 三角形：面積から 高さ・底辺を もとめる */
+function gen_sankaku_gyaku(){
+  var sp = Fig(), tr = pickTri(function(x,y){ return x <= 9 && y >= 3 && y <= 12; }),
+      s = tr[0], h = tr[1], c = tr[2], tt = ri(2,7), findH = ri(0,1) === 1,
+      b, area, ans, cands, shiki, plain;
+  if(((s+tt)*h) % 2) tt++;
+  b = s + tt; area = b*h/2;
+  var side = (s < b/2) ? 1 : -1;
+  sp.shapes.push({ pts:[[0,h],[b,h],[s,0]] });
+  edge(sp, [0,h], [b,h], findH ? cm(b) : Q_LABEL, [s,0], findH ? null : C.edge);
+  edge(sp, [0,h], [s,0], cm(c), [b,h]);
+  vHeight(sp, s, 0, h, findH ? Q_LABEL : cm(h), side, side, findH ? C.edge : null);
+  if(ri(0,1) === 1) mirrorX(sp);
+  if(findH){
+    ans = h;
+    cands = [area/b, c, h*2, area-b];
+    plain = "面積"+area+"cm²・底辺"+b+"cm・ななめの辺"+c+"cmの三角形の高さ";
+    shiki = "底辺 × 高さ ÷ 2 ＝ 面積 だから<br>"
+          + b+" × □ ÷ 2 ＝ "+area+"<br>"
+          + "□ ＝ "+area+" × 2 ÷ "+b+" ＝ "+(area*2)+" ÷ "+b+" ＝ <b>"+h+" cm</b>";
+  }else{
+    ans = b;
+    cands = [area/h, c, b*2, area-h];
+    plain = "面積"+area+"cm²・高さ"+h+"cm・ななめの辺"+c+"cmの三角形の底辺";
+    shiki = "底辺 × 高さ ÷ 2 ＝ 面積 だから<br>"
+          + "□ × "+h+" ÷ 2 ＝ "+area+"<br>"
+          + "□ ＝ "+area+" × 2 ÷ "+h+" ＝ "+(area*2)+" ÷ "+h+" ＝ <b>"+b+" cm</b>";
+  }
+  return mk({ key:"sankaku_gyaku", tag:"三角形（面積から 長さ）", trap:1,
+              q:"面積が <b>"+area+"cm²</b> の 三角形です。□に あてはまる 数を もとめましょう。",
+              plain:plain, sp:sp, unit:"cm", label:"□は 何cm？",
+              ans:ans, cands:cands, shiki:shiki,
+              kufu:"ななめの "+c+"cm は つかわない。÷2 を もとに もどすので、先に 面積を 2倍 してから わる。" });
+}
+
+/* =====================================================================
+   ② 平行四辺形
+   ===================================================================== */
+function gen_heikou(){
+  var t = pick([1,1,2,3]), sp = Fig(), b, h, s, c, tr, area, cands, plain, kufu, pre;
+  if(t === 1){                                  /* ふつうの 平行四辺形 */
+    tr = pickTri(function(x,y){ return x <= 9 && y >= 3 && y <= 12; });
+    s = tr[0]; h = tr[1]; c = tr[2];
+    b = s + ri(1,7);
+    sp.shapes.push({ pts:[[s,0],[s+b,0],[b,h],[0,h]] });
+    edge(sp, [0,h], [b,h], cm(b), [s,0]);
+    edge(sp, [0,h], [s,0], cm(c), [b,h]);
+    vHeight(sp, s, 0, h, cm(h), 1, 1);
+    cands = [b*c, b*h/2, c*h, b*c/2];
+    plain = "平行四辺形(底辺"+b+"cm・高さ"+h+"cm・ななめの辺"+c+"cm)の面積";
+    pre = "ななめの "+c+"cm は 底辺と 直角では ないので 高さでは ない。<br>";
+    kufu = "平行四辺形は 左の 三角形を 切って 右に うつすと 長方形。だから ÷2 は しない。";
+  }else if(t === 2){                            /* 高さが 外に ある */
+    tr = pickTri(function(x,y){ return x >= 4 && x <= 12 && y >= 3 && y <= 12; });
+    s = tr[0]; h = tr[1]; c = tr[2];
+    b = ri(2, Math.min(7, s-1));
+    sp.shapes.push({ pts:[[s,0],[s+b,0],[b,h],[0,h]] });
+    edge(sp, [0,h], [b,h], cm(b), [s,0]);
+    edge(sp, [0,h], [s,0], cm(c), [b,h]);
+    extLine(sp, [b,h], [s+b,h]);
+    vHeight(sp, s+b, 0, h, cm(h), 1, -1);
+    cands = [b*c, b*h/2, c*h, (b+h)*2];
+    plain = "高さが外にある平行四辺形(底辺"+b+"cm・高さ"+h+"cm・ななめの辺"+c+"cm)の面積";
+    pre = "高さは 平行四辺形の 外に ある 点線の "+h+"cm。ななめの "+c+"cm は つかわない。<br>";
+    kufu = "高さが 外に はみ出して いても、底辺 × 高さ で もとめられる。";
+  }else{                                        /* たてむき（底辺が たて） */
+    tr = pickTri(function(x,y){ return x >= 4 && x <= 12 && y <= 9; /* よこ(高さ)が 細いと 文字が つまる */ });
+    h = tr[0]; s = tr[1]; c = tr[2];
+    b = s + ri(1,6);
+    sp.shapes.push({ pts:[[0,s],[h,0],[h,b],[0,s+b]] });
+    edge(sp, [0,s], [0,s+b], cm(b), [h,0]);
+    edge(sp, [0,s], [h,0], cm(c), [h,b]);
+    hHeight(sp, s + (b-s)/2, h, 0, cm(h), -1, 1);
+    cands = [b*c, b*h/2, c*h, b*c/2];
+    plain = "たてむきの平行四辺形(底辺"+b+"cm・高さ"+h+"cm・ななめの辺"+c+"cm)の面積";
+    pre = "左の たての 辺を 底辺に すると、よこの 点線が 高さ。ななめの "+c+"cm は つかわない。<br>";
+    kufu = "底辺は 下に あるとは かぎらない。底辺に 垂直な 長さが 高さ。";
+  }
+  area = b*h;
+  if(ri(0,1) === 1) mirrorX(sp);
+  return mk({ key:"heikou", tag:"平行四辺形の 面積", kind:t, trap:1,
+              q:"下の 平行四辺形の <b>面積</b>を もとめましょう。",
+              plain:plain, sp:sp, ans:area, cands:cands,
+              shiki: pre + "底辺 × 高さ ＝ "+b+" × "+h+" ＝ <b>"+area+" cm²</b>",
+              kufu:kufu, lab:0 });
+}
+
+function gen_heikou_gyaku(){
+  var sp = Fig(), tr = pickTri(function(x,y){ return x <= 9 && y >= 3 && y <= 12; }),
+      s = tr[0], h = tr[1], c = tr[2], b = s + ri(1,7),
+      findH = ri(0,1) === 1, area = b*h, ans, cands, shiki, plain;
+  sp.shapes.push({ pts:[[s,0],[s+b,0],[b,h],[0,h]] });
+  edge(sp, [0,h], [b,h], findH ? cm(b) : Q_LABEL, [s,0], findH ? null : C.edge);
+  edge(sp, [0,h], [s,0], cm(c), [b,h]);
+  vHeight(sp, s, 0, h, findH ? Q_LABEL : cm(h), 1, 1, findH ? C.edge : null);
+  if(ri(0,1) === 1) mirrorX(sp);
+  if(findH){
+    ans = h; cands = [h*2, c, b, area-b];
+    plain = "面積"+area+"cm²・底辺"+b+"cm・ななめの辺"+c+"cmの平行四辺形の高さ";
+    shiki = "底辺 × 高さ ＝ 面積 だから<br>"
+          + b+" × □ ＝ "+area+"<br>□ ＝ "+area+" ÷ "+b+" ＝ <b>"+h+" cm</b>";
+  }else{
+    ans = b; cands = [b*2, c, h, area-h];
+    plain = "面積"+area+"cm²・高さ"+h+"cm・ななめの辺"+c+"cmの平行四辺形の底辺";
+    shiki = "底辺 × 高さ ＝ 面積 だから<br>"
+          + "□ × "+h+" ＝ "+area+"<br>□ ＝ "+area+" ÷ "+h+" ＝ <b>"+b+" cm</b>";
+  }
+  return mk({ key:"heikou_gyaku", tag:"平行四辺形（面積から 長さ）", trap:1,
+              q:"面積が <b>"+area+"cm²</b> の 平行四辺形です。□に あてはまる 数を もとめましょう。",
+              plain:plain, sp:sp, unit:"cm", label:"□は 何cm？",
+              ans:ans, cands:cands, shiki:shiki,
+              kufu:"ななめの "+c+"cm は つかわない。平行四辺形は ÷2 が ないので、面積を わるだけ。" });
+}
+
+/* =====================================================================
+   ③ 台形
+   ===================================================================== */
+function gen_daikei(){
+  var t = pick([1,1,2,3]), sp = Fig(), a, b, h, s, c, c2 = 0, tt, tr, area, cands, plain, kufu, pre = "";
+  if(t === 1){                                  /* ふつうの 台形（さかさまも） */
+    tr = pickTri(function(x,y){ return x <= 8 && y >= 3 && y <= 12; });
+    s = tr[0]; h = tr[1]; c = tr[2];
+    a = ri(2,8); tt = ri(1,6);
+    if(((s+2*a+tt)*h) % 2) tt++;
+    b = s + a + tt; c2 = nice(tt,h);
+    sp.shapes.push({ pts:[[s,0],[s+a,0],[b,h],[0,h]] });
+    edge(sp, [s,0], [s+a,0], cm(a), [0,h]);
+    edge(sp, [0,h], [b,h], cm(b), [s,0]);
+    edge(sp, [0,h], [s,0], cm(c), [b,h]);
+    if(c2) edge(sp, [s+a,0], [b,h], cm(c2), [0,h]);
+    vHeight(sp, s, 0, h, cm(h), 1, 1);
+    pre = "ななめの "+andCm(c,c2)+" は 高さでは ない。高さは 点線の "+h+"cm。<br>";
+    if(ri(0,1) === 1){
+      mirrorY(sp);
+      pre += "さかさまでも、平行な 2つの 辺が 上底と 下底。<br>";
+    }
+    kufu = "台形は 同じ 形を さかさに くっつけると 平行四辺形。だから ÷2。";
+  }else if(t === 2){                            /* 直角のある 台形 */
+    tr = pickTri(function(x,y){ return x <= 9 && y >= 3 && y <= 12; });
+    tt = tr[0]; h = tr[1]; c = tr[2];
+    a = ri(2,8); b = a + tt;
+    sp.shapes.push({ pts:[[0,0],[a,0],[b,h],[0,h]] });
+    edge(sp, [0,0], [a,0], cm(a), [0,h]);
+    edge(sp, [0,h], [b,h], cm(b), [0,0]);
+    edge(sp, [0,0], [0,h], cm(h), [b,h]);
+    edge(sp, [a,0], [b,h], cm(c), [0,h]);
+    sp.rights.push({ p:[0,0], u:[1,0], v:[0,1] });
+    sp.rights.push({ p:[0,h], u:[1,0], v:[0,-1] });
+    pre = "直角の ある たての 辺 "+h+"cm が そのまま 高さ。ななめの "+c+"cm は つかわない。<br>";
+    kufu = "上底と 下底に 直角な 辺が あれば、それが 高さ。";
+  }else{                                        /* たてむき（平行な 辺が たて） */
+    tr = pickTri(function(x,y){ return x >= 4 && x <= 10 && y <= 8; /* よこ(高さ)が 細いと 文字が つまる */ });
+    h = tr[0]; s = tr[1]; c = tr[2];
+    a = ri(3,7); tt = ri(1,5);
+    if(((s+2*a+tt)*h) % 2) tt++;
+    b = s + a + tt; c2 = nice(h,tt);
+    sp.shapes.push({ pts:[[0,0],[h,s],[h,s+a],[0,b]] });
+    edge(sp, [0,0], [0,b], cm(b), [h,s]);
+    edge(sp, [h,s], [h,s+a], cm(a), [0,0]);
+    edge(sp, [0,0], [h,s], cm(c), [0,b]);
+    if(c2) edge(sp, [h,s+a], [0,b], cm(c2), [0,0]);
+    hHeight(sp, s + a/2, h, 0, cm(h), -1, 1);
+    pre = "たての 2つの 辺が 平行なので、それが 上底と 下底。よこの 点線が 高さ。"
+        + "ななめの "+andCm(c,c2)+" は つかわない。<br>";
+    kufu = "平行な 2つの 辺を さがすのが 台形の 第一歩。";
+  }
+  area = (a+b)*h/2;
+  cands = [(a+b)*c/2, (a+b)*h, a*h, c2 ? (a+b)*c2/2 : b*h/2];
+  plain = "台形(上底"+a+"cm・下底"+b+"cm・高さ"+h+"cm・ななめの辺"+andPl(c,c2)+")の面積";
+  if(t !== 1 && ri(0,1) === 1) mirrorX(sp);
+  return mk({ key:"daikei", tag:"台形の 面積", kind:t, trap:c2 ? 2 : 1,
+              q:"下の 台形の <b>面積</b>を もとめましょう。",
+              plain:plain, sp:sp, ans:area, cands:cands,
+              shiki: pre + "(上底 ＋ 下底) × 高さ ÷ 2 ＝ ("+a+" ＋ "+b+") × "+h+" ÷ 2<br>"
+                   + "＝ "+(a+b)+" × "+h+" ÷ 2 ＝ <b>"+area+" cm²</b>",
+              kufu:kufu, lab:2 });
+}
+
+function gen_daikei_gyaku(){
+  var sp = Fig(), tr = pickTri(function(x,y){ return x <= 8 && y >= 3 && y <= 12; }),
+      s = tr[0], h = tr[1], c = tr[2], a = ri(2,8), tt = ri(1,6), findH = ri(0,1) === 1,
+      b, c2, area, ans, cands, shiki, plain;
+  if(((s+2*a+tt)*h) % 2) tt++;
+  b = s + a + tt; c2 = nice(tt,h);
+  area = (a+b)*h/2;
+  sp.shapes.push({ pts:[[s,0],[s+a,0],[b,h],[0,h]] });
+  edge(sp, [s,0], [s+a,0], findH ? cm(a) : Q_LABEL, [0,h], findH ? null : C.edge);
+  edge(sp, [0,h], [b,h], cm(b), [s,0]);
+  edge(sp, [0,h], [s,0], cm(c), [b,h]);
+  if(c2) edge(sp, [s+a,0], [b,h], cm(c2), [0,h]);
+  vHeight(sp, s, 0, h, findH ? Q_LABEL : cm(h), 1, 1, findH ? C.edge : null);
+  if(ri(0,1) === 1) mirrorX(sp);
+  if(findH){
+    ans = h; cands = [area/(a+b), c, h*2, area*2-(a+b)];
+    plain = "面積"+area+"cm²・上底"+a+"cm・下底"+b+"cm・ななめの辺"+andPl(c,c2)+"の台形の高さ";
+    shiki = "("+a+" ＋ "+b+") × □ ÷ 2 ＝ "+area+"<br>"
+          + "□ ＝ "+area+" × 2 ÷ "+(a+b)+" ＝ "+(area*2)+" ÷ "+(a+b)+" ＝ <b>"+h+" cm</b>";
+  }else{
+    ans = a; cands = [a+b, b-a, c, a*2];
+    plain = "面積"+area+"cm²・下底"+b+"cm・高さ"+h+"cm・ななめの辺"+andPl(c,c2)+"の台形の上底";
+    shiki = "(□ ＋ "+b+") × "+h+" ÷ 2 ＝ "+area+"<br>"
+          + "□ ＋ "+b+" ＝ "+area+" × 2 ÷ "+h+" ＝ "+(a+b)+"<br>"
+          + "□ ＝ "+(a+b)+" − "+b+" ＝ <b>"+a+" cm</b>";
+  }
+  return mk({ key:"daikei_gyaku", tag:"台形（面積から 長さ）", trap:c2 ? 2 : 1,
+              q:"面積が <b>"+area+"cm²</b> の 台形です。□に あてはまる 数を もとめましょう。",
+              plain:plain, sp:sp, unit:"cm", label:"□は 何cm？",
+              ans:ans, cands:cands, shiki:shiki,
+              kufu: "ななめの "+andCm(c,c2)+" は つかわない。"
+                  + (findH ? "面積を 2倍 してから (上底 ＋ 下底) で わる。"
+                           : "面積 × 2 ÷ 高さ で「上底 ＋ 下底」が 出る。そこから 下底を ひく。") });
+}
+
+/* =====================================================================
+   ④ ひし形
+   ===================================================================== */
+/* ひし形の 対角線（点線）と その 長さ。p=よこ、q=たて、中心は (cx,cy) */
+function rhombDiag(sp,p,q,cx,cy,lp,lq,cp,cq){
+  sp.lines.push({ a:[cx-p/2,cy], b:[cx+p/2,cy], dash:true });
+  sp.lines.push({ a:[cx,cy-q/2], b:[cx,cy+q/2], dash:true });
+  sp.rights.push({ p:[cx,cy], u:[1,0], v:[0,-1] });
+  /* 長さは 中心よりの はばの ある ところに 書く（はしに よせると 辺に かぶる）。
+     よこは 右下、たては 左下＝中心の 直角マーク（右上）とも かさならない */
+  if(lp) sp.labels.push({ at:[cx+p/5, cy], dx:0, dy:12, s:lp, color:cp });
+  if(lq) sp.labels.push({ at:[cx, cy+q/5], dx:-(6+twEst(lq,13)/2), dy:0, s:lq, color:cq });
+}
+/* 1辺の 長さが きりの よい ひし形 [対角線, 対角線, 1辺]。
+   対角線の 半分どうしが 3:4:5 などに なる 形だけ（1辺を ひっかけに 書くため） */
+var RHOMB = [[6,8,5],[9,12,7.5],[12,16,10],[15,20,12.5],[5,12,6.5],[8,15,8.5]];
+function rhombPick(){
+  var r = pick(RHOMB);
+  return ri(0,1) === 1 ? [r[1], r[0], r[2]] : r.slice();
+}
+
+function gen_hishi(){
+  var t = pick([1,1,1,2]), sp = Fig(), p, q, c, d, r, area, cands, plain, shiki, kufu, qq;
+  qq = "下の ひし形の <b>面積</b>を もとめましょう。";
+  if(t === 1){                                  /* ひし形（1辺の 長さも 書く） */
+    r = rhombPick(); p = r[0]; q = r[1]; c = r[2];
+    sp.shapes.push({ pts:[[p/2,0],[p,q/2],[p/2,q],[0,q/2]] });
+    rhombDiag(sp, p, q, p/2, q/2, cm(p), cm(q));
+    edge(sp, [p/2,0], [p,q/2], cm(c), [p/2,q/2]);
+    area = p*q/2;
+    cands = [c*c, c*4, p*q, (p+q)*2];
+    plain = "ひし形(対角線"+p+"cmと"+q+"cm・1辺"+fmt(c)+"cm)の面積";
+    shiki = "辺の "+fmt(c)+"cm は つかわない。対角線で もとめる。<br>"
+          + "対角線 × 対角線 ÷ 2 ＝ "+p+" × "+q+" ÷ 2 ＝ <b>"+area+" cm²</b>";
+    kufu = "ひし形は 正方形と ちがって「1辺 × 1辺」では もとめられない。"
+         + "まわりの 長方形（たて・よこが 対角線）の ちょうど 半分。";
+    if(ri(0,1) === 1) mirrorX(sp);
+  }else{                                        /* 正方形を 対角線で */
+    d = ri(2,6)*2;
+    sp.shapes.push({ pts:[[d/2,0],[d,d/2],[d/2,d],[0,d/2]] });
+    sp.lines.push({ a:[0,d/2], b:[d,d/2], dash:true });
+    sp.labels.push({ at:[d/2, d/2], dx:0, dy:12, s:cm(d) });
+    sp.rights.push({ p:[d/2,0], u:[-1,1], v:[1,1] });
+    area = d*d/2;
+    cands = [d*d, d*4, d*d/4, d*2];
+    qq = "下の 正方形の <b>面積</b>を もとめましょう。わかって いるのは 対角線の 長さだけです。";
+    plain = "正方形(対角線"+d+"cm)の面積";
+    shiki = "正方形は ひし形の なかま。2本の 対角線は 同じ 長さ だから<br>"
+          + d+" × "+d+" ÷ 2 ＝ <b>"+area+" cm²</b>";
+    kufu = "正方形の 対角線は 同じ 長さで、垂直に 交わる。だから ひし形の 公式が つかえる。";
+  }
+  return mk({ key:"hishi", tag: t === 2 ? "正方形（ひし形の 公式）" : "ひし形の 面積",
+              kind:t, trap: t === 1 ? 1 : 0,
+              q:qq, plain:plain, sp:sp, ans:area, cands:cands, shiki:shiki, kufu:kufu, lab:3 });
+}
+
+function gen_hishi_gyaku(){
+  var sp = Fig(), r = rhombPick(), p = r[0], q = r[1], c = r[2], area = p*q/2;
+  sp.shapes.push({ pts:[[p/2,0],[p,q/2],[p/2,q],[0,q/2]] });
+  rhombDiag(sp, p, q, p/2, q/2, cm(p), Q_LABEL, null, C.edge);
+  edge(sp, [p/2,0], [p,q/2], cm(c), [p/2,q/2]);
+  if(ri(0,1) === 1) mirrorX(sp);
+  return mk({ key:"hishi_gyaku", tag:"ひし形（面積から 対角線）", trap:1,
+              q:"面積が <b>"+area+"cm²</b> の ひし形です。□に あてはまる 数を もとめましょう。",
+              plain:"面積"+area+"cm²・対角線の1本が"+p+"cm・1辺"+fmt(c)+"cmのひし形のもう1本の対角線",
+              sp:sp, unit:"cm", label:"□は 何cm？",
+              ans:q, cands:[area/p, c, area*2, c*2],
+              shiki: p+" × □ ÷ 2 ＝ "+area+"<br>"
+                   + "□ ＝ "+area+" × 2 ÷ "+p+" ＝ "+(area*2)+" ÷ "+p+" ＝ <b>"+q+" cm</b>",
+              kufu:"辺の "+fmt(c)+"cm は つかわない。÷2 を もどすので、先に 面積を 2倍 してから わる。" });
+}
+
+/* =====================================================================
+   ⑤ 工夫して 求める（分けて たす／大きいのから ひく／道を よせる）
+   ===================================================================== */
+function gen_kufuu(){
+  var t = ri(1,7), sp = Fig(), ans, cands, plain, shiki, kufu, q, unit = "cm²",
+      tag = "工夫して 求める", trap = 1;
+  q = "色の ついた 部分の <b>面積</b>を もとめましょう。";
+
+  if(t === 1){                                  /* 四角形を 対角線で 2つの 三角形に */
+    var small = function(x,y){ return x <= 12 && y >= 3 && y <= 8; };
+    /* 上下の 三角形の 高さが ちがいすぎると、低い 方に 長さの 文字が つまって 読めない */
+    var r1 = pickTri(small),
+        r2 = pickTri(function(x,y){ return small(x,y) && Math.abs(y - r1[1]) <= 3; });
+    var bx = r1[0], h1 = r1[1], c1 = r1[2], dx = r2[0], h2 = r2[1], c2 = r2[2];
+    var d = 2*ri(Math.max(6, Math.floor(Math.max(bx,dx)/2)+1), 8);
+    var c3 = nice(d-bx,h1), c4 = nice(d-dx,h2), G = [d/2,h1];
+    sp.shapes.push({ pts:[[0,h1],[bx,0],[d,h1],[dx,h1+h2]] });
+    sp.lines.push({ a:[0,h1], b:[d,h1], color:C.edge, sw:1.4 });
+    vHeight(sp, bx, 0, h1, cm(h1), bx < d/2 ? 1 : -1, bx < d/2 ? 1 : -1);
+    vHeight(sp, dx, h1+h2, h1, cm(h2), dx < d/2 ? 1 : -1, dx < d/2 ? 1 : -1);
+    edge(sp, [0,h1], [bx,0], cm(c1), G);
+    edge(sp, [0,h1], [dx,h1+h2], cm(c2), G);
+    if(c3) edge(sp, [bx,0], [d,h1], cm(c3), G);
+    if(c4) edge(sp, [dx,h1+h2], [d,h1], cm(c4), G);
+    /* 対角線の 長さは 高さの 線から いちばん はなれた ところに 書く */
+    var lx = [d*0.3, d*0.5, d*0.7].sort(function(m,n){
+      return Math.min(Math.abs(n-bx),Math.abs(n-dx)) - Math.min(Math.abs(m-bx),Math.abs(m-dx));
+    })[0];
+    sp.labels.push({ at:[lx,h1], dx:0, dy:-11, s:cm(d) });
+    ans = d*(h1+h2)/2;
+    trap = 2 + (c3 ? 1 : 0) + (c4 ? 1 : 0);
+    cands = [d*(h1+h2), d*(c1+c2)/2, d*h1/2, ans+d];
+    q = "下の 四角形の <b>面積</b>を もとめましょう。";
+    plain = "四角形(対角線"+d+"cm・対角線までの高さ"+h1+"cmと"+h2+"cm・まわりの辺も表示)の面積";
+    shiki = "まわりの 辺の 長さは つかわない。対角線で 上と 下の 2つの 三角形に 分ける。<br>"
+          + "上 "+d+" × "+h1+" ÷ 2 ＝ "+(d*h1/2)+"　下 "+d+" × "+h2+" ÷ 2 ＝ "+(d*h2/2)+"<br>"
+          + (d*h1/2)+" ＋ "+(d*h2/2)+" ＝ <b>"+ans+" cm²</b>";
+    kufu = "まとめて "+d+" × ("+h1+" ＋ "+h2+") ÷ 2 と 計算しても 同じ。";
+  }else if(t === 2){                            /* 家の 形（長方形 ＋ 三角形） */
+    var rt = pickTri(function(x,y){ return x >= 3 && x <= 8 && y >= 3 && y <= 8; });
+    var w = rt[0]*2, r = rt[1], cr = rt[2], a = ri(3,7);
+    sp.shapes.push({ pts:[[0,r],[w/2,0],[w,r],[w,r+a],[0,r+a]] });
+    sp.lines.push({ a:[0,r], b:[w,r], color:C.edge, sw:1.4 });
+    edge(sp, [0,r+a], [w,r+a], cm(w), [w/2,0]);
+    edge(sp, [w,r], [w,r+a], cm(a), [0,r]);
+    edge(sp, [w/2,0], [w,r], cm(cr), [w/2,r]);
+    vHeight(sp, w/2, 0, r, cm(r), -1, 1);
+    sp.rights.push({ p:[0,r+a], u:[0,-1], v:[1,0] });
+    sp.rights.push({ p:[w,r+a], u:[0,-1], v:[-1,0] });
+    ans = w*a + w*r/2;
+    cands = [w*(a+r), w*(a+r)/2, w*a + w*cr/2, w*a + w*r];
+    q = "下の 五角形の <b>面積</b>を もとめましょう。";
+    plain = "五角形(横"+w+"cm・縦"+a+"cmの長方形の上に高さ"+r+"cm・ななめの辺"+cr+"cmの三角形)の面積";
+    shiki = "長方形と 三角形に 分ける。屋根の ななめの "+cr+"cm は つかわない。<br>"
+          + "長方形 "+w+" × "+a+" ＝ "+(w*a)+"　三角形 "+w+" × "+r+" ÷ 2 ＝ "+(w*r/2)+"<br>"
+          + (w*a)+" ＋ "+(w*r/2)+" ＝ <b>"+ans+" cm²</b>";
+    kufu = "三角形の 底辺は 長方形の 横と 同じ "+w+"cm、高さは 点線の "+r+"cm。";
+  }else if(t === 3){                            /* 長方形の 中の 三角形 */
+    var t3r = pickTri(function(x,y){ return x >= 3 && x <= 10 && y >= 3 && y <= 10; });
+    var p3 = t3r[0], h3 = t3r[1], cl3 = t3r[2], w3 = p3 + ri(2,6);
+    if((w3*h3) % 2) w3++;
+    var cr3 = nice(w3-p3, h3);
+    sp.shapes.push({ pts:[[0,0],[w3,0],[w3,h3],[0,h3]], fill:C.paper });
+    sp.shapes.push({ pts:[[0,h3],[w3,h3],[p3,0]] });
+    edge(sp, [0,0], [p3,0], cm(p3), [0,h3]);
+    edge(sp, [p3,0], [w3,0], cm(w3-p3), [w3,h3]);
+    edge(sp, [w3,0], [w3,h3], cm(h3), [0,0]);
+    edge(sp, [0,h3], [p3,0], cm(cl3), [w3,h3]);
+    if(cr3) edge(sp, [p3,0], [w3,h3], cm(cr3), [0,h3]);
+    sp.rights.push({ p:[w3,h3], u:[0,-1], v:[-1,0] });
+    ans = w3*h3/2;
+    trap = cr3 ? 2 : 1;
+    cands = [w3*h3, w3*cl3/2, (w3-p3)*h3/2, p3*h3];
+    q = "長方形の 中に 三角形を かきました。色の ついた 三角形の <b>面積</b>を もとめましょう。";
+    plain = "長方形(横"+p3+"+"+(w3-p3)+"cm・縦"+h3+"cm)の中の三角形(ななめの辺"+andPl(cl3,cr3)+")の面積";
+    shiki = "三角形の 底辺は 下の 辺 "+p3+" ＋ "+(w3-p3)+" ＝ "+w3+"cm、"
+          + "高さは 長方形の 縦と 同じ "+h3+"cm。ななめの "+andCm(cl3,cr3)+" は つかわない。<br>"
+          + w3+" × "+h3+" ÷ 2 ＝ <b>"+ans+" cm²</b>";
+    kufu = "頂点が 上の 辺の どこに あっても 高さは "+h3+"cm。面積は いつも 長方形の 半分。";
+  }else if(t === 4){                            /* 長方形 − 白い 三角形 */
+    var w4 = ri(8,13), h4 = ri(4,9), c4w = ri(3,w4-4), p4, q4;
+    if((c4w*h4) % 2) c4w += (c4w < w4-4 ? 1 : -1);
+    p4 = ri(2, w4-c4w-2); q4 = ri(1, w4-1);
+    var rest4 = w4 - p4 - c4w;
+    sp.shapes.push({ pts:[[0,0],[w4,0],[w4,h4],[0,h4]] });
+    sp.shapes.push({ pts:[[p4,0],[p4+c4w,0],[q4,h4]], fill:C.paper, sw:1.8 });
+    edge(sp, [0,h4], [w4,h4], cm(w4), [0,0]);
+    edge(sp, [0,0], [0,h4], cm(h4), [w4,0]);
+    edge(sp, [0,0], [p4,0], cm(p4), [0,h4]);
+    edge(sp, [p4,0], [p4+c4w,0], cm(c4w), [q4,h4]);
+    edge(sp, [p4+c4w,0], [w4,0], cm(rest4), [w4,h4]);
+    ans = w4*h4 - c4w*h4/2;
+    trap = 2;
+    cands = [w4*h4, c4w*h4/2, w4*h4 - c4w*h4, (p4+rest4)*h4];
+    plain = "長方形(横"+w4+"cm・縦"+h4+"cm)から底辺"+c4w+"cmの白い三角形をのぞいた面積";
+    shiki = "全体の 長方形から 白い 三角形を ひく。上の "+p4+"cm と "+rest4+"cm は つかわない。<br>"
+          + "長方形 "+w4+" × "+h4+" ＝ "+(w4*h4)+"　白い 三角形 "+c4w+" × "+h4+" ÷ 2 ＝ "+(c4w*h4/2)+"<br>"
+          + (w4*h4)+" − "+(c4w*h4/2)+" ＝ <b>"+ans+" cm²</b>";
+    kufu = "白い 三角形の 高さは 長方形の 縦と 同じ "+h4+"cm。「全体 − 白い ところ」と 考えると らく。";
+  }else if(t === 5){                            /* 道の ある 土地 */
+    var rr = pick([[6,8,10],[5,12,13],[9,12,15],[8,15,17]]);
+    var sk = rr[0], H = rr[1], cs = rr[2], dd = ri(1,3), hasH = ri(0,1) === 1, e = hasH ? ri(1,3) : 0;
+    var W = ri(Math.max(14, sk+dd+8), 26), px = ri(3, W-dd-sk-3), y0 = 0;
+    sp.shapes.push({ pts:[[0,0],[W,0],[W,H],[0,H]] });
+    sp.shapes.push({ pts:[[px,0],[px+dd,0],[px+dd+sk,H],[px+sk,H]], fill:C.road, sw:1.5 });
+    if(hasH){
+      y0 = ri(2, H-e-2);
+      sp.shapes.push({ pts:[[0,y0],[W,y0],[W,y0+e],[0,y0+e]], fill:C.road, sw:1.5 });
+    }
+    /* 道を 描いたあと、外わくを もう一度 上から 引く */
+    sp.shapes.push({ pts:[[0,0],[W,0],[W,H],[0,H]], fill:"none" });
+    edge(sp, [0,H], [W,H], cm(W,"m"), [0,0]);
+    edge(sp, [0,0], [0,H], cm(H,"m"), [W,0]);
+    edge(sp, [px,0], [px+dd,0], cm(dd,"m"), [px,H]);
+    edge(sp, [px+dd,0], [px+dd+sk,H], cm(cs,"m"), [px,0]);
+    if(hasH) edge(sp, [W,y0], [W,y0+e], cm(e,"m"), [0,y0]);
+    unit = "m²";
+    ans = (W-dd)*(H-e);
+    cands = hasH ? [W*H - dd*H - e*W, (W-dd)*H, W*(H-e), (W-dd)*(cs-e)]
+                 : [W*H, W*H - dd*cs, (W-dd)*cs, W*(H-dd)];
+    q = "長方形の 土地に、はば "+dd+"m の ななめの 道"
+      + (hasH ? "と、はば "+e+"m の よこの 道" : "")
+      + "が あります。色の ついた 土地の <b>面積</b>を もとめましょう。";
+    plain = "横"+W+"m・縦"+H+"mの土地から、はば"+dd+"m(ななめの長さ"+cs+"m)のななめの道"
+          + (hasH ? "とはば"+e+"mのよこの道" : "") + "をのぞいた面積";
+    shiki = "道を はしに よせて つめると、のこりの 土地は 長方形に なる。"
+          + "道の ななめの 長さ "+cs+"m は つかわない。<br>"
+          + "横 "+W+" − "+dd+" ＝ "+(W-dd)+"m、"
+          + (hasH ? "縦 "+H+" − "+e+" ＝ "+(H-e)+"m" : "縦 "+H+"m") + "<br>"
+          + (W-dd)+" × "+(H-e)+" ＝ <b>"+ans+" m²</b>";
+    kufu = "ななめの 道は 平行四辺形（底辺 "+dd+"m・高さ "+H+"m）。よせても 面積は 変わらない。"
+         + (hasH ? " 全体から 2本の 道を そのまま ひくと、道が 重なった ところを 2回 ひいて しまうので 注意。" : "");
+    tag = "工夫して 求める（道）";
+  }else if(t === 6){                            /* 対角線が 垂直な 四角形（たこ形） */
+    var kt = pickTri(function(x,y){ return x >= 4 && x <= 12 && y >= 3 && y <= 6; });
+    var half = kt[0], y6 = kt[1], cu = kt[2];
+    /* 下の 辺も 整数に なる 長さが あれば それを つかう */
+    var lows = TRI.filter(function(u){ return u[0] === half && u[1] >= y6+2 && u[1] <= 16; });
+    var low = lows.length ? pick(lows)[1] : y6 + ri(2,6);
+    var cl = nice(half, low), p6 = half*2, q6 = y6 + low;
+    sp.shapes.push({ pts:[[p6/2,0],[p6,y6],[p6/2,q6],[0,y6]] });
+    sp.lines.push({ a:[0,y6], b:[p6,y6], dash:true });
+    sp.lines.push({ a:[p6/2,0], b:[p6/2,q6], dash:true });
+    sp.rights.push({ p:[p6/2,y6], u:[1,0], v:[0,1] });
+    /* よこの 対角線の 上は せまい（交わる 点が 上に よっている）ので 下に 書く */
+    sp.labels.push({ at:[p6*0.7, y6], dx:0, dy:12, s:cm(p6) });
+    /* たての 対角線の 長さは 左に（右がわには 辺の 長さを 書くので） */
+    sp.labels.push({ at:[p6/2, (y6+q6)/2], dx:-(6+twEst(cm(q6),13)/2), dy:0, s:cm(q6) });
+    edge(sp, [p6/2,0], [p6,y6], cm(cu), [p6/2,y6]);
+    if(cl) edge(sp, [p6,y6], [p6/2,q6], cm(cl), [p6/2,y6]);
+    ans = p6*q6/2;
+    trap = cl ? 2 : 1;
+    cands = [p6*q6, (p6+q6)*2, p6*y6/2, cu*(cl || cu)];
+    q = "下の 四角形は、2本の 対角線が 垂直に 交わって います。<b>面積</b>を もとめましょう。";
+    plain = "対角線が垂直に交わる四角形(対角線"+p6+"cmと"+q6+"cm・辺"+andPl(cu,cl)+")の面積";
+    shiki = "まわりの 辺の 長さは つかわない。対角線が 垂直に 交わる 四角形は、"
+          + "ひし形と 同じく 対角線 × 対角線 ÷ 2。<br>"
+          + p6+" × "+q6+" ÷ 2 ＝ <b>"+ans+" cm²</b>";
+    kufu = "上と 下の 2つの 三角形に 分けても 同じ（底辺は どちらも "+p6+"cm）。";
+  }else{                                        /* 長方形から 4すみの 三角形を ひく */
+    var W7, H7, p7, q7, r7, s7, sum2, tries = 0;
+    do{
+      W7 = ri(6,12); H7 = ri(5,10);
+      p7 = ri(2,W7-2); r7 = ri(2,W7-2); q7 = ri(2,H7-2); s7 = ri(2,H7-2);
+      sum2 = p7*s7 + (W7-p7)*q7 + (W7-r7)*(H7-q7) + r7*(H7-s7);
+      tries++;
+    }while(sum2 % 2 && tries < 50);
+    if(sum2 % 2){ p7 = 2; r7 = 2; q7 = 2; s7 = 2; W7 = 8; H7 = 6;
+                  sum2 = p7*s7 + (W7-p7)*q7 + (W7-r7)*(H7-q7) + r7*(H7-s7); }
+    var t1 = p7*s7/2, t2 = (W7-p7)*q7/2, t3 = (W7-r7)*(H7-q7)/2, t4 = r7*(H7-s7)/2;
+    var cx = W7/2, cy = H7/2;
+    sp.shapes.push({ pts:[[0,0],[W7,0],[W7,H7],[0,H7]], fill:C.paper });
+    sp.shapes.push({ pts:[[p7,0],[W7,q7],[r7,H7],[0,s7]] });
+    edge(sp, [0,0], [p7,0], cm(p7), [cx,cy]);
+    edge(sp, [p7,0], [W7,0], cm(W7-p7), [cx,cy]);
+    edge(sp, [W7,0], [W7,q7], cm(q7), [cx,cy]);
+    edge(sp, [W7,q7], [W7,H7], cm(H7-q7), [cx,cy]);
+    edge(sp, [r7,H7], [W7,H7], cm(W7-r7), [cx,cy]);
+    edge(sp, [0,H7], [r7,H7], cm(r7), [cx,cy]);
+    edge(sp, [0,s7], [0,H7], cm(H7-s7), [cx,cy]);
+    edge(sp, [0,0], [0,s7], cm(s7), [cx,cy]);
+    /* 色の ついた 四角形の 辺のうち、長さが 整数に なる ものは ひっかけに 書く */
+    var qd = [[p7,0],[W7,q7],[r7,H7],[0,s7]], qi, qa, qb, ql;
+    trap = 0;
+    for(qi=0;qi<4;qi++){
+      qa = qd[qi]; qb = qd[(qi+1)%4];
+      ql = nice(qb[0]-qa[0], qb[1]-qa[1]);
+      if(ql){ edge(sp, qa, qb, cm(ql), [cx,cy]); trap++; }
+    }
+    ans = W7*H7 - sum2/2;
+    cands = [W7*H7, sum2/2, W7*H7/2, ans + t1];
+    q = "長方形の 中に 色の ついた 四角形が あります。色の ついた 部分の <b>面積</b>を もとめましょう。";
+    plain = "横"+W7+"cm・縦"+H7+"cmの長方形から4すみの直角三角形をのぞいた四角形の面積";
+    shiki = "長方形から 4すみの 白い 三角形を ひく。<br>"
+          + "長方形 "+W7+" × "+H7+" ＝ "+(W7*H7)+"<br>"
+          + "白い 三角形 "+p7+"×"+s7+"÷2 ＝ "+fmt(t1)+"、"+(W7-p7)+"×"+q7+"÷2 ＝ "+fmt(t2)+"、"
+          + (W7-r7)+"×"+(H7-q7)+"÷2 ＝ "+fmt(t3)+"、"+r7+"×"+(H7-s7)+"÷2 ＝ "+fmt(t4)+"<br>"
+          + "あわせて "+fmt(sum2/2)+"　"+(W7*H7)+" − "+fmt(sum2/2)+" ＝ <b>"+fmt(ans)+" cm²</b>";
+    kufu = "色の ついた 四角形は そのままでは 底辺も 高さも わからない。"
+         + "「大きい 長方形 − まわりの 白い ところ」で 考える。";
+  }
+  return mk({ key:"kufuu", tag:tag, q:q, plain:plain, sp:sp, unit:unit, kind:t, trap:trap,
+              ans:ans, cands:cands, shiki:shiki, kufu:kufu });
+}
+
+/* =====================================================================
+   モードと出題の台どころ
+   ===================================================================== */
+var GENS = {
+  sankaku:       gen_sankaku,
+  sankaku_gyaku: gen_sankaku_gyaku,
+  heikou:        gen_heikou,
+  heikou_gyaku:  gen_heikou_gyaku,
+  daikei:        gen_daikei,
+  daikei_gyaku:  gen_daikei_gyaku,
+  hishi:         gen_hishi,
+  hishi_gyaku:   gen_hishi_gyaku,
+  kufuu:         gen_kufuu
+};
+/* モード → 出す question_key。同じキーを ならべた ぶんだけ 出やすくなる。
+   形ごとの モードは 面積の 問題だけ。面積から 長さを もとめる 問題（_gyaku）は
+   「長さを 求める」モードに まとめて 独立させる（ランダムには 両方 出る） */
+var MODE_KEYS = {
+  sankaku: ["sankaku"],
+  heikou:  ["heikou"],
+  daikei:  ["daikei"],
+  hishi:   ["hishi"],
+  kufuu:   ["kufuu"],
+  nagasa:  ["sankaku_gyaku","heikou_gyaku","daikei_gyaku","hishi_gyaku"],
+  mix:     ["sankaku","sankaku","heikou","heikou","daikei","daikei","hishi","hishi",
+            "kufuu","kufuu","kufuu",
+            "sankaku_gyaku","heikou_gyaku","daikei_gyaku","hishi_gyaku"]
+};
+var MODE_LABEL = {
+  sankaku:"三角形",
+  heikou:"平行四辺形",
+  daikei:"台形",
+  hishi:"ひし形",
+  kufuu:"工夫して 求める",
+  nagasa:"長さを 求める",
+  mix:"ランダム"
+};
+
+/* =====================================================================
+   出題エンジン
+   ===================================================================== */
+var MODE = "sankaku";
+var cur = null, curKey = "", curSeed = 0;
+var sel = -1, graded = false;
+var score = 0, total = 0, streak = 0, qStart = 0;
+
+/* 解き直し（?retry=1） */
+var retryQ = null, retryTotal = 0, retryDone = 0;
+
+function $(id){ return document.getElementById(id); }
+
+function newQuestion(){
+  graded = false; sel = -1;
+  $("feedback").classList.remove("show");
+  $("toast").textContent = "";
+  $("checkBtn").style.display = "block";
+  $("nextBtn").style.display = "none";
+
+  var useKey, seed;
+  if(retryQ){
+    /* 解き直しを1周した。モード選択にもどって、案内帯を そこに 出す
+       （そのまま次の問題を出そうとすると MODE が "retry" のままで生成関数が無い） */
+    if(!retryQ.length){
+      retryQ = null;
+      backHome();
+      showRetryBanner("解き直し おつかれさま！ 同じ問題に 2回つづけて 正解すると リストから 消えるよ");
+      return;
+    }
+    var it = retryQ.shift();
+    retryDone++;
+    useKey = it.question_params.m;
+    seed = it.question_params.s>>>0;
+  }else{
+    useKey = pick(MODE_KEYS[MODE] || MODE_KEYS.sankaku);
+    seed = rngPick();
+  }
+
+  curKey = useKey;
+  curSeed = seed;
+  rngSeed(seed);                       /* ここから先の乱数は種で決まる */
+  cur = GENS[useKey]();
+
+  /* 種類バッヂ。ランダムは 種類名が そのまま ヒントに なるので 出さない */
+  var tagText = retryQ ? ("解き直し "+retryDone+" / "+retryTotal+" ・ "+cur.tag)
+                       : (MODE === "mix" ? "" : cur.tag);
+  $("qTag").textContent = tagText;
+  $("qTag").style.display = tagText ? "" : "none";
+  $("qNo").textContent = retryQ ? "" : ("第 "+(total+1)+" 問");
+  $("qText").innerHTML = cur.qHtml;
+  $("figArea").innerHTML = cur.fig || "";
+  $("figNote").textContent = cur.note || "";
+  renderOptions();
+  qStart = nowMs();
+  try{ window.scrollTo({ top:0, behavior:"smooth" }); }catch(e){ window.scrollTo(0,0); }
+}
+
+function renderOptions(){
+  var host = $("partArea");
+  host.innerHTML = "";
+  var wrap = document.createElement("div");
+  wrap.className = "part";
+
+  var lab = document.createElement("div");
+  lab.className = "p-label";
+  lab.textContent = cur.label;
+  wrap.appendChild(lab);
+
+  var opts = document.createElement("div");
+  opts.className = "opts";
+  cur.options.forEach(function(txt, oi){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "optBtn";
+    b.dataset.idx = oi;
+    b.textContent = txt;
+    b.addEventListener("click", function(){ tapOption(oi); });
+    opts.appendChild(b);
+  });
+  wrap.appendChild(opts);
+  host.appendChild(wrap);
+}
+
+function tapOption(oi){
+  if(graded) return;
+  sel = oi;
+  $("toast").textContent = "";
+  document.querySelectorAll(".optBtn").forEach(function(b){
+    b.classList.toggle("on", Number(b.dataset.idx) === oi);
+  });
+}
+
+/* ---------- 答え合わせ ---------- */
+function check(){
+  if(graded || !cur) return;
+  if(sel < 0){ $("toast").textContent = "答えを えらんでね"; return; }
+
+  graded = true;
+  var ok = (sel === cur.correct);
+  var btns = document.querySelectorAll(".optBtn");
+  safeDivp("markChoices", btns, { correct:cur.correct, selected:sel,
+                                  dimOthers:true, label:"正解" });
+  btns.forEach(function(b){ b.disabled = true; });
+
+  total++;
+  if(ok){ score++; streak++; } else { streak = 0; }
+  renderScore();
+
+  var sec = Math.round((nowMs()-qStart)/1000);
+  /* 学習記録（未ログイン・ローカルでは黙ってスキップされる）。
+     面積は 図が無いと 解けないので question_figure も 渡す（誤答のときだけ保存され、
+     teacher.php の 解き直しプリントに 出る＝CLAUDE.md 2b） */
+  safeDivp("answer", ok, {
+    question_key: curKey,
+    question_params: { m: curKey, s: curSeed },     /* 種方式：この2つで同じ問題を作り直せる */
+    question_text: cur.plainQ,
+    question_figure: cur.fig || null,
+    correct_answer: cur.ansText,
+    wrong_answer: ok ? null : cur.options[sel],
+    time_taken_sec: (sec > 0 && sec < 600) ? sec : null
+  });
+
+  $("fbMsg").className = "fb-msg " + (ok ? "good" : "bad");
+  $("fbMsg").textContent = ok ? "せいかい！ よくできました" : "おしい！ とき方を 見てみよう";
+  $("expl").innerHTML = cur.expl;
+  $("feedback").classList.add("show");
+  $("checkBtn").style.display = "none";
+  $("nextBtn").style.display = "block";
+  $("toast").textContent = "";
+
+  /* 正解エフェクト（キラキラ）。pileBottom で「山の床」を ボタンの帯の 上に する
+     （わたさないと 不透明な #bottom が 積もりはじめを まるごと かくす） */
+  if(ok) safeDivp("correct", { pileBottom: "#bottom" });
+}
+
+function renderScore(){
+  $("scoreOk").textContent = score;
+  $("scoreAll").textContent = total;
+  $("scoreStreak").textContent = streak;
+}
+
+/* ---------- モード選択 ---------- */
+function startMode(m){
+  if(!MODE_KEYS[m]) return;
+  MODE = m;
+  retryQ = null;
+  score = 0; total = 0; streak = 0;
+  renderScore();
+  $("modeLabel").textContent = MODE_LABEL[m] || "";
+  document.body.classList.remove("choosing");
+  newQuestion();
+}
+function backHome(){
+  document.body.classList.add("choosing");
+  retryQ = null;
+  cur = null;
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+
+/* ---------- 解き直し（?retry=1） ---------- */
+function showRetryBanner(msg){
+  var slot = $("retryBannerSlot");
+  var e = $("retryBanner");
+  if(!e){
+    e = document.createElement("div");
+    e.id = "retryBanner";
+    slot.appendChild(e);
+  }
+  e.textContent = msg;
+}
+function initRetry(){
+  if(!(window.Divp && typeof Divp.getRetries === "function")) return;
+  Divp.getRetries().then(function(items){
+    var use = (items||[]).filter(function(it){
+      var p = it && it.question_params;
+      return p && GENS[p.m] && typeof p.s === "number";
+    });
+    if(!use.length){
+      showRetryBanner("解き直せる 問題は まだ ありません。まちがえた 問題が ここに たまっていくよ。");
+      return;
+    }
+    retryQ = use.slice();
+    retryTotal = retryQ.length;
+    retryDone = 0;
+    MODE = "retry";
+    score = 0; total = 0; streak = 0;
+    renderScore();
+    $("modeLabel").textContent = "まちがえた問題の 解き直し";
+    document.body.classList.remove("choosing");
+    newQuestion();
+  }).catch(function(){});
+}
+
+/* =====================================================================
+   しくみの部屋「公式の ひみつ」
+   知っている 形（長方形・平行四辺形）に かえて 考える。
+   ・平行四辺形 … 左の 三角形を 切って 右へ うつす → 長方形
+   ・三角形     … 同じ 三角形を 180度 回して くっつける → 平行四辺形の 半分
+   ・台形       … 同じ 台形を 180度 回して くっつける → 底辺が 上底＋下底の 平行四辺形の 半分
+   ・ひし形     … 4つの 三角形を 外へ 回す → まわりの 長方形の 半分
+   画面だけの 説明なので 記録には 何も 送らない。
+   ===================================================================== */
+/* 1cm の px と 左上の よはく。上下を 広めに とるのは、回して うつす 部品が
+   とちゅうで 図の 上下に ふくらむため */
+var LK = 26, LOX = 40, LOY = 56;
+function LP(x,y){ return [LOX + x*LK, LOY + y*LK]; }
+function lpath(pts){
+  return "M" + pts.map(function(p){ return n2(p[0])+","+n2(p[1]); }).join(" L") + " Z";
+}
+function lmid(a,b){ return [(a[0]+b[0])/2, (a[1]+b[1])/2]; }
+var LAB_MOVE = "#D7E6F2";                 /* 動かす 部品の 色（藍の うすい色） */
+
+var LABS = [
+  { name:"平行四辺形", build:function(){
+      var b = 6, h = 3.6, s = 2.2;
+      var A = LP(s,0), B = LP(s+b,0), Cc = LP(b,h), D = LP(0,h), F = LP(s,h);
+      return {
+        H: LOY*2 + h*LK + 10,
+        still:[{ pts:[A,B,Cc,F] }],
+        moving:[{ pts:[A,F,D], tr:[b*LK,0] }],
+        /* 動かす前は 元の 平行四辺形を まるごと 描く。左の 三角形は コピーではなく
+           元の 図の 一部なので、still だけだと 台形に 見えてしまう */
+        start:[A,B,Cc,D],
+        lines:[{ a:A, b:F, dash:true }],
+        labels:[ [lmid(D,Cc)[0], D[1]+16, "底辺"], [A[0]+20, (A[1]+F[1])/2, "高さ"] ],
+        steps:[ "高さの 点線で 左の 三角形を <b>切りとる</b>",
+                "切りとった 三角形を 右へ <b>うつす</b>",
+                "<b>長方形</b>に なった！ たて ＝ 高さ、横 ＝ 底辺" ],
+        result:"平行四辺形の 面積 ＝ <span class='vv'>底辺 × 高さ</span>"
+      };
+  }},
+  { name:"三角形", build:function(){
+      var b = 6.5, h = 3.8, ax = 2;
+      var O = LP(0,h), B = LP(b,h), A = LP(ax,0), F = LP(ax,h), M = lmid(A,B);
+      return {
+        H: LOY*2 + h*LK + 10,
+        still:[{ pts:[O,B,A] }],
+        moving:[{ pts:[O,B,A], rot:M }],
+        lines:[{ a:A, b:F, dash:true }],
+        labels:[ [lmid(O,B)[0], O[1]+16, "底辺"], [A[0]+20, (A[1]+F[1])/2, "高さ"] ],
+        steps:[ "同じ 三角形を もう1つ <b>用意する</b>",
+                "くるっと 回して ぴったり <b>くっつける</b>",
+                "<b>平行四辺形</b>に なった！ 三角形は その <b>半分</b>" ],
+        result:"三角形の 面積 ＝ <span class='vv'>底辺 × 高さ ÷ 2</span>"
+      };
+  }},
+  { name:"台形", build:function(){
+      var a = 3, b = 6, h = 3.6, s = 1.4;
+      var A = LP(s,0), B = LP(s+a,0), Cc = LP(b,h), D = LP(0,h), F = LP(s,h), M = lmid(B,Cc);
+      return {
+        H: LOY*2 + h*LK + 10,
+        still:[{ pts:[A,B,Cc,D] }],
+        moving:[{ pts:[A,B,Cc,D], rot:M }],
+        lines:[{ a:A, b:F, dash:true }],
+        labels:[ [lmid(A,B)[0], A[1]-14, "上底"], [lmid(D,Cc)[0], D[1]+16, "下底"],
+                 [A[0]-20, (A[1]+F[1])/2, "高さ"] ],
+        after:[ [LP(b+a/2,0)[0], A[1]-14, "下底"], [LP(b+a/2,h)[0], D[1]+16, "上底"] ],
+        steps:[ "同じ 台形を もう1つ <b>用意する</b>",
+                "さかさまに して となりに <b>くっつける</b>",
+                "底辺が <b>上底 ＋ 下底</b> の 平行四辺形！ 台形は その <b>半分</b>" ],
+        result:"台形の 面積 ＝ <span class='vv'>(上底 ＋ 下底) × 高さ ÷ 2</span>"
+      };
+  }},
+  { name:"ひし形", build:function(){
+      var p = 7, q = 4.6;
+      var O = LP(p/2,q/2), T = LP(p/2,0), R = LP(p,q/2), Bt = LP(p/2,q), L = LP(0,q/2);
+      return {
+        H: LOY*2 + q*LK + 10,
+        frame:[LP(0,0), LP(p,0), LP(p,q), LP(0,q)],
+        still:[{ pts:[T,R,Bt,L] }],
+        moving:[ { pts:[O,T,R], rot:lmid(T,R) }, { pts:[O,R,Bt], rot:lmid(R,Bt) },
+                 { pts:[O,Bt,L], rot:lmid(Bt,L) }, { pts:[O,L,T], rot:lmid(L,T) } ],
+        lines:[{ a:L, b:R, dash:true }, { a:T, b:Bt, dash:true }],
+        labels:[ [LP(p*0.78,q/2)[0], O[1]-10, "対角線"], [O[0]+26, LP(p/2,q*0.8)[1], "対角線"] ],
+        steps:[ "対角線で 4つの 三角形に <b>分ける</b>",
+                "4つを 外がわへ パタンと <b>うつす</b>",
+                "まわりの <b>長方形</b>（たて・横が 対角線）が うまった！ ひし形は その <b>半分</b>" ],
+        result:"ひし形の 面積 ＝ <span class='vv'>対角線 × 対角線 ÷ 2</span>"
+      };
+  }}
+];
+var labIdx = 0, labT = 0, labTimer = null, labCur = null;
+
+function labDraw(){
+  var L = labCur, t = labT, g = "", W = 330;
+  var ease = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2;
+  if(L.frame){
+    g += '<path d="'+lpath(L.frame)+'" fill="none" stroke="'+C.guide+'" stroke-width="1.5"'
+       + ' stroke-dasharray="5 4"/>';
+  }
+  /* start が ある 形（平行四辺形）は、動かす前は 元の 形を まるごと 描く */
+  var still = (t <= 0 && L.start) ? [{ pts:L.start }] : L.still;
+  still.forEach(function(s){
+    g += '<path d="'+lpath(s.pts)+'" fill="'+C.base+'" stroke="'+C.edge+'" stroke-width="2.4"'
+       + ' stroke-linejoin="round"/>';
+  });
+  L.lines.forEach(function(l){
+    g += '<path d="M'+n2(l.a[0])+','+n2(l.a[1])+' L'+n2(l.b[0])+','+n2(l.b[1])+'" stroke="'+C.dim
+       + '" stroke-width="1.6" stroke-dasharray="5 3" fill="none"/>';
+  });
+  /* 動かす 部品。最初は 見えず、動きはじめに うかびあがる */
+  if(t > 0){
+    L.moving.forEach(function(m){
+      var tf;
+      if(m.tr) tf = 'translate('+n2(m.tr[0]*ease)+','+n2(m.tr[1]*ease)+')';
+      else{
+        /* 「点 rot の まわりに 180度」と 同じ 行き先に なるよう、部品の まん中 G を
+           G → 2·rot − G へ まっすぐ 動かしながら G の まわりに 回す。
+           rot の まわりに そのまま 回すと、とちゅうで 大きく ふくらんで 図の 外に 出る */
+        var gx = 0, gy = 0;
+        m.pts.forEach(function(p){ gx += p[0]; gy += p[1]; });
+        gx /= m.pts.length; gy /= m.pts.length;
+        var mx = gx + (2*m.rot[0] - 2*gx)*ease, my = gy + (2*m.rot[1] - 2*gy)*ease;
+        tf = 'translate('+n2(mx)+','+n2(my)+') rotate('+n2(180*ease)+') translate('+n2(-gx)+','+n2(-gy)+')';
+      }
+      g += '<path d="'+lpath(m.pts)+'" transform="'+tf+'" fill="'+LAB_MOVE+'" fill-opacity="'
+         + n2(Math.min(1, t*5)*0.92)+'" stroke="'+C.dim+'" stroke-width="2" stroke-linejoin="round"/>';
+    });
+  }
+  /* うごかし終わったら、くっつけた 方の 部品にも 名前を 出す（台形の 上底・下底） */
+  (t >= 1 && L.after ? L.labels.concat(L.after) : L.labels).forEach(function(l){
+    g += tx(l[0], l[1], l[2], C.dim, "middle", 13);
+  });
+  $("labStage").innerHTML = svgWrap(W, L.H, g);
+
+  var step = t <= 0 ? 0 : (t < 1 ? 1 : 2);
+  $("labSteps").innerHTML = L.steps.map(function(s,i){
+    return '<div class="lab-step'+(i === step ? ' now' : '')+'"><span class="no">'+(i+1)+'</span>'
+         + '<span>'+s+'</span></div>';
+  }).join("");
+  $("labShiki").innerHTML = t >= 1 ? L.result
+    : '<span class="wait">「うごかして みる」を おして みよう</span>';
+  $("labPlay").textContent = t >= 1 ? "もう一度 ▶" : "うごかして みる ▶";
+}
+function labStop(){ if(labTimer){ cancelAnimationFrame(labTimer); labTimer = null; } }
+function labAnimate(){
+  labStop();
+  var t0 = null, DUR = 1600;
+  labT = 0; labDraw();
+  function step(ts){
+    if(t0 === null) t0 = ts;
+    labT = Math.min(1, (ts - t0)/DUR) || 0.001;
+    labDraw();
+    if(labT < 1) labTimer = requestAnimationFrame(step);
+    else labTimer = null;
+  }
+  labTimer = requestAnimationFrame(step);
+}
+function labSelect(i){
+  labStop();
+  labIdx = i; labCur = LABS[i].build(); labT = 0;
+  document.querySelectorAll(".lab-chip").forEach(function(c){
+    c.classList.toggle("on", Number(c.dataset.i) === i);
+  });
+  labDraw();
+}
+function labChips(){
+  $("labChips").innerHTML = LABS.map(function(L,i){
+    return '<button type="button" class="lab-chip" data-i="'+i+'">'+L.name+'</button>';
+  }).join("");
+  document.querySelectorAll(".lab-chip").forEach(function(c){
+    c.addEventListener("click", function(){ labSelect(Number(c.dataset.i)); });
+  });
+}
+function showLab(i){
+  if(!$("labChips").children.length) labChips();
+  document.body.classList.add("labbing");
+  labSelect(typeof i === "number" && LABS[i] ? i : labIdx);
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+function hideLab(){
+  labStop();
+  document.body.classList.remove("labbing");
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+
+/* ---------- イベント ---------- */
+document.querySelectorAll(".m-card").forEach(function(b){
+  b.addEventListener("click", function(){ startMode(b.dataset.mode); });
+});
+$("homeBtn").addEventListener("click", backHome);
+$("checkBtn").addEventListener("click", check);
+$("nextBtn").addEventListener("click", newQuestion);
+$("labBtn").addEventListener("click", function(){ showLab(0); });
+$("labBack").addEventListener("click", hideLab);
+$("labPlay").addEventListener("click", labAnimate);
+/* 解説の中の「なぜ？」ボタン（innerHTML で 作りなおされるので 委任） */
+$("expl").addEventListener("click", function(ev){
+  var t = ev.target;
+  if(t && t.classList.contains("naze")) showLab(Number(t.dataset.lab) || 0);
+});
+
+/* divp-core は defer で読まれるので、DOM構築後に初期化する */
+window.addEventListener("DOMContentLoaded", function(){
+  safeDivp("init", UNIT_KEY);
+  if(/[?&]retry=1/.test(location.search)){
+    try{ initRetry(); }catch(e){}
+  }
+});
+</script>
+</body>
+</html>
