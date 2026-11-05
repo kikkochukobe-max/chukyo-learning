@@ -112,6 +112,9 @@
             sessionId = data.session_id;
             enabled = true;
             authState = 'in';
+            // 解答の送信は sessionStarting を待つので、ここで読み終えてから数え足せば
+            // 「読んだ数に今の1問が入っているか」で食い違わない
+            return loadTodayStats();
           } else {
             enabled = false;
             authState = 'out';
@@ -120,6 +123,69 @@
       })
       .catch(function () { enabled = false; authState = 'unknown'; });
     return sessionStarting;
+  }
+
+  // ── 今日このツールで解いた数と教室内順位（共通ヘッダーの名前の下に出す）──
+  // 開いた時に today_stats.php で読み、保存が成功するたびにその場で数え足す。
+  // 順位は他の生徒が解いても動くので、解き終わって STATS_REFRESH_MS 待ってから読み直す
+  // （連続で解いている間は待ち直す＝100マスのような連打でも1回にまとまる）。
+  // 値は Divp.todayStats に置き、'divp:todaystats' イベントで知らせる
+  // （ヘッダーは divp-core より先に読まれるので、どちらの順で準備できても描けるように）。
+  var STATS_REFRESH_MS = 1500;
+  var todayDay = null;
+  var statsSeq = 0;
+  var statsTimer = null;
+
+  function publishTodayStats() {
+    try {
+      global.dispatchEvent(new CustomEvent('divp:todaystats', { detail: Divp.todayStats }));
+    } catch (e) {}
+  }
+
+  function loadTodayStats() {
+    var seq = ++statsSeq;
+    return fetch(API_BASE + 'today_stats.php?unit_key=' + encodeURIComponent(unitKey), {
+      credentials: 'same-origin',
+    })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        // 読んでいる間にもう一度読みに行っていたら、古い方の答えは捨てる
+        if (!data || !data.ok || seq !== statsSeq) return;
+        todayDay = new Date().toDateString();
+        Divp.todayStats = {
+          solved: data.solved,
+          correct: data.correct,
+          rank: data.rank != null ? data.rank : null,
+          rankTotal: data.rank_total || 0,
+          rateRank: data.rate_rank != null ? data.rate_rank : null,
+          rateRankTotal: data.rate_rank_total || 0,
+          rateMinSolved: data.rate_min_solved || 10,
+        };
+        publishTodayStats();
+      })
+      .catch(function () {});
+  }
+
+  function scheduleTodayStats() {
+    if (statsTimer) clearTimeout(statsTimer);
+    statsTimer = setTimeout(function () { statsTimer = null; loadTodayStats(); }, STATS_REFRESH_MS);
+  }
+
+  function countTodayStats(ok) {
+    if (!Divp.todayStats) return;
+    // 開いたまま日付をまたいだら0から数え直す（表示用なので端末の日付で足りる）
+    var day = new Date().toDateString();
+    if (day !== todayDay) {
+      todayDay = day;
+      Divp.todayStats = {
+        solved: 0, correct: 0, rank: null, rankTotal: 0,
+        rateRank: null, rateRankTotal: 0, rateMinSolved: Divp.todayStats.rateMinSolved,
+      };
+    }
+    Divp.todayStats.solved++;
+    if (ok) Divp.todayStats.correct++;
+    publishTodayStats();
+    scheduleTodayStats();
   }
 
   function endSession() {
@@ -192,7 +258,10 @@
         student_answer: info.wrong_answer != null ? String(info.wrong_answer) : null,
         is_correct: !!ok,
         time_taken_sec: info.time_taken_sec || null,
-      }).then(handleSaveStatus).catch(function () {});
+      }).then(function (res) {
+        handleSaveStatus(res);
+        if (res && res.ok) countTodayStats(ok);
+      }).catch(function () {});
     };
 
     if (sessionStarting) { sessionStarting.then(send); } else { send(); }

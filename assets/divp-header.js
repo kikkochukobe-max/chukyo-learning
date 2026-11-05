@@ -57,7 +57,23 @@
     + '.divp-auth{position:relative;font-family:"Zen Maru Gothic","Noto Sans JP",sans-serif;flex-shrink:0;}'
     + '.divp-auth-btn{background:#e8a020;color:#0a1628;border:none;border-radius:20px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}'
     + '.divp-auth-logged{display:flex;align-items:center;}'
-    + '.divp-auth-name{color:#fff;font-size:12px;font-weight:700;margin-right:8px;white-space:nowrap;}'
+    + '.divp-auth-who{display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-right:8px;}'
+    + '.divp-auth-name{color:#fff;font-size:12px;font-weight:700;white-space:nowrap;}'
+    + '.divp-auth-stats{display:flex;flex-direction:column;align-items:flex-end;gap:1px;'
+    + 'color:#cbd5e1;font-size:11px;font-weight:500;line-height:1.25;white-space:nowrap;}'
+    + '.divp-auth-stats b{color:#e8a020;font-weight:700;}'
+    + '.divp-auth-stats[hidden]{display:none !important;}'
+    + '.divp-stats-bar{display:none !important;}'
+    // スマホ幅では名前の下に2行置くと校名にかぶるので、ヘッダーの下段に帯として出す
+    // （右寄せ。320px幅では2行に折り返す）
+    + '@media (max-width:560px){'
+    + '.divp-header{flex-wrap:wrap;}'
+    // 折り返すのは帯だけ。校名と名前の段は今までどおり1段に保つ（校名側を縮ませる）
+    + '.divp-header .divp-brand{flex:1 1 0;}'
+    + '.divp-auth-who .divp-auth-stats{display:none !important;}'
+    + '.divp-header .divp-stats-bar:not([hidden]){display:flex !important;flex-basis:100%;flex-direction:row;'
+    + 'flex-wrap:wrap;justify-content:flex-end;column-gap:12px;margin-top:4px;}'
+    + '}'
     + 'a.divp-auth-name{cursor:pointer;border-bottom:1px dotted rgba(232,160,32,0.7);padding-bottom:1px;}'
     + 'a.divp-auth-name:hover{color:#e8a020;}'
     + '.divp-auth-logout{background:transparent;color:#e8a020;border:1px solid #e8a020;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}'
@@ -113,7 +129,9 @@
       + '<div class="divp-right">'
       + '<div class="divp-auth" id="divp-auth"></div>'
       + '<a class="divp-sub" href="/learning/">学習ツール一覧</a>'
-      + '</div>';
+      + '</div>'
+      // スマホ幅だけ使う「今日の成績」の帯（名前の下の分と同じ中身。CSS でどちらか一方だけ出す）
+      + '<div class="divp-auth-stats divp-stats-bar" hidden></div>';
   }
 
   // ===== ログイン窓（生徒用。全ツール共通） =====
@@ -129,10 +147,42 @@
 
   function loggedInHTML(name) {
     return '<div class="divp-auth-logged">'
+      + '<div class="divp-auth-who">'
       + '<a class="divp-auth-name" href="/mypage.php" target="_blank" rel="noopener" title="マイページを見る（別タブ）">' + name + 'さん</a>'
+      + '<span class="divp-auth-stats" hidden></span>'
+      + '</div>'
       + '<button class="divp-auth-logout" id="divp-logout-btn" type="button">ログアウト</button>'
       + '</div>';
   }
+
+  // 名前の下の2行（このツールだけ・今日だけ）:
+  //   今日の正解 N問・教室 K位/T人
+  //   正答率 M%・教室 K位/T人（RANK_MIN_SOLVED 問未満のあいだは「あと N問で順位」）
+  // 順位はどちらも教室内順位で、マイページの教室内じゅんいと同じ数え方（api/today_stats.php）。
+  // 数は divp-core.js が Divp.todayStats に置き、解くたびに 'divp:todaystats' で知らせる。
+  // divp-core を読まないツール（一般常識バトル等）や未ログインでは何も出さない。
+  function rankText(rank, total) {
+    return '・教室 <b>' + rank + '</b>位/' + total + '人';
+  }
+
+  function paintTodayStats() {
+    var els = document.querySelectorAll('.divp-auth-stats');
+    var s = window.Divp && window.Divp.todayStats;
+    if (!els.length || !s) return;
+    var text = '<span>今日の正解 <b>' + s.correct + '</b>問'
+      + (s.rank != null ? rankText(s.rank, s.rankTotal) : '') + '</span>';
+    if (s.solved > 0) {
+      text += '<span>正答率 <b>' + Math.round(100 * s.correct / s.solved) + '</b>%';
+      if (s.solved < s.rateMinSolved) text += '・あと<b>' + (s.rateMinSolved - s.solved) + '</b>問で順位';
+      else if (s.rateRank != null) text += rankText(s.rateRank, s.rateRankTotal);
+      text += '</span>';
+    }
+    for (var i = 0; i < els.length; i++) {
+      els[i].innerHTML = text;
+      els[i].hidden = false;
+    }
+  }
+  window.addEventListener('divp:todaystats', paintTodayStats);
 
   function loggedOutHTML() {
     return '<button class="divp-auth-btn" id="divp-login-btn" type="button">ログイン</button>'
@@ -206,6 +256,7 @@
       if (data && data.ok && data.actor && data.actor.type === 'student') {
         area.innerHTML = loggedInHTML(data.actor.name);
         attachLoggedIn();
+        paintTodayStats();   // divp-core が先に数を読み終えていた場合
       } else {
         area.innerHTML = loggedOutHTML();
         attachLoggedOut();
