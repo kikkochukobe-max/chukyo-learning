@@ -1226,6 +1226,8 @@ function ssl_row_html(array $ssl): string
         <a class="logout" href="/battle_host.php" style="text-decoration:none;">一般常識バトル</a>
         <!-- 教室別利用状況＋人気ツールの共有用資料（印刷前提なのでスマホでは出さない） -->
         <a class="logout sp-hide" href="/report.php" style="text-decoration:none;">利用状況レポート</a>
+        <!-- ご家庭向け「AI学習ツールのご案内」を教室・氏名を選んで印刷（登録時以外でもいつでも。印刷前提なのでスマホでは出さない） -->
+        <a class="logout sp-hide" href="/guide_print.php" style="text-decoration:none;">ご家庭向け案内の印刷</a>
         <!-- 作問はPC作業なのでスマホでは出さない（.sp-hide） -->
         <a class="logout sp-hide" href="/vocab_admin.php" style="text-decoration:none;">語彙クロスワード 作問</a>
         <a class="logout" href="/password.php" style="text-decoration:none;">パスワード変更</a>
