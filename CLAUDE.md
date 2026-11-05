@@ -28,6 +28,20 @@ assets/                共通モジュール（全ツールがscriptタグで読
                         **横に並んで画面左端に縦長の紺色の帯**になり、本体も潰れる。
                         中央寄せは本体側の `margin:0 auto` で行う
                         （math_js1_kankeishiki が `body{display:flex}` でこうなった）。
+                        ログイン中は名前の下に「今日の正解 N問・教室 K位/T人」
+                        「正答率 M%・教室 K位/T人」の2行を出す
+                        （**今日・このツール(unit_key)だけ**の数。順位はどちらも教室内順位で、
+                        mypage.php の教室内じゅんいと同じ ranking_rows / ranking_ranked。
+                        正解0なら正解数の順位は出ず、正答率の順位は RANK_MIN_SOLVED(10)問
+                        までは「あと N問で順位」。テスト生は除外＝本人がテスト生なら含める）。
+                        スマホ幅(560px以下)は名前の下だと校名にかぶるので、同じ中身を
+                        ヘッダー下段の帯(.divp-stats-bar)に出す。divp-core.js が Divp.init 時に
+                        api/today_stats.php を読み、保存が成功するたびにその場で数え足し、
+                        最後に解いてから1.5秒後に読み直す（順位は他の生徒しだいで動くため）。
+                        知らせは `divp:todaystats` イベント＝
+                        divp-core を読まないツール(一般常識バトル等)では出ない。
+                        ⚠ assets 2本と api/today_stats.php をそろえて上げること
+                        （API が無いと数が読めず、行ごと出ない＝壊れはしない）。
   divp-correct.js        小学生用 正解エフェクト（星＋「正解！」演出）
   divp-correct-firework.js  小学生用 正解エフェクト「花火」（絵文字が360度に弾けて落下＋
                          「せいかい！」が1文字ずつ散って戻る＋落ちた記号が画面下に積もる）。
@@ -858,6 +872,15 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
      書体は Google Fonts の Zen Old Mincho（届く前に印刷しないよう document.fonts.ready を待つ）。
    回帰テストは tests/joshiki-battle.spec.js（偽サーバーは tests/fixtures/battle-fake.js。
    PHP と同じ約束で動かしているので、API の応答を変えたらこちらも合わせる）。
+5j. **ご家庭向け案内の印刷 → 完了（/guide_print.php）**: teacher.php ヘッダーの「ご家庭向け案内の印刷」から。
+   教室タブ→生徒にチェック→印刷で「中京個別AI学習ツールのご案内」を1人A4縦1枚で出す
+   （登録時の案内文＝admin.php とは別に、いつでも何度でも出せる）。権限は teacher.php と同じ。
+   生徒コード・保護者ID（guardians.login_id をそのまま。兄弟の2人目以降は g＋自分のコードにならないので注記が出る）・
+   教室・学年・氏名は自動、時候の挨拶は発行月で入れ替わる（SEASON_GREETINGS）。
+   ⚠ **PIN はハッシュしか持っていないので印字できない**＝PW欄は手書きの□□□□（ユーザーの判断。再発行して印字する案は
+   保護者のPINまで変わるのでとらなかった）。
+   ⚠ QR（右上=/learning/、保護者欄=/guardian.php）は qrcode-generator 1.4.4（qr_print_a4.html と同じ）で作った
+   モジュールを SVG path の定数で埋め込んである＝印刷時にJS・CDNに頼らない。**URL を変えたら path を作り直す**。
 6. **実機で1周**: ログイン→解く→answer_logs→マイページ反映まで確認
 7. 平方根が1周通っていれば「計算どぅする？」
    (math_es_keisan_dousuru、13カテゴリのIDをquestion_keyに)も横展開
