@@ -193,11 +193,10 @@ details.numtable td:first-child,details.numtable th:first-child{text-align:left}
 .card{background:var(--card);border:1px solid var(--rule);padding:12px 14px}
 .card.wide{grid-column:1/-1}
 .card h3{
-  margin:0 0 2px;font-size:13px;font-weight:700;letter-spacing:.1em;
+  margin:0 0 8px;font-size:13px;font-weight:700;letter-spacing:.1em;
   display:flex;align-items:center;gap:7px;
 }
 .card h3::before{content:"";width:14px;height:2px;background:var(--accent);flex:0 0 auto}
-.card .hint{font-size:11px;color:var(--ink-2);margin:0 0 8px;line-height:1.5}
 textarea{
   width:100%;border:0;border-top:1px solid var(--fill-line);background:var(--fill);border-radius:0 0 2px 2px;
   font-family:var(--gothic);font-size:14px;line-height:1.8;color:var(--ink);
@@ -375,49 +374,39 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <div class="cards">
       <div class="card wide">
         <h3>前月所感</h3>
-        <p class="hint">前月をふり返って感じたこと。うまくいったこと・引っかかったことを、ざっくり1〜3行で。</p>
         <textarea class="ta-s2" id="t-shokan" placeholder="例）体験は増えたが入会につながらず、案内後のフォローが遅れた
 例）夏期講習で中3の通塾日数が安定し、今月に流れを持ち越せている"></textarea>
       </div>
       <div class="card wide">
         <h3>今月の目標</h3>
-        <p class="hint">今月どこを目指したか、ざっくりでよい。数字でも方向性でも、1〜3行で。</p>
         <textarea class="ta-s2" id="t-mokuhyo" placeholder="例）在籍を中学生中心に +3（体験→入会の取りこぼしを無くす）
 例）中3の定期テスト対策を早めに回して、平均点を前回より上げる"></textarea>
       </div>
       <div class="card">
-        <h3>内部</h3>
-        <p class="hint">授業・面談・生徒対応・教室運営。やったこと → 出た結果の順で。</p>
+        <h3>内部の取り組み</h3>
         <textarea class="ta-l" id="t-naibu" placeholder="例）確認テストの再テスト運用を全学年で統一（8/3〜）
 　→ 合格率 62% → 74%（対象118件）
 
 例）中3面談を全員実施（26/26件、8/10〜8/22）"></textarea>
       </div>
       <div class="card">
-        <h3>発信</h3>
-        <p class="hint">保護者連絡・チラシ・SNS・問い合わせ。反応した数まで書く。</p>
+        <h3>外部への発信</h3>
         <textarea class="ta-l" id="t-hasshin" placeholder="例）夏期案内チラシ 3,000部（8/5配布）
 　→ 問い合わせ 7件／体験 4件／入会 2件
 
 例）LINE配信 4回、開封率 58%"></textarea>
       </div>
-      <div class="card wide">
-        <h3>次にやること</h3>
-        <p class="hint">来月の手。いつまでに・何を・どこまでやるかを1行ずつ。判断が要るものは③へ。</p>
-        <textarea class="ta-m" id="t-housaku" placeholder="例）9/15までに 中1・中2の確認テスト範囲を単元単位に再設定
-例）9月中に 未受講の体験者6名へ再アプローチ"></textarea>
-        <details class="memo">
-          <summary>書き方メモ</summary>
-          <ul>
-            <li>人ではなく事象で書く（「〇〇先生が」は書かない）</li>
-            <li>印象は数字に載せる（「増えた気がする」→ 件数・率）</li>
-            <li>工数や苦労は書かない。結果だけ置く</li>
-            <li>言い訳の先出しをしない</li>
-            <li>確定・見込み・感触は言い分ける</li>
-          </ul>
-        </details>
-      </div>
     </div>
+    <details class="memo">
+      <summary>書き方メモ</summary>
+      <ul>
+        <li>人ではなく事象で書く（「〇〇先生が」は書かない）</li>
+        <li>印象は数字に載せる（「増えた気がする」→ 件数・率）</li>
+        <li>工数や苦労は書かない。結果だけ置く</li>
+        <li>言い訳の先出しをしない</li>
+        <li>確定・見込み・感触は言い分ける</li>
+      </ul>
+    </details>
   </section>
 
   <!-- ③ -->
@@ -438,7 +427,6 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <h2 class="sec-title">その他</h2>
     </div>
     <div class="card">
-      <p class="hint">早めに共有しておくこと。悪い方に動いている数字、未確定の懸念、来月以降に効いてきそうな話。</p>
       <textarea class="ta-s" id="t-sonota" placeholder="例）9月の退会申し出 2件（いずれも部活理由、確定1・見込み1）"></textarea>
     </div>
   </section>
@@ -994,7 +982,6 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     $("t-hasshin").value = state.hasshin;
     $("t-shokan").value = state.shokan;
     $("t-mokuhyo").value = state.mokuhyo;
-    $("t-housaku").value = state.housaku;
     $("t-sonota").value = state.sonota;
     buildDecide();
     recalc();
@@ -1067,7 +1054,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       touch(); return;
     }
     var map = {"f-school":"school","f-author":"author","t-naibu":"naibu",
-               "t-hasshin":"hasshin","t-shokan":"shokan","t-mokuhyo":"mokuhyo","t-housaku":"housaku","t-sonota":"sonota"};
+               "t-hasshin":"hasshin","t-shokan":"shokan","t-mokuhyo":"mokuhyo","t-sonota":"sonota"};
     if(map[el.id]){ state[map[el.id]] = el.value; touch(); }
   });
   document.addEventListener("change", function(e){
@@ -1098,6 +1085,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     if(!state.rows || typeof state.rows !== "object") state.rows = {};
     if(!state.dec || !state.dec.length) state.dec = [{gidai:"",a:"",b:"",rec:"A",why:""}];
     // shokan・mokuhyo は後から足した欄（古い記録には無い）
+    // housaku（「次にやること」欄）は欄を廃止したが、過去の月に書いた分を消さないよう state には残す
     ["school","author","naibu","hasshin","shokan","mokuhyo","housaku","sonota"].forEach(function(k){
       if(typeof state[k] !== "string") state[k] = "";
     });
@@ -1216,7 +1204,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
     // ② 書いたカードだけ残す
     var any2 = false;
-    ["t-naibu","t-hasshin","t-shokan","t-mokuhyo","t-housaku"].forEach(function(id){
+    ["t-naibu","t-hasshin","t-shokan","t-mokuhyo"].forEach(function(id){
       var ta = $(id), card = ta.closest(".card");
       if(!ta.value.trim()) hide(card);
       else { any2 = true; autosize(ta); }
@@ -1294,11 +1282,9 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     L.push("");
     L.push("〔今月の目標〕"); L.push(state.mokuhyo || "（記載なし）");
     L.push("");
-    L.push("〔内部〕");   L.push(state.naibu || "（記載なし）");
+    L.push("〔内部の取り組み〕"); L.push(state.naibu || "（記載なし）");
     L.push("");
-    L.push("〔発信〕");   L.push(state.hasshin || "（記載なし）");
-    L.push("");
-    L.push("〔次にやること〕"); L.push(state.housaku || "（記載なし）");
+    L.push("〔外部への発信〕"); L.push(state.hasshin || "（記載なし）");
     L.push("");
     L.push("■3. 決めていただきたいこと");
     var any = false;
