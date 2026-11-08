@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="only light">
+<title>比マスター｜中京個別指導学院</title>
+<meta name="description" content="小6算数の比を練習。比の値・等しい比・比を簡単にする（整数・小数・分数）・比の利用（一方を求める・全体を比で分ける）。「比ってなに？」をテープ図のアニメーションで解説。中京個別指導学院(神丘)の学習ツール。">
+<!-- 本番(Heteml)ではサブセット自己ホストに差し替え -->
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBFAF6;
+    --grid:#ECE9E0;
+    --sumi:#33312B;
+    --usuzumi:#8B877C;
+    --shu:#C73E2E;
+    --kin:#C9A227;
+    --ai:#2C5F8A;
+    /* 答え合わせの色は共通モジュール(divp-choice-mark.js)の既定にそろえる */
+    --divp-mark-ok:#3E8E5A;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html{ scrollbar-gutter:stable; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:24px 24px;
+    color:var(--sumi);
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;     /* ⚠ 横並び(row)にしない。共通ヘッダーが左端に縦長の帯になる */
+    touch-action:manipulation;
+  }
+  .app{
+    width:100%;
+    max-width:560px;
+    margin:0 auto;
+    padding:12px 14px calc(90px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    flex:1;
+  }
+
+  /* ---- ヘッダー ---- */
+  header{ display:flex; align-items:center; gap:8px; }
+  header h1{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700; margin:0;
+    letter-spacing:.04em;
+  }
+  header h1 .sub{
+    display:block;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    letter-spacing:.1em;
+  }
+  .mode-back{
+    margin-left:auto;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.5px solid var(--ai);
+    background:#fff;
+    border-radius:8px;
+    padding:5px 9px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+
+  /* ---- スコア ---- */
+  .score{
+    display:flex; align-items:baseline; gap:12px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700; color:var(--usuzumi);
+  }
+  .score b{ color:var(--shu); font-size:17px; }
+  .score .streak b{ color:var(--kin); }
+  .score .qno{ margin-left:auto; color:var(--ai); }
+
+  /* ---- 問題カード ---- */
+  .card{
+    position:relative;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:16px;
+    box-shadow:0 2px 0 rgba(51,49,43,.06);
+    padding:16px 16px 14px;
+  }
+  .card .qtag{
+    display:inline-block;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.2px solid var(--ai);
+    border-radius:999px;
+    padding:2px 10px;
+    margin-bottom:8px;
+    letter-spacing:.06em;
+  }
+  .card .qtext{
+    font-size:16px; line-height:1.85;
+    letter-spacing:.02em;
+  }
+  .card .qtext b{ color:var(--shu); }
+  /* 問題の 比そのもの（大きく まん中に） */
+  .ratio-big{
+    display:block;
+    text-align:center;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:27px; font-weight:700;
+    letter-spacing:.04em;
+    margin:6px 0 8px;
+    color:var(--sumi);
+  }
+  .ratio-big .fr{ font-size:.82em; }
+  .blank{
+    display:inline-block;
+    width:1.5em; height:1.15em;
+    border:2.5px solid var(--shu);
+    border-radius:6px;
+    vertical-align:-.12em;
+    background:#FDF4F2;
+  }
+  .cl{ margin:0 .18em; }
+
+  /* ---- 分数（縦組み） ---- */
+  .fr{
+    display:inline-flex; flex-direction:column; align-items:center;
+    vertical-align:middle;
+    line-height:1.12;
+    margin:0 .1em;
+  }
+  .fr .nu{ border-bottom:.08em solid currentColor; padding:0 .18em; }
+  .fr .de{ padding:0 .18em; }
+
+  /* ---- 解答パーツ ---- */
+  .part{ display:flex; flex-direction:column; gap:8px; }
+  .p-label{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700;
+    color:var(--ai);
+    letter-spacing:.04em;
+  }
+  .opts{ display:flex; flex-wrap:wrap; gap:8px; }
+  .optBtn{
+    position:relative;          /* 「正解」バッジの基準（divp-choice-mark.js） */
+    flex:1 1 calc(50% - 4px);
+    min-width:120px;
+    min-height:58px;
+    padding:8px 12px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:11px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:21px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    line-height:1.4;
+  }
+  .optBtn .u{ font-size:.68em; margin-left:3px; color:var(--usuzumi); }
+  .optBtn.on{
+    background:#FDECE9;
+    border-color:var(--shu);
+    border-bottom-color:var(--shu);
+    color:var(--shu);
+  }
+  .optBtn.on .u{ color:var(--shu); }
+  .optBtn:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .optBtn:disabled{ cursor:default; transform:none; }
+  .optBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- フィードバック ---- */
+  .feedback{ display:none; }
+  .feedback.show{ display:flex; flex-direction:column; gap:10px; }
+  .fb-msg{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    text-align:center;
+    letter-spacing:.06em;
+  }
+  .fb-msg.good{ color:var(--shu); }
+  .fb-msg.bad{ color:var(--ai); }
+  .expl{
+    background:#fff;
+    border:1.5px dashed var(--kin);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:14px; line-height:2.05;
+  }
+  .expl b{ color:var(--shu); }
+  .expl .ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--kin);
+    letter-spacing:.08em;
+    display:block; margin-bottom:4px;
+  }
+  .expl .step{ display:block; }
+  .expl .tape{ display:flex; justify-content:center; margin:6px 0 2px; }
+  .expl .tape svg{ width:100%; max-width:330px; height:auto; background:#FFFDF7; border-radius:10px; }
+  .expl .kufu{
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px dashed var(--grid);
+    font-size:13px; color:var(--ai);
+  }
+  .expl .naze{
+    display:inline-block;
+    margin-top:8px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700;
+    color:var(--ai);
+    border:1.2px solid var(--ai);
+    background:#F5F9FC;
+    border-radius:999px;
+    padding:4px 12px;
+    cursor:pointer;
+  }
+  .toast{
+    text-align:center;
+    font-size:13px; font-weight:700; color:var(--ai);
+    min-height:20px;
+  }
+
+  /* ---- 下の大きなボタン ---- */
+  .bottom{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--paper) 62%, rgba(251,250,246,0));
+    z-index:20;
+  }
+  .bottom .inner{ max-width:560px; margin:0 auto; }
+  .bigBtn{
+    width:100%;
+    height:54px;
+    border:none;
+    border-radius:13px;
+    background:var(--shu);
+    color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    letter-spacing:.2em; text-indent:.2em;
+    box-shadow:0 3px 0 #9E2F22;
+    cursor:pointer;
+  }
+  .bigBtn:active{ transform:translateY(2px); box-shadow:0 1px 0 #9E2F22; }
+  .bigBtn.next{ background:var(--ai); box-shadow:0 3px 0 #1E466A; }
+  .bigBtn.next:active{ box-shadow:0 1px 0 #1E466A; }
+  .bigBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- モード選択画面（立体の体積マスターと同じ作り） ---- */
+  .mode-screen{ display:none; }
+  body.choosing .app,
+  body.choosing .bottom{ display:none; }
+  body.choosing .mode-screen{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:100%;
+    max-width:520px;
+    margin:0 auto;
+    padding:34px 18px 48px;
+  }
+  .m-logo{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:25px; font-weight:700;
+    text-align:center;
+    letter-spacing:.08em;
+  }
+  .m-sub{
+    text-align:center;
+    font-size:13px; color:var(--usuzumi);
+    margin-bottom:8px;
+  }
+  /* .m-link は「別の画面へのリンク」。見た目は .m-card と同じだが、
+     クリック処理(startMode)は .m-card だけに付いているので class は分けておく */
+  .m-card,
+  .m-link{
+    display:flex; align-items:center; gap:13px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:4px solid #D8D4C8;
+    border-radius:16px;
+    padding:14px 16px;
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;
+    width:100%;
+  }
+  .m-card:active,
+  .m-link:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .m-card.review{ border-color:#BFD4C6; border-bottom-color:#8FB9A0; background:#F7FBF8; }
+  .m-card.mix{ border-color:var(--kin); border-bottom-color:var(--kin); }
+  .m-link{
+    text-decoration:none; color:inherit;
+    border-color:var(--ai); border-bottom-color:#1E466A;
+    background:#F5F9FC;
+  }
+  .m-link .m-name{ color:var(--ai); }
+  .m-sep{
+    display:flex; align-items:center; gap:8px;
+    margin-top:14px;
+    font-size:11.5px; color:var(--usuzumi); letter-spacing:.06em;
+  }
+  .m-sep::before, .m-sep::after{
+    content:""; flex:1; height:1px; background:var(--grid);
+  }
+  .m-body{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .m-name{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700;
+  }
+  .m-desc{ font-size:11.5px; color:var(--usuzumi); line-height:1.5; }
+
+  /* 解き直し(?retry=1)の案内帯 */
+  #retryBanner{
+    background:#FBF3E0;
+    border:1.5px solid var(--kin);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:12.5px; line-height:1.6;
+    color:#6E5518;
+  }
+
+  /* ---- しくみの部屋（比って なに？） ---- */
+  .lab{ display:none; }
+  body.labbing .app,
+  body.labbing .bottom,
+  body.labbing .mode-screen{ display:none !important; }
+  body.labbing .lab{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    width:100%;
+    max-width:560px;
+    margin:0 auto;
+    padding:14px 14px calc(28px + env(safe-area-inset-bottom));
+  }
+  .lab-head{ display:flex; align-items:center; gap:8px; }
+  .lab-head h2{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700; margin:0;
+    letter-spacing:.04em;
+  }
+  .lab-head h2 .sub{
+    display:block;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    letter-spacing:.1em;
+  }
+  .lab-card{
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:16px;
+    box-shadow:0 2px 0 rgba(51,49,43,.06);
+    padding:13px 14px 14px;
+  }
+  .lab-ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--ai);
+    letter-spacing:.06em;
+    margin-bottom:8px;
+  }
+  .lab-chips{ display:flex; flex-wrap:wrap; gap:7px; }
+  .lab-chip{
+    flex:1 1 auto;
+    min-width:64px; min-height:44px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:10px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:16px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+  }
+  .lab-chip.on{
+    background:#FDECE9; border-color:var(--shu);
+    border-bottom-color:var(--shu); color:var(--shu);
+  }
+  .lab-chip:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .lab-stage{ display:flex; justify-content:center; margin:10px 0 0; }
+  .lab-stage svg{
+    width:100%; max-width:340px; height:auto;
+    background:#FFFDF7; border-radius:10px;
+  }
+  .lab-row{
+    display:flex; align-items:center; gap:10px;
+    margin-top:10px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--usuzumi);
+  }
+  .lab-row input[type=range]{ flex:1; accent-color:var(--shu); height:28px; }
+  .lab-row .val{ color:var(--shu); font-size:16px; min-width:58px; text-align:right; }
+  .lab-shiki{
+    margin-top:10px;
+    background:var(--paper);
+    border:1.5px solid var(--grid);
+    border-radius:12px;
+    padding:10px 12px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:15px; font-weight:700;
+    text-align:center; line-height:1.9;
+    letter-spacing:.02em;
+  }
+  .lab-shiki .sq{ color:var(--ai); }
+  .lab-shiki .hh{ color:var(--kin); }
+  .lab-shiki .vv{ color:var(--shu); font-size:1.15em; }
+  .lab-shiki small{ font-size:12px; color:var(--usuzumi); }
+  .lab-play{
+    width:100%; height:48px; margin-top:10px;
+    border:none; border-radius:12px;
+    background:var(--ai); color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:16px; font-weight:700; letter-spacing:.12em;
+    box-shadow:0 3px 0 #1E466A; cursor:pointer;
+  }
+  .lab-play:active{ transform:translateY(2px); box-shadow:0 1px 0 #1E466A; }
+  .lab-step{
+    display:flex; gap:9px;
+    padding:9px 0;
+    border-top:1px dashed var(--grid);
+    font-size:13.5px; line-height:1.85;
+  }
+  .lab-step:first-child{ border-top:none; }
+  .lab-step .no{
+    flex:0 0 22px; height:22px;
+    border-radius:50%;
+    background:var(--ai); color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    margin-top:3px;
+  }
+  .lab-step b{ color:var(--shu); }
+  .lab-matome{
+    background:#FBF3E0;
+    border:1.5px solid var(--kin);
+    border-radius:14px;
+    padding:12px 14px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:16px; font-weight:700;
+    text-align:center; line-height:1.9;
+    color:#6E5518;
+  }
+  .lab-matome .big{ display:block; font-size:19px; color:var(--shu); margin-top:2px; }
+
+  /* 積もったキラキラ(divp-correct-kirakira の pile, z-index:5)にうもれないように。
+     モジュール側の :where() は詳細度0で、div/span だけで組んだ帯は
+     セレクタから漏れるため、画面の直下の子をまとめて前面に出しておく */
+  .divp-header{ position:relative; z-index:11; }
+  .app > *, .mode-screen > *, .lab > *,
+  .feedback > *, .lab-card > *, .lab-row > *{ position:relative; z-index:10; }
+
+  @media print{
+    /* 共通ヘッダーは紙に出さない（assets/divp-header.js と同じ方針） */
+    .divp-header{ display:none !important; }
+    .bottom{ display:none !important; }
+  }
+</style>
+</head>
+<body class="choosing" data-theme="es" data-effect="kirakira">
+
+<!-- 共通ヘッダー(ロゴ・ログイン窓)の差し込み先。script は body 直後に置くこと -->
+<div class="divp-header"></div>
+<!-- 学習記録システム共通モジュール -->
+<script src="/assets/divp-core.js" defer></script>
+<script src="/assets/divp-header.js" defer></script>
+<!-- 小学生ツールなので正解演出は星バースト。
+     data-effect="kirakira" なので、都道府県マスターと同じ星が
+     そのまま画面の下に積もっていく（divp-core.js より後ろに置くこと） -->
+<script src="/assets/divp-correct-kirakira.js" defer></script>
+<!-- 選択肢の答え合わせ表示（正解=緑 / 選んだ誤答=朱） -->
+<script src="/assets/divp-choice-mark.js" defer></script>
+
+<div class="mode-screen" id="modeScreen">
+  <div class="m-logo">比マスター</div>
+  <div class="m-sub">小6 算数 ／ れんしゅうしたいものを えらんでね</div>
+  <div id="retryBannerSlot"></div>
+
+  <button type="button" class="m-card review" data-mode="atai">
+    <span class="m-body"><span class="m-name">比の値</span>
+    <span class="m-desc">a : b の 比の値は a ÷ b。
+    分数で 答えて、約分も わすれずに</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="tsukuru">
+    <span class="m-body"><span class="m-name">比を 作る</span>
+    <span class="m-desc">「1時間と 23分」「クラス全員と 男の子」のように、
+    問題文から 比を 作って 簡単にする（単位を そろえる・全体を 出す）</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="hitoshii">
+    <span class="m-body"><span class="m-name">等しい比</span>
+    <span class="m-desc">3 : 4 ＝ 9 : □ の □を もとめる。
+    両方に 同じ数を かけても わっても 比は 等しい</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="kantan">
+    <span class="m-body"><span class="m-name">比を 簡単にする</span>
+    <span class="m-desc">整数の比・小数の比・分数の比を、
+    いちばん 簡単な 整数の比に なおす</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="riyou">
+    <span class="m-body"><span class="m-name">比の利用（文章題）</span>
+    <span class="m-desc">比と 片方の 量から もう片方を もとめる 問題と、
+    全体を 比で 分ける 問題</span></span>
+  </button>
+
+  <button type="button" class="m-card mix" data-mode="mix">
+    <span class="m-body"><span class="m-name">ランダム</span>
+    <span class="m-desc">ぜんぶの 種類を ごちゃまぜで 出題（しあげ用）</span></span>
+  </button>
+
+  <div class="m-sep">「比って そもそも なに？」が 気になったら</div>
+
+  <button type="button" class="m-link" id="labBtn">
+    <span class="m-body"><span class="m-name">比って なに？ テープ図で 見てみよう →</span>
+    <span class="m-desc">1つぶんの 大きさを かえても 比が かわらない ようすを
+    アニメーションで たしかめられる（等しい比・比を簡単にする しくみ）</span></span>
+  </button>
+</div>
+
+<div class="app" id="app">
+  <header>
+    <h1>比マスター<span class="sub" id="modeLabel">比の値</span></h1>
+    <button type="button" class="mode-back" id="homeBtn">ホームに戻る</button>
+  </header>
+
+  <div class="score">
+    <span>せいかい <b id="scoreOk">0</b> / <span id="scoreAll">0</span></span>
+    <span class="streak">れんぞく <b id="scoreStreak">0</b></span>
+    <span class="qno" id="qNo"></span>
+  </div>
+
+  <div class="card">
+    <span class="qtag" id="qTag">問題</span>
+    <div class="qtext" id="qText"></div>
+  </div>
+
+  <div id="partArea" style="display:flex;flex-direction:column;gap:14px"></div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="feedback" id="feedback">
+    <div class="fb-msg" id="fbMsg"></div>
+    <div class="expl" id="expl"></div>
+  </div>
+</div>
+
+<div class="bottom" id="bottom">
+  <div class="inner">
+    <button type="button" class="bigBtn" id="checkBtn">こたえあわせ</button>
+    <button type="button" class="bigBtn next" id="nextBtn" style="display:none">つぎの問題 ➜</button>
+  </div>
+</div>
+
+<!-- しくみの部屋（比って なに？） -->
+<div class="lab" id="lab">
+  <div class="lab-head">
+    <h2>比って なに？<span class="sub">「いくつぶん」で くらべる</span></h2>
+    <button type="button" class="mode-back" id="labBack">もどる</button>
+  </div>
+
+  <div class="lab-card">
+    <div class="lab-ttl">① 比を えらぶ（赤 : 青）</div>
+    <div class="lab-chips" id="labChips"></div>
+
+    <div class="lab-stage" id="labStage"></div>
+
+    <div class="lab-row">
+      <span>1つぶん ＝</span>
+      <input type="range" id="labK" min="1" max="5" step="1" value="1" aria-label="1つぶんの マスの数">
+      <span class="val" id="labKVal">1マス</span>
+    </div>
+
+    <div class="lab-shiki" id="labShiki"></div>
+    <button type="button" class="lab-play" id="labPlay">1つぶんを 大きく してみる ▶</button>
+  </div>
+
+  <div class="lab-card" id="labSteps"></div>
+
+  <div class="lab-matome">
+    比は「いくつぶんか」の くらべっこ。
+    1つぶんの 大きさが かわっても、くらべた 結果は かわらない。
+    <span class="big">a : b ＝ (a×□) : (b×□)</span>
+  </div>
+</div>
+<script>
+"use strict";
+/* =====================================================================
+   比マスター（算数・小6）
+   unit_key = math_es6_hi
+
+   ■ モードと question_key
+     比の値         → atai
+     比を作る       → tsukuru_tani（単位を そろえて 比を作る）/ tsukuru_zentai（全体と 部分の 比）
+     等しい比       → hitoshii（□に あてはまる 数）
+     比を簡単にする → kantan_sei / kantan_shou / kantan_bun（整数・小数・分数の比）
+     比の利用       → riyou_ippou（比と 片方から もう片方）/ riyou_bunkatsu（全体を 比で 分ける）
+     ランダム       → 上の ぜんぶを ごちゃまぜ（question_key は実際に出た種類）
+     日本語ラベルは db/seeds/seed_math_es6_hi.sql で question_catalog へ。
+
+   ■ 解き直し（?retry=1）は「種(seed)方式」＝ CLAUDE.md 2d
+     乱数は ri()/pick()/shuffle() に一本化してあり、出題のたびに種を1つ引いて
+     question_params:{m:question_key, s:種} だけを保存する。?retry=1 では同じ種で
+     同じ生成関数を回すだけで まったく同じ問題が出る。
+     ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
+       （params_hash は同じままなので解き直し自体は成立する）。
+     ⚠ 生成関数の中で Math.random() を 直接 呼ばないこと（種で 再現できなくなる）。
+       くり返しで 条件に あう 数を さがす ところも rngNext() だけを 使う。
+
+   ■ 図（question_figure）は 渡さない
+     どの問題も 問題文だけで 解ける（解説の テープ図は 説明用）。
+     question_text の 分数は F(分子/分母) で書く（CLAUDE.md 2a。講師画面が 縦組みにする）。
+   ===================================================================== */
+
+var UNIT_KEY = "math_es6_hi";
+
+/* ---------- 共通モジュールの安全呼び出し（未読込でも壊れない） ---------- */
+function safeDivp(fn){
+  try{
+    if(window.Divp && typeof window.Divp[fn] === "function"){
+      return window.Divp[fn].apply(window.Divp, [].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return null;
+}
+
+/* ---------- RNG（xorshift32・種から決まった順に出る） ---------- */
+var _rngState = 1;
+function rngSeed(s){ _rngState = (s>>>0) || 1; }
+function rngPick(){ return (Math.floor(Math.random()*4294967296)>>>0) || 1; }  /* 種そのものだけ真の乱数 */
+function rngNext(){
+  var x = _rngState;
+  x ^= x<<13; x >>>= 0; x ^= x>>>17; x ^= x<<5; x >>>= 0;
+  _rngState = x;
+  return x/4294967296;
+}
+function ri(min,max){ return Math.floor(rngNext()*(max-min+1))+min; }
+function pick(arr){ return arr[ri(0,arr.length-1)]; }
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i=a.length-1;i>0;i--){ var j=ri(0,i); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+
+/* ---------- 数のあつかい ---------- */
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ var t=a%b; a=b; b=t; } return a; }
+function lcm(a,b){ return a/gcd(a,b)*b; }
+function isInt(v){ return Math.abs(v-Math.round(v)) < 1e-9; }
+/* 小数は 100分の1 を単位にした 整数で持ち、表示のときだけ 小数に もどす（誤差を出さない） */
+function fmt100(n){ return String(Math.round(n)/100); }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function nowMs(){ return (window.performance && performance.now) ? performance.now() : Date.now(); }
+
+/* 1〜hi の中から 互いに素で ちがう2つの数（p : q がもう簡単な比） */
+function coprimePair(lo,hi){
+  for(var t=0;t<60;t++){
+    var p = ri(lo,hi), q = ri(lo,hi);
+    if(p !== q && gcd(p,q) === 1) return [p,q];
+  }
+  return [2,3];
+}
+
+/* ---------- 表示の部品 ---------- */
+function frHtml(n,d){
+  if(d === 1) return String(n);
+  return '<span class="fr"><span class="nu">'+n+'</span><span class="de">'+d+'</span></span>';
+}
+function frPlain(n,d){ return d === 1 ? String(n) : "F("+n+"/"+d+")"; }
+function rHtml(a,b){ return a+'<span class="cl">:</span>'+b; }
+function rText(a,b){ return a+" : "+b; }
+
+/* ---------- 選択肢 ----------
+   選択肢は {html, plain, key, ok}。key が同じものは 同じ選択肢とみなして 重ねない。
+   plain は 記録用（wrong_answer / correct_answer）。 */
+function optNum(v,u){
+  return { html: String(v) + (u ? '<span class="u">'+u+'</span>' : ""),
+           plain: String(v) + (u ? " "+u : ""),
+           key: "n"+v, ok: v > 0 && isInt(v) };
+}
+function optRatio(a,b){
+  return { html: rHtml(a,b), plain: a+":"+b, key: "r"+a+":"+b,
+           /* 「5 : 5」のような 同じ数どうしは 出さない（この画面の 正解は いつも p≠q なので、すぐ消せてしまう） */
+           ok: a > 0 && b > 0 && a !== b && isInt(a) && isInt(b) };
+}
+function optFrac(n,d){
+  if(!(n > 0 && d > 0 && isInt(n) && isInt(d))) return { ok:false, key:"x" };
+  var g = gcd(n,d); n /= g; d /= g;
+  return { html: frHtml(n,d), plain: frPlain(n,d), key: "f"+n+"/"+d, ok:true };
+}
+/* 正解1つ＋まちがい3つ。cands（ねらった まちがい）を先に使い、足りなければ fb で うめる */
+function buildChoices(cor, cands, fb){
+  var out = [cor], seen = {}, i;
+  seen[cor.key] = 1;
+  function add(c){
+    if(out.length >= 4 || !c || !c.ok || seen[c.key]) return;
+    seen[c.key] = 1; out.push(c);
+  }
+  var cs = shuffle(cands);
+  for(i=0;i<cs.length;i++) add(cs[i]);
+  for(i=0;i<fb.length;i++) add(fb[i]);
+  var arr = shuffle(out);
+  return { options: arr, correct: arr.indexOf(cor) };
+}
+/* 数の答えの うめ草（正解の となりの数） */
+function numFallback(ans, step, u){
+  var a = [];
+  for(var k=1;k<=6;k++){ a.push(optNum(ans+step*k,u)); a.push(optNum(ans-step*k,u)); }
+  return a;
+}
+function ratioFallback(p,q){
+  var a = [];
+  for(var k=1;k<=6;k++){ a.push(optRatio(p+k,q)); a.push(optRatio(p,q+k)); }
+  return a;
+}
+
+/* 問題を くみたてる（全種類 共通） */
+function mk(o){
+  var ch = buildChoices(o.cor, o.cands, o.fb);
+  return {
+    key: o.key, tag: o.tag,
+    qHtml: o.q, plainQ: o.plain,
+    label: o.label,
+    options: ch.options, correct: ch.correct,
+    ansText: o.cor.plain,
+    expl: '<span class="ttl">とき方</span>' + o.expl
+        + (o.kufu ? '<div class="kufu">💡 ' + o.kufu + '</div>' : "")
+        + (o.naze ? '<button type="button" class="naze">比って なに？ テープ図で 見る →</button>' : "")
+  };
+}
+
+/* =====================================================================
+   テープ図（解説用の SVG）。色・線は 属性で 書く（CLAUDE.md 2b と同じ流儀）
+   ===================================================================== */
+var SVGFONT = "Zen Maru Gothic,Hiragino Maru Gothic ProN,HGMaruGothicMPRO,sans-serif";
+var COL = {
+  a:"#C73E2E", aL:"#F9DDD8",
+  b:"#2C5F8A", bL:"#D6E4F0",
+  ink:"#33312B", sub:"#8B877C", kin:"#A8851B"
+};
+function svgText(x,y,s,color,anchor,size,weight){
+  return '<text x="'+x+'" y="'+y+'" fill="'+color+'" font-size="'+(size||13)+'" font-weight="'+(weight||700)
+       + '" text-anchor="'+(anchor||"start")+'" font-family="'+SVGFONT+'">'+esc(s)+'</text>';
+}
+function blocks(x0,y,n,bw,h,fill,stroke){
+  var s = "";
+  for(var i=0;i<n;i++){
+    s += '<rect x="'+(x0+i*bw)+'" y="'+y+'" width="'+bw+'" height="'+h+'" fill="'+fill
+       + '" stroke="'+stroke+'" stroke-width="1.6"/>';
+  }
+  return s;
+}
+/* 上に かぶせる かっこ（全体を 表す） */
+function braceOver(x1,x2,y,label,color){
+  return '<path d="M'+x1+' '+(y+7)+' V'+y+' H'+x2+' V'+(y+7)+'" fill="none" stroke="'+color+'" stroke-width="1.6"/>'
+       + svgText((x1+x2)/2, y-5, label, color, "middle", 13);
+}
+/* 下の かっこ。dy で 文字を 下へ ずらす（となりの かっこの 文字と 重ならないように 段を 変える） */
+function braceUnder(x1,x2,y,label,color,dy){
+  return '<path d="M'+x1+' '+(y-7)+' V'+y+' H'+x2+' V'+(y-7)+'" fill="none" stroke="'+color+'" stroke-width="1.6"/>'
+       + svgText((x1+x2)/2, y+16+(dy||0), label, color, "middle", 13);
+}
+/* 2段の テープ図：A が p つぶん、B が q つぶん。valA / valB は 右はしに 書く文字 */
+function tapeTwo(p,q,nameA,nameB,valA,valB){
+  var X0 = 74, H = 24, max = Math.max(p,q);
+  var bw = Math.min(30, Math.floor(178/max));
+  var s = "";
+  s += svgText(8, 30, nameA, COL.a, "start", 13);
+  s += blocks(X0, 14, p, bw, H, COL.aL, COL.a);
+  s += svgText(X0+p*bw+8, 31, valA, valA === "？" ? COL.a : COL.ink, "start", 14);
+  s += svgText(8, 78, nameB, COL.b, "start", 13);
+  s += blocks(X0, 62, q, bw, H, COL.bL, COL.b);
+  s += svgText(X0+q*bw+8, 79, valB, valB === "？" ? COL.b : COL.ink, "start", 14);
+  return '<div class="tape"><svg viewBox="0 0 330 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="テープ図">'
+       + s + '</svg></div>';
+}
+/* 1本の テープ図：A の p つぶん と B の q つぶんを つなげて、上に 全体 */
+function tapeOne(p,q,nameA,nameB,labA,labB,total){
+  var n = p+q, bw = Math.min(30, Math.floor(290/n)), X0 = Math.round((330-n*bw)/2), y = 36, H = 26;
+  var s = "";
+  s += braceOver(X0, X0+n*bw, 18, "全体 "+total, COL.kin);
+  s += blocks(X0, y, p, bw, H, COL.aL, COL.a);
+  s += blocks(X0+p*bw, y, q, bw, H, COL.bL, COL.b);
+  s += braceUnder(X0, X0+p*bw, y+H+12, nameA+" "+labA, COL.a, 0);
+  s += braceUnder(X0+p*bw, X0+n*bw, y+H+12, nameB+" "+labB, COL.b, 17);
+  return '<div class="tape"><svg viewBox="0 0 330 122" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="テープ図">'
+       + s + '</svg></div>';
+}
+
+/* =====================================================================
+   ① 比の値
+   ===================================================================== */
+function gen_atai(){
+  var p, q;
+  if(ri(1,5) === 1){ q = 1; p = ri(2,9); }          /* 5問に1問は わりきれる（比の値が 整数） */
+  else{ var pr = coprimePair(1,9); p = pr[0]; q = pr[1]; }
+  var g = ri(1, Math.max(1, Math.floor(48/Math.max(p,q))));
+  if(g > 8) g = ri(2,8);
+  var a = p*g, b = q*g;
+  var cor = optFrac(p,q);
+  var calc = a+" ÷ "+b+" ＝ ";
+  if(q === 1)      calc += "<b>"+p+"</b>（わりきれるので 整数）";
+  else if(g === 1) calc += "<b>"+frHtml(a,b)+"</b>";
+  else             calc += frHtml(a,b)+" ＝ <b>"+frHtml(p,q)+"</b>（"+g+"で 約分）";
+  return mk({
+    key:"atai", tag:"比の値",
+    q:'<span class="ratio-big">'+rHtml(a,b)+'</span>の <b>比の値</b>を もとめましょう。',
+    plain:a+":"+b+" の比の値",
+    label:"比の値は？",
+    cor:cor,
+    cands:[optFrac(q,p), optFrac(p,p+q), optFrac(q,p+q), optFrac(p+q,q)],
+    fb:[optFrac(p+1,q), optFrac(p,q+1), optFrac(p+2,q), optFrac(p,q+2)],
+    expl:'<span class="step">比の値は「前の数 ÷ うしろの数」。</span>'
+        +'<span class="step">'+calc+'</span>',
+    kufu:"比の値は「前の数が うしろの数の 何倍か」を あらわす数。"
+        +"うしろの数で わるので、"+a+" : "+b+" と "+b+" : "+a+" の 比の値は ちがう。"
+  });
+}
+
+/* =====================================================================
+   ② 等しい比（□に あてはまる数）
+   ===================================================================== */
+function gen_hitoshii(){
+  var pr = coprimePair(1,9), p = pr[0], q = pr[1], mx = Math.max(p,q);
+  var m1 = ri(1,4), t = ri(2,5);
+  while(t > 2 && mx*m1*t > 99) t--;
+  if(mx*m1*t > 99) m1 = 1;
+  var small = [p*m1, q*m1], big = [p*m1*t, q*m1*t];
+  var up = ri(0,1) === 1;                       /* 左が小さい（×）か 大きい（÷）か */
+  var L = up ? small : big, R = up ? big : small;
+  var pos = pick([2,3,2,3,0,1]);                /* □の場所。右がわを 多めに */
+  var S = pos >= 2 ? R : L, O = pos >= 2 ? L : R;  /* S=□のある がわ / O=もう一方 */
+  var i = pos % 2, j = 1 - i;
+  var ans = S[i];                               /* L と R は 同じ比から 作ってあるので そのまま答え */
+  var mul = S[j] > O[j];                        /* O → S が ×t か ÷t か */
+  var cells = [L[0], L[1], R[0], R[1]].map(function(v,k){ return k === pos ? '<span class="blank"></span>' : String(v); });
+  var plainCells = [L[0], L[1], R[0], R[1]].map(function(v,k){ return k === pos ? "□" : String(v); });
+  var cands = [
+    optNum(O[i] + (S[j]-O[j])),                 /* かけ算ではなく 足し算・引き算で そろえた */
+    optNum(mul ? O[i]/t : O[i]*t),              /* ×と÷を 反対に した */
+    optNum(ans + (i === 0 ? p : q)),
+    optNum(ans - (i === 0 ? p : q)),
+    optNum(O[j] * (mul ? t : 1))
+  ];
+  var op = mul ? "×" : "÷";
+  return mk({
+    key:"hitoshii", tag:"等しい比",
+    q:'<span class="ratio-big">'+cells[0]+'<span class="cl">:</span>'+cells[1]+' ＝ '
+      +cells[2]+'<span class="cl">:</span>'+cells[3]+'</span>□に あてはまる 数を もとめましょう。',
+    plain:plainCells[0]+":"+plainCells[1]+"="+plainCells[2]+":"+plainCells[3]+" の□",
+    label:"□に あてはまる 数は？",
+    cor:optNum(ans),
+    cands:cands,
+    fb:numFallback(ans, 1),
+    expl:'<span class="step">わかっている 2つを くらべる： '+O[j]+' → '+S[j]+' は <b>'+op+t+'</b></span>'
+        +'<span class="step">もう一方も 同じように '+op+t+' する： '+O[i]+' '+op+' '+t+' ＝ <b>'+ans+'</b></span>',
+    kufu:"等しい比は「両方に 同じ数を かける（わる）」。足したり 引いたり しては いけない"
+        +"（"+O[j]+"→"+S[j]+" は "+(S[j]-O[j] > 0 ? "+" : "")+(S[j]-O[j])+" だが、"+O[i]+" に "
+        +(S[j]-O[j] > 0 ? "+" : "")+(S[j]-O[j])+" しても 等しい比に ならない）。",
+    naze:true
+  });
+}
+
+/* =====================================================================
+   ③ 比を 簡単にする
+   ===================================================================== */
+function gen_kantan_sei(){
+  var pr = coprimePair(1,9), p = pr[0], q = pr[1], mx = Math.max(p,q);
+  var g = ri(2, Math.min(12, Math.floor(120/mx)));
+  var a = p*g, b = q*g, cands = [optRatio(q,p)], d;
+  for(d=2; d<g; d++) if(g % d === 0) cands.push(optRatio(a/d, b/d));   /* とちゅうで やめた 比 */
+  cands.push(optRatio(p, b));                                         /* 片方しか わっていない */
+  cands.push(optRatio(a, q));
+  if(g !== 2) cands.push(optRatio(p*2, q*2));
+  return mk({
+    key:"kantan_sei", tag:"整数の比を 簡単に",
+    q:'<span class="ratio-big">'+rHtml(a,b)+'</span>を いちばん 簡単な 整数の比に しましょう。',
+    plain:a+":"+b+" を簡単な整数の比に",
+    label:"いちばん 簡単な 比は？",
+    cor:optRatio(p,q),
+    cands:cands,
+    fb:ratioFallback(p,q),
+    expl:'<span class="step">'+a+' と '+b+' の 最大公約数は <b>'+g+'</b></span>'
+        +'<span class="step">両方を '+g+' で わる： '+a+' ÷ '+g+' : '+b+' ÷ '+g+' ＝ <b>'+rText(p,q)+'</b></span>',
+    kufu:"最大公約数が すぐに 見つからなければ、2 や 3 で 何回か わっていっても よい。"
+        +"もう 同じ数で われなくなったら 完成。",
+    naze:true
+  });
+}
+/* 小数の比。かける数は 100分の1 単位の 整数で持つ（0.3 → 30） */
+var SHOU_SCALE = [10,20,30,40,50,60,70,80,90,120,150,25,75];
+function gen_kantan_shou(){
+  var pr = coprimePair(1,9), p = pr[0], q = pr[1];
+  var s = pick(SHOU_SCALE);
+  var A = p*s, B = q*s;                         /* 100分の1 単位 */
+  var mult = (A % 10 === 0 && B % 10 === 0) ? 10 : 100;
+  var iA = A*mult/100, iB = B*mult/100, G = gcd(iA,iB);
+  var cands = [optRatio(iA, iB), optRatio(q,p)];
+  if(mult === 100) cands.push(optRatio(A/10, B/10));          /* 10倍 しか していない（小数が のこる＝はじかれる） */
+  if(G > 2) for(var d=2; d<G; d++) if(G % d === 0){ cands.push(optRatio(iA/d, iB/d)); break; }
+  cands.push(optRatio(p*2, q*2));
+  var st = '<span class="step">まず 両方を <b>'+mult+'倍</b> して 整数に する： '
+         + fmt100(A)+' : '+fmt100(B)+' ＝ '+rText(iA,iB)+'</span>';
+  st += G > 1
+     ? '<span class="step">'+iA+' と '+iB+' の 最大公約数 '+G+' で わる： <b>'+rText(p,q)+'</b></span>'
+     : '<span class="step">これ以上 同じ数で われないので <b>'+rText(p,q)+'</b></span>';
+  return mk({
+    key:"kantan_shou", tag:"小数の比を 簡単に",
+    q:'<span class="ratio-big">'+rHtml(fmt100(A), fmt100(B))+'</span>を いちばん 簡単な 整数の比に しましょう。',
+    plain:fmt100(A)+":"+fmt100(B)+" を簡単な整数の比に",
+    label:"いちばん 簡単な 比は？",
+    cor:optRatio(p,q),
+    cands:cands,
+    fb:ratioFallback(p,q),
+    expl:st,
+    kufu:mult+"倍 するときは 両方とも "+mult+"倍。片方だけ "+mult+"倍 すると 比が かわってしまう。",
+    naze:true
+  });
+}
+function gen_kantan_bun(){
+  var a=1,b=2,c=3,d=4, L=4, X=2, Y=3, G=1, p=2, q=3;
+  for(var t=0; t<80; t++){
+    b = ri(2,9); d = ri(2,9);
+    a = ri(1,b-1); c = ri(1,d-1);
+    if(gcd(a,b) !== 1 || gcd(c,d) !== 1) continue;
+    if(a === c && b === d) continue;
+    L = lcm(b,d); X = a*(L/b); Y = c*(L/d); G = gcd(X,Y);
+    p = X/G; q = Y/G;
+    if(p !== q && Math.max(p,q) <= 24) break;
+  }
+  if(p === q || Math.max(p,q) > 24){ a=2;b=3;c=3;d=4; L=12; X=8; Y=9; G=1; p=8; q=9; }
+  var cands = [optRatio(a,c), optRatio(b,d), optRatio(d,b), optRatio(q,p)];
+  if(G > 1) cands.push(optRatio(X,Y));
+  var st = '<span class="step">分母 '+b+' と '+d+' の 最小公倍数 <b>'+L+'</b> を 両方に かける：</span>'
+         + '<span class="step">'+frHtml(a,b)+' × '+L+' ＝ '+X+'、 '+frHtml(c,d)+' × '+L+' ＝ '+Y
+         + ' → '+rText(X,Y)+'</span>';
+  st += G > 1
+     ? '<span class="step">さらに '+G+' で わる： <b>'+rText(p,q)+'</b></span>'
+     : '<span class="step">これ以上 われないので <b>'+rText(p,q)+'</b></span>';
+  return mk({
+    key:"kantan_bun", tag:"分数の比を 簡単に",
+    q:'<span class="ratio-big">'+frHtml(a,b)+'<span class="cl">:</span>'+frHtml(c,d)+'</span>'
+     +'を いちばん 簡単な 整数の比に しましょう。',
+    plain:frPlain(a,b)+":"+frPlain(c,d)+" を簡単な整数の比に",
+    label:"いちばん 簡単な 比は？",
+    cor:optRatio(p,q),
+    cands:cands,
+    fb:ratioFallback(p,q),
+    expl:st,
+    kufu:b === d
+      ? "分母が そろっているときは、分子どうしの 比 "+a+" : "+c+" と 同じに なる。"
+      : "分子どうし（"+a+" : "+c+"）や 分母どうしを ならべるだけでは まちがい。分母を はらってから くらべる。",
+    naze:false
+  });
+}
+
+/* =====================================================================
+   ③' 比を 作る（問題文から 比を 作って 簡単にする）
+   ===================================================================== */
+/* 単位を そろえる。b=大きい単位 s=小さい単位 f=1b が何s か wf=よくある まちがいの 換算 */
+var TANI = [
+  { b:"時間", s:"分",  f:60,   wf:100, br:[1,3], sr:[5,55], st:1 },
+  { b:"分",   s:"秒",  f:60,   wf:100, br:[1,4], sr:[1,11], st:5 },
+  { b:"m",    s:"cm",  f:100,  wf:10,  br:[1,4], sr:[1,19], st:5 },
+  { b:"kg",   s:"g",   f:1000, wf:100, br:[1,3], sr:[1,9],  st:100 },
+  { b:"L",    s:"mL",  f:1000, wf:100, br:[1,3], sr:[1,9],  st:100 },
+  { b:"km",   s:"m",   f:1000, wf:100, br:[1,5], sr:[1,9],  st:100 }
+];
+function reduceStep(X,Y,p,q){
+  var G = gcd(X,Y);
+  return G > 1
+    ? '<span class="step">'+X+' と '+Y+' の 最大公約数 '+G+' で わる： <b>'+rText(p,q)+'</b></span>'
+    : '<span class="step">これ以上 同じ数で われないので <b>'+rText(p,q)+'</b></span>';
+}
+function gen_tsukuru_tani(){
+  var U = pick(TANI);
+  var bv = ri(U.br[0],U.br[1]), sv = ri(U.sr[0],U.sr[1])*U.st;
+  var bigFirst = ri(0,3) !== 0;                 /* 4問に3問は 大きい単位が 先 */
+  var bigS = bv*U.f;                            /* 大きい方を 小さい単位に なおした数 */
+  var X = bigFirst ? bigS : sv, Y = bigFirst ? sv : bigS, G = gcd(X,Y), p = X/G, q = Y/G;
+  var t1 = bigFirst ? bv+U.b : sv+U.s, t2 = bigFirst ? sv+U.s : bv+U.b;
+  function red(a,b){ var g = gcd(a,b); return optRatio(a/g, b/g); }
+  var rawA = bigFirst ? bv : sv, rawB = bigFirst ? sv : bv;
+  var wrongA = bigFirst ? bv*U.wf : sv, wrongB = bigFirst ? sv : bv*U.wf;
+  return mk({
+    key:"tsukuru_tani", tag:"比を 作る（単位を そろえる）",
+    q:'「<b>'+t1+'</b>」と「<b>'+t2+'</b>」の 比を、いちばん 簡単な 整数の比で 表しましょう。',
+    plain:"「"+t1+"」と「"+t2+"」の比を簡単な整数の比で",
+    label:"いちばん 簡単な 比は？",
+    cor:optRatio(p,q),
+    cands:[
+      red(rawA, rawB),                          /* 単位を そろえずに 数だけで 比を作った */
+      red(wrongA, wrongB),                      /* 換算を まちがえた（1時間＝100分 など） */
+      optRatio(X, Y),                           /* そろえたが 簡単に していない */
+      optRatio(q, p)                            /* 前と うしろが 逆 */
+    ],
+    fb:ratioFallback(p,q),
+    expl:'<span class="step">まず 単位を そろえる： '+bv+U.b+' ＝ '+bigS+U.s+'</span>'
+        +'<span class="step">'+(bigFirst ? bigS+U.s+' : '+sv+U.s : sv+U.s+' : '+bigS+U.s)
+        +' → '+rText(X,Y)+'</span>'
+        +reduceStep(X,Y,p,q),
+    kufu:"比を 作る前に 単位を そろえる（1"+U.b+" ＝ "+U.f+U.s+"）。"
+        +"そろえずに 数だけ ならべると "+rText(rawA,rawB)+" に なって まちがい。"
+  });
+}
+var ZENTAI_CTX = [
+  { intro:"男の子 {A}人、女の子 {B}人の クラス", A:"男の子", B:"女の子", T:"クラス全員", what:"人数", u:"人" },
+  { intro:"赤い玉が {A}こ、白い玉が {B}こ 入った 箱", A:"赤い玉", B:"白い玉", T:"玉全部", what:"個数", u:"こ" },
+  { intro:"大人 {A}人、子ども {B}人の グループ", A:"大人", B:"子ども", T:"グループ全員", what:"人数", u:"人" },
+  { intro:"{A}問 正解して、{B}問 まちがえた テスト", A:"正解した問題", B:"まちがえた問題", T:"全部の問題", what:"数", u:"問" },
+  { intro:"りんごの木が {A}本、みかんの木が {B}本 ある 畑", A:"りんごの木", B:"みかんの木", T:"木全部", what:"本数", u:"本" }
+];
+/* どの2つを くらべるか。全体が 入る 形を 多めに */
+var ZENTAI_VARS = [["T","A"],["T","A"],["A","T"],["T","B"],["B","T"],["A","B"]];
+function gen_tsukuru_zentai(){
+  var c = pick(ZENTAI_CTX);
+  var g = pick([1,1,2,3]), hi = g > 1 ? 9 : 14;
+  var a = ri(2,hi), b = ri(2,hi);
+  if(a === b) b = (b < hi ? b+1 : b-1);
+  var A = a*g, B = b*g, T = A+B;
+  var v = pick(ZENTAI_VARS);
+  function val(k){ return k === "A" ? A : k === "B" ? B : T; }
+  function nm(k){ return k === "A" ? c.A : k === "B" ? c.B : c.T; }
+  function red(x,y){ var gg = gcd(x,y); return optRatio(x/gg, y/gg); }
+  var X = val(v[0]), Y = val(v[1]), G = gcd(X,Y), p = X/G, q = Y/G;
+  var hasT = v[0] === "T" || v[1] === "T";
+  var other = function(k){ return k === "A" ? "B" : k === "B" ? "A" : "T"; };
+  var intro = c.intro.replace("{A}", A).replace("{B}", B);
+  return mk({
+    key:"tsukuru_zentai", tag:"比を 作る（全体と 部分）",
+    q:intro+"が あります。<br><b>"+nm(v[0])+"と "+nm(v[1])+"</b>の "+c.what
+     +"の比を、いちばん 簡単な 整数の比で 表しましょう。",
+    plain:intro.replace(/ /g,"")+"。"+nm(v[0])+"と"+nm(v[1])+"の比",
+    label:"いちばん 簡単な 比は？",
+    cor:optRatio(p,q),
+    cands:[
+      optRatio(q,p),                                     /* 前と うしろが 逆 */
+      optRatio(X,Y),                                     /* 簡単に していない */
+      hasT ? red(A,B) : red(T, A),                       /* 全体を 出さずに 部分どうしで 作った（または その逆） */
+      hasT ? red(val(v[0] === "T" ? "T" : other(v[0])), val(v[1] === "T" ? "T" : other(v[1])))
+           : red(B, T)                                   /* もう一方の 部分と まちがえた */
+    ],
+    fb:ratioFallback(p,q),
+    expl:(hasT ? '<span class="step">'+c.T+'は '+A+' ＋ '+B+' ＝ '+T+c.u+'</span>' : "")
+        +'<span class="step">'+nm(v[0])+' : '+nm(v[1])+' ＝ '+rText(X,Y)+'</span>'
+        +reduceStep(X,Y,p,q),
+    kufu:"「〇〇と △△の 比」は、先に 出てきた 〇〇を 前に 書く（逆に すると 別の 比）。"
+        +(hasT ? "全体は 問題文に 書いていないので、足し算で 出してから 比を 作る。" : "")
+  });
+}
+
+/* =====================================================================
+   ④ 比の利用
+   ===================================================================== */
+var IPPOU_CTX = [
+  { s:"長方形の 縦と 横の 長さ", A:"縦", B:"横", u:"cm", k:[2,3,4,5,6,7,8], mx:9 },
+  { s:"ドレッシングを 作るときの 酢と サラダ油の 量", A:"酢", B:"サラダ油", u:"mL", k:[10,15,20,25,30,40], mx:7 },
+  { s:"クラスの 男子と 女子の 人数", A:"男子", B:"女子", u:"人", k:[2,3], mx:7 },
+  { s:"兄と 弟の 持っている お金", A:"兄", B:"弟", u:"円", k:[50,100,150,200,300], mx:9 },
+  { s:"コーヒーと 牛乳を まぜる 量", A:"コーヒー", B:"牛乳", u:"mL", k:[20,30,40,50,60], mx:7 },
+  { s:"赤い 色紙と 青い 色紙の 枚数", A:"赤", B:"青", u:"枚", k:[2,3,4,5,6,8], mx:9 }
+];
+function gen_riyou_ippou(){
+  var c = pick(IPPOU_CTX);
+  var pr = coprimePair(1,c.mx), p = pr[0], q = pr[1], k = pick(c.k);
+  var askB = ri(0,1) === 1;
+  var kn = askB ? p : q, ot = askB ? q : p;     /* わかっている方 / たずねる方 の「つぶの数」 */
+  var known = kn*k, ans = ot*k;
+  var knName = askB ? c.A : c.B, askName = askB ? c.B : c.A;
+  var eq = askB ? rText(p,q)+" ＝ "+known+" : □" : rText(p,q)+" ＝ □ : "+known;
+  return mk({
+    key:"riyou_ippou", tag:"比の利用（片方を もとめる）",
+    q:c.s+"の 比は <b>"+rText(p,q)+"</b> です。<br>"+knName+"が "+known+c.u+" のとき、"
+     +askName+"は 何"+c.u+"ですか。",
+    plain:c.A+"と"+c.B+"の比"+p+":"+q+"、"+knName+known+c.u+"のとき"+askName+"は？",
+    label:askName+"は 何"+c.u+"？",
+    cor:optNum(ans, c.u),
+    cands:[
+      optNum(known + (ot-kn), c.u),             /* つぶの数の 差を 足しただけ */
+      optNum(known*kn/ot, c.u),                 /* 比を 反対に 使った */
+      optNum(k, c.u),                           /* 1つぶんで 止まった */
+      optNum(k*(p+q), c.u)                      /* 全体を 出してしまった */
+    ],
+    fb:numFallback(ans, k, c.u),
+    expl:'<span class="step">比の 式に すると '+eq+'</span>'
+        +'<span class="step">'+kn+' → '+known+' は ×'+k+'（1つぶんが '+k+c.u+'）</span>'
+        +'<span class="step">だから □ ＝ '+ot+' × '+k+' ＝ <b>'+ans+' '+c.u+'</b></span>'
+        +tapeTwo(p, q, c.A, c.B, askB ? known+c.u : "？", askB ? "？" : known+c.u),
+    kufu:"テープ図で 考えると「"+knName+"の "+kn+"つぶんが "+known+c.u+"」→ 1つぶんは "+known+"÷"+kn+"＝"+k+c.u+"。",
+    naze:true
+  });
+}
+var BUNKATSU_CTX = [
+  { obj:"お金", A:"兄", B:"弟", u:"円", k:[50,100,150,200,250,300], mx:7 },
+  { obj:"色紙", A:"姉", B:"妹", u:"枚", k:[2,3,4,5,6], mx:7 },
+  { obj:"ジュース", A:"兄", B:"妹", u:"mL", k:[20,25,30,40,50], mx:7 },
+  { obj:"リボン", A:"赤組", B:"白組", u:"cm", k:[3,4,5,6,8,10], mx:7 },
+  { obj:"クッキー", A:"Aチーム", B:"Bチーム", u:"まい", k:[2,3,4], mx:6 }
+];
+function gen_riyou_bunkatsu(){
+  var c = pick(BUNKATSU_CTX);
+  var pr = coprimePair(1,c.mx), p = pr[0], q = pr[1], k = pick(c.k);
+  var T = (p+q)*k, askA = ri(0,1) === 1;
+  var n = askA ? p : q, ans = n*k, other = (askA ? q : p)*k;
+  var askName = askA ? c.A : c.B;
+  return mk({
+    key:"riyou_bunkatsu", tag:"比の利用（全体を 分ける）",
+    q:T+c.u+"の "+c.obj+"を、"+c.A+"と "+c.B+"で <b>"+rText(p,q)+"</b> に 分けます。<br>"
+     +askName+"は 何"+c.u+"に なりますか。",
+    plain:T+c.u+"の"+c.obj+"を"+c.A+"と"+c.B+"で"+p+":"+q+"に分ける。"+askName+"は？",
+    label:askName+"は 何"+c.u+"？",
+    cor:optNum(ans, c.u),
+    cands:[
+      optNum(other, c.u),                       /* もう一方を 答えた */
+      optNum(k, c.u),                           /* 1つぶんで 止まった */
+      optNum(T/n, c.u),                         /* 全体を つぶの数で わった */
+      optNum(T, c.u)                            /* 全体を そのまま 答えた */
+    ],
+    fb:numFallback(ans, k, c.u),
+    expl:'<span class="step">全体を '+p+' ＋ '+q+' ＝ <b>'+(p+q)+'つぶん</b> と 考える</span>'
+        +'<span class="step">1つぶん ＝ '+T+' ÷ '+(p+q)+' ＝ '+k+c.u+'</span>'
+        +'<span class="step">'+askName+'は '+n+'つぶん → '+n+' × '+k+' ＝ <b>'+ans+' '+c.u+'</b></span>'
+        +tapeOne(p, q, c.A, c.B, askA ? "？" : "", askA ? "" : "？", T+c.u),
+    kufu:"「全体と "+askName+"の 比は "+(p+q)+" : "+n+"」と 考えて、"+(p+q)+" : "+n+" ＝ "+T+" : □ と しても とける。",
+    naze:true
+  });
+}
+
+/* =====================================================================
+   出題の 台帳
+   ===================================================================== */
+var GENS = {
+  atai:           gen_atai,
+  hitoshii:       gen_hitoshii,
+  kantan_sei:     gen_kantan_sei,
+  kantan_shou:    gen_kantan_shou,
+  kantan_bun:     gen_kantan_bun,
+  tsukuru_tani:   gen_tsukuru_tani,
+  tsukuru_zentai: gen_tsukuru_zentai,
+  riyou_ippou:    gen_riyou_ippou,
+  riyou_bunkatsu: gen_riyou_bunkatsu
+};
+/* モード → 出す question_key。同じキーを ならべた ぶんだけ 出やすくなる */
+var MODE_KEYS = {
+  atai:     ["atai"],
+  tsukuru:  ["tsukuru_tani","tsukuru_zentai"],
+  hitoshii: ["hitoshii"],
+  kantan:   ["kantan_sei","kantan_sei","kantan_shou","kantan_bun"],
+  riyou:    ["riyou_ippou","riyou_bunkatsu"],
+  mix:      ["atai","tsukuru_tani","tsukuru_zentai","hitoshii","hitoshii",
+             "kantan_sei","kantan_shou","kantan_bun",
+             "riyou_ippou","riyou_ippou","riyou_bunkatsu","riyou_bunkatsu"]
+};
+var MODE_LABEL = {
+  atai:"比の値",
+  tsukuru:"比を 作る",
+  hitoshii:"等しい比",
+  kantan:"比を 簡単にする",
+  riyou:"比の利用（文章題）",
+  mix:"ランダム"
+};
+
+/* =====================================================================
+   出題エンジン（立体の体積マスターと同じ）
+   ===================================================================== */
+var MODE = "atai";
+var cur = null, curKey = "", curSeed = 0;
+var sel = -1, graded = false;
+var score = 0, total = 0, streak = 0, qStart = 0;
+
+/* 解き直し（?retry=1） */
+var retryQ = null, retryTotal = 0, retryDone = 0;
+
+function $(id){ return document.getElementById(id); }
+
+function makeQ(key, seed){
+  rngSeed(seed);                       /* ここから先の乱数は種で決まる */
+  return GENS[key]();
+}
+
+function newQuestion(){
+  graded = false; sel = -1;
+  $("feedback").classList.remove("show");
+  $("toast").textContent = "";
+  $("checkBtn").style.display = "block";
+  $("nextBtn").style.display = "none";
+
+  var useKey, seed;
+  if(retryQ){
+    /* 解き直しを1周した。モード選択にもどって、案内帯を そこに 出す */
+    if(!retryQ.length){
+      retryQ = null;
+      backHome();
+      showRetryBanner("解き直し おつかれさま！ 同じ問題に 2回つづけて 正解すると リストから 消えるよ");
+      return;
+    }
+    var it = retryQ.shift();
+    retryDone++;
+    useKey = it.question_params.m;
+    seed = it.question_params.s>>>0;
+  }else{
+    useKey = pick(MODE_KEYS[MODE] || MODE_KEYS.atai);
+    seed = rngPick();
+  }
+
+  curKey = useKey;
+  curSeed = seed;
+  cur = makeQ(useKey, seed);
+
+  /* 種類バッヂ。ランダムは 種類名が そのまま ヒントに なるので 出さない */
+  var tagText = retryQ ? ("解き直し "+retryDone+" / "+retryTotal+" ・ "+cur.tag)
+                       : (MODE === "mix" ? "" : cur.tag);
+  $("qTag").textContent = tagText;
+  $("qTag").style.display = tagText ? "" : "none";
+  $("qNo").textContent = retryQ ? "" : ("第 "+(total+1)+" 問");
+  $("qText").innerHTML = cur.qHtml;
+  renderOptions();
+  qStart = nowMs();
+  try{ window.scrollTo({ top:0, behavior:"smooth" }); }catch(e){ window.scrollTo(0,0); }
+}
+
+function renderOptions(){
+  var host = $("partArea");
+  host.innerHTML = "";
+  var wrap = document.createElement("div");
+  wrap.className = "part";
+
+  var lab = document.createElement("div");
+  lab.className = "p-label";
+  lab.textContent = cur.label;
+  wrap.appendChild(lab);
+
+  var opts = document.createElement("div");
+  opts.className = "opts";
+  cur.options.forEach(function(o, oi){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "optBtn";
+    b.dataset.idx = oi;
+    b.innerHTML = o.html;          /* 中身は この画面で 組み立てた 数字・分数だけ */
+    b.addEventListener("click", function(){ tapOption(oi); });
+    opts.appendChild(b);
+  });
+  wrap.appendChild(opts);
+  host.appendChild(wrap);
+}
+
+function tapOption(oi){
+  if(graded) return;
+  sel = oi;
+  $("toast").textContent = "";
+  document.querySelectorAll(".optBtn").forEach(function(b){
+    b.classList.toggle("on", Number(b.dataset.idx) === oi);
+  });
+}
+
+/* ---------- 答え合わせ ---------- */
+function check(){
+  if(graded || !cur) return;
+  if(sel < 0){ $("toast").textContent = "答えを えらんでね"; return; }
+
+  graded = true;
+  var ok = (sel === cur.correct);
+  var btns = document.querySelectorAll(".optBtn");
+  safeDivp("markChoices", btns, { correct:cur.correct, selected:sel,
+                                  dimOthers:true, label:"正解" });
+  btns.forEach(function(b){ b.disabled = true; });
+
+  total++;
+  if(ok){ score++; streak++; } else { streak = 0; }
+  renderScore();
+
+  var sec = Math.round((nowMs()-qStart)/1000);
+  /* 学習記録（未ログイン・ローカルでは黙ってスキップされる） */
+  safeDivp("answer", ok, {
+    question_key: curKey,
+    question_params: { m: curKey, s: curSeed },     /* 種方式：この2つで同じ問題を作り直せる */
+    question_text: cur.plainQ,
+    correct_answer: cur.ansText,
+    wrong_answer: ok ? null : cur.options[sel].plain,
+    time_taken_sec: (sec > 0 && sec < 600) ? sec : null
+  });
+
+  $("fbMsg").className = "fb-msg " + (ok ? "good" : "bad");
+  $("fbMsg").textContent = ok ? "せいかい！ よくできました" : "おしい！ とき方を 見てみよう";
+  $("expl").innerHTML = cur.expl;
+  $("feedback").classList.add("show");
+  $("checkBtn").style.display = "none";
+  $("nextBtn").style.display = "block";
+  $("toast").textContent = "";
+
+  /* 正解エフェクト（キラキラ）。pileBottom で「山の床」を ボタンの帯の 上に する
+     （わたさないと 画面下の #bottom が 積もりはじめを かくす） */
+  if(ok) safeDivp("correct", { pileBottom: "#bottom" });
+}
+
+function renderScore(){
+  $("scoreOk").textContent = score;
+  $("scoreAll").textContent = total;
+  $("scoreStreak").textContent = streak;
+}
+
+/* ---------- モード選択 ---------- */
+function startMode(m){
+  if(!MODE_KEYS[m]) return;
+  MODE = m;
+  retryQ = null;
+  score = 0; total = 0; streak = 0;
+  renderScore();
+  $("modeLabel").textContent = MODE_LABEL[m] || "";
+  document.body.classList.remove("choosing");
+  newQuestion();
+}
+function backHome(){
+  document.body.classList.add("choosing");
+  retryQ = null;
+  cur = null;
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+
+/* ---------- 解き直し（?retry=1） ---------- */
+function showRetryBanner(msg){
+  var slot = $("retryBannerSlot");
+  var e = $("retryBanner");
+  if(!e){
+    e = document.createElement("div");
+    e.id = "retryBanner";
+    slot.appendChild(e);
+  }
+  e.textContent = msg;
+}
+function initRetry(){
+  if(!(window.Divp && typeof Divp.getRetries === "function")) return;
+  Divp.getRetries().then(function(items){
+    var use = (items||[]).filter(function(it){
+      var p = it && it.question_params;
+      return p && GENS[p.m] && typeof p.s === "number";
+    });
+    if(!use.length){
+      showRetryBanner("解き直せる 問題は まだ ありません。まちがえた 問題が ここに たまっていくよ。");
+      return;
+    }
+    retryQ = use.slice();
+    retryTotal = retryQ.length;
+    retryDone = 0;
+    MODE = "retry";
+    score = 0; total = 0; streak = 0;
+    renderScore();
+    $("modeLabel").textContent = "まちがえた問題の 解き直し";
+    document.body.classList.remove("choosing");
+    newQuestion();
+  }).catch(function(){});
+}
+
+/* =====================================================================
+   しくみの部屋「比って なに？」
+   赤と青の テープを「1つぶん」の まとまりで 区切る。1つぶんを 何マスに しても
+   まとまりの数（＝比）は かわらない → 等しい比。
+   マスで 数えた比を まとまりで 数えなおす → 比を 簡単にする。
+   ===================================================================== */
+var LAB_RATIOS = [[2,3],[1,2],[3,4],[3,5],[4,5],[5,2]];
+var labIdx = 0, labK = 1, labTimer = null;
+
+function labSVG(){
+  var r = LAB_RATIOS[labIdx], p = r[0], q = r[1], k = labK;
+  var X0 = 54, BW = 50, H = 30, s = "";
+  function tape(n, y, name, col, colL){
+    var t = svgText(8, y+21, name, col, "start", 15);
+    for(var i=0;i<n;i++){
+      var x = X0 + i*BW;
+      t += '<rect x="'+x+'" y="'+y+'" width="'+BW+'" height="'+H+'" fill="'+colL+'" stroke="'+col+'" stroke-width="2.4"/>';
+      for(var c=1;c<k;c++){
+        var xx = x + c*BW/k;
+        t += '<line x1="'+xx+'" y1="'+(y+3)+'" x2="'+xx+'" y2="'+(y+H-3)+'" stroke="'+col+'" stroke-width="1" opacity="0.55"/>';
+      }
+    }
+    t += svgText(X0, y+H+17, n+"つぶん ＝ "+(n*k)+"マス", col, "start", 12.5);
+    return t;
+  }
+  s += tape(p, 14, "赤", COL.a, COL.aL);
+  s += tape(q, 86, "青", COL.b, COL.bL);
+  return '<svg viewBox="0 0 330 156" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="比のテープ図">'+s+'</svg>';
+}
+function labDraw(){
+  var r = LAB_RATIOS[labIdx], p = r[0], q = r[1], k = labK;
+  $("labStage").innerHTML = labSVG();
+  $("labKVal").textContent = k + "マス";
+  $("labK").value = k;
+  var h;
+  if(k === 1){
+    h = '1つぶん ＝ 1マス のとき<br>赤 : 青 ＝ <span class="sq">'+rText(p,q)+'</span>';
+  }else{
+    h = 'マスで 数えると <span class="hh">'+rText(p*k,q*k)+'</span><br>'
+      + 'まとまり（1つぶん）で 数えると <span class="sq">'+rText(p,q)+'</span><br>'
+      + '<span class="vv">'+rText(p*k,q*k)+' ＝ '+rText(p,q)+'</span><br>'
+      + '<small>'+(p*k)+' と '+(q*k)+' を 両方 '+k+' で わると '+p+' と '+q+' に もどる</small>';
+  }
+  h += '<br><small>ぜんぶで '+p+' ＋ '+q+' ＝ '+(p+q)+'つぶん（'+((p+q)*k)+'マス）</small>';
+  $("labShiki").innerHTML = h;
+  document.querySelectorAll(".lab-chip").forEach(function(b,i){ b.classList.toggle("on", i === labIdx); });
+}
+function labStop(){
+  if(labTimer){ clearInterval(labTimer); labTimer = null; }
+  $("labPlay").textContent = "1つぶんを 大きく してみる ▶";
+}
+function labAnimate(){
+  if(labTimer){ labStop(); return; }
+  labK = 1; labDraw();
+  $("labPlay").textContent = "とめる ■";
+  labTimer = setInterval(function(){
+    if(labK >= 5){ labStop(); return; }
+    labK++; labDraw();
+  }, 1100);
+}
+function labChips(){
+  var host = $("labChips");
+  host.innerHTML = "";
+  LAB_RATIOS.forEach(function(r,i){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "lab-chip";
+    b.textContent = rText(r[0], r[1]);
+    b.addEventListener("click", function(){ labStop(); labIdx = i; labDraw(); });
+    host.appendChild(b);
+  });
+}
+function labSteps(){
+  var st = [
+    '比 <b>a : b</b> は「赤が aつぶん、青が bつぶん」という くらべかた。'
+      + '1つぶんの 大きさ（何マスか）は 決まっていない。',
+    '1つぶんを 何マスに しても、まとまりの数は かわらない。だから '
+      + '<b>両方に 同じ数を かけても、両方を 同じ数で わっても 等しい比</b>（等しい比）。',
+    'マスで 数えた 6 : 9 を、3マスずつの まとまりで 数えなおすと 2 : 3。'
+      + 'これが <b>比を 簡単にする</b> こと（両方を 最大公約数で わる）。',
+    'ぜんぶで a ＋ b つぶん。全体の 量が わかれば <b>全体 ÷ (a ＋ b)</b> で 1つぶんが 出る。'
+      + 'あとは つぶの数を かければ よい（比の利用）。'
+  ];
+  $("labSteps").innerHTML = '<div class="lab-ttl">② わかること</div>' + st.map(function(t,i){
+    return '<div class="lab-step"><span class="no">'+(i+1)+'</span><span>'+t+'</span></div>';
+  }).join("");
+}
+function showLab(){
+  labStop();
+  document.body.classList.add("labbing");
+  labChips(); labSteps(); labDraw();
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+function hideLab(){
+  labStop();
+  document.body.classList.remove("labbing");
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+
+/* ---------- イベント ---------- */
+document.querySelectorAll(".m-card").forEach(function(b){
+  b.addEventListener("click", function(){ startMode(b.dataset.mode); });
+});
+$("homeBtn").addEventListener("click", backHome);
+$("checkBtn").addEventListener("click", check);
+$("nextBtn").addEventListener("click", newQuestion);
+$("labBtn").addEventListener("click", function(){ showLab(); });
+$("labBack").addEventListener("click", hideLab);
+$("labPlay").addEventListener("click", labAnimate);
+$("labK").addEventListener("input", function(){
+  labStop();
+  labK = Number(this.value) || 1;
+  labDraw();
+});
+/* 解説の中の「比って なに？」ボタン（innerHTML で 作りなおされるので 委任） */
+$("expl").addEventListener("click", function(ev){
+  if(ev.target && ev.target.classList.contains("naze")) showLab();
+});
+
+/* divp-core は defer で読まれるので、DOM構築後に初期化する */
+window.addEventListener("DOMContentLoaded", function(){
+  safeDivp("init", UNIT_KEY);
+  if(/[?&]retry=1/.test(location.search)){
+    try{ initRetry(); }catch(e){}
+  }
+});
+</script>
+</body>
+</html>
