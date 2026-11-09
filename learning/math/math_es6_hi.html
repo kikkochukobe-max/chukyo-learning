@@ -8,6 +8,8 @@
 <meta name="description" content="小6算数の比を練習。比の値・等しい比・比を簡単にする（整数・小数・分数）・比の利用（一方を求める・全体を比で分ける）。「比ってなに？」をテープ図のアニメーションで解説。中京個別指導学院(神丘)の学習ツール。">
 <!-- 本番(Heteml)ではサブセット自己ホストに差し替え -->
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- 印刷シートのロゴ透かし（ChukyoPrint） -->
+<script src="/assets/print-watermark.js"></script>
 <style>
   :root{
     --paper:#FBFAF6;
@@ -457,10 +459,79 @@
   .app > *, .mode-screen > *, .lab > *,
   .feedback > *, .lab-card > *, .lab-row > *{ position:relative; z-index:10; }
 
+  .mode-back.next-to{ margin-left:6px; }
+
+  /* ---- モード画面の「プリントを 印刷する」 ---- */
+  .m-print{
+    background:#fff;
+    border:1.5px dashed #CFC9B8;
+    border-radius:16px;
+    padding:12px 14px 14px;
+  }
+  .m-print-ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:15px; font-weight:700;
+    margin-bottom:9px;
+  }
+  .m-print-ttl span{
+    display:block;
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    margin-top:1px;
+  }
+  .m-print-btns{ display:flex; flex-wrap:wrap; gap:7px; }
+  .m-print-btns button{
+    flex:1 1 calc(33% - 7px);
+    min-width:92px; min-height:40px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:10px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13.5px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+  }
+  .m-print-btns button:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+
+  /* ---- 印刷シート ---- */
+  .print-area{ display:none; }
   @media print{
+    @page{ size:A4 portrait; margin:10mm 11mm; }
     /* 共通ヘッダーは紙に出さない（assets/divp-header.js と同じ方針） */
     .divp-header{ display:none !important; }
-    .bottom{ display:none !important; }
+    .mode-screen, .app, .bottom, .lab,
+    #divp-kk-layer, #divp-kk-pile, .divp-kk-layer, .divp-kk-canvas, .divp-kk-text{ display:none !important; }
+    html, body{ background:#fff !important; min-height:0 !important; }
+    body{ display:block !important; }
+    .print-area{ display:block !important; color:#222; font-family:"Zen Kaku Gothic New", sans-serif; }
+    .sheet{ position:relative; page-break-after:always; break-after:page;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .sheet:last-child{ page-break-after:auto; break-after:auto; }
+    .p-head{ position:relative; z-index:1; display:flex; justify-content:space-between; align-items:flex-end;
+      border-bottom:2px solid #33312B; padding-bottom:4px; margin-bottom:6px; }
+    .p-school{ font-size:11px; font-weight:700; color:#555; }
+    .p-title{ font-family:"Zen Maru Gothic", sans-serif; font-weight:700; font-size:20px; margin-top:1px; }
+    .p-title small{ font-size:13px; margin-left:8px; color:#555; }
+    .p-name{ font-size:12px; white-space:nowrap; }
+    .p-name span{ display:inline-block; border-bottom:1px solid #000; min-width:170px; margin-left:6px; }
+    .p-inst{ position:relative; z-index:1; font-size:11.5px; margin:0 0 6px; }
+    .p-grid{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:3.5mm 7mm; }
+    .p-item{ break-inside:avoid; page-break-inside:avoid; padding:1mm 1mm 0; }
+    .p-no{ display:inline-block; font-weight:700; font-size:12px; background:#33312B; color:#fff;
+      border-radius:5px; padding:0 7px; margin-right:4px; }
+    .p-tag{ font-size:9.5px; color:#777; }
+    .p-q{ font-size:12px; line-height:1.65; margin:2px 0 0; min-height:15mm; }
+    .p-q b{ color:#222; }
+    .p-q .ratio-big{ font-size:19px; margin:2px 0 3px; }
+    .p-q .blank{ border-width:1.5px; background:#fff; }
+    .p-ans{ display:flex; align-items:flex-end; gap:6px; margin-top:2mm; font-size:11px; color:#555; }
+    .p-ans i{ flex:1; border-bottom:1px solid #333; height:8mm; font-style:normal; }
+    .a-grid{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:2.5mm 7mm; }
+    .a-item{ break-inside:avoid; font-size:12px; line-height:1.6; border-bottom:1px dashed #ccc; padding:1.5mm 0 2mm; }
+    .a-item .a-v{ font-family:"Zen Maru Gothic", sans-serif; font-size:16px; font-weight:700; color:#C73E2E; margin-left:4px; }
+    .a-item .a-how{ display:block; font-size:10.5px; color:#555; line-height:1.55; margin-top:1px; }
+    .a-item .a-how .tape{ display:none; }
   }
 </style>
 </head>
@@ -483,16 +554,16 @@
   <div class="m-sub">小6 算数 ／ れんしゅうしたいものを えらんでね</div>
   <div id="retryBannerSlot"></div>
 
+  <button type="button" class="m-card" data-mode="tsukuru">
+    <span class="m-body"><span class="m-name">比を 作る</span>
+    <span class="m-desc">「コーヒー 50mLと 牛乳 150mL」「1時間と 23分」「クラス全員と 男の子」のように、
+    問題文から 比を 作って 簡単にする</span></span>
+  </button>
+
   <button type="button" class="m-card review" data-mode="atai">
     <span class="m-body"><span class="m-name">比の値</span>
     <span class="m-desc">a : b の 比の値は a ÷ b。
     分数で 答えて、約分も わすれずに</span></span>
-  </button>
-
-  <button type="button" class="m-card" data-mode="tsukuru">
-    <span class="m-body"><span class="m-name">比を 作る</span>
-    <span class="m-desc">「1時間と 23分」「クラス全員と 男の子」のように、
-    問題文から 比を 作って 簡単にする（単位を そろえる・全体を 出す）</span></span>
   </button>
 
   <button type="button" class="m-card" data-mode="hitoshii">
@@ -525,12 +596,27 @@
     <span class="m-desc">1つぶんの 大きさを かえても 比が かわらない ようすを
     アニメーションで たしかめられる（等しい比・比を簡単にする しくみ）</span></span>
   </button>
+
+  <div class="m-sep">プリントで れんしゅうしたいときは</div>
+
+  <div class="m-print">
+    <div class="m-print-ttl">🖨 プリントを 印刷する<span>A4・12問＋答えのページ／押すたびに ちがう問題</span></div>
+    <div class="m-print-btns" id="printBtns">
+      <button type="button" data-mode="tsukuru">比を 作る</button>
+      <button type="button" data-mode="atai">比の値</button>
+      <button type="button" data-mode="hitoshii">等しい比</button>
+      <button type="button" data-mode="kantan">比を 簡単に</button>
+      <button type="button" data-mode="riyou">比の利用</button>
+      <button type="button" data-mode="mix">ランダム</button>
+    </div>
+  </div>
 </div>
 
 <div class="app" id="app">
   <header>
     <h1>比マスター<span class="sub" id="modeLabel">比の値</span></h1>
-    <button type="button" class="mode-back" id="homeBtn">ホームに戻る</button>
+    <button type="button" class="mode-back" id="printBtn" title="このモードのプリントを印刷">🖨 プリント</button>
+    <button type="button" class="mode-back next-to" id="homeBtn">ホームに戻る</button>
   </header>
 
   <div class="score">
@@ -553,6 +639,9 @@
     <div class="expl" id="expl"></div>
   </div>
 </div>
+
+<!-- 印刷用（画面には出さない。印刷ボタンのたびに 中身を 作りなおす） -->
+<div class="print-area" id="printArea"></div>
 
 <div class="bottom" id="bottom">
   <div class="inner">
@@ -600,7 +689,8 @@
 
    ■ モードと question_key
      比の値         → atai
-     比を作る       → tsukuru_tani（単位を そろえて 比を作る）/ tsukuru_zentai（全体と 部分の 比）
+     比を作る       → tsukuru_kihon（同じ単位の 2つの量）/ tsukuru_tani（単位を そろえて 比を作る）/
+                      tsukuru_zentai（全体と 部分の 比）
      等しい比       → hitoshii（□に あてはまる 数）
      比を簡単にする → kantan_sei / kantan_shou / kantan_bun（整数・小数・分数の比）
      比の利用       → riyou_ippou（比と 片方から もう片方）/ riyou_bunkatsu（全体を 比で 分ける）
@@ -965,6 +1055,40 @@ function gen_kantan_bun(){
 /* =====================================================================
    ③' 比を 作る（問題文から 比を 作って 簡単にする）
    ===================================================================== */
+/* やさしい形：同じ単位の 2つの 量を そのまま ならべて 簡単にする
+   （コーヒー 50mL と 牛乳 150mL → 1 : 3）。数は 小さめ（p,q は 5まで） */
+var KIHON_CTX = [
+  { intro:"コーヒー {A}mLと 牛乳 {B}mLを まぜて、ミルクコーヒーを 作ります。", A:"コーヒー", B:"牛乳", what:"量", k:[10,20,25,30,50] },
+  { intro:"縦が {A}cm、横が {B}cmの 長方形が あります。", A:"縦", B:"横", what:"長さ", k:[2,3,4,5,6] },
+  { intro:"砂糖 {A}gと 小麦粉 {B}gで クッキーを 作ります。", A:"砂糖", B:"小麦粉", what:"重さ", k:[10,20,25,50] },
+  { intro:"赤い テープが {A}cm、青い テープが {B}cm あります。", A:"赤い テープ", B:"青い テープ", what:"長さ", k:[3,4,5,6,8,10] },
+  { intro:"酢 {A}mLと サラダ油 {B}mLで ドレッシングを 作ります。", A:"酢", B:"サラダ油", what:"量", k:[10,15,20,30] },
+  { intro:"兄は {A}円、弟は {B}円 持っています。", A:"兄", B:"弟", what:"持っている お金", k:[50,100,200] }
+];
+function gen_tsukuru_kihon(){
+  var c = pick(KIHON_CTX);
+  var pr = coprimePair(1,5), p0 = pr[0], q0 = pr[1], k = pick(c.k);
+  var A = p0*k, B = q0*k;
+  var rev = ri(0,3) === 0;                      /* 4問に1問は 書いてある 順と 逆に 聞く */
+  var X = rev ? B : A, Y = rev ? A : B, G = gcd(X,Y), p = X/G, q = Y/G;
+  var n0 = rev ? c.B : c.A, n1 = rev ? c.A : c.B;
+  var intro = c.intro.replace("{A}", A).replace("{B}", B);
+  var cands = [optRatio(X,Y), optRatio(q,p)];
+  for(var d=2; d<G; d++) if(G % d === 0){ cands.push(optRatio(X/d, Y/d)); break; }
+  return mk({
+    key:"tsukuru_kihon", tag:"比を 作る（同じ 単位）",
+    q:intro+"<br><b>"+n0+"と "+n1+"</b>の "+c.what+"の比を、いちばん 簡単な 整数の比で 表しましょう。",
+    plain:intro.replace(/ /g,"")+n0+"と"+n1+"の比",
+    label:"いちばん 簡単な 比は？",
+    cor:optRatio(p,q),
+    cands:cands,
+    fb:ratioFallback(p,q),
+    expl:'<span class="step">'+n0+' : '+n1+' ＝ '+rText(X,Y)+'</span>'
+        +reduceStep(X,Y,p,q),
+    kufu:"単位が そろっているので、数を そのまま ならべて 比を 作り、最大公約数で わる。"
+        +(rev ? "聞かれた 順（"+n0+"が 先）に 書くことに 注意。" : "")
+  });
+}
 /* 単位を そろえる。b=大きい単位 s=小さい単位 f=1b が何s か wf=よくある まちがいの 換算 */
 var TANI = [
   { b:"時間", s:"分",  f:60,   wf:100, br:[1,3], sr:[5,55], st:1 },
@@ -1143,6 +1267,7 @@ var GENS = {
   kantan_sei:     gen_kantan_sei,
   kantan_shou:    gen_kantan_shou,
   kantan_bun:     gen_kantan_bun,
+  tsukuru_kihon:  gen_tsukuru_kihon,
   tsukuru_tani:   gen_tsukuru_tani,
   tsukuru_zentai: gen_tsukuru_zentai,
   riyou_ippou:    gen_riyou_ippou,
@@ -1151,13 +1276,37 @@ var GENS = {
 /* モード → 出す question_key。同じキーを ならべた ぶんだけ 出やすくなる */
 var MODE_KEYS = {
   atai:     ["atai"],
-  tsukuru:  ["tsukuru_tani","tsukuru_zentai"],
+  tsukuru:  ["tsukuru_kihon","tsukuru_kihon","tsukuru_tani","tsukuru_zentai"],
   hitoshii: ["hitoshii"],
   kantan:   ["kantan_sei","kantan_sei","kantan_shou","kantan_bun"],
   riyou:    ["riyou_ippou","riyou_bunkatsu"],
-  mix:      ["atai","tsukuru_tani","tsukuru_zentai","hitoshii","hitoshii",
+  mix:      ["tsukuru_kihon","tsukuru_tani","tsukuru_zentai","atai","hitoshii","hitoshii",
              "kantan_sei","kantan_shou","kantan_bun",
              "riyou_ippou","riyou_ippou","riyou_bunkatsu","riyou_bunkatsu"]
+};
+/* 印刷シート（1枚12問）に出す 種類。やさしい順に ならべる */
+var PRINT_KEYS = {
+  tsukuru:  ["tsukuru_kihon","tsukuru_kihon","tsukuru_kihon","tsukuru_kihon",
+             "tsukuru_tani","tsukuru_tani","tsukuru_tani","tsukuru_tani",
+             "tsukuru_zentai","tsukuru_zentai","tsukuru_zentai","tsukuru_zentai"],
+  atai:     ["atai","atai","atai","atai","atai","atai","atai","atai","atai","atai","atai","atai"],
+  hitoshii: ["hitoshii","hitoshii","hitoshii","hitoshii","hitoshii","hitoshii",
+             "hitoshii","hitoshii","hitoshii","hitoshii","hitoshii","hitoshii"],
+  kantan:   ["kantan_sei","kantan_sei","kantan_sei","kantan_sei",
+             "kantan_shou","kantan_shou","kantan_shou","kantan_shou",
+             "kantan_bun","kantan_bun","kantan_bun","kantan_bun"],
+  riyou:    ["riyou_ippou","riyou_ippou","riyou_ippou","riyou_ippou","riyou_ippou","riyou_ippou",
+             "riyou_bunkatsu","riyou_bunkatsu","riyou_bunkatsu","riyou_bunkatsu","riyou_bunkatsu","riyou_bunkatsu"],
+  mix:      ["tsukuru_kihon","tsukuru_tani","tsukuru_zentai","atai","hitoshii","hitoshii",
+             "kantan_sei","kantan_shou","kantan_bun","riyou_ippou","riyou_bunkatsu","riyou_bunkatsu"]
+};
+var PRINT_INST = {
+  tsukuru:"次の 比を、いちばん 簡単な 整数の比で 表しましょう。単位が ちがうときは そろえてから 比を 作ります。",
+  atai:"次の 比の値を もとめましょう。わりきれないときは 分数で 答え、約分しましょう。",
+  hitoshii:"□に あてはまる 数を もとめましょう。",
+  kantan:"次の 比を、いちばん 簡単な 整数の比に しましょう。",
+  riyou:"次の 問題に 答えましょう。単位も 書きましょう。",
+  mix:"次の 問題に 答えましょう。比は いちばん 簡単な 整数の比で、比の値は 分数で 答えましょう。"
 };
 var MODE_LABEL = {
   atai:"比の値",
@@ -1459,7 +1608,89 @@ function hideLab(){
   try{ window.scrollTo(0,0); }catch(e){}
 }
 
+/* =====================================================================
+   印刷（A4・12問＋答え）。紙は 毎回 ちがう 問題で よいので 1問ごとに 種を 引く。
+   画面の 問題と 同じ 生成関数を 使うので、問題の 中身・答え・とき方は 画面と 一致する。
+   ⚠ makeQ() は 乱数の 状態を 書きかえるが、画面の 問題(cur)は 作り終わっているので 影響しない
+   （次の newQuestion() で また 種を 入れ直す）。
+   ===================================================================== */
+function printItems(mode){
+  var keys = PRINT_KEYS[mode] || PRINT_KEYS.mix, seen = {}, seenTpl = {}, out = [];
+  keys.forEach(function(k){
+    /* 同じ問題は 2つ 並べない。できれば 同じ場面（数字だけ ちがう 文章題）も さける
+       （1枚に「赤い テープ」が 3回 出た）。比の値のように 形が 1つしか ない 種類は
+       30回で あきらめて「同じ問題でない」ものを 使う */
+    var q = null, best = null;
+    for(var t=0; t<30; t++){
+      q = makeQ(k, rngPick());
+      if(seen[q.plainQ]) continue;
+      if(!best) best = q;
+      if(!seenTpl[q.plainQ.replace(/[\d.]+/g, "#")]){ best = q; break; }
+    }
+    q = best || q;
+    seen[q.plainQ] = 1;
+    seenTpl[q.plainQ.replace(/[\d.]+/g, "#")] = 1;
+    out.push(q);
+  });
+  return out;
+}
+function printAnsBox(q){
+  if(/^(tsukuru|kantan)/.test(q.key)) return '答え<i></i>:<i></i>';
+  if(/^riyou/.test(q.key)) return '答え<i></i>' + esc(q.ansText.split(" ")[1] || "");
+  return '答え<i></i>';
+}
+/* 答えのページに出す 「とき方」＝ 画面の 解説の 手順だけ（テープ図・ポイント・ボタンは のぞく） */
+function printHow(q){
+  var box = document.createElement("div");
+  box.innerHTML = q.expl;
+  var rm = box.querySelectorAll(".ttl, .kufu, .naze, .tape");
+  for(var i=0;i<rm.length;i++) rm[i].parentNode.removeChild(rm[i]);
+  var steps = box.querySelectorAll(".step"), s = [];
+  for(i=0;i<steps.length;i++) s.push(steps[i].innerHTML.replace(/<\/?b>/g, ""));
+  return s.join(" → ");
+}
+function buildPrint(mode){
+  var items = printItems(mode);
+  var d = new Date();
+  var dateStr = d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
+  var label = MODE_LABEL[mode] || MODE_LABEL.mix;
+  function head(sub){
+    return '<div class="p-head"><div><div class="p-school">中京個別指導学院</div>'
+      + '<div class="p-title">比マスター<small>'+esc(label)+'　'+sub+'</small></div></div>'
+      + '<div class="p-name">'+dateStr+'　名前<span></span></div></div>';
+  }
+  var qh = items.map(function(q,i){
+    return '<div class="p-item"><span class="p-no">'+(i+1)+'</span><span class="p-tag">'+esc(q.tag)+'</span>'
+      + '<div class="p-q">'+q.qHtml+'</div>'
+      + '<div class="p-ans">'+printAnsBox(q)+'</div></div>';
+  }).join("");
+  var ah = items.map(function(q,i){
+    return '<div class="a-item"><span class="p-no">'+(i+1)+'</span>'
+      + '<span class="a-v">'+q.options[q.correct].html+'</span>'
+      + '<span class="a-how">'+printHow(q)+'</span></div>';
+  }).join("");
+  var wm = window.ChukyoPrint ? ChukyoPrint.img() : "";
+  return wm
+    + '<div class="sheet">'+head("問題")+'<p class="p-inst">'+esc(PRINT_INST[mode] || PRINT_INST.mix)+'</p>'
+    + '<div class="p-grid">'+qh+'</div></div>'
+    + '<div class="sheet">'+head("答え")+'<div class="a-grid">'+ah+'</div></div>';
+}
+function printSheet(mode){
+  if(!PRINT_KEYS[mode]) mode = "mix";
+  var area = $("printArea");
+  /* 透かしは position:fixed で 1枚だけ 置く＝印刷では どのページにも 同じ位置に 出る */
+  var wmCss = window.ChukyoPrint ? '<style>'+ChukyoPrint.css({ zIndex:0 })+'.wm{position:fixed;}</style>' : "";
+  area.innerHTML = wmCss + buildPrint(mode);
+  /* 透かし画像の デコードを 待ってから 印刷する（直後に print() するとロゴが 抜けることがある） */
+  if(window.ChukyoPrint && ChukyoPrint.print) ChukyoPrint.print(area);
+  else window.print();
+}
+
 /* ---------- イベント ---------- */
+document.querySelectorAll("#printBtns button").forEach(function(b){
+  b.addEventListener("click", function(){ printSheet(b.dataset.mode); });
+});
+$("printBtn").addEventListener("click", function(){ printSheet(MODE); });
 document.querySelectorAll(".m-card").forEach(function(b){
   b.addEventListener("click", function(){ startMode(b.dataset.mode); });
 });
