@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="only light">
+<title>平均マスター｜小5算数 平均｜中京個別指導学院</title>
+<meta name="description" content="小5算数の平均を練習。平均の求め方（合計÷個数・小数になる平均・0をふくむ平均）、平均から合計を求める、わからない1つを求める、歩はば、人数がちがうグループの全体の平均。解説は「ならす」棒グラフつき。中京個別指導学院(神丘)の学習ツール。">
+<!-- 本番(Heteml)ではサブセット自己ホストに差し替え -->
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- 印刷シートのロゴ透かし（ChukyoPrint） -->
+<script src="/assets/print-watermark.js"></script>
+<style>
+  :root{
+    --paper:#FBFAF6;
+    --grid:#ECE9E0;
+    --sumi:#33312B;
+    --usuzumi:#8B877C;
+    --shu:#C73E2E;
+    --kin:#C9A227;
+    --ai:#2C5F8A;
+    /* 答え合わせの色は共通モジュール(divp-choice-mark.js)の既定にそろえる */
+    --divp-mark-ok:#3E8E5A;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html{ scrollbar-gutter:stable; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:24px 24px;
+    color:var(--sumi);
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;     /* ⚠ 横並び(row)にしない。共通ヘッダーが左端に縦長の帯になる */
+    touch-action:manipulation;
+  }
+  .app{
+    width:100%;
+    max-width:560px;
+    margin:0 auto;
+    padding:12px 14px calc(90px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    flex:1;
+  }
+
+  /* ---- ヘッダー ---- */
+  header{ display:flex; align-items:center; gap:8px; }
+  header h1{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700; margin:0;
+    letter-spacing:.04em;
+  }
+  header h1 .sub{
+    display:block;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    letter-spacing:.1em;
+  }
+  .mode-back{
+    margin-left:auto;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.5px solid var(--ai);
+    background:#fff;
+    border-radius:8px;
+    padding:5px 9px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .mode-back.next-to{ margin-left:6px; }
+
+  /* ---- スコア ---- */
+  .score{
+    display:flex; align-items:baseline; gap:12px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700; color:var(--usuzumi);
+  }
+  .score b{ color:var(--shu); font-size:17px; }
+  .score .streak b{ color:var(--kin); }
+  .score .qno{ margin-left:auto; color:var(--ai); }
+
+  /* ---- 問題カード ---- */
+  .card{
+    position:relative;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:16px;
+    box-shadow:0 2px 0 rgba(51,49,43,.06);
+    padding:16px 16px 14px;
+  }
+  .card .qtag{
+    display:inline-block;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.2px solid var(--ai);
+    border-radius:999px;
+    padding:2px 10px;
+    margin-bottom:8px;
+    letter-spacing:.06em;
+  }
+  .card .qtext{
+    font-size:16px; line-height:1.85;
+    letter-spacing:.02em;
+  }
+  .card .qtext b{ color:var(--shu); }
+
+  /* ---- 問題の 表（データ） ---- */
+  .dtbl{ overflow-x:auto; margin:8px 0 6px; }
+  .dtbl table{
+    border-collapse:collapse;
+    margin:0 auto;
+    font-family:"Zen Maru Gothic", sans-serif;
+    background:#fff;
+  }
+  .dtbl th, .dtbl td{
+    border:1.5px solid #CFC9B8;
+    padding:4px 5px;
+    text-align:center;
+    white-space:nowrap;
+    line-height:1.3;
+  }
+  .dtbl th{
+    background:#F5F2EA;
+    font-size:12px; font-weight:700;
+    color:#6B675D;
+    padding:4px 7px;
+  }
+  .dtbl th small{ display:block; font-size:10.5px; font-weight:500; }
+  .dtbl td{ font-size:15px; font-weight:700; min-width:1.9em; }
+  .dtbl td.lb{ background:#F5F2EA; font-size:13px; color:#6B675D; }
+  .dtbl td.qm{ color:var(--shu); background:#FDF4F2; }
+
+  /* ---- 解答パーツ ---- */
+  .part{ display:flex; flex-direction:column; gap:8px; }
+  .p-label{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700;
+    color:var(--ai);
+    letter-spacing:.04em;
+  }
+  .opts{ display:flex; flex-wrap:wrap; gap:8px; }
+  .optBtn{
+    position:relative;          /* 「正解」バッジの基準（divp-choice-mark.js） */
+    flex:1 1 calc(50% - 4px);
+    min-width:120px;
+    min-height:58px;
+    padding:8px 12px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:11px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:21px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    line-height:1.4;
+  }
+  .optBtn .u{ font-size:.68em; margin-left:3px; color:var(--usuzumi); }
+  .optBtn.on{
+    background:#FDECE9;
+    border-color:var(--shu);
+    border-bottom-color:var(--shu);
+    color:var(--shu);
+  }
+  .optBtn.on .u{ color:var(--shu); }
+  .optBtn:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .optBtn:disabled{ cursor:default; transform:none; }
+  .optBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- フィードバック ---- */
+  .feedback{ display:none; }
+  .feedback.show{ display:flex; flex-direction:column; gap:10px; }
+  .fb-msg{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    text-align:center;
+    letter-spacing:.06em;
+  }
+  .fb-msg.good{ color:var(--shu); }
+  .fb-msg.bad{ color:var(--ai); }
+  .expl{
+    background:#fff;
+    border:1.5px dashed var(--kin);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:14px; line-height:2.05;
+  }
+  .expl b{ color:var(--shu); }
+  .expl .ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--kin);
+    letter-spacing:.08em;
+    display:block; margin-bottom:4px;
+  }
+  .expl .step{ display:block; }
+  .expl .fig{ display:flex; justify-content:center; margin:6px 0 0; }
+  .expl .fig svg{ width:100%; max-width:330px; height:auto; background:#FFFDF7; border-radius:10px; }
+  .expl .cap{
+    display:block;
+    font-size:12px; line-height:1.6;
+    color:var(--usuzumi);
+    text-align:center;
+    margin-top:2px;
+  }
+  .expl .kufu{
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px dashed var(--grid);
+    font-size:13px; color:var(--ai);
+  }
+  .toast{
+    text-align:center;
+    font-size:13px; font-weight:700; color:var(--ai);
+    min-height:20px;
+  }
+
+  /* ---- 下の大きなボタン ---- */
+  .bottom{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--paper) 62%, rgba(251,250,246,0));
+    z-index:20;
+  }
+  .bottom .inner{ max-width:560px; margin:0 auto; }
+  .bigBtn{
+    width:100%;
+    height:54px;
+    border:none;
+    border-radius:13px;
+    background:var(--shu);
+    color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    letter-spacing:.2em; text-indent:.2em;
+    box-shadow:0 3px 0 #9E2F22;
+    cursor:pointer;
+  }
+  .bigBtn:active{ transform:translateY(2px); box-shadow:0 1px 0 #9E2F22; }
+  .bigBtn.next{ background:var(--ai); box-shadow:0 3px 0 #1E466A; }
+  .bigBtn.next:active{ box-shadow:0 1px 0 #1E466A; }
+  .bigBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- モード選択画面（比マスターと同じ作り） ---- */
+  .mode-screen{ display:none; }
+  body.choosing .app,
+  body.choosing .bottom{ display:none; }
+  body.choosing .mode-screen{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:100%;
+    max-width:520px;
+    margin:0 auto;
+    padding:34px 18px 48px;
+  }
+  .m-logo{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:25px; font-weight:700;
+    text-align:center;
+    letter-spacing:.08em;
+  }
+  .m-sub{
+    text-align:center;
+    font-size:13px; color:var(--usuzumi);
+    margin-bottom:8px;
+  }
+  /* .m-link は「別の画面へのリンク」。見た目は .m-card と同じだが、
+     クリック処理(startMode)は .m-card だけに付いているので class は分けておく */
+  .m-card,
+  .m-link{
+    display:flex; align-items:center; gap:13px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:4px solid #D8D4C8;
+    border-radius:16px;
+    padding:14px 16px;
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;
+    color:inherit;
+    width:100%;
+  }
+  .m-card:active,
+  .m-link:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .m-card.chal{ border-color:#BFD4C6; border-bottom-color:#8FB9A0; background:#F7FBF8; }
+  .m-card.mix{ border-color:var(--kin); border-bottom-color:var(--kin); }
+  .m-link{
+    text-decoration:none;
+    border-color:var(--ai); border-bottom-color:#1E466A;
+    background:#F5F9FC;
+  }
+  .m-link .m-name{ color:var(--ai); }
+  .m-sep{
+    display:flex; align-items:center; gap:8px;
+    margin-top:14px;
+    font-size:11.5px; color:var(--usuzumi); letter-spacing:.06em;
+  }
+  .m-sep::before, .m-sep::after{
+    content:""; flex:1; height:1px; background:var(--grid);
+  }
+  .m-body{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .m-name{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700;
+  }
+  .m-desc{ font-size:11.5px; color:var(--usuzumi); line-height:1.5; }
+
+  /* 解き直し(?retry=1)の案内帯 */
+  #retryBanner{
+    background:#FBF3E0;
+    border:1.5px solid var(--kin);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:12.5px; line-height:1.6;
+    color:#6E5518;
+  }
+
+  /* 積もったキラキラ(divp-correct-kirakira の pile, z-index:5)にうもれないように。
+     モジュール側の :where() は詳細度0で、div/span だけで組んだ帯は
+     セレクタから漏れるため、画面の直下の子をまとめて前面に出しておく */
+  .divp-header{ position:relative; z-index:11; }
+  .app > *, .mode-screen > *, .feedback > *{ position:relative; z-index:10; }
+
+  /* ---- モード画面の「プリントを 印刷する」 ---- */
+  .m-print{
+    background:#fff;
+    border:1.5px dashed #CFC9B8;
+    border-radius:16px;
+    padding:12px 14px 14px;
+  }
+  .m-print-ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:15px; font-weight:700;
+    margin-bottom:9px;
+  }
+  .m-print-ttl span{
+    display:block;
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    margin-top:1px;
+  }
+  .m-print-btns{ display:flex; flex-wrap:wrap; gap:7px; }
+  .m-print-btns button{
+    flex:1 1 calc(33% - 7px);
+    min-width:92px; min-height:40px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:10px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13.5px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+  }
+  .m-print-btns button:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+
+  /* ---- 印刷シート ---- */
+  .print-area{ display:none; }
+  @media print{
+    @page{ size:A4 portrait; margin:10mm 11mm; }
+    /* 共通ヘッダーは紙に出さない（assets/divp-header.js と同じ方針） */
+    .divp-header{ display:none !important; }
+    .mode-screen, .app, .bottom,
+    #divp-kk-layer, #divp-kk-pile, .divp-kk-layer, .divp-kk-canvas, .divp-kk-text{ display:none !important; }
+    html, body{ background:#fff !important; min-height:0 !important; }
+    body{ display:block !important; }
+    .print-area{ display:block !important; color:#222; font-family:"Zen Kaku Gothic New", sans-serif; }
+    .sheet{ position:relative; page-break-after:always; break-after:page;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .sheet:last-child{ page-break-after:auto; break-after:auto; }
+    .p-head{ position:relative; z-index:1; display:flex; justify-content:space-between; align-items:flex-end;
+      border-bottom:2px solid #33312B; padding-bottom:4px; margin-bottom:6px; }
+    .p-school{ font-size:11px; font-weight:700; color:#555; }
+    .p-title{ font-family:"Zen Maru Gothic", sans-serif; font-weight:700; font-size:20px; margin-top:1px; }
+    .p-title small{ font-size:13px; margin-left:8px; color:#555; }
+    .p-name{ font-size:12px; white-space:nowrap; }
+    .p-name span{ display:inline-block; border-bottom:1px solid #000; min-width:170px; margin-left:6px; }
+    .p-inst{ position:relative; z-index:1; font-size:11.5px; margin:0 0 6px; }
+    /* ⚠ 歩はば（3回の測定→道のり）は 表＋文章で 背が高い。1行に 2問 並ぶので、
+       それが 各行に 散ると 1枚に 入りきらなかった（最悪 1095px／枠 1047px）。
+       すき間を 詰め、問題文も 2行に おさまる 長さに してある（文を のばすと また はみ出す） */
+    .p-grid{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:3mm 7mm; }
+    .p-item{ break-inside:avoid; page-break-inside:avoid; padding:1mm 1mm 0; }
+    .p-no{ display:inline-block; font-weight:700; font-size:12px; background:#33312B; color:#fff;
+      border-radius:5px; padding:0 7px; margin-right:4px; }
+    .p-tag{ font-size:9.5px; color:#777; }
+    .p-q{ font-size:12px; line-height:1.65; margin:2px 0 0; min-height:15mm; }
+    .p-q b{ color:#222; }
+    .p-q .dtbl{ margin:3px 0 3px; overflow:visible; }
+    .p-q .dtbl table{ margin:0; }
+    .p-q .dtbl th, .p-q .dtbl td{ border:1px solid #888; padding:1.5px 4px; }
+    .p-q .dtbl th{ font-size:9.5px; background:#f2f2f2; color:#333; }
+    .p-q .dtbl th small{ font-size:8.5px; }
+    .p-q .dtbl td{ font-size:12px; min-width:1.7em; }
+    .p-q .dtbl td.lb{ font-size:10.5px; background:#f2f2f2; color:#333; }
+    .p-q .dtbl td.qm{ background:#fff; color:#222; }
+    .p-ans{ display:flex; align-items:flex-end; gap:6px; margin-top:1.5mm; font-size:11px; color:#555; }
+    .p-ans i{ flex:1; border-bottom:1px solid #333; height:6.5mm; font-style:normal; }
+    .a-grid{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:2.5mm 7mm; }
+    .a-item{ break-inside:avoid; font-size:12px; line-height:1.6; border-bottom:1px dashed #ccc; padding:1.5mm 0 2mm; }
+    .a-item .a-v{ font-family:"Zen Maru Gothic", sans-serif; font-size:16px; font-weight:700; color:#C73E2E; margin-left:4px; }
+    .a-item .a-how{ display:block; font-size:10.5px; color:#555; line-height:1.55; margin-top:1px; }
+  }
+</style>
+</head>
+<body class="choosing" data-theme="es" data-effect="kirakira">
+
+<!-- 共通ヘッダー(ロゴ・ログイン窓)の差し込み先。script は body 直後に置くこと -->
+<div class="divp-header"></div>
+<!-- 学習記録システム共通モジュール -->
+<script src="/assets/divp-core.js" defer></script>
+<script src="/assets/divp-header.js" defer></script>
+<!-- 小学生ツールなので正解演出は星バースト。
+     data-effect="kirakira" なので、都道府県マスターと同じ星が
+     そのまま画面の下に積もっていく（divp-core.js より後ろに置くこと） -->
+<script src="/assets/divp-correct-kirakira.js" defer></script>
+<!-- 選択肢の答え合わせ表示（正解=緑 / 選んだ誤答=朱） -->
+<script src="/assets/divp-choice-mark.js" defer></script>
+
+<div class="mode-screen" id="modeScreen">
+  <div class="m-logo">平均マスター</div>
+  <div class="m-sub">小5 算数 ／ れんしゅうしたいものを えらんでね</div>
+  <div id="retryBannerSlot"></div>
+
+  <button type="button" class="m-card" data-mode="motomeru">
+    <span class="m-body"><span class="m-name">平均を 求める</span>
+    <span class="m-desc">平均 ＝ 合計 ÷ 個数。わりきれない ときは 小数で。
+    「0」の 日が ある ときにも 気をつけよう</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="goukei">
+    <span class="m-body"><span class="m-name">平均から 合計を 求める</span>
+    <span class="m-desc">合計 ＝ 平均 × 個数。「1日 平均 2.5km 走ると 何日で 30km？」の ように
+    個数を 求める 問題も</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="nokori">
+    <span class="m-body"><span class="m-name">わからない 1つを 求める</span>
+    <span class="m-desc">「4回目の テストは 何点？」「次に 何点 とれば 平均 80点？」。
+    平均から 合計を 出して 考える</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="hohaba">
+    <span class="m-body"><span class="m-name">歩はば</span>
+    <span class="m-desc">10歩の 長さの 平均から 歩はばを 出す。
+    歩はば × 歩数 で きょりを 調べる</span></span>
+  </button>
+
+  <button type="button" class="m-card chal" data-mode="zentai">
+    <span class="m-body"><span class="m-name">全体の 平均（チャレンジ）</span>
+    <span class="m-desc">人数が ちがう 2つの グループを 合わせた 平均。
+    平均どうしを たして 2で わるのは まちがい！</span></span>
+  </button>
+
+  <button type="button" class="m-card mix" data-mode="mix">
+    <span class="m-body"><span class="m-name">ランダム</span>
+    <span class="m-desc">ぜんぶの 種類を ごちゃまぜで 出題（しあげ用）</span></span>
+  </button>
+
+  <div class="m-sep">「平均って そもそも なに？」が 気になったら</div>
+
+  <a class="m-link" href="/learning/math/math_es5_heikinvisual.html">
+    <span class="m-body"><span class="m-name">平均を 見てみよう！（棒グラフ）→</span>
+    <span class="m-desc">数を 入れると 棒グラフが でこぼこを ならして、
+    平均の 高さに そろう ようすを 見られる</span></span>
+  </a>
+
+  <div class="m-sep">プリントで れんしゅうしたいときは</div>
+
+  <div class="m-print">
+    <div class="m-print-ttl">🖨 プリントを 印刷する<span>A4・10問＋答えのページ／押すたびに ちがう問題</span></div>
+    <div class="m-print-btns" id="printBtns">
+      <button type="button" data-mode="motomeru">平均</button>
+      <button type="button" data-mode="goukei">合計・個数</button>
+      <button type="button" data-mode="nokori">わからない1つ</button>
+      <button type="button" data-mode="hohaba">歩はば</button>
+      <button type="button" data-mode="zentai">全体の 平均</button>
+      <button type="button" data-mode="mix">ランダム</button>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <header>
+    <h1>平均マスター<span class="sub" id="modeLabel">平均を 求める</span></h1>
+    <button type="button" class="mode-back" id="printBtn" title="このモードのプリントを印刷">🖨 プリント</button>
+    <button type="button" class="mode-back next-to" id="homeBtn">ホームに戻る</button>
+  </header>
+
+  <div class="score">
+    <span>せいかい <b id="scoreOk">0</b> / <span id="scoreAll">0</span></span>
+    <span class="streak">れんぞく <b id="scoreStreak">0</b></span>
+    <span class="qno" id="qNo"></span>
+  </div>
+
+  <div class="card">
+    <span class="qtag" id="qTag">問題</span>
+    <div class="qtext" id="qText"></div>
+  </div>
+
+  <div id="partArea" style="display:flex;flex-direction:column;gap:14px"></div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="feedback" id="feedback">
+    <div class="fb-msg" id="fbMsg"></div>
+    <div class="expl" id="expl"></div>
+  </div>
+</div>
+
+<!-- 印刷用（画面には出さない。印刷ボタンのたびに 中身を 作りなおす） -->
+<div class="print-area" id="printArea"></div>
+
+<div class="bottom" id="bottom">
+  <div class="inner">
+    <button type="button" class="bigBtn" id="checkBtn">こたえあわせ</button>
+    <button type="button" class="bigBtn next" id="nextBtn" style="display:none">つぎの問題 ➜</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   平均マスター（算数・小5）
+   unit_key = math_es5_heikin
+
+   ■ モードと question_key
+     平均を求める       → motomeru_sei（わりきれる）/ motomeru_shou（小数に なる）/
+                          zero（0を ふくむ）
+     平均から合計を求める → goukei（合計 ＝ 平均×個数。3問に1問は 個数 ＝ 合計÷平均）
+     わからない1つを求める → nokori（のこりの1つ / 次に何点とれば / 1つ加えたら）
+     歩はば             → hohaba（10歩の平均から歩はば / 歩はば×歩数で道のり）
+     全体の平均         → zentai（人数が ちがう 2グループを 合わせた 平均）
+     ランダム           → 上の ぜんぶ（question_key は実際に出た種類）
+     日本語ラベルは db/seeds/seed_math_es5_heikin.sql で question_catalog へ。
+
+   ■ 解き直し（?retry=1）は「種(seed)方式」＝ CLAUDE.md 2d（比マスターと同じ）
+     乱数は ri()/pick()/shuffle() に一本化してあり、出題のたびに種を1つ引いて
+     question_params:{m:question_key, s:種} だけを保存する。
+     ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
+       （params_hash は同じままなので解き直し自体は成立する）。
+     ⚠ 生成関数の中で Math.random() を 直接 呼ばないこと（種で 再現できなくなる）。
+
+   ■ 数は「100分の1 を 単位に した 整数」で 持つ（59.6g → 5960）。
+     表示の ときだけ 小数に もどすので、0.1＋0.2 の ような 誤差が 出ない。
+     データ（表の数）は ctx.dec が true なら 10分の1 単位、そうでなければ 整数。
+
+   ■ 図（question_figure）は 渡さない
+     データは 問題文の 表に 書いてあり、question_text にも 数を ならべて 入れる。
+     解説の 棒グラフ（ならす図）は 説明用。
+   ===================================================================== */
+
+var UNIT_KEY = "math_es5_heikin";
+
+/* ---------- 共通モジュールの安全呼び出し（未読込でも壊れない） ---------- */
+function safeDivp(fn){
+  try{
+    if(window.Divp && typeof window.Divp[fn] === "function"){
+      return window.Divp[fn].apply(window.Divp, [].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return null;
+}
+
+/* ---------- RNG（xorshift32・種から決まった順に出る） ---------- */
+var _rngState = 1;
+function rngSeed(s){ _rngState = (s>>>0) || 1; }
+function rngPick(){ return (Math.floor(Math.random()*4294967296)>>>0) || 1; }  /* 種そのものだけ真の乱数 */
+function rngNext(){
+  var x = _rngState;
+  x ^= x<<13; x >>>= 0; x ^= x>>>17; x ^= x<<5; x >>>= 0;
+  _rngState = x;
+  return x/4294967296;
+}
+function ri(min,max){ return Math.floor(rngNext()*(max-min+1))+min; }
+function pick(arr){ return arr[ri(0,arr.length-1)]; }
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i=a.length-1;i>0;i--){ var j=ri(0,i); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+
+/* ---------- 数のあつかい ---------- */
+function isInt(v){ return Math.abs(v-Math.round(v)) < 1e-9; }
+function sum(a){ var s = 0; for(var i=0;i<a.length;i++) s += a[i]; return s; }
+function allSame(a){ for(var i=1;i<a.length;i++) if(a[i] !== a[0]) return false; return true; }
+/* 100分の1 単位の 整数 → 表示（5960 → "59.6"） */
+function d100(v){ return String(Math.round(v)/100); }
+/* 10分の1 単位の 整数 → 小数1けた（28 → "2.8"、30 → "3.0"） */
+function fmtT(v){ return Math.floor(v/10)+"."+(v%10); }
+/* 100分の1 単位の 整数 → 小数2けた（627 → "6.27"） */
+function fmtH(v){ var r = v%100; return Math.floor(v/100)+"."+(r<10?"0":"")+r; }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function nowMs(){ return (window.performance && performance.now) ? performance.now() : Date.now(); }
+/* 画面用の HTML から 記録用の 1行を 作る（タグと 分かち書きの 空白を 取る） */
+function plainOf(html){
+  return String(html).replace(/<br>/g,"").replace(/<[^>]+>/g,"").replace(/ /g,"");
+}
+
+/* ---------- 選択肢 ----------
+   選択肢は {html, plain, key, ok}。数は 100分の1 単位の 整数で 受け取る。
+   0以下・100分の1で わりきれない 数（2.333…）は ok=false で はじく。 */
+function optNum(v,u){
+  var ok = v > 0 && isInt(v);
+  v = Math.round(v);
+  return { html: d100(v) + (u ? '<span class="u">'+u+'</span>' : ""),
+           plain: d100(v) + (u ? " "+u : ""),
+           key: "n"+v, ok: ok };
+}
+/* 正解1つ＋まちがい3つ。cands（ねらった まちがい）を先に使い、足りなければ fb で うめる */
+function buildChoices(cor, cands, fb){
+  var out = [cor], seen = {}, i;
+  seen[cor.key] = 1;
+  function add(c){
+    if(out.length >= 4 || !c || !c.ok || seen[c.key]) return;
+    seen[c.key] = 1; out.push(c);
+  }
+  var cs = shuffle(cands);
+  for(i=0;i<cs.length;i++) add(cs[i]);
+  for(i=0;i<fb.length;i++) add(fb[i]);
+  var arr = shuffle(out);
+  return { options: arr, correct: arr.indexOf(cor) };
+}
+/* 数の答えの うめ草（正解の となりの数） */
+function numFallback(ans, step, u){
+  var a = [];
+  for(var k=1;k<=6;k++){ a.push(optNum(ans+step*k,u)); a.push(optNum(ans-step*k,u)); }
+  return a;
+}
+/* うめ草の 刻み：答えの いちばん下の 位に そろえる（60 → 1、59.6 → 0.1、6.25 → 0.01） */
+function stepOf(v){ return v % 100 === 0 ? 100 : v % 10 === 0 ? 10 : 1; }
+
+/* 問題を くみたてる（全種類 共通） */
+function mk(o){
+  var ch = buildChoices(o.cor, o.cands, o.fb);
+  return {
+    key: o.key, tag: o.tag,
+    qHtml: o.q, plainQ: o.plain,
+    label: o.label, u: o.u || "",
+    options: ch.options, correct: ch.correct,
+    ansText: o.cor.plain,
+    expl: '<span class="ttl">とき方</span>' + o.expl
+        + (o.kufu ? '<div class="kufu">💡 ' + o.kufu + '</div>' : "")
+  };
+}
+
+/* ---------- 表（データ） ---------- */
+var LABS = {
+  week5:["月","火","水","木","金"],
+  week6:["月","火","水","木","金","土"],
+  week7:["日","月","火","水","木","金","土"]
+};
+var MARU = "①②③④⑤⑥⑦⑧";
+function nOf(c){ return LABS[c.lab] ? LABS[c.lab].length : pick(c.n); }
+function makeLabels(kind, n){
+  if(LABS[kind]) return LABS[kind].slice(0,n);
+  var out = [];
+  for(var i=0;i<n;i++) out.push(kind === "num" ? MARU.charAt(i) : String(i+1));
+  return out;
+}
+/* 2段の 表：上の段＝ラベル（曜日・回・①②…）、下の段＝数。cells に "？" を 入れると その マスが □ */
+function dataTable(h1, h2, u, labs, cells){
+  var r1 = '<th>'+h1+'</th>', r2 = '<th>'+h2+'<small>('+u+')</small></th>';
+  for(var i=0;i<labs.length;i++){
+    r1 += '<td class="lb">'+labs[i]+'</td>';
+    r2 += '<td'+(cells[i] === "？" ? ' class="qm"' : '')+'>'+cells[i]+'</td>';
+  }
+  return '<div class="dtbl"><table><tr>'+r1+'</tr><tr>'+r2+'</tr></table></div>';
+}
+/* 記録用の 数の ならび。曜日の ときだけ 曜日を 付ける（「月23、火18…」） */
+function plainList(c, labs, cells){
+  var week = !!LABS[c.lab];
+  return cells.map(function(v,i){ return (week ? labs[i] : "") + v; }).join("、");
+}
+
+/* =====================================================================
+   ならす図（解説用の 棒グラフ SVG）。色・線は 属性で 書く（CLAUDE.md 2b と同じ流儀）
+   平均より 高い 部分＝赤、足りない 部分＝青の 点線。赤を 青へ うつすと 平らに なる。
+   ===================================================================== */
+var SVGFONT = "Zen Maru Gothic,Hiragino Maru Gothic ProN,HGMaruGothicMPRO,sans-serif";
+var COL = { shu:"#C73E2E", shuL:"#F9DDD8", ai:"#2C5F8A", aiL:"#D6E4F0", ink:"#33312B", sub:"#8B877C" };
+function svgText(x,y,s,color,anchor,size,weight){
+  return '<text x="'+x+'" y="'+y+'" fill="'+color+'" font-size="'+(size||12)+'" font-weight="'+(weight||700)
+       + '" text-anchor="'+(anchor||"middle")+'" font-family="'+SVGFONT+'">'+esc(s)+'</text>';
+}
+function narashiFig(vals100, avg100, labs){
+  var n = vals100.length;
+  var mx = Math.max.apply(null, vals100.concat([avg100])) || 1;
+  var X0 = 36, W = 286, base = 126, top = 26, HM = base - top;
+  var slot = W/n, bw = Math.min(34, Math.round(slot*0.6));
+  var yA = Math.round((base - avg100/mx*HM)*10)/10;
+  var s = '';
+  s += '<line x1="'+(X0-6)+'" y1="'+base+'" x2="'+(X0+W)+'" y2="'+base+'" stroke="'+COL.sub+'" stroke-width="1.2"/>';
+  for(var i=0;i<n;i++){
+    var v = vals100[i];
+    var cx = Math.round((X0 + slot*(i+0.5))*10)/10, x = cx - bw/2;
+    var y = Math.round((base - v/mx*HM)*10)/10;
+    if(v > avg100){
+      s += '<rect x="'+x+'" y="'+yA+'" width="'+bw+'" height="'+(base-yA)+'" fill="'+COL.aiL+'" stroke="'+COL.ai+'" stroke-width="1.4"/>';
+      s += '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+(yA-y)+'" fill="'+COL.shuL+'" stroke="'+COL.shu+'" stroke-width="1.4"/>';
+    }else{
+      if(v > 0) s += '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+(base-y)+'" fill="'+COL.aiL+'" stroke="'+COL.ai+'" stroke-width="1.4"/>';
+      if(v < avg100) s += '<rect x="'+x+'" y="'+yA+'" width="'+bw+'" height="'+(y-yA)+'" fill="none" stroke="'+COL.ai+'" stroke-width="1.2" stroke-dasharray="3 3"/>';
+    }
+    s += svgText(cx, Math.min(y, yA)-5, d100(v), COL.ink, "middle", 11.5);
+    s += svgText(cx, base+15, labs[i], COL.sub, "middle", 11.5);
+  }
+  s += '<line x1="'+(X0-6)+'" y1="'+yA+'" x2="'+(X0+W)+'" y2="'+yA+'" stroke="'+COL.shu+'" stroke-width="1.6" stroke-dasharray="6 4"/>';
+  s += svgText(4, yA+4, "平均", COL.shu, "start", 11.5);
+  return '<div class="fig"><svg viewBox="0 0 330 148" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ならす図">'
+       + s + '</svg></div>'
+       + '<span class="cap">赤い ところを 点線の すきまへ うつすと、ぜんぶ 同じ 高さ（平均）に なる</span>';
+}
+
+/* =====================================================================
+   ① 平均を 求める（わりきれる / 小数に なる）
+   ===================================================================== */
+/* 整数の データ。n は 個数の 候補（曜日の 表は 曜日の 数で 決まる） */
+var MOTO_CTX = [
+  { intro:"たまご {n}個の 重さを はかりました。", h1:"たまご", lab:"num", h2:"重さ", u:"g",
+    lo:55, hi:68, n:[4,5,6], ask:"たまご 1個の 重さの 平均は 何gですか。", sh:"たまごの重さ" },
+  { intro:"ゆうとさんの 算数テストの 点数です。", h1:"回", lab:"kai", h2:"点数", u:"点",
+    lo:62, hi:98, n:[3,4,5], ask:"平均点は 何点ですか。", sh:"テストの点数" },
+  { intro:"1週間（月〜金）に 図書室を 利用した 人数です。", h1:"曜日", lab:"week5", h2:"人数", u:"人",
+    lo:12, hi:38, ask:"1日 平均 何人が 利用しましたか。", sh:"図書室の利用者" },
+  { intro:"オレンジ {n}個から ジュースを しぼりました。", h1:"オレンジ", lab:"num", h2:"量", u:"mL",
+    lo:72, hi:105, n:[4,5,6], ask:"オレンジ 1個から 平均 何mLの ジュースが とれましたか。", sh:"オレンジのジュース" },
+  { intro:"ソフトボール投げの 記録です。", h1:"回", lab:"kai", h2:"きょり", u:"m",
+    lo:18, hi:36, n:[3,4,5], ask:"平均 何m 投げましたか。", sh:"ソフトボール投げ" },
+  { intro:"1日に 読んだ 本の ページ数です。", h1:"曜日", lab:"week6", h2:"ページ数", u:"ページ",
+    lo:8, hi:30, ask:"1日 平均 何ページ 読みましたか。", sh:"読んだページ数" }
+];
+/* 小数の データ（10分の1 単位）。小数に なる 平均 だけで 使う */
+var MOTO_DEC_CTX = [
+  { intro:"走りはばとびを {n}回 とびました。", h1:"回", lab:"kai", h2:"記録", u:"m", dec:true,
+    lo:26, hi:34, n:[3,4], ask:"記録の 平均は 何mですか。", sh:"走りはばとび" },
+  { intro:"50m走の タイムを {n}回 はかりました。", h1:"回", lab:"kai", h2:"タイム", u:"秒", dec:true,
+    lo:85, hi:102, n:[3,4], ask:"タイムの 平均は 何秒ですか。", sh:"50m走のタイム" },
+  { intro:"かぼちゃ {n}個の 重さを はかりました。", h1:"かぼちゃ", lab:"num", h2:"重さ", u:"kg", dec:true,
+    lo:12, hi:28, n:[3,4,5], ask:"かぼちゃ 1個の 重さの 平均は 何kgですか。", sh:"かぼちゃの重さ" }
+];
+function motoGood(kind, c, s, n){
+  if(kind === "sei") return s % n === 0;
+  /* 平均が 小数2けたまでで 終わり、整数には ならない（「3m」では 小数の 練習に ならない） */
+  if(c.dec) return (s*10) % n === 0 && ((s*10)/n) % 100 !== 0;
+  return s % n !== 0 && (s*10) % n === 0;            /* 平均が 小数1けたで 終わる */
+}
+function gen_motomeru(kind){
+  var useDec = kind === "shou" && ri(1,3) === 1;
+  var c = pick(useDec ? MOTO_DEC_CTX : MOTO_CTX);
+  var n;
+  if(LABS[c.lab]) n = LABS[c.lab].length;
+  else{
+    /* 整数データで 小数1けたの 平均に するには 3こ・7こでは できない（10倍しても わりきれない） */
+    var ns = (kind === "shou" && !c.dec) ? c.n.filter(function(x){ return x !== 3 && x !== 7; }) : c.n;
+    n = pick(ns.length ? ns : [4,5]);
+  }
+  var vals = null, t, i, v, s;
+  for(t=0;t<60 && !vals;t++){
+    v = []; for(i=0;i<n;i++) v.push(ri(c.lo,c.hi));
+    s = sum(v);
+    if(!allSame(v) && motoGood(kind, c, s, n)) vals = v;
+  }
+  if(!vals){
+    /* 念のため：最後の 1つを 動かして 条件に 合わせる */
+    v = []; for(i=0;i<n-1;i++) v.push(ri(c.lo,c.hi));
+    for(var w=c.lo; w<=c.hi; w++){
+      if(motoGood(kind, c, sum(v)+w, n)){ v.push(w); break; }
+    }
+    if(v.length < n) v.push(c.lo);
+    vals = v;
+  }
+  var S = sum(vals), sc = c.dec ? 10 : 100;
+  var A = S*sc/n, S100 = S*sc;
+  var mx = Math.max.apply(null, vals), mn = Math.min.apply(null, vals);
+  var fv = function(x){ return c.dec ? fmtT(x) : String(x); };
+  var labs = makeLabels(c.lab, n);
+  var cells = vals.map(fv);
+  var intro = c.intro.replace("{n}", n);
+
+  var cands = [
+    optNum(S100/(n-1), c.u),                    /* 個数を 1つ 少なく 数えた */
+    optNum(S100/(n+1), c.u),                    /* 個数を 1つ 多く 数えた */
+    optNum((mx+mn)*sc/2, c.u)                   /* いちばん 大きい数と 小さい数の まん中 */
+  ];
+  if(kind === "shou"){
+    var unitStep = c.dec ? 10 : 100;            /* 1つ上の 位で 切った・上げた */
+    cands.push(optNum(Math.floor(A/unitStep)*unitStep, c.u));
+    cands.push(optNum(Math.ceil(A/unitStep)*unitStep, c.u));
+  }
+  var fb = numFallback(A, stepOf(A), c.u);
+  fb.unshift(optNum(S100, c.u));                /* わり算を わすれた（合計の まま） */
+
+  var kufu;
+  if(kind === "sei"){
+    kufu = "平均 ＝ 合計 ÷ 個数。"
+         + ((mx+mn)*sc/2 !== A ? "いちばん 大きい数と 小さい数の まん中（"+d100((mx+mn)*sc/2)+"）とは かぎらない。" : "")
+         + "でこぼこを ならして、同じ 大きさに したのが 平均。";
+  }else if(c.dec){
+    kufu = "小数の 合計は、小数点の 位置を そろえて たし算する。わりきれる まで わり進めて、小数で 答える。";
+  }else if(c.u === "人"){
+    kufu = "人数の ように ふつうは 小数で 表さない ものでも、平均は 小数で 表して よい"
+         + "（"+d100(A)+"人 という 人は いないが、ならした 大きさ として 考える）。";
+  }else{
+    kufu = "わりきれない ときは、0を つけて わり進め、小数で 答える。";
+  }
+
+  return mk({
+    key:"motomeru_"+kind, tag: kind === "sei" ? "平均を 求める" : "平均を 求める（小数）",
+    q:intro + dataTable(c.h1, c.h2, c.u, labs, cells) + c.ask,
+    plain:c.sh+"（"+c.u+"）"+plainList(c, labs, cells)+"の平均",
+    label:"平均は？", u:c.u,
+    cor:optNum(A, c.u),
+    cands:cands,
+    fb:fb,
+    expl:'<span class="step">① 合計： '+cells.join(" ＋ ")+' ＝ '+fv(S)+' '+c.u+'</span>'
+        +'<span class="step">② 合計 ÷ 個数： '+fv(S)+' ÷ '+n+' ＝ <b>'+d100(A)+' '+c.u+'</b></span>'
+        +narashiFig(vals.map(function(x){ return x*sc; }), A, labs),
+    kufu:kufu
+  });
+}
+
+/* =====================================================================
+   ①' 0を ふくむ 平均（0の 日も 個数に 入れる）
+   ===================================================================== */
+var ZERO_CTX = [
+  { intro:"5年1組で、1週間（月〜金）に 学校を 休んだ 人数を 調べました。", h1:"曜日", lab:"week5", h2:"人数", u:"人",
+    hi:4, ask:"1日 平均 何人 休みましたか。", sh:"休んだ人数", per:"日" },
+  { intro:"サッカーの 試合で、ひかるさんの チームが 入れた 点数です。", h1:"試合", lab:"kai", n:[4,5,6], h2:"点数", u:"点",
+    hi:4, ask:"1試合 平均 何点 入れましたか。", sh:"サッカーで入れた点数", per:"試合" },
+  { intro:"1週間に 読んだ 本の さっ数を 記録しました。", h1:"曜日", lab:"week7", h2:"さっ数", u:"さつ",
+    hi:3, ask:"1日 平均 何さつ 読みましたか。", sh:"読んだ本", per:"日" },
+  { intro:"輪投げを 1回に 5本ずつ 投げて、入った 本数を 記録しました。", h1:"回", lab:"kai", n:[5,6], h2:"入った数", u:"本",
+    hi:5, ask:"1回に 平均 何本 入りましたか。", sh:"輪投げで入った数", per:"回" }
+];
+function gen_zero(){
+  var c = pick(ZERO_CTX);
+  var n = nOf(c), best = null, first = null, t, i;
+  for(t=0;t<400 && !best;t++){
+    var v = [];
+    for(i=0;i<n;i++) v.push(ri(1,c.hi));
+    var z = ri(1,2), idx = shuffle(v.map(function(_,k){ return k; }));
+    for(i=0;i<z;i++) v[idx[i]] = 0;
+    var s = sum(v);
+    if(s === 0 || (s*10) % n !== 0) continue;
+    var cand = { v:v, s:s, z:z };
+    if(!first) first = cand;
+    /* 「0を のぞいて わる」まちがいが 選択肢に 出せる（わりきれる）ものを 優先 */
+    if(isInt(s*100/(n-z))) best = cand;
+  }
+  if(!best) best = first;
+  if(!best){                                   /* 念のため（0,1,1,…,2 で 合計 n → 平均1） */
+    var vv = [0]; for(i=1;i<n;i++) vv.push(1); vv[n-1] = 2;
+    best = { v:vv, s:n, z:1 };
+  }
+  var vals = best.v, S = best.s, z = best.z, A = S*100/n;
+  var labs = makeLabels(c.lab, n), cells = vals.map(String);
+  var wrong = S*100/(n-z);
+  var zeroDays = labs.filter(function(_,k){ return vals[k] === 0; })
+                     .map(function(l){ return LABS[c.lab] ? l+"曜日" : l+c.per+"目"; }).join("と");
+  return mk({
+    key:"zero", tag:"0を ふくむ 平均",
+    q:c.intro + dataTable(c.h1, c.h2, c.u, labs, cells) + c.ask,
+    plain:c.sh+"（"+c.u+"）"+plainList(c, labs, cells)+"の平均",
+    label:"平均は？", u:c.u,
+    cor:optNum(A, c.u),
+    cands:[
+      optNum(wrong, c.u),                        /* 0の 日を 数に 入れなかった */
+      optNum(S*100/(n+1), c.u),
+      optNum(S*100/(n-1), c.u),
+      optNum(S*100, c.u)                         /* わり算を わすれた */
+    ],
+    fb:numFallback(A, stepOf(A), c.u),
+    expl:'<span class="step">① 合計： '+cells.join(" ＋ ")+' ＝ '+S+' '+c.u+'</span>'
+        +'<span class="step">② 0の '+c.per+'も 入れて '+n+c.per+'ぶん： '+S+' ÷ '+n+' ＝ <b>'+d100(A)+' '+c.u+'</b></span>'
+        +narashiFig(vals.map(function(x){ return x*100; }), A, labs),
+    kufu:"0の "+c.per+"（"+zeroDays+"）も 1"+c.per+"として 数える。"
+        +"0を のぞいて "+S+" ÷ "+(n-z)+" と すると"+(isInt(wrong) ? " "+d100(wrong)+" に なって" : "")+" まちがい。"
+        +(c.u === "人" || c.u === "さつ" || c.u === "本" || c.u === "点" ? "数が 整数でも、平均は 小数に なることが ある。" : "")
+  });
+}
+
+/* =====================================================================
+   ② 平均から 合計（個数）を 求める
+   a は 平均（dec なら 10分の1 単位）、n は 個数の 候補。
+   tot = 合計を 聞く 文、kos = 個数を 聞く 文（null なら 合計だけ）
+   ===================================================================== */
+var GOUKEI_CTX = [
+  { u:"g", a:[56,58,60,62,64,65], n:[10,12,15,20,30], ku:"個", per:"たまご 1個",
+    tot:"たまご 1個の 重さの 平均を <b>{a}g</b> と します。<br>この たまご <b>{n}個</b>では、およそ 何gに なりますか。",
+    kos:"たまご 1個の 重さの 平均を <b>{a}g</b> と します。<br>たまごを 何個か 集めて 重さを はかったら <b>{T}g</b> でした。たまごは およそ 何個 ありますか。" },
+  { u:"g", a:[80,85,90,95,110,120], n:[10,12,15,20,25], ku:"個", per:"みかん 1個",
+    tot:"みかん 1個の 重さの 平均を <b>{a}g</b> と します。<br>この みかん <b>{n}個</b>では、およそ 何gに なりますか。",
+    kos:"みかん 1個の 重さの 平均を <b>{a}g</b> と します。<br>みかんを 何個か 集めて 重さを はかったら <b>{T}g</b> でした。みかんは およそ 何個 ありますか。" },
+  { u:"km", dec:true, a:[12,15,18,24,25,32,35], n:[4,5,6,8,10,20,30], ku:"日", per:"1日",
+    tot:"ひかりさんは 1日 平均 <b>{a}km</b> 走ります。<br><b>{n}日</b>では、何km 走ることに なりますか。",
+    kos:"ひかりさんは 1日 平均 <b>{a}km</b> 走ります。<br>この ペースで <b>{T}km</b> 走るには、何日 かかりますか。" },
+  { u:"さつ", dec:true, a:[12,15,16,18,24,25,28], n:[20,24,25,28,30,32,35], ku:"人", per:"1人",
+    tot:"5年生 <b>{n}人</b>が 図書室で 本を 借りました。1人 平均 <b>{a}さつ</b> でした。<br>全部で 何さつ 借りましたか。",
+    kos:null },
+  { u:"ページ", a:[12,15,16,18,20,24,25], n:[5,6,7,10,12,14], ku:"日", per:"1日",
+    tot:"1日 平均 <b>{a}ページ</b> ずつ 本を 読みます。<br><b>{n}日</b>では、何ページ 読むことに なりますか。",
+    kos:"1日 平均 <b>{a}ページ</b> ずつ 読むと、<b>{T}ページ</b>の 本を 読み終わるのに 何日 かかりますか。" }
+];
+function gen_goukei(){
+  var c = pick(GOUKEI_CTX);
+  var a = pick(c.a), sc = c.dec ? 10 : 100;
+  /* 合計が 整数に なる 個数だけ 使う（1人 平均 2.4さつ × 25人 → 60さつ） */
+  var ns = c.n.filter(function(x){ return c.u !== "さつ" || (a*x) % 10 === 0; });
+  var n = pick(ns.length ? ns : [10]);
+  var a100 = a*sc, T100 = a100*n;
+  var aS = c.dec ? fmtT(a) : String(a), TS = d100(T100);
+  var askKos = !!c.kos && ri(1,3) === 1;
+  if(askKos){
+    var q = c.kos.replace("{a}", aS).replace("{T}", TS);
+    return mk({
+      key:"goukei", tag:"平均から 個数を 求める",
+      q:q, plain:plainOf(q),
+      label:"何"+c.ku+"？", u:c.ku,
+      cor:optNum(n*100, c.ku),
+      cands:[
+        optNum((n+1)*100, c.ku),
+        optNum((n-1)*100, c.ku),
+        optNum(n*1000, c.ku)                        /* 位を まちがえた */
+      ],
+      fb:numFallback(n*100, 100, c.ku),
+      expl:'<span class="step">合計 ＝ 平均 × 個数 だから、個数 ＝ 合計 ÷ 平均</span>'
+          +'<span class="step">'+TS+' ÷ '+aS+' ＝ <b>'+n+' '+c.ku+'</b></span>',
+      kufu:"「平均 × □ ＝ 合計」の □を 求める わり算。たしかめ： "+aS+" × "+n+" ＝ "+TS+"。"
+    });
+  }
+  var q2 = c.tot.replace("{a}", aS).replace("{n}", n);
+  var cands = [
+    optNum(a100*(n-1), c.u),                        /* 1つ 少なく かけた */
+    optNum(a100 + n*100, c.u),                      /* かけ算ではなく たし算 */
+    optNum(a100*(n+1), c.u)
+  ];
+  if(c.dec){
+    cands.push(optNum(T100/10, c.u));               /* 小数点の 位置を まちがえた */
+    cands.push(optNum(T100*10, c.u));
+  }
+  return mk({
+    key:"goukei", tag:"平均から 合計を 求める",
+    q:q2, plain:plainOf(q2),
+    label:"全部で いくつ？", u:c.u,
+    cor:optNum(T100, c.u),
+    cands:cands,
+    fb:numFallback(T100, a100, c.u),
+    expl:'<span class="step">平均 ＝ 合計 ÷ 個数 だから、合計 ＝ 平均 × 個数</span>'
+        +'<span class="step">'+aS+' × '+n+' ＝ <b>'+TS+' '+c.u+'</b></span>',
+    kufu:c.u === "g"
+      ? "1個 1個の 重さは ちがっても、平均を 使うと 全部の 重さの 見当が つく（だから「およそ」）。"
+      : "「"+c.per+" 平均 "+aS+c.u+"」が "+n+"こ ぶん → "+aS+" × "+n+"。"
+  });
+}
+
+/* =====================================================================
+   ③ わからない 1つを 求める
+     A: 平均と ほかの データから のこりの 1つ
+     B: 次の テストで 何点 とれば 平均が □点に なるか
+     C: 1個 加えたら 平均が かわった。加えた 1個は？
+   ===================================================================== */
+var NOKORI_A = [
+  { intro:"ゆうとさんの 算数テスト {n}回の 平均点は <b>{T}点</b>でした。", h1:"回", lab:"kai", n:[4,5],
+    h2:"点数", u:"点", lo:60, hi:100, ask:"{L}回目の 点数は 何点ですか。", sh:"テスト{n}回の平均{T}点" },
+  { intro:"月曜日から 金曜日までの 5日間に 図書室を 利用した 人数は、1日 平均 <b>{T}人</b>でした。", h1:"曜日", lab:"week5",
+    h2:"人数", u:"人", lo:12, hi:38, ask:"金曜日は 何人でしたか。", sh:"図書室の利用者5日間の平均{T}人" },
+  { intro:"たまご {n}個の 重さの 平均は <b>{T}g</b>でした。", h1:"たまご", lab:"num", n:[4,5,6],
+    h2:"重さ", u:"g", lo:54, hi:68, ask:"{L}の たまごは 何gですか。", sh:"たまご{n}個の平均{T}g" }
+];
+function gen_nokori(){
+  var v = ri(1,4);                                  /* A を 多めに（A,A,B,C） */
+  if(v <= 2) return nokoriA();
+  if(v === 3) return nokoriB();
+  return nokoriC();
+}
+function nokoriA(){
+  var c = pick(NOKORI_A), n = nOf(c), t, i, known = null, T = 0, ans = 0;
+  for(t=0;t<300;t++){
+    var k = []; for(i=0;i<n-1;i++) k.push(ri(c.lo+2, c.hi-4));
+    var TT = ri(c.lo+4, c.hi-4), a = TT*n - sum(k);
+    if(a >= c.lo && a <= c.hi && a !== TT && Math.abs(a - TT) >= 2){ known = k; T = TT; ans = a; break; }
+  }
+  if(!known){                                       /* 念のため */
+    T = Math.round((c.lo+c.hi)/2); known = [];
+    for(i=0;i<n-1;i++) known.push(T);
+    known[0] = T+3; ans = T-3;
+  }
+  var labs = makeLabels(c.lab, n), cells = known.map(String).concat(["？"]);
+  var Sk = sum(known), last = labs[n-1];
+  var intro = c.intro.replace("{n}", n).replace("{T}", T);
+  var ask = c.ask.replace("{L}", c.lab === "num" ? last : String(n));
+  var sh = c.sh.replace("{n}", n).replace("{T}", T);
+  var cands = [
+    optNum(T*100, c.u),                             /* 平均を そのまま 答えた */
+    optNum(Sk*100/(n-1), c.u),                      /* わかっている 分の 平均 */
+    optNum(T*n*100, c.u),                           /* 合計の まま */
+    optNum((2*T - ans)*100, c.u)                    /* 平均との 差を 反対がわに とった */
+  ];
+  /* 個数を 1つ 少なく した（T×(n−1) − 合計）は、ありえる 大きさの ときだけ 出す（「8点」は すぐ 消せる） */
+  var w = T*(n-1) - Sk;
+  if(w >= c.lo && w <= c.hi) cands.push(optNum(w*100, c.u));
+  return mk({
+    key:"nokori", tag:"わからない 1つを 求める",
+    q:intro + dataTable(c.h1, c.h2, c.u, labs, cells) + ask,
+    plain:sh+"。"+plainList(c, labs, cells)+"。？は？",
+    label:"？に 入る 数は？", u:c.u,
+    cor:optNum(ans*100, c.u),
+    cands:cands,
+    fb:numFallback(ans*100, 100, c.u),
+    expl:'<span class="step">① 全部の 合計 ＝ 平均 × 個数 ＝ '+T+' × '+n+' ＝ '+(T*n)+' '+c.u+'</span>'
+        +'<span class="step">② わかっている 分の 合計 ＝ '+known.join(" ＋ ")+' ＝ '+Sk+' '+c.u+'</span>'
+        +'<span class="step">③ のこり ＝ '+(T*n)+' − '+Sk+' ＝ <b>'+ans+' '+c.u+'</b></span>',
+    kufu:"平均が わかれば 合計が わかる（合計 ＝ 平均 × 個数）。合計から わかっている 分を ひけば のこりが 出る。"
+        +"たしかめ： ("+Sk+" ＋ "+ans+") ÷ "+n+" ＝ "+T+"。"
+  });
+}
+function nokoriB(){
+  var k, P, d, Q, ans, t;
+  for(t=0;t<200;t++){
+    k = pick([3,4,4,5]); P = ri(70,86); d = ri(1,3); Q = P + d; ans = Q + k*d;
+    if(ans <= 100) break;
+  }
+  if(ans > 100){ k = 4; P = 78; d = 2; Q = 80; ans = 88; }
+  var q = "ゆうとさんの これまでの テスト <b>"+k+"回</b>の 平均点は <b>"+P+"点</b>です。<br>"
+        + "次の テストで 何点 とれば、"+(k+1)+"回の 平均点が <b>"+Q+"点</b>に なりますか。";
+  return mk({
+    key:"nokori", tag:"わからない 1つを 求める",
+    q:q, plain:plainOf(q),
+    label:"何点 とれば よい？", u:"点",
+    cor:optNum(ans*100, "点"),
+    cands:[
+      optNum((Q+d)*100, "点"),                      /* 平均の 差だけ 上のせした */
+      optNum(Q*100, "点"),                          /* 目標の 平均点を そのまま */
+      optNum((ans-d)*100, "点"),
+      optNum((ans+d)*100, "点")
+    ],
+    fb:numFallback(ans*100, 100, "点"),
+    expl:'<span class="step">① これまでの 合計 ＝ '+P+' × '+k+' ＝ '+(P*k)+' 点</span>'
+        +'<span class="step">② '+(k+1)+'回の 合計を '+Q+' × '+(k+1)+' ＝ '+(Q*(k+1))+' 点に したい</span>'
+        +'<span class="step">③ 次の テスト ＝ '+(Q*(k+1))+' − '+(P*k)+' ＝ <b>'+ans+' 点</b></span>',
+    kufu:"平均を "+d+"点 上げるには、これまでの "+k+"回 分の "+d+"点も 次の 1回で かせぐ ひつようが ある"
+        +"（"+Q+" ＋ "+d+" × "+k+" ＝ "+ans+"）。"+Q+" ＋ "+d+" ＝ "+(Q+d)+"点 では たりない。"
+  });
+}
+function nokoriC(){
+  var k, P, d, Q, ans, t;
+  for(t=0;t<200;t++){
+    k = pick([4,5,6,9]); P = ri(56,63); d = pick([-2,-1,1,2]); Q = P + d; ans = Q + k*d;
+    if(ans >= 45 && ans <= 75) break;
+  }
+  if(ans < 45 || ans > 75){ k = 4; P = 60; d = 1; Q = 61; ans = 65; }
+  var q = "たまご <b>"+k+"個</b>の 重さの 平均は <b>"+P+"g</b>でした。<br>"
+        + "もう 1個 加えて "+(k+1)+"個に すると、平均は <b>"+Q+"g</b>に なりました。加えた たまごは 何gですか。";
+  return mk({
+    key:"nokori", tag:"わからない 1つを 求める",
+    q:q, plain:plainOf(q),
+    label:"加えた たまごは 何g？", u:"g",
+    cor:optNum(ans*100, "g"),
+    cands:[
+      optNum((Q+d)*100, "g"),                       /* 平均の 差だけ 動かした */
+      optNum(Q*100, "g"),
+      optNum((Q*(k+1))*100, "g"),                   /* 合計の まま */
+      optNum((ans - (d > 0 ? 1 : -1)*k)*100, "g")
+    ],
+    fb:numFallback(ans*100, 100, "g"),
+    expl:'<span class="step">① はじめの 合計 ＝ '+P+' × '+k+' ＝ '+(P*k)+' g</span>'
+        +'<span class="step">② 加えた あとの 合計 ＝ '+Q+' × '+(k+1)+' ＝ '+(Q*(k+1))+' g</span>'
+        +'<span class="step">③ 加えた たまご ＝ '+(Q*(k+1))+' − '+(P*k)+' ＝ <b>'+ans+' g</b></span>',
+    kufu:"平均どうしを くらべるのでは なく、合計どうしを くらべる。合計の ふえた 分が 加えた 1個の 重さ。"
+  });
+}
+
+/* =====================================================================
+   ④ 歩はば
+     a: 10歩の 長さを 3回 はかった → 歩はば
+     b: 歩はば × 歩数 → 道のり
+     c: a と b を つなげる（3回の 測定から 歩はばを 出し、その 歩はばで 道のり）
+   長さは cm（＝ 100分の1 m）の 整数で 持つ。
+   ===================================================================== */
+var HOHABA_WHO = ["けんた","みさき","はると","あおい"];
+var HOHABA_ROUTE = [["家","公園"],["学校の 門","体育館"],["家","駅"],["校舎","プール"]];
+/* 10歩の 長さを 3回 はかった データ（cm）。ずれの 合計を 0に して、平均が ちょうど 10歩ぶん（10h）に なるように する */
+function tenStepData(h){
+  var d1, d2, d3, t;
+  for(t=0;t<100;t++){
+    d1 = ri(-9,9); d2 = ri(-9,9); d3 = -(d1+d2);
+    if(d3 >= -9 && d3 <= 9 && d1 !== d2 && d2 !== d3 && d1 !== d3) break;
+  }
+  if(!(d3 >= -9 && d3 <= 9 && d1 !== d2 && d2 !== d3 && d1 !== d3)){ d1 = 7; d2 = -5; d3 = -2; }
+  return [10*h + d1, 10*h + d2, 10*h + d3];
+}
+/* 歩数。歩はば × 歩数 が 整数(m)に なる 歩数だけ 使う */
+function pickSteps(h){
+  var steps = [];
+  for(var N=100; N<=600; N+=10) if((h*N) % 100 === 0) steps.push(N);
+  return pick(steps.length ? steps : [100]);
+}
+function gen_hohaba(){
+  var who = pick(HOHABA_WHO);
+  var h = ri(52,68);                                /* 歩はば（cm） */
+  var type = ri(1,3);
+  if(type === 3) return hohabaC(who, h);
+  if(type === 1){
+    var m = tenStepData(h);                         /* 10歩の 長さ（cm） */
+    var cells = m.map(fmtH), S = sum(m);
+    var q = who+"さんが 10歩 歩いた 長さを 3回 はかりました。"
+          + dataTable("回", "10歩の 長さ", "m", ["1","2","3"], cells)
+          + who+"さんの 歩はばは 約 何mですか。";
+    return mk({
+      key:"hohaba", tag:"歩はば",
+      q:q, plain:"10歩の長さ3回 "+cells.join("m、")+"m。"+who+"さんの歩はばは約何m？",
+      label:"歩はばは 約 何m？", u:"m",
+      cor:optNum(h, "m"),
+      cands:[
+        optNum(10*h, "m"),                          /* 10で わるのを わすれた（10歩ぶん） */
+        optNum(S/10, "m"),                          /* 3回の 合計を 10で わった（3で わって いない） */
+        optNum(Math.round(h/10)*10, "m")            /* 0.1m の 位で まるめた */
+      ],
+      fb:numFallback(h, 1, "m"),
+      expl:'<span class="step">① 10歩の 長さの 平均： ('+cells.join(" ＋ ")+') ÷ 3 ＝ '+d100(S)+' ÷ 3 ＝ '+d100(10*h)+' m</span>'
+          +'<span class="step">② 1歩ぶん： '+d100(10*h)+' ÷ 10 ＝ <b>'+d100(h)+' m</b></span>',
+      kufu:"1回だけ はかるより、何回か はかって 平均を とる ほうが、ほんとうの 歩はばに 近く なる。"
+          +"10歩の 長さ なので、さいごに 10で わるのを わすれずに。"
+    });
+  }
+  /* b: 道のり */
+  var N = pickSteps(h);
+  var D = h*N/100, rt = pick(HOHABA_ROUTE);
+  var q2 = who+"さんの 歩はばは 約 <b>"+d100(h)+"m</b> です。<br>"
+         + who+"さんが "+rt[0]+"から "+rt[1]+"まで 歩いたら、<b>"+N+"歩</b> でした。"
+         + rt[0]+"から "+rt[1]+"までは 約 何mですか。";
+  return mk({
+    key:"hohaba", tag:"歩はば",
+    q:q2, plain:plainOf(q2),
+    label:"約 何m？", u:"m",
+    cor:optNum(D*100, "m"),
+    cands:[
+      optNum(D*100*100, "m"),                       /* cm の まま（歩はばを 小数に しなかった） */
+      optNum(D*10, "m"),                            /* 小数点の 位置を まちがえた */
+      optNum(D*100*10, "m"),
+      optNum((N + h)*100, "m")                      /* たし算に した */
+    ],
+    fb:numFallback(D*100, 1000, "m"),
+    expl:'<span class="step">道のり ＝ 歩はば × 歩数</span>'
+        +'<span class="step">'+d100(h)+' × '+N+' ＝ <b>'+D+' m</b></span>',
+    kufu:"歩はばは 平均 なので、1歩 1歩は 少しずつ ちがう。だから 答えも「約」。"
+        +"小数 × 整数 は、整数の かけ算を してから 小数点を うつ（"+h+" × "+N+" ＝ "+(h*N)+" → "+D+"）。"
+  });
+}
+/* c: 3回の 測定 → 歩はば（平均） → 道のり。2だんかいの 問題 */
+function hohabaC(who, h){
+  var m = tenStepData(h), cells = m.map(fmtH), S = sum(m);
+  var N = pickSteps(h), D = h*N/100, rt = pick(HOHABA_ROUTE);
+  var q = who+"さんが 10歩 歩いた 長さを 3回 はかりました。"
+        + dataTable("回", "10歩の 長さ", "m", ["1","2","3"], cells)
+        + rt[0]+"から "+rt[1]+"まで 歩くと <b>"+N+"歩</b> でした。"
+        + "歩はばを 使うと、"+rt[0]+"から "+rt[1]+"までは 約 何mですか。";
+  return mk({
+    key:"hohaba", tag:"歩はば（平均から 道のりへ）",
+    q:q,
+    plain:"10歩の長さ3回 "+cells.join("m、")+"m。"+plainOf(rt[0]+"から"+rt[1]+"まで"+N+"歩。")+"約何m？",
+    label:"約 何m？", u:"m",
+    cor:optNum(D*100, "m"),
+    cands:[
+      optNum(D*1000, "m"),                          /* 10歩ぶんの 長さの まま かけた（10倍） */
+      optNum(D*300, "m"),                           /* 3回の 合計 ÷ 10 を 歩はばに した（3倍） */
+      optNum(h, "m"),                               /* 歩はばで 止まった */
+      optNum(D*10, "m")                             /* 小数点の 位置を まちがえた */
+    ],
+    fb:numFallback(D*100, 1000, "m"),
+    expl:'<span class="step">① 10歩の 長さの 平均： ('+cells.join(" ＋ ")+') ÷ 3 ＝ '+d100(S)+' ÷ 3 ＝ '+d100(10*h)+' m</span>'
+        +'<span class="step">② 歩はば： '+d100(10*h)+' ÷ 10 ＝ '+d100(h)+' m</span>'
+        +'<span class="step">③ 道のり ＝ 歩はば × 歩数 ＝ '+d100(h)+' × '+N+' ＝ <b>'+D+' m</b></span>',
+    kufu:"まず 平均で 歩はばを 出してから、歩数を かける。"
+        +"10歩ぶんの "+d100(10*h)+"m の まま "+N+"歩を かけると、10倍の "+(D*10)+"m に なって しまう。"
+  });
+}
+
+/* =====================================================================
+   ⑤ 全体の 平均（人数が ちがう 2つの グループ）
+   ===================================================================== */
+var ZENTAI_CTX = [
+  { u:"m", lo:18, hi:32, nlo:6, nhi:18, g1:"男子", g2:"女子",
+    t:"ソフトボール投げの 記録の 平均は、{g1} {n1}人が <b>{a1}m</b>、{g2} {n2}人が <b>{a2}m</b> でした。<br>クラス 全体の 平均は 何mですか。" },
+  { u:"点", lo:68, hi:88, nlo:22, nhi:32, g1:"1組", g2:"2組",
+    t:"算数テストの 平均点は、{g1} {n1}人が <b>{a1}点</b>、{g2} {n2}人が <b>{a2}点</b> でした。<br>{g1}と {g2}を 合わせた 平均点は 何点ですか。" },
+  { u:"さつ", lo:3, hi:9, nlo:10, nhi:30, g1:"5年生", g2:"6年生",
+    t:"1か月に 読んだ 本の さっ数の 平均は、{g1} {n1}人が <b>{a1}さつ</b>、{g2} {n2}人が <b>{a2}さつ</b> でした。<br>{g1}と {g2}を 合わせると、1人 平均 何さつですか。" },
+  { u:"分", lo:30, hi:60, nlo:4, nhi:12, g1:"Aチーム", g2:"Bチーム",
+    t:"1日の 練習時間の 平均は、{g1} {n1}人が <b>{a1}分</b>、{g2} {n2}人が <b>{a2}分</b> でした。<br>2チームを 合わせた 平均は 何分ですか。" }
+];
+function gen_zentai(){
+  var c = pick(ZENTAI_CTX), n1, n2, a1, a2, N, X, t, ok = false;
+  for(t=0;t<800;t++){
+    n1 = ri(c.nlo,c.nhi); n2 = ri(c.nlo,c.nhi);
+    a1 = ri(c.lo,c.hi); a2 = ri(c.lo,c.hi);
+    N = n1 + n2; X = n1*a1 + n2*a2;
+    if(n1 === n2 || Math.abs(a1-a2) < 2) continue;
+    if((X*10) % N !== 0) continue;                /* 平均が 小数1けたで 終わる */
+    ok = true; break;
+  }
+  if(!ok){ n1 = 6; n2 = 4; a1 = c.lo+4; a2 = c.lo; N = 10; X = n1*a1 + n2*a2; }
+  var A = X*100/N, naive = (a1+a2)*50;
+  var q = c.t.replace(/\{g1\}/g, c.g1).replace(/\{g2\}/g, c.g2)
+             .replace("{n1}", n1).replace("{n2}", n2).replace("{a1}", a1).replace("{a2}", a2);
+  return mk({
+    key:"zentai", tag:"全体の 平均",
+    q:q, plain:plainOf(q),
+    label:"全体の 平均は？", u:c.u,
+    cor:optNum(A, c.u),
+    cands:[
+      optNum(naive, c.u),                         /* 平均どうしを たして 2で わった */
+      optNum((n2*a1 + n1*a2)*100/N, c.u),         /* 人数を 入れちがえた */
+      optNum((n1 > n2 ? a1 : a2)*100, c.u)        /* 人数の 多い 方の 平均を そのまま */
+    ],
+    fb:numFallback(A, stepOf(A), c.u),
+    expl:'<span class="step">① '+c.g1+'の 合計 ＝ '+a1+' × '+n1+' ＝ '+(a1*n1)+' '+c.u+'</span>'
+        +'<span class="step">② '+c.g2+'の 合計 ＝ '+a2+' × '+n2+' ＝ '+(a2*n2)+' '+c.u+'</span>'
+        +'<span class="step">③ 全体の 合計 ＝ '+(a1*n1)+' ＋ '+(a2*n2)+' ＝ '+X+' '+c.u+'、全体の 人数 ＝ '+n1+' ＋ '+n2+' ＝ '+N+' 人</span>'
+        +'<span class="step">④ '+X+' ÷ '+N+' ＝ <b>'+d100(A)+' '+c.u+'</b></span>',
+    kufu:"平均どうしを たして 2で わる（("+a1+" ＋ "+a2+") ÷ 2 ＝ "+d100(naive)+"）のは まちがい。"
+        +"人数が ちがうので、全体の 平均は 人数の 多い "+(n1 > n2 ? c.g1 : c.g2)+"の 平均に 近く なる。"
+  });
+}
+
+/* =====================================================================
+   出題の 台帳
+   ===================================================================== */
+var GENS = {
+  motomeru_sei:  function(){ return gen_motomeru("sei"); },
+  motomeru_shou: function(){ return gen_motomeru("shou"); },
+  zero:          gen_zero,
+  goukei:        gen_goukei,
+  nokori:        gen_nokori,
+  hohaba:        gen_hohaba,
+  zentai:        gen_zentai
+};
+/* モード → 出す question_key。同じキーを ならべた ぶんだけ 出やすくなる */
+var MODE_KEYS = {
+  motomeru: ["motomeru_sei","motomeru_sei","motomeru_shou","motomeru_shou","zero"],
+  goukei:   ["goukei"],
+  nokori:   ["nokori"],
+  hohaba:   ["hohaba"],
+  zentai:   ["zentai"],
+  mix:      ["motomeru_sei","motomeru_shou","motomeru_shou","zero",
+             "goukei","goukei","nokori","nokori","hohaba","zentai"]
+};
+/* 印刷シート（1枚10問）に出す 種類。やさしい順に ならべる */
+var PRINT_KEYS = {
+  motomeru: ["motomeru_sei","motomeru_sei","motomeru_sei","motomeru_sei",
+             "motomeru_shou","motomeru_shou","motomeru_shou","motomeru_shou","zero","zero"],
+  goukei:   ["goukei","goukei","goukei","goukei","goukei","goukei","goukei","goukei","goukei","goukei"],
+  nokori:   ["nokori","nokori","nokori","nokori","nokori","nokori","nokori","nokori","nokori","nokori"],
+  hohaba:   ["hohaba","hohaba","hohaba","hohaba","hohaba","hohaba","hohaba","hohaba","hohaba","hohaba"],
+  zentai:   ["zentai","zentai","zentai","zentai","zentai","zentai","zentai","zentai","zentai","zentai"],
+  mix:      ["motomeru_sei","motomeru_shou","motomeru_shou","zero",
+             "goukei","goukei","nokori","nokori","hohaba","zentai"]
+};
+var PRINT_INST = {
+  motomeru:"次の 平均を 求めましょう。わりきれない ときは 小数で 答えましょう。",
+  goukei:"次の 問題に 答えましょう。単位も 書きましょう。",
+  nokori:"次の 問題に 答えましょう。まず 合計を 考えましょう。",
+  hohaba:"次の 問題に 答えましょう。",
+  zentai:"次の 問題に 答えましょう。わりきれない ときは 小数で 答えましょう。",
+  mix:"次の 問題に 答えましょう。わりきれない ときは 小数で 答えましょう。"
+};
+var MODE_LABEL = {
+  motomeru:"平均を 求める",
+  goukei:"平均から 合計を 求める",
+  nokori:"わからない 1つを 求める",
+  hohaba:"歩はば",
+  zentai:"全体の 平均",
+  mix:"ランダム"
+};
+
+/* =====================================================================
+   出題エンジン（比マスターと同じ）
+   ===================================================================== */
+var MODE = "motomeru";
+var cur = null, curKey = "", curSeed = 0;
+var sel = -1, graded = false;
+var score = 0, total = 0, streak = 0, qStart = 0;
+
+/* 解き直し（?retry=1） */
+var retryQ = null, retryTotal = 0, retryDone = 0;
+
+function $(id){ return document.getElementById(id); }
+
+function makeQ(key, seed){
+  rngSeed(seed);                       /* ここから先の乱数は種で決まる */
+  return GENS[key]();
+}
+
+function newQuestion(){
+  graded = false; sel = -1;
+  $("feedback").classList.remove("show");
+  $("toast").textContent = "";
+  $("checkBtn").style.display = "block";
+  $("nextBtn").style.display = "none";
+
+  var useKey, seed;
+  if(retryQ){
+    /* 解き直しを1周した。モード選択にもどって、案内帯を そこに 出す */
+    if(!retryQ.length){
+      retryQ = null;
+      backHome();
+      showRetryBanner("解き直し おつかれさま！ 同じ問題に 2回つづけて 正解すると リストから 消えるよ");
+      return;
+    }
+    var it = retryQ.shift();
+    retryDone++;
+    useKey = it.question_params.m;
+    seed = it.question_params.s>>>0;
+  }else{
+    useKey = pick(MODE_KEYS[MODE] || MODE_KEYS.motomeru);
+    seed = rngPick();
+  }
+
+  curKey = useKey;
+  curSeed = seed;
+  cur = makeQ(useKey, seed);
+
+  /* 種類バッヂ。ランダムは 種類名が そのまま ヒントに なるので 出さない */
+  var tagText = retryQ ? ("解き直し "+retryDone+" / "+retryTotal+" ・ "+cur.tag)
+                       : (MODE === "mix" ? "" : cur.tag);
+  $("qTag").textContent = tagText;
+  $("qTag").style.display = tagText ? "" : "none";
+  $("qNo").textContent = retryQ ? "" : ("第 "+(total+1)+" 問");
+  $("qText").innerHTML = cur.qHtml;
+  renderOptions();
+  qStart = nowMs();
+  try{ window.scrollTo({ top:0, behavior:"smooth" }); }catch(e){ window.scrollTo(0,0); }
+}
+
+function renderOptions(){
+  var host = $("partArea");
+  host.innerHTML = "";
+  var wrap = document.createElement("div");
+  wrap.className = "part";
+
+  var lab = document.createElement("div");
+  lab.className = "p-label";
+  lab.textContent = cur.label;
+  wrap.appendChild(lab);
+
+  var opts = document.createElement("div");
+  opts.className = "opts";
+  cur.options.forEach(function(o, oi){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "optBtn";
+    b.dataset.idx = oi;
+    b.innerHTML = o.html;          /* 中身は この画面で 組み立てた 数字と 単位だけ */
+    b.addEventListener("click", function(){ tapOption(oi); });
+    opts.appendChild(b);
+  });
+  wrap.appendChild(opts);
+  host.appendChild(wrap);
+}
+
+function tapOption(oi){
+  if(graded) return;
+  sel = oi;
+  $("toast").textContent = "";
+  document.querySelectorAll(".optBtn").forEach(function(b){
+    b.classList.toggle("on", Number(b.dataset.idx) === oi);
+  });
+}
+
+/* ---------- 答え合わせ ---------- */
+function check(){
+  if(graded || !cur) return;
+  if(sel < 0){ $("toast").textContent = "答えを えらんでね"; return; }
+
+  graded = true;
+  var ok = (sel === cur.correct);
+  var btns = document.querySelectorAll(".optBtn");
+  safeDivp("markChoices", btns, { correct:cur.correct, selected:sel,
+                                  dimOthers:true, label:"正解" });
+  btns.forEach(function(b){ b.disabled = true; });
+
+  total++;
+  if(ok){ score++; streak++; } else { streak = 0; }
+  renderScore();
+
+  var sec = Math.round((nowMs()-qStart)/1000);
+  /* 学習記録（未ログイン・ローカルでは黙ってスキップされる） */
+  safeDivp("answer", ok, {
+    question_key: curKey,
+    question_params: { m: curKey, s: curSeed },     /* 種方式：この2つで同じ問題を作り直せる */
+    question_text: cur.plainQ,
+    correct_answer: cur.ansText,
+    wrong_answer: ok ? null : cur.options[sel].plain,
+    time_taken_sec: (sec > 0 && sec < 600) ? sec : null
+  });
+
+  $("fbMsg").className = "fb-msg " + (ok ? "good" : "bad");
+  $("fbMsg").textContent = ok ? "せいかい！ よくできました" : "おしい！ とき方を 見てみよう";
+  $("expl").innerHTML = cur.expl;
+  $("feedback").classList.add("show");
+  $("checkBtn").style.display = "none";
+  $("nextBtn").style.display = "block";
+  $("toast").textContent = "";
+
+  /* 正解エフェクト（キラキラ）。pileBottom で「山の床」を ボタンの帯の 上に する
+     （わたさないと 画面下の #bottom が 積もりはじめを かくす） */
+  if(ok) safeDivp("correct", { pileBottom: "#bottom" });
+}
+
+function renderScore(){
+  $("scoreOk").textContent = score;
+  $("scoreAll").textContent = total;
+  $("scoreStreak").textContent = streak;
+}
+
+/* ---------- モード選択 ---------- */
+function startMode(m){
+  if(!MODE_KEYS[m]) return;
+  MODE = m;
+  retryQ = null;
+  score = 0; total = 0; streak = 0;
+  renderScore();
+  $("modeLabel").textContent = MODE_LABEL[m] || "";
+  document.body.classList.remove("choosing");
+  newQuestion();
+}
+function backHome(){
+  document.body.classList.add("choosing");
+  retryQ = null;
+  cur = null;
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+
+/* ---------- 解き直し（?retry=1） ---------- */
+function showRetryBanner(msg){
+  var slot = $("retryBannerSlot");
+  var e = $("retryBanner");
+  if(!e){
+    e = document.createElement("div");
+    e.id = "retryBanner";
+    slot.appendChild(e);
+  }
+  e.textContent = msg;
+}
+function initRetry(){
+  if(!(window.Divp && typeof Divp.getRetries === "function")) return;
+  Divp.getRetries().then(function(items){
+    var use = (items||[]).filter(function(it){
+      var p = it && it.question_params;
+      return p && GENS[p.m] && typeof p.s === "number";
+    });
+    if(!use.length){
+      showRetryBanner("解き直せる 問題は まだ ありません。まちがえた 問題が ここに たまっていくよ。");
+      return;
+    }
+    retryQ = use.slice();
+    retryTotal = retryQ.length;
+    retryDone = 0;
+    MODE = "retry";
+    score = 0; total = 0; streak = 0;
+    renderScore();
+    $("modeLabel").textContent = "まちがえた問題の 解き直し";
+    document.body.classList.remove("choosing");
+    newQuestion();
+  }).catch(function(){});
+}
+
+/* =====================================================================
+   印刷（A4・10問＋答え）。紙は 毎回 ちがう 問題で よいので 1問ごとに 種を 引く。
+   画面の 問題と 同じ 生成関数を 使うので、問題の 中身・答え・とき方は 画面と 一致する。
+   ⚠ makeQ() は 乱数の 状態を 書きかえるが、画面の 問題(cur)は 作り終わっているので 影響しない。
+   ===================================================================== */
+function printItems(mode){
+  var keys = PRINT_KEYS[mode] || PRINT_KEYS.mix, seen = {}, seenTpl = {}, out = [];
+  keys.forEach(function(k){
+    /* 同じ問題は 2つ 並べない。できれば 同じ場面（数字だけ ちがう 文章題）も さける */
+    var q = null, best = null;
+    for(var t=0; t<30; t++){
+      q = makeQ(k, rngPick());
+      if(seen[q.plainQ]) continue;
+      if(!best) best = q;
+      if(!seenTpl[q.plainQ.replace(/[\d.]+/g, "#")]){ best = q; break; }
+    }
+    q = best || q;
+    seen[q.plainQ] = 1;
+    seenTpl[q.plainQ.replace(/[\d.]+/g, "#")] = 1;
+    out.push(q);
+  });
+  return out;
+}
+/* 答えのページに出す 「とき方」＝ 画面の 解説の 手順だけ（図・ポイントは のぞく） */
+function printHow(q){
+  var box = document.createElement("div");
+  box.innerHTML = q.expl;
+  var rm = box.querySelectorAll(".ttl, .kufu, .fig, .cap");
+  for(var i=0;i<rm.length;i++) rm[i].parentNode.removeChild(rm[i]);
+  var steps = box.querySelectorAll(".step"), s = [];
+  for(i=0;i<steps.length;i++) s.push(steps[i].innerHTML.replace(/<\/?b>/g, ""));
+  return s.join(" → ");
+}
+function buildPrint(mode){
+  var items = printItems(mode);
+  var d = new Date();
+  var dateStr = d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
+  var label = MODE_LABEL[mode] || MODE_LABEL.mix;
+  function head(sub){
+    return '<div class="p-head"><div><div class="p-school">中京個別指導学院</div>'
+      + '<div class="p-title">平均マスター<small>'+esc(label)+'　'+sub+'</small></div></div>'
+      + '<div class="p-name">'+dateStr+'　名前<span></span></div></div>';
+  }
+  var qh = items.map(function(q,i){
+    return '<div class="p-item"><span class="p-no">'+(i+1)+'</span><span class="p-tag">'+esc(q.tag)+'</span>'
+      + '<div class="p-q">'+q.qHtml+'</div>'
+      + '<div class="p-ans">答え<i></i>'+esc(q.u)+'</div></div>';
+  }).join("");
+  var ah = items.map(function(q,i){
+    return '<div class="a-item"><span class="p-no">'+(i+1)+'</span>'
+      + '<span class="a-v">'+q.options[q.correct].html+'</span>'
+      + '<span class="a-how">'+printHow(q)+'</span></div>';
+  }).join("");
+  var wm = window.ChukyoPrint ? ChukyoPrint.img() : "";
+  return wm
+    + '<div class="sheet">'+head("問題")+'<p class="p-inst">'+esc(PRINT_INST[mode] || PRINT_INST.mix)+'</p>'
+    + '<div class="p-grid">'+qh+'</div></div>'
+    + '<div class="sheet">'+head("答え")+'<div class="a-grid">'+ah+'</div></div>';
+}
+function printSheet(mode){
+  if(!PRINT_KEYS[mode]) mode = "mix";
+  var area = $("printArea");
+  /* 透かしは position:fixed で 1枚だけ 置く＝印刷では どのページにも 同じ位置に 出る */
+  var wmCss = window.ChukyoPrint ? '<style>'+ChukyoPrint.css({ zIndex:0 })+'.wm{position:fixed;}</style>' : "";
+  area.innerHTML = wmCss + buildPrint(mode);
+  /* 透かし画像の デコードを 待ってから 印刷する（直後に print() するとロゴが 抜けることがある） */
+  if(window.ChukyoPrint && ChukyoPrint.print) ChukyoPrint.print(area);
+  else window.print();
+}
+
+/* ---------- イベント ---------- */
+document.querySelectorAll("#printBtns button").forEach(function(b){
+  b.addEventListener("click", function(){ printSheet(b.dataset.mode); });
+});
+$("printBtn").addEventListener("click", function(){ printSheet(MODE); });
+document.querySelectorAll(".m-card").forEach(function(b){
+  b.addEventListener("click", function(){ startMode(b.dataset.mode); });
+});
+$("homeBtn").addEventListener("click", backHome);
+$("checkBtn").addEventListener("click", check);
+$("nextBtn").addEventListener("click", newQuestion);
+
+/* divp-core は defer で読まれるので、DOM構築後に初期化する */
+window.addEventListener("DOMContentLoaded", function(){
+  safeDivp("init", UNIT_KEY);
+  if(/[?&]retry=1/.test(location.search)){
+    try{ initRetry(); }catch(e){}
+  }
+});
+</script>
+</body>
+</html>
