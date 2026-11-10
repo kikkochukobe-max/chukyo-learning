@@ -204,23 +204,6 @@ h1,h2,h3,.maru{font-family:'Zen Maru Gothic',sans-serif}
 .ref-pane ul{margin:2px 0 2px 1.1em}
 .ref-pane .hl{background:var(--enji-soft);border-radius:4px;padding:0 4px;font-weight:700;color:var(--enji-d)}
 
-/* テスト運用の合言葉画面（ヘッダーごと覆う） */
-.gate{position:fixed;inset:0;z-index:9500;display:flex;align-items:center;justify-content:center;padding:16px;
-  background-color:var(--paper);
-  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-  background-size:24px 24px}
-.gate-box{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border-top:5px solid var(--enji);
-  padding:26px 22px;width:100%;max-width:360px;text-align:center}
-.gate-box .eyebrow{display:inline-block;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:12px;letter-spacing:.14em;
-  color:var(--enji-d);background:var(--enji-soft);border-radius:999px;padding:4px 13px;margin-bottom:10px}
-.gate-box h2{font-weight:900;font-size:20px;margin-bottom:4px}
-.gate-box p{font-size:13px;color:var(--ink-soft);margin-bottom:16px}
-.gate-box input{width:100%;font-family:inherit;font-size:18px;text-align:center;padding:11px 12px;border:1.6px solid var(--grid);
-  border-radius:10px;background:var(--paper);color:var(--ink);margin-bottom:12px}
-.gate-box input:focus{outline:none;border-color:var(--enji);box-shadow:0 0 0 3px var(--enji-soft)}
-.gate-box .btn{width:100%;justify-content:center}
-.gate-err{font-size:13px;color:var(--shu);min-height:1.4em;margin-top:8px}
-
 footer{text-align:center;font-size:11px;color:var(--ink-soft);letter-spacing:.06em;margin-top:26px}
 footer a{color:var(--ink-soft);text-decoration:none}
 footer a:hover{text-decoration:underline}
@@ -234,18 +217,6 @@ footer a:hover{text-decoration:underline}
 <script src="/assets/divp-choice-mark.js"></script>
 <script src="/assets/divp-core.js"></script>
 <script>Divp.init('social_js_rekishi_ichimon');</script>
-
-<!-- ══════ テスト運用の合言葉（GATE_WORD）。本運用にするときはこの div と末尾の gate スクリプトを消す ══════ -->
-<div class="gate" id="gate">
-  <form class="gate-box" id="gateForm" autocomplete="off">
-    <span class="eyebrow">テスト運用中</span>
-    <h2>歴史一問一答マスター</h2>
-    <p>合言葉を入力してください</p>
-    <input type="text" id="gateInput" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="合言葉">
-    <button type="submit" class="btn btn-primary">ひらく</button>
-    <div class="gate-err" id="gateErr"></div>
-  </form>
-</div>
 
 <div class="wrap">
   <!-- ══════ スタート ══════ -->
@@ -1413,30 +1384,6 @@ function switchRef(ref){
     if(!queue.length) return;
     startQuiz({queue:shuffle(queue),retry:true});
   }).catch(function(){});
-})();
-
-/* ── テスト運用の合言葉 ──
-   画面に出すかどうかを決めるだけの目隠し（合言葉はこのソースに書いてあるので、鍵ではない）。
-   一度通った端末はブラウザに覚えさせ、次からは聞かない。 */
-(function gate(){
-  var GATE_WORD='test', KEY='divp_gate_social_js_rekishi_ichimon';
-  var g=byId('gate'); if(!g) return;
-  function open(){ g.remove(); }
-  try{ if(localStorage.getItem(KEY)==='ok'){ open(); return; } }catch(e){}
-  /* 全角・大文字・前後の空白は同じとみなす（スマホの全角入力でも通るように） */
-  function norm(s){ return String(s||'').replace(/[Ａ-Ｚａ-ｚ０-９]/g,function(c){ return String.fromCharCode(c.charCodeAt(0)-0xFEE0); })
-    .replace(/\s+/g,'').toLowerCase(); }
-  var inp=byId('gateInput'), err=byId('gateErr');
-  byId('gateForm').addEventListener('submit',function(e){
-    e.preventDefault();
-    if(norm(inp.value)===GATE_WORD){
-      try{ localStorage.setItem(KEY,'ok'); }catch(e2){}
-      open();
-    }else{
-      err.textContent='合言葉がちがいます'; inp.select();
-    }
-  });
-  try{ inp.focus(); }catch(e){}
 })();
 </script>
 </body>

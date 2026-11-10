@@ -154,12 +154,6 @@ const TOOLS = [
     name: '世界の諸地域マスター',
     url: '/learning/social/social_js1_sekai_chiri.html',
     start: async (page) => {
-      // テスト運用中は合言葉画面が先に出る（一度通るとその端末では出ない）
-      const gate = page.locator('#gateInput');
-      if (await gate.isVisible()) {
-        await gate.fill('test');
-        await gate.press('Enter');
-      }
       await page.locator('#startMix').click();
     },
     choices: '#choices .ch',
@@ -170,12 +164,6 @@ const TOOLS = [
     name: '歴史一問一答マスター',
     url: '/learning/social/social_js_rekishi_ichimon.html',
     start: async (page) => {
-      // 世界の諸地域マスターと同じ作り（テスト運用中の合言葉画面が先に出る）
-      const gate = page.locator('#gateInput');
-      if (await gate.isVisible()) {
-        await gate.fill('test');
-        await gate.press('Enter');
-      }
       await page.locator('#startMix').click();
     },
     choices: '#choices .ch',
