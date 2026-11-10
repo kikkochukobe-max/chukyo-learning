@@ -286,6 +286,13 @@ return [
         'sub'   => '社会・中1（地理 世界の諸地域）',
         'url'   => '/learning/social/social_js1_sekai_chiri.html',
     ],
+    // 主要都市（雨温図・特産品でよく出る102都市）が何県にあるかの4択。question_key は地方（6区分）、
+    // 解き直しは {c:都市id} で CITY_SRC から引く（id は一度振ったら変えない）
+    'social_js_shuyou_toshi' => [
+        'title' => '日本の主要都市マスター',
+        'sub'   => '社会・中学（地理 日本の諸地域）',
+        'url'   => '/learning/social/social_js_shuyou_toshi.html',
+    ],
     // 中学歴史（古代〜日露戦争・25章×確認問題20問＝500問の6択）。question_key は時代（6区分）、
     // 解き直しは {id} で BANK から引く（世界の諸地域マスターと同じ作り）
     'social_js_rekishi_ichimon' => [
