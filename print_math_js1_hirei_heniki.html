@@ -4,11 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>比例のグラフ 変域マスター（中1・製本プリント）｜中京個別指導学院</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <style id="pageSize">@page{size:364mm 257mm;margin:0}</style>
 <style>
+/* 白黒印刷用：色相は使わず、黒〜灰色の濃淡と模様だけで区別する */
 :root{
-  --paper:#FFFFFF; --ink:#33312B; --sub:#6E6A60; --faint:#8B877C;
-  --shu:#C73E2E; --ai:#2C5F8A; --kin:#C9A227; --line:#D9D4C7;
+  --paper:#FFFFFF; --ink:#1F1F1F; --sub:#555555; --faint:#777777;
+  --shu:#1F1F1F; --ai:#1F1F1F; --kin:#666666; --line:#BDBDBD;
+  --gray:#4D4D4D; --tipbg:#EFEFEF;
   --backdrop:#E6E3DA;
   --font:"BIZ UDPGothic","Hiragino Kaku Gothic ProN","Yu Gothic","YuGothic","Meiryo",sans-serif;
   --round:"Hiragino Maru Gothic ProN","BIZ UDPGothic","Yu Gothic",sans-serif;
@@ -22,7 +26,7 @@ body{background:var(--backdrop);color:var(--ink);font-family:var(--font);font-si
 .tb{position:sticky;top:0;z-index:10;background:#33312B;color:#fff;padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;font-size:13px}
 .tb b{font-size:14px}
 .tb label{display:inline-flex;align-items:center;gap:4px;cursor:pointer}
-.tb button{font:inherit;font-weight:bold;background:var(--shu);color:#fff;border:0;border-radius:6px;padding:7px 18px;cursor:pointer}
+.tb button{font:inherit;font-weight:bold;background:#C73E2E;color:#fff;border:0;border-radius:6px;padding:7px 18px;cursor:pointer}
 .tb .note{flex-basis:100%;font-size:12px;color:#ddd8cc;line-height:1.6}
 .tb .note em{font-style:normal;color:#ffd98a}
 
@@ -39,33 +43,36 @@ body{background:var(--backdrop);color:var(--ink);font-family:var(--font);font-si
 @media print{
   body{background:#fff}
   .tb,.sheet-cap{display:none}
+  .divp-header{display:none!important}
   #out{padding:0}
   .sheet{margin:0;box-shadow:none;break-after:page;page-break-after:always}
   .sheet:last-child{break-after:auto;page-break-after:auto}
   .sheet::after{display:none}
 }
 
-/* ---------- 数式まわり ---------- */
+/* ---------- 数式まわり（KaTeX。読めないときの代わりの表示も同じ見た目に寄せる） ---------- */
+.m{white-space:nowrap}
+.katex{font-size:1.08em}
 i.v{font-family:"Times New Roman","Cambria",serif;font-style:italic;font-size:1.12em;padding:0 .04em}
 .fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.78em;line-height:1.08;margin:0 .12em}
 .fr>span:first-child{border-bottom:.22mm solid currentColor;padding:0 .18em}
-.nw{white-space:nowrap}
 
 /* ---------- ページ見出し ---------- */
 .ph{display:flex;align-items:center;gap:3mm;height:10mm;border-bottom:.5mm solid var(--ink);padding-bottom:1mm}
 .badge{font-family:var(--round);font-weight:bold;font-size:11pt;color:#fff;background:var(--ai);border-radius:2mm;padding:1mm 3mm;white-space:nowrap}
-.badge.app{background:#6A4C93}.badge.test{background:var(--shu)}.badge.exb{background:#3E8E5A}
+.badge.app{background:var(--gray)}.badge.test{background:var(--ink)}
+.badge.exb{background:#fff;color:var(--ink);border:.5mm solid var(--ink);padding:.5mm 2.5mm}
 .ph .pt{font-family:var(--round);font-weight:bold;font-size:11.5pt;flex:1;white-space:nowrap}
 .ph .date{font-size:8.5pt;white-space:nowrap;color:var(--sub)}
 .stamp{display:none;font-family:var(--round);font-weight:bold;font-size:10pt;color:var(--shu);border:.5mm solid var(--shu);border-radius:1.5mm;padding:.3mm 2mm;white-space:nowrap}
 body.show-ans .stamp{display:inline-block}
-.ins{font-size:8.8pt;height:6mm;padding-top:1.3mm;color:var(--ink)}
+.ins{font-size:8.8pt;height:6mm;padding-top:1.3mm;color:var(--ink);white-space:nowrap}
 
 /* ---------- 問題 6問/ページ ---------- */
 .probs{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,71mm);column-gap:5mm}
 .prob{border-top:.25mm dashed var(--line);padding-top:1.2mm;display:flex;flex-direction:column;min-width:0}
 .prob:nth-child(-n+2){border-top:0}
-.q{height:14.2mm;font-size:8.8pt;line-height:1.42;overflow:hidden}
+.q{height:14.6mm;font-size:8.6pt;line-height:1.5;overflow:hidden}
 .no{display:inline-flex;align-items:center;justify-content:center;min-width:5mm;height:5mm;border-radius:50%;background:var(--ink);color:#fff;font-weight:bold;font-size:8.5pt;margin-right:1.5mm;vertical-align:.2mm;padding:0 .6mm}
 .qb{display:flex;flex-direction:column}
 .qb .eq{font-size:12.5pt;font-weight:bold;line-height:1.25}
@@ -88,35 +95,40 @@ body.show-ans .gr .ov,.gr .ov.show{display:inline}
 .cover{display:flex;flex-direction:column;height:100%}
 .cv-top{display:flex;justify-content:space-between;align-items:center}
 .pill{font-family:var(--round);font-weight:bold;font-size:10pt;border:.4mm solid var(--ink);border-radius:5mm;padding:.8mm 4mm}
-.cv-title{margin-top:7mm;text-align:center}
+.cv-title{margin-top:5mm;text-align:center}
 .cv-title .t1{font-family:var(--round);font-weight:bold;font-size:20pt;letter-spacing:.1em}
-.cv-title .t2{font-family:var(--round);font-weight:bold;font-size:36pt;line-height:1.2;letter-spacing:.08em;display:inline-block;padding:0 4mm;background:linear-gradient(transparent 62%,#F6E3A6 62%)}
-.cv-title .t3{margin-top:2.5mm;font-size:10pt;color:var(--sub)}
-.cv-mid{display:flex;align-items:center;justify-content:center;gap:7mm;margin-top:6mm}
+.cv-title .t2{font-family:var(--round);font-weight:bold;font-size:36pt;line-height:1.2;letter-spacing:.08em;display:inline-block;padding:0 4mm;background:linear-gradient(transparent 62%,#D9D9D9 62%)}
+.cv-title .t3{margin-top:2mm;font-size:10pt;color:var(--sub)}
+.cv-mid{display:flex;align-items:center;justify-content:center;gap:7mm;margin-top:4mm}
 .cv-legend{font-size:8.8pt;line-height:1.9}
 .cv-legend .sw{display:inline-block;width:8mm;height:1.6mm;vertical-align:middle;margin-right:1.5mm;border-radius:.8mm}
-.toc{margin:6mm auto 0;width:150mm;border-collapse:collapse;font-size:9.5pt}
-.toc th,.toc td{border:.25mm solid var(--line);padding:1.3mm 2.5mm;text-align:left}
+.toc{margin:4mm auto 0;width:156mm;border-collapse:collapse;font-size:9pt}
+.toc th,.toc td{border:.25mm solid var(--line);padding:1.05mm 2.5mm;text-align:left}
 .toc th{background:#F3F1EA;font-weight:bold;font-size:8.5pt}
 .toc td.c{text-align:center;width:22mm}
-.toc td.p{text-align:center;width:13mm;color:var(--sub)}
+.toc td.p{text-align:center;width:13mm;color:var(--sub);white-space:nowrap}
 .box{display:inline-block;width:4mm;height:4mm;border:.3mm solid var(--ink);vertical-align:middle}
-.cv-name{margin:auto auto 0;width:150mm;border:.4mm solid var(--ink);border-radius:2mm;padding:3.5mm 5mm;font-size:11pt;display:flex;gap:6mm;align-items:flex-end}
+.cv-name{margin:auto auto 0;width:156mm;border:.4mm solid var(--ink);border-radius:2mm;padding:3.5mm 5mm;font-size:11pt;display:flex;gap:6mm;align-items:flex-end}
 .cv-name span{white-space:nowrap}
 .cv-name .ul{flex:1;border-bottom:.3mm solid var(--ink)}
-.cv-foot{text-align:center;margin-top:5mm;font-family:var(--round);font-weight:bold;font-size:10pt;color:var(--sub);letter-spacing:.15em}
+.cv-foot{text-align:center;margin-top:4mm;font-family:var(--round);font-weight:bold;font-size:10pt;color:var(--sub);letter-spacing:.15em}
 
 /* ---------- 例題 ---------- */
 .ex{display:flex;gap:4mm;height:70.5mm;border-top:.25mm dashed var(--line);padding-top:2mm}
-.ex:first-of-type{border-top:0}
-.ex .exq{font-size:9.2pt;font-weight:bold;margin-bottom:1.5mm}
-.ex .exq .tag{display:inline-block;font-size:8pt;color:#fff;background:#3E8E5A;border-radius:1mm;padding:0 1.6mm;margin-right:1.5mm}
-.ex .exq .tag.app{background:#6A4C93}
-.ex ol{margin:0;padding-left:5mm;font-size:8.8pt;line-height:1.55}
+.ins+.ex{border-top:0}
+.ex .exbody{flex:1;min-width:0}
+.ex .exq{font-size:9.2pt;font-weight:bold;margin-bottom:1.5mm;line-height:1.55}
+.ex .exq .tag{display:inline-block;font-size:8pt;color:#fff;background:var(--ink);border-radius:1mm;padding:0 1.6mm;margin-right:1.5mm}
+.ex .exq .tag.app{background:var(--gray)}
+.ex ol{margin:0;padding-left:5mm;font-size:8.8pt;line-height:1.6}
 .ex ol li{margin-bottom:.6mm}
+.hyo{border-collapse:collapse;margin:1mm 0 .6mm;font-size:9pt;line-height:1.3}
+.hyo th,.hyo td{border:.25mm solid var(--ink);padding:.5mm 2.2mm;text-align:center;min-width:8mm}
+.hyo th{background:var(--tipbg);font-weight:normal}
+.hyo td.dots{min-width:5mm;padding:.5mm 1mm;color:var(--sub)}
 .ex .exa{margin-top:1.5mm;font-size:9.5pt;font-weight:bold;color:var(--shu)}
-.ex .tip{margin-top:1.5mm;font-size:8.3pt;background:#FBF4DC;border-left:1mm solid var(--kin);padding:1mm 2mm;line-height:1.5}
-.ok{color:#3E8E5A;font-weight:bold}.ng{color:var(--shu);font-weight:bold}
+.ex .tip{margin-top:1.5mm;font-size:8.3pt;background:var(--tipbg);border-left:1mm solid var(--kin);padding:1mm 2mm;line-height:1.6}
+.ok,.ng{color:var(--ink);font-weight:bold}
 
 /* ---------- テスト ---------- */
 .th{display:flex;gap:4mm;align-items:flex-end;margin-top:1.2mm;height:5mm;font-size:8.8pt}
@@ -129,13 +141,13 @@ body.show-ans .gr .ov,.gr .ov.show{display:inline}
 <body>
 <div class="tb">
   <b>比例のグラフ 変域マスター</b>
-  <label><input type="radio" name="mode" value="book" checked> 製本用（B4横・2枚・両面）</label>
-  <label><input type="radio" name="mode" value="single"> 1ページずつ（B5・8枚）</label>
+  <label><input type="radio" name="mode" value="book" checked> 製本用（B4横・4枚・両面）</label>
+  <label><input type="radio" name="mode" value="single"> 1ページずつ（B5・16枚）</label>
   <label><input type="checkbox" id="ansChk"> 解答を表示（先生用）</label>
   <button id="btnPrint" type="button">印刷する</button>
   <div class="note">
     製本用の印刷設定：用紙 <em>B4・横</em>／<em>両面印刷・短辺とじ（短辺で反転）</em>／倍率 <em>実際のサイズ（100%）</em>／余白 <em>なし</em>。
-    出てきた2枚を重ね、<em>1枚目（表紙のある紙）を外側</em>にして半分に折ると、1〜8ページの順の冊子になります（中央をホチキスで中とじ）。
+    出てきた4枚を順に重ね、<em>1枚目（表紙のある紙）をいちばん外側</em>にして半分に折ると、1〜16ページの順の冊子になります（中央をホチキスで中とじ）。
   </div>
 </div>
 <div id="out"></div>
@@ -144,27 +156,46 @@ body.show-ans .gr .ov,.gr .ov.show{display:inline}
 (function(){
 "use strict";
 
-/* ===== 表記ミニ言語 =====
-   {x} → 斜体の文字 / [2/3] → 分数 / <= → ≦ / < → ＜ / - → − / |…| → 改行しないかたまり */
+/* ===== 表記 =====
+   $…$ の中は TeX（KaTeX で描く）。書きやすいように  <= → \leqq ／ >= → \geqq ／ [2/3] → \frac{2}{3}
+   と読みかえる。$ の外は普通の文字（<br> や <span>・<b> はそのまま使える）。 */
 function frac(n,d){return '<span class="fr"><span>'+n+'</span><span>'+d+'</span></span>';}
+function toTex(s){ // 分数は \frac（文中の大きさ）。\dfrac は式の中で大きすぎた
+  return s.replace(/<=/g,'\\leqq ').replace(/>=/g,'\\geqq ').replace(/\[(\d+)\/(\d+)\]/g,'\\frac{$1}{$2}');
+}
+function fallback(t){ // KaTeX が読めなかったとき（ネットにつながっていない等）の代わりの表示
+  var fr=[];
+  t=t.replace(/\\leqq\s?/g,'≦').replace(/\\geqq\s?/g,'≧').replace(/\\times\s?/g,'×').replace(/\\[,;!]/g,' ')
+     .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g,function(m,n,d){fr.push([n,d]);return '\u0001'+(fr.length-1)+'\u0001';})
+     .replace(/</g,'＜').replace(/>/g,'＞').replace(/-/g,'−')
+     .replace(/([a-z])/g,'<i class="v">$1</i>');
+  return t.replace(/\u0001(\d+)\u0001/g,function(m,i){return frac(fr[+i][0],fr[+i][1]);});
+}
+function tex(s){
+  var t=toTex(s), h=null;
+  if(window.katex){ try{ h=katex.renderToString(t,{throwOnError:false}); }catch(e){ h=null; } }
+  return '<span class="m">'+(h||fallback(t))+'</span>';
+}
 function mk(s){
-  var keep=[];s=String(s).replace(/<(\/?)(br|span)([^>]*)>/g,function(m){keep.push(m);return '\u0001'+(keep.length-1)+'\u0001';});
-  s=s.replace(/<=/g,'≦').replace(/</g,'＜').replace(/-/g,'−');
-  s=s.replace(/\[(\d+)\/(\d+)\]/g,function(m,n,d){return frac(n,d);});
-  s=s.replace(/\{(\w)\}/g,'<i class="v">$1</i>');
-  s=s.replace(/\|([^|]*)\|/g,'<span class="nw">$1</span>');
-  return s.replace(/\u0001(\d+)\u0001/g,function(m,i){return keep[+i];});
+  return String(s).split('$').map(function(part,i){return i%2?tex(part):part;}).join('');
+}
+/* x と y の変化の表（例題の考え方で使う）。xs/ys の '…' は「とちゅう」の列 */
+function hyo(xs,ys){
+  function row(h,v){return '<tr><th>'+mk('$'+h+'$')+'</th>'+v.map(function(c){
+    return c==='…'?'<td class="dots">…</td>':'<td>'+mk('$'+c+'$')+'</td>';}).join('')+'</tr>';}
+  return '<table class="hyo">'+row('x',xs)+row('y',ys)+'</table>';
 }
 function coef(a){var n=a[0],d=a[1];
   if(d===1){return n===1?'':(n===-1?'-':String(n));}
   return (n<0?'-':'')+'['+Math.abs(n)+'/'+d+']';}
-function eqSrc(a){return '{y}＝'+coef(a)+'{x}';}
-function rngSrc(lo,li,hi,hiIn,v){return '|'+lo+(li?'<=':'<')+'{'+v+'}'+(hiIn?'<=':'<')+hi+'|';}
+function eqSrc(a){return '$y='+coef(a)+'x$';}
+function rngSrc(lo,li,hi,hiIn,v){return '$'+lo+(li?'<=':'<')+v+(hiIn?'<=':'<')+hi+'$';}
 function yRange(p){var a=p.a[0]/p.a[1],x=p.x,y1=a*x[0],y2=a*x[2];
   return a>0?{lo:y1,li:x[1],hi:y2,hiIn:x[3]}:{lo:y2,li:x[3],hi:y1,hiIn:x[1]};}
 
 /* ===== 座標平面（目もり −6〜6） ===== */
-var C={ink:'#33312B',grid:'#C9D3DC',shu:'#C73E2E',ai:'#2C5F8A',sub:'#555'};
+/* 白黒：グラフ＝黒の太線、のばした直線＝灰色の破線、xの変域＝うすい灰色の帯、yの変域＝濃い灰色のしま模様の帯 */
+var C={ink:'#1F1F1F',grid:'#C8C8C8',line:'#1F1F1F',ext:'#808080',xb:'#B3B3B3',yb:'#4D4D4D',sub:'#555'};
 function graph(p,o){
   var L=6.8,U=o.U,S=+(2*L*U).toFixed(2);
   function X(x){return ((x+L)*U).toFixed(2);} function Y(y){return ((L-y)*U).toFixed(2);}
@@ -175,77 +206,240 @@ function graph(p,o){
     s+='<line x1="'+X(-6)+'" y1="'+Y(i)+'" x2="'+X(6)+'" y2="'+Y(i)+'" stroke="'+C.grid+'" stroke-width="'+(0.13*sw).toFixed(3)+'"/>';
   }
   if(p&&p.a) s+=overlay(p,o,X,Y,sw);
-  var aw=(0.28*sw).toFixed(3), ah=1.1*sw, ab=0.5*sw;
-  s+='<line x1="'+X(-L+0.15)+'" y1="'+Y(0)+'" x2="'+(X(L)-ah*0.6)+'" y2="'+Y(0)+'" stroke="'+C.ink+'" stroke-width="'+aw+'"/>';
-  s+='<polygon points="'+X(L)+','+Y(0)+' '+(X(L)-ah)+','+(Y(0)-ab)+' '+(X(L)-ah)+','+(+Y(0)+ab)+'" fill="'+C.ink+'"/>';
-  s+='<line x1="'+X(0)+'" y1="'+Y(-L+0.15)+'" x2="'+X(0)+'" y2="'+(+Y(L)+ah*0.6)+'" stroke="'+C.ink+'" stroke-width="'+aw+'"/>';
-  s+='<polygon points="'+X(0)+','+Y(L)+' '+(X(0)-ab)+','+(+Y(L)+ah)+' '+(+X(0)+ab)+','+(+Y(L)+ah)+'" fill="'+C.ink+'"/>';
+  // 軸は矢印を付けない実線で、方眼の枠（−6〜6）の端から端まで
+  var aw=(0.28*sw).toFixed(3), E=6;
+  s+='<line x1="'+X(-E)+'" y1="'+Y(0)+'" x2="'+X(E)+'" y2="'+Y(0)+'" stroke="'+C.ink+'" stroke-width="'+aw+'"/>';
+  s+='<line x1="'+X(0)+'" y1="'+Y(-E)+'" x2="'+X(0)+'" y2="'+Y(E)+'" stroke="'+C.ink+'" stroke-width="'+aw+'"/>';
   var t='font-size="'+fs+'" fill="'+C.sub+'" stroke="#fff" stroke-width="'+(0.55*sw).toFixed(2)+'" paint-order="stroke" font-family="Arial,Helvetica,sans-serif"';
-  for(i=-6;i<=6;i++){ if(!i) continue;
+  [-5,5].forEach(function(i){ // 目もりの数字は O と ±5 だけ
     var lab=(i<0?'−':'')+Math.abs(i);
     s+='<text x="'+X(i)+'" y="'+(+Y(0)+fs*1.05).toFixed(2)+'" text-anchor="middle" '+t+'>'+lab+'</text>';
     s+='<text x="'+(X(0)-0.45*U*0.8).toFixed(2)+'" y="'+(+Y(i)+fs*0.36).toFixed(2)+'" text-anchor="end" '+t+'>'+lab+'</text>';
-  }
+  });
   s+='<text x="'+(X(0)-0.12*U).toFixed(2)+'" y="'+(+Y(0)+fs*1.05).toFixed(2)+'" text-anchor="end" '+t+'>O</text>';
-  var tv='font-size="'+(fs*1.35).toFixed(2)+'" fill="'+C.ink+'" font-family="Times New Roman,serif" font-style="italic"';
-  s+='<text x="'+(X(L)-0.2*U).toFixed(2)+'" y="'+(Y(0)-0.45*U).toFixed(2)+'" text-anchor="end" '+tv+'>x</text>';
-  s+='<text x="'+(+X(0)+0.4*U).toFixed(2)+'" y="'+(+Y(L)+0.55*U).toFixed(2)+'" '+tv+'>y</text>';
+  var tv='font-size="'+(fs*1.35).toFixed(2)+'" fill="'+C.ink+'" font-family="Times New Roman,serif" font-style="italic" stroke="#fff" stroke-width="'+(0.5*sw).toFixed(2)+'" paint-order="stroke"';
+  s+='<text x="'+(X(E)-0.15*U).toFixed(2)+'" y="'+(Y(0)-0.4*U).toFixed(2)+'" text-anchor="end" '+tv+'>x</text>';
+  s+='<text x="'+(+X(0)+0.35*U).toFixed(2)+'" y="'+(+Y(E)+0.75*U).toFixed(2)+'" '+tv+'>y</text>';
   return s+'</svg>';
 }
 function overlay(p,o,X,Y,sw){
   var a=p.a[0]/p.a[1],x=p.x,x1=x[0],x2=x[2],y1=a*x1,y2=a*x2;
-  var xm=Math.min(6.6,6.6/Math.abs(a)), g='<g class="ov'+(o.show?' show':'')+'">';
-  g+='<line x1="'+X(x1)+'" y1="'+Y(0)+'" x2="'+X(x2)+'" y2="'+Y(0)+'" stroke="'+C.ai+'" stroke-opacity=".5" stroke-width="'+(1.15*sw).toFixed(2)+'"/>';
-  g+='<line x1="'+X(0)+'" y1="'+Y(Math.min(y1,y2))+'" x2="'+X(0)+'" y2="'+Y(Math.max(y1,y2))+'" stroke="'+C.shu+'" stroke-opacity=".5" stroke-width="'+(1.15*sw).toFixed(2)+'"/>';
-  g+='<line x1="'+X(-xm)+'" y1="'+Y(-a*xm)+'" x2="'+X(xm)+'" y2="'+Y(a*xm)+'" stroke="'+C.shu+'" stroke-width="'+(0.25*sw).toFixed(2)+'" stroke-dasharray="'+(0.9*sw).toFixed(2)+' '+(0.7*sw).toFixed(2)+'"/>';
+  // のばした点線も方眼の枠（−6〜6）の中で止める
+  var xm=Math.min(6,6/Math.abs(a)), g='<g class="ov'+(o.show?' show':'')+'">';
+  g+='<line x1="'+X(x1)+'" y1="'+Y(0)+'" x2="'+X(x2)+'" y2="'+Y(0)+'" stroke="'+C.xb+'" stroke-width="'+(1.15*sw).toFixed(2)+'"/>';
+  g+='<line x1="'+X(0)+'" y1="'+Y(Math.min(y1,y2))+'" x2="'+X(0)+'" y2="'+Y(Math.max(y1,y2))+'" stroke="'+C.yb+'" stroke-width="'+(1.15*sw).toFixed(2)+'" stroke-dasharray="'+(0.4*sw).toFixed(2)+' '+(0.3*sw).toFixed(2)+'"/>';
+  g+='<line x1="'+X(-xm)+'" y1="'+Y(-a*xm)+'" x2="'+X(xm)+'" y2="'+Y(a*xm)+'" stroke="'+C.ext+'" stroke-width="'+(0.25*sw).toFixed(2)+'" stroke-dasharray="'+(0.9*sw).toFixed(2)+' '+(0.7*sw).toFixed(2)+'"/>';
   [[x1,y1],[x2,y2]].forEach(function(q){
     g+='<polyline points="'+X(q[0])+','+Y(0)+' '+X(q[0])+','+Y(q[1])+' '+X(0)+','+Y(q[1])+'" fill="none" stroke="'+C.sub+'" stroke-width="'+(0.2*sw).toFixed(2)+'" stroke-dasharray="'+(0.45*sw).toFixed(2)+' '+(0.45*sw).toFixed(2)+'"/>';
   });
-  g+='<line x1="'+X(x1)+'" y1="'+Y(y1)+'" x2="'+X(x2)+'" y2="'+Y(y2)+'" stroke="'+C.shu+'" stroke-width="'+(0.8*sw).toFixed(2)+'"/>';
-  [[x1,y1,x[1]],[x2,y2,x[3]]].forEach(function(q){
-    g+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(0.8*sw).toFixed(2)+'" fill="'+(q[2]?C.shu:'#fff')+'" stroke="'+C.shu+'" stroke-width="'+(0.32*sw).toFixed(2)+'"/>';
-  });
+  // 中1は ●○ で「ふくむ・ふくまない」を区別しないので、はしに丸は付けない（変域もすべて ≦）
+  g+='<line x1="'+X(x1)+'" y1="'+Y(y1)+'" x2="'+X(x2)+'" y2="'+Y(y2)+'" stroke="'+C.line+'" stroke-width="'+(0.8*sw).toFixed(2)+'"/>';
   return g+'</g>';
 }
 
+/* ===== 問題文の部品 ===== */
+var D={ // グラフの向きの書き方（4通りをまぜて出す）
+  up:  '$y=ax$ のグラフは右上がりです。',
+  down:'$y=ax$ のグラフは右下がりです。',
+  pos: '$y=ax$ で、$a>0$ とします。',
+  neg: '$y=ax$ で、$a<0$ とします。'
+};
+var ASK={
+  shiki:'比例の式を求めなさい。',
+  ab:'$a$、$b$ の値を求めなさい。',
+  bc:'$b$、$c$ の値を求めなさい。',
+  sbc:'比例の式と $b$、$c$ の値を求めなさい。'
+};
+function Q(pre,xr,yr,ask){return pre+'$x$ の変域が $'+xr+'$ のとき、$y$ の変域は $'+yr+'$ です。'+ask;}
+function Kp(x,y){return 'グラフが点 $('+x+','+y+')$ を通る比例で、';}
+function Kx(x,y){return '$x='+x+'$ のとき $y='+y+'$ となる比例で、';}
+function Ke(e){return '$'+e+'$ で、';}
+
 /* ===== 問題データ =====
    a:[分子,分母]（比例定数）  x:[左はし, ふくむ?, 右はし, ふくむ?]（グラフに描く実際のxの変域）
-   応用は q（問題文）, L（解答らん）, A（答え） */
+   応用は q（問題文）, L（解答らん）, A（答え）
+   ⚠ 文字が2つある問題は「文字のはしの相手が、数のわかっているはし」になるように数を選ぶ
+     （文字どうしが組になると答えが1つに決まらない） */
 var BASIC=[
   {a:[2,1], x:[1,1,3,1]},  {a:[3,1], x:[-2,1,1,1]},  {a:[1,1], x:[-4,1,5,1]},
   {a:[-2,1],x:[0,1,3,1]},  {a:[-1,1],x:[-3,1,6,1]},  {a:[-3,1],x:[-2,1,1,1]},
   {a:[1,2], x:[-4,1,6,1]}, {a:[2,3], x:[-6,1,3,1]},  {a:[-1,3],x:[-6,1,3,1]},
-  {a:[-3,2],x:[-2,1,4,1]}, {a:[2,1], x:[-2,0,3,1]},  {a:[-1,2],x:[-4,1,6,0]}
+  {a:[-3,2],x:[-2,1,4,1]}, {a:[3,2], x:[-2,1,4,1]},  {a:[-1,2],x:[-4,1,6,1]}
 ];
-var YA='{y}＝{a}{x} で、';
-var APP=[
-  {q:YA+'{x}の変域が |-2<={x}<=3| のとき、{y}の変域は |-4<={y}<=6| です。{a}の値を求めなさい。', a:[2,1], x:[-2,1,3,1], L:['{a}＝'], A:['2']},
-  {q:YA+'{x}の変域が |-1<={x}<=2| のとき、{y}の変域は |-6<={y}<=3| です。{a}の値を求めなさい。', a:[-3,1], x:[-1,1,2,1], L:['{a}＝'], A:['-3']},
-  {q:YA+'{x}の変域が |-4<={x}<=2| のとき、{y}の変域は |-2<={y}<=1| です。{a}の値を求めなさい。', a:[1,2], x:[-4,1,2,1], L:['{a}＝'], A:['[1/2]']},
-  {q:YA+'{x}の変域が |-3<={x}<=6| のとき、{y}の変域は |-4<={y}<=2| です。{a}の値を求めなさい。', a:[-2,3], x:[-3,1,6,1], L:['{a}＝'], A:['-[2/3]']},
-  {q:'{y}＝{a}{x} のグラフは右上がりです。{x}の変域が |-2<={x}<={b}| のとき、{y}の変域は |-3<={y}<=6| です。{a}、{b}の値を求めなさい。', a:[3,2], x:[-2,1,4,1], L:['{a}＝','{b}＝'], A:['[3/2]','4']},
-  {q:'{y}＝{a}{x} のグラフは右下がりです。{x}の変域が |{b}<={x}<=4| のとき、{y}の変域は |-6<={y}<=3| です。{a}、{b}の値を求めなさい。', a:[-3,2], x:[-2,1,4,1], L:['{a}＝','{b}＝'], A:['-[3/2]','-2']},
+var L_S=['式'], L_AB=['$a=$','$b=$'], L_BC=['$b=$','$c=$'], L_SBC=['式','$b=$','$c=$'];
 
-  {q:'グラフが点 |(3, -2)| を通る比例で、{x}の変域が |-3<={x}<=6| のとき、比例の式と{y}の変域を求めなさい。', a:[-2,3], x:[-3,1,6,1], L:['式','{y}の変域'], A:['{y}＝-[2/3]{x}','|-4<={y}<=2|']},
-  {q:'グラフが点 |(-2, 4)| を通る比例で、{x}の変域が |{b}<={x}<=1| のとき、{y}の変域は |-2<={y}<=6| です。比例の式と{b}の値を求めなさい。', a:[-2,1], x:[-3,1,1,1], L:['式','{b}＝'], A:['{y}＝-2{x}','-3']},
-  {q:'{y}＝{a}{x} のグラフは右下がりです。{x}の変域が |-4<={x}<=2| のとき、{y}の変域は |{b}<={y}<=6| です。{a}、{b}の値を求めなさい。', a:[-3,2], x:[-4,1,2,1], L:['{a}＝','{b}＝'], A:['-[3/2]','-3']},
-  {q:'{x}＝2 のとき {y}＝1 となる比例で、{x}の変域が |{b}<={x}<=6| のとき、{y}の変域は |-2<={y}<={c}| です。比例の式と{b}、{c}の値を求めなさい。', a:[1,2], x:[-4,1,6,1], L:['式','{b}＝','{c}＝'], A:['{y}＝[1/2]{x}','-4','3']},
-  {q:YA+'{x}の変域が |-2<{x}<=4| のとき、{y}の変域は |-6<={y}<3| です。{a}の値を求めなさい。', a:[-3,2], x:[-2,0,4,1], L:['{a}＝'], A:['-[3/2]']},
-  {q:'{y}＝{a}{x} のグラフは右上がりです。{x}の変域が |-4<={x}<=2| のとき、{y}の変域は |{b}<={y}<=3| です。{a}、{b}の値を求めなさい。', a:[3,2], x:[-4,1,2,1], L:['{a}＝','{b}＝'], A:['[3/2]','-6']}
+/* 応用①  向き＋両方の変域 → 比例の式 */
+var APP1=[
+  {q:Q(D.up,  '-1<=x<=3','-2<=y<=6',ASK.shiki), a:[2,1],  x:[-1,1,3,1], L:L_S, A:['$y=2x$']},
+  {q:Q(D.down,'-2<=x<=1','-3<=y<=6',ASK.shiki), a:[-3,1], x:[-2,1,1,1], L:L_S, A:['$y=-3x$']},
+  {q:Q(D.pos, '-4<=x<=6','-2<=y<=3',ASK.shiki), a:[1,2],  x:[-4,1,6,1], L:L_S, A:['$y=[1/2]x$']},
+  {q:Q(D.neg, '-3<=x<=6','-4<=y<=2',ASK.shiki), a:[-2,3], x:[-3,1,6,1], L:L_S, A:['$y=-[2/3]x$']},
+  {q:Q(D.down,'-4<=x<=2','-3<=y<=6',ASK.shiki), a:[-3,2], x:[-4,1,2,1], L:L_S, A:['$y=-[3/2]x$']},
+  {q:Q(D.pos, '-3<=x<=6','-1<=y<=2',ASK.shiki), a:[1,3],  x:[-3,1,6,1], L:L_S, A:['$y=[1/3]x$']}
+];
+/* 応用②  向き＋yの変域に文字 → a, b */
+var APP2=[
+  {q:Q(D.up,  '-3<=x<=2','b<=y<=4', ASK.ab), a:[2,1],  x:[-3,1,2,1], L:L_AB, A:['$2$','$-6$']},
+  {q:Q(D.down,'-2<=x<=3','-6<=y<=b',ASK.ab), a:[-2,1], x:[-2,1,3,1], L:L_AB, A:['$-2$','$4$']},
+  {q:Q(D.pos, '-4<=x<=6','-2<=y<=b',ASK.ab), a:[1,2],  x:[-4,1,6,1], L:L_AB, A:['$[1/2]$','$3$']},
+  {q:Q(D.neg, '-6<=x<=3','b<=y<=4', ASK.ab), a:[-2,3], x:[-6,1,3,1], L:L_AB, A:['$-[2/3]$','$-2$']},
+  {q:Q(D.up,  '-4<=x<=2','b<=y<=3', ASK.ab), a:[3,2],  x:[-4,1,2,1], L:L_AB, A:['$[3/2]$','$-6$']},
+  {q:Q(D.neg, '-2<=x<=6','b<=y<=1', ASK.ab), a:[-1,2], x:[-2,1,6,1], L:L_AB, A:['$-[1/2]$','$-3$']}
+];
+/* 応用③  向き＋xの変域に文字 → a, b */
+var APP3=[
+  {q:Q(D.up,  'b<=x<=2', '-3<=y<=6',ASK.ab), a:[3,1],  x:[-1,1,2,1], L:L_AB, A:['$3$','$-1$']},
+  {q:Q(D.down,'-3<=x<=b','-2<=y<=6',ASK.ab), a:[-2,1], x:[-3,1,1,1], L:L_AB, A:['$-2$','$1$']},
+  {q:Q(D.pos, '-6<=x<=b','-2<=y<=1',ASK.ab), a:[1,3],  x:[-6,1,3,1], L:L_AB, A:['$[1/3]$','$3$']},
+  {q:Q(D.neg, 'b<=x<=6', '-4<=y<=2',ASK.ab), a:[-2,3], x:[-3,1,6,1], L:L_AB, A:['$-[2/3]$','$-3$']},
+  {q:Q(D.up,  '-2<=x<=b','-3<=y<=6',ASK.ab), a:[3,2],  x:[-2,1,4,1], L:L_AB, A:['$[3/2]$','$4$']},
+  {q:Q(D.neg, 'b<=x<=2', '-1<=y<=3',ASK.ab), a:[-1,2], x:[-6,1,2,1], L:L_AB, A:['$-[1/2]$','$-6$']}
+];
+/* 応用④  式がわかっている＋x・yの変域に文字 → b, c */
+var APP4=[
+  {q:Q(Ke('y=3x'),       'b<=x<=2', '-3<=y<=c',ASK.bc), a:[3,1],  x:[-1,1,2,1], L:L_BC, A:['$-1$','$6$']},
+  {q:Q(Ke('y=-x'),       '-3<=x<=b','-5<=y<=c',ASK.bc), a:[-1,1], x:[-3,1,5,1], L:L_BC, A:['$5$','$3$']},
+  {q:Q(Ke('y=[2/3]x'),   '-6<=x<=b','c<=y<=2', ASK.bc), a:[2,3],  x:[-6,1,3,1], L:L_BC, A:['$3$','$-4$']},
+  {q:Q(Ke('y=-3x'),      'b<=x<=1', 'c<=y<=6', ASK.bc), a:[-3,1], x:[-2,1,1,1], L:L_BC, A:['$-2$','$-3$']},
+  {q:Q(Ke('y=-[1/2]x'),  '-2<=x<=b','-3<=y<=c',ASK.bc), a:[-1,2], x:[-2,1,6,1], L:L_BC, A:['$6$','$1$']},
+  {q:Q(Ke('y=[3/2]x'),   'b<=x<=4', '-3<=y<=c',ASK.bc), a:[3,2],  x:[-2,1,4,1], L:L_BC, A:['$-2$','$6$']}
+];
+/* 応用⑤  通る点から式を決める＋x・yの変域に文字 → 式, b, c */
+var APP5=[
+  {q:Q(Kp(1,-2), '-1<=x<=b','-6<=y<=c',ASK.sbc), a:[-2,1], x:[-1,1,3,1], L:L_SBC, A:['$y=-2x$','$3$','$2$']},
+  {q:Q(Kp(2,1),  'b<=x<=6', '-2<=y<=c',ASK.sbc), a:[1,2],  x:[-4,1,6,1], L:L_SBC, A:['$y=[1/2]x$','$-4$','$3$']},
+  {q:Q(Kp(3,-2), 'b<=x<=6', 'c<=y<=2', ASK.sbc), a:[-2,3], x:[-3,1,6,1], L:L_SBC, A:['$y=-[2/3]x$','$-3$','$-4$']},
+  {q:Q(Kx(-1,3), '-2<=x<=b','-3<=y<=c',ASK.sbc), a:[-3,1], x:[-2,1,1,1], L:L_SBC, A:['$y=-3x$','$1$','$6$']},
+  {q:Q(Kp(-2,-3),'-4<=x<=b','c<=y<=3', ASK.sbc), a:[3,2],  x:[-4,1,2,1], L:L_SBC, A:['$y=[3/2]x$','$2$','$-6$']},
+  {q:Q(Kx(4,-2), '-6<=x<=b','-2<=y<=c',ASK.sbc), a:[-1,2], x:[-6,1,4,1], L:L_SBC, A:['$y=-[1/2]x$','$4$','$3$']}
 ];
 var TEST1=[
   {a:[3,1], x:[-1,1,2,1], pts:15}, {a:[-1,1],x:[-4,1,5,1], pts:15},
-  {a:[1,3], x:[-3,1,6,1], pts:15}, {a:[-2,3],x:[-3,1,6,0], pts:15},
-  {q:YA+'{x}の変域が |-1<={x}<=3| のとき、{y}の変域は |-6<={y}<=2| です。{a}の値を求めなさい。', a:[-2,1], x:[-1,1,3,1], L:['{a}＝'], A:['-2'], pts:20},
-  {q:'グラフが点 |(4, 2)| を通る比例で、{x}の変域が |-6<={x}<={b}| のとき、{y}の変域は |{c}<={y}<=1| です。比例の式と{b}、{c}の値を求めなさい。', a:[1,2], x:[-6,1,2,1], L:['式','{b}＝','{c}＝'], A:['{y}＝[1/2]{x}','2','-3'], pts:20}
+  {a:[1,3], x:[-3,1,6,1], pts:15}, {a:[-2,3],x:[-3,1,6,1], pts:15},
+  {q:Q(D.down,'-1<=x<=3','-6<=y<=2',ASK.shiki), a:[-2,1], x:[-1,1,3,1], L:L_S, A:['$y=-2x$'], pts:20},
+  {q:Q(D.pos, '-6<=x<=3','b<=y<=2', ASK.ab),    a:[2,3],  x:[-6,1,3,1], L:L_AB, A:['$[2/3]$','$-4$'], pts:20}
 ];
 var TEST2=[
   {a:[-1,2], x:[-2,1,6,1], pts:15},
-  {q:YA+'{x}の変域が |-4<={x}<=2| のとき、{y}の変域は |-6<={y}<=3| です。{a}の値を求めなさい。', a:[3,2], x:[-4,1,2,1], L:['{a}＝'], A:['[3/2]'], pts:15},
-  {q:YA+'{x}の変域が |-6<={x}<=2| のとき、{y}の変域は |-2<={y}<=6| です。{a}の値を求めなさい。', a:[-1,1], x:[-6,1,2,1], L:['{a}＝'], A:['-1'], pts:15},
-  {q:'{y}＝{a}{x} のグラフは右上がりです。{x}の変域が |{b}<={x}<=2| のとき、{y}の変域は |-6<={y}<=4| です。{a}、{b}の値を求めなさい。', a:[2,1], x:[-3,1,2,1], L:['{a}＝','{b}＝'], A:['2','-3'], pts:20},
-  {q:'{x}＝-3 のとき {y}＝2 となる比例で、{x}の変域が |-3<={x}<={b}| のとき、{y}の変域は |-4<={y}<={c}| です。比例の式と{b}、{c}の値を求めなさい。', a:[-2,3], x:[-3,1,6,1], L:['式','{b}＝','{c}＝'], A:['{y}＝-[2/3]{x}','6','2'], pts:20},
-  {q:YA+'{x}の変域が |-6<{x}<=3| のとき、{y}の変域は |-2<={y}<4| です。{a}の値を求めなさい。', a:[-2,3], x:[-6,0,3,1], L:['{a}＝'], A:['-[2/3]'], pts:15}
+  {q:Q(D.pos, '-4<=x<=2','-6<=y<=3',ASK.shiki), a:[3,2],  x:[-4,1,2,1], L:L_S, A:['$y=[3/2]x$'], pts:15},
+  {q:Q(D.down,'-6<=x<=b','-2<=y<=6',ASK.ab),    a:[-1,1], x:[-6,1,2,1], L:L_AB, A:['$-1$','$2$'], pts:15},
+  {q:Q(Ke('y=-[3/2]x'),'b<=x<=2','c<=y<=6',ASK.bc), a:[-3,2], x:[-4,1,2,1], L:L_BC, A:['$-4$','$-3$'], pts:20},
+  {q:Q(Kp(3,2),'b<=x<=6','-4<=y<=c',ASK.sbc),   a:[2,3],  x:[-6,1,6,1], L:L_SBC, A:['$y=[2/3]x$','$-6$','$4$'], pts:20},
+  {q:Q(D.neg, '-2<=x<=4','-6<=y<=b',ASK.ab),    a:[-3,2], x:[-2,1,4,1], L:L_AB, A:['$-[3/2]$','$3$'], pts:15}
+];
+
+/* ===== 例題データ =====
+   p: グラフ（答えを書きこんだ状態で出す）  tag: 札  q: 問題文  s: 考え方  ans: 答え  tip: ひとこと */
+var OK='<span class="ok">○</span>';
+var EX_BASIC=[
+  {p:{a:[2,1],x:[-1,1,2,1]}, tag:'例題1', q:'$y=2x$ で、$x$ の変域が $-1<=x<=2$ のとき、$y$ の変域を求めなさい。',
+   s:['グラフをかく：原点と点 $(1,2)$ を通る直線。',
+      '$x$ の変域のはしの $y$ を求めて、表にまとめる。'+hyo(['-1','…','0','…','2'],['-2','…','0','…','4']),
+      '太い部分を横に見て、$y$ 軸に写す。'],
+   ans:'$-2<=y<=4$'},
+  {p:{a:[-2,1],x:[-2,1,1,1]}, tag:'例題2', q:'$y=-2x$ で、$x$ の変域が $-2<=x<=1$ のとき、$y$ の変域を求めなさい。',
+   s:['グラフは右下がり：原点と点 $(1,-2)$ を通る直線。',
+      '$x$ の変域のはしの $y$ を求めて、表にまとめる。'+hyo(['-2','…','0','…','1'],['4','…','0','…','-2']),
+      '右下がりなので、表の $y$ は右へ行くほど小さくなる。'],
+   ans:'$-2<=y<=4$',
+   tip:'$y$ は小さいほうから $-2<=y<=4$ と書く（$4<=y<=-2$ と書かない）。'},
+  {p:{a:[1,2],x:[-4,1,2,1]}, tag:'例題3', q:'$y=[1/2]x$ で、$x$ の変域が $-4<=x<=2$ のとき、$y$ の変域を求めなさい。',
+   s:['グラフをかく：分母が $2$ なので、$x$ が $2$ の倍数の点をとる。<br>原点と点 $(2,1)$ を通る直線。',
+      '$x$ の変域のはしの $y$ を求めて、表にまとめる。'+hyo(['-4','…','0','…','2'],['-2','…','0','…','1'])],
+   ans:'$-2<=y<=1$',
+   tip:'比例定数が分数のときは、$x$ に分母の倍数を入れると $y$ が整数になり、点がとりやすい。'}
+];
+var EX_APP1=[
+  {p:{a:[1,2],x:[-2,1,4,1]}, tag:'例題1', q:Q(D.up,'-2<=x<=4','-1<=y<=2',ASK.shiki),
+   s:['右上がりなので、$x$ が大きいほど $y$ も大きい。<br>$x$ の右はし $4$ と $y$ の上はし $2$ が組になる → 点 $(4,2)$',
+      '$y=ax$ に $x=4$、$y=2$ を入れる：$2=4a$ → $a=[1/2]$',
+      'たしかめ：$x=-2$ のとき $y=-1$ … '+OK],
+   ans:'$y=[1/2]x$'},
+  {p:{a:[-1,1],x:[-2,1,4,1]}, tag:'例題2', q:Q(D.neg,'-2<=x<=4','-4<=y<=2',ASK.shiki),
+   s:['$a<0$ なので右下がり。$x$ が大きいほど $y$ は小さい。<br>$x$ の右はし $4$ と $y$ の下はし $-4$ が組になる → 点 $(4,-4)$',
+      '$-4=4a$ → $a=-1$',
+      'たしかめ：$x=-2$ のとき $y=2$ … '+OK],
+   ans:'$y=-x$',
+   tip:'<b>はしの組</b>　右上がり（$a>0$）… 左はし と 下はし、右はし と 上はし<br>　　　　　　右下がり（$a<0$）… 左はし と 上はし、右はし と 下はし'},
+  {p:{a:[2,3],x:[-6,1,3,1]}, tag:'例題3', q:Q(D.pos,'-6<=x<=3','-4<=y<=2',ASK.shiki),
+   s:['$a>0$ なので右上がり。左はしどうしが組になる → 点 $(-6,-4)$',
+      '$-4=-6a$ → $a=[2/3]$',
+      'たしかめ：$x=3$ のとき $y=2$ … '+OK],
+   ans:'$y=[2/3]x$',
+   tip:'どちらの組を使っても同じ $a$ になる。計算しやすいほうで $a$ を求め、もう一方でたしかめよう。'}
+];
+var EX_APP2=[
+  {p:{a:[2,1],x:[-2,1,3,1]}, tag:'例題1', q:Q(D.up,'-2<=x<=3','b<=y<=6',ASK.ab),
+   s:['文字の無いはしどうしの組をさがす。右上がりなので、<br>$x$ の右はし $3$ と $y$ の上はし $6$ が組 → 点 $(3,6)$',
+      '$6=3a$ → $a=2$　だから $y=2x$',
+      '$b$ は $x$ の左はし $-2$ のときの $y$：$y=2\\times(-2)=-4$'],
+   ans:'$a=2$、$b=-4$'},
+  {p:{a:[-3,1],x:[-1,1,2,1]}, tag:'例題2', q:Q(D.neg,'-1<=x<=2','-6<=y<=b',ASK.ab),
+   s:['$a<0$ なので右下がり。<br>$x$ の右はし $2$ と $y$ の下はし $-6$ が組 → 点 $(2,-6)$',
+      '$-6=2a$ → $a=-3$　だから $y=-3x$',
+      '$b$ は $x=-1$ のときの $y$：$y=-3\\times(-1)=3$'],
+   ans:'$a=-3$、$b=3$'},
+  {p:{a:[-3,2],x:[-4,1,2,1]}, tag:'例題3', q:Q(D.down,'-4<=x<=2','b<=y<=6',ASK.ab),
+   s:['右下がりなので、$x$ の左はし $-4$ と $y$ の上はし $6$ が組 → 点 $(-4,6)$',
+      '$6=-4a$ → $a=-[3/2]$',
+      '$b$ は $x=2$ のときの $y$：$y=-[3/2]\\times2=-3$'],
+   ans:'$a=-[3/2]$、$b=-3$',
+   tip:'右下がりのとき、$x$ の左はしは $y$ の<b>上はし</b>と組になる。下はしと組にしないように注意！'}
+];
+var EX_APP3=[
+  {p:{a:[2,1],x:[-2,1,3,1]}, tag:'例題1', q:Q(D.up,'-2<=x<=b','-4<=y<=6',ASK.ab),
+   s:['右上がりなので、$x$ の左はし $-2$ と $y$ の下はし $-4$ が組 → 点 $(-2,-4)$',
+      '$-4=-2a$ → $a=2$　だから $y=2x$',
+      '$b$ は $y$ が上はし $6$ になるときの $x$：$6=2x$ → $x=3$'],
+   ans:'$a=2$、$b=3$'},
+  {p:{a:[-3,1],x:[-1,1,2,1]}, tag:'例題2', q:Q(D.down,'-1<=x<=b','-6<=y<=3',ASK.ab),
+   s:['右下がりなので、$x$ の左はし $-1$ と $y$ の上はし $3$ が組 → 点 $(-1,3)$',
+      '$3=-a$ → $a=-3$　だから $y=-3x$',
+      '$x$ の右はし $b$ は $y$ の下はし $-6$ と組：$-6=-3x$ → $x=2$'],
+   ans:'$a=-3$、$b=2$'},
+  {p:{a:[-3,2],x:[-2,1,4,1]}, tag:'例題3', q:Q(D.neg,'b<=x<=4','-6<=y<=3',ASK.ab),
+   s:['$a<0$ なので右下がり。<br>$x$ の右はし $4$ と $y$ の下はし $-6$ が組 → 点 $(4,-6)$',
+      '$-6=4a$ → $a=-[3/2]$',
+      '$x$ の左はし $b$ は $y$ の上はし $3$ と組：$3=-[3/2]x$ → $x=-2$'],
+   ans:'$a=-[3/2]$、$b=-2$',
+   tip:'$x$ を求めるときは、$y$ の値を式に入れて方程式を解く。<br>$3=-[3/2]x$ の両辺に $-[2/3]$ をかけて $x=-2$'}
+];
+var EX_APP4=[
+  {p:{a:[2,1],x:[-1,1,3,1]}, tag:'例題1', q:Q(Ke('y=2x'),'-1<=x<=b','c<=y<=6',ASK.bc),
+   s:['$a=2>0$ なので右上がり。左はしどうし・右はしどうしが組。',
+      '$c$ は $x$ の左はし $-1$ のときの $y$：$y=2\\times(-1)=-2$',
+      '$b$ は $y$ が上はし $6$ になるときの $x$：$6=2x$ → $x=3$'],
+   ans:'$b=3$、$c=-2$'},
+  {p:{a:[-2,1],x:[-2,1,3,1]}, tag:'例題2', q:Q(Ke('y=-2x'),'b<=x<=3','c<=y<=4',ASK.bc),
+   s:['$a=-2<0$ なので右下がり。<br>$x$ の右はし $3$ と $y$ の下はし $c$、$x$ の左はし $b$ と $y$ の上はし $4$ が組。',
+      '$c$ は $x=3$ のときの $y$：$y=-2\\times3=-6$',
+      '$b$ は $y=4$ になるときの $x$：$4=-2x$ → $x=-2$'],
+   ans:'$b=-2$、$c=-6$',
+   tip:'文字のはしの相手は、いつも数のわかっているはし。<br>右下がりのときは「左はし と 上はし」「右はし と 下はし」の組になる。'},
+  {p:{a:[1,2],x:[-4,1,6,1]}, tag:'例題3', q:Q(Ke('y=[1/2]x'),'b<=x<=6','-2<=y<=c',ASK.bc),
+   s:['$a=[1/2]>0$ なので右上がり。',
+      '$c$ は $x$ の右はし $6$ のときの $y$：$y=[1/2]\\times6=3$',
+      '$b$ は $y$ が下はし $-2$ になるときの $x$：$-2=[1/2]x$ → $x=-4$'],
+   ans:'$b=-4$、$c=3$'}
+];
+var EX_APP5=[
+  {p:{a:[2,1],x:[-2,1,3,1]}, tag:'例題1', q:Q(Kp(1,2),'b<=x<=3','-4<=y<=c',ASK.sbc),
+   s:['$y=ax$ に $x=1$、$y=2$ を入れる：$2=a$ → $y=2x$（右上がり）',
+      '$c$ は $x$ の右はし $3$ のときの $y$：$y=6$',
+      '$b$ は $y$ が下はし $-4$ になるときの $x$：$-4=2x$ → $x=-2$'],
+   ans:'$y=2x$、$b=-2$、$c=6$'},
+  {p:{a:[-3,2],x:[-2,1,4,1]}, tag:'例題2', q:Q(Kp(2,-3),'b<=x<=4','c<=y<=3',ASK.sbc),
+   s:['$-3=2a$ → $a=-[3/2]$　$y=-[3/2]x$（右下がり）',
+      '$x$ の右はし $4$ は $y$ の下はし $c$ と組：$y=-[3/2]\\times4=-6$',
+      '$x$ の左はし $b$ は $y$ の上はし $3$ と組：$3=-[3/2]x$ → $x=-2$'],
+   ans:'$y=-[3/2]x$、$b=-2$、$c=-6$',
+   tip:'式が決まったら、$a$ の符号で右上がりか右下がりかを確かめてから、はしの組を考えよう。'},
+  {p:{a:[1,3],x:[-6,1,6,1]}, tag:'例題3', q:Q(Kx(3,1),'-6<=x<=b','c<=y<=2',ASK.sbc),
+   s:['$1=3a$ → $a=[1/3]$　$y=[1/3]x$（右上がり）',
+      '$c$ は $x$ の左はし $-6$ のときの $y$：$y=-2$',
+      '$b$ は $y$ が上はし $2$ になるときの $x$：$2=[1/3]x$ → $x=6$'],
+   ans:'$y=[1/3]x$、$b=6$、$c=-2$',
+   tip:'「点 $(3,1)$ を通る」と「$x=3$ のとき $y=1$」は同じ意味。'}
 ];
 
 /* ===== 1問ぶん ===== */
@@ -253,13 +447,13 @@ function probHtml(p,no){
   var q,ac='';
   if(!p.q){ // 基本
     q='<div class="q qb"><div><span class="no">'+no+'</span><span class="eq">'+mk(eqSrc(p.a))+'</span></div>'+
-      '<div class="xr">'+mk('{x}の変域　'+rngSrc(p.x[0],p.x[1],p.x[2],p.x[3],'x'))+'</div></div>';
+      '<div class="xr">'+mk('$x$ の変域　'+rngSrc(p.x[0],p.x[1],p.x[2],p.x[3],'x'))+'</div></div>';
     var r=yRange(p);
-    ac='<div class="al col"><span class="lb">'+mk('{y}の変域')+'</span><span class="aw"><span class="ans">'+mk(rngSrc(r.lo,r.li,r.hi,r.hiIn,'y'))+'</span></span></div>';
+    ac='<div class="al col"><span class="lb">'+mk('$y$ の変域')+'</span><span class="aw"><span class="ans">'+mk(rngSrc(r.lo,r.li,r.hi,r.hiIn,'y'))+'</span></span></div>';
   }else{
     q='<div class="q"><span class="no">'+no+'</span>'+mk(p.q)+'</div>';
     p.L.forEach(function(l,i){
-      var col=(l==='式'||l==='{y}の変域');
+      var col=(l==='式');
       ac+='<div class="al'+(col?' col':'')+'"><span class="lb">'+mk(l)+'</span><span class="aw"><span class="ans">'+mk(p.A[i])+'</span></span></div>';
     });
   }
@@ -275,94 +469,106 @@ function probPage(badge,cls,title,ins,list,start){
     '<div class="probs">'+list.map(function(p,i){return probHtml(p,start+i);}).join('')+'</div>';
 }
 function testPage(n,list){
-  return head('総合テスト '+n,'test',n==='①'?'基本と応用のまとめ（1）':'基本と応用のまとめ（2）','<span class="date">　　月　　日</span>')+
+  return head('総合テスト '+n,'test',n==='①'?'基本と応用のまとめ（1）':'基本と応用のまとめ（2）')+
     '<div class="th"><span class="nm">　　年　　組　　番　名前</span>'+
     '<span class="score">得点<span class="sb"></span>/100点</span></div>'+
     '<div class="ins" style="height:5mm;padding-top:.8mm">'+mk('グラフをかいて考えよう。比例定数や文字の値は、分数のときは分数のまま答えなさい。')+'</div>'+
     '<div class="probs test">'+list.map(function(p,i){return probHtml(p,i+1);}).join('')+'</div>';
 }
 
+/* ===== 例題ページ ===== */
+function exPage(badge,title,ins,list,tagCls){
+  return head(badge,'exb',title)+'<div class="ins">'+mk(ins)+'</div>'+list.map(function(e){
+    return '<div class="ex">'+graph(e.p,{U:4.2,show:true})+'<div class="exbody">'+
+      '<div class="exq"><span class="tag'+(tagCls?' '+tagCls:'')+'">'+e.tag+'</span>'+mk(e.q)+'</div>'+
+      '<ol>'+e.s.map(function(s){return '<li>'+mk(s)+'</li>';}).join('')+'</ol>'+
+      '<div class="exa">答え　'+mk(e.ans)+'</div>'+(e.tip?'<div class="tip">'+mk(e.tip)+'</div>':'')+'</div></div>';
+  }).join('');
+}
+
 /* ===== 表紙 ===== */
+var TOC=[
+  ['2','例題','$y$ の変域の求め方'],
+  ['3','基本問題 ①','$x$ の変域から $y$ の変域（比例定数が整数）'],
+  ['4','基本問題 ②','$x$ の変域から $y$ の変域（比例定数が分数）'],
+  ['5・6','応用問題 ①','グラフの向きと両方の変域から、式を求める'],
+  ['7・8','応用問題 ②','$y$ の変域に文字（$a$ と $b$ を求める）'],
+  ['9・10','応用問題 ③','$x$ の変域に文字（$a$ と $b$ を求める）'],
+  ['11・12','応用問題 ④','式がわかっていて、$x$ と $y$ の変域に文字'],
+  ['13・14','応用問題 ⑤','通る点から式を決めて、$x$ と $y$ の変域の文字'],
+  ['15','総合テスト ①','100点満点'],
+  ['16','総合テスト ②','100点満点']
+];
 function coverPage(){
-  var toc=[['2','例題','変域の求め方を見てみよう'],['3','基本問題 ①','{x}の変域から {y}の変域（比例定数が整数）'],
-    ['4','基本問題 ②','{x}の変域から {y}の変域（分数・＜ をふくむ）'],['5','応用問題 ①','変域から比例定数を求める'],
-    ['6','応用問題 ②','比例の式と、変域の文字を求める'],['7','総合テスト ①','100点満点'],['8','総合テスト ②','100点満点']];
   return '<div class="cover">'+
     '<div class="cv-top"><span class="pill">中学1年　数学</span><span class="stamp">解答</span></div>'+
     '<div class="cv-title"><div class="t1">比例のグラフ</div><div class="t2">変域マスター</div>'+
     '<div class="t3">グラフをかいて、変域を「目で見て」つかもう</div></div>'+
-    '<div class="cv-mid">'+graph({a:[1,2],x:[-4,1,6,1]},{U:5.6,show:true})+
-      '<div class="cv-legend"><div style="font-weight:bold;margin-bottom:1mm">'+mk('{y}＝[1/2]{x}　|-4<={x}<=6|')+'</div>'+
-      '<div><span class="sw" style="background:rgba(44,95,138,.5)"></span>'+mk('{x}の変域')+'</div>'+
-      '<div><span class="sw" style="background:#C73E2E;height:1mm"></span>変域にあたるグラフ</div>'+
-      '<div><span class="sw" style="background:rgba(199,62,46,.5)"></span>'+mk('{y}の変域')+'</div>'+
-      '<div style="margin-top:1.5mm;font-weight:bold;color:#C73E2E">'+mk('→　|-2<={y}<=3|')+'</div></div></div>'+
+    '<div class="cv-mid">'+graph({a:[1,2],x:[-4,1,6,1]},{U:4.8,show:true})+
+      '<div class="cv-legend"><div style="font-weight:bold;margin-bottom:1mm">'+mk('$y=[1/2]x$　$-4<=x<=6$')+'</div>'+
+      '<div><span class="sw" style="background:#B3B3B3;border-radius:0"></span>'+mk('$x$ の変域（うすい灰色の帯）')+'</div>'+
+      '<div><span class="sw" style="background:#1F1F1F;height:1mm"></span>変域にあたるグラフ（黒い太線）</div>'+
+      '<div><span class="sw" style="background:repeating-linear-gradient(90deg,#4D4D4D 0 .4mm,transparent .4mm .7mm);border-radius:0"></span>'+mk('$y$ の変域（しま模様の帯）')+'</div>'+
+      '<div style="margin-top:1.5mm;font-weight:bold">'+mk('→　$-2<=y<=3$')+'</div></div></div>'+
     '<table class="toc"><tr><th style="white-space:nowrap">ページ</th><th colspan="2">内容</th><th style="text-align:center">学習した日</th><th style="text-align:center">できた</th></tr>'+
-    toc.map(function(r){return '<tr><td class="p">'+r[0]+'</td><td style="white-space:nowrap;font-weight:bold">'+r[1]+'</td><td>'+mk(r[2])+'</td><td class="c">／</td><td class="c"><span class="box"></span></td></tr>';}).join('')+
+    TOC.map(function(r){return '<tr><td class="p">'+r[0]+'</td><td style="white-space:nowrap;font-weight:bold">'+r[1]+'</td><td>'+mk(r[2])+'</td><td class="c">／</td><td class="c"><span class="box"></span></td></tr>';}).join('')+
     '</table>'+
     '<div class="cv-name"><span>　　年　　組　　番</span><span>名前</span><span class="ul"></span></div>'+
     '<div class="cv-foot">中京個別指導学院</div></div>';
 }
 
-/* ===== 例題 ===== */
-function examplePage(){
-  function ex(p,tag,q,steps,ansTxt,tip){
-    return '<div class="ex">'+graph(p,{U:4.2,show:true})+'<div style="flex:1;min-width:0">'+
-      '<div class="exq">'+tag+mk(q)+'</div><ol>'+steps.map(function(s){return '<li>'+mk(s)+'</li>';}).join('')+'</ol>'+
-      '<div class="exa">'+mk(ansTxt)+'</div>'+(tip?'<div class="tip">'+mk(tip)+'</div>':'')+'</div></div>';
-  }
-  var T1='<span class="tag">例題1</span>',T2='<span class="tag">例題2</span>',T3='<span class="tag app">例題3 応用</span>';
-  return head('例題','exb','変域の求め方')+
-    '<div class="ins">'+mk('グラフに {x}の変域（青）をとり、その部分のグラフ（赤い太線）を {y}軸に写すと、{y}の変域（赤）が見えます。')+'</div>'+
-    ex({a:[2,1],x:[-1,1,3,1]},T1,'{y}＝2{x} で、{x}の変域が |-1<={x}<=3| のとき、{y}の変域を求めなさい。',
-      ['グラフをかく：原点と点 |(1, 2)| を通る直線。',
-       '{x}の変域のはしの {y} を求める。<br>|{x}＝-1| のとき |{y}＝-2|、|{x}＝3| のとき |{y}＝6|',
-       '太い部分を横に見て、{y}軸に写す。'],
-      '答え　|-2<={y}<=6|','')+
-    ex({a:[-2,1],x:[-2,0,1,1]},T2,'{y}＝-2{x} で、{x}の変域が |-2<{x}<=1| のとき、{y}の変域を求めなさい。',
-      ['グラフは右下がり：原点と点 |(1, -2)| を通る直線。',
-       '|{x}＝-2| のとき |{y}＝4|（＜ なので、ふくまない ○）<br>|{x}＝1| のとき |{y}＝-2|（≦ なので、ふくむ ●）',
-       '右下がりのときは、{x}が大きいはしで {y}が小さくなる。'],
-      '答え　|-2<={y}<4|','≦ のはしは ●（ふくむ）、＜ のはしは ○（ふくまない）。<br>{a}が負のときは {y}の大小が入れかわるので、小さいほうから書きなおそう。')+
-    ex({a:[-1,1],x:[-2,1,4,1]},T3,'{y}＝{a}{x} で、{x}の変域が |-2<={x}<=4| のとき、{y}の変域は |-4<={y}<=2| です。{a}の値を求めなさい。',
-      ['右上がり（{a}＞0）なら |{x}＝4| で |{y}＝2|<br>→ |{a}＝[1/2]|、すると |{x}＝-2| で |{y}＝-1| … <span class="ng">✕</span>（−4にならない）',
-       '右下がり（{a}＜0）なら |{x}＝4| で |{y}＝-4|<br>→ |{a}＝-1|、すると |{x}＝-2| で |{y}＝2| … <span class="ok">○</span>'],
-      '答え　|{a}＝-1|','コツ：{x}のはしのうち原点から遠いほう（4）が、{y}のはしの原点から遠いほう（−4）に対応する。だから右下がり！');
-}
-
-/* ===== ページ組み立て ===== */
+/* ===== ページ組み立て（16ページ＝B4の紙4枚） ===== */
 var PAGES=[
   coverPage(),
-  examplePage(),
-  probPage('基本問題 ①','','{x}の変域から {y}の変域を求める','{y}＝{a}{x} のグラフをかき、{x}の変域にあたる部分を太くなぞって、{y}の変域を求めなさい。',BASIC.slice(0,6),1),
-  probPage('基本問題 ②','','分数の比例定数・＜ をふくむ変域','グラフをかいて {y}の変域を求めなさい。＜ のはしは ○（ふくまない）、≦ のはしは ●（ふくむ）でかこう。',BASIC.slice(6,12),7),
-  probPage('応用問題 ①','app','変域から比例定数を求める','グラフが「右上がり」か「右下がり」かを考えて、比例定数や文字の値を求めなさい。',APP.slice(0,6),1),
-  probPage('応用問題 ②','app','比例の式と、変域の文字を求める','まず比例の式を決めてから、グラフをかいて変域の文字の値を求めなさい。',APP.slice(6,12),7),
+  exPage('基本 例題','$y$ の変域の求め方','グラフに $x$ の変域（うすい灰色）をとり、その部分のグラフ（黒い太線）を $y$ 軸に写すと、$y$ の変域（しま模様）が見えます。',EX_BASIC,''),
+  probPage('基本問題 ①','','$x$ の変域から $y$ の変域を求める','$y=ax$ のグラフをかき、$x$ の変域にあたる部分を太くなぞって、$y$ の変域を求めなさい。',BASIC.slice(0,6),1),
+  probPage('基本問題 ②','','分数の比例定数','グラフをかいて $y$ の変域を求めなさい。$x$ に分母の倍数を入れると、点がとりやすくなります。',BASIC.slice(6,12),7),
+  exPage('応用① 例題','向きと両方の変域から、比例の式を求める','右上がり（$a>0$）か右下がり（$a<0$）かで、$x$ のはしと $y$ のはしの組み合わせが決まります。',EX_APP1,'app'),
+  probPage('応用問題 ①','app','向きと両方の変域から、比例の式を求める','グラフの向きから $x$ のはしと $y$ のはしの組を決めて、比例の式を求めなさい。',APP1,1),
+  exPage('応用② 例題','$y$ の変域に文字があるとき','数のわかっているはしどうしの組で $a$ を決め、つぎに文字のはしを計算します。',EX_APP2,'app'),
+  probPage('応用問題 ②','app','$y$ の変域に文字があるとき','数のわかっているはしの組で $a$ を決めてから、$b$ の値を求めなさい。',APP2,1),
+  exPage('応用③ 例題','$x$ の変域に文字があるとき','$a$ を決めたら、$y$ の値を式に入れて方程式を解き、$x$ を求めます。',EX_APP3,'app'),
+  probPage('応用問題 ③','app','$x$ の変域に文字があるとき','$a$ を決めてから、$y$ の値を式に入れて $b$ の値を求めなさい。',APP3,1),
+  exPage('応用④ 例題','式から $x$・$y$ の変域の文字を求める','式がわかっているので、$x$ を入れれば $y$、$y$ を入れれば $x$ が求まります。はしの組に注意。',EX_APP4,'app'),
+  probPage('応用問題 ④','app','式から $x$・$y$ の変域の文字を求める','グラフの向きを確かめ、はしの組に注意して $b$、$c$ の値を求めなさい。',APP4,1),
+  exPage('応用⑤ 例題','通る点から式を決め、変域の文字を求める','まず通る点の座標を $y=ax$ に入れて $a$ を求めます。そのあとは応用④と同じです。',EX_APP5,'app'),
+  probPage('応用問題 ⑤','app','通る点から式を決め、変域の文字を求める','通る点から比例の式を求めてから、$b$、$c$ の値を求めなさい。',APP5,1),
   testPage('①',TEST1),
   testPage('②',TEST2)
 ];
+var N=PAGES.length; // 4の倍数であること（中とじ）
 function pageEl(n){
   return '<div class="page '+(n%2?'odd':'even')+'">'+PAGES[n-1]+(n>1?'<div class="pn">− '+n+' −</div>':'')+'</div>';
 }
-var IMPOSE=[[8,1],[2,7],[6,3],[4,5]];
-var CAPS=['1枚目・おもて','1枚目・うら','2枚目・おもて','2枚目・うら'];
+function impose(){ // 中とじの面付け：k枚目おもて [N-2k, 1+2k]、うら [2+2k, N-1-2k]
+  var r=[];
+  for(var k=0;k<N/4;k++){
+    r.push({l:N-2*k, r:1+2*k, cap:(k+1)+'枚目・おもて'});
+    r.push({l:2+2*k, r:N-1-2*k, cap:(k+1)+'枚目・うら'});
+  }
+  return r;
+}
 function render(){
   var mode=document.querySelector('input[name=mode]:checked').value, h='';
   if(mode==='book'){
     document.getElementById('pageSize').textContent='@page{size:364mm 257mm;margin:0}';
-    IMPOSE.forEach(function(pr,i){
-      h+='<div class="sheet-cap">'+CAPS[i]+'（左 '+pr[0]+'ページ／右 '+pr[1]+'ページ）</div>';
-      h+='<div class="sheet">'+pageEl(pr[0])+pageEl(pr[1])+'</div>';
+    impose().forEach(function(s){
+      h+='<div class="sheet-cap">'+s.cap+'（左 '+s.l+'ページ／右 '+s.r+'ページ）</div>';
+      h+='<div class="sheet">'+pageEl(s.l)+pageEl(s.r)+'</div>';
     });
   }else{
     document.getElementById('pageSize').textContent='@page{size:182mm 257mm;margin:0}';
-    for(var n=1;n<=8;n++) h+='<div class="sheet single">'+pageEl(n)+'</div>';
+    for(var n=1;n<=N;n++) h+='<div class="sheet single">'+pageEl(n)+'</div>';
   }
   document.getElementById('out').innerHTML=h;
 }
 document.querySelectorAll('input[name=mode]').forEach(function(r){r.addEventListener('change',render);});
 document.getElementById('ansChk').addEventListener('change',function(){document.body.classList.toggle("show-ans",this.checked);});
-document.getElementById('btnPrint').addEventListener('click',function(){window.print();});
+document.getElementById('btnPrint').addEventListener('click',function(){
+  // KaTeX の字体が届く前に印刷すると数式がくずれるので、読みこみを待ってから
+  var go=function(){window.print();};
+  if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go,go);}else{go();}
+});
 render();
 })();
 </script>
