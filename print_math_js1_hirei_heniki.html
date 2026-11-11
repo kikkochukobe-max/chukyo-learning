@@ -77,6 +77,13 @@ body.show-ans .stamp{display:inline-block}
 .qb{display:flex;flex-direction:column}
 .qb .eq{font-size:12.5pt;font-weight:bold;line-height:1.25}
 .qb .xr{font-size:9.5pt;padding-left:6.5mm}
+/* 基本問題：式・xの変域の右に、yを書きこむ変化の表 */
+.qb.hf{flex-direction:row;align-items:center;justify-content:space-between;gap:2mm}
+.hyo.fill{margin:0;flex:none}
+.hyo.fill th,.hyo.fill td{height:6mm;padding:0 1.2mm;min-width:12mm}
+.hyo.fill th{min-width:5mm}
+.hyo.fill td.dots{min-width:4mm;padding:0 .6mm}
+.hyo.fill .ans{font-size:9pt}
 .body{display:flex;gap:1.6mm;flex:1;min-height:0}
 .gr{display:block;flex:none}
 .acol{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:1mm;position:relative}
@@ -185,6 +192,19 @@ function hyo(xs,ys){
     return c==='…'?'<td class="dots">…</td>':'<td>'+mk('$'+c+'$')+'</td>';}).join('')+'</tr>';}
   return '<table class="hyo">'+row('x',xs)+row('y',ys)+'</table>';
 }
+/* 基本問題の変化の表：x の変域のはし2つ。x は書いておき、y は空らん（解答表示で答えが出る）。
+   例題の表にある 0 の列は入れない（問題のらんの横幅に収まらない） */
+function hyoFill(p){
+  var n=p.a[0],d=p.a[1],xs=[p.x[0],'…',p.x[2]];
+  function yv(v){var t=n*v; if(t%d===0) return String(t/d); return (t<0?'-':'')+'['+Math.abs(t)+'/'+d+']';}
+  var rx='<tr><th>'+mk('$x$')+'</th>', ry='<tr><th>'+mk('$y$')+'</th>';
+  xs.forEach(function(v){
+    if(v==='…'){ rx+='<td class="dots">…</td>'; ry+='<td class="dots">…</td>'; return; }
+    rx+='<td>'+mk('$'+v+'$')+'</td>';
+    ry+='<td><span class="ans">'+mk('$'+yv(v)+'$')+'</span></td>';
+  });
+  return '<table class="hyo fill">'+rx+'</tr>'+ry+'</tr></table>';
+}
 function coef(a){var n=a[0],d=a[1];
   if(d===1){return n===1?'':(n===-1?'-':String(n));}
   return (n<0?'-':'')+'['+Math.abs(n)+'/'+d+']';}
@@ -266,6 +286,7 @@ var BASIC=[
   {a:[1,2], x:[-4,1,6,1]}, {a:[2,3], x:[-6,1,3,1]},  {a:[-1,3],x:[-6,1,3,1]},
   {a:[-3,2],x:[-2,1,4,1]}, {a:[3,2], x:[-2,1,4,1]},  {a:[-1,2],x:[-4,1,6,1]}
 ];
+BASIC.forEach(function(p){p.hyo=true;}); // 変化の表は基本問題のページだけ（総合テストの基本の問題には付けない）
 var L_S=['式'], L_AB=['$a=$','$b=$'], L_BC=['$b=$','$c=$'], L_SBC=['式','$b=$','$c=$'];
 
 /* 応用①  向き＋両方の変域 → 比例の式 */
@@ -446,8 +467,9 @@ var EX_APP5=[
 function probHtml(p,no){
   var q,ac='';
   if(!p.q){ // 基本
-    q='<div class="q qb"><div><span class="no">'+no+'</span><span class="eq">'+mk(eqSrc(p.a))+'</span></div>'+
-      '<div class="xr">'+mk('$x$ の変域　'+rngSrc(p.x[0],p.x[1],p.x[2],p.x[3],'x'))+'</div></div>';
+    var qbl='<div><span class="no">'+no+'</span><span class="eq">'+mk(eqSrc(p.a))+'</span></div>'+
+      '<div class="xr">'+mk('$x$ の変域　'+rngSrc(p.x[0],p.x[1],p.x[2],p.x[3],'x'))+'</div>';
+    q=p.hyo?'<div class="q qb hf"><div>'+qbl+'</div>'+hyoFill(p)+'</div>':'<div class="q qb">'+qbl+'</div>';
     var r=yRange(p);
     ac='<div class="al col"><span class="lb">'+mk('$y$ の変域')+'</span><span class="aw"><span class="ans">'+mk(rngSrc(r.lo,r.li,r.hi,r.hiIn,'y'))+'</span></span></div>';
   }else{
@@ -521,8 +543,8 @@ function coverPage(){
 var PAGES=[
   coverPage(),
   exPage('基本 例題','$y$ の変域の求め方','グラフに $x$ の変域（うすい灰色）をとり、その部分のグラフ（黒い太線）を $y$ 軸に写すと、$y$ の変域（しま模様）が見えます。',EX_BASIC,''),
-  probPage('基本問題 ①','','$x$ の変域から $y$ の変域を求める','$y=ax$ のグラフをかき、$x$ の変域にあたる部分を太くなぞって、$y$ の変域を求めなさい。',BASIC.slice(0,6),1),
-  probPage('基本問題 ②','','分数の比例定数','グラフをかいて $y$ の変域を求めなさい。$x$ に分母の倍数を入れると、点がとりやすくなります。',BASIC.slice(6,12),7),
+  probPage('基本問題 ①','','$x$ の変域から $y$ の変域を求める','表の空らんに $y$ の値を書き、グラフの $x$ の変域にあたる部分を太くなぞって、$y$ の変域を求めなさい。',BASIC.slice(0,6),1),
+  probPage('基本問題 ②','','分数の比例定数','表の空らんをうめ、グラフをかいて $y$ の変域を求めなさい。$x$ に分母の倍数を入れると、点がとりやすくなります。',BASIC.slice(6,12),7),
   exPage('応用① 例題','向きと両方の変域から、比例の式を求める','右上がり（$a>0$）か右下がり（$a<0$）かで、$x$ のはしと $y$ のはしの組み合わせが決まります。',EX_APP1,'app'),
   probPage('応用問題 ①','app','向きと両方の変域から、比例の式を求める','グラフの向きから $x$ のはしと $y$ のはしの組を決めて、比例の式を求めなさい。',APP1,1),
   exPage('応用② 例題','$y$ の変域に文字があるとき','数のわかっているはしどうしの組で $a$ を決め、つぎに文字のはしを計算します。',EX_APP2,'app'),
