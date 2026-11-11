@@ -34,7 +34,19 @@ body{background:var(--backdrop);color:var(--ink);font-family:var(--font);font-si
 #out{padding:16px 0 60px}
 .sheet{display:flex;width:364mm;height:250mm;margin:0 auto 12mm;background:var(--paper);box-shadow:0 2px 10px rgba(0,0,0,.18);overflow:hidden;position:relative}
 .sheet.single{width:182mm}
-.sheet:not(.single)::after{content:"";position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed #ccc}
+/* A4・両面：グラフや文字の大きさはB5のまま。A4で広がったぶんを
+   紙のまわりの余白と、問題どうしの間・各問の書きこみスペースに回す
+   （紙の高さより1mm低くして、端数で白紙のページが出ないようにする） */
+.sheet.a4{width:210mm;height:296mm}
+.sheet.a4 .page{width:210mm;height:296mm;padding:15mm 15mm 14mm;display:flex;flex-direction:column}
+.sheet.a4 .pn{bottom:7mm}
+.sheet.a4 .page.odd .pn{right:15mm}.sheet.a4 .page.even .pn{left:15mm}
+.sheet.a4 .ph,.sheet.a4 .ins,.sheet.a4 .th{flex:none}
+.sheet.a4 .probs{flex:1;min-height:0;grid-template-rows:repeat(3,1fr);column-gap:12mm;row-gap:5mm}
+.sheet.a4 .prob{padding-top:3mm}
+.sheet.a4 .ex{padding-top:4mm}
+.sheet.a4 .cover{height:auto;flex:1}
+.sheet:not(.single):not(.a4)::after{content:"";position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed #ccc}
 .sheet-cap{width:364mm;margin:0 auto 2mm;font-size:12px;color:#55524a}
 .page{width:182mm;height:250mm;flex:none;padding:11mm 9mm 6mm;position:relative;overflow:hidden}
 .pn{position:absolute;bottom:2.8mm;font-size:8pt;color:var(--faint)}
@@ -121,19 +133,37 @@ body.show-ans .gr .ov,.gr .ov.show{display:inline}
 .cv-foot{text-align:center;margin-top:4mm;font-family:var(--round);font-weight:bold;font-size:10pt;color:var(--sub);letter-spacing:.15em}
 
 /* ---------- 例題 ---------- */
-.ex{display:flex;gap:4mm;height:70.5mm;border-top:.25mm dashed var(--line);padding-top:2mm}
+/* 例題の高さは中身しだい（1ページ3題で、余った高さは3題に分ける。解法が長い題は
+   そのぶん高くなる）。そのためページを縦の flex にしてある */
+.page{display:flex;flex-direction:column}
+.ph,.ins,.th{flex:none}
+.ex{display:flex;gap:4mm;flex:1 1 0;border-top:.25mm dashed var(--line);padding:2mm 0 1.8mm}
+.ex>.gr{align-self:flex-start}
 .ins+.ex{border-top:0}
 .ex .exbody{flex:1;min-width:0}
-.ex .exq{font-size:9.2pt;font-weight:bold;margin-bottom:1.5mm;line-height:1.55}
+.ex .exq{font-size:9.2pt;font-weight:bold;line-height:1.55}
+/* 「解法」の見出し：問題文との間を空け、右へ細い線をのばす */
+.ex .exh{display:flex;align-items:center;gap:2mm;margin:3.2mm 0 1.8mm}
+.ex .exh span{font-family:var(--round);font-weight:bold;font-size:8.3pt;line-height:1;border:.3mm solid var(--ink);border-radius:1mm;padding:.7mm 2.2mm}
+.ex .exh::after{content:"";flex:1;border-top:.25mm solid var(--line)}
 .ex .exq .tag{display:inline-block;font-size:8pt;color:#fff;background:var(--ink);border-radius:1mm;padding:0 1.6mm;margin-right:1.5mm}
 .ex .exq .tag.app{background:var(--gray)}
-.ex ol{margin:0;padding-left:5mm;font-size:8.8pt;line-height:1.6}
-.ex ol li{margin-bottom:.6mm}
+/* 考え方のステップ：黒い番号札＋札どうしを細い線でつなぐ（白黒でも順番が見える） */
+.ex ol{margin:0;padding:0;list-style:none;counter-reset:st;font-size:8.8pt;line-height:1.6}
+.ex ol li{counter-increment:st;position:relative;padding:0 0 1.6mm 7.2mm;min-height:5mm}
+.ex ol li:last-child{padding-bottom:0}
+.ex ol li::before{content:counter(st);position:absolute;left:0;top:.35mm;width:4.8mm;height:4.8mm;border-radius:1.2mm;
+  background:var(--ink);color:#fff;font-weight:bold;font-size:8pt;line-height:4.8mm;text-align:center;font-family:var(--round)}
+.ex ol li:not(:last-child)::after{content:"";position:absolute;left:2.25mm;top:5.6mm;bottom:.4mm;border-left:.3mm solid #9A9A9A}
 .hyo{border-collapse:collapse;margin:1mm 0 .6mm;font-size:9pt;line-height:1.3}
 .hyo th,.hyo td{border:.25mm solid var(--ink);padding:.5mm 2.2mm;text-align:center;min-width:8mm}
 .hyo th{background:var(--tipbg);font-weight:normal}
 .hyo td.dots{min-width:5mm;padding:.5mm 1mm;color:var(--sub)}
-.ex .exa{margin-top:1.5mm;font-size:9.5pt;font-weight:bold;color:var(--shu)}
+/* 答え：枠で囲み、左に「答え」の札 */
+.ex .exa{margin-top:2.2mm;display:inline-flex;align-items:center;gap:2.5mm;border:.4mm solid var(--ink);border-radius:1.5mm;
+  padding:0 3.5mm 0 0;font-size:9.8pt;font-weight:bold;color:var(--shu);overflow:hidden}
+.ex .exa .k{align-self:stretch;display:flex;align-items:center;background:var(--ink);color:#fff;font-family:var(--round);
+  font-size:8.5pt;padding:.9mm 2.4mm}
 .ex .tip{margin-top:1.5mm;font-size:8.3pt;background:var(--tipbg);border-left:1mm solid var(--kin);padding:1mm 2mm;line-height:1.6}
 .ok,.ng{color:var(--ink);font-weight:bold}
 
@@ -149,13 +179,11 @@ body.show-ans .gr .ov,.gr .ov.show{display:inline}
 <div class="tb">
   <b>比例のグラフ 変域マスター</b>
   <label><input type="radio" name="mode" value="book" checked> 製本用（B4横・4枚・両面）</label>
+  <label><input type="radio" name="mode" value="a4"> A4・両面（余白あり・8枚）</label>
   <label><input type="radio" name="mode" value="single"> 1ページずつ（B5・16枚）</label>
   <label><input type="checkbox" id="ansChk"> 解答を表示（先生用）</label>
   <button id="btnPrint" type="button">印刷する</button>
-  <div class="note">
-    製本用の印刷設定：用紙 <em>B4・横</em>／<em>両面印刷・短辺とじ（短辺で反転）</em>／倍率 <em>実際のサイズ（100%）</em>／余白 <em>なし</em>。
-    出てきた4枚を順に重ね、<em>1枚目（表紙のある紙）をいちばん外側</em>にして半分に折ると、1〜16ページの順の冊子になります（中央をホチキスで中とじ）。
-  </div>
+  <div class="note" id="note"></div>
 </div>
 <div id="out"></div>
 
@@ -365,10 +393,10 @@ var EX_BASIC=[
    ans:'$-2<=y<=4$',
    tip:'$y$ は小さいほうから $-2<=y<=4$ と書く（$4<=y<=-2$ と書かない）。'},
   {p:{a:[1,2],x:[-4,1,2,1]}, tag:'例題3', q:'$y=[1/2]x$ で、$x$ の変域が $-4<=x<=2$ のとき、$y$ の変域を求めなさい。',
-   s:['グラフをかく：分母が $2$ なので、$x$ が $2$ の倍数の点をとる。<br>原点と点 $(2,1)$ を通る直線。',
+   s:['グラフをかく：原点と点 $(2,1)$ を通る直線。',
       '$x$ の変域のはしの $y$ を求めて、表にまとめる。'+hyo(['-4','…','0','…','2'],['-2','…','0','…','1'])],
    ans:'$-2<=y<=1$',
-   tip:'比例定数が分数のときは、$x$ に分母の倍数を入れると $y$ が整数になり、点がとりやすい。'}
+   tip:'比例定数が分数のときは、$x$ に分母の倍数を入れると点がとりやすい。'}
 ];
 var EX_APP1=[
   {p:{a:[1,2],x:[-2,1,4,1]}, tag:'例題1', q:Q(D.up,'-2<=x<=4','-1<=y<=2',ASK.shiki),
@@ -503,8 +531,9 @@ function exPage(badge,title,ins,list,tagCls){
   return head(badge,'exb',title)+'<div class="ins">'+mk(ins)+'</div>'+list.map(function(e){
     return '<div class="ex">'+graph(e.p,{U:4.2,show:true})+'<div class="exbody">'+
       '<div class="exq"><span class="tag'+(tagCls?' '+tagCls:'')+'">'+e.tag+'</span>'+mk(e.q)+'</div>'+
+      '<div class="exh"><span>解法</span></div>'+
       '<ol>'+e.s.map(function(s){return '<li>'+mk(s)+'</li>';}).join('')+'</ol>'+
-      '<div class="exa">答え　'+mk(e.ans)+'</div>'+(e.tip?'<div class="tip">'+mk(e.tip)+'</div>':'')+'</div></div>';
+      '<div class="exa"><span class="k">答え</span>'+mk(e.ans)+'</div>'+(e.tip?'<div class="tip">'+mk(e.tip)+'</div>':'')+'</div></div>';
   }).join('');
 }
 
@@ -570,9 +599,20 @@ function impose(){ // 中とじの面付け：k枚目おもて [N-2k, 1+2k]、�
   }
   return r;
 }
+var NOTE={
+  book:'製本用の印刷設定：用紙 <em>B4・横</em>／<em>両面印刷・短辺とじ（短辺で反転）</em>／倍率 <em>実際のサイズ（100%）</em>／余白 <em>なし</em>。'+
+    '出てきた4枚を順に重ね、<em>1枚目（表紙のある紙）をいちばん外側</em>にして半分に折ると、1〜16ページの順の冊子になります（中央をホチキスで中とじ）。',
+  a4:'A4・両面の印刷設定：用紙 <em>A4・縦</em>／<em>両面印刷・長辺とじ（長辺で反転）</em>／倍率 <em>実際のサイズ（100%）</em>／余白 <em>なし</em>（余白は紙面の側に入れてあります）。'+
+    '1枚目のおもてが1ページ、うらが2ページ…と、<em>紙のうらが次のページ</em>になります（8枚。左上をホチキスでとめる）。',
+  single:'1ページずつの印刷設定：用紙 <em>B5・縦</em>／<em>片面</em>／倍率 <em>実際のサイズ（100%）</em>／余白 <em>なし</em>。'
+};
 function render(){
   var mode=document.querySelector('input[name=mode]:checked').value, h='';
-  if(mode==='book'){
+  document.getElementById('note').innerHTML=NOTE[mode];
+  if(mode==='a4'){
+    document.getElementById('pageSize').textContent='@page{size:210mm 297mm;margin:0}';
+    for(var m=1;m<=N;m++) h+='<div class="sheet-cap" style="width:210mm">'+Math.ceil(m/2)+'枚目・'+(m%2?'おもて':'うら')+'（'+m+'ページ）</div><div class="sheet a4">'+pageEl(m)+'</div>';
+  }else if(mode==='book'){
     document.getElementById('pageSize').textContent='@page{size:364mm 257mm;margin:0}';
     impose().forEach(function(s){
       h+='<div class="sheet-cap">'+s.cap+'（左 '+s.l+'ページ／右 '+s.r+'ページ）</div>';
