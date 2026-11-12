@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>比例のグラフ 図形マスター（中1・製本プリント）｜中京個別指導学院</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style id="pageSize">@page{size:364mm 257mm;margin:0}</style>
+<style>
+/* 白黒印刷用：色相は使わず、黒〜灰色の濃淡と模様だけで区別する
+   （ページの組み方・面付け・印刷形式は print_math_js1_hirei_heniki.html と同じ） */
+:root{
+  --paper:#FFFFFF; --ink:#1F1F1F; --sub:#555555; --faint:#777777;
+  --shu:#1F1F1F; --ai:#1F1F1F; --kin:#666666; --line:#BDBDBD;
+  --gray:#4D4D4D; --tipbg:#EFEFEF;
+  --backdrop:#E6E3DA;
+  --font:"BIZ UDPGothic","Hiragino Kaku Gothic ProN","Yu Gothic","YuGothic","Meiryo",sans-serif;
+  --round:"Hiragino Maru Gothic ProN","BIZ UDPGothic","Yu Gothic",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--backdrop);color:var(--ink);font-family:var(--font);font-size:9pt;line-height:1.45;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+/* ---------- 画面用ツールバー ---------- */
+.tb{position:sticky;top:0;z-index:10;background:#33312B;color:#fff;padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;font-size:13px}
+.tb b{font-size:14px}
+.tb label{display:inline-flex;align-items:center;gap:4px;cursor:pointer}
+.tb button{font:inherit;font-weight:bold;background:#C73E2E;color:#fff;border:0;border-radius:6px;padding:7px 18px;cursor:pointer}
+.tb .note{flex-basis:100%;font-size:12px;color:#ddd8cc;line-height:1.6}
+.tb .note em{font-style:normal;color:#ffd98a}
+
+/* ---------- 用紙 ---------- */
+#out{padding:16px 0 60px}
+.sheet{display:flex;width:364mm;height:250mm;margin:0 auto 12mm;background:var(--paper);box-shadow:0 2px 10px rgba(0,0,0,.18);overflow:hidden;position:relative}
+.sheet.single{width:182mm}
+.sheet.a4{width:210mm;height:296mm}
+.sheet.a4 .page{width:210mm;height:296mm;padding:15mm 15mm 14mm;display:flex;flex-direction:column}
+.sheet.a4 .pn{bottom:7mm}
+.sheet.a4 .page.odd .pn{right:15mm}.sheet.a4 .page.even .pn{left:15mm}
+.sheet.a4 .ph,.sheet.a4 .ins,.sheet.a4 .th{flex:none}
+.sheet.a4 .probs{flex:1;min-height:0;grid-template-rows:repeat(3,1fr);column-gap:12mm;row-gap:5mm}
+.sheet.a4 .prob{padding-top:3mm}
+.sheet.a4 .ex{padding-top:4mm}
+.sheet.a4 .cover{height:auto;flex:1}
+.sheet:not(.single):not(.a4)::after{content:"";position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed #ccc}
+.sheet-cap{width:364mm;margin:0 auto 2mm;font-size:12px;color:#55524a}
+.page{width:182mm;height:250mm;flex:none;padding:11mm 9mm 6mm;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.pn{position:absolute;bottom:2.8mm;font-size:8pt;color:var(--faint)}
+.page.odd .pn{right:9mm}.page.even .pn{left:9mm}
+
+@media print{
+  body{background:#fff}
+  .tb,.sheet-cap{display:none}
+  .divp-header{display:none!important}
+  #out{padding:0}
+  .sheet{margin:0;box-shadow:none;break-after:page;page-break-after:always}
+  .sheet:last-child{break-after:auto;page-break-after:auto}
+  .sheet::after{display:none}
+}
+
+/* ---------- 数式まわり ---------- */
+.m{white-space:nowrap}
+.katex{font-size:1.08em}
+i.v{font-family:"Times New Roman","Cambria",serif;font-style:italic;font-size:1.12em;padding:0 .04em}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.78em;line-height:1.08;margin:0 .12em}
+.fr>span:first-child{border-bottom:.22mm solid currentColor;padding:0 .18em}
+
+/* ---------- ページ見出し ---------- */
+.ph,.ins,.th{flex:none}
+.ph{display:flex;align-items:center;gap:3mm;height:10mm;border-bottom:.5mm solid var(--ink);padding-bottom:1mm}
+.badge{font-family:var(--round);font-weight:bold;font-size:11pt;color:#fff;background:var(--ai);border-radius:2mm;padding:1mm 3mm;white-space:nowrap}
+.badge.app{background:var(--gray)}.badge.test{background:var(--ink)}
+.badge.exb{background:#fff;color:var(--ink);border:.5mm solid var(--ink);padding:.5mm 2.5mm}
+.ph .pt{font-family:var(--round);font-weight:bold;font-size:11.5pt;flex:1;white-space:nowrap}
+.ph .date{font-size:8.5pt;white-space:nowrap;color:var(--sub)}
+.stamp{display:none;font-family:var(--round);font-weight:bold;font-size:10pt;color:var(--shu);border:.5mm solid var(--shu);border-radius:1.5mm;padding:.3mm 2mm;white-space:nowrap}
+body.show-ans .stamp{display:inline-block}
+.ins{font-size:8.8pt;height:6mm;padding-top:1.3mm;color:var(--ink);white-space:nowrap}
+
+/* ---------- 問題 6問/ページ ---------- */
+.probs{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,71mm);column-gap:5mm}
+.prob{border-top:.25mm dashed var(--line);padding-top:1.2mm;display:flex;flex-direction:column;min-width:0}
+.prob:nth-child(-n+2){border-top:0}
+/* 問題文は4行まで（図は問題ごとの大きさなので、そのぶん問題文に高さを回す） */
+.q{height:19mm;font-size:8.6pt;line-height:1.5;overflow:hidden}
+.no{display:inline-flex;align-items:center;justify-content:center;min-width:5mm;height:5mm;border-radius:50%;background:var(--ink);color:#fff;font-weight:bold;font-size:8.5pt;margin-right:1.5mm;vertical-align:.2mm;padding:0 .6mm}
+.body{display:flex;gap:2mm;flex:1;min-height:0}
+.figbox{width:52mm;flex:none;display:flex;align-items:flex-start;justify-content:center}
+.gr{display:block;flex:none}
+.acol{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:1mm;position:relative}
+.pts{position:absolute;top:0;right:0;font-size:8pt;color:var(--sub);border:.2mm solid var(--line);border-radius:1mm;padding:0 1.2mm}
+.al{display:flex;align-items:flex-end;gap:.8mm;margin-top:2.6mm}
+.al .lb{white-space:nowrap;font-size:8.6pt}
+.al .aw{flex:1;min-width:0;border-bottom:.25mm solid var(--ink);min-height:7mm;display:flex;align-items:flex-end;justify-content:center;padding-bottom:.4mm}
+.al.col{flex-direction:column;align-items:stretch}
+.al.col .aw{min-height:8mm}
+.ans{visibility:hidden;color:var(--shu);font-weight:bold;font-size:9.5pt;white-space:nowrap}
+body.show-ans .ans{visibility:visible}
+.gr .ov{display:none}
+body.show-ans .gr .ov,.gr .ov.show{display:inline}
+
+/* ---------- 表紙 ---------- */
+.cover{display:flex;flex-direction:column;height:100%}
+.cv-top{display:flex;justify-content:space-between;align-items:center}
+.pill{font-family:var(--round);font-weight:bold;font-size:10pt;border:.4mm solid var(--ink);border-radius:5mm;padding:.8mm 4mm}
+.cv-title{margin-top:5mm;text-align:center}
+.cv-title .t1{font-family:var(--round);font-weight:bold;font-size:20pt;letter-spacing:.1em}
+.cv-title .t2{font-family:var(--round);font-weight:bold;font-size:36pt;line-height:1.2;letter-spacing:.08em;display:inline-block;padding:0 4mm;background:linear-gradient(transparent 62%,#D9D9D9 62%)}
+.cv-title .t3{margin-top:2mm;font-size:10pt;color:var(--sub)}
+.cv-mid{display:flex;align-items:center;justify-content:center;gap:9mm;margin-top:5mm}
+.cv-legend{font-size:8.8pt;line-height:1.95;flex:none;white-space:nowrap}
+.cv-legend b{display:block;margin-bottom:.8mm}
+.toc{margin:5mm auto 0;width:156mm;border-collapse:collapse;font-size:9pt}
+.toc th,.toc td{border:.25mm solid var(--line);padding:1.05mm 2.5mm;text-align:left}
+.toc th{background:#F3F1EA;font-weight:bold;font-size:8.5pt}
+.toc td.c{text-align:center;width:22mm}
+.toc td.p{text-align:center;width:13mm;color:var(--sub);white-space:nowrap}
+.box{display:inline-block;width:4mm;height:4mm;border:.3mm solid var(--ink);vertical-align:middle}
+.cv-name{margin:auto auto 0;width:156mm;border:.4mm solid var(--ink);border-radius:2mm;padding:3.5mm 5mm;font-size:11pt;display:flex;gap:6mm;align-items:flex-end}
+.cv-name span{white-space:nowrap}
+.cv-name .ul{flex:1;border-bottom:.3mm solid var(--ink)}
+.cv-foot{text-align:center;margin-top:4mm;font-family:var(--round);font-weight:bold;font-size:10pt;color:var(--sub);letter-spacing:.15em}
+
+/* ---------- 例題 ---------- */
+.ex{display:flex;gap:4mm;flex:1 1 0;border-top:.25mm dashed var(--line);padding:2mm 0 1.8mm}
+.ex>.figbox{align-self:flex-start}
+.ins+.ex{border-top:0}
+.ex .exbody{flex:1;min-width:0}
+.ex .exq{font-size:9.2pt;font-weight:bold;line-height:1.55}
+.ex .exh{display:flex;align-items:center;gap:2mm;margin:3.2mm 0 1.8mm}
+.ex .exh span{font-family:var(--round);font-weight:bold;font-size:8.3pt;line-height:1;border:.3mm solid var(--ink);border-radius:1mm;padding:.7mm 2.2mm}
+.ex .exh::after{content:"";flex:1;border-top:.25mm solid var(--line)}
+.ex .exq .tag{display:inline-block;font-size:8pt;color:#fff;background:var(--ink);border-radius:1mm;padding:0 1.6mm;margin-right:1.5mm}
+.ex .exq .tag.app{background:var(--gray)}
+.ex ol{margin:0;padding:0;list-style:none;counter-reset:st;font-size:8.8pt;line-height:1.6}
+.ex ol li{counter-increment:st;position:relative;padding:0 0 1.6mm 7.2mm;min-height:5mm}
+.ex ol li:last-child{padding-bottom:0}
+.ex ol li::before{content:counter(st);position:absolute;left:0;top:.35mm;width:4.8mm;height:4.8mm;border-radius:1.2mm;
+  background:var(--ink);color:#fff;font-weight:bold;font-size:8pt;line-height:4.8mm;text-align:center;font-family:var(--round)}
+.ex ol li:not(:last-child)::after{content:"";position:absolute;left:2.25mm;top:5.6mm;bottom:.4mm;border-left:.3mm solid #9A9A9A}
+.ex .exa{margin-top:2.2mm;display:inline-flex;align-items:center;gap:2.5mm;border:.4mm solid var(--ink);border-radius:1.5mm;
+  padding:0 3.5mm 0 0;font-size:9.8pt;font-weight:bold;color:var(--shu);overflow:hidden}
+.ex .exa .k{align-self:stretch;display:flex;align-items:center;background:var(--ink);color:#fff;font-family:var(--round);
+  font-size:8.5pt;padding:.9mm 2.4mm}
+.ex .tip{margin-top:1.5mm;font-size:8.3pt;background:var(--tipbg);border-left:1mm solid var(--kin);padding:1mm 2mm;line-height:1.6}
+
+/* ---------- テスト ---------- */
+.th{display:flex;gap:4mm;align-items:flex-end;margin-top:1.2mm;height:5mm;font-size:8.8pt}
+.th .nm{flex:1;border-bottom:.25mm solid var(--ink);white-space:nowrap}
+.score{display:flex;align-items:flex-end;gap:1mm;border:.4mm solid var(--shu);border-radius:1.5mm;padding:.5mm 2mm;color:var(--shu);font-weight:bold;white-space:nowrap}
+.score .sb{display:inline-block;width:13mm}
+.probs.test{grid-template-rows:repeat(3,70mm)}
+</style>
+</head>
+<body>
+<div class="tb">
+  <b>比例のグラフ 図形マスター</b>
+  <label><input type="radio" name="mode" value="book" checked> 製本用（B4横・4枚・両面）</label>
+  <label><input type="radio" name="mode" value="a4"> A4・両面（余白あり・8枚）</label>
+  <label><input type="radio" name="mode" value="single"> 1ページずつ（B5・16枚）</label>
+  <label><input type="checkbox" id="ansChk"> 解答を表示（先生用）</label>
+  <button id="btnPrint" type="button">印刷する</button>
+  <div class="note" id="note"></div>
+</div>
+<div id="out"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===== 表記 =====
+   $…$ の中は TeX（KaTeX で描く）。<= → \leqq ／ [2/3] → \frac{2}{3} と読みかえる。
+   点の名前 A〜D は $ の外に書く（元の問題と同じ立体の文字）。 */
+function frac(n,d){return '<span class="fr"><span>'+n+'</span><span>'+d+'</span></span>';}
+function toTex(s){return s.replace(/<=/g,'\\leqq ').replace(/>=/g,'\\geqq ').replace(/\[(\d+)\/(\d+)\]/g,'\\frac{$1}{$2}');}
+function fallback(t){
+  var fr=[];
+  t=t.replace(/\\leqq\s?/g,'≦').replace(/\\geqq\s?/g,'≧').replace(/\\times\s?/g,'×').replace(/\\div\s?/g,'÷').replace(/\\[,;!]/g,' ')
+     .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g,function(m,n,d){fr.push([n,d]);return '\u0001'+(fr.length-1)+'\u0001';})
+     .replace(/</g,'＜').replace(/>/g,'＞').replace(/-/g,'−')
+     .replace(/([a-z])/g,'<i class="v">$1</i>');
+  return t.replace(/\u0001(\d+)\u0001/g,function(m,i){return frac(fr[+i][0],fr[+i][1]);});
+}
+function tex(s){
+  var t=toTex(s), h=null;
+  if(window.katex){ try{ h=katex.renderToString(t,{throwOnError:false}); }catch(e){ h=null; } }
+  return '<span class="m">'+(h||fallback(t))+'</span>';
+}
+function mk(s){return String(s).split('$').map(function(part,i){return i%2?tex(part):part;}).join('');}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){var r=a%b;a=b;b=r;}return a;}
+function coef(a){var n=a[0],d=a[1];
+  if(d===1){return n===1?'':(n===-1?'-':String(n));}
+  return (n<0?'-':'')+'['+Math.abs(n)+'/'+d+']';}
+function eq(a){return 'y='+coef(a)+'x';}
+
+/* ===== 問題をつくる =====
+   A は y=ax 上（x 座標 t）、B・C は x 軸上、ABCD は正方形（k を渡すと長方形：BC ＝ AB × k）。
+   答えは手で書かずにここで計算する（数の打ちまちがいで答えがずれないように）。
+   spec: a:[分子,分母]  t:Aのx座標  k:[分子,分母]（BC÷AB。省略で正方形）
+         give: 't'(Aのx座標) / 'c'(Cのx座標) / 'side'(1辺) / 'area'(面積)
+         ask:  'CD'(C,Dの座標) / 'AD'(A,Dの座標) / 'DS'(Dの座標と、原点とDを通る式) */
+var PROBLEMS_BAD=[];
+function G(sp){
+  var n=sp.a[0], d=sp.a[1], t=sp.t, k=sp.k||[1,1];
+  var h=n*t/d, w=h*k[0]/k[1], cx=t+w;
+  if(h!==Math.round(h)||w!==Math.round(w)) PROBLEMS_BAD.push(JSON.stringify(sp));
+  var g=gcd(h,cx), od=[h/g,cx/g], rect=(k[0]!==k[1]);
+  var cond='';
+  if(rect) cond=k[0]>k[1]?'BC の長さは AB の $'+(k[0]/k[1])+'$ 倍です。':'AB の長さは BC の $'+(k[1]/k[0])+'$ 倍です。';
+  var q='A は $'+eq(sp.a)+'$ のグラフ上の点で、四角形ABCDは'+(rect?'長方形で、'+cond:'正方形です。');
+  q+={t:'A の $x$ 座標が $'+t+'$ のとき、', c:'C の $x$ 座標が $'+cx+'$ のとき、',
+      side:'正方形の1辺の長さが $'+h+'$ のとき、', area:'正方形の面積が $'+(h*h)+'$ のとき、'}[sp.give];
+  var L,A;
+  if(sp.ask==='CD'){ q+='C、D の座標を求めなさい。'; L=['点C','点D']; A=['$('+cx+',0)$','$('+cx+','+h+')$']; }
+  else if(sp.ask==='AD'){ q+='A、D の座標を求めなさい。'; L=['点A','点D']; A=['$('+t+','+h+')$','$('+cx+','+h+')$']; }
+  else { q+='D の座標と、原点と D を通る比例の式を求めなさい。'; L=['点D','式']; A=['$('+cx+','+h+')$','$'+eq(od)+'$']; }
+  return {a:sp.a,t:t,h:h,cx:cx,od:sp.ask==='DS'?od:null,q:q,L:L,A:A,pts:sp.pts};
+}
+/* 例題の「答え」の1行：C$(6,0)$、D$(6,4)$ / D$(10,4)$、$y=[2/5]x$ */
+function ansLine(p){return p.L.map(function(l,i){return (l==='式'?'':l.replace('点',''))+p.A[i];}).join('、');}
+
+/* ===== 図（元の問題と同じく方眼・目もりなし。図から答えが読めないように） =====
+   単位は mm。比例定数どおりの正しい形で描き、問題ごとに図の大きさを決める。
+   例題では A・D の座標を書きこむ */
+var C={ink:'#1F1F1F',od:'#555555',sub:'#444'};
+function T(x,y,txt,o){ // 文字
+  o=o||{};
+  return '<text x="'+x.toFixed(2)+'" y="'+y.toFixed(2)+'" font-size="'+(o.fs||3.1).toFixed(2)+'"'+
+    (o.anchor?' text-anchor="'+o.anchor+'"':'')+' fill="'+(o.fill||C.ink)+'"'+
+    ' font-family="'+(o.ff||'Times New Roman,serif')+'"'+(o.it?' font-style="italic"':'')+
+    ' stroke="#fff" stroke-width=".7" paint-order="stroke">'+txt+'</text>';
+}
+function eqLabel(rx,yb,a,f,anchorStart){ // 「y = 分数 x」を svg で（右はし rx・ベースライン yb）
+  var n=a[0],d=a[1], fsN=f*0.78, cw=f*0.5;
+  var wy=f*0.52, weq=f*0.95, wx=f*0.55;
+  var wf=d===1?(n===1?0:String(n).length*cw+0.3):Math.max(String(n).length,String(d).length)*fsN*0.55+1.0;
+  var W=wy+weq+wf+wx, x0=anchorStart?rx:rx-W, s='';
+  s+=T(x0,yb,'y',{fs:f,it:true});
+  s+=T(x0+wy+weq/2,yb,'=',{fs:f,anchor:'middle',ff:'Arial,sans-serif'});
+  var xf=x0+wy+weq;
+  if(d===1){ if(n!==1) s+=T(xf+wf/2,yb,String(n),{fs:f,anchor:'middle'}); }
+  else{
+    var cxm=xf+wf/2, bar=yb-f*0.3;
+    s+=T(cxm,bar-f*0.18,String(n),{fs:fsN,anchor:'middle'});
+    s+=T(cxm,bar+f*0.72,String(d),{fs:fsN,anchor:'middle'});
+    s+='<line x1="'+(xf+0.3).toFixed(2)+'" y1="'+bar.toFixed(2)+'" x2="'+(xf+wf-0.3).toFixed(2)+'" y2="'+bar.toFixed(2)+'" stroke="'+C.ink+'" stroke-width=".22"/>';
+  }
+  s+=T(xf+wf,yb,'x',{fs:f,it:true});
+  return {svg:s,w:W};
+}
+function figure(p,o){
+  var f=o.f||3.1, padL=5, padR=14, padB=5.5, padT=3;
+  var a=p.a[0]/p.a[1], h=p.h, cx=p.cx, t=p.t;
+  // 上の余白は A の高さの1.5倍。ただし y=ax の線が右の端から出てしまう（ねている線）ときだけ、
+  // 線が上の端から出るまで余白をのばす（式を上の端に置くため。右の端だと式が A の近くに来て窮屈だった）。
+  // 急な線は1.5倍のまま（のばすと正方形が小さくなりすぎる）
+  var s=(o.W-padL-padR)/cx, yt=1.5*h;
+  for(var it=0;it<4;it++){
+    var top=a*(cx+padR/s), base=Math.max(1.5*h, h+8/s); // A の上に、線の式が入る 8mm は必ず残す（横長の長方形で「A」と重なった）
+    yt=top<base+f*1.6/s?Math.max(base, top+f*1.6/s):base;
+    s=Math.min((o.W-padL-padR)/cx,(o.H-padT-padB)/yt);
+  }
+  var w=padL+padR+cx*s, ht=padT+padB+yt*s;
+  function X(x){return padL+x*s;} function Y(y){return ht-padB-y*s;}
+  function seg(m){ // 原点を通る直線（傾き m）を図のわくで切る
+    var x1=Math.max((0.5-padL)/s, -(padB-0.5)/(m*s)), x2=Math.min((w-0.5-padL)/s,(ht-padB-0.5)/(m*s));
+    return [X(x1),Y(m*x1),X(x2),Y(m*x2)];
+  }
+  function L(q,col,sw){return '<line x1="'+q[0].toFixed(2)+'" y1="'+q[1].toFixed(2)+'" x2="'+q[2].toFixed(2)+'" y2="'+q[3].toFixed(2)+'" stroke="'+col+'" stroke-width="'+sw+'"/>';}
+  var sv='<svg class="gr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+w.toFixed(2)+' '+ht.toFixed(2)+'" width="'+w.toFixed(2)+'mm" height="'+ht.toFixed(2)+'mm">';
+  // 軸（矢印なしの実線）
+  sv+=L([0.5,Y(0),w-0.5,Y(0)],C.ink,.28)+L([X(0),ht-0.5,X(0),0.5],C.ink,.28);
+  // 原点と D を通る直線（式を求める問題だけ。式は答えなので解答表示で書く）
+  var odSeg=null;
+  if(p.od){ odSeg=seg(h/cx); sv+=L(odSeg,C.od,.3); }
+  // y=ax のグラフ
+  var mSeg=seg(a); sv+=L(mSeg,C.ink,.35);
+  // 正方形（長方形）
+  sv+='<polygon points="'+[[t,h],[t,0],[cx,0],[cx,h]].map(function(q){return X(q[0]).toFixed(2)+','+Y(q[1]).toFixed(2);}).join(' ')+'" fill="none" stroke="'+C.ink+'" stroke-width=".4"/>';
+  // 点の名前・軸の名前
+  // O は原点の右下（左下は直線が原点の向こうへのびるので重なる）
+  sv+=T(X(0)+0.8,Y(0)+f*0.95,'O',{fs:f});
+  sv+=T(X(t)-0.8,Y(h)-0.8,'A',{fs:f,anchor:'end'});
+  sv+=T(X(t),Y(0)+f*1.0,'B',{fs:f,anchor:'middle'});
+  sv+=T(X(cx),Y(0)+f*1.0,'C',{fs:f,anchor:'middle'});
+  sv+=T(X(cx)+0.8,Y(h)+f*0.95,'D',{fs:f});
+  sv+=T(w-1,Y(0)-1,'x',{fs:f*1.1,anchor:'end',it:true});
+  sv+=T(X(0)-1,0.5+f*0.9,'y',{fs:f*1.1,anchor:'end',it:true}); // 軸の左（右は急な直線の式が来る）
+  // y=ax の式（線の上の端の近く。線の左側に置けなければ右側）
+  var e=eqLabel(0,0,p.a,f*0.92), yb, lx, rx, lab;
+  if(mSeg[3]<1){ yb=0.5+f*1.15; lx=X((ht-padB-yb)/s/a);
+    lab=(lx-1.2-e.w>X(0)+3)?eqLabel(lx-1.2,yb,p.a,f*0.92):eqLabel(lx+1.5,yb,p.a,f*0.92,true); }
+  else { yb=mSeg[3]-f*0.55; lab=eqLabel(w-0.5,yb,p.a,f*0.92); }
+  sv+=lab.svg;
+  // 例題で見せる A・D の座標（原点と D を通る直線の式は答えらんに書くので、図には書かない。
+  // 2本の直線がどちらもねているとき、式どうしが重なって読めなかった）
+  var ov='';
+  if(o.show){
+    var fs=f*0.85, ff='Arial,sans-serif';
+    ov+=T(X(t)-0.8-f*0.78,Y(h)-0.8,'('+t+', '+h+')',{fs:fs,anchor:'end',ff:ff,fill:C.sub});
+    ov+=T(X(cx)+0.8+f*0.78,Y(h)+f*0.95,'('+cx+', '+h+')',{fs:fs,ff:ff,fill:C.sub});
+  }
+  if(ov) sv+='<g class="ov'+(o.show?' show':'')+'">'+ov+'</g>';
+  return '<div class="figbox" style="width:'+o.W+'mm">'+sv+'</svg></div>';
+}
+
+/* ===== 問題データ（答えは G() が計算する） ===== */
+var BASIC=[ // 基本①（整数）・基本②（分数）  A の x 座標 → C、D
+  {a:[2,1],t:1},{a:[1,1],t:3},{a:[3,1],t:1},{a:[2,1],t:3},{a:[1,1],t:4},{a:[3,1],t:2},
+  {a:[1,2],t:6},{a:[1,3],t:6},{a:[2,3],t:6},{a:[3,2],t:2},{a:[3,4],t:4},{a:[4,3],t:3}
+].map(function(s){s.give='t';s.ask='CD';return G(s);});
+var APP1=[ // A の x 座標 → D と、原点と D を通る式
+  {a:[1,1],t:2},{a:[3,1],t:1},{a:[1,3],t:3},{a:[3,2],t:2},{a:[4,1],t:1},{a:[3,4],t:4}
+].map(function(s){s.give='t';s.ask='DS';return G(s);});
+var APP2=[ // C の x 座標 → A、D
+  {a:[1,1],t:4},{a:[3,1],t:2},{a:[2,1],t:3},{a:[1,3],t:6},{a:[3,2],t:4},{a:[3,4],t:8}
+].map(function(s){s.give='c';s.ask='AD';return G(s);});
+var APP3=[ // C の x 座標 → D と、原点と D を通る式（元の問題の型）
+  {a:[1,1],t:3},{a:[3,1],t:3},{a:[1,3],t:9},{a:[3,2],t:6},{a:[4,3],t:6},{a:[2,1],t:4}
+].map(function(s){s.give='c';s.ask='DS';return G(s);});
+var APP4=[ // 長方形
+  {a:[2,1],t:1,k:[2,1],give:'t'},{a:[1,1],t:2,k:[3,1],give:'t'},{a:[3,2],t:2,k:[2,1],give:'t'},
+  {a:[1,1],t:3,k:[2,1],give:'c'},{a:[4,1],t:2,k:[1,2],give:'c'},{a:[1,2],t:4,k:[3,1],give:'c'}
+].map(function(s){s.ask='DS';return G(s);});
+var APP5=[ // 1辺の長さ・面積 → A、D
+  {a:[1,1],t:3,give:'side'},{a:[3,1],t:2,give:'side'},{a:[1,2],t:6,give:'side'},
+  {a:[2,1],t:2,give:'area'},{a:[2,3],t:3,give:'area'},{a:[3,4],t:4,give:'area'}
+].map(function(s){s.ask='AD';return G(s);});
+var TEST1=[
+  {a:[2,1],t:2,give:'t',ask:'CD',pts:15},{a:[1,3],t:3,give:'t',ask:'CD',pts:15},
+  {a:[1,1],t:3,give:'t',ask:'DS',pts:15},{a:[2,1],t:4,give:'c',ask:'AD',pts:15},
+  {a:[2,1],t:2,k:[2,1],give:'t',ask:'DS',pts:20},{a:[1,3],t:6,give:'side',ask:'AD',pts:20}
+].map(G);
+var TEST2=[
+  {a:[3,2],t:4,give:'t',ask:'CD',pts:15},{a:[1,2],t:2,give:'t',ask:'DS',pts:15},
+  {a:[2,3],t:3,give:'c',ask:'AD',pts:15},{a:[3,1],t:2,give:'c',ask:'DS',pts:20},
+  {a:[2,1],t:2,k:[3,1],give:'c',ask:'DS',pts:20},{a:[4,3],t:3,give:'side',ask:'AD',pts:15}
+].map(G);
+
+/* ===== 例題（問題文と答えは G() から。解法は手で書く） ===== */
+function EX(sp,tag,s,tip){var p=G(sp);p.tag=tag;p.s=s;p.tip=tip;return p;}
+var EX_BASIC=[
+  EX({a:[2,1],t:2,give:'t',ask:'CD'},'例題1',
+    ['A の $x$ 座標 $2$ を $y=2x$ に入れる：$y=2\\times2=4$ → A$(2,4)$',
+     '正方形の1辺は AB ＝ A の $y$ 座標 ＝ $4$',
+     'C は B$(2,0)$ から右へ $4$ → C$(6,0)$<br>D は C の真上で、高さ $4$ → D$(6,4)$'],
+    'たて AB ＝ A の $y$ 座標、よこ BC ＝ C と B の $x$ 座標の差。正方形なので AB ＝ BC。'),
+  EX({a:[1,2],t:4,give:'t',ask:'CD'},'例題2',
+    ['$x=4$ を $y=[1/2]x$ に入れる：$y=2$ → A$(4,2)$',
+     '1辺は A の $y$ 座標で $2$',
+     'C の $x$ 座標は $4+2=6$ → C$(6,0)$、D$(6,2)$']),
+  EX({a:[3,2],t:2,give:'t',ask:'CD'},'例題3',
+    ['$x=2$ を $y=[3/2]x$ に入れる：$y=3$ → A$(2,3)$',
+     '1辺は $3$',
+     'C の $x$ 座標は $2+3=5$ → C$(5,0)$、D$(5,3)$'],
+    'D の $y$ 座標は A と同じ、D の $x$ 座標は C と同じ。')
+];
+var EX_APP1=[
+  EX({a:[2,1],t:2,give:'t',ask:'DS'},'例題1',
+    ['$x=2$ を入れて A$(2,4)$。1辺は $4$',
+     'C$(6,0)$ だから D$(6,4)$',
+     '$y=ax$ に D の座標を入れる：$4=6a$ → $a=[2/3]$']),
+  EX({a:[1,2],t:4,give:'t',ask:'DS'},'例題2',
+    ['$x=4$ を入れて A$(4,2)$。1辺は $2$',
+     'C$(6,0)$ だから D$(6,2)$',
+     '$2=6a$ → $a=[1/3]$'],
+    '比例の式の $a$ は「D の $y$ 座標 ÷ D の $x$ 座標」。分数は約分する。'),
+  EX({a:[2,3],t:6,give:'t',ask:'DS'},'例題3',
+    ['$x=6$ を入れて A$(6,4)$。1辺は $4$',
+     'C の $x$ 座標は $6+4=10$ → D$(10,4)$',
+     '$4=10a$ → $a=[4/10]=[2/5]$'])
+];
+var EX_APP2=[
+  EX({a:[2,1],t:2,give:'c',ask:'AD'},'例題1',
+    ['A の $x$ 座標を $t$ とおくと A$(t,2t)$。1辺 AB ＝ $2t$',
+     'C の $x$ 座標は $t+2t=3t$',
+     '$3t=6$ → $t=2$ → A$(2,4)$、D$(6,4)$']),
+  EX({a:[1,2],t:6,give:'c',ask:'AD'},'例題2',
+    ['A$(t,[1/2]t)$ とおくと、1辺は $[1/2]t$',
+     'C の $x$ 座標は $t+[1/2]t=[3/2]t$',
+     '$[3/2]t=9$ → $t=6$ → A$(6,3)$、D$(9,3)$']),
+  EX({a:[2,3],t:6,give:'c',ask:'AD'},'例題3',
+    ['A$(t,[2/3]t)$ とおくと、1辺は $[2/3]t$',
+     'C の $x$ 座標は $t+[2/3]t=[5/3]t$',
+     '$[5/3]t=10$ → $t=6$ → A$(6,4)$、D$(10,4)$'],
+    'C の $x$ 座標 ＝ B の $x$ 座標 ＋ 1辺。わからない A の $x$ 座標を文字でおいて方程式をつくる。')
+];
+var EX_APP3=[
+  EX({a:[2,3],t:6,give:'c',ask:'DS'},'例題1',
+    ['A$(t,[2/3]t)$ とおくと、C の $x$ 座標は $t+[2/3]t=[5/3]t$',
+     '$[5/3]t=10$ → $t=6$ → A$(6,4)$、1辺 $4$ → D$(10,4)$',
+     '$4=10a$ → $a=[2/5]$']),
+  EX({a:[2,1],t:3,give:'c',ask:'DS'},'例題2',
+    ['A$(t,2t)$ とおくと、C の $x$ 座標は $3t$',
+     '$3t=9$ → $t=3$ → A$(3,6)$、D$(9,6)$',
+     '$6=9a$ → $a=[2/3]$']),
+  EX({a:[1,2],t:8,give:'c',ask:'DS'},'例題3',
+    ['A$(t,[1/2]t)$ とおくと、C の $x$ 座標は $[3/2]t$',
+     '$[3/2]t=12$ → $t=8$ → A$(8,4)$、D$(12,4)$',
+     '$4=12a$ → $a=[1/3]$'],
+    '応用②と同じように D の座標を求めてから、応用①と同じように式を求める。')
+];
+var EX_APP4=[
+  EX({a:[1,1],t:2,k:[2,1],give:'t',ask:'DS'},'例題1',
+    ['$x=2$ を入れて A$(2,2)$。たて AB ＝ $2$',
+     'よこ BC は AB の2倍で $4$ → C$(6,0)$、D$(6,2)$',
+     '$2=6a$ → $a=[1/3]$']),
+  EX({a:[1,2],t:6,k:[2,1],give:'c',ask:'DS'},'例題2',
+    ['A$(t,[1/2]t)$ とおくと、AB ＝ $[1/2]t$、BC ＝ $2\\times[1/2]t=t$',
+     'C の $x$ 座標は $t+t=2t$。$2t=12$ → $t=6$',
+     'A$(6,3)$、D$(12,3)$ → $3=12a$ → $a=[1/4]$']),
+  EX({a:[2,1],t:3,k:[1,2],give:'c',ask:'DS'},'例題3',
+    ['A$(t,2t)$ とおくと、AB ＝ $2t$。AB は BC の2倍なので BC ＝ $t$',
+     'C の $x$ 座標は $t+t=2t$。$2t=6$ → $t=3$',
+     'A$(3,6)$、D$(6,6)$ → $6=6a$ → $a=1$'],
+    'たて AB とよこ BC のどちらが何倍なのかを、図で確かめてから式にする。')
+];
+var EX_APP5=[
+  EX({a:[2,3],t:6,give:'side',ask:'AD'},'例題1',
+    ['1辺が $4$ なので、A の $y$ 座標は $4$',
+     '$4=[2/3]x$ → $x=6$ → A$(6,4)$',
+     'C の $x$ 座標は $6+4=10$ → D$(10,4)$']),
+  EX({a:[2,1],t:3,give:'area',ask:'AD'},'例題2',
+    ['面積が $36$ → 1辺は $6$（$6\\times6=36$）',
+     'A の $y$ 座標は $6$：$6=2x$ → $x=3$ → A$(3,6)$',
+     'C の $x$ 座標は $3+6=9$ → D$(9,6)$']),
+  EX({a:[1,2],t:4,give:'area',ask:'AD'},'例題3',
+    ['面積が $4$ → 1辺は $2$',
+     '$2=[1/2]x$ → $x=4$ → A$(4,2)$',
+     'C の $x$ 座標は $4+2=6$ → D$(6,2)$'],
+    '1辺がわかれば A の $y$ 座標がわかる。それを式に入れて A の $x$ 座標を求める。')
+];
+
+/* ===== 1問ぶん ===== */
+function probHtml(p,no){
+  var ac='';
+  p.L.forEach(function(l,i){
+    var col=(l==='式');
+    ac+='<div class="al'+(col?' col':'')+'"><span class="lb">'+mk(l)+'</span><span class="aw"><span class="ans">'+mk(p.A[i])+'</span></span></div>';
+  });
+  var pts=p.pts?'<span class="pts">'+p.pts+'点</span>':'';
+  return '<div class="prob"><div class="q"><span class="no">'+no+'</span>'+mk(p.q)+'</div>'+
+    '<div class="body">'+figure(p,{W:52,H:46})+'<div class="acol">'+pts+ac+'</div></div></div>';
+}
+function head(badge,cls,title){
+  return '<div class="ph"><span class="badge '+cls+'">'+badge+'</span><span class="pt">'+mk(title)+'</span>'+
+         '<span class="stamp">解答</span><span class="date">　　月　　日</span></div>';
+}
+function probPage(badge,cls,title,ins,list,start){
+  return head(badge,cls,title)+'<div class="ins">'+mk(ins)+'</div>'+
+    '<div class="probs">'+list.map(function(p,i){return probHtml(p,start+i);}).join('')+'</div>';
+}
+function testPage(n,list){
+  return head('総合テスト '+n,'test',n==='①'?'基本と応用のまとめ（1）':'基本と応用のまとめ（2）')+
+    '<div class="th"><span class="nm">　　年　　組　　番　名前</span>'+
+    '<span class="score">得点<span class="sb"></span>/100点</span></div>'+
+    '<div class="ins" style="height:5mm;padding-top:.8mm">'+mk('図をよく見て考えよう。座標は $(x,y)$ の形で、分数は約分して答えなさい。')+'</div>'+
+    '<div class="probs test">'+list.map(function(p,i){return probHtml(p,i+1);}).join('')+'</div>';
+}
+function exPage(badge,title,ins,list,tagCls){
+  return head(badge,'exb',title)+'<div class="ins">'+mk(ins)+'</div>'+list.map(function(e){
+    return '<div class="ex">'+figure(e,{W:56,H:50,show:true})+'<div class="exbody">'+
+      '<div class="exq"><span class="tag'+(tagCls?' '+tagCls:'')+'">'+e.tag+'</span>'+mk(e.q)+'</div>'+
+      '<div class="exh"><span>解法</span></div>'+
+      '<ol>'+e.s.map(function(s){return '<li>'+mk(s)+'</li>';}).join('')+'</ol>'+
+      '<div class="exa"><span class="k">答え</span>'+mk(ansLine(e))+'</div>'+(e.tip?'<div class="tip">'+mk(e.tip)+'</div>':'')+'</div></div>';
+  }).join('');
+}
+
+/* ===== 表紙 ===== */
+var TOC=[
+  ['2','例題','グラフ上の点と、正方形の頂点の座標'],
+  ['3','基本問題 ①','正方形の頂点の座標（比例定数が整数）'],
+  ['4','基本問題 ②','正方形の頂点の座標（比例定数が分数）'],
+  ['5・6','応用問題 ①','原点と D を通る比例の式'],
+  ['7・8','応用問題 ②','C の $x$ 座標から、A と D の座標'],
+  ['9・10','応用問題 ③','C の $x$ 座標から、原点と D を通る式'],
+  ['11・12','応用問題 ④','長方形のとき'],
+  ['13・14','応用問題 ⑤','1辺の長さ・面積から'],
+  ['15','総合テスト ①','100点満点'],
+  ['16','総合テスト ②','100点満点']
+];
+function coverPage(){
+  var p=G({a:[2,3],t:6,give:'c',ask:'DS'});
+  return '<div class="cover">'+
+    '<div class="cv-top"><span class="pill">中学1年　数学</span><span class="stamp">解答</span></div>'+
+    '<div class="cv-title"><div class="t1">比例のグラフ</div><div class="t2">図形マスター</div>'+
+    '<div class="t3">グラフ上の点から、正方形・長方形の頂点を求めよう</div></div>'+
+    '<div class="cv-mid">'+figure(p,{W:80,H:70,show:true,f:3.4})+
+      '<div class="cv-legend"><b>'+mk('A は $y=[2/3]x$ 上の点、ABCD は正方形')+'</b>'+
+      '<div>'+mk('① A の $x$ 座標を $t$ → A$(t,[2/3]t)$')+'</div>'+
+      '<div>'+mk('② 1辺 AB ＝ A の $y$ 座標 ＝ $[2/3]t$')+'</div>'+
+      '<div>'+mk('③ C の $x$ 座標 ＝ $t+[2/3]t$')+'</div>'+
+      '<div>'+mk('④ D は（C の $x$ 座標，A の $y$ 座標）')+'</div></div></div>'+
+    '<table class="toc"><tr><th style="white-space:nowrap">ページ</th><th colspan="2">内容</th><th style="text-align:center">学習した日</th><th style="text-align:center">できた</th></tr>'+
+    TOC.map(function(r){return '<tr><td class="p">'+r[0]+'</td><td style="white-space:nowrap;font-weight:bold">'+r[1]+'</td><td>'+mk(r[2])+'</td><td class="c">／</td><td class="c"><span class="box"></span></td></tr>';}).join('')+
+    '</table>'+
+    '<div class="cv-name"><span>　　年　　組　　番</span><span>名前</span><span class="ul"></span></div>'+
+    '<div class="cv-foot">中京個別指導学院</div></div>';
+}
+
+/* ===== ページ組み立て（16ページ） ===== */
+var PAGES=[
+  coverPage(),
+  exPage('基本 例題','グラフ上の点と正方形の頂点','A の $y$ 座標は、A の $x$ 座標を式に入れて求めます。正方形なので、たて AB ＝ よこ BC ＝ 1辺。',EX_BASIC,''),
+  probPage('基本問題 ①','','正方形の頂点の座標（比例定数が整数）','A の $y$ 座標から正方形の1辺を求め、C、D の座標を求めなさい。',BASIC.slice(0,6),1),
+  probPage('基本問題 ②','','正方形の頂点の座標（比例定数が分数）','比例定数が分数でも同じです。A の $y$ 座標を求めてから、C、D の座標を求めなさい。',BASIC.slice(6,12),7),
+  exPage('応用① 例題','原点と D を通る比例の式','D の座標を求めたら、$y=ax$ に D の座標を入れて $a$ を求めます。',EX_APP1,'app'),
+  probPage('応用問題 ①','app','原点と D を通る比例の式','D の座標を求めてから、原点と D を通る比例の式を求めなさい。',APP1,1),
+  exPage('応用② 例題','C の $x$ 座標から A・D の座標を求める','A の $x$ 座標を $t$ とおき、C の $x$ 座標を $t$ の式で表して方程式をつくります。',EX_APP2,'app'),
+  probPage('応用問題 ②','app','C の $x$ 座標から A・D の座標を求める','A の $x$ 座標を $t$ とおいて方程式をつくり、A、D の座標を求めなさい。',APP2,1),
+  exPage('応用③ 例題','C の $x$ 座標から、原点と D を通る式','応用②の方法で D の座標を求め、応用①の方法で比例の式を求めます。',EX_APP3,'app'),
+  probPage('応用問題 ③','app','C の $x$ 座標から、原点と D を通る式','D の座標を求めてから、原点と D を通る比例の式を求めなさい。',APP3,1),
+  exPage('応用④ 例題','長方形のとき','長方形では、たて AB とよこ BC の関係（何倍か）を使って C の $x$ 座標を表します。',EX_APP4,'app'),
+  probPage('応用問題 ④','app','長方形のとき','たて AB とよこ BC の関係に注意して、D の座標と比例の式を求めなさい。',APP4,1),
+  exPage('応用⑤ 例題','1辺の長さ・面積から求める','1辺の長さがわかれば A の $y$ 座標がわかります。面積からは、まず1辺の長さを求めます。',EX_APP5,'app'),
+  probPage('応用問題 ⑤','app','1辺の長さ・面積から求める','1辺の長さから A の $y$ 座標を決めて、A、D の座標を求めなさい。',APP5,1),
+  testPage('①',TEST1),
+  testPage('②',TEST2)
+];
+var N=PAGES.length; // 4の倍数であること（中とじ）
+function pageEl(n){
+  return '<div class="page '+(n%2?'odd':'even')+'">'+PAGES[n-1]+(n>1?'<div class="pn">− '+n+' −</div>':'')+'</div>';
+}
+function impose(){
+  var r=[];
+  for(var k=0;k<N/4;k++){
+    r.push({l:N-2*k, r:1+2*k, cap:(k+1)+'枚目・おもて'});
+    r.push({l:2+2*k, r:N-1-2*k, cap:(k+1)+'枚目・うら'});
+  }
+  return r;
+}
+var NOTE={
+  book:'製本用の印刷設定：用紙 <em>B4・横</em>／<em>両面印刷・短辺とじ（短辺で反転）</em>／倍率 <em>実際のサイズ（100%）</em>／余白 <em>なし</em>。'+
+    '出てきた4枚を順に重ね、<em>1枚目（表紙のある紙）をいちばん外側</em>にして半分に折ると、1〜16ページの順の冊子になります（中央をホチキスで中とじ）。',
+  a4:'A4・両面の印刷設定：用紙 <em>A4・縦</em>／<em>両面印刷・長辺とじ（長辺で反転）</em>／倍率 <em>実際のサイズ（100%）</em>／余白 <em>なし</em>（余白は紙面の側に入れてあります）。'+
+    '1枚目のおもてが1ページ、うらが2ページ…と、<em>紙のうらが次のページ</em>になります（8枚。左上をホチキスでとめる）。',
+  single:'1ページずつの印刷設定：用紙 <em>B5・縦</em>／<em>片面</em>／倍率 <em>実際のサイズ（100%）</em>／余白 <em>なし</em>。'
+};
+function render(){
+  var mode=document.querySelector('input[name=mode]:checked').value, h='';
+  document.getElementById('note').innerHTML=NOTE[mode]+(PROBLEMS_BAD.length?'<br><em>⚠ 座標が整数にならない問題があります：'+PROBLEMS_BAD.join(' / ')+'</em>':'');
+  if(mode==='a4'){
+    document.getElementById('pageSize').textContent='@page{size:210mm 297mm;margin:0}';
+    for(var m=1;m<=N;m++) h+='<div class="sheet-cap" style="width:210mm">'+Math.ceil(m/2)+'枚目・'+(m%2?'おもて':'うら')+'（'+m+'ページ）</div><div class="sheet a4">'+pageEl(m)+'</div>';
+  }else if(mode==='book'){
+    document.getElementById('pageSize').textContent='@page{size:364mm 257mm;margin:0}';
+    impose().forEach(function(s){
+      h+='<div class="sheet-cap">'+s.cap+'（左 '+s.l+'ページ／右 '+s.r+'ページ）</div>';
+      h+='<div class="sheet">'+pageEl(s.l)+pageEl(s.r)+'</div>';
+    });
+  }else{
+    document.getElementById('pageSize').textContent='@page{size:182mm 257mm;margin:0}';
+    for(var n=1;n<=N;n++) h+='<div class="sheet single">'+pageEl(n)+'</div>';
+  }
+  document.getElementById('out').innerHTML=h;
+}
+document.querySelectorAll('input[name=mode]').forEach(function(r){r.addEventListener('change',render);});
+document.getElementById('ansChk').addEventListener('change',function(){document.body.classList.toggle("show-ans",this.checked);});
+document.getElementById('btnPrint').addEventListener('click',function(){
+  var go=function(){window.print();};
+  if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go,go);}else{go();}
+});
+render();
+})();
+</script>
+</body>
+</html>
