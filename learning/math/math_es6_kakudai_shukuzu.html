@@ -1,0 +1,2238 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="only light">
+<title>拡大図と縮図マスター｜小6算数 拡大図と縮図｜中京個別指導学院</title>
+<meta name="description" content="小6算数の拡大図と縮図を練習。方眼の図から拡大図・縮図を見つける、何倍の拡大図か、対応する辺の長さと角の大きさ、1つの点を中心にしたかき方、縮尺（地図上の長さと実際の長さ）、縮図を使って木の高さや川はばを求める。中京個別指導学院(神丘)の学習ツール。">
+<!-- 本番(Heteml)ではサブセット自己ホストに差し替え -->
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- 印刷シートのロゴ透かし（ChukyoPrint） -->
+<script src="/assets/print-watermark.js"></script>
+<style>
+  :root{
+    --paper:#FBFAF6;
+    --grid:#ECE9E0;
+    --sumi:#33312B;
+    --usuzumi:#8B877C;
+    --shu:#C73E2E;
+    --kin:#C9A227;
+    --ai:#2C5F8A;
+    /* 答え合わせの色は共通モジュール(divp-choice-mark.js)の既定にそろえる */
+    --divp-mark-ok:#3E8E5A;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html{ scrollbar-gutter:stable; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:24px 24px;
+    color:var(--sumi);
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;     /* ⚠ 横並び(row)にしない。共通ヘッダーが左端に縦長の帯になる */
+    touch-action:manipulation;
+  }
+  .app{
+    width:100%;
+    max-width:560px;
+    margin:0 auto;
+    padding:12px 14px calc(90px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    flex:1;
+  }
+
+  /* ---- ヘッダー ---- */
+  header{ display:flex; align-items:center; gap:8px; }
+  header h1{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700; margin:0;
+    letter-spacing:.04em;
+  }
+  header h1 .sub{
+    display:block;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    letter-spacing:.1em;
+  }
+  /* 名前が 長いので、スマホ幅では 小さく して 1行に おさめる（「マスタ／ー」で 折れた） */
+  @media (max-width:420px){
+    header h1{ font-size:15px; letter-spacing:0; white-space:nowrap; }
+  }
+  .mode-back{
+    margin-left:auto;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.5px solid var(--ai);
+    background:#fff;
+    border-radius:8px;
+    padding:5px 9px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .mode-back.next-to{ margin-left:6px; }
+
+  /* ---- スコア ---- */
+  .score{
+    display:flex; align-items:baseline; gap:12px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700; color:var(--usuzumi);
+  }
+  .score b{ color:var(--shu); font-size:17px; }
+  .score .streak b{ color:var(--kin); }
+  .score .qno{ margin-left:auto; color:var(--ai); }
+
+  /* ---- 問題カード ---- */
+  .card{
+    position:relative;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:16px;
+    box-shadow:0 2px 0 rgba(51,49,43,.06);
+    padding:16px 16px 14px;
+  }
+  .card .qtag{
+    display:inline-block;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.2px solid var(--ai);
+    border-radius:999px;
+    padding:2px 10px;
+    margin-bottom:8px;
+    letter-spacing:.06em;
+  }
+  .card .qtext{
+    font-size:16px; line-height:1.85;
+    letter-spacing:.02em;
+  }
+  .card .qtext b{ color:var(--shu); }
+
+  /* ---- 問題の図 ---- */
+  .figwrap{
+    display:flex; justify-content:center;
+    margin:10px 0 0;
+  }
+  .figwrap:empty{ display:none; }
+  .figwrap svg{
+    width:100%; max-width:330px; height:auto;
+    border-radius:10px;
+  }
+
+  /* ---- 分数（縦組み） ---- */
+  .fr{
+    display:inline-flex; flex-direction:column; align-items:center;
+    vertical-align:middle;
+    line-height:1.12;
+    margin:0 .1em;
+  }
+  .fr .nu{ border-bottom:.08em solid currentColor; padding:0 .18em; }
+  .fr .de{ padding:0 .18em; }
+  .cl{ margin:0 .12em; }
+
+  /* ---- 解答パーツ ---- */
+  .part{ display:flex; flex-direction:column; gap:8px; }
+  .p-label{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700;
+    color:var(--ai);
+    letter-spacing:.04em;
+  }
+  .opts{ display:flex; flex-wrap:wrap; gap:8px; }
+  .optBtn{
+    position:relative;          /* 「正解」バッジの基準（divp-choice-mark.js） */
+    flex:1 1 calc(50% - 4px);
+    min-width:120px;
+    min-height:58px;
+    padding:8px 10px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:11px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:21px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    line-height:1.4;
+  }
+  .optBtn .u{ font-size:.68em; margin-left:3px; color:var(--usuzumi); }
+  .optBtn.on{
+    background:#FDECE9;
+    border-color:var(--shu);
+    border-bottom-color:var(--shu);
+    color:var(--shu);
+  }
+  .optBtn.on .u{ color:var(--shu); }
+  .optBtn:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .optBtn:disabled{ cursor:default; transform:none; }
+  .optBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- フィードバック ---- */
+  .feedback{ display:none; }
+  .feedback.show{ display:flex; flex-direction:column; gap:10px; }
+  .fb-msg{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    text-align:center;
+    letter-spacing:.06em;
+  }
+  .fb-msg.good{ color:var(--shu); }
+  .fb-msg.bad{ color:var(--ai); }
+  .expl{
+    background:#fff;
+    border:1.5px dashed var(--kin);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:14px; line-height:2.05;
+  }
+  .expl b{ color:var(--shu); }
+  .expl .ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--kin);
+    letter-spacing:.08em;
+    display:block; margin-bottom:4px;
+  }
+  .expl .step{ display:block; }
+  .expl .ok{ color:#3E8E5A; font-weight:700; }
+  .expl .ng{ color:var(--usuzumi); }
+  .expl .kufu{
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px dashed var(--grid);
+    font-size:13px; color:var(--ai);
+  }
+  .toast{
+    text-align:center;
+    font-size:13px; font-weight:700; color:var(--ai);
+    min-height:20px;
+  }
+
+  /* ---- 下の大きなボタン ---- */
+  .bottom{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--paper) 62%, rgba(251,250,246,0));
+    z-index:20;
+  }
+  .bottom .inner{ max-width:560px; margin:0 auto; }
+  .bigBtn{
+    width:100%;
+    height:54px;
+    border:none;
+    border-radius:13px;
+    background:var(--shu);
+    color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    letter-spacing:.2em; text-indent:.2em;
+    box-shadow:0 3px 0 #9E2F22;
+    cursor:pointer;
+  }
+  .bigBtn:active{ transform:translateY(2px); box-shadow:0 1px 0 #9E2F22; }
+  .bigBtn.next{ background:var(--ai); box-shadow:0 3px 0 #1E466A; }
+  .bigBtn.next:active{ box-shadow:0 1px 0 #1E466A; }
+  .bigBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- モード選択画面（平均マスター・比マスターと同じ作り） ---- */
+  .mode-screen{ display:none; }
+  body.choosing .app,
+  body.choosing .bottom{ display:none; }
+  body.choosing .mode-screen{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:100%;
+    max-width:520px;
+    margin:0 auto;
+    padding:34px 18px 48px;
+  }
+  .m-logo{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:25px; font-weight:700;
+    text-align:center;
+    letter-spacing:.08em;
+  }
+  .m-sub{
+    text-align:center;
+    font-size:13px; color:var(--usuzumi);
+    margin-bottom:8px;
+  }
+  .m-card{
+    display:flex; align-items:center; gap:13px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:4px solid #D8D4C8;
+    border-radius:16px;
+    padding:14px 16px;
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;
+    color:inherit;
+    width:100%;
+  }
+  .m-card:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .m-card.chal{ border-color:#BFD4C6; border-bottom-color:#8FB9A0; background:#F7FBF8; }
+  .m-card.mix{ border-color:var(--kin); border-bottom-color:var(--kin); }
+  .m-ico{ flex:none; width:46px; height:40px; }
+  .m-ico svg{ width:46px; height:40px; display:block; }
+  .m-sep{
+    display:flex; align-items:center; gap:8px;
+    margin-top:14px;
+    font-size:11.5px; color:var(--usuzumi); letter-spacing:.06em;
+  }
+  .m-sep::before, .m-sep::after{
+    content:""; flex:1; height:1px; background:var(--grid);
+  }
+  .m-body{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .m-name{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700;
+  }
+  .m-desc{ font-size:11.5px; color:var(--usuzumi); line-height:1.5; }
+
+  /* 解き直し(?retry=1)の案内帯 */
+  #retryBanner{
+    background:#FBF3E0;
+    border:1.5px solid var(--kin);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:12.5px; line-height:1.6;
+    color:#6E5518;
+  }
+
+  /* 積もったキラキラ(divp-correct-kirakira の pile, z-index:5)にうもれないように。
+     モジュール側の :where() は詳細度0で、div/span だけで組んだ帯は
+     セレクタから漏れるため、画面の直下の子をまとめて前面に出しておく */
+  .divp-header{ position:relative; z-index:11; }
+  .app > *, .mode-screen > *, .feedback > *{ position:relative; z-index:10; }
+
+  /* ---- モード画面の「プリントを 印刷する」 ---- */
+  .m-print{
+    background:#fff;
+    border:1.5px dashed #CFC9B8;
+    border-radius:16px;
+    padding:12px 14px 14px;
+  }
+  .m-print-ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:15px; font-weight:700;
+    margin-bottom:9px;
+  }
+  .m-print-ttl span{
+    display:block;
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    margin-top:1px;
+  }
+  .m-print-btns{ display:flex; flex-wrap:wrap; gap:7px; }
+  .m-print-btns button{
+    flex:1 1 calc(33% - 7px);
+    min-width:92px; min-height:40px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:10px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13.5px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+  }
+  .m-print-btns button:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+
+  /* ---- 印刷シート ---- */
+  .print-area{ display:none; }
+  @media print{
+    @page{ size:A4 portrait; margin:10mm 11mm; }
+    /* 共通ヘッダーは紙に出さない（assets/divp-header.js と同じ方針） */
+    .divp-header{ display:none !important; }
+    .mode-screen, .app, .bottom,
+    #divp-kk-layer, #divp-kk-pile, .divp-kk-layer, .divp-kk-canvas, .divp-kk-text{ display:none !important; }
+    html, body{ background:#fff !important; min-height:0 !important; }
+    body{ display:block !important; }
+    .print-area{ display:block !important; color:#222; font-family:"Zen Kaku Gothic New", sans-serif; }
+    .sheet{ position:relative; page-break-after:always; break-after:page;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .sheet:last-child{ page-break-after:auto; break-after:auto; }
+    .p-head{ position:relative; z-index:1; display:flex; justify-content:space-between; align-items:flex-end;
+      border-bottom:2px solid #33312B; padding-bottom:4px; margin-bottom:6px; }
+    .p-school{ font-size:11px; font-weight:700; color:#555; }
+    .p-title{ font-family:"Zen Maru Gothic", sans-serif; font-weight:700; font-size:20px; margin-top:1px; }
+    .p-title small{ font-size:13px; margin-left:8px; color:#555; }
+    .p-name{ font-size:12px; white-space:nowrap; }
+    .p-name span{ display:inline-block; border-bottom:1px solid #000; min-width:170px; margin-left:6px; }
+    .p-inst{ position:relative; z-index:1; font-size:11.5px; margin:0 0 6px; }
+    .p-grid{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:2.5mm 7mm; }
+    .p-item{ break-inside:avoid; page-break-inside:avoid; padding:1mm 1mm 0; }
+    .p-no{ display:inline-block; font-weight:700; font-size:12px; background:#33312B; color:#fff;
+      border-radius:5px; padding:0 7px; margin-right:4px; }
+    .p-tag{ font-size:9.5px; color:#777; }
+    .p-q{ font-size:11px; line-height:1.55; margin:2px 0 0; }
+    .p-q b{ color:#222; }
+    /* 図は 列の はば いっぱい。高さで おさえる（viewBox が あるので 縦横比は くずれず、
+       左右に 余白が できるだけ）。1行に 2問 × 3行 で 1枚に おさめるための 44mm
+       （縮図の 利用は 問題文が 4行 ある。50mm だと 1枚を はみ出した）。
+       方眼の 4択（.tall）だけは マスを 数えるので 大きく する
+       ＝ 4択の となりには 背の 低い 問題を おく（PRINT_KEYS の 順。行の 高さは 高い 方で 決まる） */
+    .p-fig{ margin:1.2mm 0 0; }
+    .p-fig svg{ display:block; width:100%; height:auto; max-height:44mm; margin:0 auto; }
+    .p-fig.tall svg{ max-height:60mm; }
+    .p-ans{ display:flex; align-items:flex-end; gap:6px; margin-top:1.5mm; font-size:11px; color:#555; }
+    .p-ans i{ flex:1; border-bottom:1px solid #333; height:6.5mm; font-style:normal; }
+    .a-grid{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:2.5mm 7mm; }
+    .a-item{ break-inside:avoid; font-size:12px; line-height:1.6; border-bottom:1px dashed #ccc; padding:1.5mm 0 2mm; }
+    .a-item .a-v{ font-family:"Zen Maru Gothic", sans-serif; font-size:16px; font-weight:700; color:#C73E2E; margin-left:4px; }
+    .a-item .a-v .u{ font-size:.7em; margin-left:2px; }
+    .a-item .a-how{ display:block; font-size:10.5px; color:#555; line-height:1.55; margin-top:1px; }
+  }
+</style>
+</head>
+<body class="choosing" data-theme="es" data-effect="kirakira">
+
+<!-- 共通ヘッダー(ロゴ・ログイン窓)の差し込み先。script は body 直後に置くこと -->
+<div class="divp-header"></div>
+<!-- 学習記録システム共通モジュール -->
+<script src="/assets/divp-core.js" defer></script>
+<script src="/assets/divp-header.js" defer></script>
+<!-- 小学生ツールなので正解演出は星バースト。
+     data-effect="kirakira" なので、都道府県マスターと同じ星が
+     そのまま画面の下に積もっていく（divp-core.js より後ろに置くこと） -->
+<script src="/assets/divp-correct-kirakira.js" defer></script>
+<!-- 選択肢の答え合わせ表示（正解=緑 / 選んだ誤答=朱） -->
+<script src="/assets/divp-choice-mark.js" defer></script>
+
+<div class="mode-screen" id="modeScreen">
+  <div class="m-logo">拡大図と縮図マスター</div>
+  <div class="m-sub">小6 算数 ／ れんしゅうしたいものを えらんでね</div>
+  <div id="retryBannerSlot"></div>
+
+  <button type="button" class="m-card" data-mode="mitsukeru">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M4,36 L4,24 L16,36 Z" fill="#F6DCD6" stroke="#C73E2E" stroke-width="2" stroke-linejoin="round"/><path d="M20,36 L20,8 L44,36 Z" fill="#E2ECF5" stroke="#2C5F8A" stroke-width="2" stroke-linejoin="round"/></svg></span>
+    <span class="m-body"><span class="m-name">拡大図・縮図を 見つける</span>
+    <span class="m-desc">方眼の 図から 2倍の 拡大図や 1/2の 縮図を さがす。
+    何倍の 拡大図か も 答えよう</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="henkaku">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M4,34 L18,34 L8,22 Z" fill="#F6DCD6" stroke="#C73E2E" stroke-width="2" stroke-linejoin="round"/><path d="M20,36 L44,36 L27,15 Z" fill="#E2ECF5" stroke="#2C5F8A" stroke-width="2" stroke-linejoin="round"/><path d="M38,36 A6,6 0 0 0 40.1,31.4" fill="none" stroke="#C73E2E" stroke-width="1.6"/></svg></span>
+    <span class="m-body"><span class="m-name">辺の 長さと 角の 大きさ</span>
+    <span class="m-desc">対応する 辺は 同じ 倍率で のびる。
+    角の 大きさは かわらない！</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="chushin">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M4,36 L44,6 M4,36 L44,24 M4,36 L30,36" stroke="#A9A498" stroke-width="1.4" stroke-dasharray="3 2"/><path d="M17,26 L24,30 L17,36 Z" fill="#F6DCD6" stroke="#C73E2E" stroke-width="2" stroke-linejoin="round"/><path d="M30,16 L44,24 L30,36 Z" fill="none" stroke="#2C5F8A" stroke-width="2" stroke-linejoin="round"/><circle cx="4" cy="36" r="2.6" fill="#33312B"/></svg></span>
+    <span class="m-body"><span class="m-name">1つの 点を 中心に して かく</span>
+    <span class="m-desc">点Oから 頂点まで のばした 線の 上に、
+    2倍の きょりを とる かき方</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="shukushaku">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><rect x="4" y="14" width="10" height="7" fill="#33312B"/><rect x="14" y="14" width="10" height="7" fill="#fff" stroke="#33312B" stroke-width="1.4"/><rect x="24" y="14" width="10" height="7" fill="#33312B"/><rect x="34" y="14" width="8" height="7" fill="#fff" stroke="#33312B" stroke-width="1.4"/><text x="4" y="10" font-size="8" font-weight="700" fill="#33312B">0</text><text x="42" y="10" font-size="8" font-weight="700" fill="#33312B" text-anchor="end">1km</text><text x="23" y="34" font-size="9" font-weight="700" fill="#C73E2E" text-anchor="middle">1:25000</text></svg></span>
+    <span class="m-body"><span class="m-name">縮尺</span>
+    <span class="m-desc">縮尺 1/25000 の 地図で 4cm は 実際 何km？
+    cm・m・km の かえ方が カギ</span></span>
+  </button>
+
+  <button type="button" class="m-card chal" data-mode="riyou">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><line x1="2" y1="36" x2="44" y2="36" stroke="#8B877C" stroke-width="1.6"/><circle cx="8" cy="23" r="3" fill="#fff" stroke="#33312B" stroke-width="1.4"/><line x1="8" y1="26" x2="8" y2="36" stroke="#33312B" stroke-width="1.6"/><line x1="8" y1="23" x2="36" y2="6" stroke="#2C5F8A" stroke-width="1.4" stroke-dasharray="3 2"/><rect x="34" y="18" width="4" height="18" fill="#8A6A45"/><circle cx="36" cy="13" r="8" fill="#8DBF8B" stroke="#4F8A4D" stroke-width="1.4"/></svg></span>
+    <span class="m-body"><span class="m-name">縮図を 使って 長さを 求める（チャレンジ）</span>
+    <span class="m-desc">木の 高さや 川はばを 縮図から 求める。
+    目の 高さを たすのを わすれずに</span></span>
+  </button>
+
+  <button type="button" class="m-card mix" data-mode="mix">
+    <span class="m-body"><span class="m-name">ランダム</span>
+    <span class="m-desc">ぜんぶの 種類を ごちゃまぜで 出題（しあげ用）</span></span>
+  </button>
+
+  <div class="m-sep">プリントで れんしゅうしたいときは</div>
+
+  <div class="m-print">
+    <div class="m-print-ttl">🖨 プリントを 印刷する<span>A4・問題＋答えのページ／押すたびに ちがう問題</span></div>
+    <div class="m-print-btns" id="printBtns">
+      <button type="button" data-mode="mitsukeru">見つける</button>
+      <button type="button" data-mode="henkaku">辺と角</button>
+      <button type="button" data-mode="chushin">点を中心に</button>
+      <button type="button" data-mode="shukushaku">縮尺</button>
+      <button type="button" data-mode="riyou">縮図の利用</button>
+      <button type="button" data-mode="mix">ランダム</button>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <header>
+    <h1>拡大図と縮図マスター<span class="sub" id="modeLabel">拡大図・縮図を 見つける</span></h1>
+    <button type="button" class="mode-back" id="printBtn" title="このモードのプリントを印刷">🖨 プリント</button>
+    <button type="button" class="mode-back next-to" id="homeBtn">ホームに戻る</button>
+  </header>
+
+  <div class="score">
+    <span>せいかい <b id="scoreOk">0</b> / <span id="scoreAll">0</span></span>
+    <span class="streak">れんぞく <b id="scoreStreak">0</b></span>
+    <span class="qno" id="qNo"></span>
+  </div>
+
+  <div class="card">
+    <span class="qtag" id="qTag">問題</span>
+    <div class="qtext" id="qText"></div>
+    <div class="figwrap" id="figArea"></div>
+  </div>
+
+  <div id="partArea" style="display:flex;flex-direction:column;gap:14px"></div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="feedback" id="feedback">
+    <div class="fb-msg" id="fbMsg"></div>
+    <div class="expl" id="expl"></div>
+  </div>
+</div>
+
+<!-- 印刷用（画面には出さない。印刷ボタンのたびに 中身を 作りなおす） -->
+<div class="print-area" id="printArea"></div>
+
+<div class="bottom" id="bottom">
+  <div class="inner">
+    <button type="button" class="bigBtn" id="checkBtn">こたえあわせ</button>
+    <button type="button" class="bigBtn next" id="nextBtn" style="display:none">つぎの問題 ➜</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   拡大図と縮図マスター（算数・小6）
+   unit_key = math_es6_kakudai_shukuzu
+
+   ■ モードと question_key
+     拡大図・縮図を見つける → mitsukeru（方眼の4つの図から選ぶ）/
+                             nanbai（何倍の拡大図・何分の1の縮図か）
+     辺の長さと角の大きさ   → hen（対応する辺の長さ）/ kaku（対応する角の大きさ）
+     1つの点を中心にして    → chushin（方眼で対応する点を選ぶ・OD/ADの長さ）
+     縮尺                   → shuku_jissai（実際の長さ）/ shuku_chizu（地図上の長さ）/
+                             shuku_motomeru（縮尺を求める）
+     縮図の利用             → riyou（木・校舎の高さ／川はば／池をはさんだきょり）
+     ランダム               → 上の ぜんぶ（question_key は実際に出た種類）
+     日本語ラベルは db/seeds/seed_math_es6_kakudai_shukuzu.sql で question_catalog へ。
+
+   ■ 解き直し（?retry=1）は「種(seed)方式」＝ CLAUDE.md 2d（平均マスター・比マスターと同じ）
+     乱数は ri()/pick()/shuffle() に一本化してあり、出題のたびに種を1つ引いて
+     question_params:{m:question_key, s:種} だけを保存する。
+     ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
+       （params_hash は同じままなので解き直し自体は成立する）。
+     ⚠ 生成関数の中で Math.random() を 直接 呼ばないこと（種で 再現できなくなる）。
+
+   ■ 図（question_figure）＝ CLAUDE.md 2b
+     この単元は 図が無いと 解けない 問題が ほとんどなので、画面に出した SVG を
+     そのまま Divp.answer に渡す（誤答のときだけ保存され、解き直しプリントに出る）。
+     色・線は ぜんぶ SVG の 属性で 書く（解き直しプリントには ツールの CSS が無い）。
+     使っているタグ・属性は save_answer.php の FIG_TAGS / FIG_ATTRS の範囲内
+     （svg / g / rect / polygon / polyline / line / circle / ellipse / path / text と、
+     paint-order・transform など。回帰テスト tests/kakudai-shukuzu.spec.js が見張る）。
+     縮尺の 文章題は 図が 要らないので 渡さない（縮尺の 線の 問題だけ 図あり）。
+
+   ■ 図は 長さ・角度を そのまま 描く
+     三角形は 3辺の 長さ（または 2つの 角）から 座標を 出し、拡大図は 同じ 倍率で
+     大きく 描く（「2倍の 拡大図」が 見た目でも 2倍）。方眼の 図は マスの 数が 正確。
+     方眼の まちがいの 選択肢は「もとの 図と 相似でない」ことを isSimilar() で
+     確かめてから 使う（回転・うら返しで 重なる 形も 拡大図に なるので はじく）。
+   ===================================================================== */
+
+var UNIT_KEY = "math_es6_kakudai_shukuzu";
+
+/* ---------- 共通モジュールの安全呼び出し（未読込でも壊れない） ---------- */
+function safeDivp(fn){
+  try{
+    if(window.Divp && typeof window.Divp[fn] === "function"){
+      return window.Divp[fn].apply(window.Divp, [].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return null;
+}
+/* 経過時間は端末の時計ではなく performance.now() で測る（CLAUDE.md 5a3） */
+function nowMs(){
+  return (window.performance && typeof performance.now === "function")
+    ? performance.now() : Date.now();
+}
+
+/* ---------- RNG（xorshift32・種から決まった順に出る） ---------- */
+var _rngState = 1;
+function rngSeed(s){ _rngState = (s>>>0) || 1; }
+function rngPick(){ return (Math.floor(Math.random()*4294967296)>>>0) || 1; }  /* 種そのものだけ真の乱数 */
+function rngNext(){
+  var x = _rngState;
+  x ^= x<<13; x >>>= 0; x ^= x>>>17; x ^= x<<5; x >>>= 0;
+  _rngState = x;
+  return x/4294967296;
+}
+function ri(min,max){ return Math.floor(rngNext()*(max-min+1))+min; }
+function pick(arr){ return arr[ri(0,arr.length-1)]; }
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i=a.length-1;i>0;i--){ var j=ri(0,i); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+
+/* ---------- 数のあつかい ---------- */
+function isInt(v){ return Math.abs(v-Math.round(v)) < 1e-9; }
+function rnd(x,d){ var m = Math.pow(10, d == null ? 3 : d); return Math.round(x*m)/m; }
+function nf(x){ return String(rnd(x,3)); }
+/* 小数 d けたで 終わる 数か */
+function decOK(v,d){ var m = Math.pow(10,d); return Math.abs(v*m - Math.round(v*m)) < 1e-6; }
+function gcd(a,b){ a = Math.abs(a); b = Math.abs(b); while(b){ var t = a%b; a = b; b = t; } return a; }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function frHtml(n,d){ return '<span class="fr"><span class="nu">'+n+'</span><span class="de">'+d+'</span></span>'; }
+/* 記録用の 分数（講師画面が F(1/2) を 分数に 描く＝CLAUDE.md 2a） */
+function frPlain(n,d){ return "F("+n+"/"+d+")"; }
+
+/* ---------- 倍率 F = {n,d}（n/d）----------
+   1より 大きい → 「□倍の 拡大図」、小さい → 「1/□の 縮図」 */
+function fv(F){ return F.n/F.d; }
+function fRed(n,d){ var g = gcd(n,d) || 1; return { n:n/g, d:d/g }; }
+function isUp(F){ return F.n > F.d; }
+function fWord(F){ return isUp(F) ? "拡大図" : "縮図"; }
+function fHtml(F){ return isUp(F) ? nf(fv(F))+"倍" : frHtml(F.n,F.d); }
+function fPlain(F){ return isUp(F) ? nf(fv(F))+"倍" : frPlain(F.n,F.d); }
+
+/* ---------- 選択肢 ----------
+   選択肢は {html, plain, key, ok}。key が同じものは 同じ選択肢とみなして 重ねない。
+   plain は 記録用（wrong_answer / correct_answer）。 */
+function optNum(v,u){
+  v = rnd(v,6);
+  var ok = isFinite(v) && v > 0 && decOK(v,3) && v < 1e7;
+  var s = nf(v);
+  return { html: s + (u ? '<span class="u">'+u+'</span>' : ""),
+           plain: s + (u ? " "+u : ""),
+           key: "n"+Math.round(v*1000), ok: ok };
+}
+function optDeg(v){
+  return { html: v+'<span class="u">°</span>', plain: v+"°", key: "d"+v,
+           ok: isInt(v) && v > 0 && v < 180 };
+}
+function optLabel(s){ return { html:s, plain:s, key:"L"+s, ok:true }; }
+function optBai(F){
+  F = fRed(F.n, F.d);
+  var up = isUp(F);
+  var ok = F.n > 0 && F.d > 0 && F.n !== F.d && F.n <= 12 && F.d <= 12 && (!up || decOK(fv(F),1));
+  var html = up ? nf(fv(F))+'<span class="u">倍の 拡大図</span>'
+                : frHtml(F.n,F.d)+'<span class="u">の 縮図</span>';
+  return { html:html, plain:fPlain(F)+"の"+fWord(F), key:"b"+F.n+"/"+F.d, ok:ok };
+}
+function optScale(N){
+  return { html:frHtml(1,N), plain:frPlain(1,N), key:"s"+N, ok: isInt(N) && N >= 2 };
+}
+function optRatio(N){
+  return { html:'1<span class="cl">：</span>'+N, plain:"1："+N, key:"r"+N, ok: isInt(N) && N >= 2 };
+}
+/* 正解1つ＋まちがい3つ。cands（ねらった まちがい）を先に使い、足りなければ fb で うめる */
+function buildChoices(cor, cands, fb){
+  var out = [cor], seen = {}, i;
+  seen[cor.key] = 1;
+  function add(c){
+    if(out.length >= 4 || !c || !c.ok || seen[c.key]) return;
+    seen[c.key] = 1; out.push(c);
+  }
+  var cs = shuffle(cands);
+  for(i=0;i<cs.length;i++) add(cs[i]);
+  for(i=0;i<fb.length;i++) add(fb[i]);
+  var arr = shuffle(out);
+  return { options: arr, correct: arr.indexOf(cor) };
+}
+/* 数の答えの うめ草（正解の となりの数） */
+function numFallback(ans, step, u){
+  var a = [];
+  for(var k=1;k<=6;k++){ a.push(optNum(ans+step*k,u)); a.push(optNum(ans-step*k,u)); }
+  return a;
+}
+function degFallback(ans){
+  var a = [];
+  for(var k=1;k<=6;k++){ a.push(optDeg(ans+5*k)); a.push(optDeg(ans-5*k)); }
+  return a;
+}
+/* 0の 数を まちがえた 答え（×10・÷10・×100・÷100）。単位の かえ方の まちがい */
+function pow10s(v,u){ return [optNum(v*10,u), optNum(v/10,u), optNum(v*100,u), optNum(v/100,u)]; }
+function stepOf(v){ return decOK(v,0) ? 1 : decOK(v,1) ? 0.1 : 0.01; }
+
+/* 問題を くみたてる（全種類 共通） */
+function mk(o){
+  var ch = o.options ? { options:o.options, correct:o.correct }
+                     : buildChoices(o.cor, o.cands || [], o.fb || []);
+  return {
+    key:o.key, tag:o.tag,
+    qHtml:o.q, plainQ:o.plain, fig:o.fig || "",
+    label:o.label, u:o.u || "",
+    options:ch.options, correct:ch.correct,
+    ansText:ch.options[ch.correct].plain,
+    chk:o.chk || null,             /* 回帰テスト用の 中身（画面では 使わない） */
+    expl:'<span class="ttl">とき方</span>' + o.expl
+        + (o.kufu ? '<div class="kufu">💡 ' + o.kufu + '</div>' : "")
+  };
+}
+function step(s){ return '<span class="step">'+s+'</span>'; }
+
+/* =====================================================================
+   幾何の 部品（座標は [x,y]。y は 下むきが ＋）
+   ===================================================================== */
+function add(a,b){ return [a[0]+b[0], a[1]+b[1]]; }
+function sub(a,b){ return [a[0]-b[0], a[1]-b[1]]; }
+function mul(a,k){ return [a[0]*k, a[1]*k]; }
+function len(a){ return Math.sqrt(a[0]*a[0]+a[1]*a[1]); }
+function unit(a){ var l = len(a) || 1; return [a[0]/l, a[1]/l]; }
+function crs(a,b){ return a[0]*b[1]-a[1]*b[0]; }
+function dt(a,b){ return a[0]*b[0]+a[1]*b[1]; }
+function area2(P){ var s = 0; for(var i=0;i<P.length;i++) s += crs(P[i], P[(i+1)%P.length]); return s; }
+function bboxOf(P){
+  var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  P.forEach(function(p){ x0 = Math.min(x0,p[0]); y0 = Math.min(y0,p[1]); x1 = Math.max(x1,p[0]); y1 = Math.max(y1,p[1]); });
+  return { x0:x0, y0:y0, x1:x1, y1:y1, w:x1-x0, h:y1-y0 };
+}
+function scaleXY(P,sx,sy){ return P.map(function(p){ return [p[0]*sx, p[1]*sy]; }); }
+/* いちばん 左上が (0,0) に なるように ずらす */
+function norm0(P){ var b = bboxOf(P); return P.map(function(p){ return [p[0]-b.x0, p[1]-b.y0]; }); }
+
+/* --- 多角形が 自分と 交わっていないか（方眼の まちがいの 図を 作るとき） --- */
+function orient(a,b,c){ var v = crs(sub(b,a), sub(c,a)); return Math.abs(v) < 1e-9 ? 0 : (v > 0 ? 1 : -1); }
+function onSeg(a,b,p){
+  return Math.min(a[0],b[0]) - 1e-9 <= p[0] && p[0] <= Math.max(a[0],b[0]) + 1e-9
+      && Math.min(a[1],b[1]) - 1e-9 <= p[1] && p[1] <= Math.max(a[1],b[1]) + 1e-9;
+}
+function segHit(p1,p2,p3,p4){
+  var d1 = orient(p3,p4,p1), d2 = orient(p3,p4,p2), d3 = orient(p1,p2,p3), d4 = orient(p1,p2,p4);
+  if(d1*d2 < 0 && d3*d4 < 0) return true;
+  if(d1 === 0 && onSeg(p3,p4,p1)) return true;
+  if(d2 === 0 && onSeg(p3,p4,p2)) return true;
+  if(d3 === 0 && onSeg(p1,p2,p3)) return true;
+  if(d4 === 0 && onSeg(p1,p2,p4)) return true;
+  return false;
+}
+function isSimple(P){
+  var n = P.length, i, j;
+  if(n < 3) return false;
+  for(i=0;i<n;i++){
+    var a = P[i], b = P[(i+1)%n], c = P[(i+2)%n];
+    if(a[0] === b[0] && a[1] === b[1]) return false;
+    if(orient(a,b,c) === 0 && dt(sub(b,a), sub(c,b)) < 0) return false;   /* 折り返し */
+  }
+  for(i=0;i<n;i++) for(j=i+1;j<n;j++){
+    if(j === i+1 || (i === 0 && j === n-1)) continue;                       /* となりの 辺 */
+    if(segHit(P[i], P[(i+1)%n], P[j], P[(j+1)%n])) return false;
+  }
+  return true;
+}
+
+/* --- 相似の 判定（回転・うら返しも ふくめる）---
+   一直線に ならぶ 頂点を のぞき、左回りに そろえてから
+   「辺の 長さ ÷ まわりの 長さ」と「曲がる 角度」の 列が 回して 一致するかを 見る */
+function simp(P){
+  var out = [], n = P.length;
+  for(var i=0;i<n;i++){
+    var a = P[(i+n-1)%n], b = P[i], c = P[(i+1)%n];
+    if(Math.abs(crs(sub(b,a), sub(c,b))) > 1e-9) out.push(b);
+  }
+  return out;
+}
+function sigOf(P){
+  var Q = simp(P);
+  if(area2(Q) < 0) Q = Q.slice().reverse();
+  var n = Q.length, per = 0, L = [], out = [], i;
+  for(i=0;i<n;i++){ var l = len(sub(Q[(i+1)%n], Q[i])); L.push(l); per += l; }
+  for(i=0;i<n;i++){
+    var e1 = sub(Q[(i+1)%n], Q[i]), e2 = sub(Q[(i+2)%n], Q[(i+1)%n]);
+    out.push([L[i]/per, Math.atan2(crs(e1,e2), dt(e1,e2))]);
+  }
+  return out;
+}
+function cycEq(a,b){
+  if(a.length !== b.length) return false;
+  var n = a.length;
+  for(var k=0;k<n;k++){
+    var ok = true;
+    for(var i=0;i<n && ok;i++){
+      var x = a[i], y = b[(i+k)%n];
+      if(Math.abs(x[0]-y[0]) > 1e-6 || Math.abs(x[1]-y[1]) > 1e-6) ok = false;
+    }
+    if(ok) return true;
+  }
+  return false;
+}
+function isSimilar(P,Q){
+  var sq = sigOf(Q);
+  return cycEq(sigOf(P), sq) || cycEq(sigOf(P.map(function(p){ return [-p[0], p[1]]; })), sq);
+}
+
+/* =====================================================================
+   SVG の 部品。図の 外わくは 中身（文字の はばの めやすも 入れる）から 決める
+   ＝ 文字が viewBox の 外に はみ出さない。色・線は ぜんぶ 属性で 書く。
+   ===================================================================== */
+var SVGFONT = "Zen Maru Gothic,Hiragino Maru Gothic ProN,HGMaruGothicMPRO,"
+            + "M PLUS Rounded 1c,Yu Gothic,sans-serif";
+var C = {
+  paper:"#FFFDF7", grid:"#D9D3C4", ink:"#33312B", sub:"#8B877C", guide:"#A9A498",
+  shu:"#C73E2E", shuL:"#F6DCD6", ai:"#2C5F8A", aiL:"#E2ECF5",
+  kin:"#B08A16", kinL:"#FBF3E0",
+  water:"#D3E6F3", waterE:"#7FA9C9", leaf:"#8DBF8B", leafE:"#4F8A4D", trunk:"#8A6A45",
+  bld:"#ECE6D8", bldE:"#8B877C"
+};
+function n2(x){ return Math.round(x*100)/100; }
+/* 文字の はばの めやす */
+function twEst(s,size){
+  var w = 0;
+  for(var i=0;i<s.length;i++) w += (s.charCodeAt(i) < 128 ? 0.6 : 1.0)*size;
+  return w;
+}
+function Cv(){ return { s:"", x0:1e9, y0:1e9, x1:-1e9, y1:-1e9 }; }
+function cvBox(cv,xa,ya,xb,yb){
+  cv.x0 = Math.min(cv.x0, xa, xb); cv.x1 = Math.max(cv.x1, xa, xb);
+  cv.y0 = Math.min(cv.y0, ya, yb); cv.y1 = Math.max(cv.y1, ya, yb);
+}
+function ptsStr(P){ return P.map(function(p){ return n2(p[0])+","+n2(p[1]); }).join(" "); }
+function cvPoly(cv,P,fill,stroke,sw,dash){
+  P.forEach(function(p){ cvBox(cv,p[0],p[1],p[0],p[1]); });
+  cv.s += '<polygon points="'+ptsStr(P)+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+(sw||2)
+        + '" stroke-linejoin="round"'+(dash ? ' stroke-dasharray="'+dash+'"' : '')+'/>';
+}
+function cvLine(cv,a,b,color,sw,dash){
+  cvBox(cv,a[0],a[1],b[0],b[1]);
+  cv.s += '<line x1="'+n2(a[0])+'" y1="'+n2(a[1])+'" x2="'+n2(b[0])+'" y2="'+n2(b[1])+'" stroke="'+color
+        + '" stroke-width="'+(sw||1.5)+'" stroke-linecap="round"'+(dash ? ' stroke-dasharray="'+dash+'"' : '')+'/>';
+}
+function cvPl(cv,P,color,sw){
+  P.forEach(function(p){ cvBox(cv,p[0],p[1],p[0],p[1]); });
+  cv.s += '<polyline points="'+ptsStr(P)+'" fill="none" stroke="'+color+'" stroke-width="'+(sw||1.4)
+        + '" stroke-linejoin="round" stroke-linecap="round"/>';
+}
+function cvRect(cv,x,y,w,h,fill,stroke,sw){
+  cvBox(cv,x,y,x+w,y+h);
+  cv.s += '<rect x="'+n2(x)+'" y="'+n2(y)+'" width="'+n2(w)+'" height="'+n2(h)+'" fill="'+fill+'"'
+        + (stroke ? ' stroke="'+stroke+'" stroke-width="'+(sw||1)+'"' : '')+'/>';
+}
+function cvDot(cv,p,r,fill,stroke,sw){
+  cvBox(cv,p[0]-r,p[1]-r,p[0]+r,p[1]+r);
+  cv.s += '<circle cx="'+n2(p[0])+'" cy="'+n2(p[1])+'" r="'+n2(r)+'" fill="'+fill+'"'
+        + (stroke ? ' stroke="'+stroke+'" stroke-width="'+(sw||1.5)+'"' : '')+'/>';
+}
+/* 文字。まわりに 紙色の ふちを つけて、線の 上でも 読めるように する */
+function cvTx(cv,x,y,s,color,anchor,size){
+  size = size || 13; anchor = anchor || "middle";
+  var w = twEst(s,size), xl = anchor === "start" ? x : anchor === "end" ? x-w : x-w/2;
+  cvBox(cv, xl-2, y-size*0.68, xl+w+2, y+size*0.68);
+  cv.s += '<text x="'+n2(x)+'" y="'+n2(y)+'" text-anchor="'+anchor+'" dominant-baseline="middle"'
+        + ' font-size="'+size+'" font-weight="700" font-family="'+SVGFONT+'" fill="'+color+'"'
+        + ' paint-order="stroke" stroke="'+C.paper+'" stroke-width="4" stroke-linejoin="round">'+esc(s)+'</text>';
+}
+/* できあがり。minW より せまい 図は 左右に 余白を 足して 中央に おく
+   （どの 図も 同じ はばの 紙に のせる＝文字の 大きさが そろう） */
+function cvFin(cv,minW,pad,aria){
+  pad = (pad == null) ? 8 : pad;
+  var bw = cv.x1-cv.x0, bh = cv.y1-cv.y0;
+  var W = Math.max(minW || 0, bw+pad*2), H = bh+pad*2;
+  var dx = (W-bw)/2 - cv.x0, dy = pad - cv.y0;
+  return '<svg viewBox="0 0 '+n2(W)+' '+n2(H)+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="'+esc(aria || "問題の図")+'">'
+       + '<rect x="0" y="0" width="'+n2(W)+'" height="'+n2(H)+'" fill="'+C.paper+'"/>'
+       + '<g transform="translate('+n2(dx)+' '+n2(dy)+')">'+cv.s+'</g></svg>';
+}
+/* 直角の しるし */
+function cvRight(cv,a,p,q,sz){
+  var u = unit(sub(p,a)), v = unit(sub(q,a)); sz = sz || 9;
+  cvPl(cv, [add(a,mul(u,sz)), add(a,add(mul(u,sz),mul(v,sz))), add(a,mul(v,sz))], C.sub, 1.3);
+}
+/* 文字の 箱（重なりの 判定用）と、箱どうしが 重なるか */
+function tBox(x,y,s,size){ var w = twEst(s,size); return [x-w/2-1, y-size*0.6, x+w/2+1, y+size*0.6]; }
+function boxHit(b,list){
+  for(var i=0;i<list.length;i++){
+    var c = list[i];
+    if(b[0] < c[2] && b[2] > c[0] && b[1] < c[3] && b[3] > c[1]) return true;
+  }
+  return false;
+}
+/* 角の しるし（弧）と 角度の 文字。
+   placed（すでに 置いた 文字の 箱）と 重なる ときは、2等分線の 上で 位置を ずらして さがす
+   （台形の 角A・角B の ように 近い 角が ならぶと 文字が 重なった） */
+function cvAngle(cv,a,p,q,r,label,color,placed){
+  var u = unit(sub(p,a)), v = unit(sub(q,a));
+  var au = Math.atan2(u[1],u[0]), av = Math.atan2(v[1],v[0]);
+  var d = av - au;
+  while(d > Math.PI) d -= 2*Math.PI;
+  while(d < -Math.PI) d += 2*Math.PI;
+  var P = [];
+  for(var i=0;i<=12;i++){ var t = au + d*i/12; P.push([a[0]+r*Math.cos(t), a[1]+r*Math.sin(t)]); }
+  cvPl(cv, P, color, 1.5);
+  if(label){
+    var bis = unit(add(u,v)), half = Math.abs(d)/2, tw = twEst(label,12.5);
+    var dist = r + 5 + Math.abs(bis[0])*tw/2 + Math.abs(bis[1])*7 + (half < 0.45 ? 9 : 0);
+    var tries = [0, 7, -4, 14, 21, 28], pos = null, bx = null;
+    placed = placed || [];
+    for(var k=0;k<tries.length;k++){
+      var dd = dist + tries[k], cx = a[0]+bis[0]*dd, cy = a[1]+bis[1]*dd, b = tBox(cx,cy,label,12.5);
+      if(!pos){ pos = [cx,cy]; bx = b; }
+      if(!boxHit(b, placed)){ pos = [cx,cy]; bx = b; break; }
+    }
+    placed.push(bx);
+    cvTx(cv, pos[0], pos[1], label, color, "middle", 12.5);
+  }
+}
+/* 多角形と その 名前・辺の 長さ・角の 大きさ。
+   sh = { pts(px), names:"ABC", side:{i:{s,c}}, ang:{i:{s,c}}, rights:[i], fill, stroke }
+   辺 i は 頂点 i → 頂点 i+1 */
+function cvShape(cv,sh){
+  var P = sh.pts, n = P.length, c = [0,0], i;
+  P.forEach(function(p){ c[0] += p[0]/n; c[1] += p[1]/n; });
+  cvPoly(cv, P, sh.fill, sh.stroke, 2.2);
+  (sh.rights || []).forEach(function(k){ cvRight(cv, P[k], P[(k+n-1)%n], P[(k+1)%n]); });
+  var placed = [];
+  for(i=0;i<n;i++){
+    if(sh.ang && sh.ang[i]) cvAngle(cv, P[i], P[(i+n-1)%n], P[(i+1)%n], 14, sh.ang[i].s, sh.ang[i].c, placed);
+  }
+  for(i=0;i<n;i++){
+    var a = P[i], u = unit(sub(a, P[(i+n-1)%n])), v = unit(sub(a, P[(i+1)%n])), b = add(u,v);
+    b = len(b) < 1e-6 ? unit(sub(a,c)) : unit(b);
+    if(dt(b, sub(a,c)) < 0) b = mul(b,-1);
+    cvTx(cv, a[0]+b[0]*13, a[1]+b[1]*13, sh.names.charAt(i), C.ink, "middle", 14);
+  }
+  for(i=0;i<n;i++){
+    if(!(sh.side && sh.side[i])) continue;
+    var p = P[i], q = P[(i+1)%n], m = mul(add(p,q),0.5), e = unit(sub(q,p)), nr = [e[1], -e[0]];
+    if(dt(nr, sub(m,c)) < 0) nr = mul(nr,-1);
+    var s = sh.side[i].s, tw = twEst(s,13);
+    var off = 6 + Math.abs(nr[0])*tw/2 + Math.abs(nr[1])*8;
+    cvTx(cv, m[0]+nr[0]*off, m[1]+nr[1]*off, s, sh.side[i].c, "middle", 13);
+  }
+}
+/* もとの 図(A) と 拡大図・縮図(B) を ならべる。座標は cm。
+   どちらも 同じ 縮め方で 描くので「2倍の 拡大図」は 見た目も 2倍。
+   横に ならべると 小さく なりすぎる ときは たてに ならべる。
+   opt.big：角度を 書きこむ 図（もとの 図が 小さいと 角度の 文字が 重なって
+   どの 角の 数か わからなく なるので、高さを 広く とり、たてに ならべやすく する） */
+function pairFig(A,B,aria,opt){
+  var big = !!(opt && opt.big);
+  var ba = bboxOf(A.pts), bb = bboxOf(B.pts), gap = 58;
+  var sH = Math.min((296-gap)/(ba.w+bb.w), (big ? 190 : 140)/Math.max(ba.h,bb.h));
+  var sV = Math.min(296/Math.max(ba.w,bb.w), ((big ? 330 : 250)-gap)/(ba.h+bb.h));
+  var vert = sV > sH*(big ? 1.0 : 1.35), s = Math.min(vert ? sV : sH, 34), oa, ob;
+  if(!vert){
+    oa = [-ba.x0*s, -ba.y1*s];
+    ob = [ba.w*s + gap - bb.x0*s, -bb.y1*s];
+  }else{
+    var Wm = Math.max(ba.w,bb.w)*s;
+    oa = [(Wm-ba.w*s)/2 - ba.x0*s, -ba.y1*s];
+    ob = [(Wm-bb.w*s)/2 - bb.x0*s, bb.h*s + gap - bb.y1*s];
+  }
+  function px(P,o){ return P.map(function(p){ return [p[0]*s+o[0], p[1]*s+o[1]]; }); }
+  var cv = Cv();
+  cvShape(cv, { pts:px(A.pts,oa), names:A.names, side:A.side, ang:A.ang, rights:A.rights, fill:C.shuL, stroke:C.shu });
+  cvShape(cv, { pts:px(B.pts,ob), names:B.names, side:B.side, ang:B.ang, rights:B.rights, fill:C.aiL, stroke:C.ai });
+  return cvFin(cv, 330, 8, aria);
+}
+/* 方眼。items:[{poly(マス), fill, stroke, label, lx, ly, lc}] */
+function gridBase(cv,cols,rows,cell){
+  var W = cols*cell, H = rows*cell, d = "", i;
+  for(i=0;i<=cols;i++) d += "M"+n2(i*cell)+" 0V"+n2(H);
+  for(i=0;i<=rows;i++) d += "M0 "+n2(i*cell)+"H"+n2(W);
+  cvBox(cv,0,0,W,H);
+  cv.s += '<path d="'+d+'" fill="none" stroke="'+C.grid+'" stroke-width="1"/>';
+}
+function gridFig(cols,rows,items,aria){
+  var cell = Math.min(26, Math.floor(322/cols)), cv = Cv();
+  gridBase(cv, cols, rows, cell);
+  items.forEach(function(it){
+    cvPoly(cv, it.poly.map(function(p){ return [p[0]*cell, p[1]*cell]; }), it.fill, it.stroke, 2.4);
+    if(it.label) cvTx(cv, it.lx*cell, it.ly*cell, it.label, it.lc, "middle", 15);
+  });
+  return cvFin(cv, 330, 4, aria);
+}
+var KANA = ["ア","イ","ウ","エ"];
+
+/* =====================================================================
+   ① 拡大図・縮図を 見つける（方眼の 4つの 図から 選ぶ）
+   ===================================================================== */
+/* 方眼の 形（マス）。小さい 形は 2倍に しても 6マスに おさまる */
+var GSMALL = [
+  [[0,0],[0,2],[3,2]],
+  [[1,0],[0,2],[3,2]],
+  [[1,0],[2,0],[3,2],[0,2]],
+  [[1,0],[3,0],[2,2],[0,2]],
+  [[0,0],[1,0],[1,2],[3,2],[3,3],[0,3]],
+  [[1,0],[2,1],[2,3],[0,3],[0,1]],
+  [[0,1],[2,0],[3,2],[0,3]],
+  [[0,0],[3,1],[1,3]],
+  [[0,0],[2,0],[3,1],[3,3],[0,3]]
+];
+/* とても 小さい 形（3倍・1/3 用） */
+var GTINY = [
+  [[0,0],[0,1],[2,1]],
+  [[1,0],[2,0],[1,2],[0,2]],
+  [[0,0],[1,0],[2,2],[0,2]],
+  [[1,0],[2,2],[0,2]],
+  [[0,0],[2,1],[0,2]]
+];
+var GMAX = 6;   /* 選択肢の 図は たて・横 6マス まで */
+/* 頂点を 1つ だけ 1マス ずらす（はば・高さは 合っていても 角が かわる まちがい） */
+function movedPoly(Q){
+  var dirs = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]];
+  for(var t=0;t<24;t++){
+    var i = ri(0,Q.length-1), d = pick(dirs);
+    var R = Q.map(function(p){ return p.slice(); });
+    R[i] = [R[i][0]+d[0], R[i][1]+d[1]];
+    if(!isSimple(R) || Math.abs(area2(R)) < 2) continue;
+    return norm0(R);
+  }
+  return null;
+}
+/* もとの 図との 倍率の ことば（横 ax・たて ay は P 基準、もとの 図は fb·P） */
+function relWord(a,b){
+  var r = fRed(a,b);
+  if(r.n === r.d) return "そのまま";
+  if(r.d === 1) return r.n+"倍";
+  return frHtml(r.n,r.d);
+}
+function mitsukeruBuild(P, big, up){
+  var fb = up ? 1 : big;
+  var base = up ? P : scaleXY(P,big,big);
+  var cor = up ? scaleXY(P,big,big) : P;
+  var prs = up ? (big === 2 ? [[2,1],[1,2],[3,2],[2,3]] : [[3,1],[1,3],[3,2],[2,3]])
+               : (big === 2 ? [[2,1],[1,2]] : [[3,1],[1,3],[2,1],[1,2],[3,2],[2,3]]);
+  var pool = prs.map(function(pr){
+    return { poly:norm0(scaleXY(P,pr[0],pr[1])),
+             why:"横は "+relWord(pr[0],fb)+"、たては "+relWord(pr[1],fb)+" で、そろって いない" };
+  });
+  for(var k=0;k<2;k++){
+    var mv = movedPoly(cor);
+    if(mv) pool.push({ poly:mv, why:"頂点が 1つ ずれて いて、角の 大きさが ちがう" });
+  }
+  pool = shuffle(pool);
+  var acc = [cor], ds = [];
+  pool.forEach(function(it){
+    if(ds.length >= 3) return;
+    var b = bboxOf(it.poly);
+    if(b.w < 1 || b.h < 1 || b.w > GMAX || b.h > GMAX) return;
+    for(var j=0;j<acc.length;j++) if(isSimilar(it.poly, acc[j])) return;
+    if(isSimilar(it.poly, P)) return;
+    acc.push(it.poly); ds.push(it);
+  });
+  if(ds.length < 3) return null;
+
+  var cands = shuffle([{ poly:cor, ok:true }].concat(ds));
+  var bb = bboxOf(base), bw = bb.w, bh = bb.h, maxW = 0, maxH = 0;
+  cands.forEach(function(c){ var b = bboxOf(c.poly); maxW = Math.max(maxW,b.w); maxH = Math.max(maxH,b.h); });
+  var cols = Math.max(2*maxW+3, bw+2), rows = bh + 2*maxH + 4;
+  var items = [{ poly:base.map(function(p){ return [p[0]+1, p[1]+1]; }), fill:C.shuL, stroke:C.shu,
+                 label:"あ", lx:0.5, ly:1.5, lc:C.shu }];
+  var correct = -1;
+  cands.forEach(function(c,i){
+    var ox = 1 + (i%2)*(maxW+1), oy = bh + 2 + Math.floor(i/2)*(maxH+1);
+    items.push({ poly:c.poly.map(function(p){ return [p[0]+ox, p[1]+oy]; }), fill:C.aiL, stroke:C.ai,
+                 label:KANA[i], lx:ox-0.5, ly:oy+0.5, lc:C.ai });
+    if(c.ok) correct = i;
+  });
+  var fig = gridFig(cols, rows, items, "方眼の 図 あ と ア〜エ");
+  var Fh = up ? big+"倍の 拡大図" : frHtml(1,big)+"の 縮図";
+  var Fp = up ? big+"倍の拡大図" : frPlain(1,big)+"の縮図";
+  var nw = up ? bw*big : bw/big, nh = up ? bh*big : bh/big;
+  var lines = cands.map(function(c,i){
+    return c.ok ? '<span class="ok">'+KANA[i]+' … ○ どの 辺も '+(up ? big+"倍" : frHtml(1,big))+'、角の 大きさも 同じ</span>'
+                : '<span class="ng">'+KANA[i]+' … × '+c.why+'</span>';
+  }).join("<br>");
+  var options = KANA.map(optLabel);
+  return mk({
+    key:"mitsukeru", tag:"拡大図・縮図を 見つける",
+    q:"あの 図の <b>"+Fh+"</b>は、ア〜エの どれですか。",
+    plain:"方眼の図。あの"+Fp+"はア〜エのどれ？",
+    fig:fig, label:"ア〜エから えらぼう",
+    options:options, correct:correct,
+    expl:step("① あは はば "+bw+"マス、高さ "+bh+"マス")
+        +step("② "+Fh+"は はば "+nw+"マス、高さ "+nh+"マス"+(up ? "（ななめの 辺も 横・たての マスが "+big+"倍）" : ""))
+        +step(lines)
+        +step("答え <b>"+KANA[correct]+"</b>"),
+    kufu:"拡大図・縮図は、対応する 辺の 長さの 比が すべて 等しく、対応する 角の 大きさが すべて 等しい 図。"
+        +"横だけ・たてだけ のばした 図は 形が かわって しまう。",
+    chk:{ base:base, cands:cands.map(function(c){ return c.poly; }), up:up, big:big }
+  });
+}
+function gen_mitsukeru(){
+  var kind = pick(["x2","x2","h2","x3","h3"]);
+  var big = (kind === "x3" || kind === "h3") ? 3 : 2, up = kind.charAt(0) === "x";
+  var list = big === 3 ? GTINY : GSMALL;
+  var order = shuffle(list.map(function(_,i){ return i; })), r = null;
+  for(var t=0; t<order.length && !r; t++) r = mitsukeruBuild(list[order[t]], big, up);
+  return r;
+}
+
+/* =====================================================================
+   ①' 何倍の 拡大図？ 何分の1の 縮図？
+   ===================================================================== */
+/* 辺の 長さが 整数の 形（cm）。辺 i は 頂点 i → i+1 */
+var TRI_T  = [[5,4,3],[6,5,4],[7,6,5],[7,5,4],[8,7,5],[8,6,5],[6,6,4],[9,7,6]];   /* [BC, CA, AB] */
+var TRAP_T = [[4,6,3,5],[3,8,4,5],[4,8,5,5],[4,7,4,5]];                            /* [高さ, 下, 上, ななめ] */
+var PARA_T = [[6,4],[5,3],[8,5],[7,4]];                                            /* [下, ななめ] 60° */
+function rightsOf(P){
+  var n = P.length, out = [];
+  for(var i=0;i<n;i++){
+    var u = sub(P[(i+n-1)%n], P[i]), v = sub(P[(i+1)%n], P[i]);
+    if(Math.abs(dt(u,v)) < 1e-6*len(u)*len(v)) out.push(i);
+  }
+  return out;
+}
+function triShape(a,b,c){
+  var ax = (c*c + a*a - b*b)/(2*a), ay = -Math.sqrt(Math.max(0, c*c - ax*ax));
+  var P = [[ax,ay],[0,0],[a,0]];
+  return { pts:P, len:[c,a,b], rights:rightsOf(P) };
+}
+function trapShape(h,bot,top,sl){
+  return { pts:[[0,-h],[0,0],[bot,0],[top,-h]], len:[h,bot,sl,top], rights:[0,1] };
+}
+function paraShape(a,b){
+  var hx = b/2, hy = -b*Math.sqrt(3)/2;
+  return { pts:[[hx,hy],[0,0],[a,0],[a+hx,hy]], len:[b,a,b,a], rights:[] };
+}
+function scaleShape(S,k){
+  return { pts:S.pts.map(function(p){ return [p[0]*k, p[1]*k]; }),
+           len:S.len.map(function(l){ return rnd(l*k,6); }), rights:S.rights };
+}
+function pickTemplate(){
+  var r = ri(1,10), t;
+  if(r <= 6){ t = pick(TRI_T); return { s1:triShape(t[0],t[1],t[2]), names:["ABC","DEF"], co:"三角形" }; }
+  if(r <= 8){ t = pick(TRAP_T); return { s1:trapShape(t[0],t[1],t[2],t[3]), names:["ABCD","EFGH"], co:"四角形" }; }
+  t = pick(PARA_T);
+  return { s1:paraShape(t[0],t[1]), names:["ABCD","EFGH"], co:"四角形" };
+}
+function sideNm(names,i){ return names.charAt(i)+names.charAt((i+1)%names.length); }
+function cmS(v){ return nf(v)+"cm"; }
+function lensPlain(names,L){
+  return L.map(function(l,i){ return sideNm(names,i)+"="+cmS(l); }).join("、");
+}
+function allSides(L,color){ var o = {}; L.forEach(function(l,i){ o[i] = { s:cmS(l), c:color }; }); return o; }
+
+function nanbaiGrid(){
+  var F = pick([{n:2,d:1},{n:2,d:1},{n:3,d:1},{n:1,d:2},{n:1,d:3}]);
+  var up = isUp(F), big = Math.max(F.n,F.d), P = pick(big === 3 ? GTINY : GSMALL);
+  var A = up ? P : scaleXY(P,big,big), B = up ? scaleXY(P,big,big) : P;
+  var ba = bboxOf(A), bb = bboxOf(B);
+  var cols = ba.w + bb.w + 4, rows = Math.max(ba.h, bb.h) + 2;
+  var fig = gridFig(cols, rows, [
+    { poly:A.map(function(p){ return [p[0]+1, p[1]+1]; }), fill:C.shuL, stroke:C.shu, label:"あ", lx:0.5, ly:1.5, lc:C.shu },
+    { poly:B.map(function(p){ return [p[0]+ba.w+3, p[1]+1]; }), fill:C.aiL, stroke:C.ai, label:"い", lx:ba.w+2.5, ly:1.5, lc:C.ai }
+  ], "方眼の 図 あ と い");
+  var inv = { n:F.d, d:F.n }, sq = { n:F.n*F.n, d:F.d*F.d };
+  var other = up ? { n:big === 2 ? 3 : 2, d:1 } : { n:1, d:big === 2 ? 3 : 2 };
+  var ch = buildChoices(optBai(F), [optBai(inv), optBai(sq), optBai(other)],
+                        [optBai({n:4,d:1}), optBai({n:1,d:4})]);
+  /* 倍率は いつも「い ÷ あ」（縮図でも 同じ 向きで わる＝6 ÷ 12 ＝ 1/2） */
+  var r1 = step("① はば："+ba.w+"マス → "+bb.w+"マス。"+bb.w+" ÷ "+ba.w+" ＝ "+(up ? big+"（倍）" : frHtml(1,big)));
+  return mk({
+    key:"nanbai", tag:"何倍の 拡大図？",
+    q:"いの 図は、あの 図の 何倍の 拡大図、または 何分の1の 縮図ですか。",
+    plain:"方眼の図。いはあの何倍の拡大図（何分の1の縮図）？",
+    fig:fig, label:"どれかな？",
+    options:ch.options, correct:ch.correct,
+    expl:r1
+        +step("② 高さも "+ba.h+"マス → "+bb.h+"マスで 同じ 倍率")
+        +step("答え いは あの <b>"+fHtml(F)+"の "+fWord(F)+"</b>"),
+    kufu:"マスの 数（面積）は "+(up ? big*big+"倍" : "1/"+big*big)+"に なるが、拡大図・縮図の 倍率は 辺の 長さで いう。"
+        +"どちらを もとに するか（あを もとに いを 見る）にも 気をつけよう。",
+    chk:{ F:F }
+  });
+}
+function nanbaiLen(){
+  var T = pickTemplate();
+  var F = pick([{n:2,d:1},{n:3,d:1},{n:3,d:2},{n:5,d:2},{n:1,d:2},{n:1,d:3}]), f = fv(F), up = isUp(F);
+  var m = F.n === 1 ? F.d : 1;
+  var O = scaleShape(T.s1, m), N = scaleShape(O, f);
+  var on = T.names[0], nn = T.names[1], co = T.co;
+  var j = ri(0, O.len.length-1);
+  var fig = pairFig({ pts:O.pts, names:on, side:allSides(O.len,C.ink), rights:O.rights },
+                    { pts:N.pts, names:nn, side:allSides(N.len,C.ink), rights:N.rights }, co+on+" と "+co+nn);
+  var cands = [optBai({n:F.d, d:F.n})];
+  if(up){ cands.push(optBai(fRed(F.n+F.d, F.d))); cands.push(optBai(fRed(2*F.n, F.d))); cands.push(optBai(fRed(2*F.n-F.d, 2*F.d))); }
+  else{ cands.push(optBai({n:1, d:F.d+1})); cands.push(optBai({n:1, d:F.d*2})); cands.push(optBai({n:1, d:F.d+2})); }
+  var ch = buildChoices(optBai(F), cands, [optBai({n:4,d:1}), optBai({n:1,d:4}), optBai({n:5,d:1})]);
+  var os = O.len[j], ns = N.len[j];
+  return mk({
+    key:"nanbai", tag:"何倍の 拡大図？",
+    q:co+nn+"は "+co+on+"の 拡大図か 縮図です。<br>何倍の 拡大図、または 何分の1の 縮図ですか。",
+    plain:co+nn+"は"+co+on+"の何倍の拡大図（何分の1の縮図）？"+sideNm(on,j)+"="+cmS(os)+"、"+sideNm(nn,j)+"="+cmS(ns),
+    fig:fig, label:"どれかな？",
+    options:ch.options, correct:ch.correct,
+    expl:step("① 対応する 辺 "+sideNm(on,j)+"（"+cmS(os)+"）と 辺 "+sideNm(nn,j)+"（"+cmS(ns)+"）を くらべる")
+        +step("② "+nf(ns)+" ÷ "+nf(os)+" ＝ "+(up ? nf(f) : frHtml(1,F.d))+"（ほかの 辺も 同じ）")
+        +step("答え <b>"+fHtml(F)+"の "+fWord(F)+"</b>"),
+    kufu:"倍率は「拡大図・縮図の 辺 ÷ もとの 図の 辺」。わる 順番を 逆に すると "
+        +(up ? "1より 小さく なって 縮図の 答えに なって しまう。" : "1より 大きく なって 拡大図の 答えに なって しまう。"),
+    chk:{ F:F }
+  });
+}
+function gen_nanbai(){ return ri(0,1) === 0 ? nanbaiGrid() : nanbaiLen(); }
+
+/* =====================================================================
+   ② 対応する 辺の 長さ
+   h1：倍率が わかっていて 拡大図の 辺 / h2：倍率を 対応する 辺から 出す /
+   h3：拡大図から もとの 図の 辺
+   ===================================================================== */
+var HEN_F = [{n:2,d:1},{n:2,d:1},{n:3,d:1},{n:3,d:2},{n:5,d:2},{n:1,d:2},{n:1,d:3}];
+function taiouStr(on,nn){
+  var a = [];
+  for(var i=0;i<on.length;i++) a.push(on.charAt(i)+"→"+nn.charAt(i));
+  return a.join("、");
+}
+function gen_hen(){
+  var T = pickTemplate(), F = pick(HEN_F), f = fv(F), up = isUp(F);
+  var m = F.n === 1 ? F.d : 1;
+  var O = scaleShape(T.s1, m), N = scaleShape(O, f);
+  var n = O.len.length, on = T.names[0], nn = T.names[1], co = T.co;
+  var kind = pick(["h1","h1","h2","h2","h3"]);
+  var ia = ri(0,n-1), ig = -1, i;
+  if(kind === "h2"){
+    var cs = [];
+    for(i=0;i<n;i++) if(i !== ia && O.len[i] !== O.len[ia]) cs.push(i);
+    if(cs.length) ig = pick(cs); else kind = "h1";
+  }
+  var flip = kind !== "h1" && ri(1,3) === 1;
+  var oSide = {}, nSide = {};
+  if(kind === "h3"){
+    oSide[ia] = { s:"□cm", c:C.shu };
+    nSide = allSides(N.len, C.ink);
+  }else{
+    oSide = allSides(O.len, C.ink);
+    if(kind === "h2") nSide[ig] = { s:cmS(N.len[ig]), c:C.ink };
+    nSide[ia] = { s:"□cm", c:C.shu };
+  }
+  var Npts = flip ? N.pts.map(function(p){ return [-p[0], p[1]]; }) : N.pts;
+  var fig = pairFig({ pts:O.pts, names:on, side:oSide, rights:O.rights },
+                    { pts:Npts, names:nn, side:nSide, rights:N.rights }, co+on+" と "+co+nn);
+  var X = sideNm(nn,ia), Y = sideNm(on,ia), s = O.len[ia], t = N.len[ia];
+  var Fh = fHtml(F), Fp = fPlain(F), w = fWord(F);
+  var q, plain, cands = [], ex, kufu, ans;
+  var others = [];
+  for(i=0;i<n;i++) if(O.len[i] !== s) others.push(i);
+  if(kind === "h1"){
+    ans = t;
+    q = co+nn+"は "+co+on+"の "+Fh+"の "+w+"です。<br>辺"+X+"は 何cmですか。";
+    plain = co+nn+"は"+co+on+"（"+lensPlain(on,O.len)+"）の"+Fp+"の"+w+"。辺"+X+"は何cm？";
+    cands = [optNum(s,"cm"), optNum(s/f,"cm"), optNum(s+f,"cm")];
+    others.forEach(function(k){ cands.push(optNum(N.len[k],"cm")); });
+    ex = step("① 辺"+X+"に 対応するのは、"+co+on+"の 辺"+Y+"（"+cmS(s)+"）")
+       + step("② "+Fh+"の "+w+"だから "+(up ? nf(s)+" × "+nf(f) : nf(s)+" ÷ "+F.d)+" ＝ <b>"+nf(t)+" cm</b>");
+    kufu = "拡大図・縮図では、対応する 辺の 長さは どれも 同じ 倍率で かわる。";
+  }else if(kind === "h2"){
+    ans = t;
+    var og = O.len[ig], ng = N.len[ig], Yg = sideNm(on,ig), Xg = sideNm(nn,ig), diff = rnd(ng-og,6);
+    q = co+nn+"は "+co+on+"の "+w+"です。<br>辺"+X+"は 何cmですか。";
+    plain = co+nn+"は"+co+on+"（"+lensPlain(on,O.len)+"）の"+w+"。"+Xg+"="+cmS(ng)+"。辺"+X+"は何cm？";
+    cands = [optNum(s+diff,"cm"), optNum(s*og/ng,"cm"), optNum(ng,"cm"), optNum(s,"cm")];
+    others.forEach(function(k){ if(k !== ig) cands.push(optNum(N.len[k],"cm")); });
+    ex = step("① 対応する 辺"+Yg+"（"+cmS(og)+"）と 辺"+Xg+"（"+cmS(ng)+"）から 倍率を 出す："
+              + nf(ng)+" ÷ "+nf(og)+" ＝ "+(up ? nf(f)+" だから "+nf(f)+"倍の 拡大図"
+                                              : frHtml(1,F.d)+" だから "+frHtml(1,F.d)+"の 縮図"))
+       + step("② 辺"+X+"に 対応するのは 辺"+Y+"（"+cmS(s)+"）")
+       + step("③ "+(up ? nf(s)+" × "+nf(f) : nf(s)+" ÷ "+F.d)+" ＝ <b>"+nf(t)+" cm</b>");
+    kufu = "たし算で 考えて（"+cmS(og)+" → "+cmS(ng)+" で "+(diff > 0 ? "＋" : "−")+nf(Math.abs(diff))+"cm）"
+         + (s+diff > 0 ? nf(s+diff)+"cm と するのは まちがい。" : "長さを ずらすのは まちがい。")
+         + "拡大図・縮図は どの 辺も 同じ 数を "+(up ? "かけて" : "かけて（わって）")+" できる。";
+  }else{
+    ans = s;
+    q = co+nn+"は "+co+on+"の "+Fh+"の "+w+"です。<br>もとの "+co+on+"の 辺"+Y+"は 何cmですか。";
+    plain = co+nn+"（"+lensPlain(nn,N.len)+"）は"+co+on+"の"+Fp+"の"+w+"。辺"+Y+"は何cm？";
+    cands = [optNum(t*f,"cm"), optNum(t,"cm"), optNum(t-f,"cm")];
+    others.forEach(function(k){ cands.push(optNum(O.len[k],"cm")); });
+    ex = step("① 辺"+Y+"に 対応するのは、"+co+nn+"の 辺"+X+"（"+cmS(t)+"）")
+       + step(up ? "② 辺"+X+"は 辺"+Y+"の "+nf(f)+"倍。もとに もどすので "+nf(t)+" ÷ "+nf(f)+" ＝ <b>"+nf(s)+" cm</b>"
+                 : "② 辺"+X+"は 辺"+Y+"の "+frHtml(1,F.d)+"。もとに もどすので "+nf(t)+" × "+F.d+" ＝ <b>"+nf(s)+" cm</b>");
+    kufu = "もとの 図の 長さを 求める ときは、"+(up ? "倍率で わる（"+nf(t)+" × "+nf(f)+" と かけると 大きく なりすぎる）。"
+                                                  : "縮めた ぶんを もとに もどす（"+F.d+"を かける）。");
+  }
+  if(flip) kufu += " 向きが ちがっても、頂点の ならび順（"+taiouStr(on,nn)+"）で 対応する 辺を 見つける。";
+  return mk({
+    key:"hen", tag:"対応する 辺の 長さ",
+    q:q, plain:plain, fig:fig, label:"何cm？", u:"cm",
+    cor:optNum(ans,"cm"), cands:cands, fb:numFallback(ans, decOK(ans,0) ? 1 : 0.5, "cm"),
+    expl:ex, kufu:kufu,
+    chk:{ ans:ans }
+  });
+}
+
+/* =====================================================================
+   ② 対応する 角の 大きさ（拡大しても 角は かわらない）
+   ===================================================================== */
+/* 角度を 書くのは もとの 図。3倍に すると もとの 図が 小さく なって 角度の 文字が
+   重なったので、角の 問題は 2倍・1.5倍・1/2 だけに する */
+var KAKU_F = [{n:2,d:1},{n:2,d:1},{n:3,d:2},{n:1,d:2}];
+function gen_kaku(){
+  var F = pick(KAKU_F);
+  if(ri(1,3) === 1) return kakuQuad(F);
+  var f = fv(F), up = isUp(F), w = fWord(F), Fh = fHtml(F), Fp = fPlain(F);
+  var be = 60, ga = 50, al = 70, t;
+  /* 底辺の 角は 35°〜65°（とがった 背の 高い 三角形は 図が 小さく なるので 出さない） */
+  for(t=0;t<60;t++){
+    var b2 = 5*ri(7,13), g2 = 5*ri(7,13), a2 = 180-b2-g2;
+    if(a2 <= 100 && b2 !== g2 && a2 !== b2 && a2 !== g2){ be = b2; ga = g2; al = a2; break; }
+  }
+  var L = pick([4,5,6]) * (F.n === 1 ? F.d : 1), Lf = rnd(L*f,6);
+  var rad = Math.PI/180, AB = L*Math.sin(ga*rad)/Math.sin(al*rad);
+  var P = [[AB*Math.cos(be*rad), -AB*Math.sin(be*rad)], [0,0], [L,0]];
+  var Q = P.map(function(p){ return [p[0]*f, p[1]*f]; });
+  var askE = ri(0,1) === 0, X = askE ? "E" : "F", ans = askE ? be : ga;
+  var oAng = {}; oAng[0] = { s:al+"°", c:C.ink }; oAng[1] = { s:be+"°", c:C.ink };
+  var nAng = {}; nAng[askE ? 1 : 2] = { s:"□°", c:C.shu };
+  var fig = pairFig({ pts:P, names:"ABC", side:{1:{ s:cmS(L), c:C.ink }}, ang:oAng, rights:[] },
+                    { pts:Q, names:"DEF", side:{1:{ s:cmS(Lf), c:C.ink }}, ang:nAng, rights:[] }, "三角形ABC と 三角形DEF", { big:true });
+  var cands = askE ? [optDeg(be*f), optDeg(be/f), optDeg(180-be), optDeg(al), optDeg(ga)]
+                   : [optDeg(al+be), optDeg(ga*f), optDeg(180-al), optDeg(al), optDeg(be)];
+  var ex = askE
+    ? step("① 角Eに 対応するのは 角B（"+be+"°）")
+      + step("② 拡大図・縮図では、対応する 角の 大きさは 等しい。だから 角E ＝ <b>"+be+"°</b>")
+    : step("① 角Fに 対応するのは 角C")
+      + step("② 三角形の 3つの 角の 和は 180° だから、角C ＝ 180° − ("+al+"° ＋ "+be+"°) ＝ "+ga+"°")
+      + step("③ 対応する 角の 大きさは 等しいので 角F ＝ <b>"+ga+"°</b>");
+  return mk({
+    key:"kaku", tag:"対応する 角の 大きさ",
+    q:"三角形DEFは 三角形ABCの "+Fh+"の "+w+"です。<br>角"+X+"の 大きさは 何度ですか。",
+    plain:"三角形DEFは三角形ABC（角A="+al+"°、角B="+be+"°、BC="+cmS(L)+"）の"+Fp+"の"+w+"。角"+X+"は何度？",
+    fig:fig, label:"何度？", u:"°",
+    cor:optDeg(ans), cands:cands, fb:degFallback(ans),
+    expl:ex,
+    kufu:"辺の 長さは "+Fh+"に なるが、角の 大きさは かわらない（"+(up ? nf(f)+"倍" : "半分")+"に したり しない）。",
+    chk:{ ans:ans }
+  });
+}
+/* 台形 ABCD（AD と BC が 平行）。角A・角B・角C が わかっていて、角H か 角G を 聞く */
+function kakuQuad(F){
+  var f = fv(F), up = isUp(F), w = fWord(F), Fh = fHtml(F), Fp = fPlain(F);
+  var be = 70, ga = 60, t;
+  for(t=0;t<40;t++){ var b2 = 5*ri(11,16), g2 = 5*ri(11,16); if(b2 !== g2){ be = b2; ga = g2; break; } }
+  var L = (F.n === 1 ? pick([8,10]) : pick([6,7,8])), h = L*0.5, rad = Math.PI/180;
+  var P = [[h/Math.tan(be*rad), -h], [0,0], [L,0], [L - h/Math.tan(ga*rad), -h]];
+  var Q = P.map(function(p){ return [p[0]*f, p[1]*f]; });
+  var aA = 180-be, aD = 180-ga, Lf = rnd(L*f,6);
+  var askH = ri(1,3) <= 2, X = askH ? "H" : "G", ans = askH ? aD : ga;
+  var oAng = {}; oAng[0] = { s:aA+"°", c:C.ink }; oAng[1] = { s:be+"°", c:C.ink }; oAng[2] = { s:ga+"°", c:C.ink };
+  var nAng = {}; nAng[askH ? 3 : 2] = { s:"□°", c:C.shu };
+  var fig = pairFig({ pts:P, names:"ABCD", side:{1:{ s:cmS(L), c:C.ink }}, ang:oAng, rights:[] },
+                    { pts:Q, names:"EFGH", side:{1:{ s:cmS(Lf), c:C.ink }}, ang:nAng, rights:[] }, "四角形ABCD と 四角形EFGH", { big:true });
+  var cands = askH ? [optDeg(ga), optDeg(aA), optDeg(be), optDeg(aD*f), optDeg(aD/f)]
+                   : [optDeg(ga*f), optDeg(180-ga), optDeg(be), optDeg(aA), optDeg(ga/f)];
+  var ex = askH
+    ? step("① 角Hに 対応するのは 角D")
+      + step("② 四角形の 4つの 角の 和は 360° だから、角D ＝ 360° − ("+aA+"° ＋ "+be+"° ＋ "+ga+"°) ＝ "+aD+"°")
+      + step("③ 対応する 角の 大きさは 等しいので 角H ＝ <b>"+aD+"°</b>")
+    : step("① 角Gに 対応するのは 角C（"+ga+"°）")
+      + step("② 拡大図・縮図では、対応する 角の 大きさは 等しい。だから 角G ＝ <b>"+ga+"°</b>");
+  return mk({
+    key:"kaku", tag:"対応する 角の 大きさ",
+    q:"四角形EFGHは 四角形ABCDの "+Fh+"の "+w+"です。<br>角"+X+"の 大きさは 何度ですか。",
+    plain:"四角形EFGHは四角形ABCD（角A="+aA+"°、角B="+be+"°、角C="+ga+"°）の"+Fp+"の"+w+"。角"+X+"は何度？",
+    fig:fig, label:"何度？", u:"°",
+    cor:optDeg(ans), cands:cands, fb:degFallback(ans),
+    expl:ex,
+    kufu:"辺の 長さは "+Fh+"に なるが、角の 大きさは かわらない。"
+        +(askH ? "4つの 角の 和 360° を 使って、もとの 図で 角Dを 先に 出す。" : ""),
+    chk:{ ans:ans }
+  });
+}
+
+/* =====================================================================
+   ③ 1つの 点を 中心に した 拡大図・縮図
+   方眼：中心から 頂点への 横・たての マスを k倍 した 点を 選ぶ
+   長さ：OA を k倍 → OD、AD ＝ OD − OA
+   ===================================================================== */
+function chushinGrid(){
+  var cols = 14, rows = 11, cell = 23;
+  var K = pick([{n:2,d:1},{n:2,d:1},{n:3,d:1},{n:1,d:2}]), k = fv(K), up = isUp(K);
+  var vc = up && ri(1,3) === 1;            /* 頂点Bを 中心に する */
+  var mir = ri(0,1) === 1;                 /* 中心を 右下に（左右 反転） */
+  var O = [1, rows-1];
+  var lx = up ? Math.floor((cols-2)/k) : cols-2, ly = up ? Math.floor((rows-2)/k) : rows-2;
+  function rv(){
+    if(up) return [ri(1,lx), -ri(1,ly)];
+    return [2*ri(1,Math.floor(lx/2)), -2*ri(1,Math.floor(ly/2))];
+  }
+  var V = null, t;
+  for(t=0;t<80 && !V;t++){
+    var vs = vc ? [rv(), [0,0], rv()] : [rv(), rv(), rv()];
+    var a2 = Math.abs(crs(sub(vs[1],vs[0]), sub(vs[2],vs[0])));
+    if(a2 < (up ? 3 : 12)) continue;
+    if(!vc && (crs(vs[0],vs[1]) === 0 || crs(vs[0],vs[2]) === 0 || crs(vs[1],vs[2]) === 0)) continue;
+    V = vs;
+  }
+  if(!V) V = up ? (vc ? [[1,-3],[0,0],[4,-1]] : [[1,-3],[2,-1],[4,-2]]) : [[2,-6],[4,-2],[8,-4]];
+  var verts = V.map(function(p){ return add(O,p); });
+  /* 選択肢の 点は、たがいに 2マス 以上 はなし（1マスおきに かたまると 名前が 読めない）、
+     中心・頂点とは 重ねず、三角形の 内がわや 辺の 上にも 置かない */
+  function inTri(p){
+    var s1 = orient(verts[0],verts[1],p), s2 = orient(verts[1],verts[2],p), s3 = orient(verts[2],verts[0],p);
+    return !((s1 > 0 || s2 > 0 || s3 > 0) && (s1 < 0 || s2 < 0 || s3 < 0));
+  }
+  /* 聞く 頂点。中心に 近い 頂点を k倍 すると 答えの 点が もとの 三角形の 中に 入る
+     ことが あり 見分けにくいので、答えが 三角形の 外に くる 頂点を 優先する */
+  var idxs = shuffle(vc ? [0,2] : [0,1,2]), idx = idxs[0];
+  for(var ii=0; ii<idxs.length; ii++){
+    if(!inTri(add(O, mul(V[idxs[ii]],k)))){ idx = idxs[ii]; break; }
+  }
+  var names = "ABC", X = names.charAt(idx), v = V[idx];
+  var cor = add(O, mul(v,k));
+  var concept = up
+    ? [add(O,mul(v,k+1)), add(O,[v[0]*k, v[1]]), add(O,[v[0], v[1]*k]), add(O,mul(v,k-1)), add(O,mul(v,2*k))]
+    : [add(O,[v[0]/2, v[1]]), add(O,[v[0], v[1]/2]), add(O,mul(v,1.5)), add(O,mul(v,0.25))];
+  var shifts = [[2,0],[-2,0],[0,2],[0,-2],[2,-2],[-2,2],[2,2],[-2,-2]].map(function(d){ return add(cor,d); });
+  var ds = [], pts = [cor];
+  function valid(p){
+    if(!isInt(p[0]) || !isInt(p[1]) || p[0] < 0 || p[0] > cols || p[1] < 0 || p[1] > rows) return false;
+    if(inTri(p)) return false;
+    var i;
+    for(i=0;i<pts.length;i++) if(Math.max(Math.abs(pts[i][0]-p[0]), Math.abs(pts[i][1]-p[1])) < 2) return false;
+    var fixed = [O].concat(verts);
+    for(i=0;i<fixed.length;i++) if(fixed[i][0] === p[0] && fixed[i][1] === p[1]) return false;
+    return true;
+  }
+  function take(list, max){
+    list.forEach(function(p){ if(ds.length < max && valid(p)){ ds.push(p); pts.push(p); } });
+  }
+  take(shuffle(concept), 2);
+  take(shuffle(concept.concat(shifts)), 3);
+  for(var sx=-4; ds.length < 3 && sx<=4; sx++) take([add(cor,[sx,-4]), add(cor,[sx,4]), add(cor,[sx,-3]), add(cor,[sx,3])], 3);
+  var cands = shuffle([{ p:cor, ok:true }].concat(ds.map(function(p){ return { p:p, ok:false }; })));
+  var correct = 0;
+  cands.forEach(function(c,i){ if(c.ok) correct = i; });
+
+  /* 図 */
+  function M(p){ return [(mir ? cols-p[0] : p[0])*cell, p[1]*cell]; }
+  var cv = Cv();
+  gridBase(cv, cols, rows, cell);
+  var TP = verts.map(M), placed = [];
+  cvPoly(cv, TP, C.shuL, C.shu, 2.4);
+  var cen = [(TP[0][0]+TP[1][0]+TP[2][0])/3, (TP[0][1]+TP[1][1]+TP[2][1])/3];
+  TP.forEach(function(p,i){
+    var d = unit(sub(p,cen)), x = p[0]+d[0]*13, y = p[1]+d[1]*13;
+    cvTx(cv, x, y, names.charAt(i), C.shu, "middle", 14);
+    placed.push(tBox(x, y, names.charAt(i), 14));
+  });
+  cvDot(cv, M(O), 4, C.ink);
+  if(!vc){
+    var ox = M(O)[0]+(mir ? 11 : -11), oy = M(O)[1]+9;
+    cvTx(cv, ox, oy, "O", C.ink, "middle", 14);
+    placed.push(tBox(ox, oy, "O", 14));
+  }
+  /* 点の 名前（ア〜エ）は 頂点の 名前や ほかの 点の 名前と 重ならない 向きに 出す */
+  var offs = mir ? [[-12,-11],[12,-11],[-12,11],[12,11]] : [[12,-11],[-12,-11],[12,11],[-12,11]];
+  cands.forEach(function(c,i){
+    var p = M(c.p), pos = null, bx = null;
+    cvDot(cv, p, 5, C.ai, C.paper, 1.5);
+    for(var k=0;k<offs.length;k++){
+      var b = tBox(p[0]+offs[k][0], p[1]+offs[k][1], KANA[i], 14);
+      if(!pos){ pos = offs[k]; bx = b; }
+      if(!boxHit(b, placed)){ pos = offs[k]; bx = b; break; }
+    }
+    placed.push(bx);
+    cvTx(cv, p[0]+pos[0], p[1]+pos[1], KANA[i], C.ai, "middle", 14);
+  });
+  var fig = cvFin(cv, 330, 6, "方眼の 図 三角形ABC と 点ア〜エ");
+
+  var cName = vc ? "頂点B" : "点O", hv = mir ? "左" : "右";
+  function mv(dx,dy){
+    var a = [];
+    if(dx) a.push(hv+"へ "+Math.abs(dx)+"マス");
+    if(dy) a.push("上へ "+Math.abs(dy)+"マス");
+    return a.join("、");
+  }
+  var Kh = fHtml(K), w = fWord(K);
+  return mk({
+    key:"chushin", tag:"1つの 点を 中心に",
+    q:cName+"を 中心に して、三角形ABCの "+Kh+"の "+w+"を かきます。<br>頂点"+X+"に 対応する 点は、ア〜エの どれですか。",
+    plain:"方眼の図。"+cName+"を中心に三角形ABCの"+fPlain(K)+"の"+w+"をかく。頂点"+X+"に対応する点はア〜エのどれ？",
+    fig:fig, label:"ア〜エから えらぼう",
+    options:KANA.map(optLabel), correct:correct,
+    expl:step("① "+cName+"から 頂点"+X+"までは "+mv(v[0],v[1]))
+        +step(up ? "② その "+k+"倍：" +cName+"から "+mv(v[0]*k, v[1]*k)+" 進んだ 点"
+                 : "② その 半分：" +cName+"から "+mv(v[0]/2, v[1]/2)+" 進んだ 点（まん中の 点）")
+        +step("答え <b>"+KANA[correct]+"</b>"),
+    kufu:up ? cName+"と 頂点"+X+"を むすぶ 直線の 上で、"+cName+"からの きょりを "+k+"倍に する。"
+              +"頂点"+X+"から さらに "+k+"倍 進むと "+(k+1)+"倍に なって しまう。"
+              +(vc ? "中心の 頂点Bは 動かない。" : "")
+            : "点Oと 頂点"+X+"を むすぶ 線の まん中の 点を とる。横だけ・たてだけ 半分に するのは まちがい。",
+    chk:{ O:O, v:v, k:k, pick:cands[correct].p, mir:mir, pts:cands.map(function(c){ return c.p; }) }
+  });
+}
+/* 長さ：中心Oから のびる 線の 上で。
+   Oから 3つの 頂点までの きょりを そろえて ある（いちばん 遠い ÷ いちばん 近い ＜ 1.35）。
+   そろって いないと 1.5倍の 拡大図が もとの 三角形と 重なって 見分けにくい。
+   そのぶん 頂点の 向きを 60°以上 ひらいて、三角形が 細く ならないように して ある */
+function polarV(r,deg){ var t = deg*Math.PI/180; return [r*Math.cos(t), r*Math.sin(t)]; }
+var CH_V = [
+  [polarV(3.0,-35), polarV(3.0,30), polarV(4.0,0)],
+  [polarV(2.9,-30), polarV(3.3,32), polarV(3.9,-5)],
+  [polarV(3.0,-38), polarV(3.9,8), polarV(2.9,34)]
+];
+function chushinLen(){
+  var K = pick([{n:2,d:1},{n:3,d:1},{n:3,d:2},{n:1,d:2},{n:1,d:3}]), k = fv(K), up = isUp(K);
+  var a = K.n === 1 ? K.d*pick([2,3,4]) : (K.d === 2 ? pick([2,4,6]) : pick([2,3,4,5]));
+  var askOD = (K.n === 1 && K.d === 2) ? true : ri(0,1) === 1;   /* 1/2 は OD＝AD に なるので OD だけ */
+  var OD = rnd(a*k,6), AD = rnd(Math.abs(a-OD),6), ans = askOD ? OD : AD;
+  var V = pick(CH_V), fy = ri(0,1) === 1 ? -1 : 1;
+  V = V.map(function(p){ return [p[0], p[1]*fy]; });
+  var outer = Math.max(1,k), s = 280/(outer*4.0), O = [0,0];
+  var Ap = V.map(function(p){ return mul(p,s); }), Dp = V.map(function(p){ return mul(p,s*k); });
+  var cv = Cv();
+  var far = up ? Dp : Ap;
+  far.forEach(function(p){ cvLine(cv, O, p, C.guide, 1.3, "4 3"); });
+  cvPoly(cv, Ap, C.shuL, C.shu, 2.2);
+  cvPoly(cv, Dp, up ? "none" : C.aiL, C.ai, 2.2);
+  cvDot(cv, O, 3.6, C.ink);
+  cvTx(cv, -12, 0, "O", C.ink, "middle", 14);
+  function lab(P, names, color){
+    var cen = [(P[0][0]+P[1][0]+P[2][0])/3, (P[0][1]+P[1][1]+P[2][1])/3];
+    P.forEach(function(p,i){
+      var d = unit(sub(p,cen));
+      cvTx(cv, p[0]+d[0]*13, p[1]+d[1]*13, names.charAt(i), color, "middle", 14);
+    });
+  }
+  lab(Ap, "ABC", C.shu);
+  lab(Dp, "DEF", C.ai);
+  /* OA の 長さ（拡大図の ときだけ 図に 書く。縮図は D が OA の 上に くるので 文だけ）。
+     文字は 線 OA の「三角形と 反対がわ」に 出す（内がわは 三角形と 線で こみあう） */
+  if(up){
+    var e = unit(Ap[0]), nr = [e[1], -e[0]];
+    var cenA = mul(add(add(Ap[0],Ap[1]),Ap[2]), 1/3), m1 = mul(Ap[0],0.5);
+    if(dt(nr, sub(cenA,m1)) > 0) nr = mul(nr,-1);
+    var offOf = function(s){ return 6 + Math.abs(nr[0])*twEst(s,13)/2 + Math.abs(nr[1])*8; };
+    cvTx(cv, m1[0]+nr[0]*offOf(cmS(a)), m1[1]+nr[1]*offOf(cmS(a)), cmS(a), C.ink, "middle", 13);
+    if(!askOD){
+      var m2 = mul(add(Ap[0],Dp[0]),0.5);
+      cvTx(cv, m2[0]+nr[0]*offOf("□cm"), m2[1]+nr[1]*offOf("□cm"), "□cm", C.shu, "middle", 13);
+    }
+  }
+  var fig = cvFin(cv, 330, 8, "点Oを 中心に した 三角形ABC と 三角形DEF");
+  var Kh = fHtml(K), w = fWord(K), Y = askOD ? "OD" : "AD";
+  var cands = askOD ? [optNum(AD,"cm"), optNum(a+OD,"cm"), optNum(a+k,"cm"), optNum(up ? a/k : a*K.d,"cm")]
+                    : [optNum(OD,"cm"), optNum(a,"cm"), optNum(a+OD,"cm"), optNum(a*(k+1),"cm")];
+  var ex;
+  if(up){
+    ex = step("① OD は OA の "+nf(k)+"倍：OD ＝ "+nf(a)+" × "+nf(k)+" ＝ "+(askOD ? "<b>"+nf(OD)+" cm</b>" : nf(OD)+" cm"))
+       + (askOD ? "" : step("② AD ＝ OD − OA ＝ "+nf(OD)+" − "+nf(a)+" ＝ <b>"+nf(AD)+" cm</b>"));
+  }else{
+    ex = step("① OD は OA の "+frHtml(1,K.d)+"：OD ＝ "+nf(a)+" ÷ "+K.d+" ＝ "+(askOD ? "<b>"+nf(OD)+" cm</b>" : nf(OD)+" cm"))
+       + (askOD ? "" : step("② D は O と A の 間。AD ＝ OA − OD ＝ "+nf(a)+" − "+nf(OD)+" ＝ <b>"+nf(AD)+" cm</b>"));
+  }
+  return mk({
+    key:"chushin", tag:"1つの 点を 中心に（長さ）",
+    q:"点Oを 中心に して、三角形ABCの "+Kh+"の "+w+" 三角形DEFを かきました。<br>"
+     +"OAの 長さが "+cmS(a)+"の とき、"+Y+"の 長さは 何cmですか。",
+    plain:"点Oを中心に三角形ABCの"+fPlain(K)+"の"+w+"三角形DEF。OA="+cmS(a)+"のとき"+Y+"は何cm？",
+    fig:fig, label:"何cm？", u:"cm",
+    cor:optNum(ans,"cm"), cands:cands, fb:numFallback(ans, decOK(ans,0) ? 1 : 0.5, "cm"),
+    expl:ex,
+    kufu:up ? (askOD ? "OD は O から はかった 長さ。A から はかった AD（"+cmS(AD)+"）と まちがえないように。"
+                     : "AD は OD から OA を ひいた のこり。OD（"+cmS(OD)+"）と まちがえないように。")
+            : "縮図では 点D は O と A の 間に できる。",
+    chk:{ ans:ans }
+  });
+}
+function gen_chushin(){ return ri(1,5) <= 3 ? chushinGrid() : chushinLen(); }
+
+/* =====================================================================
+   ④ 縮尺
+   ===================================================================== */
+var MAP_N = [10000, 20000, 25000, 50000, 100000];
+var MAP_D = [1.5,2,2.5,3,3.5,4,4.5,5,6,7,8,9,10,12];
+var MAP_PL = [["家","駅"],["学校","図書館"],["駅","市役所"],["公園","病院"],["港","灯台"],["学校","公民館"]];
+var PLAN_CTX = [
+  { t:"学校の しき地", p:"たての 長さ", N:[500,1000,2000], lo:50, hi:300 },
+  { t:"家の 間取り図", p:"リビングの 横の 長さ", N:[50,100,200], lo:3, hi:10, nm:true },
+  { t:"公園", p:"横の 長さ", N:[500,1000,2000], lo:40, hi:250 },
+  { t:"教室", p:"横の 長さ", N:[100,200], lo:6, hi:12 },
+  { t:"プール", p:"たての 長さ", N:[100,200,500], lo:15, hi:50 }
+];
+var PLAN_D = [2,2.5,3,3.5,4,4.5,5,6,7,8,9,10,12,15];
+/* 縮尺の 表し方：分数（1/25000）か 比（1：25000） */
+function scaleView(N,ratio){
+  return ratio ? { h:'1<span class="cl">：</span>'+N, p:"1："+N }
+               : { h:frHtml(1,N), p:frPlain(1,N) };
+}
+/* メートル → 表示（1000m 以上で きりが よければ km） */
+function lenView(m){
+  if(m >= 1000 && decOK(m/1000,2)) return { v:rnd(m/1000,3), u:"km" };
+  return { v:rnd(m,3), u:"m" };
+}
+function pickMap(){
+  for(var t=0;t<60;t++){
+    var N = pick(MAP_N), d = pick(MAP_D), m = rnd(d*N/100,4);
+    if(decOK(m,0) && m >= 100 && m <= 30000) return { N:N, d:d, m:m };
+  }
+  return { N:25000, d:4, m:1000 };
+}
+function pickPlan(){
+  var c = pick(PLAN_CTX);
+  for(var t=0;t<60;t++){
+    var N = pick(c.N), d = pick(PLAN_D), m = rnd(d*N/100,4);
+    if(decOK(m,1) && m >= c.lo && m <= c.hi) return { c:c, N:N, d:d, m:m };
+  }
+  return { c:PLAN_CTX[3], N:100, d:8, m:8 };
+}
+/* cm → m → km の なおし方（とき方用） */
+function cmToView(cm, m, view){
+  return nf(cm)+" cm ＝ "+(view.u === "km" ? nf(m)+" m ＝ "+nf(view.v)+" km" : nf(m)+" m");
+}
+var SHUKU_KUFU = "1m ＝ 100cm、1km ＝ 1000m ＝ 100000cm。0の 数に 気をつけよう。";
+
+var BARS = [{R:100,b:[1,2]},{R:200,b:[1,2,4]},{R:500,b:[1,2,5]},{R:1000,b:[2,4,5]},{R:2000,b:[2,4,5]}];
+function barLab(R){ return R >= 1000 ? (R/1000)+"km" : R+"m"; }
+function barFig(R,b){
+  var cv = Cv(), s = 46, i;
+  for(i=0;i<b;i++) cvRect(cv, i*s, 0, s, 8, i%2 ? C.paper : C.ink, C.ink, 1.2);
+  cvLine(cv, [0,-6], [0,8], C.ink, 1.4);
+  cvLine(cv, [b*s,-6], [b*s,8], C.ink, 1.4);
+  cvTx(cv, 0, -14, "0", C.ink, "middle", 13);
+  cvTx(cv, b*s, -14, barLab(R), C.ink, "middle", 13);
+  cvLine(cv, [0,20], [b*s,20], C.ai, 1.2);
+  cvLine(cv, [0,15], [0,25], C.ai, 1.2);
+  cvLine(cv, [b*s,15], [b*s,25], C.ai, 1.2);
+  cvTx(cv, b*s/2, 34, "地図上で "+b+"cm", C.ai, "middle", 12.5);
+  return cvFin(cv, 330, 10, "縮尺の 線");
+}
+function shukuBar(){
+  var B = pick(BARS), b = pick(B.b), ds = [], x;
+  for(x=2;x<=24;x++){ var d = x/2, m0 = d/b*B.R; if(d !== b && decOK(m0,0) && m0 >= 50) ds.push(d); }
+  var d = pick(ds), m = rnd(d/b*B.R,4), V = lenView(m), r = rnd(d/b,4);
+  var u = V.u, ans = V.v, toU = function(meters){ return u === "km" ? meters/1000 : meters; };
+  return mk({
+    key:"shuku_jissai", tag:"縮尺（実際の 長さ）",
+    q:"ある 地図には、下のような 縮尺の 線が かいて あります。0 から "+barLab(B.R)+" までの 長さは "+b+"cm です。<br>"
+     +"この 地図で "+nf(d)+"cm の きょりは、実際は 何"+u+"ですか。",
+    plain:"地図の縮尺の線は0〜"+barLab(B.R)+"が"+b+"cm。地図上"+nf(d)+"cmは実際何"+u+"？",
+    fig:barFig(B.R,b), label:"実際は 何"+u+"？", u:u,
+    cor:optNum(ans,u),
+    cands:[optNum(toU(d*B.R),u), optNum(toU(b/d*B.R),u)].concat(pow10s(ans,u)),
+    fb:numFallback(ans, stepOf(ans), u),
+    expl:step("① "+nf(d)+"cm は "+b+"cm の "+nf(d)+" ÷ "+b+" ＝ "+nf(r)+"（倍）")
+        +step("② 実際の きょりも "+nf(r)+"倍："+B.R+" m × "+nf(r)+" ＝ "
+              +(u === "km" ? nf(m)+" m ＝ <b>"+nf(ans)+" km</b>" : "<b>"+nf(m)+" m</b>")),
+    kufu:"縮尺の 線は「地図上の "+b+"cm が 実際の "+barLab(B.R)+"」という 意味。"
+        +"地図上の 長さが 何倍に なっているかを 考える。",
+    chk:{ ans:ans }
+  });
+}
+function gen_shuku_jissai(){
+  var r = ri(1,20);
+  if(r <= 4) return shukuBar();
+  var plan = r > 12, ratio = ri(1,3) === 1, g = plan ? pickPlan() : pickMap();
+  var N = g.N, d = g.d, m = g.m, cm = rnd(d*N,4), V = plan ? { v:m, u:"m" } : lenView(m), sv = scaleView(N, ratio);
+  var u = V.u, ans = V.v, q, plain, pl;
+  if(plan){
+    q = g.c.t+"を 縮尺 "+sv.h+" で かいた 縮図で、"+g.c.p+"は "+nf(d)+"cm です。<br>実際の "+g.c.p+"は 何mですか。";
+    plain = g.c.t.replace(/ /g,"")+"の縮尺"+sv.p+"の縮図で"+g.c.p.replace(/ /g,"")+"は"+nf(d)+"cm。実際は何m？";
+  }else{
+    pl = pick(MAP_PL);
+    q = "縮尺 "+sv.h+" の 地図で、"+pl[0]+"から "+pl[1]+"までの 長さを はかったら "+nf(d)+"cm でした。<br>実際の きょりは 何"+u+"ですか。";
+    plain = "縮尺"+sv.p+"の地図で"+pl[0]+"から"+pl[1]+"まで"+nf(d)+"cm。実際は何"+u+"？";
+  }
+  return mk({
+    key:"shuku_jissai", tag:"縮尺（実際の 長さ）",
+    q:q, plain:plain, label:"実際は 何"+u+"？", u:u,
+    cor:optNum(ans,u), cands:pow10s(ans,u), fb:numFallback(ans, stepOf(ans), u),
+    expl:step("① 実際の 長さは "+(plan ? "縮図" : "地図")+"上の 長さの "+N+"倍："+nf(d)+" × "+N+" ＝ "+nf(cm)+" cm")
+        +step("② "+nf(cm)+" cm ＝ "+(u === "km" ? nf(m)+" m ＝ <b>"+nf(ans)+" km</b>" : "<b>"+nf(m)+" m</b>")),
+    kufu:(ratio ? "縮尺 1："+N+" は "+frHtml(1,N)+" と 同じ 意味。" : "")+SHUKU_KUFU,
+    chk:{ ans:ans }
+  });
+}
+function gen_shuku_chizu(){
+  var plan = ri(1,5) <= 2, ratio = ri(1,3) === 1, g = plan ? pickPlan() : pickMap();
+  var N = g.N, d = g.d, m = g.m, cm = rnd(d*N,4), V = plan ? { v:m, u:"m" } : lenView(m), sv = scaleView(N, ratio);
+  var q, plain, pl;
+  if(plan){
+    q = g.c.t+"の "+g.c.p+"は "+nf(m)+"m です。<br>縮尺 "+sv.h+" の 縮図では、何cmに なりますか。";
+    plain = g.c.t.replace(/ /g,"")+"の"+g.c.p.replace(/ /g,"")+"は"+nf(m)+"m。縮尺"+sv.p+"の縮図では何cm？";
+  }else{
+    pl = pick(MAP_PL);
+    q = pl[0]+"から "+pl[1]+"までの 実際の きょりは "+nf(V.v)+V.u+" です。<br>縮尺 "+sv.h+" の 地図では、何cmに なりますか。";
+    plain = pl[0]+"から"+pl[1]+"まで実際は"+nf(V.v)+V.u+"。縮尺"+sv.p+"の地図では何cm？";
+  }
+  var conv = V.u === "km" ? nf(V.v)+" km ＝ "+nf(m)+" m ＝ "+nf(cm)+" cm" : nf(m)+" m ＝ "+nf(cm)+" cm";
+  return mk({
+    key:"shuku_chizu", tag:"縮尺（地図上の 長さ）",
+    q:q, plain:plain, label:"何cm？", u:"cm",
+    cor:optNum(d,"cm"), cands:pow10s(d,"cm"), fb:numFallback(d, stepOf(d), "cm"),
+    expl:step("① 実際の 長さを cm に なおす："+conv)
+        +step("② "+(plan ? "縮図" : "地図")+"上の 長さは 実際の "+frHtml(1,N)+"："+nf(cm)+" ÷ "+N+" ＝ <b>"+nf(d)+" cm</b>"),
+    kufu:(ratio ? "縮尺 1："+N+" は "+frHtml(1,N)+" と 同じ 意味。" : "")+SHUKU_KUFU,
+    chk:{ ans:d }
+  });
+}
+var MOTO_N = [200,500,1000,2000,2500,5000,10000,20000,25000,50000];
+var MOTO_THING = ["道","橋","線路","ろうか","トンネル","川"];
+function gen_shuku_motomeru(){
+  var N = 1000, d = 5, m = 50, t;
+  for(t=0;t<40;t++){
+    var N2 = pick(MOTO_N), d2 = ri(2,10), m2 = d2*N2/100;
+    if(m2 >= 10 && m2 <= 30000 && decOK(m2,0)){ N = N2; d = d2; m = m2; break; }
+  }
+  var V = lenView(m), cm = d*N, thing = pick(MOTO_THING), ratio = ri(1,3) === 1;
+  var opt = ratio ? optRatio : optScale;
+  var cands = [opt(N/10), opt(N*10), opt(N/100)], fb = [opt(N*100), opt(N/1000), opt(N*2), opt(N/2)];
+  var conv = V.u === "km" ? nf(V.v)+" km ＝ "+nf(m)+" m ＝ "+nf(cm)+" cm" : nf(m)+" m ＝ "+nf(cm)+" cm";
+  return mk({
+    key:"shuku_motomeru", tag:"縮尺を 求める",
+    q:"実際の 長さが "+nf(V.v)+V.u+" の "+thing+"を、"+d+"cm の 長さに 縮めて かきました。<br>"
+     +(ratio ? "この 縮図の 縮尺を 1：□ の 形で 表すと、どれですか。" : "この 縮図の 縮尺は どれですか。"),
+    plain:"実際"+nf(V.v)+V.u+"の"+thing+"を"+d+"cmに縮めてかいた。"+(ratio ? "縮尺を1：□で表すと？" : "縮尺は？"),
+    label:"縮尺は？", u:"",
+    cor:opt(N), cands:cands, fb:fb,
+    expl:step("① 実際の 長さを cm に なおす："+conv)
+        +step("② "+nf(cm)+" ÷ "+d+" ＝ "+N+" だから、実際の 長さを "+frHtml(1,N)+" に 縮めて いる")
+        +step("答え 縮尺は <b>"+(ratio ? "1："+N : frHtml(1,N))+"</b>"),
+    kufu:"単位を cm に そろえてから わる。m の まま "+nf(m)+" ÷ "+d+" ＝ "+nf(m/d)+" と すると、0が 2つ 足りない。",
+    chk:{ N:N }
+  });
+}
+
+/* =====================================================================
+   ⑤ 縮図の 利用（チャレンジ）
+   木・校舎の 高さ（目の 高さを たす）／川はば／池を はさんだ きょり
+   ===================================================================== */
+function sceneTitle(cv, x, y, N){ cvTx(cv, x, y, "縮図（1/"+N+"）", C.kin, "middle", 12.5); }
+function treeFig(o){
+  var cv = Cv(), G = 150, px = 34, eyeY = G-44, rad = Math.PI/180;
+  var tn = Math.tan(o.th*rad), L = Math.min(132, 86/tn), X = px + L, yTop = eyeY - L*tn;
+  var tree = o.obj === "木";
+  cvLine(cv, [6,G], [X+(tree ? 30 : 58), G], C.sub, 1.6);
+  /* 人 */
+  cvLine(cv, [px,eyeY+5], [px,G-17], C.ink, 1.8);
+  cvLine(cv, [px,G-17], [px-6,G], C.ink, 1.8);
+  cvLine(cv, [px,G-17], [px+6,G], C.ink, 1.8);
+  cvLine(cv, [px,eyeY+11], [px-7,eyeY+21], C.ink, 1.6);
+  cvLine(cv, [px,eyeY+11], [px+7,eyeY+21], C.ink, 1.6);
+  cvDot(cv, [px,eyeY-1], 6, C.paper, C.ink, 1.6);
+  /* 木・校舎 */
+  if(tree){
+    cvRect(cv, X-4, yTop+28, 8, G-yTop-28, C.trunk);
+    cvDot(cv, [X, yTop+17], 17, C.leaf, C.leafE, 1.5);
+  }else{
+    cvRect(cv, X, yTop, 50, G-yTop, C.bld, C.bldE, 1.4);
+    for(var wy=yTop+8; wy<G-14; wy+=16){
+      cvRect(cv, X+8, wy, 12, 8, C.paper, C.bldE, 0.9);
+      cvRect(cv, X+30, wy, 12, 8, C.paper, C.bldE, 0.9);
+    }
+  }
+  /* 見上げる 線と 角度 */
+  cvLine(cv, [px,eyeY], [X,eyeY], C.guide, 1.2, "4 3");
+  cvLine(cv, [px,eyeY], [X,yTop], C.ai, 1.6, "5 3");
+  cvAngle(cv, [px,eyeY], [X,eyeY], [X,yTop], 24, o.th+"°", C.shu);
+  cvTx(cv, (px+X)/2, G+13, o.D+"m", C.ink, "middle", 13);
+  /* 目の 高さ */
+  cvLine(cv, [px-15,G], [px-15,eyeY], C.ai, 1.1);
+  cvLine(cv, [px-19,eyeY], [px-11,eyeY], C.ai, 1.1);
+  cvTx(cv, px-19, (G+eyeY)/2, nf(o.e)+"m", C.ai, "end", 12.5);
+  /* 縮図 */
+  var Sx = X + (tree ? 30 : 58) + 34, s2 = Math.min(92/o.b, 112/o.h, 26);
+  var A = [Sx,G], B = [Sx+o.b*s2, G], Cc = [Sx+o.b*s2, G-o.h*s2];
+  cvShape(cv, { pts:[A,B,Cc], names:"ABC",
+                side:{0:{ s:cmS(o.b), c:C.ink }, 1:{ s:cmS(o.h), c:C.ink }},
+                ang:{0:{ s:o.th+"°", c:C.shu }}, rights:[1], fill:C.kinL, stroke:C.kin });
+  sceneTitle(cv, (A[0]+B[0])/2, G+32, o.N);
+  return cvFin(cv, 330, 8, o.obj+"の 高さを はかる ようすと 縮図");
+}
+function riverFig(o){
+  var cv = Cv(), rad = Math.PI/180, tn = Math.tan(o.th*rad), ABp = 84, BCp = ABp/tn;
+  var Bp = [40,104], Ap = [40,104-ABp], Cp = [40+BCp,104];
+  var W = Cp[0] + 40;
+  cvRect(cv, 0, 34, W, 52, C.water);
+  cvLine(cv, [0,34], [W,34], C.waterE, 1.4);
+  cvLine(cv, [0,86], [W,86], C.waterE, 1.4);
+  cvTx(cv, 16, 60, "川", C.waterE, "middle", 13);
+  cvDot(cv, [Ap[0]+14, Ap[1]-4], 8, C.leaf, C.leafE, 1.3);
+  cvLine(cv, Ap, Bp, C.shu, 1.8, "5 3");
+  cvLine(cv, Bp, Cp, C.ai, 1.8);
+  cvLine(cv, Cp, Ap, C.ai, 1.8);
+  cvRight(cv, Bp, Ap, Cp);
+  cvAngle(cv, Cp, Bp, Ap, 18, o.th+"°", C.shu);
+  cvDot(cv, Ap, 3, C.ink); cvDot(cv, Bp, 3, C.ink); cvDot(cv, Cp, 3, C.ink);
+  cvTx(cv, Ap[0]-12, Ap[1], "A", C.ink, "middle", 14);
+  cvTx(cv, Bp[0]-12, Bp[1]+4, "B", C.ink, "middle", 14);
+  cvTx(cv, Cp[0]+12, Cp[1]+4, "C", C.ink, "middle", 14);
+  cvTx(cv, (Bp[0]+Cp[0])/2, Bp[1]+15, o.D+"m", C.ink, "middle", 13);
+  var Sx = W + 50, s2 = Math.min(80/o.bc, 104/o.ab, 26);
+  var B2 = [Sx,104], C2 = [Sx+o.bc*s2,104], A2 = [Sx,104-o.ab*s2];
+  cvShape(cv, { pts:[A2,B2,C2], names:"ABC",
+                side:{0:{ s:cmS(o.ab), c:C.ink }, 1:{ s:cmS(o.bc), c:C.ink }},
+                ang:{2:{ s:o.th+"°", c:C.shu }}, rights:[1], fill:C.kinL, stroke:C.kin });
+  sceneTitle(cv, (B2[0]+C2[0])/2, 104+32, o.N);
+  return cvFin(cv, 330, 8, "川はばを はかる ようすと 縮図");
+}
+function pondFig(o){
+  var cv = Cv(), sc = 100/Math.max(o.a,o.b);
+  var Cp = [30,130], Ap = [30,130-o.a*sc], Bp = [30+o.b*sc,130];
+  /* 池は A と B を 両はしに する だ円（細すぎると 葉っぱに 見えるので 太めに） */
+  var M = mul(add(Ap,Bp),0.5), dv = sub(Bp,Ap), rx = len(dv)/2, ry = n2(Math.max(16, rx*0.42));
+  var deg = Math.atan2(dv[1],dv[0])*180/Math.PI;
+  cvBox(cv, M[0]-rx, M[1]-rx, M[0]+rx, M[1]+rx);
+  cv.s += '<ellipse cx="'+n2(M[0])+'" cy="'+n2(M[1])+'" rx="'+n2(rx)+'" ry="'+ry+'" fill="'+C.water+'" stroke="'+C.waterE
+        + '" stroke-width="1.4" transform="rotate('+n2(deg)+' '+n2(M[0])+' '+n2(M[1])+')"/>';
+  var away = unit(sub(M,Cp));
+  cvTx(cv, M[0]+away[0]*ry*0.55, M[1]+away[1]*ry*0.55, "池", C.waterE, "middle", 13);
+  cvLine(cv, Ap, Bp, C.shu, 1.8, "5 3");
+  cvLine(cv, Cp, Ap, C.ai, 1.8);
+  cvLine(cv, Cp, Bp, C.ai, 1.8);
+  cvRight(cv, Cp, Ap, Bp);
+  cvDot(cv, Ap, 3, C.ink); cvDot(cv, Bp, 3, C.ink); cvDot(cv, Cp, 3, C.ink);
+  cvTx(cv, Ap[0]-11, Ap[1]-6, "A", C.ink, "middle", 14);
+  cvTx(cv, Bp[0]+8, Bp[1]+12, "B", C.ink, "middle", 14);
+  cvTx(cv, Cp[0]-11, Cp[1]+8, "C", C.ink, "middle", 14);
+  cvTx(cv, Cp[0]-8, (Ap[1]+Cp[1])/2, o.a+"m", C.ink, "end", 13);
+  cvTx(cv, (Cp[0]+Bp[0])/2, Cp[1]+15, o.b+"m", C.ink, "middle", 13);
+  var Sx = Bp[0] + 46, s2 = Math.min(88/o.bc, 104/o.ac, 26);
+  var C2 = [Sx,130], A2 = [Sx,130-o.ac*s2], B2 = [Sx+o.bc*s2,130];
+  cvShape(cv, { pts:[A2,B2,C2], names:"ABC",
+                side:{0:{ s:cmS(o.ab), c:C.ink }, 1:{ s:cmS(o.bc), c:C.ink }, 2:{ s:cmS(o.ac), c:C.ink }},
+                rights:[2], fill:C.kinL, stroke:C.kin });
+  sceneTitle(cv, (C2[0]+B2[0])/2, 130+32, o.N);
+  return cvFin(cv, 330, 8, "池を はさんだ きょりと 縮図");
+}
+var RIYOU_D = { 200:[6,8,10,12], 500:[10,15,20,25], 1000:[20,30,40,50] };
+function riyouTree(){
+  var obj = pick(["木","木","校舎"]), rad = Math.PI/180;
+  var N = 500, D = 15, th = 35, b = 3, h = 2.1, t;
+  for(t=0;t<60;t++){
+    var N2 = pick([200,500,1000]), D2 = pick(RIYOU_D[N2]), th2 = pick([30,35,40,45,50,55,60]);
+    var b2 = D2*100/N2, h2 = rnd(b2*Math.tan(th2*rad),1), H2 = h2*N2/100;
+    if(h2 >= 1 && H2 >= 4 && H2 <= 40){ N = N2; D = D2; th = th2; b = b2; h = h2; break; }
+  }
+  var e = pick([1.2,1.3,1.4,1.5]), up = rnd(h*N/100,4), ans = rnd(up+e,4);
+  var fig = treeFig({ obj:obj, th:th, D:D, e:e, N:N, b:b, h:h });
+  return mk({
+    key:"riyou", tag:"縮図の 利用（高さ）",
+    q:obj+"から "+D+"m はなれた ところから "+obj+"の てっぺんを 見上げたら、見上げる 角度は "+th+"° でした。"
+     +"これを "+frHtml(1,N)+"の 縮図に かくと、辺BCは "+nf(h)+"cm でした。<br>"
+     +"目の 高さを "+nf(e)+"m と すると、"+obj+"の 高さは 約 何mですか。",
+    plain:obj+"から"+D+"m、見上げる角"+th+"°。"+frPlain(1,N)+"の縮図で辺BC="+nf(h)+"cm。目の高さ"+nf(e)+"m。"+obj+"の高さは約何m？",
+    fig:fig, label:"約 何m？", u:"m",
+    cor:optNum(ans,"m"),
+    cands:[optNum(up,"m"), optNum(up-e,"m"), optNum(h+e,"m"), optNum(up/10+e,"m"), optNum(up*10+e,"m")],
+    fb:numFallback(ans, 0.1, "m"),
+    expl:step("① 縮図の 辺BC "+nf(h)+"cm を 実際の 長さに："+nf(h)+" × "+N+" ＝ "+nf(h*N)+" cm ＝ "+nf(up)+" m")
+        +step("② これは 目の 高さから 上の 部分。目の 高さを たす："+nf(up)+" ＋ "+nf(e)+" ＝ <b>"+nf(ans)+" m</b>"),
+    kufu:"縮図で 求めたのは 目の 高さから 上の 部分だけ。さいごに 目の 高さ（"+nf(e)+"m）を たすのを わすれずに。",
+    chk:{ ans:ans }
+  });
+}
+function riyouRiver(){
+  var rad = Math.PI/180, N = 1000, D = 40, th = 50, bc = 4, ab = 4.8, t;
+  for(t=0;t<40;t++){
+    var N2 = pick([500,1000]), D2 = pick(RIYOU_D[N2]), th2 = pick([35,40,45,50,55,60]);
+    var bc2 = D2*100/N2, ab2 = rnd(bc2*Math.tan(th2*rad),1);
+    if(ab2 >= 1.5 && ab2 <= 8){ N = N2; D = D2; th = th2; bc = bc2; ab = ab2; break; }
+  }
+  var ans = rnd(ab*N/100,4);
+  return mk({
+    key:"riyou", tag:"縮図の 利用（川はば）",
+    q:"川はばを 調べるため、向こう岸の 木の 根もとを A、こちらの 岸に B と C を 決めました（角B ＝ 90°）。"
+     +"BC ＝ "+D+"m、角C ＝ "+th+"° でした。"+frHtml(1,N)+"の 縮図を かくと、AB は "+nf(ab)+"cm でした。<br>"
+     +"川はば AB は 約 何mですか。",
+    plain:"川はば。BC="+D+"m、角B=90°、角C="+th+"°。"+frPlain(1,N)+"の縮図でAB="+nf(ab)+"cm。ABは約何m？",
+    fig:riverFig({ th:th, D:D, N:N, bc:bc, ab:ab }), label:"約 何m？", u:"m",
+    cor:optNum(ans,"m"),
+    cands:[optNum(ab,"m"), optNum(ans*10,"m"), optNum(ans/10,"m"), optNum(D,"m")],
+    fb:numFallback(ans, stepOf(ans), "m"),
+    expl:step("① 縮尺は "+frHtml(1,N)+" だから、実際の 長さは 縮図の "+N+"倍")
+        +step("② "+nf(ab)+" × "+N+" ＝ "+nf(ab*N)+" cm ＝ <b>"+nf(ans)+" m</b>"),
+    kufu:"川の ように 直接 はかれない 長さも、はかれる 長さと 角度から 縮図を かけば 求められる。",
+    chk:{ ans:ans }
+  });
+}
+var POND_AB = { 1000:[20,30,40,50,60,70], 500:[15,20,25,30,35] };
+function riyouPond(){
+  var N = pick([500,1000]), list = POND_AB[N], a = 30, b = 40, t;
+  for(t=0;t<20;t++){ var a2 = pick(list), b2 = pick(list); if(a2 !== b2){ a = a2; b = b2; break; } }
+  var ac = a*100/N, bc = b*100/N, ab = rnd(Math.sqrt(ac*ac+bc*bc),1), ans = rnd(ab*N/100,4);
+  return mk({
+    key:"riyou", tag:"縮図の 利用（きょり）",
+    q:"池を はさんだ 2地点 A、B の きょりを 調べるため、地点C から はかったら、CA ＝ "+a+"m、CB ＝ "+b+"m、"
+     +"角C ＝ 90° でした。"+frHtml(1,N)+"の 縮図を かくと、AB は "+nf(ab)+"cm でした。<br>"
+     +"AB の 実際の きょりは 約 何mですか。",
+    plain:"池をはさんだAB。CA="+a+"m、CB="+b+"m、角C=90°。"+frPlain(1,N)+"の縮図でAB="+nf(ab)+"cm。ABは約何m？",
+    fig:pondFig({ a:a, b:b, N:N, ac:ac, bc:bc, ab:ab }), label:"約 何m？", u:"m",
+    cor:optNum(ans,"m"),
+    cands:[optNum(a+b,"m"), optNum(ab,"m"), optNum(ans*10,"m"), optNum(ans/10,"m")],
+    fb:numFallback(ans, stepOf(ans), "m"),
+    expl:step("① 縮尺は "+frHtml(1,N)+" だから、実際の 長さは 縮図の "+N+"倍")
+        +step("② "+nf(ab)+" × "+N+" ＝ "+nf(ab*N)+" cm ＝ <b>"+nf(ans)+" m</b>"),
+    kufu:"CA と CB を たした "+(a+b)+"m では ない。まっすぐの きょりは 縮図を かいて はかる。",
+    chk:{ ans:ans }
+  });
+}
+function gen_riyou(){
+  var r = ri(1,4);
+  return r <= 2 ? riyouTree() : r === 3 ? riyouRiver() : riyouPond();
+}
+
+/* =====================================================================
+   出題の 台帳
+   ===================================================================== */
+var GENS = {
+  mitsukeru:      gen_mitsukeru,
+  nanbai:         gen_nanbai,
+  hen:            gen_hen,
+  kaku:           gen_kaku,
+  chushin:        gen_chushin,
+  shuku_jissai:   gen_shuku_jissai,
+  shuku_chizu:    gen_shuku_chizu,
+  shuku_motomeru: gen_shuku_motomeru,
+  riyou:          gen_riyou
+};
+/* モード → 出す question_key。同じキーを ならべた ぶんだけ 出やすくなる */
+var MODE_KEYS = {
+  mitsukeru:  ["mitsukeru","mitsukeru","nanbai"],
+  henkaku:    ["hen","hen","kaku"],
+  chushin:    ["chushin"],
+  shukushaku: ["shuku_jissai","shuku_jissai","shuku_chizu","shuku_motomeru"],
+  riyou:      ["riyou"],
+  mix:        ["mitsukeru","nanbai","hen","hen","kaku","chushin",
+               "shuku_jissai","shuku_chizu","shuku_motomeru","riyou"]
+};
+/* 印刷シート（1枚）に出す 種類。図の 大きい 問題は 6問、文章だけの 縮尺は 10問。
+   1行に 2問 ずつ 入るので、図を 大きく 刷る 種類（PRINT_TALL）は 同じ 行に まとめる
+   （行の 高さは 高い 方で 決まる。ばらけると 1枚を はみ出す） */
+var PRINT_KEYS = {
+  mitsukeru:  ["mitsukeru","mitsukeru","mitsukeru","mitsukeru","nanbai","nanbai"],
+  henkaku:    ["hen","hen","hen","hen","kaku","kaku"],
+  chushin:    ["chushin","chushin","chushin","chushin","chushin","chushin"],
+  shukushaku: ["shuku_jissai","shuku_jissai","shuku_jissai","shuku_jissai","shuku_chizu",
+               "shuku_chizu","shuku_chizu","shuku_motomeru","shuku_motomeru","shuku_motomeru"],
+  riyou:      ["riyou","riyou","riyou","riyou","riyou","riyou"],
+  mix:        ["mitsukeru","kaku","hen","shuku_jissai","chushin","riyou"]
+};
+/* 紙で 図を 大きく 刷る 種類：方眼の 4択（マスを 数える）と 角（もとの 図に 角度を
+   書くので たてに ならべた 正方形に 近い 図＝44mm だと 文字が 2mm を 切る） */
+var PRINT_TALL = { mitsukeru:true, kaku:true };
+/* 印刷の 見出しに 出す 短い 名前（長いと 名前欄と ぶつかって 見出しが 2行に なる） */
+var PRINT_LABEL = {
+  mitsukeru:"拡大図・縮図を見つける", henkaku:"辺の長さと角", chushin:"点を中心にしてかく",
+  shukushaku:"縮尺", riyou:"縮図の利用", mix:"ランダム"
+};
+var PRINT_INST = {
+  mitsukeru:"次の 問題に 答えましょう。方眼の マスの 数を 数えて 考えましょう。",
+  henkaku:"次の 問題に 答えましょう。対応する 辺や 角を 見つけて 考えましょう。",
+  chushin:"次の 問題に 答えましょう。中心から 頂点までの マスの 数や 長さを 考えましょう。",
+  shukushaku:"次の 問題に 答えましょう。単位（cm・m・km）に 気をつけましょう。",
+  riyou:"次の 問題に 答えましょう。",
+  mix:"次の 問題に 答えましょう。"
+};
+var MODE_LABEL = {
+  mitsukeru:"拡大図・縮図を 見つける",
+  henkaku:"辺の 長さと 角の 大きさ",
+  chushin:"1つの 点を 中心に して かく",
+  shukushaku:"縮尺",
+  riyou:"縮図を 使って 長さを 求める",
+  mix:"ランダム"
+};
+
+/* =====================================================================
+   出題エンジン（平均マスター・比マスターと同じ）
+   ===================================================================== */
+var MODE = "mitsukeru";
+var cur = null, curKey = "", curSeed = 0;
+var sel = -1, graded = false;
+var score = 0, total = 0, streak = 0, qStart = 0;
+
+/* 解き直し（?retry=1） */
+var retryQ = null, retryTotal = 0, retryDone = 0;
+
+function $(id){ return document.getElementById(id); }
+
+function makeQ(key, seed){
+  rngSeed(seed);                       /* ここから先の乱数は種で決まる */
+  return GENS[key]();
+}
+
+function newQuestion(){
+  graded = false; sel = -1;
+  $("feedback").classList.remove("show");
+  $("toast").textContent = "";
+  $("checkBtn").style.display = "block";
+  $("nextBtn").style.display = "none";
+
+  var useKey, seed;
+  if(retryQ){
+    /* 解き直しを1周した。モード選択にもどって、案内帯を そこに 出す */
+    if(!retryQ.length){
+      retryQ = null;
+      backHome();
+      showRetryBanner("解き直し おつかれさま！ 同じ問題に 2回つづけて 正解すると リストから 消えるよ");
+      return;
+    }
+    var it = retryQ.shift();
+    retryDone++;
+    useKey = it.question_params.m;
+    seed = it.question_params.s>>>0;
+  }else{
+    useKey = pick(MODE_KEYS[MODE] || MODE_KEYS.mitsukeru);
+    seed = rngPick();
+  }
+
+  curKey = useKey;
+  curSeed = seed;
+  cur = makeQ(useKey, seed);
+
+  /* 種類バッヂ。ランダムは 種類名が そのまま ヒントに なるので 出さない */
+  var tagText = retryQ ? ("解き直し "+retryDone+" / "+retryTotal+" ・ "+cur.tag)
+                       : (MODE === "mix" ? "" : cur.tag);
+  $("qTag").textContent = tagText;
+  $("qTag").style.display = tagText ? "" : "none";
+  $("qNo").textContent = retryQ ? "" : ("第 "+(total+1)+" 問");
+  $("qText").innerHTML = cur.qHtml;
+  $("figArea").innerHTML = cur.fig || "";
+  renderOptions();
+  qStart = nowMs();
+  try{ window.scrollTo({ top:0, behavior:"smooth" }); }catch(e){ window.scrollTo(0,0); }
+}
+
+function renderOptions(){
+  var host = $("partArea");
+  host.innerHTML = "";
+  var wrap = document.createElement("div");
+  wrap.className = "part";
+
+  var lab = document.createElement("div");
+  lab.className = "p-label";
+  lab.textContent = cur.label;
+  wrap.appendChild(lab);
+
+  var opts = document.createElement("div");
+  opts.className = "opts";
+  cur.options.forEach(function(o, oi){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "optBtn";
+    b.dataset.idx = oi;
+    b.innerHTML = o.html;          /* 中身は この画面で 組み立てた 数字と 単位だけ */
+    b.addEventListener("click", function(){ tapOption(oi); });
+    opts.appendChild(b);
+  });
+  wrap.appendChild(opts);
+  host.appendChild(wrap);
+}
+
+function tapOption(oi){
+  if(graded) return;
+  sel = oi;
+  $("toast").textContent = "";
+  document.querySelectorAll(".optBtn").forEach(function(b){
+    b.classList.toggle("on", Number(b.dataset.idx) === oi);
+  });
+}
+
+/* ---------- 答え合わせ ---------- */
+function check(){
+  if(graded || !cur) return;
+  if(sel < 0){ $("toast").textContent = "答えを えらんでね"; return; }
+
+  graded = true;
+  var ok = (sel === cur.correct);
+  var btns = document.querySelectorAll(".optBtn");
+  safeDivp("markChoices", btns, { correct:cur.correct, selected:sel,
+                                  dimOthers:true, label:"正解" });
+  btns.forEach(function(b){ b.disabled = true; });
+
+  total++;
+  if(ok){ score++; streak++; } else { streak = 0; }
+  renderScore();
+
+  var sec = Math.round((nowMs()-qStart)/1000);
+  /* 学習記録（未ログイン・ローカルでは黙ってスキップされる）。
+     図が無いと 解けない 問題は question_figure も 渡す（誤答のときだけ保存され、
+     teacher.php の 解き直しプリントに 出る＝CLAUDE.md 2b） */
+  safeDivp("answer", ok, {
+    question_key: curKey,
+    question_params: { m: curKey, s: curSeed },     /* 種方式：この2つで同じ問題を作り直せる */
+    question_text: cur.plainQ,
+    question_figure: cur.fig || null,
+    correct_answer: cur.ansText,
+    wrong_answer: ok ? null : cur.options[sel].plain,
+    time_taken_sec: (sec > 0 && sec < 600) ? sec : null
+  });
+
+  $("fbMsg").className = "fb-msg " + (ok ? "good" : "bad");
+  $("fbMsg").textContent = ok ? "せいかい！ よくできました" : "おしい！ とき方を 見てみよう";
+  $("expl").innerHTML = cur.expl;
+  $("feedback").classList.add("show");
+  $("checkBtn").style.display = "none";
+  $("nextBtn").style.display = "block";
+  $("toast").textContent = "";
+
+  /* 正解エフェクト（キラキラ）。pileBottom で「山の床」を ボタンの帯の 上に する
+     （わたさないと 不透明な #bottom が 積もりはじめを まるごと かくす） */
+  if(ok) safeDivp("correct", { pileBottom: "#bottom" });
+}
+
+function renderScore(){
+  $("scoreOk").textContent = score;
+  $("scoreAll").textContent = total;
+  $("scoreStreak").textContent = streak;
+}
+
+/* ---------- モード選択 ---------- */
+function startMode(m){
+  if(!MODE_KEYS[m]) return;
+  MODE = m;
+  retryQ = null;
+  score = 0; total = 0; streak = 0;
+  renderScore();
+  $("modeLabel").textContent = MODE_LABEL[m] || "";
+  document.body.classList.remove("choosing");
+  newQuestion();
+}
+function backHome(){
+  document.body.classList.add("choosing");
+  retryQ = null;
+  cur = null;
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+
+/* ---------- 解き直し（?retry=1） ---------- */
+function showRetryBanner(msg){
+  var slot = $("retryBannerSlot");
+  var e = $("retryBanner");
+  if(!e){
+    e = document.createElement("div");
+    e.id = "retryBanner";
+    slot.appendChild(e);
+  }
+  e.textContent = msg;
+}
+function initRetry(){
+  if(!(window.Divp && typeof Divp.getRetries === "function")) return;
+  Divp.getRetries().then(function(items){
+    var use = (items||[]).filter(function(it){
+      var p = it && it.question_params;
+      return p && GENS[p.m] && typeof p.s === "number";
+    });
+    if(!use.length){
+      showRetryBanner("解き直せる 問題は まだ ありません。まちがえた 問題が ここに たまっていくよ。");
+      return;
+    }
+    retryQ = use.slice();
+    retryTotal = retryQ.length;
+    retryDone = 0;
+    MODE = "retry";
+    score = 0; total = 0; streak = 0;
+    renderScore();
+    $("modeLabel").textContent = "まちがえた問題の 解き直し";
+    document.body.classList.remove("choosing");
+    newQuestion();
+  }).catch(function(){});
+}
+
+/* =====================================================================
+   印刷（A4・問題＋答え）。紙は 毎回 ちがう 問題で よいので 1問ごとに 種を 引く。
+   画面の 問題と 同じ 生成関数を 使うので、問題の 中身・図・答え・とき方は 画面と 一致する。
+   ⚠ makeQ() は 乱数の 状態を 書きかえるが、画面の 問題(cur)は 作り終わっているので 影響しない。
+   ===================================================================== */
+/* 図の たて÷横（図が 無ければ 0） */
+function figAspect(q){
+  var m = q.fig && q.fig.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
+  return m ? Number(m[2])/Number(m[1]) : 0;
+}
+function printItems(mode){
+  var keys = PRINT_KEYS[mode] || PRINT_KEYS.mix, seen = {}, seenTpl = {}, out = [];
+  keys.forEach(function(k){
+    /* 同じ問題は 2つ 並べない。できれば 同じ場面（数字だけ ちがう 文章題）も さける。
+       紙の 図は 高さで おさえるので、たてに 長い 図（拡大図を たてに ならべた 図）ほど
+       文字が 小さく なる。何問か 作って、横に 長い 図の 問題を えらぶ */
+    var q = null, best = null, bestScore = 1e9;
+    for(var t=0; t<30; t++){
+      q = makeQ(k, rngPick());
+      if(seen[q.plainQ]) continue;
+      var score = figAspect(q) + (seenTpl[q.plainQ.replace(/[\d.]+/g, "#")] ? 10 : 0);
+      if(score < bestScore){ best = q; bestScore = score; }
+      if(t >= 8 && bestScore < 10) break;
+    }
+    q = best || q;
+    seen[q.plainQ] = 1;
+    seenTpl[q.plainQ.replace(/[\d.]+/g, "#")] = 1;
+    out.push(q);
+  });
+  return out;
+}
+/* 答えのページに出す 「とき方」＝ 画面の 解説の 手順だけ（ポイントは のぞく） */
+function printHow(q){
+  var box = document.createElement("div");
+  box.innerHTML = q.expl;
+  var rm = box.querySelectorAll(".ttl, .kufu");
+  for(var i=0;i<rm.length;i++) rm[i].parentNode.removeChild(rm[i]);
+  var steps = box.querySelectorAll(".step"), s = [];
+  for(i=0;i<steps.length;i++){
+    /* 方眼の 4択は ア〜エの ○× 一覧が 長いので、紙には 正解の 行だけ 残す */
+    var ngs = steps[i].querySelectorAll(".ng");
+    for(var j=0;j<ngs.length;j++) ngs[j].parentNode.removeChild(ngs[j]);
+    var h = steps[i].innerHTML.replace(/<br>/g, "").replace(/<\/?b>/g, "");
+    if(/^答え/.test(steps[i].textContent)) continue;
+    if(h) s.push(h);
+  }
+  return s.join(" → ");
+}
+function buildPrint(mode){
+  var items = printItems(mode);
+  var d = new Date();
+  var dateStr = d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
+  var label = PRINT_LABEL[mode] || PRINT_LABEL.mix;
+  function head(sub){
+    return '<div class="p-head"><div><div class="p-school">中京個別指導学院</div>'
+      + '<div class="p-title">拡大図と縮図マスター<small>'+esc(label)+'　'+sub+'</small></div></div>'
+      + '<div class="p-name">'+dateStr+'　名前<span></span></div></div>';
+  }
+  var qh = items.map(function(q,i){
+    return '<div class="p-item"><span class="p-no">'+(i+1)+'</span><span class="p-tag">'+esc(q.tag)+'</span>'
+      + '<div class="p-q">'+q.qHtml+'</div>'
+      + (q.fig ? '<div class="p-fig'+(PRINT_TALL[q.key] ? " tall" : "")+'">'+q.fig+'</div>' : '')
+      /* ↑ 方眼の 4択（マスを 数える）と 角（たてに 長い 図）は 図を 大きく */
+      + '<div class="p-ans">答え<i></i>'+esc(q.u)+'</div></div>';
+  }).join("");
+  var ah = items.map(function(q,i){
+    return '<div class="a-item"><span class="p-no">'+(i+1)+'</span>'
+      + '<span class="a-v">'+q.options[q.correct].html+'</span>'
+      + '<span class="a-how">'+printHow(q)+'</span></div>';
+  }).join("");
+  var wm = window.ChukyoPrint ? ChukyoPrint.img() : "";
+  return wm
+    + '<div class="sheet">'+head("問題")+'<p class="p-inst">'+esc(PRINT_INST[mode] || PRINT_INST.mix)+'</p>'
+    + '<div class="p-grid">'+qh+'</div></div>'
+    + '<div class="sheet">'+head("答え")+'<div class="a-grid">'+ah+'</div></div>';
+}
+function printSheet(mode){
+  if(!PRINT_KEYS[mode]) mode = "mix";
+  var area = $("printArea");
+  /* 透かしは position:fixed で 1枚だけ 置く＝印刷では どのページにも 同じ位置に 出る */
+  var wmCss = window.ChukyoPrint ? '<style>'+ChukyoPrint.css({ zIndex:0 })+'.wm{position:fixed;}</style>' : "";
+  area.innerHTML = wmCss + buildPrint(mode);
+  /* 透かし画像の デコードを 待ってから 印刷する（直後に print() するとロゴが 抜けることがある） */
+  if(window.ChukyoPrint && ChukyoPrint.print) ChukyoPrint.print(area);
+  else window.print();
+}
+
+/* ---------- イベント ---------- */
+document.querySelectorAll("#printBtns button").forEach(function(b){
+  b.addEventListener("click", function(){ printSheet(b.dataset.mode); });
+});
+$("printBtn").addEventListener("click", function(){ printSheet(MODE); });
+document.querySelectorAll(".m-card").forEach(function(b){
+  b.addEventListener("click", function(){ startMode(b.dataset.mode); });
+});
+$("homeBtn").addEventListener("click", backHome);
+$("checkBtn").addEventListener("click", check);
+$("nextBtn").addEventListener("click", newQuestion);
+
+/* divp-core は defer で読まれるので、DOM構築後に初期化する */
+window.addEventListener("DOMContentLoaded", function(){
+  safeDivp("init", UNIT_KEY);
+  if(/[?&]retry=1/.test(location.search)){
+    try{ initRetry(); }catch(e){}
+  }
+});
+</script>
+</body>
+</html>
