@@ -1,0 +1,2169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="only light">
+<title>比例と反比例マスター｜小6算数 比例と反比例｜中京個別指導学院</title>
+<meta name="description" content="小6算数の比例と反比例を練習。表のあいているところ、式 y＝決まった数×x と y＝決まった数÷x、グラフの読み取り、2つのグラフのくらべ方、比例か反比例かの見分け方、紙の枚数・かげの長さ・歯車・てこなどの利用問題。中京個別指導学院(神丘)の学習ツール。">
+<!-- 本番(Heteml)ではサブセット自己ホストに差し替え -->
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- 印刷シートのロゴ透かし（ChukyoPrint） -->
+<script src="/assets/print-watermark.js"></script>
+<style>
+  :root{
+    --paper:#FBFAF6;
+    --grid:#ECE9E0;
+    --sumi:#33312B;
+    --usuzumi:#8B877C;
+    --shu:#C73E2E;
+    --kin:#C9A227;
+    --ai:#2C5F8A;
+    /* 答え合わせの色は共通モジュール(divp-choice-mark.js)の既定にそろえる */
+    --divp-mark-ok:#3E8E5A;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html{ scrollbar-gutter:stable; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:24px 24px;
+    color:var(--sumi);
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;     /* ⚠ 横並び(row)にしない。共通ヘッダーが左端に縦長の帯になる */
+    touch-action:manipulation;
+  }
+  .app{
+    width:100%;
+    max-width:560px;
+    margin:0 auto;
+    padding:12px 14px calc(90px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    flex:1;
+  }
+
+  /* ---- ヘッダー ---- */
+  header{ display:flex; align-items:center; gap:8px; }
+  header h1{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700; margin:0;
+    letter-spacing:.04em;
+  }
+  header h1 .sub{
+    display:block;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    letter-spacing:.1em;
+  }
+  @media (max-width:420px){
+    header h1{ font-size:15px; letter-spacing:0; white-space:nowrap; }
+  }
+  .mode-back{
+    margin-left:auto;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.5px solid var(--ai);
+    background:#fff;
+    border-radius:8px;
+    padding:5px 9px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .mode-back.next-to{ margin-left:6px; }
+
+  /* ---- スコア ---- */
+  .score{
+    display:flex; align-items:baseline; gap:12px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700; color:var(--usuzumi);
+  }
+  .score b{ color:var(--shu); font-size:17px; }
+  .score .streak b{ color:var(--kin); }
+  .score .qno{ margin-left:auto; color:var(--ai); }
+
+  /* ---- 問題カード ---- */
+  .card{
+    position:relative;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:16px;
+    box-shadow:0 2px 0 rgba(51,49,43,.06);
+    padding:16px 16px 14px;
+  }
+  .card .qtag{
+    display:inline-block;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.2px solid var(--ai);
+    border-radius:999px;
+    padding:2px 10px;
+    margin-bottom:8px;
+    letter-spacing:.06em;
+  }
+  .card .qtext{
+    font-size:16px; line-height:1.85;
+    letter-spacing:.02em;
+  }
+  .card .qtext b{ color:var(--shu); }
+
+  /* x・y の 文字（教科書と 同じく ななめの 文字） */
+  .v{
+    font-family:"Times New Roman", Times, serif;
+    font-style:italic; font-weight:700;
+    font-size:1.12em;
+    padding:0 .06em;
+  }
+  /* ア〜エ の ならび（見分ける 問題） */
+  .sit{ display:block; padding-left:1.6em; text-indent:-1.6em; }
+  .sit .sl{
+    display:inline-block; width:1.6em; text-indent:0;
+    font-family:"Zen Maru Gothic", sans-serif; font-weight:700; color:var(--ai);
+  }
+
+  /* ---- 問題の図 ---- */
+  .figwrap{
+    display:flex; justify-content:center;
+    margin:10px 0 0;
+  }
+  .figwrap:empty{ display:none; }
+  .figwrap svg{
+    width:100%; max-width:330px; height:auto;
+    border-radius:10px;
+  }
+
+  /* ---- 分数（縦組み） ---- */
+  .fr{
+    display:inline-flex; flex-direction:column; align-items:center;
+    vertical-align:middle;
+    line-height:1.12;
+    margin:0 .1em;
+  }
+  .fr .nu{ border-bottom:.08em solid currentColor; padding:0 .18em; }
+  .fr .de{ padding:0 .18em; }
+
+  /* ---- 解答パーツ ---- */
+  .part{ display:flex; flex-direction:column; gap:8px; }
+  .p-label{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700;
+    color:var(--ai);
+    letter-spacing:.04em;
+  }
+  .opts{ display:flex; flex-wrap:wrap; gap:8px; }
+  .optBtn{
+    position:relative;          /* 「正解」バッジの基準（divp-choice-mark.js） */
+    flex:1 1 calc(50% - 4px);
+    min-width:120px;
+    min-height:58px;
+    padding:8px 10px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:11px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:21px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    line-height:1.4;
+  }
+  /* 「比例する／反比例する／どちらでもない」の 3択は 1行に 1つ */
+  .opts.three .optBtn{ flex-basis:100%; min-height:52px; font-size:19px; }
+  .optBtn .u{ font-size:.68em; margin-left:3px; color:var(--usuzumi); }
+  .optBtn.on{
+    background:#FDECE9;
+    border-color:var(--shu);
+    border-bottom-color:var(--shu);
+    color:var(--shu);
+  }
+  .optBtn.on .u{ color:var(--shu); }
+  .optBtn:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .optBtn:disabled{ cursor:default; transform:none; }
+  .optBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- フィードバック ---- */
+  .feedback{ display:none; }
+  .feedback.show{ display:flex; flex-direction:column; gap:10px; }
+  .fb-msg{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    text-align:center;
+    letter-spacing:.06em;
+  }
+  .fb-msg.good{ color:var(--shu); }
+  .fb-msg.bad{ color:var(--ai); }
+  .expl{
+    background:#fff;
+    border:1.5px dashed var(--kin);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:14px; line-height:2.05;
+  }
+  .expl b{ color:var(--shu); }
+  .expl .ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--kin);
+    letter-spacing:.08em;
+    display:block; margin-bottom:4px;
+  }
+  .expl .step{ display:block; }
+  .expl .ok{ color:#3E8E5A; font-weight:700; }
+  .expl .ng{ color:var(--usuzumi); }
+  .expl .kufu{
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px dashed var(--grid);
+    font-size:13px; color:var(--ai);
+  }
+  .toast{
+    text-align:center;
+    font-size:13px; font-weight:700; color:var(--ai);
+    min-height:20px;
+  }
+
+  /* ---- 下の大きなボタン ---- */
+  .bottom{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--paper) 62%, rgba(251,250,246,0));
+    z-index:20;
+  }
+  .bottom .inner{ max-width:560px; margin:0 auto; }
+  .bigBtn{
+    width:100%;
+    height:54px;
+    border:none;
+    border-radius:13px;
+    background:var(--shu);
+    color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    letter-spacing:.2em; text-indent:.2em;
+    box-shadow:0 3px 0 #9E2F22;
+    cursor:pointer;
+  }
+  .bigBtn:active{ transform:translateY(2px); box-shadow:0 1px 0 #9E2F22; }
+  .bigBtn.next{ background:var(--ai); box-shadow:0 3px 0 #1E466A; }
+  .bigBtn.next:active{ box-shadow:0 1px 0 #1E466A; }
+  .bigBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- モード選択画面（拡大図と縮図マスター・比マスターと同じ作り） ---- */
+  .mode-screen{ display:none; }
+  body.choosing .app,
+  body.choosing .bottom{ display:none; }
+  body.choosing .mode-screen{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:100%;
+    max-width:520px;
+    margin:0 auto;
+    padding:34px 18px 48px;
+  }
+  .m-logo{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:25px; font-weight:700;
+    text-align:center;
+    letter-spacing:.08em;
+  }
+  .m-sub{
+    text-align:center;
+    font-size:13px; color:var(--usuzumi);
+    margin-bottom:8px;
+  }
+  .m-card{
+    display:flex; align-items:center; gap:13px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:4px solid #D8D4C8;
+    border-radius:16px;
+    padding:14px 16px;
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;
+    color:inherit;
+    width:100%;
+  }
+  .m-card:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .m-card.chal{ border-color:#BFD4C6; border-bottom-color:#8FB9A0; background:#F7FBF8; }
+  .m-card.mix{ border-color:var(--kin); border-bottom-color:var(--kin); }
+  .m-ico{ flex:none; width:46px; height:40px; }
+  .m-ico svg{ width:46px; height:40px; display:block; }
+  .m-sep{
+    display:flex; align-items:center; gap:8px;
+    margin-top:14px;
+    font-size:11.5px; color:var(--usuzumi); letter-spacing:.06em;
+  }
+  .m-sep::before, .m-sep::after{
+    content:""; flex:1; height:1px; background:var(--grid);
+  }
+  .m-body{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .m-name{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700;
+  }
+  .m-desc{ font-size:11.5px; color:var(--usuzumi); line-height:1.5; }
+
+  /* メニューは 3枚（はじめ／比例／反比例）。見えているのは 1枚だけ */
+  .m-page{ display:flex; flex-direction:column; gap:10px; }
+  .m-page[hidden]{ display:none; }
+  .m-open .m-body{ flex:1; }
+  .m-arrow{
+    flex:none;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:26px; font-weight:700; line-height:1;
+    color:var(--usuzumi);
+  }
+  .m-back{
+    align-self:flex-start;
+    background:none; border:none;
+    padding:4px 2px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:14px; font-weight:700;
+    color:var(--ai);
+    cursor:pointer;
+  }
+  .m-head{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:20px; font-weight:700;
+    padding:2px 0 4px 10px;
+    border-left:5px solid var(--shu);
+  }
+  .m-head.hanpi{ border-left-color:var(--ai); }
+
+  /* 解き直し(?retry=1)の案内帯 */
+  #retryBanner{
+    background:#FBF3E0;
+    border:1.5px solid var(--kin);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:12.5px; line-height:1.6;
+    color:#6E5518;
+  }
+
+  /* 積もったキラキラ(divp-correct-kirakira の pile, z-index:5)にうもれないように。
+     モジュール側の :where() は詳細度0で、div/span だけで組んだ帯は
+     セレクタから漏れるため、画面の直下の子をまとめて前面に出しておく */
+  .divp-header{ position:relative; z-index:11; }
+  .app > *, .mode-screen > *, .feedback > *{ position:relative; z-index:10; }
+
+  /* ---- モード画面の「プリントを 印刷する」 ---- */
+  .m-print{
+    background:#fff;
+    border:1.5px dashed #CFC9B8;
+    border-radius:16px;
+    padding:12px 14px 14px;
+  }
+  .m-print-ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:15px; font-weight:700;
+    margin-bottom:9px;
+  }
+  .m-print-ttl span{
+    display:block;
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    margin-top:1px;
+  }
+  .m-print-btns{ display:flex; flex-wrap:wrap; gap:7px; }
+  .m-print-btns button{
+    flex:1 1 calc(33% - 7px);
+    min-width:92px; min-height:40px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:10px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13.5px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+  }
+  .m-print-btns button:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+
+  /* ---- 印刷シート ---- */
+  .print-area{ display:none; }
+  @media print{
+    @page{ size:A4 portrait; margin:10mm 11mm; }
+    /* 共通ヘッダーは紙に出さない（assets/divp-header.js と同じ方針） */
+    .divp-header{ display:none !important; }
+    .mode-screen, .app, .bottom,
+    #divp-kk-layer, #divp-kk-pile, .divp-kk-layer, .divp-kk-canvas, .divp-kk-text{ display:none !important; }
+    html, body{ background:#fff !important; min-height:0 !important; }
+    body{ display:block !important; }
+    .print-area{ display:block !important; color:#222; font-family:"Zen Kaku Gothic New", sans-serif; }
+    .sheet{ position:relative; page-break-after:always; break-after:page;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .sheet:last-child{ page-break-after:auto; break-after:auto; }
+    .p-head{ position:relative; z-index:1; display:flex; justify-content:space-between; align-items:flex-end;
+      border-bottom:2px solid #33312B; padding-bottom:4px; margin-bottom:6px; }
+    .p-school{ font-size:11px; font-weight:700; color:#555; }
+    .p-title{ font-family:"Zen Maru Gothic", sans-serif; font-weight:700; font-size:20px; margin-top:1px; }
+    .p-title small{ font-size:13px; margin-left:8px; color:#555; }
+    .p-name{ font-size:12px; white-space:nowrap; }
+    .p-name span{ display:inline-block; border-bottom:1px solid #000; min-width:170px; margin-left:6px; }
+    .p-inst{ position:relative; z-index:1; font-size:11.5px; margin:0 0 6px; }
+    .p-grid{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:2.5mm 7mm; }
+    .p-item{ break-inside:avoid; page-break-inside:avoid; padding:1mm 1mm 0; }
+    .p-no{ display:inline-block; font-weight:700; font-size:12px; background:#33312B; color:#fff;
+      border-radius:5px; padding:0 7px; margin-right:4px; }
+    .p-tag{ font-size:9.5px; color:#777; }
+    .p-q{ font-size:11px; line-height:1.55; margin:2px 0 0; }
+    .p-q b{ color:#222; }
+    .p-q .sit .sl{ color:#222; }
+    .p-pch{ font-size:10.5px; color:#444; margin-top:1mm; }
+    /* 図は 列の はば いっぱい。高さで おさえる（viewBox が あるので 縦横比は くずれない）。
+       表は 横長なので 小さく なり、グラフ（.tall）は 目もりを 読むので 大きく する */
+    .p-fig{ margin:1.2mm 0 0; }
+    .p-fig svg{ display:block; width:100%; height:auto; max-height:34mm; margin:0 auto; }
+    .p-fig.tall svg{ max-height:46mm; }
+    .p-ans{ display:flex; align-items:flex-end; gap:6px; margin-top:1.5mm; font-size:11px; color:#555; }
+    .p-ans i{ flex:1; border-bottom:1px solid #333; height:6.5mm; font-style:normal; }
+    .a-grid{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:2.5mm 7mm; }
+    .a-item{ break-inside:avoid; font-size:12px; line-height:1.6; border-bottom:1px dashed #ccc; padding:1.5mm 0 2mm; }
+    .a-item .a-v{ font-family:"Zen Maru Gothic", sans-serif; font-size:16px; font-weight:700; color:#C73E2E; margin-left:4px; }
+    .a-item .a-v .u{ font-size:.7em; margin-left:2px; }
+    .a-item .a-how{ display:block; font-size:10.5px; color:#555; line-height:1.55; margin-top:1px; }
+  }
+</style>
+</head>
+<body class="choosing" data-theme="es" data-effect="kirakira">
+
+<!-- 共通ヘッダー(ロゴ・ログイン窓)の差し込み先。script は body 直後に置くこと -->
+<div class="divp-header"></div>
+<!-- 学習記録システム共通モジュール -->
+<script src="/assets/divp-core.js" defer></script>
+<script src="/assets/divp-header.js" defer></script>
+<!-- 小学生ツールなので正解演出は星バースト。
+     data-effect="kirakira" なので、都道府県マスターと同じ星が
+     そのまま画面の下に積もっていく（divp-core.js より後ろに置くこと） -->
+<script src="/assets/divp-correct-kirakira.js" defer></script>
+<!-- 選択肢の答え合わせ表示（正解=緑 / 選んだ誤答=朱） -->
+<script src="/assets/divp-choice-mark.js" defer></script>
+
+<div class="mode-screen" id="modeScreen">
+  <div class="m-logo">比例と反比例マスター</div>
+  <div class="m-sub" id="mSub">小6 算数 ／ れんしゅうしたいものを えらんでね</div>
+  <div id="retryBannerSlot"></div>
+
+  <!-- ① はじめの メニュー：比例・反比例・ランダム -->
+  <div class="m-page" data-page="top">
+    <button type="button" class="m-card m-open" data-open="hirei">
+      <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M6,35 H44 M6,35 V3" fill="none" stroke="#8B877C" stroke-width="1.6"/><path d="M6,35 L40,7" fill="none" stroke="#C73E2E" stroke-width="2.6" stroke-linecap="round"/><circle cx="6" cy="35" r="2.4" fill="#33312B"/></svg></span>
+      <span class="m-body"><span class="m-name">比例</span>
+      <span class="m-desc">y ÷ x が いつも 同じ。表・式・値・グラフ・利用</span></span>
+      <span class="m-arrow">›</span>
+    </button>
+
+    <button type="button" class="m-card m-open" data-open="hanpi">
+      <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M6,35 H44 M6,35 V3" fill="none" stroke="#8B877C" stroke-width="1.6"/><path d="M10,4 C12,24 20,31 43,32" fill="none" stroke="#2C5F8A" stroke-width="2.6" stroke-linecap="round"/></svg></span>
+      <span class="m-body"><span class="m-name">反比例</span>
+      <span class="m-desc">x × y が いつも 同じ。表・式・値・グラフ・利用</span></span>
+      <span class="m-arrow">›</span>
+    </button>
+
+    <button type="button" class="m-card mix" data-mode="mix">
+      <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M14,4 V35 M22,4 V35 M30,4 V35 M38,4 V35 M6,11 H44 M6,19 H44 M6,27 H44" stroke="#ECE9E0" stroke-width="1.2"/><path d="M6,35 H44 M6,35 V3" fill="none" stroke="#8B877C" stroke-width="1.6"/><path d="M6,35 L38,11" fill="none" stroke="#C73E2E" stroke-width="2.4" stroke-linecap="round"/><path d="M11,4 C13,22 22,29 43,30" fill="none" stroke="#2C5F8A" stroke-width="2.4" stroke-linecap="round"/></svg></span>
+      <span class="m-body"><span class="m-name">ランダム</span>
+      <span class="m-desc">比例と 反比例を ごちゃまぜで 出題。見分ける 問題も 出るよ（しあげ用）</span></span>
+    </button>
+
+    <div class="m-sep">プリントで れんしゅうしたいときは</div>
+    <div class="m-print">
+      <div class="m-print-ttl">🖨 プリントを 印刷する<span>A4・問題＋答えのページ／押すたびに ちがう問題（種類ごとの プリントは 比例・反比例の 中に あるよ）</span></div>
+      <div class="m-print-btns">
+        <button type="button" data-mode="hirei">比例</button>
+        <button type="button" data-mode="hanpi">反比例</button>
+        <button type="button" data-mode="mix">ランダム</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 比例の メニュー -->
+  <div class="m-page" data-page="hirei" hidden>
+    <button type="button" class="m-back" data-open="top">‹ もどる</button>
+    <div class="m-head hirei">比例</div>
+
+    <button type="button" class="m-card" data-mode="hirei_hyou">
+      <span class="m-body"><span class="m-name">比例の 表</span>
+      <span class="m-desc">表の あいている ところ・何倍に なるか・決まった 数</span></span>
+    </button>
+    <button type="button" class="m-card" data-mode="hirei_shiki">
+      <span class="m-body"><span class="m-name">比例の 式</span>
+      <span class="m-desc">y ＝ 決まった数 × x の 式に 表す</span></span>
+    </button>
+    <button type="button" class="m-card" data-mode="hirei_atai">
+      <span class="m-body"><span class="m-name">x や y の 値を 求める</span>
+      <span class="m-desc">1組の x と y から、ほかの x や y の 値を 求める</span></span>
+    </button>
+    <button type="button" class="m-card" data-mode="hirei_graph">
+      <span class="m-body"><span class="m-name">比例の グラフ</span>
+      <span class="m-desc">グラフを 読む・グラフから 式を 作る・2本の グラフを くらべる</span></span>
+    </button>
+    <button type="button" class="m-card chal" data-mode="riyou_hirei">
+      <span class="m-body"><span class="m-name">比例の 利用（チャレンジ）</span>
+      <span class="m-desc">紙や くぎの 数・はり金・かげの 長さ</span></span>
+    </button>
+    <button type="button" class="m-card" data-mode="miwake">
+      <span class="m-body"><span class="m-name">比例？ 反比例？ 見分ける</span>
+      <span class="m-desc">比例・反比例・どちらでもない の どれかな</span></span>
+    </button>
+    <button type="button" class="m-card mix" data-mode="hirei">
+      <span class="m-body"><span class="m-name">比例の ランダム</span>
+      <span class="m-desc">比例の 問題を ごちゃまぜで 出題（見分ける 問題は 出ない）</span></span>
+    </button>
+
+    <div class="m-sep">プリントで れんしゅうしたいときは</div>
+    <div class="m-print">
+      <div class="m-print-ttl">🖨 比例の プリントを 印刷する<span>A4・問題＋答えのページ／押すたびに ちがう問題</span></div>
+      <div class="m-print-btns">
+        <button type="button" data-mode="hirei_hyou">表</button>
+        <button type="button" data-mode="hirei_shiki">式</button>
+        <button type="button" data-mode="hirei_atai">値</button>
+        <button type="button" data-mode="hirei_graph">グラフ</button>
+        <button type="button" data-mode="riyou_hirei">利用</button>
+        <button type="button" data-mode="hirei">ランダム</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 反比例の メニュー -->
+  <div class="m-page" data-page="hanpi" hidden>
+    <button type="button" class="m-back" data-open="top">‹ もどる</button>
+    <div class="m-head hanpi">反比例</div>
+
+    <button type="button" class="m-card" data-mode="hanpi_hyou">
+      <span class="m-body"><span class="m-name">反比例の 表</span>
+      <span class="m-desc">表の あいている ところ・何倍に なるか・決まった 数</span></span>
+    </button>
+    <button type="button" class="m-card" data-mode="hanpi_shiki">
+      <span class="m-body"><span class="m-name">反比例の 式</span>
+      <span class="m-desc">y ＝ 決まった数 ÷ x の 式に 表す</span></span>
+    </button>
+    <button type="button" class="m-card" data-mode="hanpi_atai">
+      <span class="m-body"><span class="m-name">x や y の 値を 求める</span>
+      <span class="m-desc">1組の x と y から、ほかの x や y の 値を 求める</span></span>
+    </button>
+    <button type="button" class="m-card" data-mode="hanpi_graph">
+      <span class="m-body"><span class="m-name">反比例の グラフ</span>
+      <span class="m-desc">グラフを 読む・グラフから 式を 作る・グラフの 形</span></span>
+    </button>
+    <button type="button" class="m-card chal" data-mode="riyou_hanpi">
+      <span class="m-body"><span class="m-name">反比例の 利用（チャレンジ）</span>
+      <span class="m-desc">歯車・速さと 時間・水そう・てこ</span></span>
+    </button>
+    <button type="button" class="m-card" data-mode="miwake">
+      <span class="m-body"><span class="m-name">比例？ 反比例？ 見分ける</span>
+      <span class="m-desc">比例・反比例・どちらでもない の どれかな</span></span>
+    </button>
+    <button type="button" class="m-card mix" data-mode="hanpi">
+      <span class="m-body"><span class="m-name">反比例の ランダム</span>
+      <span class="m-desc">反比例の 問題を ごちゃまぜで 出題（見分ける 問題は 出ない）</span></span>
+    </button>
+
+    <div class="m-sep">プリントで れんしゅうしたいときは</div>
+    <div class="m-print">
+      <div class="m-print-ttl">🖨 反比例の プリントを 印刷する<span>A4・問題＋答えのページ／押すたびに ちがう問題</span></div>
+      <div class="m-print-btns">
+        <button type="button" data-mode="hanpi_hyou">表</button>
+        <button type="button" data-mode="hanpi_shiki">式</button>
+        <button type="button" data-mode="hanpi_atai">値</button>
+        <button type="button" data-mode="hanpi_graph">グラフ</button>
+        <button type="button" data-mode="riyou_hanpi">利用</button>
+        <button type="button" data-mode="hanpi">ランダム</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <header>
+    <h1>比例と反比例マスター<span class="sub" id="modeLabel">比例</span></h1>
+    <button type="button" class="mode-back" id="printBtn" title="このモードのプリントを印刷">🖨 プリント</button>
+    <button type="button" class="mode-back next-to" id="homeBtn">ホームに戻る</button>
+  </header>
+
+  <div class="score">
+    <span>せいかい <b id="scoreOk">0</b> / <span id="scoreAll">0</span></span>
+    <span class="streak">れんぞく <b id="scoreStreak">0</b></span>
+    <span class="qno" id="qNo"></span>
+  </div>
+
+  <div class="card">
+    <span class="qtag" id="qTag">問題</span>
+    <div class="qtext" id="qText"></div>
+    <div class="figwrap" id="figArea"></div>
+  </div>
+
+  <div id="partArea" style="display:flex;flex-direction:column;gap:14px"></div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="feedback" id="feedback">
+    <div class="fb-msg" id="fbMsg"></div>
+    <div class="expl" id="expl"></div>
+  </div>
+</div>
+
+<!-- 印刷用（画面には出さない。印刷ボタンのたびに 中身を 作りなおす） -->
+<div class="print-area" id="printArea"></div>
+
+<div class="bottom" id="bottom">
+  <div class="inner">
+    <button type="button" class="bigBtn" id="checkBtn">こたえあわせ</button>
+    <button type="button" class="bigBtn next" id="nextBtn" style="display:none">つぎの問題 ➜</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   比例と反比例マスター（算数・小6）
+   unit_key = math_es6_hirei_hanpirei
+
+   ■ メニューと question_key
+     はじめに「比例」「反比例」「ランダム」の 3つ から 選ぶ。
+     比例・反比例の 中は 種類ごとの モード（モード名＝question_key）と、
+     その 中だけの ランダム（モード hirei / hanpi）。
+     比例   → hirei_hyou（表のあいているところ・何倍・決まった数）/
+              hirei_shiki（式 y＝決まった数×x）/ hirei_atai（x や y の値）/
+              hirei_graph（読み取り・式・2本のグラフ・形）/
+              riyou_hirei（紙の枚数・くぎ・かげ・はり金）
+     反比例 → hanpi_hyou / hanpi_shiki（y＝決まった数÷x）/ hanpi_atai /
+              hanpi_graph（読み取り・式・形）/
+              riyou_hanpi（歯車・速さ・水そう・てこ）
+     見分ける → miwake（ことがら1つ・ア〜エから選ぶ・表から）。
+              比例・反比例の 両方の メニューに 置き、○○の ランダムには 入れない
+              （反比例・どちらでもない が 答えに なる 問題なので）
+     ランダム（モード mix）→ 上の ぜんぶ（question_key は実際に出た種類）
+     日本語ラベルは db/seeds/seed_math_es6_hirei_hanpirei.sql で question_catalog へ。
+
+   ■ 解き直し（?retry=1）は「種(seed)方式」＝ CLAUDE.md 2d（拡大図と縮図マスターと同じ）
+     乱数は ri()/pick()/shuffle() に一本化してあり、出題のたびに種を1つ引いて
+     question_params:{m:question_key, s:種} だけを保存する。
+     ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
+       （params_hash は同じままなので解き直し自体は成立する）。
+     ⚠ 生成関数の中で Math.random() を 直接 呼ばないこと（種で 再現できなくなる）。
+     ⚠ sort() に 乱数の 比較関数を 渡さない（並べかえは shuffle() だけ）。
+
+   ■ 図（question_figure）＝ CLAUDE.md 2b
+     表・グラフは ぜんぶ SVG で 描き、画面に出した SVG を そのまま Divp.answer に渡す
+     （誤答のときだけ保存され、解き直しプリントに出る）。
+     色・線は ぜんぶ SVG の 属性で 書く（解き直しプリントには ツールの CSS が無い）。
+     使っているタグ・属性は save_answer.php の FIG_TAGS / FIG_ATTRS の範囲内
+     （svg / g / rect / polygon / polyline / line / circle / text と paint-order・transform。
+     回帰テスト tests/hirei-hanpirei.spec.js が見張る）。
+     式から 答えを 出す 文章題（値・利用の 多く・見分ける）は 図が 要らないので 渡さない。
+
+   ■ question_text は 講師画面で プレーンテキストとして 出る。
+     式は「y＝3×x」「y＝24÷x」と 素の 文字で 書く（{ } \ ^ _ を 入れない＝CLAUDE.md 2a）。
+   ===================================================================== */
+
+var UNIT_KEY = "math_es6_hirei_hanpirei";
+
+/* ---------- 共通モジュールの安全呼び出し（未読込でも壊れない） ---------- */
+function safeDivp(fn){
+  try{
+    if(window.Divp && typeof window.Divp[fn] === "function"){
+      return window.Divp[fn].apply(window.Divp, [].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return null;
+}
+/* 経過時間は端末の時計ではなく performance.now() で測る（CLAUDE.md 5a3） */
+function nowMs(){
+  return (window.performance && typeof performance.now === "function")
+    ? performance.now() : Date.now();
+}
+
+/* ---------- RNG（xorshift32・種から決まった順に出る） ---------- */
+var _rngState = 1;
+function rngSeed(s){ _rngState = (s>>>0) || 1; }
+function rngPick(){ return (Math.floor(Math.random()*4294967296)>>>0) || 1; }  /* 種そのものだけ真の乱数 */
+function rngNext(){
+  var x = _rngState;
+  x ^= x<<13; x >>>= 0; x ^= x>>>17; x ^= x<<5; x >>>= 0;
+  _rngState = x;
+  return x/4294967296;
+}
+function ri(min,max){ return Math.floor(rngNext()*(max-min+1))+min; }
+function pick(arr){ return arr[ri(0,arr.length-1)]; }
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i=a.length-1;i>0;i--){ var j=ri(0,i); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+
+/* ---------- 数のあつかい ---------- */
+function isInt(v){ return Math.abs(v-Math.round(v)) < 1e-9; }
+function rnd(x,d){ var m = Math.pow(10, d == null ? 3 : d); return Math.round(x*m)/m; }
+function nf(x){ return String(rnd(x,3)); }
+/* 小数 d けたで 終わる 数か */
+function decOK(v,d){ var m = Math.pow(10,d); return Math.abs(v*m - Math.round(v*m)) < 1e-6; }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function frHtml(n,d){ return '<span class="fr"><span class="nu">'+n+'</span><span class="de">'+d+'</span></span>'; }
+/* 記録用の 分数（講師画面が F(1/2) を 分数に 描く＝CLAUDE.md 2a） */
+function frPlain(n,d){ return "F("+n+"/"+d+")"; }
+function divisors(n){ var d = []; for(var i=1;i<=n;i++) if(n%i === 0) d.push(i); return d; }
+function without(arr,v){ return arr.filter(function(x){ return x !== v; }); }
+/* 記録用の 文字列を バイト数で 切る（question_text は 255バイト。文字の 途中で 切らない） */
+function capBytes(s,max){
+  var out = "", b = 0;
+  for(var i=0;i<s.length;i++){
+    var c = s.charCodeAt(i), n = c < 0x80 ? 1 : c < 0x800 ? 2 : 3;
+    if(b+n > max) break;
+    out += s.charAt(i); b += n;
+  }
+  return out;
+}
+
+/* ---------- x・y の 文字 ---------- */
+function V(s){ return '<i class="v">'+s+'</i>'; }
+var XV = V("x"), YV = V("y");
+/* 場面の 文の「x」「y」だけを ななめの 文字に する */
+function ctxHtml(s){
+  return esc(s).replace(/(^|[^A-Za-z])([xy])(?=[^A-Za-z]|$)/g, function(m,p,v){ return p+V(v); });
+}
+function ctxPlain(s){ return s.replace(/ /g,""); }
+
+/* ---------- 選択肢 ----------
+   選択肢は {html, plain, key, ok}。key が同じものは 同じ選択肢とみなして 重ねない。
+   plain は 記録用（wrong_answer / correct_answer）。 */
+function optNum(v,u){
+  v = rnd(v,6);
+  var ok = isFinite(v) && v > 0 && decOK(v,3) && v < 1e7;
+  var s = nf(v);
+  return { html: s + (u ? '<span class="u">'+u+'</span>' : ""),
+           plain: s + (u ? " "+u : ""),
+           key: "n"+Math.round(v*1000), ok: ok };
+}
+function optLabel(s){ return { html:s, plain:s, key:"L"+s, ok:true }; }
+/* 何倍（n/d 倍） */
+function optRatio(n,d){
+  return { html:(d === 1 ? n : frHtml(n,d))+'<span class="u">倍</span>',
+           plain:(d === 1 ? n : frPlain(n,d))+"倍", key:"q"+n+"/"+d,
+           ok: n > 0 && d > 0 && isInt(n) && isInt(d) };
+}
+/* 式。kind：
+     mul  y＝a×x（比例）   div  y＝a÷x（反比例）  xdiv y＝x÷a
+     add  y＝x＋a          sub  y＝a－x            xmul x＝a×y
+   ⚠ 比例の 決まった数は 1より 大きい 数だけに する（y＝0.5×x と y＝x÷2 は 同じ式＝正解が 2つになる） */
+var SHIKI = {
+  mul:  function(a){ return { h:YV+" ＝ "+nf(a)+" × "+XV, p:"y＝"+nf(a)+"×x" }; },
+  div:  function(a){ return { h:YV+" ＝ "+nf(a)+" ÷ "+XV, p:"y＝"+nf(a)+"÷x" }; },
+  xdiv: function(a){ return { h:YV+" ＝ "+XV+" ÷ "+nf(a), p:"y＝x÷"+nf(a) }; },
+  add:  function(a){ return { h:YV+" ＝ "+XV+" ＋ "+nf(a), p:"y＝x＋"+nf(a) }; },
+  sub:  function(a){ return { h:YV+" ＝ "+nf(a)+" － "+XV, p:"y＝"+nf(a)+"－x" }; },
+  xmul: function(a){ return { h:XV+" ＝ "+nf(a)+" × "+YV, p:"x＝"+nf(a)+"×y" }; }
+};
+function optShiki(kind,a){
+  var s = SHIKI[kind](rnd(a,6));
+  return { html:s.h, plain:s.p, key:"k"+s.p, ok: isFinite(a) && a > 0 && decOK(a,2) && a < 1e6 };
+}
+function shikiHtml(kind,a){ return SHIKI[kind](a).h; }
+
+/* 正解1つ＋まちがい3つ。cands（ねらった まちがい）を先に使い、足りなければ fb で うめる */
+function buildChoices(cor, cands, fb){
+  var out = [cor], seen = {}, i;
+  seen[cor.key] = 1;
+  function add(c){
+    if(out.length >= 4 || !c || !c.ok || seen[c.key]) return;
+    seen[c.key] = 1; out.push(c);
+  }
+  var cs = shuffle(cands);
+  for(i=0;i<cs.length;i++) add(cs[i]);
+  for(i=0;i<fb.length;i++) add(fb[i]);
+  var arr = shuffle(out);
+  return { options: arr, correct: arr.indexOf(cor) };
+}
+/* 数の答えの うめ草（正解の となりの数） */
+function numFallback(ans, step, u){
+  var a = [];
+  for(var k=1;k<=8;k++){ a.push(optNum(ans+step*k,u)); a.push(optNum(ans-step*k,u)); }
+  return a;
+}
+function stepOf(v){ return decOK(v,0) ? 1 : decOK(v,1) ? 0.1 : 0.01; }
+
+/* 問題を くみたてる（全種類 共通） */
+function mk(o){
+  var ch = o.options ? { options:o.options, correct:o.correct }
+                     : buildChoices(o.cor, o.cands || [], o.fb || []);
+  return {
+    key:o.key, tag:o.tag,
+    qHtml:o.q, plainQ:capBytes(o.plain, 255), fig:o.fig || "",
+    label:o.label, u:o.u || "",
+    pch:o.pch || "",               /* 紙に 書く 選択肢（3択など。画面では 使わない） */
+    options:ch.options, correct:ch.correct,
+    ansText:ch.options[ch.correct].plain,
+    chk:o.chk || null,             /* 回帰テスト用の 中身（画面では 使わない） */
+    expl:'<span class="ttl">とき方</span>' + o.expl
+        + (o.kufu ? '<div class="kufu">💡 ' + o.kufu + '</div>' : "")
+  };
+}
+function step(s){ return '<span class="step">'+s+'</span>'; }
+
+/* =====================================================================
+   SVG の 部品。図の 外わくは 中身（文字の はばの めやすも 入れる）から 決める
+   ＝ 文字が viewBox の 外に はみ出さない。色・線は ぜんぶ 属性で 書く。
+   ===================================================================== */
+var SVGFONT = "Zen Maru Gothic,Hiragino Maru Gothic ProN,HGMaruGothicMPRO,"
+            + "M PLUS Rounded 1c,Yu Gothic,sans-serif";
+var C = {
+  paper:"#FFFDF7", grid:"#DDD7C9", ink:"#33312B", sub:"#8B877C", guide:"#A9A498",
+  shu:"#C73E2E", shuL:"#F6DCD6", ai:"#2C5F8A", aiL:"#E2ECF5",
+  kin:"#B08A16", kinL:"#FBF3E0", mido:"#3E7A4E",
+  bld:"#ECE6D8", bldE:"#8B877C"
+};
+function n2(x){ return Math.round(x*100)/100; }
+/* 文字の はばの めやす */
+function twEst(s,size){
+  var w = 0;
+  for(var i=0;i<s.length;i++) w += (s.charCodeAt(i) < 128 ? 0.6 : 1.0)*size;
+  return w;
+}
+function Cv(){ return { s:"", x0:1e9, y0:1e9, x1:-1e9, y1:-1e9 }; }
+function cvBox(cv,xa,ya,xb,yb){
+  cv.x0 = Math.min(cv.x0, xa, xb); cv.x1 = Math.max(cv.x1, xa, xb);
+  cv.y0 = Math.min(cv.y0, ya, yb); cv.y1 = Math.max(cv.y1, ya, yb);
+}
+function ptsStr(P){ return P.map(function(p){ return n2(p[0])+","+n2(p[1]); }).join(" "); }
+function cvPoly(cv,P,fill,stroke,sw){
+  P.forEach(function(p){ cvBox(cv,p[0],p[1],p[0],p[1]); });
+  cv.s += '<polygon points="'+ptsStr(P)+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+(sw||2)
+        + '" stroke-linejoin="round"/>';
+}
+function cvLine(cv,a,b,color,sw,dash){
+  cvBox(cv,a[0],a[1],b[0],b[1]);
+  cv.s += '<line x1="'+n2(a[0])+'" y1="'+n2(a[1])+'" x2="'+n2(b[0])+'" y2="'+n2(b[1])+'" stroke="'+color
+        + '" stroke-width="'+(sw||1.5)+'" stroke-linecap="round"'+(dash ? ' stroke-dasharray="'+dash+'"' : '')+'/>';
+}
+function cvPl(cv,P,color,sw){
+  P.forEach(function(p){ cvBox(cv,p[0],p[1],p[0],p[1]); });
+  cv.s += '<polyline points="'+ptsStr(P)+'" fill="none" stroke="'+color+'" stroke-width="'+(sw||1.4)
+        + '" stroke-linejoin="round" stroke-linecap="round"/>';
+}
+function cvRect(cv,x,y,w,h,fill,stroke,sw){
+  cvBox(cv,x,y,x+w,y+h);
+  cv.s += '<rect x="'+n2(x)+'" y="'+n2(y)+'" width="'+n2(w)+'" height="'+n2(h)+'" fill="'+fill+'"'
+        + (stroke ? ' stroke="'+stroke+'" stroke-width="'+(sw||1)+'"' : '')+'/>';
+}
+function cvDot(cv,p,r,fill,stroke,sw){
+  cvBox(cv,p[0]-r,p[1]-r,p[0]+r,p[1]+r);
+  cv.s += '<circle cx="'+n2(p[0])+'" cy="'+n2(p[1])+'" r="'+n2(r)+'" fill="'+fill+'"'
+        + (stroke ? ' stroke="'+stroke+'" stroke-width="'+(sw||1.5)+'"' : '')+'/>';
+}
+/* 文字。まわりに 紙色の ふちを つけて、線の 上でも 読めるように する。
+   italic：x・y の 文字（教科書と 同じ ななめの 字） */
+function cvTx(cv,x,y,s,color,anchor,size,italic){
+  size = size || 13; anchor = anchor || "middle";
+  var w = twEst(s,size), xl = anchor === "start" ? x : anchor === "end" ? x-w : x-w/2;
+  cvBox(cv, xl-2, y-size*0.68, xl+w+2, y+size*0.68);
+  cv.s += '<text x="'+n2(x)+'" y="'+n2(y)+'" text-anchor="'+anchor+'" dominant-baseline="middle"'
+        + ' font-size="'+size+'" font-weight="700" font-family="'
+        + (italic ? "Times New Roman,Times,serif" : SVGFONT)+'"'+(italic ? ' font-style="italic"' : '')
+        + ' fill="'+color+'" paint-order="stroke" stroke="'+C.paper+'" stroke-width="4" stroke-linejoin="round">'
+        + esc(s)+'</text>';
+}
+/* できあがり。minW より せまい 図は 左右に 余白を 足して 中央に おく */
+function cvFin(cv,minW,pad,aria){
+  pad = (pad == null) ? 8 : pad;
+  var bw = cv.x1-cv.x0, bh = cv.y1-cv.y0;
+  var W = Math.max(minW || 0, bw+pad*2), H = bh+pad*2;
+  var dx = (W-bw)/2 - cv.x0, dy = pad - cv.y0;
+  return '<svg viewBox="0 0 '+n2(W)+' '+n2(H)+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="'+esc(aria || "問題の図")+'">'
+       + '<rect x="0" y="0" width="'+n2(W)+'" height="'+n2(H)+'" fill="'+C.paper+'"/>'
+       + '<g transform="translate('+n2(dx)+' '+n2(dy)+')">'+cv.s+'</g></svg>';
+}
+
+/* ---------- 表（x の 行と y の 行）----------
+   T = { xh, yh, xs:[文字], ys:[文字] }。「ア」「イ」は 朱、「⋯」は うすく */
+function tableFig(T, aria){
+  var cv = Cv(), fs = 14, n = T.xs.length, i, r;
+  var hw = Math.max(twEst(T.xh,13), twEst(T.yh,13)) + 18, cw = 38, rh = 32;
+  for(i=0;i<n;i++) cw = Math.max(cw, twEst(String(T.xs[i]),fs)+14, twEst(String(T.ys[i]),fs)+14);
+  var W = hw + cw*n;
+  cvRect(cv, 0, 0, hw, rh*2, C.kinL);
+  cvLine(cv, [0,rh], [W,rh], C.ink, 1);
+  for(i=0;i<=n;i++) cvLine(cv, [hw+cw*i,0], [hw+cw*i,rh*2], C.ink, i === 0 ? 1.4 : 1);
+  cvRect(cv, 0, 0, W, rh*2, "none", C.ink, 1.6);
+  cvTx(cv, hw/2, rh/2, T.xh, C.ink, "middle", 13);
+  cvTx(cv, hw/2, rh*1.5, T.yh, C.ink, "middle", 13);
+  for(i=0;i<n;i++){
+    for(r=0;r<2;r++){
+      var s = String(r === 0 ? T.xs[i] : T.ys[i]), col = C.ink;
+      if(s === "ア" || s === "イ") col = C.shu;
+      else if(s === "⋯") col = C.sub;
+      if(s !== "") cvTx(cv, hw+cw*i+cw/2, rh*r+rh/2, s, col, "middle", fs);
+    }
+  }
+  return cvFin(cv, 300, 6, aria || "x と y の 表");
+}
+
+/* ---------- グラフ ----------
+   o = { xmax, ymax, gx, gy（方眼の 1目もり）, lx, ly（数を 書く 間かく）, xn, yn（軸の 名前）,
+         lines:[{ pts:[[x,y]…], color, name }], dots:[[x,y]…], W, H } */
+function graphFig(o){
+  var cv = Cv(), W = o.W || 240, H = o.H || 200, i;
+  var X = function(x){ return x/o.xmax*W; }, Y = function(y){ return H - y/o.ymax*H; };
+  var nx = Math.round(o.xmax/o.gx), ny = Math.round(o.ymax/o.gy);
+  for(i=1;i<=nx;i++) cvLine(cv, [X(i*o.gx),0], [X(i*o.gx),H], C.grid, 0.9);
+  for(i=1;i<=ny;i++) cvLine(cv, [0,Y(i*o.gy)], [W,Y(i*o.gy)], C.grid, 0.9);
+  cvLine(cv, [0,H], [W+12,H], C.ink, 1.6);
+  cvLine(cv, [0,H], [0,-12], C.ink, 1.6);
+  cvPoly(cv, [[W+18,H],[W+10,H-4],[W+10,H+4]], C.ink, C.ink, 1);
+  cvPoly(cv, [[0,-18],[-4,-10],[4,-10]], C.ink, C.ink, 1);
+  for(i=1; i*o.lx <= o.xmax+1e-9; i++) cvTx(cv, X(i*o.lx), H+13, nf(i*o.lx), C.ink, "middle", 11.5);
+  for(i=1; i*o.ly <= o.ymax+1e-9; i++) cvTx(cv, -6, Y(i*o.ly), nf(i*o.ly), C.ink, "end", 11.5);
+  cvTx(cv, -7, H+12, "0", C.ink, "middle", 11.5);
+  cvTx(cv, W+22, H, "x", C.ink, "start", 15, true);
+  if(o.xn) cvTx(cv, W+31, H, o.xn, C.ink, "start", 11.5);
+  cvTx(cv, 8, -20, "y", C.ink, "start", 15, true);
+  if(o.yn) cvTx(cv, 17, -20, o.yn, C.ink, "start", 11.5);
+  (o.lines || []).forEach(function(L){
+    cvPl(cv, L.pts.map(function(p){ return [X(p[0]), Y(p[1])]; }), L.color, 2.4);
+    if(L.name){
+      var e = L.pts[L.pts.length-1];
+      cvTx(cv, X(e[0])+7, Y(e[1]), L.name, L.color, "start", 13);
+    }
+  });
+  (o.dots || []).forEach(function(p){ cvDot(cv, [X(p[0]),Y(p[1])], 3.4, C.ai, C.paper, 1.2); });
+  return cvFin(cv, 300, 10, o.aria || "グラフ");
+}
+
+/* ---------- ア〜エ の 小さな グラフ（形だけ。数は 書かない）----------
+   形は 0〜1 の 座標で 持つ（v は 上むきが ＋） */
+var SHAPES = {
+  prop: function(){ return [[0,0],[0.9,0.86]]; },                       /* 0 を 通る まっすぐな 線 */
+  aff:  function(){ return [[0,0.32],[0.9,0.94]]; },                    /* 0 を 通らない まっすぐな 線 */
+  decr: function(){ return [[0,0.86],[0.86,0]]; },                      /* まっすぐ へる 線（和が 一定） */
+  hanpi:function(){ var P = []; for(var i=0;i<=30;i++){ var u = 0.13*Math.pow(0.95/0.13, i/30); P.push([u, 0.12/u]); } return P; },
+  para: function(){ var P = []; for(var i=0;i<=20;i++){ var u = 0.92*i/20; P.push([u, 1.05*u*u]); } return P; }
+};
+var KANA4 = ["ア","イ","ウ","エ"];
+function panelsFig(shapes, aria){
+  var cv = Cv(), pw = 116, ph = 86, gx = 56, gy = 46, k;
+  for(k=0;k<shapes.length;k++){
+    var ox = (k%2)*(pw+gx), oy = Math.floor(k/2)*(ph+gy), i;
+    for(i=1;i<=4;i++){
+      cvLine(cv, [ox+pw*i/4.4, oy], [ox+pw*i/4.4, oy+ph], C.grid, 0.8);
+      cvLine(cv, [ox, oy+ph-ph*i/4.4], [ox+pw, oy+ph-ph*i/4.4], C.grid, 0.8);
+    }
+    cvLine(cv, [ox,oy+ph], [ox+pw+6,oy+ph], C.ink, 1.5);
+    cvLine(cv, [ox,oy+ph], [ox,oy-6], C.ink, 1.5);
+    cvTx(cv, ox+pw+14, oy+ph, "x", C.ink, "middle", 13, true);
+    cvTx(cv, ox, oy-15, "y", C.ink, "middle", 13, true);
+    cvTx(cv, ox-7, oy+ph+9, "0", C.ink, "middle", 10.5);
+    cvTx(cv, ox-22, oy-12, KANA4[k], C.ai, "middle", 16);
+    var P = SHAPES[shapes[k]]().map(function(p){ return [ox+p[0]*pw, oy+ph-p[1]*ph]; });
+    cvPl(cv, P, C.shu, 2.4);
+  }
+  return cvFin(cv, 300, 10, aria || "ア〜エの グラフ");
+}
+
+/* =====================================================================
+   場面（比例・反比例）
+   比例の ab は 決まった数を 書かない（表から 読ませる）。w は 決まった数（#）入りの 文。
+   反比例の ab は 決まった数（#）入り（場面が 決まった数そのもの）
+   ===================================================================== */
+var HIREI_CTX = [
+  { ab:"はり金の 長さ x m と 重さ y g", w:"1m の 重さが #g の はり金の、長さ x m と 重さ y g",
+    xh:"長さ", xu:"m", yh:"重さ", yu:"g", A:[15,20,25,30,40] },
+  { ab:"同じ ガムを 買うときの、個数 x 個と 代金 y 円", w:"1個 #円の ガムを 買うときの、個数 x 個と 代金 y 円",
+    xh:"個数", xu:"個", yh:"代金", yu:"円", A:[30,40,50,60,80,120] },
+  { ab:"水そうに 水を 入れる 時間 x 分と 水の 深さ y cm", w:"1分間に #cm ずつ 水の 深さが ふえる ときの、時間 x 分と 深さ y cm",
+    xh:"時間", xu:"分", yh:"深さ", yu:"cm", A:[2,3,4,1.5,2.5] },
+  { ab:"同じ 速さで 走る 自動車の、時間 x 時間と 道のり y km", w:"時速 #km で 走る 自動車の、時間 x 時間と 道のり y km",
+    xh:"時間", xu:"時間", yh:"道のり", yu:"km", A:[40,45,50,60] },
+  { ab:"正方形の 1辺の 長さ x cm と まわりの 長さ y cm", w:null,
+    xh:"1辺", xu:"cm", yh:"まわり", yu:"cm", A:[4] },
+  { ab:"1分間に 同じ 量ずつ 水を 入れる 時間 x 分と 水の 量 y L", w:"1分間に #L ずつ 水を 入れる ときの、時間 x 分と 水の 量 y L",
+    xh:"時間", xu:"分", yh:"水", yu:"L", A:[3,4,5,6,8] }
+];
+var HANPI_CTX = [
+  { ab:"面積が #cm² の 長方形の、たての 長さ x cm と 横の 長さ y cm", xh:"たて", xu:"cm", yh:"横", yu:"cm", S:[12,18,24,30,36] },
+  { ab:"#km の 道のりを 進むときの、時速 x km と かかる 時間 y 時間", xh:"時速", xu:"km", yh:"時間", yu:"時間", S:[24,36,48,60] },
+  { ab:"#L 入る 水そうを いっぱいに するときの、1分間に 入れる 水の 量 x L と かかる 時間 y 分", xh:"1分の量", xu:"L", yh:"時間", yu:"分", S:[24,36,48,60,72] },
+  { ab:"#枚の 色紙を 同じ 数ずつ 分けるときの、人数 x 人と 1人分の 枚数 y 枚", xh:"人数", xu:"人", yh:"1人分", yu:"枚", S:[24,36,48,60] }
+];
+var HIREI_XS = [[1,2,3,4,5,6],[1,2,3,4,5],[2,4,6,8,10],[1,2,4,5,8,10],[1,3,5,7,9],[3,6,9,12,15],[1,2,3,4,6,8]];
+var HIREI_A_BARE = [2,3,4,5,6,7,8,9,12,1.5,2.5];
+var HANPI_S_BARE = [12,18,24,30,36,48,60];
+var REL = { hirei:"比例", hanpi:"反比例" };
+
+function fy(kind,a,x){ return kind === "hirei" ? rnd(a*x,4) : rnd(a/x,4); }
+
+/* 表を 1つ 作る（数の 組と 場面）。a は 比例の 決まった数 / 反比例の x×y */
+function makeTable(kind){
+  var bare = ri(1,5) <= 2, c = null, a, xs;
+  if(kind === "hirei"){
+    if(!bare) c = pick(HIREI_CTX);
+    a = bare ? pick(HIREI_A_BARE) : pick(c.A);
+    xs = pick(HIREI_XS).slice();
+  }else{
+    if(!bare) c = pick(HANPI_CTX);
+    a = bare ? pick(HANPI_S_BARE) : pick(c.S);
+    var ds = divisors(a).filter(function(d){ return d <= 12; });
+    var n = Math.min(ds.length, ri(5,6));
+    xs = shuffle(ds).slice(0,n).sort(function(p,q){ return p-q; });
+  }
+  var ys = xs.map(function(x){ return fy(kind,a,x); });
+  var heads = c ? { xh:c.xh+" x（"+c.xu+"）", yh:c.yh+" y（"+c.yu+"）" } : { xh:"x", yh:"y" };
+  var rel = REL[kind], intro, introP;
+  if(c){
+    var ab = c.ab.replace("#", nf(a));
+    intro = ctxHtml(ab)+" の 関係を 表に しました。"+YV+" は "+XV+" に "+rel+"しています。";
+    introP = ctxPlain(ab)+"（"+rel+"）。";
+  }else{
+    intro = "下の 表で、"+YV+" は "+XV+" に "+rel+"しています。";
+    introP = rel+"の表。";
+  }
+  return { kind:kind, c:c, a:a, xs:xs, ys:ys, heads:heads, intro:intro, introP:introP };
+}
+function tblPlain(txs,tys){ return "x="+txs.join(",")+" y="+tys.join(","); }
+function tblFigOf(T,txs,tys){
+  return tableFig({ xh:T.heads.xh, yh:T.heads.yh, xs:txs, ys:tys }, REL[T.kind]+"の 表");
+}
+
+/* =====================================================================
+   ① 比例・反比例の 表
+   ===================================================================== */
+/* 表の あいている ところ（ア）を 求める */
+function hyouBlank(kind){
+  var hi = kind === "hirei", T = makeTable(kind), a = T.a;
+  var xs = T.xs.slice(), ys = T.ys.slice(), n = xs.length;
+  var txs = xs.map(nf), tys = ys.map(nf), ans, X, Y, askX = false, j, i;
+  var ext = ri(1,5) <= 2, cand = [];
+  if(ext){
+    var last = Math.min(n,5)-1;
+    for(var x=xs[last]+2; x<=40; x++){ var y = fy(kind,a,x); if(y > 0 && decOK(y,1)) cand.push(x); }
+    if(!cand.length) ext = false;
+  }
+  if(ext){
+    /* 表の 先に「⋯」と はなれた 列を 1つ 足す（となりの 数の ならびから 当てられない） */
+    if(n > 5){ xs = xs.slice(0,5); ys = ys.slice(0,5); txs = txs.slice(0,5); tys = tys.slice(0,5); n = 5; }
+    X = pick(cand); Y = fy(kind,a,X); askX = ri(1,2) === 1;
+    txs.push("⋯"); tys.push("⋯");
+    txs.push(askX ? "ア" : nf(X)); tys.push(askX ? nf(Y) : "ア");
+    j = n-1;
+  }else{
+    i = ri(1,n-1);
+    X = xs[i]; Y = ys[i]; tys[i] = "ア";
+    var others = without(shuffle(xs.map(function(v,k){ return k; }).slice(1)), i);
+    j = i-1;
+    if(ri(1,2) === 1 && others.length){            /* もう1つ イ も あける（聞かない） */
+      var jj = others[0]; tys[jj] = "イ";
+      if(jj === j) j = 0;
+    }
+  }
+  ans = askX ? X : Y;
+  var fig = tblFigOf(T, txs, tys);
+  var xj = xs[j], yj = ys[j], cands, ex, kufu;
+  if(hi){
+    cands = askX ? [optNum(xj+(Y-yj)), optNum(Y-a), optNum(Y*a), optNum(X+1), optNum(X*2)]
+                 : [optNum(yj+(X-xj)), optNum(yj*X), optNum(X+a), optNum(a*(X+1)), optNum(a*(X-1))];
+    ex = step("① "+YV+" ÷ "+XV+" を 計算すると、"+nf(ys[0])+" ÷ "+nf(xs[0])+" ＝ "+nf(a)+"（決まった 数）")
+       + (askX ? step("② "+XV+" ＝ "+YV+" ÷ 決まった 数 ＝ "+nf(Y)+" ÷ "+nf(a)+" ＝ <b>"+nf(X)+"</b>")
+               : step("② ア ＝ 決まった 数 × "+XV+" ＝ "+nf(a)+" × "+nf(X)+" ＝ <b>"+nf(Y)+"</b>"));
+    var r = askX ? 0 : X/xs[0];
+    kufu = (!askX && xs[0] !== 1 && isInt(r) && r > 1)
+      ? XV+" が "+nf(xs[0])+" → "+nf(X)+" で "+r+"倍 だから、"+YV+" も "+r+"倍。"+nf(ys[0])+" × "+r+" ＝ "+nf(Y)+" と しても よい。"
+      : "比例では "+XV+" が 2倍、3倍…に なると "+YV+" も 2倍、3倍…に なる。ふえる 数を たすのでは ない。";
+  }else{
+    cands = askX ? [optNum(xs[0]*Y/ys[0]), optNum(xj-(Y-yj)), optNum(a-Y), optNum(X+1), optNum(Y*a)]
+                 : [optNum(yj*X/xj), optNum(yj-(X-xj)), optNum(a-X), optNum(a*X), optNum(Y+1)];
+    ex = step("① "+XV+" × "+YV+" を 計算すると、"+nf(xs[0])+" × "+nf(ys[0])+" ＝ "+nf(a)+"（決まった 数）")
+       + (askX ? step("② "+XV+" ＝ 決まった 数 ÷ "+YV+" ＝ "+nf(a)+" ÷ "+nf(Y)+" ＝ <b>"+nf(X)+"</b>")
+               : step("② ア ＝ 決まった 数 ÷ "+XV+" ＝ "+nf(a)+" ÷ "+nf(X)+" ＝ <b>"+nf(Y)+"</b>"));
+    kufu = "反比例では "+XV+" が 2倍、3倍…に なると "+YV+" は "+frHtml(1,2)+"、"+frHtml(1,3)+"…に なる。"
+         + "ひき算で へって いくのでは ない。";
+  }
+  return mk({
+    key:kind+"_hyou", tag:REL[kind]+"の 表（あいている ところ）",
+    q:T.intro+"<br>表の アに あてはまる 数を 求めましょう。",
+    plain:T.introP+tblPlain(txs,tys)+" アは？",
+    fig:fig, label:"アに あてはまる 数は？", u:"",
+    cor:optNum(ans), cands:cands, fb:numFallback(ans, stepOf(ans), ""),
+    expl:ex, kufu:kufu, chk:{ ans:ans }
+  });
+}
+/* x が □倍に なると y は 何倍？ */
+function hyouBai(kind){
+  var T = makeTable(kind), xs = T.xs, ys = T.ys, pairs = [], p, q;
+  for(p=0;p<xs.length;p++) for(q=p+1;q<xs.length;q++){
+    var r = xs[q]/xs[p];
+    if(isInt(r) && r >= 2 && r <= 6) pairs.push([p,q,r]);
+  }
+  if(!pairs.length) return hyouBlank(kind);
+  var P = pick(pairs), down = ri(1,3) === 1;
+  var from = down ? P[1] : P[0], to = down ? P[0] : P[1], r0 = P[2];
+  var up = (kind === "hirei") !== down;            /* y が ふえる か */
+  var cor = up ? optRatio(r0,1) : optRatio(1,r0);
+  var opts = [cor, up ? optRatio(1,r0) : optRatio(r0,1), optLabel("変わらない"), optRatio(r0*2,1)];
+  var ch = buildChoices(cor, opts.slice(1), [optRatio(r0+1,1), optRatio(1,r0+1)]);
+  var xWord = down ? frHtml(1,r0)+"倍" : r0+"倍", yWord = up ? r0+"倍" : frHtml(1,r0)+"倍";
+  return mk({
+    key:kind+"_hyou", tag:REL[kind]+"の 表（何倍）",
+    q:T.intro+"<br>"+XV+" の 値が "+nf(xs[from])+" から "+nf(xs[to])+" に なると、"+YV+" の 値は 何倍に なりますか。",
+    plain:T.introP+tblPlain(xs.map(nf),ys.map(nf))+" xが"+nf(xs[from])+"から"+nf(xs[to])+"になるとyは何倍？",
+    fig:tblFigOf(T, xs.map(nf), ys.map(nf)), label:YV+" は 何倍？", u:"倍",
+    options:ch.options, correct:ch.correct,
+    expl:step("① "+XV+" は "+nf(xs[from])+" → "+nf(xs[to])+" で "+xWord+"に なっている")
+        +step("② "+REL[kind]+" なので、"+YV+" は "+(kind === "hirei" ? "同じ " : "その 逆の ")+"<b>"+yWord+"</b>"
+              +"（"+nf(ys[from])+" → "+nf(ys[to])+"）"),
+    kufu:kind === "hirei" ? "比例は「"+XV+" が □倍 → "+YV+" も □倍」。"
+                          : "反比例は「"+XV+" が □倍 → "+YV+" は "+frHtml(1,"□")+"倍」。"
+  });
+}
+/* y÷x（比例）／ x×y（反比例）の 決まった数 */
+function hyouKimatta(kind){
+  var hi = kind === "hirei", T = makeTable(kind), xs = T.xs, ys = T.ys, a = T.a;
+  var cands = hi ? [optNum(a*2), optNum(ys[1]-ys[0]+1), optNum(xs[0]/ys[0]), optNum(a+1)]
+                 : [optNum(a/2), optNum(a*2), optNum(xs[0]+ys[0]), optNum(ys[0]-ys[1])];
+  return mk({
+    key:kind+"_hyou", tag:REL[kind]+"の 表（決まった 数）",
+    q:T.intro+"<br>"+(hi ? YV+" ÷ "+XV : XV+" × "+YV)+" の 値は いつも 同じ 数に なります。その 数（決まった 数）を 求めましょう。",
+    plain:T.introP+tblPlain(xs.map(nf),ys.map(nf))+(hi ? " y÷xの決まった数は？" : " x×yの決まった数は？"),
+    fig:tblFigOf(T, xs.map(nf), ys.map(nf)), label:"決まった 数は？", u:"",
+    cor:optNum(a), cands:cands, fb:numFallback(a, stepOf(a), ""),
+    expl:(hi ? step("① どの 組でも "+YV+" ÷ "+XV+" を 計算する："+nf(ys[0])+" ÷ "+nf(xs[0])+" ＝ "+nf(a)+"、"
+                    +nf(ys[1])+" ÷ "+nf(xs[1])+" ＝ "+nf(a)+" …")
+             : step("① どの 組でも "+XV+" × "+YV+" を 計算する："+nf(xs[0])+" × "+nf(ys[0])+" ＝ "+nf(a)+"、"
+                    +nf(xs[1])+" × "+nf(ys[1])+" ＝ "+nf(a)+" …"))
+        +step("② いつも 同じ。決まった 数は <b>"+nf(a)+"</b>"),
+    kufu:hi ? "比例の 式は "+YV+" ＝ 決まった 数 × "+XV+"。決まった 数は "+XV+" が 1 の ときの "+YV+" の 値。"
+            : "反比例の 式は "+YV+" ＝ 決まった 数 ÷ "+XV+"。",
+    chk:{ ans:a }
+  });
+}
+function gen_hirei_hyou(){ var r = ri(1,10); return r <= 6 ? hyouBlank("hirei") : r <= 8 ? hyouBai("hirei") : hyouKimatta("hirei"); }
+function gen_hanpi_hyou(){ var r = ri(1,10); return r <= 6 ? hyouBlank("hanpi") : r <= 8 ? hyouBai("hanpi") : hyouKimatta("hanpi"); }
+
+/* =====================================================================
+   ② 式
+   ===================================================================== */
+function shikiQ(kind){
+  var hi = kind === "hirei", r = ri(1,3), a, x0, y0, q, plain, fig = "", ex1, c, tag;
+  if(r === 1){
+    var T = makeTable(kind); a = T.a; x0 = T.xs[1]; y0 = T.ys[1];
+    fig = tblFigOf(T, T.xs.map(nf), T.ys.map(nf));
+    q = T.intro+"<br>"+XV+" と "+YV+" の 関係を 式に 表すと、どれですか。";
+    plain = T.introP+tblPlain(T.xs.map(nf),T.ys.map(nf))+" 式は？";
+    ex1 = hi ? "① "+YV+" ÷ "+XV+" を 計算すると、どの 組も "+nf(T.ys[0])+" ÷ "+nf(T.xs[0])+" ＝ "+nf(a)+"（決まった 数）"
+             : "① "+XV+" × "+YV+" を 計算すると、どの 組も "+nf(T.xs[0])+" × "+nf(T.ys[0])+" ＝ "+nf(a)+"（決まった 数）";
+    tag = "表から";
+  }else if(r === 2){
+    if(hi){
+      c = pick(HIREI_CTX.filter(function(t){ return t.w; }));
+      a = pick(c.A); x0 = 2; y0 = a*2;
+      var w = c.w.replace("#", nf(a));
+      q = ctxHtml(w)+" の 関係を 式に 表すと、どれですか。";
+      plain = ctxPlain(w)+"の関係を式に表すと？";
+      ex1 = "① "+XV+" が 1 の とき "+YV+" は "+nf(a)+"。"+YV+" は いつも "+XV+" の "+nf(a)+"倍";
+    }else{
+      c = pick(HANPI_CTX); a = pick(c.S);
+      x0 = without(divisors(a),1)[0]; y0 = a/x0;
+      var ab = c.ab.replace("#", nf(a));
+      q = ctxHtml(ab)+" の 関係を 式に 表すと、どれですか。";
+      plain = ctxPlain(ab)+"の関係を式に表すと？";
+      ex1 = "① "+XV+" × "+YV+" は いつも "+nf(a)+"（決まった 数）";
+    }
+    tag = "ことばから";
+  }else{
+    if(hi){ a = pick([2,3,4,5,6,7,8,9,12,15,1.5,2.5]); x0 = ri(2,8); y0 = rnd(a*x0,4); }
+    else{ a = pick([12,18,20,24,30,36,40,48,60]); x0 = pick(without(without(divisors(a),1),a)); y0 = a/x0; }
+    q = YV+" は "+XV+" に "+REL[kind]+"し、"+XV+" ＝ "+nf(x0)+" の とき "+YV+" ＝ "+nf(y0)+" です。<br>"
+      + YV+" を "+XV+" の 式で 表すと、どれですか。";
+    plain = "yはxに"+REL[kind]+"し、x="+nf(x0)+"のときy="+nf(y0)+"。yをxの式で表すと？";
+    ex1 = hi ? "① 決まった 数 ＝ "+YV+" ÷ "+XV+" ＝ "+nf(y0)+" ÷ "+nf(x0)+" ＝ "+nf(a)
+             : "① 決まった 数 ＝ "+XV+" × "+YV+" ＝ "+nf(x0)+" × "+nf(y0)+" ＝ "+nf(a);
+    tag = "1組の 値から";
+  }
+  var cor = hi ? optShiki("mul",a) : optShiki("div",a);
+  var cands = hi ? [optShiki("xdiv",a), optShiki("div",x0*y0), optShiki("add",y0-x0), optShiki("xmul",a)]
+                 : [optShiki("mul",a), optShiki("xdiv",a), optShiki("mul",y0/x0), optShiki("sub",x0+y0)];
+  return mk({
+    key:kind+"_shiki", tag:REL[kind]+"の 式（"+tag+"）",
+    q:q, plain:plain, fig:fig, label:"式は？", u:"",
+    cor:cor, cands:cands,
+    fb:hi ? [optShiki("mul",a+1), optShiki("add",a), optShiki("div",a)] : [optShiki("div",a*2), optShiki("sub",a), optShiki("add",a)],
+    expl:step(ex1)
+        +step("② "+REL[kind]+"の 式は "+YV+" ＝ 決まった 数 "+(hi ? "× " : "÷ ")+XV+" だから <b>"+shikiHtml(hi ? "mul" : "div", a)+"</b>"),
+    kufu:hi ? "比例は かけ算（"+YV+" ＝ 決まった 数 × "+XV+"）、反比例は わり算（"+YV+" ＝ 決まった 数 ÷ "+XV+"）。"
+            : "反比例は わり算（"+YV+" ＝ 決まった 数 ÷ "+XV+"）。決まった 数は "+XV+" × "+YV+" の 値。"
+  });
+}
+function gen_hirei_shiki(){ return shikiQ("hirei"); }
+function gen_hanpi_shiki(){ return shikiQ("hanpi"); }
+
+/* =====================================================================
+   ③ x や y の 値
+   ===================================================================== */
+function ataiQ(kind){
+  var hi = kind === "hirei", askX = ri(1,3) === 1, a, x0, x1, y0, y1, t;
+  if(hi){
+    a = 4; x0 = 3; x1 = 7;
+    for(t=0;t<40;t++){
+      var a2 = pick([2,3,4,5,6,7,8,9,12,15,1.5,2.5,3.5]), p0 = ri(2,8), p1 = ri(2,15);
+      if(p1 !== p0){ a = a2; x0 = p0; x1 = p1; break; }
+    }
+    y0 = rnd(a*x0,4); y1 = rnd(a*x1,4);
+  }else{
+    a = pick([12,18,20,24,30,36,40,48,60,72]);
+    var ds = without(divisors(a),1).filter(function(d){ return d <= 24; });
+    x0 = pick(ds); x1 = pick(without(ds,x0));
+    y0 = a/x0; y1 = a/x1;
+  }
+  var ans = askX ? x1 : y1, cands, ex2;
+  if(hi){
+    cands = askX ? [optNum(x0+(y1-y0)), optNum(y1-a), optNum(y1/x0), optNum(x1+1)]
+                 : [optNum(y0+(x1-x0)), optNum(y0*x1), optNum(a*(x1+1)), optNum(x1+a)];
+    ex2 = askX ? step("② "+nf(y1)+" ＝ "+nf(a)+" × "+XV+" だから、"+XV+" ＝ "+nf(y1)+" ÷ "+nf(a)+" ＝ <b>"+nf(x1)+"</b>")
+               : step("② "+YV+" ＝ "+nf(a)+" × "+nf(x1)+" ＝ <b>"+nf(y1)+"</b>");
+  }else{
+    cands = askX ? [optNum(x0*y1/y0), optNum(x0-(y1-y0)), optNum(a-y1), optNum(a*y1)]
+                 : [optNum(y0*x1/x0), optNum(y0-(x1-x0)), optNum(a-x1), optNum(a*x1)];
+    ex2 = askX ? step("② "+nf(y1)+" ＝ "+nf(a)+" ÷ "+XV+" だから、"+XV+" ＝ "+nf(a)+" ÷ "+nf(y1)+" ＝ <b>"+nf(x1)+"</b>")
+               : step("② "+YV+" ＝ "+nf(a)+" ÷ "+nf(x1)+" ＝ <b>"+nf(y1)+"</b>");
+  }
+  return mk({
+    key:kind+"_atai", tag:REL[kind]+"（"+(askX ? XV+" の 値" : YV+" の 値")+"）",
+    q:YV+" は "+XV+" に "+REL[kind]+"し、"+XV+" ＝ "+nf(x0)+" の とき "+YV+" ＝ "+nf(y0)+" です。<br>"
+     +(askX ? YV+" ＝ "+nf(y1)+" の とき、"+XV+" の 値を 求めましょう。"
+            : XV+" ＝ "+nf(x1)+" の とき、"+YV+" の 値を 求めましょう。"),
+    plain:"yはxに"+REL[kind]+"し、x="+nf(x0)+"のときy="+nf(y0)+"。"+(askX ? "y="+nf(y1)+"のときxは？" : "x="+nf(x1)+"のときyは？"),
+    label:(askX ? XV : YV)+" の 値は？", u:"",
+    cor:optNum(ans), cands:cands, fb:numFallback(ans, stepOf(ans), ""),
+    expl:(hi ? step("① 決まった 数 ＝ "+YV+" ÷ "+XV+" ＝ "+nf(y0)+" ÷ "+nf(x0)+" ＝ "+nf(a)+" → 式は "+shikiHtml("mul",a))
+             : step("① 決まった 数 ＝ "+XV+" × "+YV+" ＝ "+nf(x0)+" × "+nf(y0)+" ＝ "+nf(a)+" → 式は "+shikiHtml("div",a)))
+        +ex2,
+    kufu:hi ? "まず 式を 作ると まちがえにくい。「"+XV+" が "+(x1-x0 > 0 ? x1-x0 : x0-x1)+" ふえたから "+YV+" も …」と たし算で 考えない。"
+            : "反比例は "+XV+" × "+YV+" が いつも 同じ。"+XV+" が 大きく なると "+YV+" は 小さく なる。",
+    chk:{ ans:ans }
+  });
+}
+function gen_hirei_atai(){ return ataiQ("hirei"); }
+function gen_hanpi_atai(){ return ataiQ("hanpi"); }
+
+/* =====================================================================
+   ④ グラフ
+   方眼の 1目もり g は「線の 数が 12本 以下」に なる いちばん 小さい 数。
+   読み取る 点は 方眼の 交わる ところだけ（目もりの 間を 読ませない）
+   ===================================================================== */
+var GRID_G = [0.5,1,2,5,10,20,25,50,100,200,500];
+function gridFor(top){
+  for(var i=0;i<GRID_G.length;i++){
+    var g = GRID_G[i], nL = Math.ceil(top/g - 1e-9);
+    if(nL <= 12) return { g:g, nL:nL };
+  }
+  return { g:1000, nL:Math.ceil(top/1000) };
+}
+var HG_CTX = [
+  { t:"はり金の 長さ x m と 重さ y g", xu:"m", yu:"g", A:[10,15,20,25,30,40,50], X:[6,8,10] },
+  { t:"水を 入れる 時間 x 分と 水の 深さ y cm", xu:"分", yu:"cm", A:[1.5,2,2.5,3,4,5], X:[8,10,12] },
+  { t:"歩いた 時間 x 分と 道のり y m", xu:"分", yu:"m", A:[40,50,60,70,80], X:[8,10] },
+  { t:"自動車が 使った ガソリンの 量 x L と 走った 道のり y km", xu:"L", yu:"km", A:[8,10,12,15,20], X:[6,8,10] }
+];
+function hgSetup(c){
+  for(var t=0;t<80;t++){
+    var a = pick(c.A), xmax = pick(c.X), gr = gridFor(a*xmax), ks = [];
+    if(gr.nL < 4) continue;
+    for(var k=1;k<=xmax;k++) if(decOK(a*k/gr.g,0)) ks.push(k);
+    if(ks.length >= 2) return { a:a, xmax:xmax, g:gr.g, nL:gr.nL, ymax:gr.nL*gr.g, ks:ks };
+  }
+  return { a:20, xmax:10, g:20, nL:10, ymax:200, ks:[1,2,3,4,5,6,7,8,9,10] };
+}
+function hgFig(c,G){
+  return graphFig({ xmax:G.xmax, ymax:G.ymax, gx:1, gy:G.g, lx:G.xmax > 10 ? 2 : 1, ly:G.nL <= 6 ? G.g : G.g*2,
+                    xn:"（"+c.xu+"）", yn:"（"+c.yu+"）",
+                    lines:[{ pts:[[0,0],[G.xmax, G.a*G.xmax]], color:C.shu }],
+                    aria:"比例の グラフ" });
+}
+function hgIntro(c){ return "下の グラフは、"+ctxHtml(c.t)+" の 関係を 表した ものです。"; }
+
+function hgRead(){
+  var c = pick(HG_CTX), G = hgSetup(c), askX = ri(1,3) === 1, k = pick(G.ks), Yv = rnd(G.a*k,4);
+  var ans = askX ? k : Yv, u = askX ? c.xu : c.yu;
+  var cands = askX ? [optNum(k+1,u), optNum(k-1,u), optNum(Yv/G.g,u), optNum(k*2,u)]
+                   : [optNum(Yv+G.g,u), optNum(Yv-G.g,u), optNum(G.a*(k+1),u), optNum(Yv+G.g/2,u)];
+  return mk({
+    key:"hirei_graph", tag:"比例の グラフ（読み取り）",
+    q:hgIntro(c)+"<br>"+(askX ? YV+" が "+nf(Yv)+c.yu+" の とき、"+XV+" は 何"+c.xu+"ですか。"
+                              : XV+" が "+k+c.xu+" の とき、"+YV+" は 何"+c.yu+"ですか。"),
+    plain:"比例のグラフ（"+ctxPlain(c.t)+"）。"+(askX ? "yが"+nf(Yv)+c.yu+"のときxは何"+c.xu+"？" : "xが"+k+c.xu+"のときyは何"+c.yu+"？"),
+    fig:hgFig(c,G), label:"何"+u+"？", u:u,
+    cor:optNum(ans,u), cands:cands, fb:numFallback(ans, askX ? 1 : G.g, u),
+    expl:askX ? step("① "+YV+" の じくの "+nf(Yv)+" の 目もりから 横に 進み、グラフと 交わる 点を さがす")
+               +step("② その 点から 下に おりて "+XV+" の 目もりを 読むと <b>"+k+" "+c.xu+"</b>")
+              : step("① "+XV+" の じくの "+k+" の 目もりから 上に 進み、グラフと 交わる 点を さがす")
+               +step("② その 点から 横に 進んで "+YV+" の 目もりを 読むと <b>"+nf(Yv)+" "+c.yu+"</b>"),
+    kufu:"たての 1目もりは "+nf(G.g)+c.yu+"。数が 書いていない 線も、目もりを 数えて 読もう。"
+        +"式 "+shikiHtml("mul",G.a)+" で 計算しても 同じ 答えに なる。",
+    chk:{ ans:ans }
+  });
+}
+function hgShiki(){
+  var c = pick(HG_CTX), G = hgSetup(c), k = pick(G.ks), Yv = rnd(G.a*k,4), a = G.a;
+  var cor = optShiki("mul",a);
+  return mk({
+    key:"hirei_graph", tag:"比例の グラフ（式）",
+    q:hgIntro(c)+"<br>"+XV+" と "+YV+" の 関係を 式に 表すと、どれですか。",
+    plain:"比例のグラフ（"+ctxPlain(c.t)+"）。xとyの関係を式に表すと？",
+    fig:hgFig(c,G), label:"式は？", u:"",
+    cor:cor, cands:[optShiki("xdiv",a), optShiki("mul",G.g), optShiki("add",Yv-k), optShiki("div",k*Yv), optShiki("mul",a*2)],
+    fb:[optShiki("mul",a+1), optShiki("add",a), optShiki("xmul",a)],
+    expl:step("① グラフは "+XV+" ＝ "+k+" の とき "+YV+" ＝ "+nf(Yv)+" の 点を 通る")
+        +step("② 決まった 数 ＝ "+YV+" ÷ "+XV+" ＝ "+nf(Yv)+" ÷ "+k+" ＝ "+nf(a))
+        +step("③ 式は <b>"+shikiHtml("mul",a)+"</b>"),
+    kufu:"方眼の 交わる ところを 通る 点を えらぶと、目もりが 正しく 読める。"
+  });
+}
+/* 2本の グラフ（2人 または 2台が 同時に 出発） */
+var TWO_CTX = [
+  { who:["兄","弟"], lab:["兄","弟"], t:"歩いた 時間 x 分と 道のり y m", xu:"分", yu:"m", A:[50,60,70,75,80,90,100], X:[8,10,12], verb:"歩きました" },
+  { who:["姉","妹"], lab:["姉","妹"], t:"歩いた 時間 x 分と 道のり y m", xu:"分", yu:"m", A:[50,60,70,75,80,90,100], X:[8,10,12], verb:"歩きました" },
+  { who:["自動車A","自動車B"], lab:["A","B"], t:"走った 時間 x 時間と 道のり y km", xu:"時間", yu:"km", A:[30,40,45,50,60,80], X:[4,5,6], verb:"走りました" }
+];
+function hgTwo(){
+  var c = pick(TWO_CTX), S = null, t;
+  for(t=0;t<150 && !S;t++){
+    var a1 = pick(c.A), a2 = pick(c.A);
+    if(a1 <= a2) continue;
+    var xmax = pick(c.X), gr = gridFor(a1*xmax), g = gr.g, ymax = gr.nL*g, H = 200;
+    if(gr.nL < 5) continue;
+    /* 線の 名前（右はし）が 重ならない・x じくの 名前と ぶつからない */
+    if((a1-a2)*xmax/ymax*H < 22 || a2*xmax/ymax*H < 22) continue;
+    var k1 = [], k2 = [], k, i;
+    for(k=1;k<=xmax;k++) if(decOK(a1*k/g,0) && decOK(a2*k/g,0)) k1.push(k);
+    for(i=1;i*g<=ymax+1e-9;i++){ var Y = i*g; if(decOK(Y/a1,0) && decOK(Y/a2,0) && Y/a2 <= xmax) k2.push(Y); }
+    var v = ri(1,2);
+    if(v === 2 && !k2.length) v = 1;
+    if(v === 1 && !k1.length) continue;
+    S = { a1:a1, a2:a2, xmax:xmax, g:g, nL:gr.nL, ymax:ymax, v:v, k:v === 1 ? pick(k1) : 0, Y:v === 2 ? pick(k2) : 0 };
+  }
+  if(!S) S = { a1:80, a2:60, xmax:10, g:100, nL:8, ymax:800, v:1, k:5, Y:0 };
+  var fig = graphFig({ xmax:S.xmax, ymax:S.ymax, gx:1, gy:S.g, lx:S.xmax > 10 ? 2 : 1, ly:S.nL <= 6 ? S.g : S.g*2,
+                       xn:"（"+c.xu+"）", yn:"（"+c.yu+"）",
+                       lines:[{ pts:[[0,0],[S.xmax,S.a1*S.xmax]], color:C.shu, name:c.lab[0] },
+                              { pts:[[0,0],[S.xmax,S.a2*S.xmax]], color:C.ai, name:c.lab[1] }],
+                       aria:"2本の 比例の グラフ" });
+  var who = c.who, intro = who[0]+"と "+who[1]+"が 同時に 同じ 場所を 出発して、同じ 道を "+c.verb+"。"
+          + "下の グラフは、"+ctxHtml(c.t)+" の 関係を 表しています。";
+  var ans, q, plain, ex, cands, u;
+  if(S.v === 1){
+    var d1 = S.a1*S.k, d2 = S.a2*S.k; ans = d1-d2; u = c.yu;
+    q = intro+"<br>出発してから "+S.k+c.xu+"後に、2つは 何"+u+" はなれて いますか。";
+    plain = who[0]+"と"+who[1]+"のグラフ（"+ctxPlain(c.t)+"）。"+S.k+c.xu+"後に何"+u+"はなれている？";
+    cands = [optNum(d1,u), optNum(d2,u), optNum(d1+d2,u), optNum(ans+S.g,u), optNum((S.a1-S.a2)*(S.k+1),u)];
+    ex = step("① "+S.k+c.xu+"後："+who[0]+"は "+d1+c.yu+"、"+who[1]+"は "+d2+c.yu+"（グラフの 目もりを 読む）")
+       + step("② "+d1+" － "+d2+" ＝ <b>"+ans+" "+u+"</b>");
+  }else{
+    var u1 = S.Y/S.a1, u2 = S.Y/S.a2; ans = u2-u1; u = c.xu;
+    q = intro+"<br>"+S.Y+c.yu+" 進むのに、"+who[1]+"は "+who[0]+"より 何"+u+" 多く かかりますか。";
+    plain = who[0]+"と"+who[1]+"のグラフ（"+ctxPlain(c.t)+"）。"+S.Y+c.yu+"進むのに"+who[1]+"は何"+u+"多くかかる？";
+    cands = [optNum(u1,u), optNum(u2,u), optNum(u1+u2,u), optNum(ans+1,u)];
+    ex = step("① "+S.Y+c.yu+" の 目もりから 横に 進む："+who[0]+"は "+u1+c.xu+"、"+who[1]+"は "+u2+c.xu)
+       + step("② "+u2+" － "+u1+" ＝ <b>"+ans+" "+u+"</b>");
+  }
+  return mk({
+    key:"hirei_graph", tag:"比例の グラフ（2本の グラフ）",
+    q:q, plain:plain, fig:fig, label:"何"+u+"？", u:u,
+    cor:optNum(ans,u), cands:cands, fb:numFallback(ans, S.v === 1 ? S.g : 1, u),
+    expl:ex,
+    kufu:"かたむきが 急な グラフ（"+c.lab[0]+"）ほど 速い。同じ 時間で くらべるときは たてに、"
+        +"同じ 道のりで くらべるときは 横に 見る。",
+    chk:{ ans:ans }
+  });
+}
+/* ア〜エ から 比例／反比例の グラフを 選ぶ */
+function graphKatachi(kind){
+  var hi = kind === "hirei", target = hi ? "prop" : "hanpi";
+  var must = hi ? "aff" : "decr";
+  var rest = shuffle(["prop","aff","decr","hanpi","para"].filter(function(s){ return s !== target && s !== must; })).slice(0,2);
+  var shapes = shuffle([target, must].concat(rest));
+  var opts = KANA4.map(function(k){ return optLabel(k); });
+  var ci = shapes.indexOf(target);
+  var NAME = { prop:"0 を 通る まっすぐな 線", aff:"0 を 通らない まっすぐな 線", decr:"右下がりの まっすぐな 線",
+               hanpi:"なめらかな 曲線（じくに 近づく）", para:"0 を 通る 曲線" };
+  var lines = shapes.map(function(s,i){
+    var ok = s === target;
+    return '<span class="'+(ok ? "ok" : "ng")+'">'+KANA4[i]+"："+NAME[s]+(ok ? " … "+REL[kind]+"の グラフ" : "")+"</span>";
+  }).join("<br>");
+  return mk({
+    key:kind+"_graph", tag:REL[kind]+"の グラフ（形）",
+    q:"下の ア〜エの グラフの うち、"+YV+" が "+XV+" に "+REL[kind]+"している ことを 表している ものは どれですか。",
+    plain:"ア〜エのグラフのうち、yがxに"+REL[kind]+"しているものは？",
+    fig:panelsFig(shapes, "ア〜エの グラフ"), label:"どれ？", u:"",
+    options:opts, correct:ci,
+    expl:step(lines)
+        +step("答え <b>"+KANA4[ci]+"</b>"),
+    kufu:hi ? "比例の グラフは かならず 0 の 点を 通る まっすぐな 線。まっすぐでも 0 を 通らなければ 比例では ない。"
+            : "反比例の グラフは なめらかな 曲線で、"+XV+" じく・"+YV+" じくとは 交わらない。"
+             +"まっすぐ 下がる 線（たすと いつも 同じ）は 反比例では ない。"
+  });
+}
+function gen_hirei_graph(){
+  var r = ri(1,20);
+  if(r <= 3) return graphKatachi("hirei");
+  if(r <= 7) return hgTwo();
+  if(r <= 15) return hgRead();
+  return hgShiki();
+}
+
+/* 反比例の グラフ（0〜12 の 方眼。整数の 点に 点を うつ） */
+function hpSetup(){
+  var S = pick([6,8,12,16,18,24,36]);
+  var dots = divisors(S).filter(function(x){ return x <= 12 && S/x <= 12; }).map(function(x){ return [x, S/x]; });
+  var pts = [], x0 = S/12, x1 = Math.min(12, S/0.5);
+  for(var i=0;i<=48;i++) pts.push([x0*Math.pow(x1/x0, i/48), 0]);
+  pts.forEach(function(p){ p[1] = S/p[0]; });
+  var fig = graphFig({ xmax:12, ymax:12, gx:1, gy:1, lx:1, ly:1, xn:"", yn:"", W:228, H:228,
+                       lines:[{ pts:pts, color:C.ai }], dots:dots, aria:"反比例の グラフ" });
+  return { S:S, dots:dots, fig:fig };
+}
+function hpRead(){
+  var G = hpSetup(), d = pick(G.dots), askX = ri(1,3) === 1, ans = askX ? d[0] : d[1];
+  var given = askX ? d[1] : d[0];
+  return mk({
+    key:"hanpi_graph", tag:"反比例の グラフ（読み取り）",
+    q:"下の グラフは、"+YV+" が "+XV+" に 反比例する ようすを 表した ものです（点は グラフの 上の 点）。<br>"
+     +(askX ? YV+" ＝ "+given+" の とき、"+XV+" の 値は いくつですか。" : XV+" ＝ "+given+" の とき、"+YV+" の 値は いくつですか。"),
+    plain:"反比例のグラフ（点"+G.dots.map(function(p){ return "("+p[0]+","+p[1]+")"; }).join("")+"）。"
+         +(askX ? "y="+given+"のときxは？" : "x="+given+"のときyは？"),
+    fig:G.fig, label:(askX ? XV : YV)+" の 値は？", u:"",
+    cor:optNum(ans), cands:[optNum(given), optNum(ans+1), optNum(ans-1), optNum(G.S-given)],
+    fb:numFallback(ans, 1, ""),
+    expl:step("① "+(askX ? YV+" の じくの "+given+" から 横に" : XV+" の じくの "+given+" から 上に")+" 進み、グラフと 交わる 点を さがす")
+        +step("② その 点の "+(askX ? XV : YV)+" の 目もりを 読むと <b>"+ans+"</b>"),
+    kufu:"どの 点でも "+XV+" × "+YV+" ＝ "+G.S+"。"+G.S+" ÷ "+given+" ＝ "+ans+" と 計算しても 求められる。",
+    chk:{ ans:ans }
+  });
+}
+function hpShiki(){
+  var G = hpSetup(), d = G.dots[Math.floor(G.dots.length/2)], S = G.S;
+  return mk({
+    key:"hanpi_graph", tag:"反比例の グラフ（式）",
+    q:"下の グラフは、"+YV+" が "+XV+" に 反比例する ようすを 表した ものです（点は グラフの 上の 点）。<br>"
+     +XV+" と "+YV+" の 関係を 式に 表すと、どれですか。",
+    plain:"反比例のグラフ（点"+G.dots.map(function(p){ return "("+p[0]+","+p[1]+")"; }).join("")+"）。式は？",
+    fig:G.fig, label:"式は？", u:"",
+    cor:optShiki("div",S),
+    cands:[optShiki("mul",S), optShiki("xdiv",S), optShiki("sub",d[0]+d[1]), optShiki("mul",d[1]/d[0])],
+    fb:[optShiki("div",S*2), optShiki("add",S), optShiki("div",S+1)],
+    expl:step("① グラフは "+XV+" ＝ "+d[0]+" の とき "+YV+" ＝ "+d[1]+" の 点を 通る")
+        +step("② 決まった 数 ＝ "+XV+" × "+YV+" ＝ "+d[0]+" × "+d[1]+" ＝ "+S)
+        +step("③ 式は <b>"+shikiHtml("div",S)+"</b>"),
+    kufu:"ほかの 点でも "+XV+" × "+YV+" は "+S+" に なる（たしかめよう）。"
+  });
+}
+function gen_hanpi_graph(){
+  var r = ri(1,10);
+  if(r <= 3) return graphKatachi("hanpi");
+  if(r <= 7) return hpRead();
+  return hpShiki();
+}
+
+/* =====================================================================
+   ⑤ 比例？ 反比例？ 見分ける
+   s は 記録用の 短い 文（ア〜エを 4つ ならべても 255バイトに おさまる 長さ）
+   ===================================================================== */
+var SITS = [
+  { t:"1本 80円の えんぴつを 買うときの、本数と 代金", s:"80円のえんぴつの本数と代金", k:"hirei", r:"代金 ＝ 80 × 本数" },
+  { t:"時速 4km で 歩くときの、歩いた 時間と 道のり", s:"時速4kmで歩く時間と道のり", k:"hirei", r:"道のり ＝ 4 × 時間" },
+  { t:"正方形の 1辺の 長さと まわりの 長さ", s:"正方形の1辺とまわりの長さ", k:"hirei", r:"まわり ＝ 4 × 1辺" },
+  { t:"同じ くぎの 本数と 全体の 重さ", s:"同じくぎの本数と重さ", k:"hirei", r:"重さ ＝ 1本の 重さ × 本数" },
+  { t:"円の 直径と 円周の 長さ", s:"円の直径と円周", k:"hirei", r:"円周 ＝ 3.14 × 直径" },
+  { t:"底辺が 6cm の 三角形の 高さと 面積", s:"底辺6cmの三角形の高さと面積", k:"hirei", r:"面積 ＝ 3 × 高さ" },
+  { t:"空の 水そうに 1分間に 3L ずつ 水を 入れるときの、時間と たまった 水の 量", s:"空の水そうに毎分3L入れる時間と量", k:"hirei", r:"水の 量 ＝ 3 × 時間" },
+  { t:"面積が 24cm² の 長方形の、たての 長さと 横の 長さ", s:"面積24cm²の長方形のたてと横", k:"hanpi", r:"たて × 横 ＝ 24" },
+  { t:"12km の 道のりを 進むときの、速さと かかる 時間", s:"12km進むときの速さと時間", k:"hanpi", r:"速さ × 時間 ＝ 12" },
+  { t:"60L 入る 水そうを いっぱいに するときの、1分間に 入れる 量と かかる 時間", s:"60Lの水そうの毎分の量と時間", k:"hanpi", r:"1分間の 量 × 時間 ＝ 60" },
+  { t:"36枚の 色紙を 同じ 数ずつ 分けるときの、人数と 1人分の 枚数", s:"36枚を分ける人数と1人分", k:"hanpi", r:"人数 × 1人分 ＝ 36" },
+  { t:"面積が 18cm² の 三角形の、底辺と 高さ", s:"面積18cm²の三角形の底辺と高さ", k:"hanpi", r:"底辺 × 高さ ＝ 36" },
+  { t:"1日の うちの 昼の 長さと 夜の 長さ", s:"昼の長さと夜の長さ", k:"none", r:"昼 ＋ 夜 ＝ 24時間（たすと いつも 同じ）" },
+  { t:"100ページの 本の、読んだ ページ数と 残りの ページ数", s:"本の読んだページと残り", k:"none", r:"読んだ ＋ 残り ＝ 100（たすと いつも 同じ）" },
+  { t:"1000円 出して 買い物を したときの、代金と おつり", s:"代金とおつり", k:"none", r:"代金 ＋ おつり ＝ 1000（たすと いつも 同じ）" },
+  { t:"正方形の 1辺の 長さと 面積", s:"正方形の1辺と面積", k:"none", r:"1辺が 2倍で 面積は 4倍（2倍に ならない）" },
+  { t:"20cm の ろうそくが もえた 長さと 残りの 長さ", s:"ろうそくのもえた長さと残り", k:"none", r:"もえた ＋ 残り ＝ 20（たすと いつも 同じ）" },
+  { t:"人の 年れいと 身長", s:"年れいと身長", k:"none", r:"決まった きまりが ない" },
+  { t:"5L 入っている 水そうに 1分間に 2L ずつ 水を 入れるときの、時間と 水の 量", s:"5L入った水そうに毎分2L入れる時間と量", k:"none", r:"水の 量 ＝ 2 × 時間 ＋ 5（0分で 0L では ない）" },
+  { t:"3才 ちがいの 兄と 弟の 年れい", s:"3才ちがいの兄と弟の年れい", k:"none", r:"兄 ＝ 弟 ＋ 3（ひくと いつも 同じ）" }
+];
+var KIND3 = ["hirei","hanpi","none"];
+var KIND3_LABEL = { hirei:"比例する", hanpi:"反比例する", none:"どちらでもない" };
+var PCH3 = "（比例する・反比例する・どちらでもない）";
+function opts3(kind){
+  return { options:KIND3.map(function(k){ return optLabel(KIND3_LABEL[k]); }), correct:KIND3.indexOf(kind) };
+}
+var KIND_EXPL = {
+  hirei:"一方が 2倍、3倍…に なると、もう一方も 2倍、3倍…に なる → 比例",
+  hanpi:"一方が 2倍、3倍…に なると、もう一方は "+frHtml(1,2)+"、"+frHtml(1,3)+"…に なる → 反比例",
+  none:"2倍に しても 2倍にも "+frHtml(1,2)+"にも ならない → どちらでもない"
+};
+function miwakeOne(){
+  var s = pick(SITS), o = opts3(s.k);
+  return mk({
+    key:"miwake", tag:"見分ける（ことがら）",
+    q:"次の ともなって 変わる 2つの 量の 関係は、どれに あてはまりますか。<br><b>"+esc(s.t)+"</b>",
+    plain:s.s+"は比例・反比例・どちらでもない？",
+    label:"どれ？", u:"", pch:PCH3,
+    options:o.options, correct:o.correct,
+    expl:step("① ことばの 式に すると：<b>"+esc(s.r)+"</b>")
+        +step("② "+KIND_EXPL[s.k]),
+    kufu:"かけ算の 式（"+YV+" ＝ 決まった 数 × "+XV+"）なら 比例、"+XV+" × "+YV+" ＝ 決まった 数 なら 反比例。"
+        +"「たすと いつも 同じ」「ひくと いつも 同じ」は どちらでもない。"
+  });
+}
+function miwakeFour(){
+  var tgt = pick(["hirei","hanpi"]);
+  var one = pick(SITS.filter(function(s){ return s.k === tgt; }));
+  var rest = shuffle(SITS.filter(function(s){ return s.k !== tgt; })).slice(0,3);
+  var list = shuffle([one].concat(rest)), ci = list.indexOf(one);
+  var qList = list.map(function(s,i){ return '<span class="sit"><span class="sl">'+KANA4[i]+'</span>'+esc(s.t)+'</span>'; }).join("");
+  var plain = "2つの量が"+REL[tgt]+"しているのは？"+list.map(function(s,i){ return KANA4[i]+s.s; }).join(" ");
+  var ex = list.map(function(s,i){
+    return '<span class="'+(i === ci ? "ok" : "ng")+'">'+KANA4[i]+"："+esc(s.r)+" → "+KIND3_LABEL[s.k]+"</span>";
+  }).join("<br>");
+  return mk({
+    key:"miwake", tag:"見分ける（ア〜エ から）",
+    q:"次の ア〜エの うち、2つの 量が "+REL[tgt]+"している ものは どれですか。"+qList,
+    plain:plain,
+    label:"どれ？", u:"",
+    options:KANA4.map(function(k){ return optLabel(k); }), correct:ci,
+    expl:step(ex)+step("答え <b>"+KANA4[ci]+"</b>"),
+    kufu:"それぞれ ことばの 式に して みよう。"+(tgt === "hirei" ? "「"+YV+" ＝ 決まった 数 × "+XV+"」の 形なら 比例。"
+                                                         : "「"+XV+" × "+YV+" ＝ 決まった 数」の 形なら 反比例。")
+  });
+}
+function miwakeTable(){
+  var kind = pick(KIND3), xs, ys, why;
+  if(kind === "hirei"){
+    var a = pick([2,3,4,5,6,1.5]); xs = [1,2,3,4,5,6]; ys = xs.map(function(x){ return rnd(a*x,4); });
+    why = YV+" ÷ "+XV+" が いつも "+nf(a)+"（"+nf(ys[0])+" ÷ 1、"+nf(ys[1])+" ÷ 2 …）";
+  }else if(kind === "hanpi"){
+    var S = pick([12,24,36,60]), ds = divisors(S).filter(function(d){ return d <= 12; });
+    xs = shuffle(ds).slice(0, Math.min(ds.length,6)).sort(function(p,q){ return p-q; });
+    ys = xs.map(function(x){ return S/x; });
+    why = XV+" × "+YV+" が いつも "+S+"（"+xs[0]+" × "+ys[0]+"、"+xs[1]+" × "+ys[1]+" …）";
+  }else{
+    var w = ri(1,3); xs = [1,2,3,4,5,6];
+    if(w === 1){ var c0 = ri(2,6); ys = xs.map(function(x){ return x+c0; });
+      why = YV+" は いつも "+XV+" より "+c0+" 大きい。"+XV+" が 2倍（1 → 2）でも "+YV+" は "+ys[0]+" → "+ys[1]+" で 2倍に ならない"; }
+    else if(w === 2){ var c1 = ri(10,15); ys = xs.map(function(x){ return c1-x; });
+      why = XV+" ＋ "+YV+" が いつも "+c1+"。"+YV+" は へるが、"+XV+" が 2倍で "+frHtml(1,2)+"には ならない（"+ys[0]+" → "+ys[1]+"）"; }
+    else{ ys = xs.map(function(x){ return x*x; });
+      why = XV+" が 2倍（1 → 2）で "+YV+" は 4倍（1 → 4）。"+YV+" ÷ "+XV+" も "+XV+" × "+YV+" も 同じに ならない"; }
+  }
+  var txs = xs.map(nf), tys = ys.map(nf), o = opts3(kind);
+  return mk({
+    key:"miwake", tag:"見分ける（表から）",
+    q:"下の 表の "+XV+" と "+YV+" の 関係は、どれに あてはまりますか。",
+    plain:"表 "+tblPlain(txs,tys)+" のxとyは比例・反比例・どちらでもない？",
+    fig:tableFig({ xh:"x", yh:"y", xs:txs, ys:tys }, "x と y の 表"), label:"どれ？", u:"", pch:PCH3,
+    options:o.options, correct:o.correct,
+    expl:step("① "+why)+step("② だから <b>"+KIND3_LABEL[kind]+"</b>"),
+    kufu:YV+" ÷ "+XV+" が いつも 同じ → 比例、"+XV+" × "+YV+" が いつも 同じ → 反比例。どちらも ちがえば どちらでもない。"
+  });
+}
+function gen_miwake(){
+  var r = ri(1,10);
+  return r <= 4 ? miwakeOne() : r <= 7 ? miwakeFour() : miwakeTable();
+}
+
+/* =====================================================================
+   ⑥ 比例・反比例の 利用（チャレンジ）
+   ===================================================================== */
+var KAMI = [
+  { n:"画用紙", u:"枚", P:[2,2.5,4,5,6,8], N1:[10,20,25] },
+  { n:"コピー用紙", u:"枚", P:[2,2.5,4,4.5], N1:[10,20,50] },
+  { n:"くぎ", u:"本", P:[2,2.5,3,4,5,6], N1:[10,20,25] }
+];
+function riyouKami(){
+  var o = pick(KAMI), p = pick(o.P), n1 = pick(o.N1), w1 = rnd(n1*p,4), N, t;
+  for(t=0;t<40;t++){ N = ri(6,60)*10; if(N !== n1 && N%n1 === 0) break; }
+  if(N%n1 !== 0) N = n1*12;
+  var W = rnd(N*p,4), askN = ri(1,3) <= 2, ans = askN ? N : W, u = askN ? o.u : "g", r = N/n1;
+  var q = o.n+" "+n1+o.u+"の 重さを はかったら "+nf(w1)+"g でした。<br>"
+        + (askN ? "同じ "+o.n+"を まとめて はかったら "+nf(W)+"g でした。"+o.n+"は 何"+o.u+" ありますか。"
+                : "同じ "+o.n+" "+N+o.u+"の 重さは 何g ですか。");
+  return mk({
+    key:"riyou_hirei", tag:"比例の 利用（"+o.n+"）",
+    q:q, plain:o.n+n1+o.u+"で"+nf(w1)+"g。"+(askN ? nf(W)+"gでは何"+o.u+"？" : N+o.u+"では何g？"),
+    label:"何"+u+"？", u:u,
+    cor:optNum(ans,u),
+    cands:askN ? [optNum(W/w1,o.u), optNum(N+n1,o.u), optNum(W/n1,o.u), optNum(N/10,o.u)]
+               : [optNum(w1*N,"g"), optNum(W/10,"g"), optNum(w1+N,"g"), optNum(W+w1,"g")],
+    fb:numFallback(ans, askN ? n1 : stepOf(ans)*10, u),
+    expl:step("① 1"+o.u+"あたりの 重さ："+nf(w1)+" ÷ "+n1+" ＝ "+nf(p)+" g")
+        +(askN ? step("② "+nf(W)+" ÷ "+nf(p)+" ＝ <b>"+N+" "+o.u+"</b>")
+               : step("② "+nf(p)+" × "+N+" ＝ <b>"+nf(W)+" g</b>")),
+    kufu:"重さは "+o.u+"数に 比例する。"+(askN ? nf(W)+"g は "+nf(w1)+"g の "+r+"倍 だから、"+o.n+"も "+n1+" × "+r+" と 考えても よい。"
+                                            : N+o.u+"は "+n1+o.u+"の "+r+"倍 だから、重さも "+nf(w1)+" × "+r+" と 考えても よい。"),
+    chk:{ ans:ans }
+  });
+}
+function riyouHari(){
+  var p = 20, L1 = 3, L2 = 12, t;
+  for(t=0;t<40;t++){
+    var p2 = pick([8,12,15,16,20,24,30]), a = pick([2,2.5,3,4,5]), b = pick([6,7.5,8,10,12,15,18,20,25]);
+    if(b !== a && decOK(p2*a,0)){ p = p2; L1 = a; L2 = b; break; }
+  }
+  var w1 = p*L1, W = rnd(p*L2,4), askL = ri(1,2) === 1, ans = askL ? L2 : W, u = askL ? "m" : "g";
+  return mk({
+    key:"riyou_hirei", tag:"比例の 利用（はり金）",
+    q:"はり金 "+nf(L1)+"m の 重さは "+nf(w1)+"g です。<br>"
+     +(askL ? "この はり金 "+nf(W)+"g の 長さは 何m ですか。" : "この はり金 "+nf(L2)+"m の 重さは 何g ですか。"),
+    plain:"はり金"+nf(L1)+"mで"+nf(w1)+"g。"+(askL ? nf(W)+"gでは何m？" : nf(L2)+"mでは何g？"),
+    label:"何"+u+"？", u:u,
+    cor:optNum(ans,u),
+    cands:askL ? [optNum(W/w1,"m"), optNum(W*L1/100,"m"), optNum(L2+L1,"m"), optNum(L2*10,"m")]
+               : [optNum(w1*L2,"g"), optNum(w1+L2,"g"), optNum(W/10,"g"), optNum(p*(L2+1),"g")],
+    fb:numFallback(ans, stepOf(ans), u),
+    expl:step("① 1m あたりの 重さ："+nf(w1)+" ÷ "+nf(L1)+" ＝ "+nf(p)+" g")
+        +(askL ? step("② "+nf(W)+" ÷ "+nf(p)+" ＝ <b>"+nf(L2)+" m</b>") : step("② "+nf(p)+" × "+nf(L2)+" ＝ <b>"+nf(W)+" g</b>")),
+    kufu:"はり金の 重さは 長さに 比例する。まず 1m あたりの 重さ（決まった 数）を 出そう。",
+    chk:{ ans:ans }
+  });
+}
+function riyouKage(){
+  var s = 1, k = 1.5, H = 6, t;
+  for(t=0;t<60;t++){
+    var s2 = pick([1,1.5,2]), r = pick([0.8,1.2,1.5,1.6,2,2.5]), H2 = pick([3,4,4.5,5,6,7.5,8,9,10,12]);
+    var k2 = rnd(s2*r,4), K2 = rnd(H2*r,4);
+    if(decOK(k2,1) && decOK(K2,1) && decOK(H2/s2,2)){ s = s2; k = k2; H = H2; break; }
+  }
+  var K = rnd(H*k/s,4), m = rnd(H/s,4);
+  return mk({
+    key:"riyou_hirei", tag:"比例の 利用（かげの 長さ）",
+    q:"長さ "+nf(s)+"m の 棒を 地面に まっすぐ 立てたら、かげの 長さは "+nf(k)+"m でした。"
+     +"同じ 時こくに 木の かげの 長さを はかったら "+nf(K)+"m でした。<br>木の 高さは 何m ですか。",
+    plain:"長さ"+nf(s)+"mの棒のかげが"+nf(k)+"m。同じ時こくに木のかげは"+nf(K)+"m。木の高さは何m？",
+    label:"何m？", u:"m",
+    cor:optNum(H,"m"),
+    cands:[optNum(K*k/s,"m"), optNum(K-(k-s),"m"), optNum(K*s,"m"), optNum(K,"m")],
+    fb:numFallback(H, stepOf(H) === 1 ? 0.5 : stepOf(H), "m"),
+    expl:step("① 同じ 時こくなら、かげの 長さは 高さに 比例する")
+        +step("② 木の かげは 棒の かげの "+nf(K)+" ÷ "+nf(k)+" ＝ "+nf(m)+"倍")
+        +step("③ 木の 高さも "+nf(m)+"倍："+nf(s)+" × "+nf(m)+" ＝ <b>"+nf(H)+" m</b>"),
+    kufu:"かげと 高さの 割合（"+nf(k)+" ÷ "+nf(s)+"）は 同じ 時こくなら どれも 同じ。"
+        +"かげの 長さを そのまま 高さに しない。",
+    chk:{ ans:H }
+  });
+}
+var GEAR = [12,15,16,18,20,24,30,36,40,48];
+function riyouGear(){
+  var a = 24, b = 36, n = 6, t;
+  for(t=0;t<80;t++){
+    var a2 = pick(GEAR), b2 = pick(GEAR), n2 = ri(2,30);
+    if(a2 !== b2 && (a2*n2)%b2 === 0 && a2*n2/b2 <= 60 && a2*n2/b2 !== n2){ a = a2; b = b2; n = n2; break; }
+  }
+  var ans = a*n/b;
+  return mk({
+    key:"riyou_hanpi", tag:"反比例の 利用（歯車）",
+    q:"かみ合って 回る 歯車A と 歯車B が あります。A の 歯の 数は "+a+"、B の 歯の 数は "+b+" です。<br>"
+     +"A が "+n+"回 回ると、B は 何回 回りますか。",
+    plain:"歯車A(歯"+a+")とB(歯"+b+")がかみ合う。Aが"+n+"回回るとBは何回？",
+    label:"何回？", u:"回",
+    cor:optNum(ans,"回"),
+    cands:[optNum(b*n/a,"回"), optNum(n,"回"), optNum(a*n,"回"), optNum(n+(a-b),"回")],
+    fb:numFallback(ans, 1, "回"),
+    expl:step("① かみ合う 歯の 数は A と B で 同じ：A が 進めた 歯の 数 ＝ "+a+" × "+n+" ＝ "+(a*n))
+        +step("② B の 回る 回数 ＝ "+(a*n)+" ÷ "+b+" ＝ <b>"+ans+" 回</b>"),
+    kufu:"歯の 数 × 回る 回数 が いつも 同じ → 歯の 数と 回る 回数は 反比例。"
+        +"歯の 数が 多い 歯車ほど ゆっくり 回る。",
+    chk:{ ans:ans }
+  });
+}
+function riyouHayasa(){
+  var v1 = 40, t1 = 3, v2 = 60, t;
+  for(t=0;t<80;t++){
+    var a = pick([20,30,40,45,50,60,80,90,120]), b = pick([1.5,2,3,4,5,6]), c = pick([20,30,40,45,50,60,80,90,120]);
+    var D = a*b, t2 = D/c;
+    if(c !== a && decOK(D,0) && decOK(t2,1) && t2 <= 12 && t2 !== b){ v1 = a; t1 = b; v2 = c; break; }
+  }
+  var D2 = v1*t1, ans = rnd(D2/v2,4);
+  return mk({
+    key:"riyou_hanpi", tag:"反比例の 利用（速さと 時間）",
+    q:"ある 道のりを 時速 "+v1+"km で 進むと "+nf(t1)+"時間 かかります。<br>"
+     +"同じ 道のりを 時速 "+v2+"km で 進むと、何時間 かかりますか。",
+    plain:"ある道のりを時速"+v1+"kmで"+nf(t1)+"時間。時速"+v2+"kmでは何時間？",
+    label:"何時間？", u:"時間",
+    cor:optNum(ans,"時間"),
+    cands:[optNum(t1*v2/v1,"時間"), optNum(t1,"時間"), optNum(D2/v1,"時間"), optNum(ans+1,"時間"), optNum(ans*2,"時間")],
+    fb:numFallback(ans, 0.5, "時間"),
+    expl:step("① 道のり ＝ "+v1+" × "+nf(t1)+" ＝ "+nf(D2)+" km（決まった 数）")
+        +step("② 時間 ＝ "+nf(D2)+" ÷ "+v2+" ＝ <b>"+nf(ans)+" 時間</b>"),
+    kufu:"道のりが 同じなら、速さと 時間は 反比例。速さが 速く なると 時間は へる。",
+    chk:{ ans:ans }
+  });
+}
+function riyouSuisou(){
+  var q1 = 4, t1 = 15, t2 = 6, t;
+  for(t=0;t<80;t++){
+    var a = pick([2,3,4,5,6,8,10,12]), b = pick([6,8,10,12,15,20,24,30]), c = pick([4,5,6,8,10,12,15,20,24,30]);
+    var V2 = a*b, q2 = V2/c;
+    if(c !== b && decOK(q2,1) && q2 !== a){ q1 = a; t1 = b; t2 = c; break; }
+  }
+  var V = q1*t1, ans = rnd(V/t2,4);
+  return mk({
+    key:"riyou_hanpi", tag:"反比例の 利用（水そう）",
+    q:"水そうを いっぱいに するのに、1分間に "+q1+"L ずつ 水を 入れると "+t1+"分 かかります。<br>"
+     +t2+"分で いっぱいに するには、1分間に 何L ずつ 入れれば よいですか。",
+    plain:"毎分"+q1+"Lで"+t1+"分でいっぱいの水そう。"+t2+"分でいっぱいにするには毎分何L？",
+    label:"何L？", u:"L",
+    cor:optNum(ans,"L"),
+    cands:[optNum(q1*t2/t1,"L"), optNum(V,"L"), optNum(q1+(t1-t2),"L"), optNum(V*t2,"L")],
+    fb:numFallback(ans, stepOf(ans) === 1 ? 1 : 0.5, "L"),
+    expl:step("① 水そうの 水の 量 ＝ "+q1+" × "+t1+" ＝ "+V+" L（決まった 数）")
+        +step("② 1分間の 量 ＝ "+V+" ÷ "+t2+" ＝ <b>"+nf(ans)+" L</b>"),
+    kufu:"1分間に 入れる 量 × 時間 ＝ 水そうの 量（いつも 同じ）→ 反比例。"
+        +"早く いっぱいに したいなら、1分間の 量を ふやす。",
+    chk:{ ans:ans }
+  });
+}
+/* てこ（理科6年）：おもりの 重さ × 支点からの きょり が 左右で 等しいと つり合う */
+function tekoFig(d1,w1,d2){
+  var cv = Cv(), u = 22, y = 40, i;
+  cvRect(cv, -6.6*u, y-4, 13.2*u, 8, C.bld, C.bldE, 1.2);
+  for(i=1;i<=6;i++){
+    cvLine(cv, [-i*u,y-4], [-i*u,y+4], C.ink, 1);
+    cvLine(cv, [i*u,y-4], [i*u,y+4], C.ink, 1);
+    cvTx(cv, -i*u, y-14, String(i), C.sub, "middle", 11);
+    cvTx(cv, i*u, y-14, String(i), C.sub, "middle", 11);
+  }
+  cvPoly(cv, [[0,y+4],[-10,y+24],[10,y+24]], C.kinL, C.kin, 1.4);
+  cvTx(cv, 0, y+34, "支点", C.kin, "middle", 11);
+  cvLine(cv, [-d1*u,y+4], [-d1*u,y+30], C.ink, 1.2);
+  cvRect(cv, -d1*u-18, y+30, 36, 24, C.shuL, C.shu, 1.4);
+  cvTx(cv, -d1*u, y+42, w1+"g", C.shu, "middle", 12);
+  cvLine(cv, [d2*u,y+4], [d2*u,y+30], C.ink, 1.2);
+  cvRect(cv, d2*u-18, y+30, 36, 24, C.aiL, C.ai, 1.4);
+  cvTx(cv, d2*u, y+42, "□g", C.ai, "middle", 12);
+  cvTx(cv, -3.3*u, y-30, "左の うで", C.sub, "middle", 11);
+  cvTx(cv, 3.3*u, y-30, "右の うで", C.sub, "middle", 11);
+  return cvFin(cv, 300, 8, "てこの 図");
+}
+function riyouTeko(){
+  var d1 = 3, w1 = 40, d2 = 4, t;
+  for(t=0;t<80;t++){
+    var a = ri(2,6), b = pick([10,20,30,40,60]), c = ri(2,6);
+    if(a !== c && (a*b)%c === 0){ d1 = a; w1 = b; d2 = c; break; }
+  }
+  var M = w1*d1, ans = M/d2;
+  return mk({
+    key:"riyou_hanpi", tag:"反比例の 利用（てこ）",
+    q:"てこの 左の うでの、支点から "+d1+"番めの 目もりに "+w1+"g の おもりを つるしました。<br>"
+     +"右の うでの "+d2+"番めの 目もりに 何g の おもりを つるすと、てこは 水平に つり合いますか。",
+    plain:"てこ。左の"+d1+"番めの目もりに"+w1+"g。右の"+d2+"番めに何gでつり合う？",
+    fig:tekoFig(d1,w1,d2), label:"何g？", u:"g",
+    cor:optNum(ans,"g"),
+    cands:[optNum(w1*d2/d1,"g"), optNum(w1,"g"), optNum(w1+(d1-d2)*10,"g"), optNum(M,"g")],
+    fb:numFallback(ans, 5, "g"),
+    expl:step("① 左：おもりの 重さ × きょり ＝ "+w1+" × "+d1+" ＝ "+M)
+        +step("② 右も "+M+" に なれば つり合う："+M+" ÷ "+d2+" ＝ <b>"+ans+" g</b>"),
+    kufu:"重さ × 支点からの きょり が 左右で 等しいと つり合う。きょりが 遠いほど 軽い おもりで よい＝反比例。",
+    chk:{ ans:ans }
+  });
+}
+/* 利用は 比例の 場面と 反比例の 場面で キーを 分ける（メニューが 比例／反比例に 分かれているため） */
+function gen_riyou_hirei(){
+  var f = pick([riyouKami, riyouKami, riyouHari, riyouKage]);
+  return f();
+}
+function gen_riyou_hanpi(){
+  var f = pick([riyouGear, riyouHayasa, riyouSuisou, riyouTeko]);
+  return f();
+}
+
+/* =====================================================================
+   出題の 台帳
+   ===================================================================== */
+var GENS = {
+  hirei_hyou:  gen_hirei_hyou,
+  hirei_shiki: gen_hirei_shiki,
+  hirei_atai:  gen_hirei_atai,
+  hanpi_hyou:  gen_hanpi_hyou,
+  hanpi_shiki: gen_hanpi_shiki,
+  hanpi_atai:  gen_hanpi_atai,
+  hirei_graph: gen_hirei_graph,
+  hanpi_graph: gen_hanpi_graph,
+  miwake:      gen_miwake,
+  riyou_hirei: gen_riyou_hirei,
+  riyou_hanpi: gen_riyou_hanpi
+};
+/* モード → 出す question_key。同じキーを ならべた ぶんだけ 出やすくなる。
+   メニューは「比例」「反比例」「ランダム」の 3つ から 入り、
+   比例・反比例の 中に 種類ごとの モードと その中だけの ランダム（hirei / hanpi）が ある */
+var MODE_KEYS = {
+  hirei_hyou:  ["hirei_hyou"],
+  hirei_shiki: ["hirei_shiki"],
+  hirei_atai:  ["hirei_atai"],
+  hirei_graph: ["hirei_graph"],
+  riyou_hirei: ["riyou_hirei"],
+  hirei:       ["hirei_hyou","hirei_hyou","hirei_shiki","hirei_atai","hirei_graph","hirei_graph","riyou_hirei"],
+  hanpi_hyou:  ["hanpi_hyou"],
+  hanpi_shiki: ["hanpi_shiki"],
+  hanpi_atai:  ["hanpi_atai"],
+  hanpi_graph: ["hanpi_graph"],
+  riyou_hanpi: ["riyou_hanpi"],
+  hanpi:       ["hanpi_hyou","hanpi_hyou","hanpi_shiki","hanpi_atai","hanpi_graph","hanpi_graph","riyou_hanpi"],
+  miwake:      ["miwake"],
+  mix:         ["hirei_hyou","hirei_shiki","hirei_atai","hirei_graph","riyou_hirei",
+                "hanpi_hyou","hanpi_shiki","hanpi_atai","hanpi_graph","riyou_hanpi","miwake"]
+};
+/* 印刷シート（1枚）に出す 種類。表は 横長で 背が 低いので 8問、グラフは 6問。
+   反比例の ランダム・ランダムは 背の 高い 図（グラフ・てこ）が 多いので 6問（8問だと A4 を こえた）。
+   グラフ（.tall）は 2列の 同じ 行に ならぶよう 偶数番めから 2つ ならべる */
+function rep(k, n){ var a = []; for(var i=0;i<n;i++) a.push(k); return a; }
+var PRINT_KEYS = {
+  hirei_hyou:  rep("hirei_hyou",8),
+  hirei_shiki: rep("hirei_shiki",8),
+  hirei_atai:  rep("hirei_atai",8),
+  hirei_graph: rep("hirei_graph",6),
+  riyou_hirei: rep("riyou_hirei",8),
+  hirei:       ["hirei_hyou","hirei_hyou","hirei_shiki","hirei_shiki","hirei_atai","riyou_hirei","hirei_graph","hirei_graph"],
+  hanpi_hyou:  rep("hanpi_hyou",8),
+  hanpi_shiki: rep("hanpi_shiki",8),
+  hanpi_atai:  rep("hanpi_atai",8),
+  hanpi_graph: rep("hanpi_graph",6),
+  riyou_hanpi: rep("riyou_hanpi",8),
+  hanpi:       ["hanpi_hyou","hanpi_shiki","hanpi_atai","riyou_hanpi","hanpi_graph","hanpi_graph"],
+  miwake:      rep("miwake",8),
+  mix:         ["hirei_hyou","miwake","riyou_hirei","riyou_hanpi","hirei_graph","hanpi_graph"]
+};
+/* 紙で 図を 大きく 刷る 種類（グラフは 目もりを 読む） */
+var PRINT_TALL = { hirei_graph:true, hanpi_graph:true };
+/* 画面の 見出し（印刷の 題名にも 使う） */
+var MODE_LABEL = {
+  hirei_hyou:"比例の 表", hirei_shiki:"比例の 式", hirei_atai:"比例（x や y の 値）",
+  hirei_graph:"比例の グラフ", riyou_hirei:"比例の 利用", hirei:"比例の ランダム",
+  hanpi_hyou:"反比例の 表", hanpi_shiki:"反比例の 式", hanpi_atai:"反比例（x や y の 値）",
+  hanpi_graph:"反比例の グラフ", riyou_hanpi:"反比例の 利用", hanpi:"反比例の ランダム",
+  miwake:"比例？ 反比例？ 見分ける",
+  mix:"ランダム（比例と反比例）"
+};
+var PRINT_LABEL = {};
+Object.keys(MODE_LABEL).forEach(function(k){ PRINT_LABEL[k] = MODE_LABEL[k].replace(/ /g, ""); });
+function printInst(m){
+  if(/graph/.test(m)) return "次の 問題に 答えましょう。グラフの 目もりを ていねいに 読みましょう。";
+  if(m === "miwake")  return "次の 問題に 答えましょう。ことばの 式に して 考えましょう。";
+  if(m === "mix")     return "次の 問題に 答えましょう。比例か 反比例かを 考えてから とき始めましょう。";
+  if(/hirei/.test(m)) return "次の 問題に 答えましょう。y ÷ x の 決まった 数を 見つけましょう。";
+  if(/hanpi/.test(m)) return "次の 問題に 答えましょう。x × y の 決まった 数を 見つけましょう。";
+  return "次の 問題に 答えましょう。";
+}
+
+/* =====================================================================
+   出題エンジン（拡大図と縮図マスター・比マスターと同じ）
+   ===================================================================== */
+var MODE = "hirei";
+var cur = null, curKey = "", curSeed = 0;
+var sel = -1, graded = false;
+var score = 0, total = 0, streak = 0, qStart = 0;
+
+/* 解き直し（?retry=1） */
+var retryQ = null, retryTotal = 0, retryDone = 0;
+
+function $(id){ return document.getElementById(id); }
+
+function makeQ(key, seed){
+  rngSeed(seed);                       /* ここから先の乱数は種で決まる */
+  return GENS[key]();
+}
+
+function newQuestion(){
+  graded = false; sel = -1;
+  $("feedback").classList.remove("show");
+  $("toast").textContent = "";
+  $("checkBtn").style.display = "block";
+  $("nextBtn").style.display = "none";
+
+  var useKey, seed;
+  if(retryQ){
+    /* 解き直しを1周した。モード選択にもどって、案内帯を そこに 出す */
+    if(!retryQ.length){
+      retryQ = null;
+      backHome();
+      showMenu("top");
+      showRetryBanner("解き直し おつかれさま！ 同じ問題に 2回つづけて 正解すると リストから 消えるよ");
+      return;
+    }
+    var it = retryQ.shift();
+    retryDone++;
+    useKey = it.question_params.m;
+    seed = it.question_params.s>>>0;
+  }else{
+    useKey = pick(MODE_KEYS[MODE] || MODE_KEYS.hirei);
+    seed = rngPick();
+  }
+
+  curKey = useKey;
+  curSeed = seed;
+  cur = makeQ(useKey, seed);
+
+  /* 種類バッヂ。ランダムは 種類名が そのまま ヒントに なるので 出さない */
+  var tagText = retryQ ? ("解き直し "+retryDone+" / "+retryTotal+" ・ "+cur.tag)
+                       : (MODE === "mix" ? "" : cur.tag);
+  $("qTag").innerHTML = tagText;       /* タグは この画面で 組み立てた 文字だけ（x・y の ななめ字を 含む） */
+  $("qTag").style.display = tagText ? "" : "none";
+  $("qNo").textContent = retryQ ? "" : ("第 "+(total+1)+" 問");
+  $("qText").innerHTML = cur.qHtml;
+  $("figArea").innerHTML = cur.fig || "";
+  renderOptions();
+  qStart = nowMs();
+  try{ window.scrollTo({ top:0, behavior:"smooth" }); }catch(e){ window.scrollTo(0,0); }
+}
+
+function renderOptions(){
+  var host = $("partArea");
+  host.innerHTML = "";
+  var wrap = document.createElement("div");
+  wrap.className = "part";
+
+  var lab = document.createElement("div");
+  lab.className = "p-label";
+  lab.innerHTML = cur.label;       /* この画面で 組み立てた 文字だけ */
+  wrap.appendChild(lab);
+
+  var opts = document.createElement("div");
+  opts.className = "opts" + (cur.options.length === 3 ? " three" : "");
+  cur.options.forEach(function(o, oi){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "optBtn";
+    b.dataset.idx = oi;
+    b.innerHTML = o.html;          /* 中身は この画面で 組み立てた 数字と 単位だけ */
+    b.addEventListener("click", function(){ tapOption(oi); });
+    opts.appendChild(b);
+  });
+  wrap.appendChild(opts);
+  host.appendChild(wrap);
+}
+
+function tapOption(oi){
+  if(graded) return;
+  sel = oi;
+  $("toast").textContent = "";
+  document.querySelectorAll(".optBtn").forEach(function(b){
+    b.classList.toggle("on", Number(b.dataset.idx) === oi);
+  });
+}
+
+/* ---------- 答え合わせ ---------- */
+function check(){
+  if(graded || !cur) return;
+  if(sel < 0){ $("toast").textContent = "答えを えらんでね"; return; }
+
+  graded = true;
+  var ok = (sel === cur.correct);
+  var btns = document.querySelectorAll(".optBtn");
+  safeDivp("markChoices", btns, { correct:cur.correct, selected:sel,
+                                  dimOthers:true, label:"正解" });
+  btns.forEach(function(b){ b.disabled = true; });
+
+  total++;
+  if(ok){ score++; streak++; } else { streak = 0; }
+  renderScore();
+
+  var sec = Math.round((nowMs()-qStart)/1000);
+  /* 学習記録（未ログイン・ローカルでは黙ってスキップされる）。
+     図が無いと 解けない 問題は question_figure も 渡す（誤答のときだけ保存され、
+     teacher.php の 解き直しプリントに 出る＝CLAUDE.md 2b） */
+  safeDivp("answer", ok, {
+    question_key: curKey,
+    question_params: { m: curKey, s: curSeed },     /* 種方式：この2つで同じ問題を作り直せる */
+    question_text: cur.plainQ,
+    question_figure: cur.fig || null,
+    correct_answer: cur.ansText,
+    wrong_answer: ok ? null : cur.options[sel].plain,
+    time_taken_sec: (sec > 0 && sec < 600) ? sec : null
+  });
+
+  $("fbMsg").className = "fb-msg " + (ok ? "good" : "bad");
+  $("fbMsg").textContent = ok ? "せいかい！ よくできました" : "おしい！ とき方を 見てみよう";
+  $("expl").innerHTML = cur.expl;
+  $("feedback").classList.add("show");
+  $("checkBtn").style.display = "none";
+  $("nextBtn").style.display = "block";
+  $("toast").textContent = "";
+
+  /* 正解エフェクト（キラキラ）。pileBottom で「山の床」を ボタンの帯の 上に する
+     （わたさないと 不透明な #bottom が 積もりはじめを まるごと かくす） */
+  if(ok) safeDivp("correct", { pileBottom: "#bottom" });
+}
+
+function renderScore(){
+  $("scoreOk").textContent = score;
+  $("scoreAll").textContent = total;
+  $("scoreStreak").textContent = streak;
+}
+
+/* ---------- モード選択 ---------- */
+function startMode(m){
+  if(!MODE_KEYS[m]) return;
+  MODE = m;
+  retryQ = null;
+  score = 0; total = 0; streak = 0;
+  renderScore();
+  $("modeLabel").textContent = MODE_LABEL[m] || "";
+  document.body.classList.remove("choosing");
+  newQuestion();
+}
+/* メニューの 切りかえ（はじめ／比例／反比例）。問題を 解いて「ホームに戻る」と、
+   選んだときに 開いていた メニューに そのまま もどる */
+function showMenu(p){
+  document.querySelectorAll(".m-page").forEach(function(e){ e.hidden = (e.dataset.page !== p); });
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+function backHome(){
+  document.body.classList.add("choosing");
+  retryQ = null;
+  cur = null;
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+
+/* ---------- 解き直し（?retry=1） ---------- */
+function showRetryBanner(msg){
+  var slot = $("retryBannerSlot");
+  var e = $("retryBanner");
+  if(!e){
+    e = document.createElement("div");
+    e.id = "retryBanner";
+    slot.appendChild(e);
+  }
+  e.textContent = msg;
+}
+function initRetry(){
+  if(!(window.Divp && typeof Divp.getRetries === "function")) return;
+  Divp.getRetries().then(function(items){
+    var use = (items||[]).filter(function(it){
+      var p = it && it.question_params;
+      return p && GENS[p.m] && typeof p.s === "number";
+    });
+    if(!use.length){
+      showRetryBanner("解き直せる 問題は まだ ありません。まちがえた 問題が ここに たまっていくよ。");
+      return;
+    }
+    retryQ = use.slice();
+    retryTotal = retryQ.length;
+    retryDone = 0;
+    MODE = "retry";
+    score = 0; total = 0; streak = 0;
+    renderScore();
+    $("modeLabel").textContent = "まちがえた問題の 解き直し";
+    document.body.classList.remove("choosing");
+    newQuestion();
+  }).catch(function(){});
+}
+
+/* =====================================================================
+   印刷（A4・問題＋答え）。紙は 毎回 ちがう 問題で よいので 1問ごとに 種を 引く。
+   画面の 問題と 同じ 生成関数を 使うので、問題の 中身・図・答え・とき方は 画面と 一致する。
+   ⚠ makeQ() は 乱数の 状態を 書きかえるが、画面の 問題(cur)は 作り終わっているので 影響しない。
+   ===================================================================== */
+function printItems(mode){
+  var keys = PRINT_KEYS[mode] || PRINT_KEYS.mix, seen = {}, seenTpl = {}, out = [];
+  keys.forEach(function(k){
+    /* 同じ問題は 2つ 並べない。できれば 同じ場面（数字だけ ちがう 文章題）も さける */
+    var q = null;
+    for(var t=0; t<30; t++){
+      q = makeQ(k, rngPick());
+      var tpl = q.tag + q.plainQ.replace(/[\d.]+/g, "#");
+      if(!seen[q.plainQ] && (!seenTpl[tpl] || t >= 12)) break;
+    }
+    seen[q.plainQ] = 1;
+    seenTpl[q.tag + q.plainQ.replace(/[\d.]+/g, "#")] = 1;
+    out.push(q);
+  });
+  return out;
+}
+/* 答えのページに出す 「とき方」＝ 画面の 解説の 手順だけ（ポイントは のぞく） */
+function printHow(q){
+  var box = document.createElement("div");
+  box.innerHTML = q.expl;
+  var rm = box.querySelectorAll(".ttl, .kufu");
+  for(var i=0;i<rm.length;i++) rm[i].parentNode.removeChild(rm[i]);
+  var steps = box.querySelectorAll(".step"), s = [];
+  for(i=0;i<steps.length;i++){
+    /* ア〜エの ○× 一覧は 長いので、紙には 正解の 行だけ 残す */
+    var ngs = steps[i].querySelectorAll(".ng");
+    for(var j=0;j<ngs.length;j++) ngs[j].parentNode.removeChild(ngs[j]);
+    var h = steps[i].innerHTML.replace(/<br>/g, "").replace(/<\/?b>/g, "");
+    if(/^答え/.test(steps[i].textContent)) continue;
+    if(h) s.push(h);
+  }
+  return s.join(" → ");
+}
+function buildPrint(mode){
+  var items = printItems(mode);
+  var d = new Date();
+  var dateStr = d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
+  var label = PRINT_LABEL[mode] || PRINT_LABEL.mix;
+  function head(sub){
+    return '<div class="p-head"><div><div class="p-school">中京個別指導学院</div>'
+      + '<div class="p-title">比例と反比例マスター<small>'+esc(label)+'　'+sub+'</small></div></div>'
+      + '<div class="p-name">'+dateStr+'　名前<span></span></div></div>';
+  }
+  var qh = items.map(function(q,i){
+    return '<div class="p-item"><span class="p-no">'+(i+1)+'</span><span class="p-tag">'+q.tag+'</span>'
+      + '<div class="p-q">'+q.qHtml+'</div>'
+      + (q.pch ? '<div class="p-pch">'+esc(q.pch)+'</div>' : '')
+      + (q.fig ? '<div class="p-fig'+(PRINT_TALL[q.key] ? " tall" : "")+'">'+q.fig+'</div>' : '')
+      + '<div class="p-ans">答え<i></i>'+esc(q.u)+'</div></div>';
+  }).join("");
+  var ah = items.map(function(q,i){
+    return '<div class="a-item"><span class="p-no">'+(i+1)+'</span>'
+      + '<span class="a-v">'+q.options[q.correct].html+'</span>'
+      + '<span class="a-how">'+printHow(q)+'</span></div>';
+  }).join("");
+  var wm = window.ChukyoPrint ? ChukyoPrint.img() : "";
+  return wm
+    + '<div class="sheet">'+head("問題")+'<p class="p-inst">'+esc(printInst(mode))+'</p>'
+    + '<div class="p-grid">'+qh+'</div></div>'
+    + '<div class="sheet">'+head("答え")+'<div class="a-grid">'+ah+'</div></div>';
+}
+function printSheet(mode){
+  if(!PRINT_KEYS[mode]) mode = "mix";
+  var area = $("printArea");
+  /* 透かしは position:fixed で 1枚だけ 置く＝印刷では どのページにも 同じ位置に 出る */
+  var wmCss = window.ChukyoPrint ? '<style>'+ChukyoPrint.css({ zIndex:0 })+'.wm{position:fixed;}</style>' : "";
+  area.innerHTML = wmCss + buildPrint(mode);
+  /* 透かし画像の デコードを 待ってから 印刷する（直後に print() するとロゴが 抜けることがある） */
+  if(window.ChukyoPrint && ChukyoPrint.print) ChukyoPrint.print(area);
+  else window.print();
+}
+
+/* ---------- イベント ---------- */
+document.querySelectorAll(".m-print-btns button").forEach(function(b){
+  b.addEventListener("click", function(){ printSheet(b.dataset.mode); });
+});
+$("printBtn").addEventListener("click", function(){ printSheet(MODE); });
+/* data-open の カードは メニューを 開く、data-mode の カードは 出題を 始める */
+document.querySelectorAll(".m-card").forEach(function(b){
+  b.addEventListener("click", function(){
+    if(b.dataset.open) showMenu(b.dataset.open); else startMode(b.dataset.mode);
+  });
+});
+document.querySelectorAll(".m-back").forEach(function(b){
+  b.addEventListener("click", function(){ showMenu(b.dataset.open); });
+});
+$("homeBtn").addEventListener("click", backHome);
+$("checkBtn").addEventListener("click", check);
+$("nextBtn").addEventListener("click", newQuestion);
+
+/* divp-core は defer で読まれるので、DOM構築後に初期化する */
+window.addEventListener("DOMContentLoaded", function(){
+  safeDivp("init", UNIT_KEY);
+  if(/[?&]retry=1/.test(location.search)){
+    try{ initRetry(); }catch(e){}
+  }
+});
+</script>
+</body>
+</html>

@@ -151,6 +151,16 @@ const TOOLS = [
     next: '#nextBtn',
   },
   {
+    name: '比例と反比例マスター',
+    url: '/learning/math/math_es6_hirei_hanpirei.html',
+    start: async (page) => {
+      await page.locator('.m-card[data-mode="mix"]').click();
+    },
+    choices: '.optBtn',
+    grade: '#checkBtn',
+    next: '#nextBtn',
+  },
+  {
     name: '図形の面積マスター',
     url: '/learning/math/math_es5_menseki.html',
     start: async (page) => {

@@ -99,6 +99,12 @@ return [
         'sub'   => '算数・小6',
         'url'   => '/learning/math/math_es6_kakudai_shukuzu.html',
     ],
+    // 解き直しは question_params の {m:question_key, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
+    'math_es6_hirei_hanpirei' => [
+        'title' => '比例と反比例マスター',
+        'sub'   => '算数・小6',
+        'url'   => '/learning/math/math_es6_hirei_hanpirei.html',
+    ],
     'math_es4_warizan_hissan' => [
         'title' => 'わり算のひっ算マスター',
         'sub'   => '算数・小4',
