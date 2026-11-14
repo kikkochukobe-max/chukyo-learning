@@ -181,6 +181,12 @@ return [
         'sub'   => '数学・中1',
         'url'   => '/learning/math/math_js1_houteishiki_riyou.html',
     ],
+    // 解き直しは question_params の {m:question_key, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
+    'math_js1_hirei_hanpirei' => [
+        'title' => '座標・比例・反比例マスター',
+        'sub'   => '数学・中1',
+        'url'   => '/learning/math/math_js1_hirei_hanpirei.html',
+    ],
     'math_js1_hyomenseki_taiseki' => [
         'title' => '立体マスター（表面積・体積）',
         'sub'   => '数学・中1',
