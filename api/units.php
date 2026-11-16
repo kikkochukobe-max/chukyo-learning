@@ -82,6 +82,18 @@ return [
         'url'   => '/learning/math/math_es5_heikin.html',
     ],
     // 解き直しは question_params の {m:question_key, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
+    'math_es5_tanniryou' => [
+        'title' => '単位量あたりマスター',
+        'sub'   => '算数・小5',
+        'url'   => '/learning/math/math_es5_tanniryou.html',
+    ],
+    // 解き直しは question_params の {m:question_key, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
+    'math_es5_hayasa' => [
+        'title' => '速さマスター',
+        'sub'   => '算数・小5',
+        'url'   => '/learning/math/math_es5_hayasa.html',
+    ],
+    // 解き直しは question_params の {m:question_key, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
     'math_es6_rittai_taiseki' => [
         'title' => '立体の体積マスター',
         'sub'   => '算数・小6',

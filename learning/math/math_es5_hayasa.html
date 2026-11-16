@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="only light">
+<title>速さマスター｜小5算数 速さ｜中京個別指導学院</title>
+<meta name="description" content="小5算数の速さを練習。速さ・道のり・時間の求め方（時速・分速・秒速）、何時間何分、速さくらべ、時速・分速・秒速の変え方、単位をそろえる計算、時こくと速さ、出会い・追いつき。解説は2本の数直線つき。中京個別指導学院(神丘)の学習ツール。">
+<!-- 本番(Heteml)ではサブセット自己ホストに差し替え -->
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- 印刷シートのロゴ透かし（ChukyoPrint） -->
+<script src="/assets/print-watermark.js"></script>
+<style>
+  :root{
+    --paper:#FBFAF6;
+    --grid:#ECE9E0;
+    --sumi:#33312B;
+    --usuzumi:#8B877C;
+    --shu:#C73E2E;
+    --kin:#C9A227;
+    --ai:#2C5F8A;
+    /* 答え合わせの色は共通モジュール(divp-choice-mark.js)の既定にそろえる */
+    --divp-mark-ok:#3E8E5A;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html{ scrollbar-gutter:stable; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:24px 24px;
+    color:var(--sumi);
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;     /* ⚠ 横並び(row)にしない。共通ヘッダーが左端に縦長の帯になる */
+    touch-action:manipulation;
+  }
+  .app{
+    width:100%;
+    max-width:560px;
+    margin:0 auto;
+    padding:12px 14px calc(90px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    flex:1;
+  }
+
+  /* ---- ヘッダー ---- */
+  header{ display:flex; align-items:center; gap:8px; }
+  header h1{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:15px; font-weight:700; margin:0;
+    white-space:nowrap;          /* 名前が長いので 17px だと スマホで「マスタ／ー」と 折れた */
+    letter-spacing:.04em;
+  }
+  header h1 .sub{
+    display:block;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    letter-spacing:.1em;
+  }
+  .mode-back{
+    margin-left:auto;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.5px solid var(--ai);
+    background:#fff;
+    border-radius:8px;
+    padding:5px 9px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .mode-back.next-to{ margin-left:6px; }
+
+  /* ---- スコア ---- */
+  .score{
+    display:flex; align-items:baseline; gap:12px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700; color:var(--usuzumi);
+  }
+  .score b{ color:var(--shu); font-size:17px; }
+  .score .streak b{ color:var(--kin); }
+  .score .qno{ margin-left:auto; color:var(--ai); }
+
+  /* ---- 問題カード ---- */
+  .card{
+    position:relative;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:16px;
+    box-shadow:0 2px 0 rgba(51,49,43,.06);
+    padding:16px 16px 14px;
+  }
+  .card .qtag{
+    display:inline-block;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.2px solid var(--ai);
+    border-radius:999px;
+    padding:2px 10px;
+    margin-bottom:8px;
+    letter-spacing:.06em;
+  }
+  .card .qtext{
+    font-size:16px; line-height:1.85;
+    letter-spacing:.02em;
+  }
+  .card .qtext b{ color:var(--shu); }
+
+  /* ---- 問題の 表（くらべる問題） ---- */
+  .dtbl{ overflow-x:auto; margin:8px 0 6px; }
+  .dtbl table{
+    border-collapse:collapse;
+    margin:0 auto;
+    font-family:"Zen Maru Gothic", sans-serif;
+    background:#fff;
+  }
+  .dtbl th, .dtbl td{
+    border:1.5px solid #CFC9B8;
+    padding:4px 12px;
+    text-align:center;
+    white-space:nowrap;
+    line-height:1.3;
+  }
+  .dtbl th{
+    background:#F5F2EA;
+    font-size:12px; font-weight:700;
+    color:#6B675D;
+  }
+  .dtbl th small{ display:block; font-size:10.5px; font-weight:500; }
+  .dtbl td{ font-size:15px; font-weight:700; min-width:2.4em; }
+  .dtbl td.lb{ background:#F5F2EA; font-size:14px; color:#6B675D; }
+
+  /* ---- 解答パーツ ---- */
+  .part{ display:flex; flex-direction:column; gap:8px; }
+  .p-label{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700;
+    color:var(--ai);
+    letter-spacing:.04em;
+  }
+  .opts{ display:flex; flex-wrap:wrap; gap:8px; }
+  .optBtn{
+    position:relative;          /* 「正解」バッジの基準（divp-choice-mark.js） */
+    flex:1 1 calc(50% - 4px);
+    min-width:120px;
+    min-height:58px;
+    padding:8px 12px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:11px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:21px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    line-height:1.4;
+  }
+  /* くらべる問題（A・B・C の 3択）は 1列に 3つ */
+  .opts.three .optBtn{ flex:1 1 calc(33.3% - 6px); min-width:0; padding:8px 6px; }
+  .optBtn .u{ font-size:.68em; margin-left:3px; color:var(--usuzumi); }
+  .optBtn .u.pre{ margin:0 4px 0 0; }
+  .optBtn.on{
+    background:#FDECE9;
+    border-color:var(--shu);
+    border-bottom-color:var(--shu);
+    color:var(--shu);
+  }
+  .optBtn.on .u{ color:var(--shu); }
+  .optBtn:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .optBtn:disabled{ cursor:default; transform:none; }
+  .optBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- フィードバック ---- */
+  .feedback{ display:none; }
+  .feedback.show{ display:flex; flex-direction:column; gap:10px; }
+  .fb-msg{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    text-align:center;
+    letter-spacing:.06em;
+  }
+  .fb-msg.good{ color:var(--shu); }
+  .fb-msg.bad{ color:var(--ai); }
+  .expl{
+    background:#fff;
+    border:1.5px dashed var(--kin);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:14px; line-height:2.05;
+  }
+  .expl b{ color:var(--shu); }
+  .expl .ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--kin);
+    letter-spacing:.08em;
+    display:block; margin-bottom:4px;
+  }
+  .expl .step{ display:block; }
+  .expl .fig{ display:flex; justify-content:center; margin:6px 0 0; }
+  .expl .fig svg{ width:100%; max-width:330px; height:auto; background:#FFFDF7; border-radius:10px; }
+  .expl .cap{
+    display:block;
+    font-size:12px; line-height:1.6;
+    color:var(--usuzumi);
+    text-align:center;
+    margin-top:2px;
+  }
+  .expl .kufu{
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px dashed var(--grid);
+    font-size:13px; color:var(--ai);
+  }
+  .toast{
+    text-align:center;
+    font-size:13px; font-weight:700; color:var(--ai);
+    min-height:20px;
+  }
+
+  /* ---- 下の大きなボタン ---- */
+  .bottom{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--paper) 62%, rgba(251,250,246,0));
+    z-index:20;
+  }
+  .bottom .inner{ max-width:560px; margin:0 auto; }
+  .bigBtn{
+    width:100%;
+    height:54px;
+    border:none;
+    border-radius:13px;
+    background:var(--shu);
+    color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    letter-spacing:.2em; text-indent:.2em;
+    box-shadow:0 3px 0 #9E2F22;
+    cursor:pointer;
+  }
+  .bigBtn:active{ transform:translateY(2px); box-shadow:0 1px 0 #9E2F22; }
+  .bigBtn.next{ background:var(--ai); box-shadow:0 3px 0 #1E466A; }
+  .bigBtn.next:active{ box-shadow:0 1px 0 #1E466A; }
+  .bigBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- モード選択画面（平均マスターと同じ作り） ---- */
+  .mode-screen{ display:none; }
+  body.choosing .app,
+  body.choosing .bottom{ display:none; }
+  body.choosing .mode-screen{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:100%;
+    max-width:520px;
+    margin:0 auto;
+    padding:34px 18px 48px;
+  }
+  .m-logo{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:25px; font-weight:700;
+    text-align:center;
+    letter-spacing:.08em;
+  }
+  .m-sub{
+    text-align:center;
+    font-size:13px; color:var(--usuzumi);
+    margin-bottom:8px;
+  }
+  .m-card{
+    display:flex; align-items:center; gap:13px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:4px solid #D8D4C8;
+    border-radius:16px;
+    padding:14px 16px;
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;
+    color:inherit;
+    width:100%;
+  }
+  .m-card:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .m-card.chal{ border-color:#BFD4C6; border-bottom-color:#8FB9A0; background:#F7FBF8; }
+  .m-card.mix{ border-color:var(--kin); border-bottom-color:var(--kin); }
+  .m-sep{
+    display:flex; align-items:center; gap:8px;
+    margin-top:14px;
+    font-size:11.5px; color:var(--usuzumi); letter-spacing:.06em;
+  }
+  .m-sep::before, .m-sep::after{
+    content:""; flex:1; height:1px; background:var(--grid);
+  }
+  .m-body{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .m-name{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700;
+  }
+  .m-desc{ font-size:11.5px; color:var(--usuzumi); line-height:1.5; }
+
+  /* 解き直し(?retry=1)の案内帯 */
+  #retryBanner{
+    background:#FBF3E0;
+    border:1.5px solid var(--kin);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:12.5px; line-height:1.6;
+    color:#6E5518;
+  }
+
+  /* 積もったキラキラ(divp-correct-kirakira の pile, z-index:5)にうもれないように。
+     モジュール側の :where() は詳細度0で、div/span だけで組んだ帯は
+     セレクタから漏れるため、画面の直下の子をまとめて前面に出しておく */
+  .divp-header{ position:relative; z-index:11; }
+  .app > *, .mode-screen > *, .feedback > *{ position:relative; z-index:10; }
+
+  /* ---- モード画面の「プリントを 印刷する」 ---- */
+  .m-print{
+    background:#fff;
+    border:1.5px dashed #CFC9B8;
+    border-radius:16px;
+    padding:12px 14px 14px;
+  }
+  .m-print-ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:15px; font-weight:700;
+    margin-bottom:9px;
+  }
+  .m-print-ttl span{
+    display:block;
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    margin-top:1px;
+  }
+  .m-print-btns{ display:flex; flex-wrap:wrap; gap:7px; }
+  .m-print-btns button{
+    flex:1 1 calc(33% - 7px);
+    min-width:92px; min-height:40px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:10px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13.5px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+  }
+  .m-print-btns button:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+
+  /* ---- 印刷シート ---- */
+  .print-area{ display:none; }
+  @media print{
+    @page{ size:A4 portrait; margin:10mm 11mm; }
+    /* 共通ヘッダーは紙に出さない（assets/divp-header.js と同じ方針） */
+    .divp-header{ display:none !important; }
+    .mode-screen, .app, .bottom,
+    #divp-kk-layer, #divp-kk-pile, .divp-kk-layer, .divp-kk-canvas, .divp-kk-text{ display:none !important; }
+    html, body{ background:#fff !important; min-height:0 !important; }
+    body{ display:block !important; }
+    .print-area{ display:block !important; color:#222; font-family:"Zen Kaku Gothic New", sans-serif; }
+    .sheet{ position:relative; page-break-after:always; break-after:page;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .sheet:last-child{ page-break-after:auto; break-after:auto; }
+    .p-head{ position:relative; z-index:1; display:flex; justify-content:space-between; align-items:flex-end;
+      border-bottom:2px solid #33312B; padding-bottom:4px; margin-bottom:6px; }
+    .p-school{ font-size:11px; font-weight:700; color:#555; }
+    .p-title{ font-family:"Zen Maru Gothic", sans-serif; font-weight:700; font-size:20px; margin-top:1px; }
+    .p-title small{ font-size:13px; margin-left:8px; color:#555; }
+    .p-name{ font-size:12px; white-space:nowrap; }
+    .p-name span{ display:inline-block; border-bottom:1px solid #000; min-width:170px; margin-left:6px; }
+    .p-inst{ position:relative; z-index:1; font-size:11.5px; margin:0 0 6px; }
+    /* ⚠ くらべる問題は 4行の 表が 入って 背が高い。1行に 2問 並ぶので、
+       2つ 並ぶ 行が あっても 1枚に 入るように すき間を 詰めてある。
+       「速さを くらべる」の プリントは 10問 ぜんぶが 表つきで、表の 行を 詰める 前は
+       最大 1015px（枠 1040px）と ぎりぎりだった */
+    .p-grid{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:3mm 7mm; }
+    .p-item{ break-inside:avoid; page-break-inside:avoid; padding:1mm 1mm 0; }
+    .p-no{ display:inline-block; font-weight:700; font-size:12px; background:#33312B; color:#fff;
+      border-radius:5px; padding:0 7px; margin-right:4px; }
+    .p-tag{ font-size:9.5px; color:#777; }
+    .p-q{ font-size:12px; line-height:1.65; margin:2px 0 0; min-height:15mm; }
+    .p-q b{ color:#222; }
+    .p-q .dtbl{ margin:3px 0 3px; overflow:visible; }
+    .p-q .dtbl table{ margin:0; }
+    .p-q .dtbl th, .p-q .dtbl td{ border:1px solid #888; padding:0 7px; line-height:1.2; }
+    .p-q .dtbl th{ font-size:9.5px; background:#f2f2f2; color:#333; }
+    .p-q .dtbl th small{ display:inline; font-size:8.5px; }
+    .p-q .dtbl td{ font-size:12px; min-width:2em; }
+    .p-q .dtbl td.lb{ font-size:11px; background:#f2f2f2; color:#333; }
+    .p-ans{ display:flex; align-items:flex-end; gap:6px; margin-top:1.5mm; font-size:11px; color:#555; }
+    .p-ans i{ flex:1; border-bottom:1px solid #333; height:6.5mm; font-style:normal; }
+    .a-grid{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:2.5mm 7mm; }
+    .a-item{ break-inside:avoid; font-size:12px; line-height:1.6; border-bottom:1px dashed #ccc; padding:1.5mm 0 2mm; }
+    .a-item .a-v{ font-family:"Zen Maru Gothic", sans-serif; font-size:16px; font-weight:700; color:#C73E2E; margin-left:4px; }
+    .a-item .a-v .u{ font-size:.75em; margin:0 2px; }
+    .a-item .a-how{ display:block; font-size:10.5px; color:#555; line-height:1.55; margin-top:1px; }
+  }
+</style>
+</head>
+<body class="choosing" data-theme="es" data-effect="kirakira">
+
+<!-- 共通ヘッダー(ロゴ・ログイン窓)の差し込み先。script は body 直後に置くこと -->
+<div class="divp-header"></div>
+<!-- 学習記録システム共通モジュール -->
+<script src="/assets/divp-core.js" defer></script>
+<script src="/assets/divp-header.js" defer></script>
+<!-- 小学生ツールなので正解演出は星バースト。
+     data-effect="kirakira" なので、都道府県マスターと同じ星が
+     そのまま画面の下に積もっていく（divp-core.js より後ろに置くこと） -->
+<script src="/assets/divp-correct-kirakira.js" defer></script>
+<!-- 選択肢の答え合わせ表示（正解=緑 / 選んだ誤答=朱） -->
+<script src="/assets/divp-choice-mark.js" defer></script>
+
+<div class="mode-screen" id="modeScreen">
+  <div class="m-logo">速さマスター</div>
+  <div class="m-sub">小5 算数 ／ れんしゅうしたいものを えらんでね</div>
+  <div id="retryBannerSlot"></div>
+
+  <button type="button" class="m-card" data-mode="motomeru">
+    <span class="m-body"><span class="m-name">速さを 求める</span>
+    <span class="m-desc">速さ ＝ 道のり ÷ 時間。時速・分速・秒速。
+    自動車・新幹線・チーター・音の 速さも</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="michi_jikan">
+    <span class="m-body"><span class="m-name">道のり・時間を 求める</span>
+    <span class="m-desc">道のり ＝ 速さ × 時間、時間 ＝ 道のり ÷ 速さ。
+    「何時間何分」で 答える 問題も</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="hikaku">
+    <span class="m-body"><span class="m-name">速さを くらべる</span>
+    <span class="m-desc">道のりも 時間も ちがう ときは？
+    時速・分速・秒速が まざった くらべ方も</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="kansan">
+    <span class="m-body"><span class="m-name">時速・分速・秒速</span>
+    <span class="m-desc">速さの 単位を かえる。速さと 時間の 単位が
+    ちがう ときは そろえてから 計算する</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="jikoku">
+    <span class="m-body"><span class="m-name">時こくと 速さ</span>
+    <span class="m-desc">何時何分に 着く？ 何時何分に 出れば いい？
+    出た 時こくと 着いた 時こくから 速さも</span></span>
+  </button>
+
+  <button type="button" class="m-card chal" data-mode="deai">
+    <span class="m-body"><span class="m-name">出会い・追いつき（チャレンジ）</span>
+    <span class="m-desc">向かい合うと 速さの 和、追いかけると 速さの 差で
+    あいだが ちぢまる</span></span>
+  </button>
+
+  <button type="button" class="m-card mix" data-mode="mix">
+    <span class="m-body"><span class="m-name">ランダム</span>
+    <span class="m-desc">ぜんぶの 種類を ごちゃまぜで 出題（しあげ用）</span></span>
+  </button>
+
+  <div class="m-sep">プリントで れんしゅうしたいときは</div>
+
+  <div class="m-print">
+    <div class="m-print-ttl">🖨 プリントを 印刷する<span>A4・10問＋答えのページ／押すたびに ちがう問題</span></div>
+    <div class="m-print-btns" id="printBtns">
+      <button type="button" data-mode="motomeru">速さ</button>
+      <button type="button" data-mode="michi_jikan">道のり・時間</button>
+      <button type="button" data-mode="hikaku">くらべる</button>
+      <button type="button" data-mode="kansan">時速・分速</button>
+      <button type="button" data-mode="jikoku">時こく</button>
+      <button type="button" data-mode="deai">出会い</button>
+      <button type="button" data-mode="mix">ランダム</button>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <header>
+    <h1>速さマスター<span class="sub" id="modeLabel">速さを 求める</span></h1>
+    <button type="button" class="mode-back" id="printBtn" title="このモードのプリントを印刷">🖨 プリント</button>
+    <button type="button" class="mode-back next-to" id="homeBtn">ホームに戻る</button>
+  </header>
+
+  <div class="score">
+    <span>せいかい <b id="scoreOk">0</b> / <span id="scoreAll">0</span></span>
+    <span class="streak">れんぞく <b id="scoreStreak">0</b></span>
+    <span class="qno" id="qNo"></span>
+  </div>
+
+  <div class="card">
+    <span class="qtag" id="qTag">問題</span>
+    <div class="qtext" id="qText"></div>
+  </div>
+
+  <div id="partArea" style="display:flex;flex-direction:column;gap:14px"></div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="feedback" id="feedback">
+    <div class="fb-msg" id="fbMsg"></div>
+    <div class="expl" id="expl"></div>
+  </div>
+</div>
+
+<!-- 印刷用（画面には出さない。印刷ボタンのたびに 中身を 作りなおす） -->
+<div class="print-area" id="printArea"></div>
+
+<div class="bottom" id="bottom">
+  <div class="inner">
+    <button type="button" class="bigBtn" id="checkBtn">こたえあわせ</button>
+    <button type="button" class="bigBtn next" id="nextBtn" style="display:none">つぎの問題 ➜</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   速さマスター（算数・小5「速さ」）
+   unit_key = math_es5_hayasa
+   ※ 2020年度からの 教科書では「速さ」は 小5の「単位量あたりの大きさ」の 中に ある。
+     単位量あたりマスター(math_es5_tanniryou)にも 速さの 基本は 入っているが、
+     こちらは 速さだけを 深く やる 独立ツール（別の unit_key＝カルテも 別に 出る）。
+     生成関数の 一部（速さ・道のり・時間・くらべる・単位を かえる）は あちらの 写し。
+
+   ■ モードと question_key
+     速さを 求める       → motomeru
+     道のり・時間を 求める → michinori / jikan（3問に1問 くらい「何時間何分」で 答える）
+     速さを くらべる     → hikaku（同じ 単位の 3つ）/ hikaku_tanni（時速・分速・秒速が まざる）
+     時速・分速・秒速    → kansan（6とおりの 変え方）/ soroe（単位を そろえて 計算）
+     時こくと 速さ       → jikoku（着く 時こく・出る 時こく・時こくから 速さ）
+     出会い・追いつき    → deai（チャレンジ）
+     ランダム           → 上の ぜんぶ（question_key は実際に出た種類）
+     日本語ラベルは db/seeds/seed_math_es5_hayasa.sql で question_catalog へ。
+
+   ■ 解き直し（?retry=1）は「種(seed)方式」＝ CLAUDE.md 2d（平均マスターと同じ）
+     乱数は ri()/pick()/shuffle() に一本化してあり、出題のたびに種を1つ引いて
+     question_params:{m:question_key, s:種} だけを保存する。
+     ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
+       （params_hash は同じままなので解き直し自体は成立する）。
+     ⚠ 生成関数の中で Math.random() を 直接 呼ばないこと（種で 再現できなくなる）。
+
+   ■ 数は「100分の1 を 単位に した 整数」で 持つ（1.5時間 → 150）。時こくは 0時からの 分（9時27分 → 567）。
+     表示の ときだけ 小数に もどすので、0.1＋0.2 の ような 誤差が 出ない。
+
+   ■ 図（question_figure）は 渡さない
+     問題は 文章と 表だけで 解ける（表の 数は question_text にも ならべて 入れる）。
+     解説の「2本の 数直線」は 説明用。
+   ===================================================================== */
+
+var UNIT_KEY = "math_es5_hayasa";
+
+/* ---------- 共通モジュールの安全呼び出し（未読込でも壊れない） ---------- */
+function safeDivp(fn){
+  try{
+    if(window.Divp && typeof window.Divp[fn] === "function"){
+      return window.Divp[fn].apply(window.Divp, [].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return null;
+}
+
+/* ---------- RNG（xorshift32・種から決まった順に出る） ---------- */
+var _rngState = 1;
+function rngSeed(s){ _rngState = (s>>>0) || 1; }
+function rngPick(){ return (Math.floor(Math.random()*4294967296)>>>0) || 1; }  /* 種そのものだけ真の乱数 */
+function rngNext(){
+  var x = _rngState;
+  x ^= x<<13; x >>>= 0; x ^= x>>>17; x ^= x<<5; x >>>= 0;
+  _rngState = x;
+  return x/4294967296;
+}
+function ri(min,max){ return Math.floor(rngNext()*(max-min+1))+min; }
+function pick(arr){ return arr[ri(0,arr.length-1)]; }
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i=a.length-1;i>0;i--){ var j=ri(0,i); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+
+/* ---------- 数のあつかい ---------- */
+function isInt(v){ return Math.abs(v-Math.round(v)) < 1e-9; }
+/* 小数（1.5）→ 100分の1 単位の 整数（150） */
+function H(x){ return Math.round(x*100); }
+/* 100分の1 単位の 整数 → 表示（150 → "1.5"） */
+function d100(v){ return String(Math.round(v)/100); }
+/* 大きな 整数に 3けたごとの 「,」（人口） */
+function fmtC(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function nowMs(){ return (window.performance && performance.now) ? performance.now() : Date.now(); }
+/* 画面用の HTML から 記録用の 1行を 作る（タグと 分かち書きの 空白を 取る） */
+function plainOf(html){
+  return String(html).replace(/<br>/g,"").replace(/<[^>]+>/g,"").replace(/ /g,"");
+}
+function st(s){ return '<span class="step">'+s+'</span>'; }
+
+/* ---------- 選択肢 ----------
+   選択肢は {html, plain, key, ok}。数は 100分の1 単位の 整数で 受け取る。
+   pre は 速さの「時速」「分速」「秒速」（数の 前に 付く）。
+   0以下・100分の1で わりきれない 数（2.333…）は ok=false で はじく。 */
+function optNum(v,u,pre){
+  var ok = v > 0 && isInt(v);
+  v = Math.round(v);
+  return { html: (pre ? '<span class="u pre">'+pre+'</span>' : "") + d100(v) + (u ? '<span class="u">'+u+'</span>' : ""),
+           plain: (pre ? pre+" " : "") + d100(v) + (u ? " "+u : ""),
+           key: "n"+v, ok: ok };
+}
+/* くらべる問題の 選択肢（A・B・C）。tail は「の 部屋」「さん」など */
+function optLetter(L, tail){
+  return { html: L + '<span class="u">'+tail+'</span>', plain: L + tail.replace(/ /g,""), key: L, ok: true };
+}
+/* 正解1つ＋まちがい3つ。cands（ねらった まちがい）を先に使い、足りなければ fb で うめる */
+function buildChoices(cor, cands, fb){
+  var out = [cor], seen = {}, i;
+  seen[cor.key] = 1;
+  function add(c){
+    if(out.length >= 4 || !c || !c.ok || seen[c.key]) return;
+    seen[c.key] = 1; out.push(c);
+  }
+  var cs = shuffle(cands);
+  for(i=0;i<cs.length;i++) add(cs[i]);
+  for(i=0;i<fb.length;i++) add(fb[i]);
+  var arr = shuffle(out);
+  return { options: arr, correct: arr.indexOf(cor) };
+}
+/* 数の答えの うめ草（正解の となりの数） */
+function numFallback(ans, step, u, pre){
+  var a = [];
+  for(var k=1;k<=6;k++){ a.push(optNum(ans+step*k,u,pre)); a.push(optNum(ans-step*k,u,pre)); }
+  return a;
+}
+/* うめ草の 刻み：答えの いちばん下の 位に そろえる（60 → 1、59.6 → 0.1、6.25 → 0.01） */
+function stepOf(v){ return v % 100 === 0 ? 100 : v % 10 === 0 ? 10 : 1; }
+
+/* 問題を くみたてる（全種類 共通）。o.options があれば その順の まま（くらべる問題） */
+function mk(o){
+  var ch = o.options ? { options:o.options, correct:o.correct } : buildChoices(o.cor, o.cands, o.fb);
+  return {
+    key: o.key, tag: o.tag,
+    qHtml: o.q, plainQ: o.plain,
+    label: o.label, u: o.u || "", pre: o.pre || "",
+    options: ch.options, correct: ch.correct,
+    ansText: ch.options[ch.correct].plain,
+    expl: '<span class="ttl">とき方</span>' + o.expl
+        + (o.kufu ? '<div class="kufu">💡 ' + o.kufu + '</div>' : ""),
+    chk: o.chk || null
+  };
+}
+
+/* =====================================================================
+   2本の 数直線（解説用 SVG）。色・線は 属性で 書く（CLAUDE.md 2b と同じ流儀）
+     上の線 = 全体の 量（道のり・人数・代金…）、下の線 = いくつ分（時間・面積・長さ…）
+     左から 0 ／ 1 ／ いくつ分。わからない ところは 朱の □。
+     弧の 矢印（×3 ／ ÷3）は 上と 下で 同じ＝「同じ 倍に なる」
+   ===================================================================== */
+var SVGFONT = "Zen Maru Gothic,Hiragino Maru Gothic ProN,HGMaruGothicMPRO,sans-serif";
+var COL = { shu:"#C73E2E", ai:"#2C5F8A", ink:"#33312B", sub:"#8B877C" };
+function svgText(x,y,s,color,anchor,size,weight){
+  return '<text x="'+x+'" y="'+y+'" fill="'+color+'" font-size="'+(size||12)+'" font-weight="'+(weight||700)
+       + '" text-anchor="'+(anchor||"middle")+'" font-family="'+SVGFONT+'">'+esc(s)+'</text>';
+}
+function dnlArc(xa, xb, y, cy, rev, op, top){
+  var a = xa + 14, b = xb - 14, mx = (xa + xb)/2;
+  var s = '<path d="M'+a+' '+y+' Q'+mx+' '+cy+' '+b+' '+y+'" fill="none" stroke="'+COL.shu+'" stroke-width="1.5"/>';
+  /* 矢じり：終わりの 点での 向き（終点 − 制御点） */
+  var ex = rev ? a : b, dx = ex - mx, dy = y - cy, L = Math.sqrt(dx*dx + dy*dy);
+  dx /= L; dy /= L;
+  var px = -dy, py = dx, r1 = function(v){ return Math.round(v*10)/10; };
+  s += '<polygon points="'+r1(ex)+','+y+' '+r1(ex-dx*7+px*4)+','+r1(y-dy*7+py*4)+' '+r1(ex-dx*7-px*4)+','+r1(y-dy*7-py*4)
+     + '" fill="'+COL.shu+'"/>';
+  var peak = (y + cy)/2;
+  s += svgText(mx, top ? peak-5 : peak+15, op, COL.shu, "middle", 12.5);
+  return s;
+}
+function dnl(o){
+  var X0 = 90, XA = 180, XB = 292, XE = 322, YT = 62, YB = 104;
+  var s = '', i, xs = [X0, XA, XB];
+  s += '<line x1="'+X0+'" y1="'+YT+'" x2="'+XE+'" y2="'+YT+'" stroke="'+COL.ink+'" stroke-width="1.4"/>';
+  s += '<line x1="'+X0+'" y1="'+YB+'" x2="'+XE+'" y2="'+YB+'" stroke="'+COL.ink+'" stroke-width="1.4"/>';
+  for(i=0;i<xs.length;i++){
+    s += '<line x1="'+xs[i]+'" y1="'+(YT-5)+'" x2="'+xs[i]+'" y2="'+(YT+5)+'" stroke="'+COL.ink+'" stroke-width="1.4"/>';
+    s += '<line x1="'+xs[i]+'" y1="'+(YB-5)+'" x2="'+xs[i]+'" y2="'+(YB+5)+'" stroke="'+COL.ink+'" stroke-width="1.4"/>';
+  }
+  s += '<line x1="'+XA+'" y1="'+(YT+7)+'" x2="'+XA+'" y2="'+(YB-7)+'" stroke="'+COL.sub+'" stroke-width="1" stroke-dasharray="3 3"/>';
+  s += '<line x1="'+XB+'" y1="'+(YT+7)+'" x2="'+XB+'" y2="'+(YB-7)+'" stroke="'+COL.sub+'" stroke-width="1" stroke-dasharray="3 3"/>';
+  s += svgText(X0-10, YT+4, o.tn+"("+o.tu+")", COL.ai, "end", 11);
+  s += svgText(X0-10, YB+4, o.bn+"("+o.bu+")", COL.ai, "end", 11);
+  s += svgText(X0, YT-10, "0", COL.sub, "middle", 12);
+  s += svgText(X0, YB+20, "0", COL.sub, "middle", 12);
+  function val(x, y, v){
+    var q = v === "□";
+    return svgText(x, y, v, q ? COL.shu : COL.ink, "middle", q ? 15 : 13);
+  }
+  s += val(XA, YT-10, o.ta) + val(XB, YT-10, o.tb) + val(XA, YB+20, o.ba) + val(XB, YB+20, o.bb);
+  if(o.op){
+    s += dnlArc(XA, XB, YT-26, YT-52, o.rev, o.op, true);
+    s += dnlArc(XA, XB, YB+30, YB+56, o.rev, o.op, false);
+  }
+  return '<div class="fig"><svg viewBox="0 0 330 172" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="2本の数直線">'
+       + s + '</svg></div>'
+       + '<span class="cap">上と 下は いつも 同じ 倍（'+esc(o.op)+'）に なる</span>';
+}
+
+/* =====================================================================
+   くらべる問題（3つの 中で いちばん ○○ なのは どれ？）の 共通部品
+   ===================================================================== */
+var LET = ["A","B","C"];
+/* 一番 大きい（max=true）／小さい ものの 番号。同じ値が 2つ以上 あれば -1 */
+function argBy(rs, f, max){
+  var bi = 0, i;
+  for(i=1;i<rs.length;i++) if(max ? rs[i][f] > rs[bi][f] : rs[i][f] < rs[bi][f]) bi = i;
+  for(i=0;i<rs.length;i++) if(i !== bi && rs[i][f] === rs[bi][f]) return -1;
+  return bi;
+}
+function allDiff(rs, f){
+  return rs[0][f] !== rs[1][f] && rs[1][f] !== rs[2][f] && rs[0][f] !== rs[2][f];
+}
+/* 条件に 合う 組が 見つからず 予備の 決まった 表を 使った ときの 印。
+   ⚠ 予備ばかり 出ると 毎回 同じ 表に なる（電車で 実際に 起きた）。テストで 0回を 見張る */
+function withFb(fb, q){ q.fallback = !!fb; return q; }
+/* o: key, tag, lead, c1/c2（列の 見出し {h,u}）, rows（{v1,v2,calc,per}）, ask, label,
+      tail（「の 部屋」）, how（くらべ方の 1行）, perPre, perU, which（「多い」）, best, kufu */
+function mkHikaku(o){
+  var tb = '<div class="dtbl"><table><tr><th></th>'
+         + '<th>'+o.c1.h+'<small>('+o.c1.u+')</small></th>'
+         + '<th>'+o.c2.h+'<small>('+o.c2.u+')</small></th></tr>';
+  o.rows.forEach(function(r,i){
+    tb += '<tr><td class="lb">'+LET[i]+'</td><td>'+r.v1+'</td><td>'+r.v2+'</td></tr>';
+  });
+  tb += '</table></div>';
+  var plainRows = o.rows.map(function(r,i){
+    return LET[i]+"："+r.v1+o.c1.u+"・"+r.v2+o.c2.u;
+  }).join("、");
+  var ex = st(o.how);
+  o.rows.forEach(function(r,i){
+    ex += st(LET[i]+'： '+r.calc+' ＝ '+(o.perPre ? o.perPre+' ' : '')+r.per+' '+o.perU);
+  });
+  ex += st('いちばん '+o.which+'のは <b>'+LET[o.best]+(o.tail.charAt(0) === "の" ? " " : "")+o.tail+'</b>');
+  return mk({
+    key:o.key, tag:o.tag,
+    q:o.lead + tb + o.ask,
+    plain:plainOf(o.ask) + plainRows,
+    label:o.label, u:"",
+    options:LET.map(function(L){ return optLetter(L, o.tail); }),
+    correct:o.best,
+    expl:ex,
+    kufu:o.kufu
+  });
+}
+
+/* =====================================================================
+   ① 速さ・道のり・時間
+   v = 速さ、t = 時間、T = 道のり ＝ v × t（すべて 100分の1 単位の 整数）
+   td = 0.5 きざみの 時間（どの 問題でも 使う）、tq = 0.25 きざみ（「何時間何分」だけ）
+   ===================================================================== */
+var SPD_CTX = [
+  { pre:"時速", du:"km", tu:"時間", v:[30,35,40,45,50,55,60,65,70,75,80], t:[2,3,4,5],
+    td:[1.5,2.5], tq:[1.25,1.75,2.25,2.75],
+    mot:"{T}kmの 道のりを {t}時間で 走る 自動車が あります。<br>この 自動車の 速さは 時速 何kmですか。",
+    mic:"自動車が 時速 {v}kmで {t}時間 走りました。<br>何km 進みましたか。",
+    jik:"自動車が 時速 {v}kmで {T}km 走ります。<br>何時間 かかりますか。",
+    hm:"自動車が 時速 {v}kmで {T}km 走ります。<br>何時間何分 かかりますか。" },
+  { pre:"時速", du:"km", tu:"時間", v:[180,200,210,240,270,300], t:[2,3,4],
+    td:[1.5,2.5], tq:[1.25,1.75],
+    mot:"新幹線が {T}kmを {t}時間で 走りました。<br>この 新幹線の 速さは 時速 何kmですか。",
+    mic:"時速 {v}kmで 走る 新幹線は、<br>{t}時間で 何km 進みますか。",
+    jik:"時速 {v}kmで 走る 新幹線が {T}km 進むには、<br>何時間 かかりますか。",
+    hm:"時速 {v}kmで 走る 新幹線が {T}km 進むには、<br>何時間何分 かかりますか。" },
+  { pre:"時速", du:"km", tu:"時間", v:[600,720,800,840,900], t:[2,3],
+    td:[1.5,2.5], tq:[1.25,1.75],
+    mot:"飛行機が {T}kmを {t}時間で 飛びました。<br>この 飛行機の 速さは 時速 何kmですか。",
+    mic:"時速 {v}kmで 飛ぶ 飛行機は、<br>{t}時間で 何km 進みますか。",
+    jik:"時速 {v}kmで 飛ぶ 飛行機が {T}km 進むには、<br>何時間 かかりますか。",
+    hm:"時速 {v}kmで 飛ぶ 飛行機が {T}km 進むには、<br>何時間何分 かかりますか。" },
+  { pre:"分速", du:"m", tu:"分", v:[60,65,70,75,80,85], t:[5,6,8,10,12,15,20,24],
+    mot:"{T}mの 道のりを {t}分で 歩きました。<br>分速 何mで 歩きましたか。",
+    mic:"分速 {v}mで {t}分 歩きました。<br>何m 進みましたか。",
+    jik:"分速 {v}mで {T}m 歩きます。<br>何分 かかりますか。" },
+  { pre:"分速", du:"m", tu:"分", v:[180,200,220,240,250,300], t:[4,5,6,8,10,12,15],
+    mot:"自転車で {T}mを {t}分で 走りました。<br>自転車の 速さは 分速 何mですか。",
+    mic:"自転車で 分速 {v}mで {t}分 走りました。<br>何m 進みましたか。",
+    jik:"自転車で 分速 {v}mで {T}m 走ります。<br>何分 かかりますか。" },
+  { pre:"秒速", du:"m", tu:"秒", v:[4,4.5,5,5.5,6,6.5,7,7.5,8], t:[10,12,14,16,20,24,30,40],
+    mot:"{T}mを {t}秒で 走りました。<br>秒速 何mで 走りましたか。",
+    mic:"秒速 {v}mで {t}秒 走りました。<br>何m 進みましたか。",
+    jik:"秒速 {v}mで {T}m 走ります。<br>何秒 かかりますか。" },
+  { pre:"秒速", du:"m", tu:"秒", v:[25,28,30,32], t:[3,4,5,6,8],
+    mot:"チーターが {T}mを {t}秒で 走りました。<br>チーターの 速さは 秒速 何mですか。",
+    mic:"秒速 {v}mで 走る チーターは、<br>{t}秒で 何m 進みますか。",
+    jik:"秒速 {v}mで 走る チーターが {T}m 進むには、<br>何秒 かかりますか。" },
+  { pre:"秒速", du:"m", tu:"秒", v:[12,15,18,20,25], t:[5,6,8,10,12,15,20],
+    mot:"つばめが {T}mを {t}秒で 飛びました。<br>つばめの 速さは 秒速 何mですか。",
+    mic:"秒速 {v}mで 飛ぶ つばめは、<br>{t}秒で 何m 進みますか。",
+    jik:"秒速 {v}mで 飛ぶ つばめが {T}m 進むには、<br>何秒 かかりますか。" },
+  { pre:"秒速", du:"m", tu:"秒", v:[340], t:[2,3,4,5,6],
+    mot:"かみなりが 光ってから {t}秒後に 音が 聞こえました。かみなりまでは {T}m です。<br>音の 速さは 秒速 何mですか。",
+    mic:"音は 秒速 {v}mで 進みます。かみなりが 光ってから {t}秒後に 音が 聞こえました。<br>かみなりまで 何m ですか。",
+    jik:"音は 秒速 {v}mで 進みます。<br>{T}m はなれた ところで 鳴った 音は、何秒後に 聞こえますか。" }
+];
+/* 1問ぶんの 速さ・時間・道のり。道のりは 整数に する。
+   quarter=true は「何時間何分」用（0.25 きざみの 時間も 使う） */
+function spdPick(c, quarter){
+  var v100 = 0, t100 = 0, T100 = 0, i, ok = false;
+  for(i=0;i<300 && !ok;i++){
+    v100 = H(pick(c.v));
+    if(quarter) t100 = H(pick(c.td.concat(c.tq)));
+    else t100 = H(c.td && ri(1,3) === 1 ? pick(c.td) : pick(c.t));
+    T100 = v100*t100/100;
+    ok = isInt(T100) && Math.round(T100) % 100 === 0;
+  }
+  if(!ok){ v100 = H(c.v[0]); t100 = H(c.t[0]); T100 = v100*t100/100; }
+  T100 = Math.round(T100);
+  return { c:c, v100:v100, t100:t100, T100:T100, vS:d100(v100), tS:d100(t100), TS:d100(T100) };
+}
+function spdQ(c, tpl, s){ return c[tpl].replace("{v}", s.vS).replace("{t}", s.tS).replace("{T}", s.TS); }
+var SPD_KUFU = "速さ ＝ 道のり ÷ 時間、道のり ＝ 速さ × 時間、時間 ＝ 道のり ÷ 速さ。";
+
+function gen_motomeru(){
+  var s = spdPick(pick(SPD_CTX)), c = s.c, q = spdQ(c, "mot", s);
+  return mk({
+    key:"motomeru", tag:"速さを 求める",
+    q:q, plain:plainOf(q),
+    label:c.pre+" 何"+c.du+"？", u:c.du, pre:c.pre,
+    cor:optNum(s.v100, c.du, c.pre),
+    cands:[
+      optNum(s.T100*s.t100/100, c.du, c.pre),   /* かけ算に した */
+      optNum(s.t100*100/s.T100, c.du, c.pre),   /* 反対に わった */
+      optNum(s.v100*10, c.du, c.pre), optNum(s.v100/10, c.du, c.pre),
+      optNum(s.T100 - s.t100, c.du, c.pre)      /* ひき算に した */
+    ],
+    fb:numFallback(s.v100, stepOf(s.v100), c.du, c.pre),
+    expl:st('速さ ＝ 道のり ÷ 時間')
+        +st(s.TS+' ÷ '+s.tS+' ＝ '+s.vS+'　→　<b>'+c.pre+' '+s.vS+' '+c.du+'</b>')
+        +dnl({ tn:"道のり", tu:c.du, ta:"□", tb:s.TS, bn:"時間", bu:c.tu, ba:"1", bb:s.tS, op:"÷"+s.tS, rev:true }),
+    kufu:c.pre+"は「1"+c.tu+" あたりに 進む 道のり」。"+SPD_KUFU,
+    chk:{ ans:s.v100/100 }
+  });
+}
+function gen_michinori(){
+  var s = spdPick(pick(SPD_CTX)), c = s.c, q = spdQ(c, "mic", s);
+  return mk({
+    key:"michinori", tag:"道のりを 求める",
+    q:q, plain:plainOf(q),
+    label:"何"+c.du+"？", u:c.du,
+    cor:optNum(s.T100, c.du),
+    cands:[
+      optNum(s.v100 + s.t100, c.du),            /* たし算に した */
+      optNum(s.v100*100/s.t100, c.du),          /* わり算に した */
+      optNum(s.T100*10, c.du), optNum(s.T100/10, c.du)
+    ],
+    fb:numFallback(s.T100, s.t100 % 100 ? stepOf(s.T100) : s.v100, c.du),
+    expl:st('道のり ＝ 速さ × 時間')
+        +st(s.vS+' × '+s.tS+' ＝ <b>'+s.TS+' '+c.du+'</b>')
+        +dnl({ tn:"道のり", tu:c.du, ta:s.vS, tb:"□", bn:"時間", bu:c.tu, ba:"1", bb:s.tS, op:"×"+s.tS, rev:false }),
+    kufu:"1"+c.tu+"に "+s.vS+c.du+" 進む。それが "+s.tS+c.tu+" ぶん ある から かけ算。"+SPD_KUFU,
+    chk:{ ans:s.T100/100 }
+  });
+}
+/* 「1時間45分」の 選択肢。m は 60 以上も 作れる（「1.75時間 → 1時間75分」の まちがい用） */
+function hmText(h, m){ return (h ? h+"時間" : "") + (m ? m+"分" : ""); }
+function optHM(h, m){
+  return { html:(h ? h+'<span class="u">時間</span>' : '')+(m ? m+'<span class="u">分</span>' : ''),
+           plain:hmText(h, m), key:"hm"+h+"_"+m, ok: h >= 0 && m >= 0 && (h > 0 || m > 0) };
+}
+function gen_jikan(){
+  var c = pick(SPD_CTX);
+  var hm = !!c.hm && ri(1,3) === 1;
+  var s = spdPick(c, hm);
+  if(hm && s.t100 % 100 === 0) hm = false;            /* 念のため（予備の 整数の 時間） */
+  if(hm){
+    var q1 = spdQ(c, "hm", s);
+    var h = Math.floor(s.t100/100), dec = s.t100 % 100, mn = dec*60/100;
+    var cor = optHM(h, mn), fb = [], k;
+    for(k=1;k<=3;k++){ fb.push(optHM(h, (mn + 15*k) % 60)); fb.push(optHM(h+1, (mn + 15*k) % 60)); }
+    return mk({
+      key:"jikan", tag:"時間を 求める（何時間何分）",
+      q:q1, plain:plainOf(q1),
+      label:"何時間何分？", u:"",
+      cor:cor,
+      cands:[
+        optHM(h, dec),                                   /* 小数の 部分を そのまま 分に した */
+        optHM(h+1, mn),
+        optHM(h, (mn + 15) % 60)
+      ],
+      fb:fb,
+      expl:st('時間 ＝ 道のり ÷ 速さ')
+          +st(s.TS+' ÷ '+s.vS+' ＝ '+s.tS+' 時間')
+          +st(d100(dec)+' 時間 ＝ 60 × '+d100(dec)+' ＝ '+mn+' 分　→　<b>'+cor.plain+'</b>')
+          +dnl({ tn:"道のり", tu:c.du, ta:s.vS, tb:s.TS, bn:"時間", bu:c.tu, ba:"1", bb:"□", op:"×□", rev:false }),
+      kufu:"1時間 ＝ 60分 なので、0.1時間 ＝ 6分、0.5時間 ＝ 30分、0.25時間 ＝ 15分。"
+          +s.tS+"時間を「"+h+"時間"+dec+"分」と しない ように 気をつけよう。",
+      chk:{ txt:cor.plain }
+    });
+  }
+  var q = spdQ(c, "jik", s);
+  return mk({
+    key:"jikan", tag:"時間を 求める",
+    q:q, plain:plainOf(q),
+    label:"何"+c.tu+"？", u:c.tu,
+    cor:optNum(s.t100, c.tu),
+    cands:[
+      optNum(s.T100*s.v100/100, c.tu),          /* かけ算に した */
+      optNum(s.v100*100/s.T100, c.tu),          /* 反対に わった */
+      optNum(s.t100*10, c.tu), optNum(s.t100/10, c.tu)
+    ],
+    fb:numFallback(s.t100, s.t100 % 100 ? 50 : 100, c.tu),
+    expl:st('時間 ＝ 道のり ÷ 速さ')
+        +st(s.TS+' ÷ '+s.vS+' ＝ <b>'+s.tS+' '+c.tu+'</b>')
+        +dnl({ tn:"道のり", tu:c.du, ta:s.vS, tb:s.TS, bn:"時間", bu:c.tu, ba:"1", bb:"□", op:"×□", rev:false }),
+    kufu:s.TS+c.du+" の 中に、1"+c.tu+"に 進む "+s.vS+c.du+" が いくつ 入るかを 考える。"
+        +"たしかめ： "+s.vS+" × "+s.tS+" ＝ "+s.TS+"。",
+    chk:{ ans:s.t100/100 }
+  });
+}
+
+/* =====================================================================
+   ② 速さを くらべる
+     hikaku       : 道のりと 時間が ちがう 3つ（同じ 単位）
+     hikaku_tanni : 時速・分速・秒速が まざった 3つ → 分速に そろえる
+   ===================================================================== */
+var SPD_H_CTX = [
+  { lead:"3人が 歩いた 道のりと、かかった 時間です。", c1:{h:"道のり", u:"m"}, c2:{h:"時間", u:"分"},
+    v:[55,60,64,65,70,72,75,78,80,84,90], t:[8,10,12,15,16,18,20,25], pre:"分速", du:"m", tail:"さん", people:true },
+  { lead:"3人が 走った 道のりと、かかった 時間です。", c1:{h:"道のり", u:"m"}, c2:{h:"時間", u:"秒"},
+    v:[4,4.5,5,5.5,6,6.5,7,7.5,8], t:[10,12,14,15,16,18,20], pre:"秒速", du:"m", tail:"さん", people:true },
+  { lead:"3人が 自転車で 走った 道のりと、かかった 時間です。", c1:{h:"道のり", u:"m"}, c2:{h:"時間", u:"分"},
+    v:[180,190,200,210,220,240,250,270,300], t:[4,5,6,8,10,12,15], pre:"分速", du:"m", tail:"さん", people:true },
+  { lead:"3台の 自動車が 走った 道のりと、かかった 時間です。", c1:{h:"道のり", u:"km"}, c2:{h:"時間", u:"時間"},
+    v:[35,40,45,50,55,60,65,70,75,80], t:[2,3,4,5], pre:"時速", du:"km", tail:"の 自動車", people:false }
+];
+function gen_hikaku(){
+  var c = pick(SPD_H_CTX);
+  var fast = ri(1,3) !== 1;
+  var R = null, best = -1, t, i;
+  for(t=0;t<800 && !R;t++){
+    var rs = [];
+    for(i=0;i<3;i++){
+      var v = H(pick(c.v)), tt = pick(c.t);
+      rs.push({ v:v, t:tt, T:v*tt });
+    }
+    if(!rs.every(function(r){ return r.T % 100 === 0; })) continue;
+    if(!allDiff(rs, "v")) continue;
+    best = argBy(rs, "v", fast);
+    if(best === argBy(rs, "T", fast)) continue;            /* 道のりだけで 決まる 組は さける */
+    if(t < 500 && best === argBy(rs, "t", !fast)) continue; /* 時間だけで 決まる 組も */
+    R = rs;
+  }
+  var fb = !R;
+  if(!R){ R = [{v:7000,t:15,T:105000},{v:6000,t:20,T:120000},{v:7500,t:12,T:90000}];
+          best = argBy(R, "v", fast); }
+  var w = fast ? "速い" : "おそい";
+  var unitOne = "1"+c.c2.u;
+  return withFb(fb, mkHikaku({
+    key:"hikaku", tag:"速さを くらべる",
+    lead:c.lead, c1:c.c1, c2:c.c2,
+    rows:R.map(function(r){ return { v1:d100(r.T), v2:String(r.t), calc:d100(r.T)+' ÷ '+r.t, per:d100(r.v) }; }),
+    ask:"いちばん "+w+(c.people ? "のは だれですか。" : " 自動車は どれですか。"),
+    label:"いちばん "+w+"のは？",
+    tail:c.tail,
+    how:unitOne+" あたりに 進む 道のり（"+c.pre+" ＝ 道のり ÷ 時間）で くらべる",
+    perPre:c.pre, perU:c.du, which:w, best:best,
+    kufu:"道のりも 時間も ちがう ときは、"+unitOne+" あたりに 進む 道のり（"+c.pre+"）に そろえて くらべる。"
+        +"いちばん 長く 進んだ "+(c.people ? "人" : "自動車")+"が いちばん 速いとは かぎらない。"
+  }));
+}
+
+/* 時速・分速・秒速が まざった 3つ。中では 分速（m）で 持つ（M）。
+   時速は 3の 倍数（km）、秒速は 0.1m きざみに して、分速が 整数に なるように する */
+function gen_hikaku_tanni(){
+  var fast = ri(1,3) !== 1;
+  var R = null, best = -1, t, i;
+  for(t=0;t<800 && !R;t++){
+    var us = shuffle(["時速","分速","秒速"]), rs = [];
+    for(i=0;i<3;i++){
+      if(us[i] === "時速"){ var kmh = 3*ri(6,30); rs.push({ u:"時速", M:kmh*50/3, raw:kmh, rawS:String(kmh), du:"km" }); }
+      else if(us[i] === "分速"){ var mm = ri(30,150)*10; rs.push({ u:"分速", M:mm, raw:mm, rawS:String(mm), du:"m" }); }
+      else { var s10 = ri(10,50)*5; rs.push({ u:"秒速", M:s10*6, raw:s10/10, rawS:d100(s10*10), du:"m" }); }  /* 0.5m きざみ */
+    }
+    if(!allDiff(rs, "M")) continue;
+    best = argBy(rs, "M", fast);
+    if(best === argBy(rs, "raw", fast)) continue;           /* 数だけ くらべても 当たる 組は さける */
+    R = rs;
+  }
+  var fb = !R;
+  if(!R){
+    R = [{u:"時速",M:750,raw:45,rawS:"45",du:"km"},{u:"分速",M:800,raw:800,rawS:"800",du:"m"},{u:"秒速",M:840,raw:14,rawS:"14",du:"m"}];
+    best = argBy(R, "M", fast);
+  }
+  var w = fast ? "速い" : "おそい";
+  var tb = '<div class="dtbl"><table><tr><th></th><th>速さ</th></tr>';
+  R.forEach(function(r,i){ tb += '<tr><td class="lb">'+LET[i]+'</td><td>'+r.u+' '+r.rawS+r.du+'</td></tr>'; });
+  tb += '</table></div>';
+  var ask = "いちばん "+w+" 乗り物は どれですか。";
+  var ex = st('単位が ちがうので、ぜんぶ 分速（1分 あたりに 進む m）に そろえる');
+  R.forEach(function(r,i){
+    if(r.u === "時速") ex += st(LET[i]+'： 時速 '+r.rawS+'km ＝ 1時間に '+(r.raw*1000)+'m → '+(r.raw*1000)+' ÷ 60 ＝ 分速 '+r.M+' m');
+    else if(r.u === "秒速") ex += st(LET[i]+'： 秒速 '+r.rawS+'m → '+r.rawS+' × 60 ＝ 分速 '+r.M+' m');
+    else ex += st(LET[i]+'： 分速 '+r.M+' m（そのまま）');
+  });
+  ex += st('いちばん '+w+'のは <b>'+LET[best]+'</b>');
+  var naive = argBy(R, "raw", fast);                      /* 数だけ 見て 選んだ もの */
+  return withFb(fb, mk({
+    key:"hikaku_tanni", tag:"単位が ちがう 速さを くらべる",
+    q:"A・B・C の 3つの 乗り物の 速さです。" + tb + ask,
+    plain:plainOf(ask) + R.map(function(r,i){ return LET[i]+"："+r.u+r.rawS+r.du; }).join("、"),
+    label:"いちばん "+w+"のは？", u:"",
+    options:LET.map(function(L){ return optLetter(L, ""); }),
+    correct:best,
+    expl:ex,
+    kufu:"時速・分速・秒速は 数だけ くらべても わからない"
+        +(naive >= 0 ? "（数だけ 見ると "+LET[naive]+" が いちばん "+w+"ように 見えるが、ちがう）" : "")
+        +"。どれか 1つの 単位に そろえて くらべる。"
+  }));
+}
+
+/* =====================================================================
+   ③ 時速・分速・秒速（速さの 単位を かえる）
+   ===================================================================== */
+function gen_kansan(){
+  var k = ri(1,6), v, v100, m, ans, from, fu, to, tu, steps, fig, cands;
+  function o(x){ return optNum(x, tu, to); }
+  if(k === 1){                                           /* 時速 km → 分速 m */
+    v = pick([30,36,42,45,48,54,60,72,90]); from = "時速"; fu = "km"; to = "分速"; tu = "m";
+    m = v*1000; ans = m*100/60;
+    steps = st('時速 '+v+'km は、1時間（60分）に '+v+'km ＝ '+m+'m 進む 速さ')
+          + st(m+' ÷ 60 ＝ '+d100(ans)+'　→　<b>分速 '+d100(ans)+' m</b>');
+    fig = { tn:"道のり", tu:"m", ta:"□", tb:String(m), bn:"時間", bu:"分", ba:"1", bb:"60", op:"÷60", rev:true };
+    cands = [ o(m*100), o(ans/10), o(m*100/3600), o(v*60*100) ];
+  }else if(k === 2){                                     /* 分速 m → 秒速 m */
+    v = pick([60,72,90,120,150,180,240,300]); from = "分速"; fu = "m"; to = "秒速"; tu = "m";
+    ans = v*100/60;
+    steps = st('分速 '+v+'m は、1分（60秒）に '+v+'m 進む 速さ')
+          + st(v+' ÷ 60 ＝ '+d100(ans)+'　→　<b>秒速 '+d100(ans)+' m</b>');
+    fig = { tn:"道のり", tu:"m", ta:"□", tb:String(v), bn:"時間", bu:"秒", ba:"1", bb:"60", op:"÷60", rev:true };
+    cands = [ o(v*60*100), o(v*100), o(v*100/6), o(ans*10) ];
+  }else if(k === 3){                                     /* 秒速 m → 分速 m */
+    v100 = H(pick([1.5,2,2.5,3,4,5,8,10,15])); v = d100(v100); from = "秒速"; fu = "m"; to = "分速"; tu = "m";
+    ans = v100*60;
+    steps = st('秒速 '+v+'m は、1秒に '+v+'m 進む 速さ')
+          + st('1分（60秒）では '+v+' × 60 ＝ '+d100(ans)+'　→　<b>分速 '+d100(ans)+' m</b>');
+    fig = { tn:"道のり", tu:"m", ta:v, tb:"□", bn:"時間", bu:"秒", ba:"1", bb:"60", op:"×60", rev:false };
+    cands = [ o(v100/60), o(v100), o(v100*3600), o(v100*6) ];
+  }else if(k === 4){                                     /* 分速 m → 時速 km */
+    v = pick([50,60,70,80,150,200,250,300,500,750,1000]); from = "分速"; fu = "m"; to = "時速"; tu = "km";
+    m = v*60; ans = m/10;
+    steps = st('1時間（60分）では '+v+' × 60 ＝ '+m+'m 進む')
+          + st(m+'m ＝ '+d100(ans)+'km　→　<b>時速 '+d100(ans)+' km</b>');
+    fig = { tn:"道のり", tu:"m", ta:String(v), tb:"□", bn:"時間", bu:"分", ba:"1", bb:"60", op:"×60", rev:false };
+    cands = [ o(m*100), o(v*100), o(v*100/60), o(ans*10), o(ans/10) ];
+  }else if(k === 5){                                     /* 時速 km → 秒速 m */
+    v = pick([18,36,54,72,90,108,144]); from = "時速"; fu = "km"; to = "秒速"; tu = "m";
+    m = v*1000; ans = m*100/3600;
+    steps = st('時速 '+v+'km は、1時間（3600秒）に '+v+'km ＝ '+m+'m 進む 速さ')
+          + st(m+' ÷ 3600 ＝ '+d100(ans)+'　→　<b>秒速 '+d100(ans)+' m</b>');
+    fig = { tn:"道のり", tu:"m", ta:"□", tb:String(m), bn:"時間", bu:"秒", ba:"1", bb:"3600", op:"÷3600", rev:true };
+    cands = [ o(m*100/60), o(v*100), o(v*360), o(ans*10) ];
+  }else{                                                 /* 秒速 m → 時速 km */
+    v = pick([5,10,15,20,25,30]); from = "秒速"; fu = "m"; to = "時速"; tu = "km";
+    m = v*3600; ans = m/10;
+    steps = st('1時間（3600秒）では '+v+' × 3600 ＝ '+m+'m 進む')
+          + st(m+'m ＝ '+d100(ans)+'km　→　<b>時速 '+d100(ans)+' km</b>');
+    fig = { tn:"道のり", tu:"m", ta:String(v), tb:"□", bn:"時間", bu:"秒", ba:"1", bb:"3600", op:"×3600", rev:false };
+    cands = [ o(v*60*100), o(m*100), o(v*100), o(ans/10) ];
+  }
+  var q = from+" "+v+fu+" は、"+to+" 何"+tu+"ですか。";
+  return mk({
+    key:"kansan", tag:"速さの 単位を かえる",
+    q:q, plain:plainOf(q),
+    label:to+" 何"+tu+"？", u:tu, pre:to,
+    cor:o(ans),
+    cands:cands,
+    fb:numFallback(ans, stepOf(ans), tu, to),
+    expl:steps + dnl(fig),
+    kufu:"1時間 ＝ 60分 ＝ 3600秒、1km ＝ 1000m。秒速 → 分速 → 時速 は ×60 ずつ、"
+        +"反対は ÷60 ずつ。km と m の ちがいにも 気をつけよう。",
+    chk:{ ans:ans/100 }
+  });
+}
+
+/* =====================================================================
+   ④ 単位を そろえて 計算する（速さと 時間・道のりの 単位が ちがう）
+     1: 時速 km で □分 → 道のり     2: 分速 m で □秒 → 道のり
+     3: 秒速 m で □分 → 道のり      4: 分速 m で □km → 時間（分）
+     5: 時速 km で □m → 時間（分）
+   ===================================================================== */
+function gen_soroe(){
+  var k = ri(1,5), q, u, A, cands, ex, kufu, label;
+  if(k === 1){
+    var v1 = pick([12,18,24,30,36,42,48,54,60,72]), t1 = pick([5,10,12,15,20,30,40,45]);
+    var M1 = v1*1000/60, D1 = M1*t1, km = D1 % 100 === 0 && ri(1,2) === 1;
+    u = km ? "km" : "m";
+    A = km ? D1/10 : D1*100;                              /* km は 1000で わる（100分の1 単位） */
+    q = "時速 "+v1+"kmで 走る "+(v1 <= 24 ? "自転車" : "自動車")+"が あります。<br>"+t1+"分間では 何"+u+" 進みますか。";
+    label = "何"+u+"？";
+    cands = [ optNum(v1*t1*100, u),                       /* 単位を そろえずに かけた */
+              optNum(A*10, u), optNum(A/10, u),
+              optNum(km ? D1*100 : D1/10, u) ];                       /* m と km を 取りちがえた */
+    ex = st('① 時速を 分速に： '+v1+'km ＝ '+(v1*1000)+'m、'+(v1*1000)+' ÷ 60 ＝ 分速 '+M1+' m')
+       + st('② '+M1+' × '+t1+' ＝ '+D1+' m'+(km ? '' : '　→　<b>'+D1+' m</b>'))
+       + (km ? st(D1+'m ＝ <b>'+d100(A)+' km</b>') : '');
+    kufu = "速さは「時速」、時間は「分」。そのまま かけると "+(v1*t1)+" に なって まちがい。先に 単位を そろえる。";
+  }else if(k === 2){
+    var v2 = pick([60,90,120,150,180,240,300]), t2 = pick([10,15,20,30,40,45,50]);
+    var S2 = v2*100/60, D2 = S2*t2;                       /* 秒速（100分の1 単位）× 秒 */
+    if(!isInt(D2)){ t2 = 30; D2 = S2*t2; }
+    u = "m"; A = D2; label = "何m？";
+    q = "分速 "+v2+"mで "+(v2 <= 90 ? "歩く" : "走る")+" 人が います。<br>"+t2+"秒間では 何m 進みますか。";
+    cands = [ optNum(v2*t2*100, u), optNum(A*10, u), optNum(A/10, u), optNum(v2*100/t2, u) ];
+    ex = st('① 分速を 秒速に： '+v2+' ÷ 60 ＝ 秒速 '+d100(S2)+' m')
+       + st('② '+d100(S2)+' × '+t2+' ＝ <b>'+d100(A)+' m</b>');
+    kufu = "分速 × 秒 では 計算できない。秒速に そろえてから かける。"
+         + (isInt(t2*100/60) ? t2+"秒 ＝ "+d100(t2*100/60)+"分 と 考えても よい。" : "");
+  }else if(k === 3){
+    var v3 = H(pick([1.5,2,2.5,3,4,5,6])), t3 = pick([2,3,4,5,10]);
+    var M3 = v3*60, D3 = M3*t3;                           /* 分速（100分の1 単位）× 分 */
+    u = "m"; A = D3; label = "何m？";
+    q = "秒速 "+d100(v3)+"mで 泳ぐ イルカが います。<br>"+t3+"分間では 何m 進みますか。";
+    cands = [ optNum(v3*t3, u), optNum(A*10, u), optNum(A/10, u), optNum(D3*60, u) ];
+    ex = st('① 秒速を 分速に： '+d100(v3)+' × 60 ＝ 分速 '+d100(M3)+' m')
+       + st('② '+d100(M3)+' × '+t3+' ＝ <b>'+d100(A)+' m</b>');
+    kufu = "秒速 × 分 では 計算できない。分速に そろえてから かける。";
+  }else if(k === 4){
+    var v4 = pick([50,60,75,80,100,120,150,200,250,300]), t4 = ri(4,30), D4 = v4*t4;
+    if(D4 % 10 !== 0){ t4 = 10; D4 = v4*t4; }
+    u = "分"; A = t4*100; label = "何分？";
+    q = "分速 "+v4+"mで 歩く 人が います。<br>"+d100(D4/10)+"km 進むには 何分 かかりますか。";
+    cands = [ optNum(D4/10*v4, u),                        /* km × 速さ */
+              optNum(A*10, u), optNum(A/10, u),
+              optNum(D4*10/v4, u) ];                       /* km の まま わった */
+    ex = st('① 道のりを m に： '+d100(D4/10)+'km ＝ '+D4+' m')
+       + st('② '+D4+' ÷ '+v4+' ＝ <b>'+t4+' 分</b>');
+    kufu = "速さが「m」なので、道のりも m に そろえる。1km ＝ 1000m。";
+  }else{
+    var v5 = pick([12,18,24,30,36,42,48,54,60]), t5 = pick([5,6,10,12,15,20,25,30]);
+    var M5 = v5*1000/60, D5 = M5*t5;
+    u = "分"; A = t5*100; label = "何分？";
+    q = "時速 "+v5+"kmで 走る バスが あります。<br>"+D5+"m 進むには 何分 かかりますか。";
+    cands = [ optNum(D5*100/v5, u),                       /* 単位を そろえずに わった */
+              optNum(A*10, u), optNum(A/10, u),
+              optNum(D5*100/(v5*1000), u) ];
+    ex = st('① 時速を 分速に： '+v5+'km ＝ '+(v5*1000)+'m、'+(v5*1000)+' ÷ 60 ＝ 分速 '+M5+' m')
+       + st('② '+D5+' ÷ '+M5+' ＝ <b>'+t5+' 分</b>');
+    kufu = "答えを「分」で 出したいので、速さを 分速に そろえる。";
+  }
+  return mk({
+    key:"soroe", tag:"単位を そろえて 計算する",
+    q:q, plain:plainOf(q),
+    label:label, u:u,
+    cor:optNum(A, u),
+    cands:cands,
+    fb:numFallback(A, stepOf(A), u),
+    expl:ex,
+    kufu:kufu,
+    chk:{ ans:A/100 }
+  });
+}
+
+/* =====================================================================
+   ⑤ 時こくと 速さ
+     a: 出発の 時こく ＋ かかる 時間 → 着く 時こく
+     b: 着きたい 時こく − かかる 時間 → 出発の 時こく
+     c: 出発と 着いた 時こく → 速さ
+   時こくは 0時からの 分（9時27分 → 567）で 持つ。午前中（7時〜12時）だけ 使う
+   ===================================================================== */
+function clockText(min){ var h = Math.floor(min/60), m = min % 60; return h+"時"+(m ? m+"分" : ""); }
+function optClock(min){
+  var h = Math.floor(min/60), m = min % 60;
+  return { html:h+'<span class="u">時</span>'+(m ? m+'<span class="u">分</span>' : ''),
+           plain:clockText(min), key:"c"+min, ok: min > 0 && min < 24*60 };
+}
+var JIKOKU_CTX = [
+  { who:"ゆうとさん", how:"歩いて", pre:"分速", du:"m", v:[60,65,70,75,80], dur:[10,12,15,18,20,24,25,30],
+    from:"家", to:"駅" },
+  { who:"みさきさん", how:"自転車で", pre:"分速", du:"m", v:[150,180,200,240,250], dur:[8,10,12,15,16,20],
+    from:"家", to:"図書館" },
+  { who:"お父さん", how:"自動車で", pre:"時速", du:"km", v:[30,36,40,45,48,60], dur:[30,45,60,75,90,105,120],   /* 15分きざみ＝時間に なおすと 0.25 きざみ（40分 ＝ 0.666…時間 に しない） */
+    from:"家", to:"おばあさんの 家" }
+];
+function gen_jikoku(){
+  var c = pick(JIKOKU_CTX), type = ri(1,3), v, dur, D, t, start, end;
+  for(t=0;t<200;t++){
+    v = pick(c.v); dur = pick(c.dur);
+    D = c.pre === "時速" ? v*dur/60 : v*dur;
+    if(!isInt(D)) continue;
+    start = ri(7*12, 10*12)*5;                            /* 7時〜10時 の 5分きざみ */
+    end = start + dur;
+    if(end > 12*60) continue;
+    /* 半分くらいは 時の 位が くり上がる 問題に する（9時50分 ＋ 15分 など） */
+    if(t < 150 && (ri(0,1) === 1) !== (Math.floor(end/60) !== Math.floor(start/60))) continue;
+    break;
+  }
+  if(!isInt(D) || end > 12*60){ v = c.v[0]; dur = c.dur[0]; D = c.pre === "時速" ? v*dur/60 : v*dur; start = 9*60; end = start + dur; }
+  var cross = Math.floor(end/60) !== Math.floor(start/60);
+  var durTxt = dur >= 60 ? dur+'分（'+hmText(Math.floor(dur/60), dur%60)+'）' : dur+'分';
+  var calcDur = c.pre === "時速"
+    ? D+' ÷ '+v+' ＝ '+d100(dur*100/60)+' 時間 ＝ '+durTxt
+    : D+' ÷ '+v+' ＝ '+dur+' 分';
+  var ride = c.who+"は "+c.how+" "+c.pre+" "+v+c.du+"で 進みます。";
+  var dist = c.from+"から "+c.to+"までは "+D+c.du+" です。";
+  var q, cor, cands, ex, kufu, label, u = "", pre = "", chk;
+  if(type === 1){
+    q = dist + ride + "<br>" + clockText(start)+"に "+c.from+"を 出ると、"+c.to+"に 着くのは 何時何分ですか。";
+    cor = optClock(end); label = "着く 時こくは？";
+    cands = [ optClock(end+5), optClock(end-5), optClock(end+10), optClock(cross ? end-60 : end+60) ];
+    ex = st('① かかる 時間 ＝ 道のり ÷ 速さ ＝ '+calcDur)
+       + st('② '+clockText(start)+' の '+durTxt+'後 → <b>'+clockText(end)+'</b>');
+    kufu = "まず 時間を 求めてから 時こくに 直す。"+(cross ? "分が 60を こえたら 1時間 くり上げる。" : "");
+    chk = { txt:clockText(end) };
+  }else if(type === 2){
+    q = dist + ride + "<br>ちょうど "+clockText(end)+"に "+c.to+"に 着くには、何時何分に "+c.from+"を 出れば よいですか。";
+    cor = optClock(start); label = "出る 時こくは？";
+    cands = [ optClock(start+5), optClock(start-5), optClock(end+dur), optClock(cross ? start+60 : start-60) ];
+    ex = st('① かかる 時間 ＝ 道のり ÷ 速さ ＝ '+calcDur)
+       + st('② '+clockText(end)+' の '+durTxt+'前 → <b>'+clockText(start)+'</b>');
+    kufu = "着く 時こくから、かかる 時間を さかのぼる。"+(cross ? "時を またぐ ときは 1時間 ＝ 60分 を くり下げて ひく。" : "");
+    chk = { txt:clockText(start) };
+  }else{
+    q = clockText(start)+"に "+c.from+"を 出て、"+clockText(end)+"に "+c.to+"に 着きました。<br>"
+      + dist + c.who+"は "+c.pre+" 何"+c.du+"で 進みましたか。";
+    u = c.du; pre = c.pre; label = c.pre+" 何"+c.du+"？";
+    var A = v*100, durH = dur*100/60;                    /* 時速 は 時間に なおして わる */
+    cor = optNum(A, u, pre);
+    /* 時こくを 100進法で ひいた（9時5分 − 8時50分 を 905 − 850 ＝ 55分 と した）まちがい */
+    var bad = (Math.floor(end/60)*100 + end%60) - (Math.floor(start/60)*100 + start%60);
+    cands = [ optNum(c.pre === "時速" ? D*100*100/bad*60/100 : D*100/bad, u, pre),
+              optNum(c.pre === "時速" ? D*100/dur : D*100*60/dur, u, pre),
+              optNum(A*10, u, pre), optNum(A/10, u, pre) ];
+    ex = st('① かかった 時間： '+clockText(start)+' から '+clockText(end)+' までで '+durTxt)
+       + (c.pre === "時速" ? st('時速を 求めるので 時間に なおす： '+dur+'分 ＝ '+d100(durH)+' 時間') : '')
+       + st('② 速さ ＝ 道のり ÷ 時間 ＝ '+D+' ÷ '+(c.pre === "時速" ? d100(durH) : dur)+' ＝ <b>'+c.pre+' '+v+' '+c.du+'</b>');
+    kufu = (cross ? "時こくの ひき算は 60分で 1時間。"+clockText(end)+" − "+clockText(start)+" を 100の 位どりで ひかない ように。" : "")
+         + (c.pre === "時速" ? "時速を 求める ときは、時間を「時間」の 単位に する。" : "");
+    chk = { ans:v };
+  }
+  var tg = ["", "着く 時こく", "出る 時こく", "時こくから 速さ"][type];
+  return mk({
+    key:"jikoku", tag:"時こくと 速さ（"+tg+"）",
+    q:q, plain:plainOf(q),
+    label:label, u:u, pre:pre,
+    cor:cor, cands:cands,
+    fb: type === 3 ? numFallback(v*100, stepOf(v*100), u, pre)
+                   : [15,20,25,30,-10,-15,-20,-30].map(function(d){ return optClock((type === 1 ? end : start) + d); }),
+    expl:ex, kufu:kufu, chk:chk
+  });
+}
+
+/* =====================================================================
+   ⑥ 出会い・追いつき（チャレンジ）
+   ===================================================================== */
+function gen_deai(){
+  var type = ri(1,3), a, b, t, D, q, ex, cands, kufu, i;
+  if(type <= 2){
+    for(i=0;i<50;i++){ a = pick([55,60,65,70,75,80,85,90]); b = pick([50,55,60,65,70,75,80]); if(a !== b) break; }
+    t = pick([4,5,6,8,10,12,15,20]); D = (a+b)*t;
+    if(type === 1){
+      q = "家と 公園の あいだは "+D+"m です。兄は 家から 分速 "+a+"m、弟は 公園から 分速 "+b+"m で、"
+        + "同時に 向かい合って 歩きはじめました。<br>2人が 出会うのは 何分後ですか。";
+    }else{
+      q = "まわりが "+D+"mの 池が あります。AさんとBさんが 同じ 場所から 同時に 反対向きに 歩きはじめました。"
+        + "Aさんは 分速 "+a+"m、Bさんは 分速 "+b+"m です。<br>2人が はじめて 出会うのは 何分後ですか。";
+    }
+    cands = [ optNum(D*100/a, "分後"), optNum(D*100/b, "分後"),
+              optNum(D*100/Math.abs(a-b), "分後"), optNum(t*200, "分後") ];
+    ex = st('① 1分間に、2人の あいだは '+a+' ＋ '+b+' ＝ '+(a+b)+' m ずつ ちぢまる')
+       + st('② '+D+' ÷ '+(a+b)+' ＝ <b>'+t+' 分後</b>');
+    kufu = "向かい合って（反対向きに）進む ときは、速さの「和」で ちぢまる。"
+         + "たしかめ： "+a+" × "+t+" ＋ "+b+" × "+t+" ＝ "+D+"。";
+  }else{
+    var k;
+    for(i=0;i<200;i++){
+      b = pick([50,55,60,65,70,75,80]); a = pick([150,160,180,200,210,240,250]); k = pick([5,6,8,10,12,15]);
+      t = b*k/(a-b);
+      if(isInt(t) && t >= 2 && t <= 20) break;
+    }
+    if(!(isInt(t) && t >= 2 && t <= 20)){ b = 60; a = 180; k = 10; t = 5; }
+    var head = b*k;
+    q = "弟は 分速 "+b+"mで 家を 出ました。その "+k+"分後に、兄が 自転車で 分速 "+a+"mで 同じ 道を 追いかけました。"
+      + "<br>兄が 弟に 追いつくのは、兄が 出発してから 何分後ですか。";
+    cands = [ optNum(head*100/(a+b), "分後"),              /* 和で わった */
+              optNum((t+k)*100, "分後"),                   /* 弟が 出てからの 時間 */
+              optNum(head*100/a, "分後"), optNum(k*100, "分後") ];
+    ex = st('① 兄が 出発する とき、弟は '+b+' × '+k+' ＝ '+head+' m 先に いる')
+       + st('② 1分間に '+a+' − '+b+' ＝ '+(a-b)+' m ずつ ちぢまる')
+       + st('③ '+head+' ÷ '+(a-b)+' ＝ <b>'+t+' 分後</b>');
+    kufu = "同じ 向きに 追いかける ときは、速さの「差」で ちぢまる。"
+         + "たしかめ： 兄 "+a+" × "+t+" ＝ "+(a*t)+"m、弟 "+b+" × "+(t+k)+" ＝ "+(b*(t+k))+"m。";
+  }
+  var A = t*100;
+  return mk({
+    key:"deai", tag: type === 3 ? "追いつく" : "出会う",
+    q:q, plain:plainOf(q),
+    label:"何分後？", u:"分後",
+    cor:optNum(A, "分後"),
+    cands:cands,
+    fb:numFallback(A, 100, "分後"),
+    expl:ex, kufu:kufu,
+    chk:{ ans:t }
+  });
+}
+
+/* =====================================================================
+   出題の 台帳
+   ===================================================================== */
+var GENS = {
+  motomeru:     gen_motomeru,
+  michinori:    gen_michinori,
+  jikan:        gen_jikan,
+  hikaku:       gen_hikaku,
+  hikaku_tanni: gen_hikaku_tanni,
+  kansan:       gen_kansan,
+  soroe:        gen_soroe,
+  jikoku:       gen_jikoku,
+  deai:         gen_deai
+};
+/* モード → 出す question_key。同じキーを ならべた ぶんだけ 出やすくなる */
+var MODE_KEYS = {
+  motomeru:    ["motomeru"],
+  michi_jikan: ["michinori","jikan"],
+  hikaku:      ["hikaku","hikaku","hikaku_tanni"],
+  kansan:      ["kansan","kansan","soroe"],
+  jikoku:      ["jikoku"],
+  deai:        ["deai"],
+  mix:         ["motomeru","motomeru","michinori","michinori","jikan","jikan","hikaku","hikaku_tanni",
+                "kansan","soroe","jikoku","deai"]
+};
+/* 印刷シート（1枚10問）に出す 種類。やさしい順に ならべる */
+var PRINT_KEYS = {
+  motomeru:    ["motomeru","motomeru","motomeru","motomeru","motomeru","motomeru","motomeru","motomeru","motomeru","motomeru"],
+  michi_jikan: ["michinori","michinori","michinori","michinori","michinori","jikan","jikan","jikan","jikan","jikan"],
+  hikaku:      ["hikaku","hikaku","hikaku","hikaku","hikaku","hikaku","hikaku_tanni","hikaku_tanni","hikaku_tanni","hikaku_tanni"],
+  kansan:      ["kansan","kansan","kansan","kansan","kansan","kansan","soroe","soroe","soroe","soroe"],
+  jikoku:      ["jikoku","jikoku","jikoku","jikoku","jikoku","jikoku","jikoku","jikoku","jikoku","jikoku"],
+  deai:        ["deai","deai","deai","deai","deai","deai","deai","deai","deai","deai"],
+  mix:         ["motomeru","motomeru","michinori","jikan","jikan","hikaku","kansan","soroe","jikoku","deai"]
+};
+var PRINT_INST = {
+  motomeru:"次の 速さを 求めましょう。速さ ＝ 道のり ÷ 時間 です。",
+  michi_jikan:"次の 問題に 答えましょう。道のり ＝ 速さ × 時間、時間 ＝ 道のり ÷ 速さ です。",
+  hikaku:"次の 問題に 答えましょう。A・B・C の 記号で 答えましょう。",
+  kansan:"次の 問題に 答えましょう。単位に 気をつけましょう。",
+  jikoku:"次の 問題に 答えましょう。時こくは「何時何分」で 答えましょう。",
+  deai:"次の 問題に 答えましょう。",
+  mix:"次の 問題に 答えましょう。単位も 書きましょう。"
+};
+var MODE_LABEL = {
+  motomeru:"速さを 求める",
+  michi_jikan:"道のり・時間を 求める",
+  hikaku:"速さを くらべる",
+  kansan:"時速・分速・秒速",
+  jikoku:"時こくと 速さ",
+  deai:"出会い・追いつき",
+  mix:"ランダム"
+};
+
+/* =====================================================================
+   出題エンジン（平均マスターと同じ）
+   ===================================================================== */
+var MODE = "motomeru";
+var cur = null, curKey = "", curSeed = 0;
+var sel = -1, graded = false;
+var score = 0, total = 0, streak = 0, qStart = 0;
+
+/* 解き直し（?retry=1） */
+var retryQ = null, retryTotal = 0, retryDone = 0;
+
+function $(id){ return document.getElementById(id); }
+
+function makeQ(key, seed){
+  rngSeed(seed);                       /* ここから先の乱数は種で決まる */
+  return GENS[key]();
+}
+
+function newQuestion(){
+  graded = false; sel = -1;
+  $("feedback").classList.remove("show");
+  $("toast").textContent = "";
+  $("checkBtn").style.display = "block";
+  $("nextBtn").style.display = "none";
+
+  var useKey, seed;
+  if(retryQ){
+    /* 解き直しを1周した。モード選択にもどって、案内帯を そこに 出す */
+    if(!retryQ.length){
+      retryQ = null;
+      backHome();
+      showRetryBanner("解き直し おつかれさま！ 同じ問題に 2回つづけて 正解すると リストから 消えるよ");
+      return;
+    }
+    var it = retryQ.shift();
+    retryDone++;
+    useKey = it.question_params.m;
+    seed = it.question_params.s>>>0;
+  }else{
+    useKey = pick(MODE_KEYS[MODE] || MODE_KEYS.motomeru);
+    seed = rngPick();
+  }
+
+  curKey = useKey;
+  curSeed = seed;
+  cur = makeQ(useKey, seed);
+
+  /* 種類バッヂ。ランダムは 種類名が そのまま ヒントに なるので 出さない */
+  var tagText = retryQ ? ("解き直し "+retryDone+" / "+retryTotal+" ・ "+cur.tag)
+                       : (MODE === "mix" ? "" : cur.tag);
+  $("qTag").textContent = tagText;
+  $("qTag").style.display = tagText ? "" : "none";
+  $("qNo").textContent = retryQ ? "" : ("第 "+(total+1)+" 問");
+  $("qText").innerHTML = cur.qHtml;
+  renderOptions();
+  qStart = nowMs();
+  try{ window.scrollTo({ top:0, behavior:"smooth" }); }catch(e){ window.scrollTo(0,0); }
+}
+
+function renderOptions(){
+  var host = $("partArea");
+  host.innerHTML = "";
+  var wrap = document.createElement("div");
+  wrap.className = "part";
+
+  var lab = document.createElement("div");
+  lab.className = "p-label";
+  lab.textContent = cur.label;
+  wrap.appendChild(lab);
+
+  var opts = document.createElement("div");
+  opts.className = "opts" + (cur.options.length === 3 ? " three" : "");
+  cur.options.forEach(function(o, oi){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "optBtn";
+    b.dataset.idx = oi;
+    b.innerHTML = o.html;          /* 中身は この画面で 組み立てた 数字と 単位だけ */
+    b.addEventListener("click", function(){ tapOption(oi); });
+    opts.appendChild(b);
+  });
+  wrap.appendChild(opts);
+  host.appendChild(wrap);
+}
+
+function tapOption(oi){
+  if(graded) return;
+  sel = oi;
+  $("toast").textContent = "";
+  document.querySelectorAll(".optBtn").forEach(function(b){
+    b.classList.toggle("on", Number(b.dataset.idx) === oi);
+  });
+}
+
+/* ---------- 答え合わせ ---------- */
+function check(){
+  if(graded || !cur) return;
+  if(sel < 0){ $("toast").textContent = "答えを えらんでね"; return; }
+
+  graded = true;
+  var ok = (sel === cur.correct);
+  var btns = document.querySelectorAll(".optBtn");
+  safeDivp("markChoices", btns, { correct:cur.correct, selected:sel,
+                                  dimOthers:true, label:"正解" });
+  btns.forEach(function(b){ b.disabled = true; });
+
+  total++;
+  if(ok){ score++; streak++; } else { streak = 0; }
+  renderScore();
+
+  var sec = Math.round((nowMs()-qStart)/1000);
+  /* 学習記録（未ログイン・ローカルでは黙ってスキップされる） */
+  safeDivp("answer", ok, {
+    question_key: curKey,
+    question_params: { m: curKey, s: curSeed },     /* 種方式：この2つで同じ問題を作り直せる */
+    question_text: cur.plainQ,
+    correct_answer: cur.ansText,
+    wrong_answer: ok ? null : cur.options[sel].plain,
+    time_taken_sec: (sec > 0 && sec < 600) ? sec : null
+  });
+
+  $("fbMsg").className = "fb-msg " + (ok ? "good" : "bad");
+  $("fbMsg").textContent = ok ? "せいかい！ よくできました" : "おしい！ とき方を 見てみよう";
+  $("expl").innerHTML = cur.expl;
+  $("feedback").classList.add("show");
+  $("checkBtn").style.display = "none";
+  $("nextBtn").style.display = "block";
+  $("toast").textContent = "";
+
+  /* 正解エフェクト（キラキラ）。pileBottom で「山の床」を ボタンの帯の 上に する
+     （わたさないと 画面下の #bottom が 積もりはじめを かくす） */
+  if(ok) safeDivp("correct", { pileBottom: "#bottom" });
+}
+
+function renderScore(){
+  $("scoreOk").textContent = score;
+  $("scoreAll").textContent = total;
+  $("scoreStreak").textContent = streak;
+}
+
+/* ---------- モード選択 ---------- */
+function startMode(m){
+  if(!MODE_KEYS[m]) return;
+  MODE = m;
+  retryQ = null;
+  score = 0; total = 0; streak = 0;
+  renderScore();
+  $("modeLabel").textContent = MODE_LABEL[m] || "";
+  document.body.classList.remove("choosing");
+  newQuestion();
+}
+function backHome(){
+  document.body.classList.add("choosing");
+  retryQ = null;
+  cur = null;
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+
+/* ---------- 解き直し（?retry=1） ---------- */
+function showRetryBanner(msg){
+  var slot = $("retryBannerSlot");
+  var e = $("retryBanner");
+  if(!e){
+    e = document.createElement("div");
+    e.id = "retryBanner";
+    slot.appendChild(e);
+  }
+  e.textContent = msg;
+}
+function initRetry(){
+  if(!(window.Divp && typeof Divp.getRetries === "function")) return;
+  Divp.getRetries().then(function(items){
+    var use = (items||[]).filter(function(it){
+      var p = it && it.question_params;
+      return p && GENS[p.m] && typeof p.s === "number";
+    });
+    if(!use.length){
+      showRetryBanner("解き直せる 問題は まだ ありません。まちがえた 問題が ここに たまっていくよ。");
+      return;
+    }
+    retryQ = use.slice();
+    retryTotal = retryQ.length;
+    retryDone = 0;
+    MODE = "retry";
+    score = 0; total = 0; streak = 0;
+    renderScore();
+    $("modeLabel").textContent = "まちがえた問題の 解き直し";
+    document.body.classList.remove("choosing");
+    newQuestion();
+  }).catch(function(){});
+}
+
+/* =====================================================================
+   印刷（A4・10問＋答え）。紙は 毎回 ちがう 問題で よいので 1問ごとに 種を 引く。
+   画面の 問題と 同じ 生成関数を 使うので、問題の 中身・答え・とき方は 画面と 一致する。
+   ⚠ makeQ() は 乱数の 状態を 書きかえるが、画面の 問題(cur)は 作り終わっているので 影響しない。
+   ===================================================================== */
+function printItems(mode){
+  var keys = PRINT_KEYS[mode] || PRINT_KEYS.mix, seen = {}, seenTpl = {}, out = [];
+  keys.forEach(function(k){
+    /* 同じ問題は 2つ 並べない。できれば 同じ場面（数字だけ ちがう 文章題）も さける */
+    var q = null, best = null;
+    for(var t=0; t<30; t++){
+      q = makeQ(k, rngPick());
+      if(seen[q.plainQ]) continue;
+      if(!best) best = q;
+      if(!seenTpl[q.plainQ.replace(/[\d.,]+/g, "#")]){ best = q; break; }
+    }
+    q = best || q;
+    seen[q.plainQ] = 1;
+    seenTpl[q.plainQ.replace(/[\d.,]+/g, "#")] = 1;
+    out.push(q);
+  });
+  return out;
+}
+/* 答えのページに出す 「とき方」＝ 画面の 解説の 手順だけ（図・ポイントは のぞく） */
+function printHow(q){
+  var box = document.createElement("div");
+  box.innerHTML = q.expl;
+  var rm = box.querySelectorAll(".ttl, .kufu, .fig, .cap");
+  for(var i=0;i<rm.length;i++) rm[i].parentNode.removeChild(rm[i]);
+  var steps = box.querySelectorAll(".step"), s = [];
+  for(i=0;i<steps.length;i++) s.push(steps[i].innerHTML.replace(/<\/?b>/g, ""));
+  return s.join(" → ");
+}
+function buildPrint(mode){
+  var items = printItems(mode);
+  var d = new Date();
+  var dateStr = d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
+  var label = MODE_LABEL[mode] || MODE_LABEL.mix;
+  function head(sub){
+    return '<div class="p-head"><div><div class="p-school">中京個別指導学院</div>'
+      + '<div class="p-title">速さマスター<small>'+esc(label)+'　'+sub+'</small></div></div>'
+      + '<div class="p-name">'+dateStr+'　名前<span></span></div></div>';
+  }
+  var qh = items.map(function(q,i){
+    return '<div class="p-item"><span class="p-no">'+(i+1)+'</span><span class="p-tag">'+esc(q.tag)+'</span>'
+      + '<div class="p-q">'+q.qHtml+'</div>'
+      + '<div class="p-ans">答え'+(q.pre ? '　'+esc(q.pre) : '')+'<i></i>'+esc(q.u)+'</div></div>';
+  }).join("");
+  var ah = items.map(function(q,i){
+    return '<div class="a-item"><span class="p-no">'+(i+1)+'</span>'
+      + '<span class="a-v">'+q.options[q.correct].html+'</span>'
+      + '<span class="a-how">'+printHow(q)+'</span></div>';
+  }).join("");
+  var wm = window.ChukyoPrint ? ChukyoPrint.img() : "";
+  return wm
+    + '<div class="sheet">'+head("問題")+'<p class="p-inst">'+esc(PRINT_INST[mode] || PRINT_INST.mix)+'</p>'
+    + '<div class="p-grid">'+qh+'</div></div>'
+    + '<div class="sheet">'+head("答え")+'<div class="a-grid">'+ah+'</div></div>';
+}
+function printSheet(mode){
+  if(!PRINT_KEYS[mode]) mode = "mix";
+  var area = $("printArea");
+  /* 透かしは position:fixed で 1枚だけ 置く＝印刷では どのページにも 同じ位置に 出る */
+  var wmCss = window.ChukyoPrint ? '<style>'+ChukyoPrint.css({ zIndex:0 })+'.wm{position:fixed;}</style>' : "";
+  area.innerHTML = wmCss + buildPrint(mode);
+  /* 透かし画像の デコードを 待ってから 印刷する（直後に print() するとロゴが 抜けることがある） */
+  if(window.ChukyoPrint && ChukyoPrint.print) ChukyoPrint.print(area);
+  else window.print();
+}
+
+/* ---------- イベント ---------- */
+document.querySelectorAll("#printBtns button").forEach(function(b){
+  b.addEventListener("click", function(){ printSheet(b.dataset.mode); });
+});
+$("printBtn").addEventListener("click", function(){ printSheet(MODE); });
+document.querySelectorAll(".m-card").forEach(function(b){
+  b.addEventListener("click", function(){ startMode(b.dataset.mode); });
+});
+$("homeBtn").addEventListener("click", backHome);
+$("checkBtn").addEventListener("click", check);
+$("nextBtn").addEventListener("click", newQuestion);
+
+/* divp-core は defer で読まれるので、DOM構築後に初期化する */
+window.addEventListener("DOMContentLoaded", function(){
+  safeDivp("init", UNIT_KEY);
+  if(/[?&]retry=1/.test(location.search)){
+    try{ initRetry(); }catch(e){}
+  }
+});
+</script>
+</body>
+</html>

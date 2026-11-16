@@ -141,6 +141,26 @@ const TOOLS = [
     next: '#nextBtn',
   },
   {
+    name: '単位量あたりマスター',
+    url: '/learning/math/math_es5_tanniryou.html',
+    start: async (page) => {
+      await page.locator('.m-card[data-mode="mix"]').click();
+    },
+    choices: '.optBtn',
+    grade: '#checkBtn',
+    next: '#nextBtn',
+  },
+  {
+    name: '速さマスター',
+    url: '/learning/math/math_es5_hayasa.html',
+    start: async (page) => {
+      await page.locator('.m-card[data-mode="mix"]').click();
+    },
+    choices: '.optBtn',
+    grade: '#checkBtn',
+    next: '#nextBtn',
+  },
+  {
     name: '拡大図と縮図マスター',
     url: '/learning/math/math_es6_kakudai_shukuzu.html',
     start: async (page) => {
