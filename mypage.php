@@ -6,6 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/api/db.php';
 require_once __DIR__ . '/api/helpers.php';
 require_once __DIR__ . '/api/self_study_common.php';   // 自習の記録（教科・手ごたえのラベル）
+require_once __DIR__ . '/api/kakomon_common.php';      // 過去問の記録（入口を出すかの判定）
 
 $actor = current_actor();
 
@@ -343,6 +344,23 @@ if ($showWeekDots) {
 $dayLabels = ['月', '火', '水', '木', '金', '土', '日'];
 $todayStr = (new DateTimeImmutable('today'))->format('Y-m-d');
 
+// ---- 過去問の記録（/kakomon.php。私立・公立）への入口 ----
+// 中3 か、もう私立の高校を登録した・公立の記録がある生徒だけに出す。migrate_kakomon.sql 未適用なら出さない
+$showKakomon = false;
+if (kakomon_ready($pdo)) {
+    $showKakomon = kakomon_is_js3($student['grade'] ?? null);
+    if (!$showKakomon) {
+        $stmt = $pdo->prepare('SELECT 1 FROM kakomon_schools WHERE student_id = :id LIMIT 1');
+        $stmt->execute(['id' => $studentId]);
+        $showKakomon = (bool)$stmt->fetchColumn();
+    }
+    if (!$showKakomon && kakomon_public_ready($pdo)) {
+        $stmt = $pdo->prepare('SELECT 1 FROM kakomon_public_logs WHERE student_id = :id LIMIT 1');
+        $stmt->execute(['id' => $studentId]);
+        $showKakomon = (bool)$stmt->fetchColumn();
+    }
+}
+
 // ---- がんばりメッセージ ----
 if ($weekSolved === 0) {
     $heroMsg = ($period === 'week') ? '今週も がんばろう！' : (($period === 'today') ? '今日も がんばろう！' : 'この期間の記録はありません');
@@ -578,6 +596,15 @@ function h(?string $s): string
   }
   .stab.active{background:var(--ai);color:#fff;border-color:var(--ai)}
 
+  /* ---------- 過去問の記録への入口 ---------- */
+  .kakomon-link{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    margin-top:14px;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:14px 18px;text-decoration:none;color:var(--ink);border-left:5px solid var(--ai)}
+  .kakomon-link .t{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:15px}
+  .kakomon-link .t small{display:block;font-size:11px;font-weight:500;color:var(--ink-soft)}
+  .kakomon-link .go{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;
+    color:var(--ai);white-space:nowrap}
+
   /* ---------- 自習の記録 ---------- */
   .selfstudy{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
     padding:16px 18px;margin-top:14px;border-top:4px solid var(--kin)}
@@ -770,6 +797,14 @@ function h(?string $s): string
   <a class="retry" href="/retry.php">
     <span class="t">過去のまちがいを解き直す<small>2回連続で正解すると リストから消えるよ</small></span>
     <span class="badge"><?= $retryCount ?>問</span>
+  </a>
+<?php endif; ?>
+
+<?php if ($showKakomon): ?>
+  <!-- 過去問の記録（私立・公立。中3・記録を始めた生徒だけ） -->
+  <a class="kakomon-link" href="/kakomon.php">
+    <span class="t">過去問の記録（私立・公立）<small>点数・できたところ・できなかったところを書いておこう</small></span>
+    <span class="go">ひらく →</span>
   </a>
 <?php endif; ?>
 

@@ -9,6 +9,7 @@ require_once __DIR__ . '/api/db.php';
 require_once __DIR__ . '/api/helpers.php';
 require_once __DIR__ . '/api/todofuken_map.php'; // 都道府県ミニ地図SVG（解き直しプリントの地図問題用）
 require_once __DIR__ . '/api/self_study_common.php'; // 自習の記録（教科・手ごたえのラベル）
+require_once __DIR__ . '/api/kakomon_common.php';    // 過去問の進捗（生徒詳細から個人ページへのリンク判定）
 
 function h(?string $s): string
 {
@@ -1224,6 +1225,8 @@ function ssl_row_html(array $ssl): string
         <a class="logout" href="/admin.php" style="text-decoration:none;">生徒・保護者登録＆修正</a>
         <!-- 一般常識バトルの部屋を作る・進行する（授業中にタブレットからも使うのでスマホでも出す） -->
         <a class="logout" href="/battle_host.php" style="text-decoration:none;">一般常識バトル</a>
+        <!-- 中3の過去問（私立・公立）の進捗（生徒が /kakomon.php で入力したもの。面談前にスマホでも見るので出す） -->
+        <a class="logout" href="/kakomon_teacher.php" style="text-decoration:none;">過去問の進捗</a>
         <!-- 教室別利用状況＋人気ツールの共有用資料（印刷前提なのでスマホでは出さない） -->
         <a class="logout sp-hide" href="/report.php" style="text-decoration:none;">利用状況レポート</a>
         <!-- ご家庭向け「AI学習ツールのご案内」を教室・氏名を選んで印刷（登録時以外でもいつでも。印刷前提なのでスマホでは出さない） -->
@@ -1262,6 +1265,9 @@ function ssl_row_html(array $ssl): string
   <div class="card">
     <h1><?= h($detail['student_name']) ?> <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">
       <?= h($detail['login_id']) ?> ・ <?= h($detail['classroom_name']) ?>教室<?= $detail['grade'] ? '・' . h(grade_label($detail['grade'])) : '' ?></span></h1>
+<?php if (kakomon_is_js3($detail['grade'] ?? null)): ?>
+    <a href="/kakomon_teacher.php?student_id=<?= (int)$detailStudentId ?>" style="display:inline-block;margin-top:4px;font-size:12px;font-weight:700;color:var(--ai);text-decoration:none;">過去問の記録（私立・公立）を見る →</a>
+<?php endif; ?>
     <div class="stats">
       <div class="stat"><div class="n" id="stat-min"><?= $dMinutes ?><small>分</small></div><div class="l">学習時間</div></div>
       <div class="stat"><div class="n" id="stat-solved"><?= $dSolved ?><small>問</small></div><div class="l">解いた問題</div></div>

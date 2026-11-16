@@ -244,6 +244,8 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
 | カタログ | question_catalog | (unit_key,question_key)→日本語ラベル+base_xp。平方根8モードシード済み。当面は難易度を分けずbase_xp=1で統一 |
 | コンテンツ | vocab_words / vocab_hints | 語彙クロスワード(japanese_goi_crossword)の語3350件と段階ヒント。**schema_full.sql には無い**（db/migrations/migrate_vocab_crossword.sql + db/seeds/seed_japanese_goi_crossword.sql を phpMyAdmin で実行）。重複判定は `(level, yomi, hyoki)` の UNIQUE で、**漢字表記が同音異義語（ホショウ＝保証／保障／補償）の唯一の区別材料**（旧 `(level,yomi)` だと同じレベルに1語しか置けなかった。既存DBは db/migrations/migrate_vocab_homonym.sql を実行）。**問題データをDBに置く最初のツール**で、先生が /vocab_admin.php から語とヒントを増やせる（API=api/vocab_admin.php）。正誤は既存 answer_logs に集約＝専用ログ表は作らない |
 | 自習 | self_study_logs | 生徒が自分で書く「家でやった自習」の記録（日付・教科・教材・範囲・時間・手ごたえ・メモ）＋講師の確認印(checked_at)とコメント。**schema_full.sql には無い**（db/migrations/migrate_self_study.sql を実行）。自己申告なので**XPも学習時間集計も付けない**（ロードマップ 5g） |
+| 過去問 | kakomon_schools / kakomon_logs / kakomon_pace | 中3の私立高校 過去問の記録。購入した過去問（高校）・1回ぶんの記録（高校×年度×科目×周目1〜4 に UNIQUE、得点率＋わかれば点数、できたところ／できなかったところ）・全体の進み具合（早い／普通／遅い、1生徒1行）。**schema_full.sql には無い**（db/migrations/migrate_kakomon.sql を実行）。自己申告なので XP は付けない（ロードマップ 5k） |
+| 過去問(公立) | kakomon_public_logs / kakomon_public_pace | 愛知県公立高校入試の過去問の記録。高校は持たない（県内共通問題）。1行 = 年度×A/Bグループ（2022年度まで。以降は ''）×科目×周目、点数は各教科22点満点。**schema_full.sql には無い**（db/migrations/migrate_kakomon_public.sql を実行）（ロードマップ 5k） |
 
 ## 主要な設計判断（確定事項）
 
@@ -881,6 +883,54 @@ Gitはソース管理のみ。本番反映は変更ファイルをHetemlへFTP�
    保護者のPINまで変わるのでとらなかった）。
    ⚠ QR（右上=/learning/、保護者欄=/guardian.php）は qrcode-generator 1.4.4（qr_print_a4.html と同じ）で作った
    モジュールを SVG path の定数で埋め込んである＝印刷時にJS・CDNに頼らない。**URL を変えたら path を作り直す**。
+5k. **過去問の記録（私立・公立。生徒が入力 → 講師が進捗を見る）**: テーブルは私立 db/migrations/migrate_kakomon.sql、
+   公立 db/migrations/migrate_kakomon_public.sql（どちらも schema_full.sql には無い。phpMyAdmin で1回実行）。
+   定義・文言は **api/kakomon_common.php**
+   （KAKOMON_SUBJECTS＝国数英理社 / KAKOMON_LAPS＝4周目まで / KAKOMON_PACES＝早い・普通・遅い）。
+   **年度はどの画面も西暦だけ（「2026年度」）**。和暦は併記しない（ユーザーの判断で統一した）。
+   生徒ページ・講師ページとも**「私立」「公立」のタブ**で切りかえる（生徒は最後に開いたタブを localStorage で覚える）。
+   - **公立（愛知県公立高校入試）**: **受ける公立高校は2校まで登録する**（kakomon_public_schools。KAKOMON_PUBLIC_MAX_SCHOOLS。
+     選択肢は志望校マスターの「公立」＋手入力。私立と同じく登録するまで進み具合は出さない）。ただし学力検査は県内共通なので
+     **記録は高校にひもづけない**（ユーザーの判断「A」＝同じ問題を高校ごとに二重に書かせない。高校はいつでも外せる）。
+     1回ぶん = 年度・問題（A/B）・科目・周目・
+     点数（**各教科22点満点**＝KAKOMON_PUBLIC_MAX。得点率は表示時に計算し列は持たない）・できた／できなかった。
+     **2022年度まではAグループ・Bグループの2回**だったので、その年度だけ A/B を選ばせる（KAKOMON_PUBLIC_AB_LAST_YEAR。
+     2023年度からは exam_group=''。NULL にしないのは UNIQUE を効かせるため）。進み具合も私立とは別に持つ（kakomon_public_pace）。
+     進捗表は 年度（グループ）× 5科目 ＋ 周目ごとの5科合計（そろっていない周は「（2科）」のように添える）。
+     講師の一覧（?kind=public）は 記録の回数・平均点（22点満点）・科目ごとの平均点（国〜社）。
+     API は save_kakomon.php の public_pace / public_save_log / public_delete_log。
+     公立のテーブルが無い環境では公立タブだけ「準備中」（kakomon_public_ready()）。
+   - 生徒 **/kakomon.php**: 全体の進み具合（**購入した過去問を1校以上登録すると出る**。押すと即保存。
+     同じものを押し直しても日付は更新＝「この日の時点で普通」）・
+     購入した過去問（高校）の登録（**3校まで**＝KAKOMON_MAX_SCHOOLS。生徒が受けられる私立は最大3校。
+     3校そろうと「＋ 高校を追加」を隠す）・1回ぶんの記録（高校／年度／科目／何周目／得点＝点数(得点と満点)か得点率(%)／
+     できたところ／できなかったところ）・高校ごとの進捗表（年度×科目に ①72% のように周目と得点率）と記録の一覧（なおす・けす）。
+     入口はマイページのリンクカードで、**中3（grade が js3/中3）か、もう私立の高校を登録した・公立の記録がある生徒だけ**に出す
+     （テーブルが無い環境では出さない）。保存は api/save_kakomon.php（action で分岐、成功すると state を丸ごと返す）。
+   - 講師 **/kakomon_teacher.php**: 一覧＝担当教室の生徒全体（中3か、何か入力のある生徒。テスト生は ?showtest=1）。
+     進み具合の人数・購入した過去問（校名と回数）・記録の回数・平均得点率・最高周目・最後に記録した日。列見出しで並べ替え。
+     個人＝?student_id=（私立は高校ごと、公立は1枚の進捗表＋1回ずつの記録の表。印刷可）。
+     teacher.php のヘッダー「過去問の進捗」と、中3の生徒詳細からリンク。
+   - **高校は志望校マスター target_schools（私立・有効）から選ぶ**＝講師の一覧で同じ学校が同じ名前で並ぶ。
+     リストに無い学校だけ手入力（school_name に入り target_school_id は NULL）。手入力でもマスターと同名なら
+     マスターの学校として登録する。表示名はマスター優先（改名に追従）。**私立校が足りなければ admin.php の志望校タブで足す**。
+     **プルダウンは地区ごとに見出しで区切る**（target_schools.region＝nagoya/owari/mikawa、ラベルは SCHOOL_REGIONS。
+     列は db/migrations/migrate_target_school_region.sql、愛知の私立56校は db/seeds/seed_target_schools_private_aichi.sql
+     ＝何度流しても増えず、「高校」「高等学校」の書き方違いは同じ学校として地区を付ける。略称の二重登録は判定できない）。
+     ⚠ admin.php の志望校タブには地区の入力欄が無い＝**画面から足した学校は地区なし（プルダウンの最後の「その他」）**。
+     region 列が無い環境では区切らずに並べる。
+   - 同じ「高校×年度×科目×周目」は1行だけ（UNIQUE uq_kl_attempt。二重に送ると 409 duplicate_log）。
+     画面は 年度・科目を選ぶと**まだ記録の無い一番若い周目を自動で選び**、前の周の「できなかったところ」を出す。
+     記録が1件でもある高校は外せない（school_has_logs）。得点率は整数％で持ち、点数で入れたときはサーバーが計算する。
+   - 年度の選択肢は「4月になったらその年」から10年度ぶん（kakomon_year_max()。入試は1〜2月なので、1月はまだ前の年が最新）。
+   - ⚠ **XPは付けない。answer_logs / study_sessions にも書かない**（自己申告。自習の記録と同じ考え方）。
+     記録リセット（reset_student_records.php）の対象にも入れていない。生徒の完全削除では CASCADE で消える。
+   - ⚠ kakomon.php は**画面をすべてJSで組み立て、PHPからは #kk-boot のJSON 1つだけ**を渡す。
+     tests/kakomon.spec.js がファイル後半のHTMLをそのまま読み、JSONを差し替えて動かす（保存APIは同じ約束の偽物）。
+     **後半のHTMLに PHP の式を足すとテストが読めなくなる**ので、出したい値は $boot に足すこと。
+     API の応答・検証を変えたら、テストの偽物（makeFake）も合わせる。
+   - 未適用でも落ちない: kakomon_ready() が false なら生徒は「準備中」、講師は「migrate_kakomon.sql を実行して」、
+     API は schema_not_ready(503)、マイページは入口を出さない。
 6. **実機で1周**: ログイン→解く→answer_logs→マイページ反映まで確認
 7. 平方根が1周通っていれば「計算どぅする？」
    (math_es_keisan_dousuru、13カテゴリのIDをquestion_keyに)も横展開
