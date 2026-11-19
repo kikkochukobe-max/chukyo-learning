@@ -201,6 +201,16 @@ const TOOLS = [
     next: '#nextBtn',
   },
   {
+    name: '相似マスター',
+    url: '/learning/math/math_js3_souji.html',
+    start: async (page) => {
+      await page.locator('.m-card[data-mode="mix"]').click();
+    },
+    choices: '.optBtn',
+    grade: '#checkBtn',
+    next: '#nextBtn',
+  },
+  {
     name: '円周角マスター',
     url: '/learning/math/math_js3_enshuukaku.html',
     start: async (page) => {
