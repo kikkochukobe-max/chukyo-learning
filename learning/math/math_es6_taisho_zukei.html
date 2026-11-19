@@ -1,0 +1,2302 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="only light">
+<title>線対称・点対称マスター｜小6算数 対称な図形｜中京個別指導学院</title>
+<meta name="description" content="小6算数の対称な図形を練習。方眼の図から線対称な図形・点対称な図形を見つける、対称の軸や対称の中心、対応する点・辺・角、辺の長さと角の大きさ、方眼に線対称・点対称な図形をかく、正多角形や四角形の対称の軸の数。中京個別指導学院(神丘)の学習ツール。">
+<!-- 本番(Heteml)ではサブセット自己ホストに差し替え -->
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- 印刷シートのロゴ透かし（ChukyoPrint） -->
+<script src="/assets/print-watermark.js"></script>
+<style>
+  :root{
+    --paper:#FBFAF6;
+    --grid:#ECE9E0;
+    --sumi:#33312B;
+    --usuzumi:#8B877C;
+    --shu:#C73E2E;
+    --kin:#C9A227;
+    --ai:#2C5F8A;
+    /* 答え合わせの色は共通モジュール(divp-choice-mark.js)の既定にそろえる */
+    --divp-mark-ok:#3E8E5A;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html{ scrollbar-gutter:stable; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:24px 24px;
+    color:var(--sumi);
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;     /* ⚠ 横並び(row)にしない。共通ヘッダーが左端に縦長の帯になる */
+    touch-action:manipulation;
+  }
+  .app{
+    width:100%;
+    max-width:560px;
+    margin:0 auto;
+    padding:12px 14px calc(90px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    flex:1;
+  }
+
+  /* ---- ヘッダー ---- */
+  header{ display:flex; align-items:center; gap:8px; }
+  header h1{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700; margin:0;
+    letter-spacing:.04em;
+  }
+  header h1 .sub{
+    display:block;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    letter-spacing:.1em;
+  }
+  /* 名前が 長いので、スマホ幅では 小さく して 1行に おさめる（「マスタ／ー」で 折れた） */
+  @media (max-width:420px){
+    header h1{ font-size:15px; letter-spacing:0; white-space:nowrap; }
+  }
+  .mode-back{
+    margin-left:auto;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.5px solid var(--ai);
+    background:#fff;
+    border-radius:8px;
+    padding:5px 9px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .mode-back.next-to{ margin-left:6px; }
+
+  /* ---- スコア ---- */
+  .score{
+    display:flex; align-items:baseline; gap:12px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700; color:var(--usuzumi);
+  }
+  .score b{ color:var(--shu); font-size:17px; }
+  .score .streak b{ color:var(--kin); }
+  .score .qno{ margin-left:auto; color:var(--ai); }
+
+  /* ---- 問題カード ---- */
+  .card{
+    position:relative;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:16px;
+    box-shadow:0 2px 0 rgba(51,49,43,.06);
+    padding:16px 16px 14px;
+  }
+  .card .qtag{
+    display:inline-block;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.2px solid var(--ai);
+    border-radius:999px;
+    padding:2px 10px;
+    margin-bottom:8px;
+    letter-spacing:.06em;
+  }
+  .card .qtext{
+    font-size:16px; line-height:1.85;
+    letter-spacing:.02em;
+  }
+  .card .qtext b{ color:var(--shu); }
+
+  /* ---- 問題の図 ---- */
+  .figwrap{
+    display:flex; justify-content:center;
+    margin:10px 0 0;
+  }
+  .figwrap:empty{ display:none; }
+  .figwrap svg{
+    width:100%; max-width:330px; height:auto;
+    border-radius:10px;
+  }
+
+  /* ---- 分数（縦組み） ---- */
+  .fr{
+    display:inline-flex; flex-direction:column; align-items:center;
+    vertical-align:middle;
+    line-height:1.12;
+    margin:0 .1em;
+  }
+  .fr .nu{ border-bottom:.08em solid currentColor; padding:0 .18em; }
+  .fr .de{ padding:0 .18em; }
+  .cl{ margin:0 .12em; }
+
+  /* ---- 解答パーツ ---- */
+  .part{ display:flex; flex-direction:column; gap:8px; }
+  .p-label{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700;
+    color:var(--ai);
+    letter-spacing:.04em;
+  }
+  .opts{ display:flex; flex-wrap:wrap; gap:8px; }
+  .optBtn{
+    position:relative;          /* 「正解」バッジの基準（divp-choice-mark.js） */
+    flex:1 1 calc(50% - 4px);
+    min-width:120px;
+    min-height:58px;
+    padding:8px 10px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:11px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:21px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    line-height:1.4;
+  }
+  .optBtn .u{ font-size:.68em; margin-left:3px; color:var(--usuzumi); }
+  .optBtn.long{ font-size:15px; line-height:1.45; }
+  .optBtn.on{
+    background:#FDECE9;
+    border-color:var(--shu);
+    border-bottom-color:var(--shu);
+    color:var(--shu);
+  }
+  .optBtn.on .u{ color:var(--shu); }
+  .optBtn:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .optBtn:disabled{ cursor:default; transform:none; }
+  .optBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- フィードバック ---- */
+  .feedback{ display:none; }
+  .feedback.show{ display:flex; flex-direction:column; gap:10px; }
+  .fb-msg{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    text-align:center;
+    letter-spacing:.06em;
+  }
+  .fb-msg.good{ color:var(--shu); }
+  .fb-msg.bad{ color:var(--ai); }
+  .expl{
+    background:#fff;
+    border:1.5px dashed var(--kin);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:14px; line-height:2.05;
+  }
+  .expl b{ color:var(--shu); }
+  .expl .ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--kin);
+    letter-spacing:.08em;
+    display:block; margin-bottom:4px;
+  }
+  .expl .step{ display:block; }
+  .expl .ok{ color:#3E8E5A; font-weight:700; }
+  .expl .ng{ color:var(--usuzumi); }
+  .expl .kufu{
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px dashed var(--grid);
+    font-size:13px; color:var(--ai);
+  }
+  .toast{
+    text-align:center;
+    font-size:13px; font-weight:700; color:var(--ai);
+    min-height:20px;
+  }
+
+  /* ---- 下の大きなボタン ---- */
+  .bottom{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--paper) 62%, rgba(251,250,246,0));
+    z-index:20;
+  }
+  .bottom .inner{ max-width:560px; margin:0 auto; }
+  .bigBtn{
+    width:100%;
+    height:54px;
+    border:none;
+    border-radius:13px;
+    background:var(--shu);
+    color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    letter-spacing:.2em; text-indent:.2em;
+    box-shadow:0 3px 0 #9E2F22;
+    cursor:pointer;
+  }
+  .bigBtn:active{ transform:translateY(2px); box-shadow:0 1px 0 #9E2F22; }
+  .bigBtn.next{ background:var(--ai); box-shadow:0 3px 0 #1E466A; }
+  .bigBtn.next:active{ box-shadow:0 1px 0 #1E466A; }
+  .bigBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- モード選択画面（平均マスター・比マスターと同じ作り） ---- */
+  .mode-screen{ display:none; }
+  body.choosing .app,
+  body.choosing .bottom{ display:none; }
+  body.choosing .mode-screen{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:100%;
+    max-width:520px;
+    margin:0 auto;
+    padding:34px 18px 48px;
+  }
+  .m-logo{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:25px; font-weight:700;
+    text-align:center;
+    letter-spacing:.08em;
+  }
+  .m-sub{
+    text-align:center;
+    font-size:13px; color:var(--usuzumi);
+    margin-bottom:8px;
+  }
+  .m-card{
+    display:flex; align-items:center; gap:13px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:4px solid #D8D4C8;
+    border-radius:16px;
+    padding:14px 16px;
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;
+    color:inherit;
+    width:100%;
+  }
+  .m-card:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .m-card.chal{ border-color:#BFD4C6; border-bottom-color:#8FB9A0; background:#F7FBF8; }
+  .m-card.mix{ border-color:var(--kin); border-bottom-color:var(--kin); }
+  .m-ico{ flex:none; width:46px; height:40px; }
+  .m-ico svg{ width:46px; height:40px; display:block; }
+  .m-sep{
+    display:flex; align-items:center; gap:8px;
+    margin-top:14px;
+    font-size:11.5px; color:var(--usuzumi); letter-spacing:.06em;
+  }
+  .m-sep::before, .m-sep::after{
+    content:""; flex:1; height:1px; background:var(--grid);
+  }
+  .m-body{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .m-name{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700;
+  }
+  .m-desc{ font-size:11.5px; color:var(--usuzumi); line-height:1.5; }
+
+  /* 解き直し(?retry=1)の案内帯 */
+  #retryBanner{
+    background:#FBF3E0;
+    border:1.5px solid var(--kin);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:12.5px; line-height:1.6;
+    color:#6E5518;
+  }
+
+  /* 積もったキラキラ(divp-correct-kirakira の pile, z-index:5)にうもれないように。
+     モジュール側の :where() は詳細度0で、div/span だけで組んだ帯は
+     セレクタから漏れるため、画面の直下の子をまとめて前面に出しておく */
+  .divp-header{ position:relative; z-index:11; }
+  .app > *, .mode-screen > *, .feedback > *{ position:relative; z-index:10; }
+
+  /* ---- モード画面の「プリントを 印刷する」 ---- */
+  .m-print{
+    background:#fff;
+    border:1.5px dashed #CFC9B8;
+    border-radius:16px;
+    padding:12px 14px 14px;
+  }
+  .m-print-ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:15px; font-weight:700;
+    margin-bottom:9px;
+  }
+  .m-print-ttl span{
+    display:block;
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    margin-top:1px;
+  }
+  .m-print-btns{ display:flex; flex-wrap:wrap; gap:7px; }
+  .m-print-btns button{
+    flex:1 1 calc(33% - 7px);
+    min-width:92px; min-height:40px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:10px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13.5px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+  }
+  .m-print-btns button:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+
+  /* ---- 印刷シート ---- */
+  .print-area{ display:none; }
+  @media print{
+    @page{ size:A4 portrait; margin:10mm 11mm; }
+    /* 共通ヘッダーは紙に出さない（assets/divp-header.js と同じ方針） */
+    .divp-header{ display:none !important; }
+    .mode-screen, .app, .bottom,
+    #divp-kk-layer, #divp-kk-pile, .divp-kk-layer, .divp-kk-canvas, .divp-kk-text{ display:none !important; }
+    html, body{ background:#fff !important; min-height:0 !important; }
+    body{ display:block !important; }
+    .print-area{ display:block !important; color:#222; font-family:"Zen Kaku Gothic New", sans-serif; }
+    .sheet{ position:relative; page-break-after:always; break-after:page;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .sheet:last-child{ page-break-after:auto; break-after:auto; }
+    .p-head{ position:relative; z-index:1; display:flex; justify-content:space-between; align-items:flex-end;
+      border-bottom:2px solid #33312B; padding-bottom:4px; margin-bottom:6px; }
+    .p-school{ font-size:11px; font-weight:700; color:#555; }
+    .p-title{ font-family:"Zen Maru Gothic", sans-serif; font-weight:700; font-size:20px; margin-top:1px; }
+    .p-title small{ font-size:13px; margin-left:8px; color:#555; }
+    .p-name{ font-size:12px; white-space:nowrap; }
+    .p-name span{ display:inline-block; border-bottom:1px solid #000; min-width:170px; margin-left:6px; }
+    .p-inst{ position:relative; z-index:1; font-size:11.5px; margin:0 0 6px; }
+    .p-grid{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:2.5mm 7mm; }
+    .p-item{ break-inside:avoid; page-break-inside:avoid; padding:1mm 1mm 0; }
+    .p-no{ display:inline-block; font-weight:700; font-size:12px; background:#33312B; color:#fff;
+      border-radius:5px; padding:0 7px; margin-right:4px; }
+    .p-tag{ font-size:9.5px; color:#777; }
+    .p-q{ font-size:11px; line-height:1.55; margin:2px 0 0; }
+    .p-q b{ color:#222; }
+    /* 図は 列の はば いっぱい。高さで おさえる（viewBox が あるので 縦横比は くずれず、
+       左右に 余白が できるだけ）。1行に 2問 × 3行 で 1枚に おさめるための 44mm。
+       方眼の 問題（.tall）だけは マスを 数えるので 大きく する
+       ＝ 方眼の 問題は 同じ 行に まとめる（PRINT_KEYS の 順。行の 高さは 高い 方で 決まる） */
+    .p-fig{ margin:1.2mm 0 0; }
+    .p-fig svg{ display:block; width:100%; height:auto; max-height:44mm; margin:0 auto; }
+    .p-fig.tall svg{ max-height:54mm; }   /* 方眼だけの 6問（kaku）が 60mm だと 1枚を はみ出した */
+    /* 選択肢（ア〜エ が 図の 中に ない 問題だけ）。子セレクタ＝中の span まで flex に しない */
+    .p-ch{ display:flex; flex-wrap:wrap; gap:1mm 4mm; margin-top:1.2mm; font-size:10.5px; }
+    .p-ch>span{ white-space:nowrap; }
+    .p-ch .u{ font-size:.85em; margin-left:1px; }
+    .p-ans{ display:flex; align-items:flex-end; gap:6px; margin-top:1.5mm; font-size:11px; color:#555; }
+    .p-ans i{ flex:1; border-bottom:1px solid #333; height:6.5mm; font-style:normal; }
+    .a-grid{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:2.5mm 7mm; }
+    .a-item{ break-inside:avoid; font-size:12px; line-height:1.6; border-bottom:1px dashed #ccc; padding:1.5mm 0 2mm; }
+    .a-item .a-v{ font-family:"Zen Maru Gothic", sans-serif; font-size:16px; font-weight:700; color:#C73E2E; margin-left:4px; }
+    .a-item .a-v .u{ font-size:.7em; margin-left:2px; }
+    .a-item .a-how{ display:block; font-size:10.5px; color:#555; line-height:1.55; margin-top:1px; }
+  }
+</style>
+</style>
+</head>
+<body class="choosing" data-theme="es" data-effect="kirakira">
+
+<!-- 共通ヘッダー(ロゴ・ログイン窓)の差し込み先。script は body 直後に置くこと -->
+<div class="divp-header"></div>
+<!-- 学習記録システム共通モジュール -->
+<script src="/assets/divp-core.js" defer></script>
+<script src="/assets/divp-header.js" defer></script>
+<!-- 小学生ツールなので正解演出は星バースト。
+     data-effect="kirakira" なので、星が そのまま 画面の下に 積もっていく（divp-core.js より後ろに置くこと） -->
+<script src="/assets/divp-correct-kirakira.js" defer></script>
+<!-- 選択肢の答え合わせ表示（正解=緑 / 選んだ誤答=朱） -->
+<script src="/assets/divp-choice-mark.js" defer></script>
+
+<div class="mode-screen" id="modeScreen">
+  <div class="m-logo">線対称・点対称マスター</div>
+  <div class="m-sub">小6 算数 ／ 練習したいものを 選んでね</div>
+  <div id="retryBannerSlot"></div>
+
+  <button type="button" class="m-card" data-mode="sen">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M23,4 L40,15 L34,36 L12,36 L6,15 Z" fill="#E2ECF5" stroke="#2C5F8A" stroke-width="2" stroke-linejoin="round"/><line x1="23" y1="1" x2="23" y2="39" stroke="#B08A16" stroke-width="1.8" stroke-dasharray="3 2"/></svg></span>
+    <span class="m-body"><span class="m-name">線対称な 図形</span>
+    <span class="m-desc">2つに 折ると ぴったり 重なる 図形。
+    対称の軸・対応する 点・辺・角</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="ten">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M6,32 L15,8 L40,8 L31,32 Z" fill="#F6DCD6" stroke="#C73E2E" stroke-width="2" stroke-linejoin="round"/><line x1="6" y1="32" x2="40" y2="8" stroke="#8B877C" stroke-width="1.3" stroke-dasharray="3 2"/><line x1="15" y1="8" x2="31" y2="32" stroke="#8B877C" stroke-width="1.3" stroke-dasharray="3 2"/><circle cx="23" cy="20" r="2.8" fill="#33312B"/></svg></span>
+    <span class="m-body"><span class="m-name">点対称な 図形</span>
+    <span class="m-desc">点を 中心に 180°回すと 重なる 図形。
+    対称の中心・対応する 点・辺・角</span></span>
+  </button>
+
+  <button type="button" class="m-card" data-mode="kaku">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M3 4H43M3 12H43M3 20H43M3 28H43M3 36H43M5 2V38M13 2V38M21 2V38M29 2V38M37 2V38" stroke="#D9D3C4" stroke-width="1"/><path d="M21,4 L5,12 L13,28 L21,36" fill="none" stroke="#2C5F8A" stroke-width="2.4" stroke-linejoin="round"/><line x1="21" y1="1" x2="21" y2="39" stroke="#B08A16" stroke-width="1.8" stroke-dasharray="3 2"/><circle cx="29" cy="28" r="3" fill="#C73E2E"/></svg></span>
+    <span class="m-body"><span class="m-name">方眼に かいて 完成させる</span>
+    <span class="m-desc">のこり 半分を かくと、
+    対応する 点は どこ？ マスを 数えよう</span></span>
+  </button>
+
+  <button type="button" class="m-card chal" data-mode="takakkei">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><path d="M13,3 L33,3 L43,20 L33,37 L13,37 L3,20 Z" fill="#F7FBF8" stroke="#3E8E5A" stroke-width="2" stroke-linejoin="round"/><path d="M3,20 L43,20 M13,3 L33,37 M33,3 L13,37 M23,1 L23,39" stroke="#B08A16" stroke-width="1.3" stroke-dasharray="3 2"/></svg></span>
+    <span class="m-body"><span class="m-name">多角形と 対称（チャレンジ）</span>
+    <span class="m-desc">正方形・ひし形・正六角形… 線対称？ 点対称？
+    対称の軸は 何本？</span></span>
+  </button>
+
+  <button type="button" class="m-card mix" data-mode="mix">
+    <span class="m-body"><span class="m-name">ランダム</span>
+    <span class="m-desc">ぜんぶの 種類を ごちゃまぜで 出題（しあげ用）</span></span>
+  </button>
+
+  <div class="m-sep">プリントで 練習したいときは</div>
+
+  <div class="m-print">
+    <div class="m-print-ttl">🖨 プリントを 印刷する<span>A4・問題＋答えのページ／押すたびに ちがう問題</span></div>
+    <div class="m-print-btns" id="printBtns">
+      <button type="button" data-mode="sen">線対称</button>
+      <button type="button" data-mode="ten">点対称</button>
+      <button type="button" data-mode="kaku">方眼にかく</button>
+      <button type="button" data-mode="takakkei">多角形と対称</button>
+      <button type="button" data-mode="mix">ランダム</button>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <header>
+    <h1>線対称・点対称マスター<span class="sub" id="modeLabel">線対称な 図形</span></h1>
+    <button type="button" class="mode-back" id="printBtn" title="このモードのプリントを印刷">🖨 プリント</button>
+    <button type="button" class="mode-back next-to" id="homeBtn">ホームに戻る</button>
+  </header>
+
+  <div class="score">
+    <span>せいかい <b id="scoreOk">0</b> / <span id="scoreAll">0</span></span>
+    <span class="streak">れんぞく <b id="scoreStreak">0</b></span>
+    <span class="qno" id="qNo"></span>
+  </div>
+
+  <div class="card">
+    <span class="qtag" id="qTag">問題</span>
+    <div class="qtext" id="qText"></div>
+    <div class="figwrap" id="figArea"></div>
+  </div>
+
+  <div id="partArea" style="display:flex;flex-direction:column;gap:14px"></div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="feedback" id="feedback">
+    <div class="fb-msg" id="fbMsg"></div>
+    <div class="expl" id="expl"></div>
+  </div>
+</div>
+
+<!-- 印刷用（画面には出さない。印刷ボタンのたびに 中身を 作りなおす） -->
+<div class="print-area" id="printArea"></div>
+
+<div class="bottom" id="bottom">
+  <div class="inner">
+    <button type="button" class="bigBtn" id="checkBtn">こたえあわせ</button>
+    <button type="button" class="bigBtn next" id="nextBtn" style="display:none">つぎの問題 ➜</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   線対称・点対称マスター（算数・小6 対称な図形）
+   unit_key = math_es6_taisho_zukei
+
+   ■ モードと question_key
+     線対称な図形   → sen_hantei（方眼の4つから選ぶ／対称の軸を選ぶ）/
+                      sen_taiou（対応する点・辺・角）/
+                      sen_seishitsu（辺の長さ・角の大きさ・軸までの長さ・ことば）
+     点対称な図形   → ten_hantei（方眼の4つから選ぶ／対称の中心を選ぶ）/
+                      ten_taiou / ten_seishitsu（線対称と同じ組み立て）
+     方眼にかく     → sen_kaku（たて・ななめの軸）/ ten_kaku（対称の中心）
+     多角形と対称   → takakkei（線対称？点対称？／軸の本数／あてはまる図形の名前）
+     ランダム       → 上の ぜんぶ（question_key は実際に出た種類）
+     日本語ラベルは db/seeds/seed_math_es6_taisho_zukei.sql で question_catalog へ。
+
+   ■ 解き直し（?retry=1）は「種(seed)方式」＝ CLAUDE.md 2d（拡大図と縮図マスターと同じ）
+     乱数は ri()/pick()/shuffle() に一本化してあり、出題のたびに種を1つ引いて
+     question_params:{m:question_key, s:種} だけを保存する。
+     ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
+       （params_hash は同じままなので解き直し自体は成立する）。
+     ⚠ 生成関数の中で Math.random() を 直接 呼ばないこと（種で 再現できなくなる）。
+
+   ■ 図（question_figure）＝ CLAUDE.md 2b
+     図が無いと 解けない 問題が ほとんどなので、画面に出した SVG を そのまま
+     Divp.answer に渡す（誤答のときだけ保存され、解き直しプリントに出る）。
+     色・線は ぜんぶ SVG の 属性で 書く（解き直しプリントには ツールの CSS が無い）。
+     多角形の「名前を 選ぶ」問題だけ 図なし。
+
+   ■ 図形は「正しい」ことを 確かめてから 出す
+     対応する点・辺・角の 図は、辺の 向き 15°きざみ・長さ 整数cm で 組み立てる
+     （角度の 数は ちょうど その 大きさ、辺の 数は ちょうど その 長さ）。
+     方眼の 4択は、線対称か・点対称かを 辺と 角の 並び（sigOf）で 判定し、
+     正解だけが 条件に あう ように 選ぶ（回帰テスト tests/taisho-zukei.spec.js）。
+   ===================================================================== */
+
+var UNIT_KEY = "math_es6_taisho_zukei";
+
+/* ---------- 共通モジュールの安全呼び出し（未読込でも壊れない） ---------- */
+function safeDivp(fn){
+  try{
+    if(window.Divp && typeof window.Divp[fn] === "function"){
+      return window.Divp[fn].apply(window.Divp, [].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return null;
+}
+/* 経過時間は端末の時計ではなく performance.now() で測る（CLAUDE.md 5a3） */
+function nowMs(){
+  return (window.performance && typeof performance.now === "function")
+    ? performance.now() : Date.now();
+}
+
+/* ---------- RNG（xorshift32・種から決まった順に出る） ---------- */
+var _rngState = 1;
+function rngSeed(s){ _rngState = (s>>>0) || 1; }
+function rngPick(){ return (Math.floor(Math.random()*4294967296)>>>0) || 1; }  /* 種そのものだけ真の乱数 */
+function rngNext(){
+  var x = _rngState;
+  x ^= x<<13; x >>>= 0; x ^= x>>>17; x ^= x<<5; x >>>= 0;
+  _rngState = x;
+  return x/4294967296;
+}
+function ri(min,max){ return Math.floor(rngNext()*(max-min+1))+min; }
+function pick(arr){ return arr[ri(0,arr.length-1)]; }
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i=a.length-1;i>0;i--){ var j=ri(0,i); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+
+/* ---------- 数のあつかい ---------- */
+function isInt(v){ return Math.abs(v-Math.round(v)) < 1e-9; }
+function rnd(x,d){ var m = Math.pow(10, d == null ? 3 : d); return Math.round(x*m)/m; }
+function nf(x){ return String(rnd(x,3)); }
+function decOK(v,d){ var m = Math.pow(10,d); return Math.abs(v*m - Math.round(v*m)) < 1e-6; }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function numAsc(a,b){ return a-b; }
+
+/* ---------- 選択肢 ----------
+   選択肢は {html, plain, key, ok}。key が同じものは 同じ選択肢とみなして 重ねない。
+   plain は 記録用（wrong_answer / correct_answer）。 */
+function optNum(v,u){
+  v = rnd(v,6);
+  var ok = isFinite(v) && v > 0 && decOK(v,2) && v < 1000;
+  var s = nf(v);
+  return { html: s + (u ? '<span class="u">'+u+'</span>' : ""),
+           plain: s + (u ? " "+u : ""),
+           key: "n"+Math.round(v*1000), ok: ok };
+}
+function optDeg(v){
+  return { html: v+'<span class="u">°</span>', plain: v+"°", key: "d"+v,
+           ok: isInt(v) && v > 0 && v <= 360 };
+}
+function optHon(v){
+  return { html: v+'<span class="u">本</span>', plain: v+"本", key: "h"+v,
+           ok: isInt(v) && v >= 0 && v <= 16 };
+}
+function optLabel(s){ return { html:esc(s), plain:s, key:"L"+s, ok:true }; }
+/* 正解1つ＋まちがい3つ。cands（ねらった まちがい）を先に使い、足りなければ fb で うめる */
+function buildChoices(cor, cands, fb){
+  var out = [cor], seen = {}, i;
+  seen[cor.key] = 1;
+  function add(c){
+    if(out.length >= 4 || !c || !c.ok || seen[c.key]) return;
+    seen[c.key] = 1; out.push(c);
+  }
+  var cs = shuffle(cands);
+  for(i=0;i<cs.length;i++) add(cs[i]);
+  for(i=0;i<fb.length;i++) add(fb[i]);
+  var arr = shuffle(out);
+  return { options: arr, correct: arr.indexOf(cor) };
+}
+function numFallback(ans, step, u){
+  var a = [];
+  for(var k=1;k<=6;k++){ a.push(optNum(ans+step*k,u)); a.push(optNum(ans-step*k,u)); }
+  return a;
+}
+function degFallback(ans){
+  var a = [];
+  for(var k=1;k<=6;k++){ a.push(optDeg(ans+15*k)); a.push(optDeg(ans-15*k)); }
+  return a;
+}
+
+/* 問題を くみたてる（全種類 共通） */
+function mk(o){
+  var ch = o.options ? { options:o.options, correct:o.correct }
+                     : buildChoices(o.cor, o.cands || [], o.fb || []);
+  return {
+    key:o.key, tag:o.tag,
+    qHtml:o.q, plainQ:o.plain, fig:o.fig || "",
+    label:o.label || "えらぼう", u:o.u || "",
+    options:ch.options, correct:ch.correct,
+    ansText:ch.options[ch.correct].plain,
+    chk:o.chk || null,             /* 回帰テスト用の 中身（画面では 使わない） */
+    expl:'<span class="ttl">とき方</span>' + o.expl
+        + (o.kufu ? '<div class="kufu">💡 ' + o.kufu + '</div>' : "")
+  };
+}
+function step(s){ return '<span class="step">'+s+'</span>'; }
+
+/* =====================================================================
+   幾何の 部品（座標は [x,y]。y は 下むきが ＋）
+   ===================================================================== */
+function add(a,b){ return [a[0]+b[0], a[1]+b[1]]; }
+function sub(a,b){ return [a[0]-b[0], a[1]-b[1]]; }
+function mul(a,k){ return [a[0]*k, a[1]*k]; }
+function len(a){ return Math.sqrt(a[0]*a[0]+a[1]*a[1]); }
+function unit(a){ var l = len(a) || 1; return [a[0]/l, a[1]/l]; }
+function crs(a,b){ return a[0]*b[1]-a[1]*b[0]; }
+function dt(a,b){ return a[0]*b[0]+a[1]*b[1]; }
+function area2(P){ var s = 0; for(var i=0;i<P.length;i++) s += crs(P[i], P[(i+1)%P.length]); return s; }
+function bboxOf(P){
+  var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  P.forEach(function(p){ x0 = Math.min(x0,p[0]); y0 = Math.min(y0,p[1]); x1 = Math.max(x1,p[0]); y1 = Math.max(y1,p[1]); });
+  return { x0:x0, y0:y0, x1:x1, y1:y1, w:x1-x0, h:y1-y0 };
+}
+function norm0(P){ var b = bboxOf(P); return P.map(function(p){ return [p[0]-b.x0, p[1]-b.y0]; }); }
+function rotPts(P,deg){
+  var t = deg*Math.PI/180, c = Math.cos(t), s = Math.sin(t);
+  return P.map(function(p){ return [p[0]*c - p[1]*s, p[0]*s + p[1]*c]; });
+}
+function rv(v,rad){ var c = Math.cos(rad), s = Math.sin(rad); return [v[0]*c - v[1]*s, v[0]*s + v[1]*c]; }
+function dirV(a){ var t = a*Math.PI/180; return [Math.cos(t), Math.sin(t)]; }
+function cheb(a,b){ return Math.max(Math.abs(a[0]-b[0]), Math.abs(a[1]-b[1])); }
+function samePt(a,b){ return Math.abs(a[0]-b[0]) < 1e-6 && Math.abs(a[1]-b[1]) < 1e-6; }
+
+/* --- 多角形が 自分と 交わっていないか --- */
+function orient(a,b,c){ var v = crs(sub(b,a), sub(c,a)); return Math.abs(v) < 1e-9 ? 0 : (v > 0 ? 1 : -1); }
+function onSeg(a,b,p){
+  return Math.min(a[0],b[0]) - 1e-9 <= p[0] && p[0] <= Math.max(a[0],b[0]) + 1e-9
+      && Math.min(a[1],b[1]) - 1e-9 <= p[1] && p[1] <= Math.max(a[1],b[1]) + 1e-9;
+}
+function segHit(p1,p2,p3,p4){
+  var d1 = orient(p3,p4,p1), d2 = orient(p3,p4,p2), d3 = orient(p1,p2,p3), d4 = orient(p1,p2,p4);
+  if(d1*d2 < 0 && d3*d4 < 0) return true;
+  if(d1 === 0 && onSeg(p3,p4,p1)) return true;
+  if(d2 === 0 && onSeg(p3,p4,p2)) return true;
+  if(d3 === 0 && onSeg(p1,p2,p3)) return true;
+  if(d4 === 0 && onSeg(p1,p2,p4)) return true;
+  return false;
+}
+function isSimple(P){
+  var n = P.length, i, j;
+  if(n < 3) return false;
+  for(i=0;i<n;i++){
+    var a = P[i], b = P[(i+1)%n], c = P[(i+2)%n];
+    if(samePt(a,b)) return false;
+    if(orient(a,b,c) === 0 && dt(sub(b,a), sub(c,b)) < 0) return false;   /* 折り返し */
+  }
+  for(i=0;i<n;i++) for(j=i+1;j<n;j++){
+    if(j === i+1 || (i === 0 && j === n-1)) continue;
+    if(segHit(P[i], P[(i+1)%n], P[j], P[(j+1)%n])) return false;
+  }
+  return true;
+}
+function distPtSeg(p,a,b){
+  var ab = sub(b,a), t = dt(sub(p,a),ab)/Math.max(dt(ab,ab),1e-12);
+  t = Math.max(0, Math.min(1, t));
+  return len(sub(p, add(a, mul(ab,t))));
+}
+/* 頂点と、その頂点を ふくまない 辺との いちばん 近い きょり（せまくて 見にくい 図を はじく） */
+function minGap(P){
+  var n = P.length, m = 1e9;
+  for(var i=0;i<n;i++) for(var e=0;e<n;e++){
+    if(e === i || (e+1)%n === i) continue;
+    m = Math.min(m, distPtSeg(P[i], P[e], P[(e+1)%n]));
+  }
+  return m;
+}
+function minEdge(P){ var m = 1e9; for(var i=0;i<P.length;i++) m = Math.min(m, len(sub(P[(i+1)%P.length], P[i]))); return m; }
+function pointInPoly(p,P){
+  var ins = false;
+  for(var i=0, j=P.length-1; i<P.length; j=i++){
+    var a = P[i], b = P[j];
+    if(((a[1] > p[1]) !== (b[1] > p[1])) && (p[0] < (b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1]) + a[0])) ins = !ins;
+  }
+  return ins;
+}
+/* 内角（度）。へこんだ 角は 180°より 大きい */
+function intAngles(P){
+  var n = P.length, s = area2(P) > 0 ? 1 : -1, out = [];
+  for(var i=0;i<n;i++){
+    var a = P[(i+n-1)%n], b = P[i], c = P[(i+1)%n];
+    var e1 = sub(b,a), e2 = sub(c,b);
+    out.push(180 - s*Math.atan2(crs(e1,e2), dt(e1,e2))*180/Math.PI);
+  }
+  return out;
+}
+
+/* --- 合同・対称の 判定 ---
+   一直線に ならぶ 頂点を のぞき、左回りに そろえてから
+   「辺の 長さ ÷ まわりの 長さ」と「曲がる 角度」の 列を 作る（拡大図と縮図マスターと同じ）。
+   線対称 ⇔ うら返した 形と 列が 回して 一致する（一致する ずらし方の 数＝対称の軸の 数）
+   点対称 ⇔ 自分自身と 一致する ずらし方の 数が 偶数（180°回して 重なる） */
+function simp(P){
+  var out = [], n = P.length;
+  for(var i=0;i<n;i++){
+    var a = P[(i+n-1)%n], b = P[i], c = P[(i+1)%n];
+    if(Math.abs(crs(sub(b,a), sub(c,b))) > 1e-9) out.push(b);
+  }
+  return out;
+}
+function sigOf(P){
+  var Q = simp(P);
+  if(area2(Q) < 0) Q = Q.slice().reverse();
+  var n = Q.length, per = 0, L = [], out = [], i;
+  for(i=0;i<n;i++){ var l = len(sub(Q[(i+1)%n], Q[i])); L.push(l); per += l; }
+  for(i=0;i<n;i++){
+    var e1 = sub(Q[(i+1)%n], Q[i]), e2 = sub(Q[(i+2)%n], Q[(i+1)%n]);
+    out.push([L[i]/per, Math.atan2(crs(e1,e2), dt(e1,e2))]);
+  }
+  return out;
+}
+function cycCount(a,b){
+  if(a.length !== b.length) return 0;
+  var n = a.length, c = 0;
+  for(var k=0;k<n;k++){
+    var ok = true;
+    for(var i=0;i<n && ok;i++){
+      var x = a[i], y = b[(i+k)%n];
+      if(Math.abs(x[0]-y[0]) > 1e-6 || Math.abs(x[1]-y[1]) > 1e-6) ok = false;
+    }
+    if(ok) c++;
+  }
+  return c;
+}
+function mirrorX(P){ return P.map(function(p){ return [-p[0], p[1]]; }); }
+function axesOf(P){ return cycCount(sigOf(P), sigOf(mirrorX(P))); }
+function rotOrder(P){ var s = sigOf(P); return cycCount(s,s); }
+function isLineSym(P){ return axesOf(P) > 0; }
+function isPointSym(P){ return rotOrder(P) % 2 === 0; }
+function isSimilar(P,Q){
+  var sq = sigOf(Q);
+  return cycCount(sigOf(P), sq) > 0 || cycCount(sigOf(mirrorX(P)), sq) > 0;
+}
+/* この 直線（点 a を 通り 向き d）で 折ると 重なるか／点 c の まわりに 180°回すと 重なるか */
+function ptKey(p){ return Math.round(p[0]*1000)+","+Math.round(p[1]*1000); }
+function edgeSet(P){
+  var Q = simp(P), n = Q.length, es = {};
+  for(var i=0;i<n;i++){ var a = ptKey(Q[i]), b = ptKey(Q[(i+1)%n]); es[a < b ? a+"|"+b : b+"|"+a] = 1; }
+  return es;
+}
+function sameShape(P,Q){
+  var a = edgeSet(P), b = edgeSet(Q), ka = Object.keys(a), kb = Object.keys(b);
+  if(ka.length !== kb.length) return false;
+  for(var i=0;i<ka.length;i++) if(!b[ka[i]]) return false;
+  return true;
+}
+function reflPt(p,a,d){
+  d = unit(d);
+  var f = add(a, mul(d, dt(sub(p,a), d)));
+  return [2*f[0]-p[0], 2*f[1]-p[1]];
+}
+function isAxisOf(P,a,d){ return sameShape(P, P.map(function(p){ return reflPt(p,a,d); })); }
+function isCenterOf(P,c){ return sameShape(P, P.map(function(p){ return [2*c[0]-p[0], 2*c[1]-p[1]]; })); }
+
+/* =====================================================================
+   SVG の 部品。図の 外わくは 中身（文字の はばの めやすも 入れる）から 決める
+   ＝ 文字が viewBox の 外に はみ出さない。色・線は ぜんぶ 属性で 書く。
+   ===================================================================== */
+var SVGFONT = "Zen Maru Gothic,Hiragino Maru Gothic ProN,HGMaruGothicMPRO,"
+            + "M PLUS Rounded 1c,Yu Gothic,sans-serif";
+var C = {
+  paper:"#FFFDF7", grid:"#D9D3C4", ink:"#33312B", sub:"#8B877C",
+  shu:"#C73E2E", shuL:"#F6DCD6", ai:"#2C5F8A", aiL:"#E2ECF5",
+  kin:"#B08A16", kinL:"#FBF3E0", midori:"#3E8E5A"
+};
+function n2(x){ return Math.round(x*100)/100; }
+function twEst(s,size){
+  var w = 0;
+  for(var i=0;i<s.length;i++) w += (s.charCodeAt(i) < 128 ? 0.6 : 1.0)*size;
+  return w;
+}
+function Cv(){ return { s:"", x0:1e9, y0:1e9, x1:-1e9, y1:-1e9 }; }
+function cvBox(cv,xa,ya,xb,yb){
+  cv.x0 = Math.min(cv.x0, xa, xb); cv.x1 = Math.max(cv.x1, xa, xb);
+  cv.y0 = Math.min(cv.y0, ya, yb); cv.y1 = Math.max(cv.y1, ya, yb);
+}
+function ptsStr(P){ return P.map(function(p){ return n2(p[0])+","+n2(p[1]); }).join(" "); }
+/* op：塗りの こさ（方眼の 図は 下の 目もりが 見えるように 半透明に する） */
+function cvPoly(cv,P,fill,stroke,sw,dash,op){
+  P.forEach(function(p){ cvBox(cv,p[0],p[1],p[0],p[1]); });
+  cv.s += '<polygon points="'+ptsStr(P)+'" fill="'+fill+'"'+(op != null ? ' fill-opacity="'+op+'"' : '')+' stroke="'+stroke+'" stroke-width="'+(sw==null ? 2 : sw)
+        + '" stroke-linejoin="round"'+(dash ? ' stroke-dasharray="'+dash+'"' : '')+'/>';
+}
+function cvLine(cv,a,b,color,sw,dash){
+  cvBox(cv,a[0],a[1],b[0],b[1]);
+  cv.s += '<line x1="'+n2(a[0])+'" y1="'+n2(a[1])+'" x2="'+n2(b[0])+'" y2="'+n2(b[1])+'" stroke="'+color
+        + '" stroke-width="'+(sw||1.5)+'" stroke-linecap="round"'+(dash ? ' stroke-dasharray="'+dash+'"' : '')+'/>';
+}
+function cvPl(cv,P,color,sw){
+  P.forEach(function(p){ cvBox(cv,p[0],p[1],p[0],p[1]); });
+  cv.s += '<polyline points="'+ptsStr(P)+'" fill="none" stroke="'+color+'" stroke-width="'+(sw||1.4)
+        + '" stroke-linejoin="round" stroke-linecap="round"/>';
+}
+function cvDot(cv,p,r,fill,stroke,sw){
+  cvBox(cv,p[0]-r,p[1]-r,p[0]+r,p[1]+r);
+  cv.s += '<circle cx="'+n2(p[0])+'" cy="'+n2(p[1])+'" r="'+n2(r)+'" fill="'+fill+'"'
+        + (stroke ? ' stroke="'+stroke+'" stroke-width="'+(sw||1.5)+'"' : '')+'/>';
+}
+/* 文字。まわりに 紙色の ふちを つけて、線の 上でも 読めるように する */
+function cvTx(cv,x,y,s,color,anchor,size){
+  size = size || 13; anchor = anchor || "middle";
+  var w = twEst(s,size), xl = anchor === "start" ? x : anchor === "end" ? x-w : x-w/2;
+  cvBox(cv, xl-2, y-size*0.68, xl+w+2, y+size*0.68);
+  cv.s += '<text x="'+n2(x)+'" y="'+n2(y)+'" text-anchor="'+anchor+'" dominant-baseline="middle"'
+        + ' font-size="'+size+'" font-weight="700" font-family="'+SVGFONT+'" fill="'+color+'"'
+        + ' paint-order="stroke" stroke="'+C.paper+'" stroke-width="4" stroke-linejoin="round">'+esc(s)+'</text>';
+}
+/* できあがり。minW より せまい 図は 左右に 余白を 足して 中央に おく */
+function cvFin(cv,minW,pad,aria){
+  pad = (pad == null) ? 8 : pad;
+  var bw = cv.x1-cv.x0, bh = cv.y1-cv.y0;
+  var W = Math.max(minW || 0, bw+pad*2), H = bh+pad*2;
+  var dx = (W-bw)/2 - cv.x0, dy = pad - cv.y0;
+  return '<svg viewBox="0 0 '+n2(W)+' '+n2(H)+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="'+esc(aria || "問題の図")+'">'
+       + '<rect x="0" y="0" width="'+n2(W)+'" height="'+n2(H)+'" fill="'+C.paper+'"/>'
+       + '<g transform="translate('+n2(dx)+' '+n2(dy)+')">'+cv.s+'</g></svg>';
+}
+function cvRight(cv,a,p,q,sz){
+  var u = unit(sub(p,a)), v = unit(sub(q,a)); sz = sz || 9;
+  cvPl(cv, [add(a,mul(u,sz)), add(a,add(mul(u,sz),mul(v,sz))), add(a,mul(v,sz))], C.shu, 1.3);
+}
+function tBox(x,y,s,size){ var w = twEst(s,size); return [x-w/2-1, y-size*0.6, x+w/2+1, y+size*0.6]; }
+function boxHit(b,list){
+  for(var i=0;i<list.length;i++){
+    var c = list[i];
+    if(b[0] < c[2] && b[2] > c[0] && b[1] < c[3] && b[3] > c[1]) return true;
+  }
+  return false;
+}
+/* 文字を 置く。base から dirs の 向きへ dist だけ はなし、ほかの 文字と 重なる ときは 少しずつ 遠くへ */
+function putTxAny(cv,placed,base,dirs,dist,s,color,size){
+  size = size || 13;
+  for(var st=0; st<6; st++){
+    for(var k=0;k<dirs.length;k++){
+      var d = unit(dirs[k]), x = base[0]+d[0]*(dist+st*5), y = base[1]+d[1]*(dist+st*5), b = tBox(x,y,s,size);
+      if(!boxHit(b,placed)){ placed.push(b); cvTx(cv,x,y,s,color,"middle",size); return [x,y]; }
+    }
+  }
+  var d0 = unit(dirs[0]), x0 = base[0]+d0[0]*dist, y0 = base[1]+d0[1]*dist;
+  placed.push(tBox(x0,y0,s,size)); cvTx(cv,x0,y0,s,color,"middle",size);
+  return [x0,y0];
+}
+/* 角の しるし（弧）と 角度の 文字。placed と 重なる ときは 2等分線の 上で ずらす */
+function cvAngle(cv,a,p,q,r,label,color,placed){
+  var u = unit(sub(p,a)), v = unit(sub(q,a));
+  var au = Math.atan2(u[1],u[0]), av = Math.atan2(v[1],v[0]);
+  var d = av - au;
+  while(d > Math.PI) d -= 2*Math.PI;
+  while(d < -Math.PI) d += 2*Math.PI;
+  var P = [];
+  for(var i=0;i<=12;i++){ var t = au + d*i/12; P.push([a[0]+r*Math.cos(t), a[1]+r*Math.sin(t)]); }
+  cvPl(cv, P, color, 1.8);
+  if(label){
+    var bis = unit(add(u,v)), half = Math.abs(d)/2, tw = twEst(label,12.5);
+    var dist = r + 5 + Math.abs(bis[0])*tw/2 + Math.abs(bis[1])*7 + (half < 0.45 ? 9 : 0);
+    /* 2等分線の 上で ずらし、だめなら 横にも ずらす（ひらいた 角は 文字が 頂点の 名前や 点Oに 近い） */
+    var tries = [0, 7, -4, 14, 21, 28, 35], side = [0, 12, -12, 22, -22], pos = null, bx = null, nb = [-bis[1], bis[0]];
+    for(var sd=0; sd<side.length && (!pos || boxHit(bx, placed)); sd++){
+      for(var k=0;k<tries.length;k++){
+        var dd = dist + tries[k], cx = a[0]+bis[0]*dd+nb[0]*side[sd], cy = a[1]+bis[1]*dd+nb[1]*side[sd], b = tBox(cx,cy,label,12.5);
+        if(!pos){ pos = [cx,cy]; bx = b; }
+        if(!boxHit(b, placed)){ pos = [cx,cy]; bx = b; break; }
+      }
+    }
+    placed.push(bx);
+    cvTx(cv, pos[0], pos[1], label, color, "middle", 12.5);
+  }
+}
+function gridBase(cv,cols,rows,cell){
+  var W = cols*cell, H = rows*cell, d = "", i;
+  for(i=0;i<=cols;i++) d += "M"+n2(i*cell)+" 0V"+n2(H);
+  for(i=0;i<=rows;i++) d += "M0 "+n2(i*cell)+"H"+n2(W);
+  cvBox(cv,0,0,W,H);
+  cv.s += '<path d="'+d+'" fill="none" stroke="'+C.grid+'" stroke-width="1"/>';
+}
+/* 方眼の 図の 塗り。青を 半透明で のせて、下の 目もりを 透かす
+   （不透明の うすい 青だと 図形の 中の マスが 数えられない。
+   fill-opacity は save_answer.php の FIG_ATTRS に ある＝解き直しプリントでも 同じ 見た目） */
+var GRID_FILL = "#2C5F8A", GRID_OP = 0.13;
+var KANA = ["ア","イ","ウ","エ"];
+var LET = "ABCDEFGHIJ";
+var KUFU_SEN = "線対称な 図形では、対応する 辺の 長さ・角の 大きさは 等しい。"
+             + "対応する 2つの 点を 結ぶ 直線は 対称の軸と 垂直に 交わり、軸から 2つの 点までの 長さは 等しい。";
+var KUFU_TEN = "点対称な 図形では、対応する 辺の 長さ・角の 大きさは 等しい。"
+             + "対応する 2つの 点を 結ぶ 直線は 対称の中心を 通り、中心から 2つの 点までの 長さは 等しい。";
+
+/* =====================================================================
+   図形を 作る ①：角度・長さが きりの よい 対称な 多角形（対応する 点・辺・角 用）
+   ===================================================================== */
+function niceAngles(A){
+  for(var i=0;i<A.length;i++){
+    var a = A[i];
+    if(a < 29.9 || a > 330.1 || Math.abs(a-180) < 14.9 || !isInt(rnd(a,6))) return false;
+  }
+  return true;
+}
+function aspectOK(P){ var b = bboxOf(P), r = b.w/b.h; return r >= 0.5 && r <= 2.0; }
+/* 図の 大きさに くらべて 短すぎる 辺・せますぎる すき間を 作らない
+   （図は 外わくに あわせて 縮めるので、全体が 大きいと 短い 辺に「2cm」の 文字が 入りきらない） */
+function sizeOK(P){
+  var b = bboxOf(P), D = Math.max(b.w, b.h);
+  return aspectOK(P) && minEdge(P) >= Math.max(1.5, 0.17*D) && minGap(P) >= Math.max(1.2, 0.14*D);
+}
+function mateOf(P,f){
+  return P.map(function(p){
+    var q = f(p);
+    for(var j=0;j<P.length;j++) if(samePt(P[j],q)) return j;
+    return -1;
+  });
+}
+/* 線対称な 多角形（軸は x=0）。右がわの 折れ線を 上から 下へ、向き 15°きざみ・長さ 整数cm で
+   作り、左に 折り返す。上の はし・下の はしは「軸の 上の 頂点」か「軸を 横切る 辺」 */
+function symLine(minN, maxN){
+  for(var t=0;t<800;t++){
+    var startOn = ri(0,2) > 0, endOn = ri(0,2) > 0, r = ri(1,4);
+    var n = 2*r + (startOn?1:0) + (endOn?1:0);
+    if(n < minN || n > maxN) continue;
+    var R = [], top = null, bot = null, a, k, bad = false, prevA = -1;
+    if(startOn){
+      top = [0,0];
+      a = pick([15,30,45,60,75]);
+      R.push(add(top, mul(dirV(a), ri(2,5))));
+      prevA = a;
+    }else{
+      R.push([pick([1,1.5,2,2.5]), 0]);
+    }
+    for(k=1;k<r;k++){
+      a = 15*ri(0,12);
+      if(a === prevA){ bad = true; break; }
+      R.push(add(R[k-1], mul(dirV(a), ri(2,5))));
+      prevA = a;
+    }
+    if(bad) continue;
+    if(endOn){
+      a = pick([105,120,135,150,165]);
+      var last = R[R.length-1];
+      bot = add(last, mul(dirV(a), last[0] / (-Math.cos(a*Math.PI/180))));
+      bot[0] = 0;
+    }
+    for(k=0;k<R.length;k++) if(R[k][0] < 0.8) bad = true;
+    if(bad) continue;
+    var P = [];
+    if(top) P.push(top);
+    R.forEach(function(p){ P.push(p); });
+    if(bot) P.push(bot);
+    for(k=R.length-1;k>=0;k--) P.push([-R[k][0], R[k][1]]);
+    if(!isSimple(P)) continue;
+    var ang = intAngles(P);
+    if(!niceAngles(ang)) continue;
+    if(!sizeOK(P)) continue;
+    var mate = mateOf(P, function(p){ return [-p[0], p[1]]; });
+    if(mate.indexOf(-1) >= 0) continue;
+    return { kind:"line", pts:P, mate:mate, ang:ang.map(function(v){ return Math.round(v); }) };
+  }
+  return null;
+}
+/* 点対称な 多角形。辺の ベクトル v1..vk の あとに -v1..-vk を つなぐと 自然に 閉じる。
+   向きを 小さい 順に ならべると 出っぱった 形、ばらばらだと へこんだ 形 */
+function symPoint(minK, maxK){
+  for(var t=0;t<800;t++){
+    var k = ri(minK,maxK), conv = ri(0,9) < 6, B = [], i;
+    if(conv){
+      B = shuffle([0,1,2,3,4,5,6,7,8,9,10,11]).slice(0,k).sort(numAsc).map(function(v){ return v*15; });
+    }else{
+      for(i=0;i<k;i++) B.push(15*ri(0,23));
+    }
+    var V = B.map(function(b){ return mul(dirV(b), ri(2,5)); });
+    var P = [[0,0]];
+    for(i=0;i<2*k-1;i++) P.push(add(P[i], i < k ? V[i] : mul(V[i-k],-1)));
+    if(!isSimple(P)) continue;
+    var ang = intAngles(P);
+    if(!niceAngles(ang)) continue;
+    if(!sizeOK(P)) continue;
+    var n = P.length, mate = [];
+    for(i=0;i<n;i++) mate.push((i+k)%n);
+    return { kind:"point", pts:P, mate:mate, k:k, O:mul(add(P[0],P[k]),0.5),
+             ang:ang.map(function(v){ return Math.round(v); }) };
+  }
+  return null;
+}
+/* 頂点の 名前。どこから・どちら回りに A,B,C… と つけるかも 乱数で 決める */
+function namesFor(n){
+  var st = ri(0,n-1), rev = ri(0,1) === 1, out = [];
+  for(var i=0;i<n;i++) out.push(LET.charAt(rev ? (st - i + n) % n : (i - st + n) % n));
+  return out;
+}
+/* 辺 e（頂点 e → e+1）の 名前。文字は アルファベット順（辺GH＝辺HG なので 順番を そろえる） */
+function edgeNm(nm,e){
+  var x = nm[e], y = nm[(e+1)%nm.length];
+  return "辺"+(x < y ? x+y : y+x);
+}
+/* 頂点 x・y を 結ぶ 辺の 番号（無ければ -1） */
+function edgeIdx(x,y,n){
+  if((x+1)%n === y) return x;
+  if((y+1)%n === x) return y;
+  return -1;
+}
+function mateEdge(S,e){ var n = S.pts.length; return edgeIdx(S.mate[e], S.mate[(e+1)%n], n); }
+
+/* 対称な 図形の 図。
+   o = { names, rot, hv:{頂点:色}, he:{辺:色}, sideLab:{辺:{s,c}}, angLab:{頂点:{s,c}},
+         seg:[i,j]（対応する 点を 結ぶ 点線）, segName:"K", noRight:true } */
+function symFig(S, o){
+  o = o || {};
+  var rot = o.rot || 0, n = S.pts.length, i;
+  var R0 = rotPts(S.pts, rot);
+  var b = bboxOf(R0), sc = Math.min(250/b.w, 180/b.h, 44);
+  var P = R0.map(function(p){ return mul(p, sc); });
+  var cv = Cv(), placed = [], d = null, O = null;
+  cvPoly(cv, P, C.aiL, C.ai, 2.2);
+  var he = o.he || {};
+  Object.keys(he).forEach(function(k){ k = +k; cvLine(cv, P[k], P[(k+1)%n], he[k], 4.4); });
+  if(S.kind === "line"){
+    d = unit(rotPts([[0,1]], rot)[0]);
+    var t0 = 1e9, t1 = -1e9;
+    P.forEach(function(p){ var t = dt(p,d); t0 = Math.min(t0,t); t1 = Math.max(t1,t); });
+    cvLine(cv, mul(d,t0-24), mul(d,t1+24), C.kin, 2, "7 5");
+  }else{
+    O = mul(rotPts([S.O], rot)[0], sc);
+  }
+  var K = null;
+  if(o.seg){
+    var A = P[o.seg[0]], B2 = P[o.seg[1]];
+    cvLine(cv, A, B2, C.shu, 1.7, "5 4");
+    if(S.kind === "line"){
+      K = mul(d, dt(A,d));
+      if(!o.noRight) cvRight(cv, K, A, add(K, mul(d,10)), 8);
+      cvDot(cv, K, 2.8, C.shu);
+      placed.push([K[0]-4, K[1]-4, K[0]+4, K[1]+4]);
+    }
+  }
+  if(O){
+    cvDot(cv, O, 3.4, C.ink);
+    placed.push([O[0]-5, O[1]-5, O[0]+5, O[1]+5]);
+  }
+  /* 頂点の 名前（図形の 外がわへ） */
+  for(i=0;i<n;i++){
+    var u = unit(sub(P[(i+n-1)%n], P[i])), v = unit(sub(P[(i+1)%n], P[i])), bi = add(u,v);
+    bi = len(bi) < 1e-6 ? [-v[1], v[0]] : unit(bi);
+    var out = S.ang[i] < 180 ? mul(bi,-1) : bi;
+    putTxAny(cv, placed, P[i], [out, rv(out,0.5), rv(out,-0.5)], 14, o.names[i], (o.hv && o.hv[i]) || C.ink, 14);
+  }
+  if(O){
+    var dO = [[1,-1],[-1,-1],[1,1],[-1,1],[0,-1],[0,1]];
+    if(o.seg){
+      var sd = unit(sub(P[o.seg[1]], P[o.seg[0]])), pd = [-sd[1], sd[0]];
+      dO = [pd, mul(pd,-1), add(pd,sd), add(pd,mul(sd,-1))];
+    }
+    putTxAny(cv, placed, O, dO, 12, "O", C.ink, 14);
+  }
+  if(K){
+    var pd2 = [-d[1], d[0]];
+    putTxAny(cv, placed, K, [add(mul(d,-1),pd2), add(mul(d,-1),mul(pd2,-1)), add(d,pd2), add(d,mul(pd2,-1))],
+             14, o.segName || "K", C.shu, 14);
+  }
+  var sl = o.sideLab || {};
+  Object.keys(sl).forEach(function(k){
+    k = +k;
+    var p = P[k], q = P[(k+1)%n], m = mul(add(p,q),0.5), e = unit(sub(q,p)), nr = [e[1], -e[0]];
+    if(pointInPoly(add(m, mul(nr,3)), P)) nr = mul(nr,-1);
+    var s = sl[k].s, tw = twEst(s,13), off = 6 + Math.abs(nr[0])*tw/2 + Math.abs(nr[1])*8;
+    /* 短い 辺は 頂点の 名前と ぶつかりやすいので、辺に そって 少し ずらした 位置も 試す */
+    putTxAny(cv, placed, m, [nr, add(nr,mul(e,0.45)), add(nr,mul(e,-0.45)), add(nr,mul(e,0.9)), add(nr,mul(e,-0.9))], off, s, sl[k].c, 13);
+  });
+  var al = o.angLab || {};
+  Object.keys(al).forEach(function(k){
+    k = +k;
+    var a = P[k], p = P[(k+n-1)%n], q = P[(k+1)%n];
+    var r = Math.min(16, 0.32*Math.min(len(sub(p,a)), len(sub(q,a))));
+    cvAngle(cv, a, p, q, r, al[k].s, al[k].c, placed);
+  });
+  return cvFin(cv, 330, 10, o.aria || (S.kind === "line" ? "線対称な 図形" : "点対称な 図形"));
+}
+var ROT_LINE = [0,0,0,180,90,-90,25,-25];
+function rotPoint(){ return 15*ri(0,11); }
+
+/* =====================================================================
+   図形を 作る ②：方眼の 上の 対称な 形（見つける 問題 用。たて・横 5マス まで）
+   ===================================================================== */
+/* 線対称（軸は たて・横・ななめ）。ax は 軸の 上の 2点 */
+function latLineSym(){
+  for(var t=0;t<500;t++){
+    var half = ri(0,1) === 1;               /* 軸が マスの まん中を 通る */
+    var H = ri(3,5), c = ri(2,4), ys = [0], i;
+    for(i=1;i<c-1;i++) ys.push(ri(0,H));
+    ys.push(H); ys.sort(numAsc);
+    var R = [];
+    for(i=0;i<c;i++){
+      var end = (i === 0 || i === c-1);
+      R.push([half ? pick([0.5,1.5,2.5]) : (end ? ri(0,2) : ri(1,2)), ys[i]]);
+    }
+    var P = R.slice();
+    for(i=c-1;i>=0;i--) if(R[i][0] > 0) P.push([-R[i][0], R[i][1]]);
+    if(!isSimple(P)) continue;
+    var Q = simp(P);
+    if(Q.length < 4 || Math.abs(area2(Q))/2 < 4) continue;
+    var b = bboxOf(Q);
+    if(Q.length === 4 && Math.abs(Math.abs(area2(Q))/2 - b.w*b.h) < 1e-9) continue;   /* 長方形は はずす */
+    var o = ri(0,5), T;
+    if(o === 5 && half) o = 0;
+    if(o <= 2) T = function(p){ return p; };                              /* たての 軸 */
+    else if(o <= 4) T = function(p){ return [p[1], p[0]]; };              /* 横の 軸 */
+    else T = function(p){ return [p[0]-p[1], p[0]+p[1]]; };               /* ななめの 軸 */
+    var P2 = Q.map(T), A2 = [[0,0],[0,1]].map(T), b2 = bboxOf(P2);
+    if(b2.w > 5 || b2.h > 5) continue;
+    var sh = [-b2.x0, -b2.y0];
+    return { P:P2.map(function(p){ return add(p,sh); }), ax:A2.map(function(p){ return add(p,sh); }) };
+  }
+  return null;
+}
+/* 点対称。中心 c の まわりに 頂点を 角度の 順に ならべ、反対がわに 同じ 形を つける */
+function latPointSym(){
+  for(var t=0;t<500;t++){
+    var c = pick([[0,0],[0.5,0.5],[0.5,0],[0,0.5]]), k = ri(2,3), U = [], seen = {}, i;
+    for(i=0;i<40 && U.length<k;i++){
+      var u = sub([ri(-2,3), ri(-2,3)], c);
+      if(!(u[1] > 0 || (u[1] === 0 && u[0] > 0))) continue;
+      if(Math.abs(u[0]) > 2.5 || Math.abs(u[1]) > 2.5) continue;
+      var key = Math.round(Math.atan2(u[1],u[0])*1e6);
+      if(seen[key]) continue;
+      seen[key] = 1; U.push(u);
+    }
+    if(U.length < k) continue;
+    U.sort(function(a,b){ return Math.atan2(a[1],a[0]) - Math.atan2(b[1],b[0]); });
+    var P = U.concat(U.map(function(u){ return [-u[0], -u[1]]; }));
+    if(!isSimple(P) || simp(P).length !== P.length || Math.abs(area2(P))/2 < 4) continue;
+    var b = bboxOf(P);
+    if(b.w > 5 || b.h > 5) continue;
+    var sh = [-b.x0, -b.y0];
+    return { P:P.map(function(p){ return add(p,sh); }), c:sh };
+  }
+  return null;
+}
+/* 頂点を 1つ だけ 1マス ずらす（もう少しで 対称に 見える まちがいの 図） */
+function latPerturb(P){
+  var dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+  for(var t=0;t<30;t++){
+    var i = ri(0,P.length-1), d = pick(dirs);
+    var R = P.map(function(p){ return p.slice(); });
+    R[i] = add(R[i], d);
+    if(!isSimple(R) || Math.abs(area2(R))/2 < 3) continue;
+    var b = bboxOf(R);
+    if(b.w > 5 || b.h > 5) continue;
+    return norm0(R);
+  }
+  return null;
+}
+function whyYes(P,isSen){
+  if(isSen) return "対称の軸で 折ると ぴったり 重なる" + (isPointSym(P) ? "（点対称でも ある）" : "");
+  return "まん中の 点を 中心に 180°回すと ぴったり 重なる" + (isLineSym(P) ? "（線対称でも ある）" : "");
+}
+function whyNot(P,isSen){
+  if(isSen) return isPointSym(P) ? "点対称だが、どこで 折っても ぴったり 重ならない" : "どこで 折っても ぴったり 重ならない";
+  return isLineSym(P) ? "線対称だが、180°回すと 重ならない" : "180°回しても ぴったり 重ならない";
+}
+/* 4つの 形を 2×2 に ならべた 方眼（1つ 5マス×5マス） */
+function hanteiFig(polys){
+  var cell = 24, cv = Cv();
+  gridBase(cv, 13, 13, cell);
+  polys.forEach(function(P,i){
+    var b = bboxOf(P), gx = (i%2)*6, gy = Math.floor(i/2)*6;
+    var ox = gx + 1 + Math.floor((5-b.w)/2), oy = gy + 1 + Math.floor((5-b.h)/2);
+    cvPoly(cv, P.map(function(p){ return [(p[0]+ox)*cell, (p[1]+oy)*cell]; }), GRID_FILL, C.ai, 2.4, null, GRID_OP);
+    cvTx(cv, (gx+0.5)*cell, (gy+0.5)*cell, KANA[i], C.shu, "middle", 15);
+  });
+  return cvFin(cv, 330, 4, "方眼の 図 ア〜エ");
+}
+function hanteiBuild(kind){
+  var isSen = kind === "sen";
+  var want = isSen ? isLineSym : isPointSym;
+  var gen = isSen ? latLineSym : latPointSym, other = isSen ? latPointSym : latLineSym;
+  var cor = null, t, g;
+  for(t=0;t<20 && !cor;t++){ g = gen(); if(g && want(g.P)) cor = g.P; }
+  if(!cor) return null;
+  var acc = [cor], ds = [];
+  function tryAdd(P){
+    if(!P || want(P)) return;
+    var b = bboxOf(P);
+    if(b.w > 5 || b.h > 5) return;
+    for(var j=0;j<acc.length;j++) if(isSimilar(P, acc[j])) return;
+    acc.push(P); ds.push(P);
+  }
+  var nOther = ri(1,2);
+  for(t=0;t<40 && ds.length<nOther;t++){ g = other(); if(g) tryAdd(g.P); }
+  for(t=0;t<80 && ds.length<3;t++){ g = gen(); if(g) tryAdd(latPerturb(g.P)); }
+  if(ds.length < 3) return null;
+  var cands = shuffle([cor].concat(ds)), correct = cands.indexOf(cor);
+  var lines = cands.map(function(P,i){
+    return i === correct ? '<span class="ok">'+KANA[i]+' … ○ '+whyYes(P,isSen)+'</span>'
+                         : '<span class="ng">'+KANA[i]+' … × '+whyNot(P,isSen)+'</span>';
+  }).join("<br>");
+  var nmK = isSen ? "線対称" : "点対称";
+  return mk({
+    key:isSen ? "sen_hantei" : "ten_hantei", tag:nmK+"な 図形を 見つける",
+    q:"<b>"+nmK+"な 図形</b>は、ア〜エの どれですか。",
+    plain:"方眼の図ア〜エ。"+nmK+"な図形はどれ？",
+    fig:hanteiFig(cands), label:"ア〜エから えらぼう",
+    options:KANA.map(optLabel), correct:correct,
+    expl:step(isSen ? "① 1本の 直線で 2つに 折って、両がわが ぴったり 重なるか 考える"
+                    : "① まん中の 点を 中心に 180°（半回転）回して、もとの 形に ぴったり 重なるか 考える")
+        +step(lines)
+        +step("答え <b>"+KANA[correct]+"</b>"),
+    kufu:isSen ? "線対称な 図形…1本の 直線を 折り目に して 2つに 折ると、両がわが ぴったり 重なる 図形。その 直線が 対称の軸。"
+               : "点対称な 図形…1つの 点を 中心に して 180°回すと、もとの 図形に ぴったり 重なる 図形。その 点が 対称の中心。",
+    chk:{ type:"hantei", kind:kind, cands:cands }
+  });
+}
+/* 直線を 方眼の わく [0,W]×[0,H] で 切る */
+function clipLine(a,D,W,H){
+  var t0 = -1e9, t1 = 1e9, mx = [W,H];
+  for(var k=0;k<2;k++){
+    if(Math.abs(D[k]) < 1e-12){ if(a[k] < 0 || a[k] > mx[k]) return null; continue; }
+    var ta = (0-a[k])/D[k], tb = (mx[k]-a[k])/D[k];
+    t0 = Math.max(t0, Math.min(ta,tb)); t1 = Math.min(t1, Math.max(ta,tb));
+  }
+  if(t1 - t0 < 1e-6) return null;
+  return [add(a,mul(D,t0)), add(a,mul(D,t1))];
+}
+/* 直線が 図形を 2つに 分けているか（頂点が 両がわに ある） */
+function crossesPoly(P,a,D){
+  var pos = 0, neg = 0;
+  P.forEach(function(p){ var s = crs(D, sub(p,a)); if(s > 0.3) pos++; if(s < -0.3) neg++; });
+  return pos > 0 && neg > 0;
+}
+/* 対称の軸は ア〜エの どれ？ */
+function jikuBuild(){
+  for(var t=0;t<60;t++){
+    var g = latLineSym();
+    if(!g || axesOf(g.P) !== 1) continue;
+    var P = g.P, a = g.ax[0], D = sub(g.ax[1], g.ax[0]);
+    var b = bboxOf(P), m = [(b.x0+b.x1)/2, (b.y0+b.y1)/2];
+    var j = Math.round(2*dt(sub(m,a),D)/dt(D,D))/2, f = add(a, mul(D,j));
+    var Dp = [-D[1], D[0]], diag = Math.abs(D[0]) > 0.5 && Math.abs(D[1]) > 0.5;
+    var pool = [ { a:f, d:Dp }, { a:add(a,[1,0]), d:D }, { a:add(a,[-1,0]), d:D } ];
+    if(diag){ pool.push({ a:f, d:[1,0] }); pool.push({ a:f, d:[0,1] }); }
+    else{ pool.push({ a:f, d:[1,1] }); pool.push({ a:f, d:[1,-1] }); }
+    if(!diag){ pool.push({ a:add(a,[0,1]), d:D }); }
+    var lines = [{ a:a, d:D, ok:true }];
+    shuffle(pool).forEach(function(L){
+      if(lines.length >= 4) return;
+      if(!crossesPoly(P, L.a, L.d) || isAxisOf(P, L.a, L.d)) return;
+      for(var k=0;k<lines.length;k++){
+        var M = lines[k];
+        if(Math.abs(crs(unit(M.d),unit(L.d))) < 1e-9 && Math.abs(crs(unit(M.d), sub(L.a,M.a))) < 1e-9) return;
+      }
+      lines.push(L);
+    });
+    if(lines.length < 4) continue;
+    lines = shuffle(lines);
+    var correct = -1;
+    lines.forEach(function(L,i){ if(L.ok) correct = i; });
+    /* 図 */
+    var cols = Math.max(7, b.w+4), rows = Math.max(7, b.h+4);
+    var ox = Math.floor((cols-b.w)/2), oy = Math.floor((rows-b.h)/2), cell = 26;
+    var cv = Cv(), placed = [], bad = false;
+    gridBase(cv, cols, rows, cell);
+    cvPoly(cv, P.map(function(p){ return [(p[0]+ox)*cell, (p[1]+oy)*cell]; }), GRID_FILL, C.ai, 2.4, null, GRID_OP);
+    lines.forEach(function(L,i){
+      var seg = clipLine(add(L.a,[ox,oy]), L.d, cols, rows);
+      if(!seg){ bad = true; return; }
+      var A = mul(seg[0],cell), B = mul(seg[1],cell);
+      cvLine(cv, A, B, C.shu, 1.8, "6 4");
+      var ends = A[1] < B[1] - 1 || (Math.abs(A[1]-B[1]) <= 1 && A[0] < B[0]) ? [[A,B],[B,A]] : [[B,A],[A,B]];
+      for(var e=0;e<2;e++){
+        var p = ends[e][0], dir = unit(sub(p, ends[e][1])), x = p[0]+dir[0]*12, y = p[1]+dir[1]*12, bx = tBox(x,y,KANA[i],15);
+        if(!boxHit(bx,placed) || e === 1){ placed.push(bx); cvTx(cv, x, y, KANA[i], C.shu, "middle", 15); break; }
+      }
+    });
+    if(bad) continue;
+    var ex = lines.map(function(L,i){
+      return L.ok ? '<span class="ok">'+KANA[i]+' … ○ この 線で 折ると ぴったり 重なる</span>'
+                  : '<span class="ng">'+KANA[i]+' … × この 線で 折っても 重ならない</span>';
+    }).join("<br>");
+    return mk({
+      key:"sen_hantei", tag:"対称の軸を 見つける",
+      q:"方眼の 図形は 線対称です。<b>対称の軸</b>は、ア〜エの どの 直線ですか。",
+      plain:"方眼の線対称な図形。対称の軸はア〜エのどの直線？",
+      fig:cvFin(cv, 330, 4, "線対称な 図形と 直線 ア〜エ"), label:"ア〜エから えらぼう",
+      options:KANA.map(optLabel), correct:correct,
+      expl:step("① それぞれの 直線で 折った とき、両がわの 形が ぴったり 重なるか 考える")
+          +step(ex)
+          +step("答え <b>"+KANA[correct]+"</b>"),
+      kufu:"対称の軸から 両がわの 頂点までの マスの 数が 同じに なって いるか 数えて たしかめよう。",
+      chk:{ type:"jiku", P:P, lines:lines.map(function(L){ return { a:L.a, d:L.d }; }) }
+    });
+  }
+  return null;
+}
+/* 対称の中心は ア〜エの どれ？ */
+function chushinBuild(){
+  for(var t=0;t<60;t++){
+    var g = latPointSym();
+    if(!g) continue;
+    var P = g.P, c = g.c, pool = [], dx, dy;
+    for(dx=-2;dx<=2;dx+=0.5) for(dy=-2;dy<=2;dy+=0.5){
+      var q = [c[0]+dx, c[1]+dy];
+      if(Math.max(Math.abs(dx),Math.abs(dy)) < 1) continue;
+      if(!pointInPoly(q,P)) continue;
+      var near = 1e9;
+      for(var e=0;e<P.length;e++) near = Math.min(near, distPtSeg(q, P[e], P[(e+1)%P.length]));
+      if(near < 0.3) continue;
+      pool.push(q);
+    }
+    var pts = [c];
+    shuffle(pool).forEach(function(q){
+      if(pts.length >= 4) return;
+      for(var k=0;k<pts.length;k++) if(cheb(q,pts[k]) < 1) return;
+      pts.push(q);
+    });
+    if(pts.length < 4) continue;
+    pts = shuffle(pts);
+    var correct = -1;
+    pts.forEach(function(p,i){ if(samePt(p,c)) correct = i; });
+    var b = bboxOf(P), cols = Math.max(7, b.w+2), rows = Math.max(7, b.h+2), cell = 26;
+    var ox = Math.floor((cols-b.w)/2), oy = Math.floor((rows-b.h)/2), cv = Cv(), placed = [];
+    gridBase(cv, cols, rows, cell);
+    cvPoly(cv, P.map(function(p){ return [(p[0]+ox)*cell, (p[1]+oy)*cell]; }), GRID_FILL, C.ai, 2.4, null, GRID_OP);
+    var px = pts.map(function(p){ return [(p[0]+ox)*cell, (p[1]+oy)*cell]; });
+    px.forEach(function(p){ cvDot(cv, p, 4, C.shu); placed.push([p[0]-5,p[1]-5,p[0]+5,p[1]+5]); });
+    px.forEach(function(p,i){ putTxAny(cv, placed, p, [[1,-1],[-1,-1],[1,1],[-1,1]], 13, KANA[i], C.shu, 14); });
+    return mk({
+      key:"ten_hantei", tag:"対称の中心を 見つける",
+      q:"方眼の 図形は 点対称です。<b>対称の中心</b>は、ア〜エの どの 点ですか。",
+      plain:"方眼の点対称な図形。対称の中心はア〜エのどの点？",
+      fig:cvFin(cv, 330, 4, "点対称な 図形と 点 ア〜エ"), label:"ア〜エから えらぼう",
+      options:KANA.map(optLabel), correct:correct,
+      expl:step("① 対応する 2つの 頂点を 結ぶ 直線を、2本 ひいて みる")
+          +step("② 2本の 直線が 交わる 点が 対称の中心。どの 頂点からも、中心を 通って 同じ 長さだけ 進むと 対応する 頂点に つく")
+          +step("答え <b>"+KANA[correct]+"</b>"),
+      kufu:"点対称な 図形では、対応する 点を 結ぶ 直線は どれも 対称の中心を 通る。",
+      chk:{ type:"chushin", P:P, pts:pts }
+    });
+  }
+  return null;
+}
+function gen_sen_hantei(){
+  var r = null, t;
+  if(ri(0,2) < 2){ for(t=0;t<10 && !r;t++) r = hanteiBuild("sen"); }
+  for(t=0;t<10 && !r;t++) r = jikuBuild();
+  for(t=0;t<10 && !r;t++) r = hanteiBuild("sen");
+  return r;
+}
+function gen_ten_hantei(){
+  var r = null, t;
+  if(ri(0,2) < 2){ for(t=0;t<10 && !r;t++) r = hanteiBuild("ten"); }
+  for(t=0;t<10 && !r;t++) r = chushinBuild();
+  for(t=0;t<10 && !r;t++) r = hanteiBuild("ten");
+  return r;
+}
+
+/* =====================================================================
+   対応する 点・辺・角（線対称・点対称 共通）
+   ===================================================================== */
+function taiouBuild(kind){
+  var isSen = kind === "sen";
+  var S = isSen ? symLine(5,9) : symPoint(3,4);
+  var n = S.pts.length, nm = namesFor(n), i;
+  var o = { names:nm, rot:isSen ? pick(ROT_LINE) : rotPoint(), hv:{}, he:{}, angLab:{} };
+  var off = [];
+  for(i=0;i<n;i++) if(S.mate[i] !== i) off.push(i);
+  var offA = off.filter(function(i){ return S.ang[i] < 180; });
+  var eds = [];
+  for(i=0;i<n;i++) if(mateEdge(S,i) !== i) eds.push(i);
+  var sub2 = pick(["ten","hen","kaku"]);
+  if(sub2 === "kaku" && !offA.length) sub2 = "ten";
+  var head = isSen ? "直線（点線）を 対称の軸と する 線対称な 図形です。"
+                   : "点Oを 対称の中心と する 点対称な 図形です。";
+  var hp = isSen ? "線対称な図形（点線が対称の軸）。" : "点Oが対称の中心の点対称な図形。";
+  var how = isSen ? "対称の軸で 2つに 折ると、" : "点Oを 中心に 180°回すと、";
+  var key = isSen ? "sen_taiou" : "ten_taiou", tag = "対応する 点・辺・角";
+  var kufu = (isSen ? "線対称な 図形で、対称の軸で 折った とき" : "点対称な 図形で、対称の中心の まわりに 180°回した とき")
+           + " 重なる 点・辺・角を、「対応する」点・辺・角 という。";
+  var cands = [], k;
+  if(sub2 === "ten" || sub2 === "kaku"){
+    var pool = sub2 === "kaku" ? offA : off;
+    var i0 = pick(pool), j0 = S.mate[i0], w = sub2 === "kaku" ? "角" : "点";
+    if(sub2 === "kaku") o.angLab[i0] = { s:"", c:C.shu };
+    o.hv[i0] = C.shu;
+    for(k=0;k<n;k++) if(k !== i0 && k !== j0) cands.push(optLabel(w+nm[k]));
+    return mk({
+      key:key, tag:tag,
+      q:head+"<b>"+w+nm[i0]+"</b>に 対応する "+(w === "角" ? "角" : "点")+"は どれですか。",
+      plain:hp+w+nm[i0]+"に対応する"+(w === "角" ? "角" : "点")+"は？",
+      fig:symFig(S,o), cor:optLabel(w+nm[j0]), cands:cands,
+      expl:step(how+w+nm[i0]+"は "+w+nm[j0]+"に ぴったり 重なる")
+          +step("答え <b>"+w+nm[j0]+"</b>"),
+      kufu:kufu,
+      chk:{ type:"taiou", kind:kind, pts:S.pts, mate:S.mate, O:S.O || null }
+    });
+  }
+  /* 対応する 辺は「対応する 点の 順」に 書く（辺DE ↔ 辺BA）。
+     同じ 辺の 文字を 逆に した もの（辺AB）を ひっかけとして 必ず 入れる */
+  var e0 = pick(eds), me = mateEdge(S,e0);
+  var va = ri(0,1) ? e0 : (e0+1)%n, vb = va === e0 ? (e0+1)%n : e0;   /* 問題の 辺の 文字の 順 */
+  var x = nm[va], y = nm[vb], mx = nm[S.mate[va]], my = nm[S.mate[vb]];
+  o.he[e0] = C.shu; o.hv[va] = C.shu; o.hv[vb] = C.shu;
+  var others = [];
+  for(k=0;k<n;k++){
+    if(k === e0 || k === me) continue;
+    var p1 = nm[k], p2 = nm[(k+1)%n];
+    others.push(optLabel("辺"+(ri(0,1) ? p1+p2 : p2+p1)));
+  }
+  return mk({
+    key:key, tag:tag,
+    q:head+"<b>辺"+x+y+"</b>に 対応する 辺は どれですか。",
+    plain:hp+"辺"+x+y+"に対応する辺は？（対応する点の順に）",
+    fig:symFig(S,o), cor:optLabel("辺"+mx+my), cands:[optLabel("辺"+my+mx)], fb:shuffle(others),
+    expl:step(how+"点"+x+"は 点"+mx+"に、点"+y+"は 点"+my+"に 重なる")
+        +step("対応する 点の 順に ならべて、辺"+x+y+"に 対応する 辺は 辺"+mx+my)
+        +step("<span class=\"ng\">辺"+my+mx+" と 書くと、点"+x+"と 点"+my+"、点"+y+"と 点"+mx+" が 対応する ことに なって しまう</span>")
+        +step("答え <b>辺"+mx+my+"</b>"),
+    kufu:"対応する 辺は、対応する 点の 順番に そろえて 書く（辺"+x+y+" ↔ 辺"+mx+my+"）。"
+        +"対応する 角も 同じように 対応する 点で 考える。",
+    chk:{ type:"taiou", kind:kind, pts:S.pts, mate:S.mate, O:S.O || null, names:nm, edge:[va,vb] }
+  });
+}
+function gen_sen_taiou(){ return taiouBuild("sen"); }
+function gen_ten_taiou(){ return taiouBuild("ten"); }
+
+/* =====================================================================
+   性質（辺の 長さ・角の 大きさ・対応する 点までの 長さ・ことば）
+   ===================================================================== */
+function seishitsuBuild(kind){
+  var isSen = kind === "sen";
+  var r = ri(1,10);
+  var sub2 = r <= 3 ? "hen" : r <= 6 ? "kaku" : r <= 9 ? "kyori" : "gainen";
+  var key = isSen ? "sen_seishitsu" : "ten_seishitsu";
+  var head = isSen ? "直線（点線）を 対称の軸と する 線対称な 図形です。"
+                   : "点Oを 対称の中心と する 点対称な 図形です。";
+  var hp = isSen ? "線対称な図形（点線が対称の軸）。" : "点Oが対称の中心の点対称な図形。";
+  var kufu = isSen ? KUFU_SEN : KUFU_TEN;
+  var S, n, nm, o, t, i, k, cands = [];
+  function newS(){
+    S = isSen ? symLine(4,9) : symPoint(2,4);
+    n = S.pts.length; nm = namesFor(n);
+    o = { names:nm, rot:isSen ? pick(ROT_LINE) : rotPoint(), hv:{}, he:{}, sideLab:{}, angLab:{} };
+  }
+  /* 「半分」に 入る 頂点・辺（線対称は 軸の 右がわ、点対称は はじめの k 個） */
+  function inHalfV(i){ return isSen ? S.pts[i][0] > 1e-9 : i < S.k; }
+  function inHalfE(e){
+    if(mateEdge(S,e) === e) return false;
+    if(!isSen) return e < S.k;
+    return S.pts[e][0] > -1e-9 && S.pts[(e+1)%n][0] > -1e-9;
+  }
+  if(sub2 === "hen"){
+    var labE = [];
+    for(t=0;t<40;t++){
+      newS(); labE = [];
+      for(i=0;i<n;i++){
+        var L = len(sub(S.pts[(i+1)%n], S.pts[i]));
+        if(inHalfE(i) && isInt(rnd(L,6))) labE.push(i);
+      }
+      if(labE.length >= 2) break;
+    }
+    labE = shuffle(labE).slice(0,3);
+    var aE = pick(labE), tE = mateEdge(S,aE), vals = {};
+    labE.forEach(function(e){
+      var L = Math.round(len(sub(S.pts[(e+1)%n], S.pts[e])));
+      vals[e] = L; o.sideLab[e] = { s:L+"cm", c:C.ink };
+    });
+    o.sideLab[tE] = { s:"?", c:C.shu }; o.he[tE] = C.shu;
+    var Lans = vals[aE];
+    labE.forEach(function(e){ cands.push(optNum(vals[e],"cm")); });
+    cands.push(optNum(Lans*2,"cm")); cands.push(optNum(Lans+1,"cm"));
+    return mk({
+      key:key, tag:"辺の 長さ",
+      q:head+"<b>"+edgeNm(nm,tE)+"</b>の 長さは 何cmですか。",
+      plain:hp+edgeNm(nm,tE)+"の長さは何cm？（"+edgeNm(nm,aE)+"="+Lans+"cm）",
+      fig:symFig(S,o), u:"cm", cor:optNum(Lans,"cm"), cands:cands, fb:numFallback(Lans,1,"cm"),
+      expl:step(edgeNm(nm,tE)+"に 対応する 辺は "+edgeNm(nm,aE))
+          +step("対応する 辺の 長さは 等しい")
+          +step("答え <b>"+Lans+"cm</b>"),
+      kufu:kufu,
+      chk:{ type:"taiou", kind:kind, pts:S.pts, mate:S.mate, O:S.O || null, ans:Lans }
+    });
+  }
+  if(sub2 === "kaku"){
+    var labV = [];
+    for(t=0;t<40;t++){
+      newS(); labV = [];
+      for(i=0;i<n;i++) if(inHalfV(i) && S.ang[i] < 180) labV.push(i);
+      if(labV.length >= 1) break;
+    }
+    labV = shuffle(labV).slice(0,2);
+    var aV = pick(labV), tV = S.mate[aV], A = S.ang[aV];
+    labV.forEach(function(v){ o.angLab[v] = { s:S.ang[v]+"°", c:C.ink }; cands.push(optDeg(S.ang[v])); });
+    /* 軸の 上の 角も 書いて おく（ちがう 数が ある ほうが 考える 問題に なる） */
+    if(isSen){
+      for(i=0;i<n;i++) if(S.mate[i] === i && S.ang[i] < 180 && ri(0,1)){ o.angLab[i] = { s:S.ang[i]+"°", c:C.ink }; cands.push(optDeg(S.ang[i])); }
+    }
+    o.angLab[tV] = { s:"?", c:C.shu }; o.hv[tV] = C.shu;
+    cands.push(optDeg(180-A)); cands.push(optDeg(A+15)); cands.push(optDeg(A-15));
+    return mk({
+      key:key, tag:"角の 大きさ",
+      q:head+"<b>角"+nm[tV]+"</b>の 大きさは 何度ですか。",
+      plain:hp+"角"+nm[tV]+"は何度？（角"+nm[aV]+"="+A+"°）",
+      fig:symFig(S,o), u:"°", cor:optDeg(A), cands:cands, fb:degFallback(A),
+      expl:step("角"+nm[tV]+"に 対応する 角は 角"+nm[aV])
+          +step("対応する 角の 大きさは 等しい")
+          +step("答え <b>"+A+"°</b>"),
+      kufu:kufu,
+      chk:{ type:"taiou", kind:kind, pts:S.pts, mate:S.mate, O:S.O || null, ans:A }
+    });
+  }
+  if(sub2 === "kyori"){
+    newS();
+    var vs = [];
+    for(i=0;i<n;i++) if(inHalfV(i) && S.mate[i] !== i) vs.push(i);
+    var v0 = pick(vs), w0 = S.mate[v0], X = nm[v0], Y = nm[w0];
+    o.seg = [v0, w0]; o.hv[v0] = C.shu; o.hv[w0] = C.shu;
+    var mid = isSen ? "K" : "O", ans, q, plain, ex;
+    var pre = isSen ? "点"+X+"と 点"+Y+"を 結ぶ 直線が 対称の軸と 交わる 点を <b>K</b>と します。" : "";
+    var pp = isSen ? X+"と"+Y+"を結ぶ直線と軸の交点をK。" : "";
+    if(ri(0,1) === 0){
+      var hv2 = pick([1.5,2,2.5,3,3.5,4,4.5,5,6]);
+      ans = hv2*2;
+      q = head+pre+"<b>"+X+mid+"</b>の 長さが "+hv2+"cmの とき、<b>"+X+Y+"</b>の 長さは 何cmですか。";
+      plain = hp+pp+X+mid+"="+hv2+"cmのとき"+X+Y+"は何cm？";
+      ex = step(isSen ? "対称の軸から 対応する 2つの 点までの 長さは 等しいので "+Y+mid+" も "+hv2+"cm"
+                      : "対称の中心から 対応する 2つの 点までの 長さは 等しいので "+mid+Y+" も "+hv2+"cm")
+         + step(X+Y+" ＝ "+hv2+" × 2 ＝ "+ans+"（cm）")
+         + step("答え <b>"+nf(ans)+"cm</b>");
+      cands = [optNum(hv2,"cm"), optNum(hv2/2,"cm"), optNum(ans+1,"cm"), optNum(hv2*4,"cm")];
+    }else{
+      var full = pick([3,4,5,6,7,8,9,10,12]);
+      ans = full/2;
+      q = head+pre+"<b>"+X+Y+"</b>の 長さが "+full+"cmの とき、<b>"+X+mid+"</b>の 長さは 何cmですか。";
+      plain = hp+pp+X+Y+"="+full+"cmのとき"+X+mid+"は何cm？";
+      ex = step(isSen ? "点Kは "+X+Y+" の まん中（軸から "+X+"・"+Y+" までの 長さは 等しい）"
+                      : "点Oは "+X+Y+" の まん中（中心から "+X+"・"+Y+" までの 長さは 等しい）")
+         + step(X+mid+" ＝ "+full+" ÷ 2 ＝ "+nf(ans)+"（cm）")
+         + step("答え <b>"+nf(ans)+"cm</b>");
+      cands = [optNum(full,"cm"), optNum(full*2,"cm"), optNum(ans+1,"cm"), optNum(full/4,"cm")];
+    }
+    return mk({
+      key:key, tag:isSen ? "対称の軸までの 長さ" : "対称の中心までの 長さ",
+      q:q, plain:plain, fig:symFig(S,o), u:"cm",
+      cor:optNum(ans,"cm"), cands:cands, fb:numFallback(ans,0.5,"cm"),
+      expl:ex, kufu:kufu,
+      chk:{ type:"taiou", kind:kind, pts:S.pts, mate:S.mate, O:S.O || null, ans:ans }
+    });
+  }
+  /* ことば */
+  newS();
+  var g = ri(0,2), vs2 = [];
+  for(i=0;i<n;i++) if(inHalfV(i) && S.mate[i] !== i) vs2.push(i);
+  var u0 = pick(vs2), u1 = S.mate[u0], P1 = nm[u0], P2 = nm[u1];
+  if(isSen){
+    if(g === 0){
+      o.seg = [u0,u1]; o.noRight = true; o.hv[u0] = C.shu; o.hv[u1] = C.shu;
+      return mk({
+        key:key, tag:"ことばと 性質",
+        q:head+"点"+P1+"と 点"+P2+"を 結ぶ 直線は、対称の軸と どのように 交わりますか。",
+        plain:hp+P1+"と"+P2+"を結ぶ直線と対称の軸の交わり方は？",
+        fig:symFig(S,o), cor:optLabel("垂直に 交わる"),
+        cands:[optLabel("45°で 交わる"), optLabel("60°で 交わる"), optLabel("交わらない")],
+        expl:step("対応する 2つの 点を 結ぶ 直線は、対称の軸と 垂直に 交わる")+step("答え <b>垂直に 交わる</b>"),
+        kufu:kufu, chk:{ type:"taiou", kind:kind, pts:S.pts, mate:S.mate, O:null }
+      });
+    }
+    if(g === 1){
+      return mk({
+        key:key, tag:"ことばと 性質",
+        q:"線対称な 図形です。図の 点線の 直線を 何と いいますか。",
+        plain:"線対称な図形。図の点線の直線を何という？",
+        fig:symFig(S,o), cor:optLabel("対称の軸"),
+        cands:[optLabel("対称の中心"), optLabel("対角線"), optLabel("直径")],
+        expl:step("2つに 折った ときの 折り目の 直線を 対称の軸と いう")+step("答え <b>対称の軸</b>"),
+        kufu:kufu, chk:{ type:"taiou", kind:kind, pts:S.pts, mate:S.mate, O:null }
+      });
+    }
+    o.hv[u0] = C.shu; o.hv[u1] = C.shu;
+    return mk({
+      key:key, tag:"ことばと 性質",
+      q:head+"対称の軸から 点"+P1+"までの 長さと、対称の軸から 点"+P2+"までの 長さは どうなって いますか。",
+      plain:hp+"軸から"+P1+"までと軸から"+P2+"までの長さの関係は？",
+      fig:symFig(S,o), cor:optLabel("等しい"),
+      cands:[optLabel(P1+"までの 方が 長い"), optLabel(P2+"までの 方が 長い"), optLabel("図形に よって ちがう")],
+      expl:step("点"+P1+"と 点"+P2+"は 対応する 点。軸から 対応する 点までの 長さは 等しい")+step("答え <b>等しい</b>"),
+      kufu:kufu, chk:{ type:"taiou", kind:kind, pts:S.pts, mate:S.mate, O:null }
+    });
+  }
+  if(g === 0){
+    return mk({
+      key:key, tag:"ことばと 性質",
+      q:"点対称な 図形です。図の <b>点O</b>を 何と いいますか。",
+      plain:"点対称な図形。図の点Oを何という？",
+      fig:symFig(S,o), cor:optLabel("対称の中心"),
+      cands:[optLabel("対称の軸"), optLabel("円の中心"), optLabel("頂点")],
+      expl:step("180°回す ときの 中心の 点を 対称の中心と いう")+step("答え <b>対称の中心</b>"),
+      kufu:kufu, chk:{ type:"taiou", kind:kind, pts:S.pts, mate:S.mate, O:S.O }
+    });
+  }
+  if(g === 1){
+    return mk({
+      key:key, tag:"ことばと 性質",
+      q:head+"点Oを 中心に して 何度 回すと、もとの 図形に ぴったり 重なりますか。",
+      plain:hp+"点Oを中心に何度回すと重なる？",
+      fig:symFig(S,o), u:"°", cor:optDeg(180),
+      cands:[optDeg(90), optDeg(360), optDeg(45)],
+      expl:step("点対称な 図形は、対称の中心の まわりに 180°（半回転）回すと もとの 図形に 重なる")+step("答え <b>180°</b>"),
+      kufu:kufu, chk:{ type:"taiou", kind:kind, pts:S.pts, mate:S.mate, O:S.O }
+    });
+  }
+  o.hv[u0] = C.shu; o.hv[u1] = C.shu;
+  return mk({
+    key:key, tag:"ことばと 性質",
+    q:head+"点Oから 点"+P1+"までの 長さと、点Oから 点"+P2+"までの 長さは どうなって いますか。",
+    plain:hp+"Oから"+P1+"までとOから"+P2+"までの長さの関係は？",
+    fig:symFig(S,o), cor:optLabel("等しい"),
+    cands:[optLabel(P1+"までの 方が 長い"), optLabel(P2+"までの 方が 長い"), optLabel("図形に よって ちがう")],
+    expl:step("点"+P1+"と 点"+P2+"は 対応する 点。対称の中心から 対応する 点までの 長さは 等しい")+step("答え <b>等しい</b>"),
+    kufu:kufu, chk:{ type:"taiou", kind:kind, pts:S.pts, mate:S.mate, O:S.O }
+  });
+}
+function gen_sen_seishitsu(){ return seishitsuBuild("sen"); }
+function gen_ten_seishitsu(){ return seishitsuBuild("ten"); }
+
+/* =====================================================================
+   方眼に かいて 完成させる（対応する 点を ア〜エから 選ぶ）
+   ===================================================================== */
+function dirWords(dx,dy){
+  var w = [];
+  if(dx) w.push((dx > 0 ? "右へ " : "左へ ") + Math.abs(dx) + "マス");
+  if(dy) w.push((dy > 0 ? "下へ " : "上へ ") + Math.abs(dy) + "マス");
+  return w.join("、");
+}
+/* 正解の 点＋まちがいの 点 3つ（たがいに 2マス 以上 はなす） */
+function pickPts(cor, pool, okFn, randFn){
+  var acc = [cor];
+  function tryAdd(q){
+    if(acc.length >= 4 || !okFn(q)) return;
+    for(var k=0;k<acc.length;k++) if(cheb(q,acc[k]) < 2) return;
+    acc.push(q);
+  }
+  pool.forEach(tryAdd);
+  for(var t=0;t<80 && acc.length<4;t++) tryAdd(randFn());
+  return acc.length === 4 ? acc : null;
+}
+/* 方眼の 図（のこり半分を かく 問題）。shape:{fill:[…], line:[…]} */
+function kakuFig(cols, rows, o){
+  var cell = Math.min(26, Math.floor(322/cols)), cv = Cv(), placed = [];
+  function px(p){ return [p[0]*cell, p[1]*cell]; }
+  gridBase(cv, cols, rows, cell);
+  if(o.fill) cvPoly(cv, o.fill.map(px), GRID_FILL, "none", 0, null, GRID_OP);
+  if(o.axis) cvLine(cv, px(o.axis[0]), px(o.axis[1]), C.kin, 2.2, "7 5");
+  cvPl(cv, o.chain.map(px), C.ai, 2.8);
+  var dots = [];
+  if(o.O){ var Op = px(o.O); cvDot(cv, Op, 4, C.ink); dots.push(Op); }
+  var Pp = px(o.P);
+  cvDot(cv, Pp, 4.4, C.ai); dots.push(Pp);
+  var cs = o.pts.map(px);
+  cs.forEach(function(p){ cvDot(cv, p, 4.4, C.shu); dots.push(p); });
+  dots.forEach(function(p){ placed.push([p[0]-5,p[1]-5,p[0]+5,p[1]+5]); });
+  var dd = [[1,-1],[-1,-1],[1,1],[-1,1],[0,-1],[0,1]];
+  if(o.O) putTxAny(cv, placed, px(o.O), dd, 13, "O", C.ink, 14);
+  putTxAny(cv, placed, Pp, o.pDirs || dd, 13, "P", C.ai, 14);
+  cs.forEach(function(p,i){ putTxAny(cv, placed, p, dd, 13, KANA[i], C.shu, 14); });
+  return cvFin(cv, 330, 4, o.aria);
+}
+/* たての 軸 */
+function kakuVert(){
+  for(var t=0;t<400;t++){
+    var H = ri(4,6), X = 5, cols = 10, rows = H + 2, c = ri(2,4), ys = [], i;
+    for(i=0;i<c;i++) ys.push(ri(1,H+1));
+    ys.sort(numAsc);
+    var ch = [[X,1]];
+    for(i=0;i<c;i++) ch.push([X - ri(1,4), ys[i]]);
+    ch.push([X,H+1]);
+    var full = ch.concat(ch.slice(1,-1).reverse().map(function(p){ return [2*X-p[0], p[1]]; }));
+    if(!isSimple(full) || simp(full).length !== full.length || Math.abs(area2(full))/2 < 6 || minGap(full) < 1) continue;
+    var ip = ri(1,c), P = ch[ip], cor = [2*X-P[0], P[1]];
+    var xmin = 1e9;
+    ch.forEach(function(p){ xmin = Math.min(xmin, p[0]); });
+    var pool = shuffle([
+      [P[0] + (X - xmin), P[1]],          /* 形を そのまま 右へ ずらした */
+      [cor[0], H + 2 - P[1]],             /* 上下まで 入れかえた */
+      [cor[0]+2, P[1]], [cor[0]-2, P[1]], [cor[0], P[1]+2], [cor[0], P[1]-2]
+    ]);
+    var pts = pickPts(cor, pool,
+      function(q){ return q[0] > X && q[0] <= cols && q[1] >= 0 && q[1] <= rows; },
+      function(){ return [ri(X+1, cols), ri(0, rows)]; });
+    if(!pts) continue;
+    pts = shuffle(pts);
+    var correct = -1;
+    pts.forEach(function(q,k){ if(samePt(q,cor)) correct = k; });
+    var a = X - P[0];
+    return mk({
+      key:"sen_kaku", tag:"線対称な 図形を かく",
+      q:"点線を 対称の軸と する 線対称な 図形を かきます。<b>点P</b>に 対応する 点は、ア〜エの どれですか。",
+      plain:"方眼。点線を軸とする線対称な図形を完成。点Pに対応する点はア〜エのどれ？",
+      fig:kakuFig(cols, rows, { chain:ch, fill:ch, axis:[[X,0],[X,rows]], P:P, pts:pts, pDirs:[[-1,-1],[-1,1],[-1,0]],
+                                aria:"方眼に かいた 図形の 半分と 点 ア〜エ" }),
+      label:"ア〜エから えらぼう", options:KANA.map(optLabel), correct:correct,
+      expl:step("① 点Pは 対称の軸から 左へ "+a+"マス")
+          +step("② 対応する 点は、軸を はさんで 反対がわの 右へ "+a+"マス。たての 位置は 同じ")
+          +step("答え <b>"+KANA[correct]+"</b>"),
+      kufu:"対応する 点を 結ぶ 直線は 対称の軸と 垂直に 交わり、軸から 両がわの 点までの マスの 数は 同じ。",
+      chk:{ type:"kaku", kind:"sen", P:P, pts:pts, cor:cor, axis:[[X,0],[X,1]] }
+    });
+  }
+  return null;
+}
+/* ななめの 軸（左上から 右下への 対角線） */
+function kakuDiag(){
+  for(var t=0;t<400;t++){
+    var N = 8, t1 = ri(0,2), t2 = ri(t1+3, N), c = ri(1,3), pts0 = [], i;
+    for(i=0;i<c;i++){
+      var u = ri(2*t1+1, 2*t2-1), s = ri(1,4);
+      if((u - s) % 2 !== 0) s += (s < 4 ? 1 : -1);
+      pts0.push({ u:u, p:[(u-s)/2, (u+s)/2] });
+    }
+    pts0.sort(function(a,b){ return a.u - b.u; });
+    var ch = [[t1,t1]].concat(pts0.map(function(o){ return o.p; })).concat([[t2,t2]]);
+    var full = ch.concat(ch.slice(1,-1).reverse().map(function(p){ return [p[1], p[0]]; }));
+    var inGrid = full.every(function(p){ return p[0] >= 0 && p[0] <= N && p[1] >= 0 && p[1] <= N; });
+    if(!inGrid || !isSimple(full) || simp(full).length !== full.length || Math.abs(area2(full))/2 < 8 || minGap(full) < 1.2) continue;
+    var P = pick(ch.slice(1,-1)), cor = [P[1], P[0]], dd = P[1] - P[0];
+    var pool = shuffle([
+      [2*P[1]-P[0], P[1]],                /* 横に 同じ マス数（軸が たての つもり） */
+      [P[0], 2*P[0]-P[1]],                /* たてに 同じ マス数 */
+      [cor[0]+2, cor[1]], [cor[0], cor[1]-2], [cor[0]-2, cor[1]+2]
+    ]);
+    var pts = pickPts(cor, pool,
+      function(q){ return q[0] >= 0 && q[0] <= N && q[1] >= 0 && q[1] <= N && q[1] < q[0]; },
+      function(){ var x = ri(1,N); return [x, ri(0,x-1)]; });
+    if(!pts) continue;
+    pts = shuffle(pts);
+    var correct = -1;
+    pts.forEach(function(q,k){ if(samePt(q,cor)) correct = k; });
+    return mk({
+      key:"sen_kaku", tag:"線対称な 図形を かく（ななめの 軸）",
+      q:"ななめの 点線を 対称の軸と する 線対称な 図形を かきます。<b>点P</b>に 対応する 点は、ア〜エの どれですか。",
+      plain:"方眼。ななめの点線を軸とする線対称な図形を完成。点Pに対応する点はア〜エのどれ？",
+      fig:kakuFig(N, N, { chain:ch, fill:ch, axis:[[0,0],[N,N]], P:P, pts:pts, pDirs:[[-1,1],[-1,0],[0,1]],
+                          aria:"方眼に かいた 図形の 半分と ななめの 軸と 点 ア〜エ" }),
+      label:"ア〜エから えらぼう", options:KANA.map(optLabel), correct:correct,
+      expl:step("① 対応する 点を 結ぶ 直線は 対称の軸と 垂直。ななめの 軸に 垂直な のは 右上への ななめの 線")
+          +step("② 点Pから 右上へ ななめに 進むと 軸に とどき、さらに 同じだけ 進んだ 点が 対応する 点"
+               +"（Pから "+dirWords(dd,-dd)+"）")
+          +step("答え <b>"+KANA[correct]+"</b>"),
+      kufu:"ななめの 軸では、横や たてに 同じ マス数 だけ 進むのは まちがい。軸と 垂直な ななめの 向きに 数えよう。",
+      chk:{ type:"kaku", kind:"sen", P:P, pts:pts, cor:cor, axis:[[0,0],[1,1]] }
+    });
+  }
+  return null;
+}
+function gen_sen_kaku(){
+  var r = null, t;
+  if(ri(0,3) === 0){ for(t=0;t<5 && !r;t++) r = kakuDiag(); }
+  for(t=0;t<5 && !r;t++) r = kakuVert();
+  return r;
+}
+function gen_ten_kaku(){
+  for(var t=0;t<500;t++){
+    /* 図形の 頂点を O の まわりに 角度の 順で ならべた 上半分 U と、反対がわの -U。
+       見せる 半分は U[0] → … → U[k-1] → -U[0]（両はしが O を はさんで 対応する 2点＝教科書の 形）。
+       のこり半分 -U[0] → … → -U[k-1] → U[0] を かく 問題。P は 両はし 以外から 選ぶ */
+    var cols = 10, rows = 8, O = [5,4], k = ri(2,3), U = [], seen = {}, i;
+    for(i=0;i<60 && U.length<k;i++){
+      var u = [ri(-4,4), ri(-3,3)];
+      if(!(u[1] < 0 || (u[1] === 0 && u[0] > 0))) continue;   /* 上がわ（画面の 上）半分 */
+      if(len(u) < 2) continue;
+      var key = Math.round(Math.atan2(-u[1],u[0])*1e6);
+      if(seen[key]) continue;
+      seen[key] = 1; U.push(u);
+    }
+    if(U.length < k) continue;
+    U.sort(function(a,b){ return Math.atan2(-a[1],a[0]) - Math.atan2(-b[1],b[0]); });
+    var full = U.concat(U.map(function(u){ return [-u[0],-u[1]]; }));
+    if(!isSimple(full) || simp(full).length !== full.length || Math.abs(area2(full))/2 < 10 || minGap(full) < 1.3) continue;
+    var ch = U.map(function(u){ return add(O,u); }).concat([sub(O,U[0])]);
+    var ip = ri(1,k-1), P = ch[ip], cor = [2*O[0]-P[0], 2*O[1]-P[1]];
+    var pool = shuffle([
+      [2*O[0]-P[0], P[1]],                 /* 左右だけ 入れかえた */
+      [P[0], 2*O[1]-P[1]],                 /* 上下だけ 入れかえた */
+      [cor[0]+2, cor[1]], [cor[0]-2, cor[1]], [cor[0], cor[1]+2], [cor[0], cor[1]-2]
+    ]);
+    var okQ = function(q){
+      if(q[0] < 0 || q[0] > cols || q[1] < 0 || q[1] > rows) return false;
+      if(samePt(q,O)) return false;
+      if(pointInPoly(q, ch)) return false;                  /* かいてある 半分の 中には 置かない */
+      for(var e=0;e<ch.length;e++) if(distPtSeg(q, ch[e], ch[(e+1)%ch.length]) < 0.8) return false;
+      return true;
+    };
+    var pts = pickPts(cor, pool, okQ, function(){ return [ri(0,cols), ri(0,rows)]; });
+    if(!pts) continue;
+    pts = shuffle(pts);
+    var correct = -1;
+    pts.forEach(function(q,j){ if(samePt(q,cor)) correct = j; });
+    var dx = O[0]-P[0], dy = O[1]-P[1];
+    return mk({
+      key:"ten_kaku", tag:"点対称な 図形を かく",
+      q:"点Oを 対称の中心と する 点対称な 図形を かきます。<b>点P</b>に 対応する 点は、ア〜エの どれですか。",
+      plain:"方眼。点Oを中心とする点対称な図形を完成。点Pに対応する点はア〜エのどれ？",
+      fig:kakuFig(cols, rows, { chain:ch, fill:ch, O:O, P:P, pts:pts, aria:"方眼に かいた 図形の 半分と 点O と 点 ア〜エ" }),
+      label:"ア〜エから えらぼう", options:KANA.map(optLabel), correct:correct,
+      expl:step("① 点Pから 点Oまで "+dirWords(dx,dy))
+          +step("② 点Oから さらに 同じだけ（"+dirWords(dx,dy)+"）進んだ 点が 対応する 点")
+          +step("答え <b>"+KANA[correct]+"</b>"),
+      kufu:"対応する 点を 結ぶ 直線は 対称の中心を 通り、中心から 両がわの 点までの 長さは 同じ。"
+          +"左右だけ・上下だけ 入れかえるのは まちがい。",
+      chk:{ type:"kaku", kind:"ten", P:P, pts:pts, cor:cor, O:O }
+    });
+  }
+  return null;
+}
+
+/* =====================================================================
+   多角形と 対称（チャレンジ）
+   ===================================================================== */
+function regPoly(n,r){
+  var P = [], off = (n % 2 === 0 && n !== 6) ? Math.PI/n : 0;
+  for(var i=0;i<n;i++){ var t = -Math.PI/2 + off + 2*Math.PI*i/n; P.push([r*Math.cos(t), r*Math.sin(t)]); }
+  return P;
+}
+/* ax：対称の軸の 本数（円は -1＝数えきれない）、pt：点対称か */
+var SHAPES = [
+  { nm:"二等辺三角形", ax:1, pt:false, pts:[[2,0],[4,4.4],[0,4.4]],
+    ex:"頂点から 向かいあう 辺の まん中へ ひいた 直線で 折ると 重なる（軸 1本）。180°回すと さかさまに なり 重ならない" },
+  { nm:"正三角形", ax:3, pt:false, pts:regPoly(3,2.6),
+    ex:"それぞれの 頂点から 向かいあう 辺の まん中へ ひいた 3本が 軸。180°回すと 重ならない" },
+  { nm:"平行四辺形", ax:0, pt:true, pts:[[1.4,0],[5.4,0],[4,2.6],[0,2.6]],
+    ex:"対角線で 折っても ずれるので 軸は ない。対角線の 交わる 点を 中心に 180°回すと 重なる" },
+  { nm:"ひし形", ax:2, pt:true, pts:[[2.3,0],[4.6,1.6],[2.3,3.2],[0,1.6]],
+    ex:"2本の 対角線が 軸。対角線の 交わる 点を 中心に 180°回すと 重なる" },
+  { nm:"長方形", ax:2, pt:true, pts:[[0,0],[4.8,0],[4.8,2.8],[0,2.8]],
+    ex:"たて・横の まん中を 通る 2本が 軸（対角線は 軸に ならない）。対角線の 交わる 点が 対称の中心" },
+  { nm:"正方形", ax:4, pt:true, pts:[[0,0],[3.4,0],[3.4,3.4],[0,3.4]],
+    ex:"対角線 2本と、たて・横の まん中を 通る 2本で 軸は 4本。対角線の 交わる 点が 対称の中心" },
+  { nm:"台形", ax:0, pt:false, pts:[[1,0],[3.6,0],[5,2.8],[0,2.8]],
+    ex:"どこで 折っても、180°回しても 重ならない" },
+  { nm:"正五角形", ax:5, pt:false, pts:regPoly(5,2.4),
+    ex:"頂点から 向かいあう 辺の まん中へ ひいた 5本が 軸。頂点の 数が 奇数なので 180°回すと 重ならない" },
+  { nm:"正六角形", ax:6, pt:true, pts:regPoly(6,2.4),
+    ex:"向かいあう 頂点を 結ぶ 3本と、向かいあう 辺の まん中を 結ぶ 3本で 軸は 6本。点対称でも ある" },
+  { nm:"正八角形", ax:8, pt:true, pts:regPoly(8,2.4),
+    ex:"向かいあう 頂点を 結ぶ 4本と、向かいあう 辺の まん中を 結ぶ 4本で 軸は 8本。点対称でも ある" },
+  { nm:"円", ax:-1, pt:true, circle:true,
+    ex:"中心を 通る 直線なら どれで 折っても 重なる（軸は 数えきれない）。円の 中心が 対称の中心" }
+];
+function shapeFig(sh){
+  var cv = Cv();
+  if(sh.circle){ cvDot(cv, [0,0], 66, C.aiL, C.ai, 2.2); }
+  else{
+    var b = bboxOf(sh.pts), sc = Math.min(200/b.w, 136/b.h);
+    cvPoly(cv, sh.pts.map(function(p){ return mul(p,sc); }), C.aiL, C.ai, 2.2);
+  }
+  return cvFin(cv, 330, 12, sh.nm);
+}
+function kindOf(sh){
+  var ln = sh.ax !== 0;
+  return ln && sh.pt ? "線対称でも 点対称でも ある" : ln ? "線対称（点対称では ない）"
+       : sh.pt ? "点対称（線対称では ない）" : "どちらでも ない";
+}
+var KINDS = ["線対称（点対称では ない）","点対称（線対称では ない）","線対称でも 点対称でも ある","どちらでも ない"];
+var TAKA_KUFU = "正多角形の 対称の軸の 数は 頂点の 数と 同じ。頂点の 数が 偶数の 正多角形は 点対称でも ある。";
+function gen_takakkei(){
+  var r = ri(1,20);
+  if(r <= 8){
+    var sh = pick(SHAPES), kd = kindOf(sh);
+    return mk({
+      key:"takakkei", tag:"線対称？ 点対称？",
+      q:"<b>"+sh.nm+"</b>は、線対称な 図形ですか、点対称な 図形ですか。",
+      plain:sh.nm+"は線対称？点対称？",
+      fig:shapeFig(sh), cor:optLabel(kd),
+      cands:KINDS.filter(function(s){ return s !== kd; }).map(optLabel),
+      expl:step(sh.nm+"は、"+sh.ex)+step("答え <b>"+kd+"</b>"),
+      kufu:TAKA_KUFU, chk:{ type:"takakkei", nm:sh.nm }
+    });
+  }
+  if(r <= 15){
+    var fin = SHAPES.filter(function(s){ return !s.circle; });
+    var s2 = pick(fin), a = s2.ax;
+    var cands = [optHon(a+1), optHon(a*2), optHon(0), optHon(1), optHon(2), optHon(4)];
+    if(a > 0) cands.push(optHon(a-1));
+    if(a % 2 === 0 && a > 0) cands.push(optHon(a/2));
+    return mk({
+      key:"takakkei", tag:"対称の軸の 本数",
+      q:"<b>"+s2.nm+"</b>の 対称の軸は 何本 ありますか。",
+      plain:s2.nm+"の対称の軸は何本？",
+      fig:shapeFig(s2), u:"本", cor:optHon(a), cands:cands, fb:[optHon(3),optHon(5),optHon(6),optHon(8)],
+      expl:step(s2.nm+"は、"+s2.ex)+step("答え <b>"+a+"本</b>"),
+      kufu:TAKA_KUFU, chk:{ type:"takakkei", nm:s2.nm, ans:a > 0 ? a : null }
+    });
+  }
+  var CATS = [
+    { q:"線対称でも 点対称でも ある", f:function(s){ return s.ax !== 0 && s.pt; } },
+    { q:"点対称な", f:function(s){ return s.pt; } },
+    { q:"線対称だが 点対称では ない", f:function(s){ return s.ax !== 0 && !s.pt; } },
+    { q:"点対称だが 線対称では ない", f:function(s){ return s.ax === 0 && s.pt; } },
+    { q:"線対称でも 点対称でも ない", f:function(s){ return s.ax === 0 && !s.pt; } }
+  ];
+  var cat = pick([CATS[0],CATS[0],CATS[1],CATS[2],CATS[2],CATS[3],CATS[4]]);
+  var yes = SHAPES.filter(cat.f), no = SHAPES.filter(function(s){ return !cat.f(s); });
+  var c = pick(yes);
+  return mk({
+    key:"takakkei", tag:"あてはまる 図形",
+    q:"次の うち、<b>"+cat.q+"</b> 図形は どれですか。",
+    plain:"次のうち"+cat.q.replace(/ /g,"")+"図形はどれ？",
+    cor:optLabel(c.nm), cands:no.map(function(s){ return optLabel(s.nm); }),
+    expl:step(c.nm+"は、"+c.ex)+step("答え <b>"+c.nm+"</b>"),
+    kufu:TAKA_KUFU, chk:{ type:"takakkei", nm:c.nm }
+  });
+}
+
+/* =====================================================================
+   出題の 台帳
+   ===================================================================== */
+var GENS = {
+  sen_hantei:    gen_sen_hantei,
+  sen_taiou:     gen_sen_taiou,
+  sen_seishitsu: gen_sen_seishitsu,
+  sen_kaku:      gen_sen_kaku,
+  ten_hantei:    gen_ten_hantei,
+  ten_taiou:     gen_ten_taiou,
+  ten_seishitsu: gen_ten_seishitsu,
+  ten_kaku:      gen_ten_kaku,
+  takakkei:      gen_takakkei
+};
+/* モード → 出す question_key。同じキーを ならべた ぶんだけ 出やすくなる */
+var MODE_KEYS = {
+  sen:      ["sen_hantei","sen_taiou","sen_taiou","sen_seishitsu","sen_seishitsu"],
+  ten:      ["ten_hantei","ten_taiou","ten_taiou","ten_seishitsu","ten_seishitsu"],
+  kaku:     ["sen_kaku","ten_kaku"],
+  takakkei: ["takakkei"],
+  mix:      ["sen_hantei","sen_taiou","sen_seishitsu","sen_kaku",
+             "ten_hantei","ten_taiou","ten_seishitsu","ten_kaku","takakkei"]
+};
+/* 印刷シート（1枚 6問）。1行に 2問 ずつ 入るので、図を 大きく 刷る 種類（PRINT_TALL）は
+   同じ 行に まとめる（行の 高さは 高い 方で 決まる。ばらけると 1枚を はみ出す） */
+var PRINT_KEYS = {
+  sen:      ["sen_hantei","sen_hantei","sen_taiou","sen_taiou","sen_seishitsu","sen_seishitsu"],
+  ten:      ["ten_hantei","ten_hantei","ten_taiou","ten_taiou","ten_seishitsu","ten_seishitsu"],
+  kaku:     ["sen_kaku","sen_kaku","sen_kaku","ten_kaku","ten_kaku","ten_kaku"],
+  takakkei: ["takakkei","takakkei","takakkei","takakkei","takakkei","takakkei"],
+  mix:      ["sen_hantei","ten_hantei","sen_taiou","ten_seishitsu","sen_kaku","ten_kaku"]
+};
+/* 紙で 図を 大きく 刷る 種類（方眼の マスを 数える 問題） */
+var PRINT_TALL = { sen_hantei:true, ten_hantei:true, sen_kaku:true, ten_kaku:true };
+var PRINT_LABEL = { sen:"線対称", ten:"点対称", kaku:"方眼にかく", takakkei:"多角形と対称", mix:"ランダム" };
+var PRINT_INST = {
+  sen:"次の 問題に 答えましょう。対称の軸で 折ると 重なる 点・辺・角を 考えましょう。",
+  ten:"次の 問題に 答えましょう。対称の中心の まわりに 180°回すと 重なる 点・辺・角を 考えましょう。",
+  kaku:"次の 問題に 答えましょう。方眼の マスの 数を 数えて 考えましょう。",
+  takakkei:"次の 問題に 答えましょう。",
+  mix:"次の 問題に 答えましょう。"
+};
+var MODE_LABEL = {
+  sen:"線対称な 図形", ten:"点対称な 図形", kaku:"方眼に かいて 完成させる",
+  takakkei:"多角形と 対称", mix:"ランダム"
+};
+
+/* =====================================================================
+   出題エンジン（拡大図と縮図マスターと同じ）
+   ===================================================================== */
+var MODE = "sen";
+var cur = null, curKey = "", curSeed = 0;
+var sel = -1, graded = false;
+var score = 0, total = 0, streak = 0, qStart = 0;
+
+/* 解き直し（?retry=1） */
+var retryQ = null, retryTotal = 0, retryDone = 0;
+
+function $(id){ return document.getElementById(id); }
+
+function makeQ(key, seed){
+  rngSeed(seed);                       /* ここから先の乱数は種で決まる */
+  return GENS[key]();
+}
+
+function newQuestion(){
+  graded = false; sel = -1;
+  $("feedback").classList.remove("show");
+  $("toast").textContent = "";
+  $("checkBtn").style.display = "block";
+  $("nextBtn").style.display = "none";
+
+  var useKey, seed;
+  if(retryQ){
+    if(!retryQ.length){
+      retryQ = null;
+      backHome();
+      showRetryBanner("解き直し おつかれさま！ 同じ問題に 2回つづけて 正解すると リストから 消えるよ");
+      return;
+    }
+    var it = retryQ.shift();
+    retryDone++;
+    useKey = it.question_params.m;
+    seed = it.question_params.s>>>0;
+  }else{
+    useKey = pick(MODE_KEYS[MODE] || MODE_KEYS.sen);
+    seed = rngPick();
+  }
+
+  curKey = useKey;
+  curSeed = seed;
+  cur = makeQ(useKey, seed);
+
+  /* 種類バッヂ。ランダムは 種類名が そのまま ヒントに なるので 出さない */
+  var tagText = retryQ ? ("解き直し "+retryDone+" / "+retryTotal+" ・ "+cur.tag)
+                       : (MODE === "mix" ? "" : cur.tag);
+  $("qTag").textContent = tagText;
+  $("qTag").style.display = tagText ? "" : "none";
+  $("qNo").textContent = retryQ ? "" : ("第 "+(total+1)+" 問");
+  $("qText").innerHTML = cur.qHtml;
+  $("figArea").innerHTML = cur.fig || "";
+  renderOptions();
+  qStart = nowMs();
+  try{ window.scrollTo({ top:0, behavior:"smooth" }); }catch(e){ window.scrollTo(0,0); }
+}
+
+function renderOptions(){
+  var host = $("partArea");
+  host.innerHTML = "";
+  var wrap = document.createElement("div");
+  wrap.className = "part";
+
+  var lab = document.createElement("div");
+  lab.className = "p-label";
+  lab.textContent = cur.label;
+  wrap.appendChild(lab);
+
+  var opts = document.createElement("div");
+  opts.className = "opts";
+  cur.options.forEach(function(o, oi){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "optBtn";
+    b.dataset.idx = oi;
+    b.innerHTML = o.html;          /* 中身は この画面で 組み立てた 文字と 単位だけ */
+    if(o.plain.length > 6) b.classList.add("long");   /* 「線対称でも 点対称でも ある」など 長い ことば */
+    b.addEventListener("click", function(){ tapOption(oi); });
+    opts.appendChild(b);
+  });
+  wrap.appendChild(opts);
+  host.appendChild(wrap);
+}
+
+function tapOption(oi){
+  if(graded) return;
+  sel = oi;
+  $("toast").textContent = "";
+  document.querySelectorAll(".optBtn").forEach(function(b){
+    b.classList.toggle("on", Number(b.dataset.idx) === oi);
+  });
+}
+
+/* ---------- 答え合わせ ---------- */
+function check(){
+  if(graded || !cur) return;
+  if(sel < 0){ $("toast").textContent = "答えを えらんでね"; return; }
+
+  graded = true;
+  var ok = (sel === cur.correct);
+  var btns = document.querySelectorAll(".optBtn");
+  safeDivp("markChoices", btns, { correct:cur.correct, selected:sel,
+                                  dimOthers:true, label:"正解" });
+  btns.forEach(function(b){ b.disabled = true; });
+
+  total++;
+  if(ok){ score++; streak++; } else { streak = 0; }
+  renderScore();
+
+  var sec = Math.round((nowMs()-qStart)/1000);
+  /* 学習記録（未ログイン・ローカルでは黙ってスキップされる）。
+     図が無いと 解けない 問題は question_figure も 渡す（誤答のときだけ保存され、
+     teacher.php の 解き直しプリントに 出る＝CLAUDE.md 2b） */
+  safeDivp("answer", ok, {
+    question_key: curKey,
+    question_params: { m: curKey, s: curSeed },     /* 種方式：この2つで同じ問題を作り直せる */
+    question_text: cur.plainQ,
+    question_figure: cur.fig || null,
+    correct_answer: cur.ansText,
+    wrong_answer: ok ? null : cur.options[sel].plain,
+    time_taken_sec: (sec > 0 && sec < 600) ? sec : null
+  });
+
+  $("fbMsg").className = "fb-msg " + (ok ? "good" : "bad");
+  $("fbMsg").textContent = ok ? "せいかい！ よくできました" : "おしい！ とき方を 見てみよう";
+  $("expl").innerHTML = cur.expl;
+  $("feedback").classList.add("show");
+  $("checkBtn").style.display = "none";
+  $("nextBtn").style.display = "block";
+  $("toast").textContent = "";
+
+  /* 正解エフェクト（キラキラ）。pileBottom で「山の床」を ボタンの帯の 上に する */
+  if(ok) safeDivp("correct", { pileBottom: "#bottom" });
+}
+
+function renderScore(){
+  $("scoreOk").textContent = score;
+  $("scoreAll").textContent = total;
+  $("scoreStreak").textContent = streak;
+}
+
+/* ---------- モード選択 ---------- */
+function startMode(m){
+  if(!MODE_KEYS[m]) return;
+  MODE = m;
+  retryQ = null;
+  score = 0; total = 0; streak = 0;
+  renderScore();
+  $("modeLabel").textContent = MODE_LABEL[m] || "";
+  document.body.classList.remove("choosing");
+  newQuestion();
+}
+function backHome(){
+  document.body.classList.add("choosing");
+  retryQ = null;
+  cur = null;
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+
+/* ---------- 解き直し（?retry=1） ---------- */
+function showRetryBanner(msg){
+  var slot = $("retryBannerSlot");
+  var e = $("retryBanner");
+  if(!e){
+    e = document.createElement("div");
+    e.id = "retryBanner";
+    slot.appendChild(e);
+  }
+  e.textContent = msg;
+}
+function initRetry(){
+  if(!(window.Divp && typeof Divp.getRetries === "function")) return;
+  Divp.getRetries().then(function(items){
+    var use = (items||[]).filter(function(it){
+      var p = it && it.question_params;
+      return p && GENS[p.m] && typeof p.s === "number";
+    });
+    if(!use.length){
+      showRetryBanner("解き直せる 問題は まだ ありません。まちがえた 問題が ここに たまっていくよ。");
+      return;
+    }
+    retryQ = use.slice();
+    retryTotal = retryQ.length;
+    retryDone = 0;
+    MODE = "retry";
+    score = 0; total = 0; streak = 0;
+    renderScore();
+    $("modeLabel").textContent = "まちがえた問題の 解き直し";
+    document.body.classList.remove("choosing");
+    newQuestion();
+  }).catch(function(){});
+}
+
+/* =====================================================================
+   印刷（A4・問題＋答え）。紙は 毎回 ちがう 問題で よいので 1問ごとに 種を 引く。
+   画面の 問題と 同じ 生成関数を 使うので、問題の 中身・図・答え・とき方は 画面と 一致する。
+   ===================================================================== */
+function figAspect(q){
+  var m = q.fig && q.fig.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
+  return m ? Number(m[2])/Number(m[1]) : 0;
+}
+function printItems(mode){
+  var keys = PRINT_KEYS[mode] || PRINT_KEYS.mix, seen = {}, out = [];
+  keys.forEach(function(k){
+    /* 同じ問題は 2つ 並べない。紙の 図は 高さで おさえるので、横に 長い 図の 問題を えらぶ */
+    var q = null, best = null, bestScore = 1e9;
+    for(var t=0; t<12; t++){
+      q = makeQ(k, rngPick());
+      if(seen[q.plainQ]) continue;
+      var sc = figAspect(q);
+      if(sc < bestScore){ best = q; bestScore = sc; }
+      if(t >= 4) break;
+    }
+    q = best || q;
+    seen[q.plainQ] = 1;
+    out.push(q);
+  });
+  return out;
+}
+/* 答えのページに出す 「とき方」＝ 画面の 解説の 手順だけ（ポイントは のぞく） */
+function printHow(q){
+  var box = document.createElement("div");
+  box.innerHTML = q.expl;
+  var rm = box.querySelectorAll(".ttl, .kufu");
+  for(var i=0;i<rm.length;i++) rm[i].parentNode.removeChild(rm[i]);
+  var steps = box.querySelectorAll(".step"), s = [];
+  for(i=0;i<steps.length;i++){
+    var ngs = steps[i].querySelectorAll(".ng");
+    for(var j=0;j<ngs.length;j++) ngs[j].parentNode.removeChild(ngs[j]);
+    var h = steps[i].innerHTML.replace(/<br>/g, "").replace(/<\/?b>/g, "");
+    if(/^答え/.test(steps[i].textContent)) continue;
+    if(h) s.push(h);
+  }
+  return s.join(" → ");
+}
+function buildPrint(mode){
+  var items = printItems(mode);
+  var d = new Date();
+  var dateStr = d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
+  var label = PRINT_LABEL[mode] || PRINT_LABEL.mix;
+  function head(sub){
+    return '<div class="p-head"><div><div class="p-school">中京個別指導学院</div>'
+      + '<div class="p-title">線対称・点対称マスター<small>'+esc(label)+'　'+sub+'</small></div></div>'
+      + '<div class="p-name">'+dateStr+'　名前<span></span></div></div>';
+  }
+  var qh = items.map(function(q,i){
+    /* 選択肢は 紙にも 出す（ア〜エ の 図の 問題は 図の 中に ある） */
+    var chs = q.options[0].plain === "ア" ? "" :
+      '<div class="p-ch">'+q.options.map(function(o,k){ return '<span>'+KANA[k]+' '+o.html+'</span>'; }).join("")+'</div>';
+    return '<div class="p-item"><span class="p-no">'+(i+1)+'</span><span class="p-tag">'+esc(q.tag)+'</span>'
+      + '<div class="p-q">'+q.qHtml+'</div>'
+      + (q.fig ? '<div class="p-fig'+(PRINT_TALL[q.key] ? " tall" : "")+'">'+q.fig+'</div>' : '')
+      + chs
+      + '<div class="p-ans">答え<i></i></div></div>';
+  }).join("");
+  var ah = items.map(function(q,i){
+    var mark = q.options[0].plain === "ア" ? "" : KANA[q.correct]+" ";
+    return '<div class="a-item"><span class="p-no">'+(i+1)+'</span>'
+      + '<span class="a-v">'+mark+q.options[q.correct].html+'</span>'
+      + '<span class="a-how">'+printHow(q)+'</span></div>';
+  }).join("");
+  var wm = window.ChukyoPrint ? ChukyoPrint.img() : "";
+  return wm
+    + '<div class="sheet">'+head("問題")+'<p class="p-inst">'+esc(PRINT_INST[mode] || PRINT_INST.mix)+'</p>'
+    + '<div class="p-grid">'+qh+'</div></div>'
+    + '<div class="sheet">'+head("答え")+'<div class="a-grid">'+ah+'</div></div>';
+}
+function printSheet(mode){
+  if(!PRINT_KEYS[mode]) mode = "mix";
+  var area = $("printArea");
+  var wmCss = window.ChukyoPrint ? '<style>'+ChukyoPrint.css({ zIndex:0 })+'.wm{position:fixed;}</style>' : "";
+  area.innerHTML = wmCss + buildPrint(mode);
+  if(window.ChukyoPrint && ChukyoPrint.print) ChukyoPrint.print(area);
+  else window.print();
+}
+
+/* ---------- イベント ---------- */
+document.querySelectorAll("#printBtns button").forEach(function(b){
+  b.addEventListener("click", function(){ printSheet(b.dataset.mode); });
+});
+$("printBtn").addEventListener("click", function(){ printSheet(MODE); });
+document.querySelectorAll(".m-card").forEach(function(b){
+  b.addEventListener("click", function(){ startMode(b.dataset.mode); });
+});
+$("homeBtn").addEventListener("click", backHome);
+$("checkBtn").addEventListener("click", check);
+$("nextBtn").addEventListener("click", newQuestion);
+
+/* divp-core は defer で読まれるので、DOM構築後に初期化する */
+window.addEventListener("DOMContentLoaded", function(){
+  safeDivp("init", UNIT_KEY);
+  if(/[?&]retry=1/.test(location.search)){
+    try{ initRetry(); }catch(e){}
+  }
+});
+</script>
+</body>
+</html>
