@@ -12,6 +12,12 @@ return [
         'sub'   => '数学・中3',
         'url'   => '/learning/math/math_js3_nijihoteishiki.html',
     ],
+    // 解き直しは question_params の {m:question_key, s:種} で同じ問題を作り直す（CLAUDE.md 2d）
+    'math_js3_enshuukaku' => [
+        'title' => '円周角マスター',
+        'sub'   => '数学・中3',
+        'url'   => '/learning/math/math_js3_enshuukaku.html',
+    ],
     // 生成関数からの復元ではなく retry_queue.replay_json の再表示で解き直す
     // （migrate_retry_replay.sql / 詳細はツール内の initRetry のコメント）
     'math_js3_aichi_daimon1' => [

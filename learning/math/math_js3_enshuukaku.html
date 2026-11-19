@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="only light">
+<title>円周角マスター｜中3数学 円周角の定理｜中京個別指導学院</title>
+<meta name="description" content="中3数学の円周角を練習。円周角と中心角、同じ弧に対する円周角、直径と円周角（90°）、弧の長さと円周角の比例、円周を等分した点、円周角の定理の逆、円の外で交わる直線や円に内接する四角形の応用まで、図を見て角の大きさを求める問題。中京個別指導学院(神丘)の学習ツール。">
+<!-- 本番(Heteml)ではサブセット自己ホストに差し替え -->
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- 印刷シートのロゴ透かし（ChukyoPrint） -->
+<script src="/assets/print-watermark.js"></script>
+<style>
+  :root{
+    --paper:#FBFAF6;
+    --grid:#ECE9E0;
+    --sumi:#33312B;
+    --usuzumi:#8B877C;
+    --shu:#C73E2E;
+    --kin:#C9A227;
+    --ai:#2C5F8A;
+    /* 答え合わせの色は共通モジュール(divp-choice-mark.js)の既定にそろえる */
+    --divp-mark-ok:#3E8E5A;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html{ scrollbar-gutter:stable; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:24px 24px;
+    color:var(--sumi);
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;     /* ⚠ 横並び(row)にしない。共通ヘッダーが左端に縦長の帯になる */
+    touch-action:manipulation;
+  }
+  .app{
+    width:100%;
+    max-width:560px;
+    margin:0 auto;
+    padding:12px 14px calc(90px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    flex:1;
+  }
+
+  /* ---- ヘッダー ---- */
+  header{ display:flex; align-items:center; gap:8px; }
+  header h1{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:16px; font-weight:700; margin:0;
+    letter-spacing:.02em;
+  }
+  header h1 .sub{
+    display:block;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    letter-spacing:.06em;
+  }
+  @media (max-width:420px){
+    header h1{ font-size:14px; letter-spacing:0; white-space:nowrap; }
+  }
+  .mode-back{
+    margin-left:auto;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.5px solid var(--ai);
+    background:#fff;
+    border-radius:8px;
+    padding:5px 9px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .mode-back.next-to{ margin-left:6px; }
+
+  /* ---- スコア ---- */
+  .score{
+    display:flex; align-items:baseline; gap:12px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:12px; font-weight:700; color:var(--usuzumi);
+  }
+  .score b{ color:var(--shu); font-size:17px; }
+  .score .streak b{ color:var(--kin); }
+  .score .qno{ margin-left:auto; color:var(--ai); }
+
+  /* ---- 問題カード ----
+     正解の「はんこ」(divp-correct-jh.js) はこのカードの中に出る。
+     直径171pxなので overflow:hidden にしない（はんこの上下が切れる） */
+  .card{
+    position:relative;
+    overflow:visible;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-radius:16px;
+    box-shadow:0 2px 0 rgba(51,49,43,.06);
+    padding:16px 16px 14px;
+  }
+  .card .qtag{
+    display:inline-block;
+    font-size:11px; font-weight:700;
+    color:var(--ai);
+    border:1.2px solid var(--ai);
+    border-radius:999px;
+    padding:2px 10px;
+    margin-bottom:8px;
+    letter-spacing:.04em;
+  }
+  .card .qtext{
+    font-size:16px; line-height:1.9;
+    letter-spacing:.02em;
+  }
+  .card .qtext b{ color:var(--shu); }
+
+  /* x の文字（教科書と同じくななめの文字） */
+  .v{
+    font-family:"Times New Roman", Times, serif;
+    font-style:italic; font-weight:700;
+    font-size:1.12em;
+    padding:0 .05em;
+  }
+  /* ア〜エのならび */
+  .sit{ display:block; padding-left:1.6em; text-indent:-1.6em; }
+  .sit .sl{
+    display:inline-block; width:1.6em; text-indent:0;
+    font-family:"Zen Maru Gothic", sans-serif; font-weight:700; color:var(--ai);
+  }
+
+  /* ---- 問題の図 ---- */
+  .figwrap{
+    display:flex; justify-content:center;
+    margin:10px 0 0;
+  }
+  .figwrap:empty{ display:none; }
+  .figwrap svg{
+    width:100%; max-width:300px; height:auto;
+    border-radius:10px;
+  }
+
+  /* ---- 解答パーツ ---- */
+  .part{ display:flex; flex-direction:column; gap:8px; }
+  .p-label{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700;
+    color:var(--ai);
+    letter-spacing:.04em;
+  }
+  .opts{ display:flex; flex-wrap:wrap; gap:8px; }
+  .optBtn{
+    position:relative;          /* 「正解」バッジの基準（divp-choice-mark.js） */
+    flex:1 1 calc(50% - 4px);
+    min-width:120px;
+    min-height:58px;
+    padding:8px 10px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:11px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:21px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    line-height:1.4;
+  }
+  .optBtn .u{ font-size:.68em; margin-left:3px; color:var(--usuzumi); }
+  .optBtn.on{
+    background:#FDECE9;
+    border-color:var(--shu);
+    border-bottom-color:var(--shu);
+    color:var(--shu);
+  }
+  .optBtn.on .u{ color:var(--shu); }
+  .optBtn:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .optBtn:disabled{ cursor:default; transform:none; }
+  .optBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- フィードバック ---- */
+  .feedback{ display:none; }
+  .feedback.show{ display:flex; flex-direction:column; gap:10px; }
+  .fb-msg{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    text-align:center;
+    letter-spacing:.06em;
+  }
+  .fb-msg.good{ color:var(--shu); }
+  .fb-msg.bad{ color:var(--ai); }
+  .expl{
+    background:#fff;
+    border:1.5px dashed var(--kin);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:14px; line-height:2.05;
+  }
+  .expl b{ color:var(--shu); }
+  .expl .ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13px; font-weight:700; color:var(--kin);
+    letter-spacing:.08em;
+    display:block; margin-bottom:4px;
+  }
+  .expl .step{ display:block; }
+  .expl .ok{ color:#3E8E5A; font-weight:700; }
+  .expl .ng{ color:var(--usuzumi); }
+  .expl .kufu{
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px dashed var(--grid);
+    font-size:13px; color:var(--ai);
+  }
+  .toast{
+    text-align:center;
+    font-size:13px; font-weight:700; color:var(--ai);
+    min-height:20px;
+  }
+
+  /* ---- 下の大きなボタン ---- */
+  .bottom{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--paper) 62%, rgba(251,250,246,0));
+    z-index:20;
+  }
+  .bottom .inner{ max-width:560px; margin:0 auto; }
+  .bigBtn{
+    width:100%;
+    height:54px;
+    border:none;
+    border-radius:13px;
+    background:var(--shu);
+    color:#fff;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:18px; font-weight:700;
+    letter-spacing:.2em; text-indent:.2em;
+    box-shadow:0 3px 0 #9E2F22;
+    cursor:pointer;
+  }
+  .bigBtn:active{ transform:translateY(2px); box-shadow:0 1px 0 #9E2F22; }
+  .bigBtn.next{ background:var(--ai); box-shadow:0 3px 0 #1E466A; }
+  .bigBtn.next:active{ box-shadow:0 1px 0 #1E466A; }
+  .bigBtn:focus-visible{ outline:3px solid var(--ai); outline-offset:2px; }
+
+  /* ---- モード選択画面 ---- */
+  .mode-screen{ display:none; }
+  body.choosing .app,
+  body.choosing .bottom{ display:none; }
+  body.choosing .mode-screen{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:100%;
+    max-width:520px;
+    margin:0 auto;
+    padding:34px 18px 48px;
+  }
+  .m-logo{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:24px; font-weight:700;
+    text-align:center;
+    letter-spacing:.06em;
+  }
+  .m-sub{
+    text-align:center;
+    font-size:13px; color:var(--usuzumi);
+    margin-bottom:8px;
+  }
+  .m-card{
+    display:flex; align-items:center; gap:13px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:4px solid #D8D4C8;
+    border-radius:16px;
+    padding:14px 16px;
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;
+    color:inherit;
+    width:100%;
+  }
+  .m-card:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+  .m-card.chal{ border-color:#BFD4C6; border-bottom-color:#8FB9A0; background:#F7FBF8; }
+  .m-card.mix{ border-color:var(--kin); border-bottom-color:var(--kin); }
+  .m-ico{ flex:none; width:46px; height:40px; }
+  .m-ico svg{ width:46px; height:40px; display:block; }
+  .m-sep{
+    display:flex; align-items:center; gap:8px;
+    margin-top:14px;
+    font-size:11.5px; color:var(--usuzumi); letter-spacing:.06em;
+  }
+  .m-sep::before, .m-sep::after{
+    content:""; flex:1; height:1px; background:var(--grid);
+  }
+  .m-body{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .m-name{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:17px; font-weight:700;
+  }
+  .m-desc{ font-size:11.5px; color:var(--usuzumi); line-height:1.5; }
+
+  /* 解き直し(?retry=1)の案内帯 */
+  #retryBanner{
+    background:#FBF3E0;
+    border:1.5px solid var(--kin);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:12.5px; line-height:1.6;
+    color:#6E5518;
+  }
+
+  /* ---- モード画面の「プリントを印刷する」 ---- */
+  .m-print{
+    background:#fff;
+    border:1.5px dashed #CFC9B8;
+    border-radius:16px;
+    padding:12px 14px 14px;
+  }
+  .m-print-ttl{
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:15px; font-weight:700;
+    margin-bottom:9px;
+  }
+  .m-print-ttl span{
+    display:block;
+    font-family:"Zen Kaku Gothic New", sans-serif;
+    font-size:11px; font-weight:500; color:var(--usuzumi);
+    margin-top:1px;
+  }
+  .m-print-btns{ display:flex; flex-wrap:wrap; gap:7px; }
+  .m-print-btns button{
+    flex:1 1 calc(33% - 7px);
+    min-width:92px; min-height:40px;
+    background:#fff;
+    border:1.5px solid var(--grid);
+    border-bottom:3px solid #D8D4C8;
+    border-radius:10px;
+    font-family:"Zen Maru Gothic", sans-serif;
+    font-size:13.5px; font-weight:700;
+    color:var(--sumi);
+    cursor:pointer;
+  }
+  .m-print-btns button:active{ transform:translateY(2px); border-bottom-width:1.5px; }
+
+  /* ---- 印刷シート ---- */
+  .print-area{ display:none; }
+  @media print{
+    @page{ size:A4 portrait; margin:10mm 11mm; }
+    /* 共通ヘッダーは紙に出さない（assets/divp-header.js と同じ方針） */
+    .divp-header{ display:none !important; }
+    .mode-screen, .app, .bottom{ display:none !important; }
+    html, body{ background:#fff !important; min-height:0 !important; }
+    body{ display:block !important; }
+    .print-area{ display:block !important; color:#222; font-family:"Zen Kaku Gothic New", sans-serif; }
+    .sheet{ position:relative; page-break-after:always; break-after:page;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .sheet:last-child{ page-break-after:auto; break-after:auto; }
+    .p-head{ position:relative; z-index:1; display:flex; justify-content:space-between; align-items:flex-end;
+      border-bottom:2px solid #33312B; padding-bottom:4px; margin-bottom:6px; }
+    .p-school{ font-size:11px; font-weight:700; color:#555; }
+    .p-title{ font-family:"Zen Maru Gothic", sans-serif; font-weight:700; font-size:19px; margin-top:1px; }
+    .p-title small{ font-size:12.5px; margin-left:8px; color:#555; }
+    .p-name{ font-size:12px; white-space:nowrap; }
+    .p-name span{ display:inline-block; border-bottom:1px solid #000; min-width:160px; margin-left:6px; }
+    .p-inst{ position:relative; z-index:1; font-size:11.5px; margin:0 0 6px; }
+    .p-grid{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:3mm 7mm; }
+    .p-item{ break-inside:avoid; page-break-inside:avoid; padding:1mm 1mm 0; }
+    .p-no{ display:inline-block; font-weight:700; font-size:12px; background:#33312B; color:#fff;
+      border-radius:5px; padding:0 7px; margin-right:4px; }
+    .p-tag{ font-size:9.5px; color:#777; }
+    .p-q{ font-size:11px; line-height:1.55; margin:2px 0 0; }
+    .p-q b{ color:#222; }
+    .p-q .sit .sl{ color:#222; }
+    /* 図は角の大きさの数を読むので大きめ（viewBox があるので縦横比はくずれない） */
+    .p-fig{ margin:1.2mm 0 0; }
+    .p-fig svg{ display:block; width:100%; height:auto; max-height:48mm; margin:0 auto; }
+    /* ア〜エの条件文がある問題（定理の逆）は図が名前だけなので小さくてよい */
+    .p-fig.small svg{ max-height:30mm; }
+    .p-ans{ display:flex; align-items:flex-end; gap:6px; margin-top:1.5mm; font-size:11px; color:#555; }
+    .p-ans i{ flex:1; border-bottom:1px solid #333; height:6.5mm; font-style:normal; }
+    .a-grid{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:2.5mm 7mm; }
+    .a-item{ break-inside:avoid; font-size:12px; line-height:1.6; border-bottom:1px dashed #ccc; padding:1.5mm 0 2mm; }
+    .a-item .a-v{ font-family:"Zen Maru Gothic", sans-serif; font-size:16px; font-weight:700; color:#C73E2E; margin-left:4px; }
+    .a-item .a-v .u{ font-size:.7em; margin-left:2px; }
+    .a-item .a-how{ display:block; font-size:10.5px; color:#555; line-height:1.6; margin-top:1px; }
+  }
+</style>
+</head>
+<body class="choosing" data-theme="jh" data-effect="stamp">
+
+<!-- 共通ヘッダー(ロゴ・ログイン窓)の差し込み先。script は body 直後に置くこと -->
+<div class="divp-header"></div>
+<!-- 学習記録システム共通モジュール -->
+<script src="/assets/divp-core.js" defer></script>
+<script src="/assets/divp-header.js" defer></script>
+<!-- 中学ツールなので正解演出は「正解」はんこ（divp-core.js より後ろに置くこと） -->
+<script src="/assets/divp-correct-jh.js" defer></script>
+<!-- 選択肢の答え合わせ表示（正解=緑 / 選んだ誤答=朱） -->
+<script src="/assets/divp-choice-mark.js" defer></script>
+
+<div class="mode-screen" id="modeScreen">
+  <div class="m-logo">円周角マスター</div>
+  <div class="m-sub">中3 数学 ／ 練習したいものを選んでください</div>
+  <div id="retryBannerSlot"></div>
+
+  <button type="button" class="m-card" data-mode="chuushin">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><circle cx="23" cy="20" r="17" fill="none" stroke="#33312B" stroke-width="1.6"/><path d="M23,3 L10,31 M23,3 L36,31 M23,20 L10,31 M23,20 L36,31" fill="none" stroke="#33312B" stroke-width="1.2"/><circle cx="23" cy="20" r="2" fill="#C73E2E"/></svg></span>
+    <span class="m-body"><span class="m-name">円周角と中心角</span>
+    <span class="m-desc">円周角は中心角の半分。円周角が鈍角になるとき・二等辺三角形を使う・2つの弧をあわせる</span></span>
+  </button>
+  <button type="button" class="m-card" data-mode="onaji">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><circle cx="23" cy="20" r="17" fill="none" stroke="#33312B" stroke-width="1.6"/><path d="M13,7 L11,31 M13,7 L35,31 M33,7 L11,31 M33,7 L35,31" fill="none" stroke="#2C5F8A" stroke-width="1.2"/></svg></span>
+    <span class="m-body"><span class="m-name">同じ弧に対する円周角</span>
+    <span class="m-desc">同じ弧に対する円周角は等しい。2つの弧をあわせる・弦が交わってできる角・円の外で交わる直線</span></span>
+  </button>
+  <button type="button" class="m-card" data-mode="chokkei">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><circle cx="23" cy="20" r="17" fill="none" stroke="#33312B" stroke-width="1.6"/><path d="M6,20 L40,20 M6,20 L29,4 L40,20" fill="none" stroke="#33312B" stroke-width="1.3"/><path d="M26.5,7.5 L29,11 L32.3,8.6" fill="none" stroke="#C73E2E" stroke-width="1.2"/></svg></span>
+    <span class="m-body"><span class="m-name">直径と円周角</span>
+    <span class="m-desc">半円の弧に対する円周角は 90°。同じ弧の円周角と組み合わせる</span></span>
+  </button>
+  <button type="button" class="m-card" data-mode="ko">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><circle cx="23" cy="20" r="17" fill="none" stroke="#33312B" stroke-width="1.6"/><path d="M9,30 A17,17 0 0 0 23,37" fill="none" stroke="#2C5F8A" stroke-width="3.2"/><path d="M23,37 A17,17 0 0 0 37,30" fill="none" stroke="#C73E2E" stroke-width="3.2"/><path d="M23,3 L9,30 M23,3 L23,37 M23,3 L37,30" fill="none" stroke="#33312B" stroke-width="1.1"/></svg></span>
+    <span class="m-body"><span class="m-name">弧と円周角</span>
+    <span class="m-desc">円周を等分した点・弧の比・弧の長さ（円周角は弧の長さに比例）</span></span>
+  </button>
+  <button type="button" class="m-card" data-mode="gyaku">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><circle cx="23" cy="20" r="17" fill="none" stroke="#8B877C" stroke-width="1.3" stroke-dasharray="3 3"/><path d="M11,9 L8,26 L34,33 L36,8 Z M11,9 L34,33 M8,26 L36,8" fill="none" stroke="#33312B" stroke-width="1.3"/></svg></span>
+    <span class="m-body"><span class="m-name">円周角の定理の逆</span>
+    <span class="m-desc">4点が1つの円周上にある条件・定理の逆を使って角を求める</span></span>
+  </button>
+  <button type="button" class="m-card chal" data-mode="oyou">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><circle cx="18" cy="20" r="15" fill="none" stroke="#33312B" stroke-width="1.6"/><path d="M44,20 L7,9 M44,20 L7,31 M7,9 L28,29 M7,31 L28,11" fill="none" stroke="#33312B" stroke-width="1.1"/><circle cx="44" cy="20" r="2" fill="#C73E2E"/></svg></span>
+    <span class="m-body"><span class="m-name">円周角の応用（チャレンジ）</span>
+    <span class="m-desc">中心と二等辺三角形・円の外で交わる2直線・円に内接する四角形・円の接線</span></span>
+  </button>
+  <button type="button" class="m-card mix" data-mode="mix">
+    <span class="m-ico"><svg viewBox="0 0 46 40"><circle cx="23" cy="20" r="17" fill="none" stroke="#33312B" stroke-width="1.6"/><path d="M23,3 L9,30 L37,30 Z M23,20 L9,30" fill="none" stroke="#33312B" stroke-width="1.1"/><circle cx="23" cy="20" r="2.2" fill="#C9A227"/></svg></span>
+    <span class="m-body"><span class="m-name">ランダム</span>
+    <span class="m-desc">ぜんぶの種類をまぜて出題（テスト前の仕上げに）</span></span>
+  </button>
+
+  <div class="m-sep">プリントで練習したいときは</div>
+  <div class="m-print">
+    <div class="m-print-ttl">🖨 プリントを印刷する<span>A4・問題＋答えのページ／押すたびにちがう問題</span></div>
+    <div class="m-print-btns">
+      <button type="button" data-mode="chuushin">中心角</button>
+      <button type="button" data-mode="onaji">同じ弧</button>
+      <button type="button" data-mode="chokkei">直径</button>
+      <button type="button" data-mode="ko">弧</button>
+      <button type="button" data-mode="gyaku">定理の逆</button>
+      <button type="button" data-mode="oyou">応用</button>
+      <button type="button" data-mode="mix">ランダム</button>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <header>
+    <h1>円周角マスター<span class="sub" id="modeLabel">円周角と中心角</span></h1>
+    <button type="button" class="mode-back" id="printBtn" title="このモードのプリントを印刷">🖨 プリント</button>
+    <button type="button" class="mode-back next-to" id="homeBtn">ホームに戻る</button>
+  </header>
+
+  <div class="score">
+    <span>正解 <b id="scoreOk">0</b> / <span id="scoreAll">0</span></span>
+    <span class="streak">連続 <b id="scoreStreak">0</b></span>
+    <span class="qno" id="qNo"></span>
+  </div>
+
+  <div class="card" id="qcard">
+    <span class="qtag" id="qTag">問題</span>
+    <div class="qtext" id="qText"></div>
+    <div class="figwrap" id="figArea"></div>
+  </div>
+
+  <div id="partArea" style="display:flex;flex-direction:column;gap:14px"></div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="feedback" id="feedback">
+    <div class="fb-msg" id="fbMsg"></div>
+    <div class="expl" id="expl"></div>
+  </div>
+</div>
+
+<!-- 印刷用（画面には出さない。印刷ボタンのたびに中身を作りなおす） -->
+<div class="print-area" id="printArea"></div>
+
+<div class="bottom" id="bottom">
+  <div class="inner">
+    <button type="button" class="bigBtn" id="checkBtn">答え合わせ</button>
+    <button type="button" class="bigBtn next" id="nextBtn" style="display:none">次の問題 ➜</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   円周角マスター（数学・中3）
+   unit_key = math_js3_enshuukaku
+   （座標・比例・反比例マスター math_js1_hirei_hanpirei と同じ作り）
+
+   ■ モードと question_key（モード名＝question_key）
+     chuushin … 円周角と中心角（円周角→中心角／中心角→円周角／円周角が鈍角になるとき／
+                 二等辺三角形 OAB を使う）
+     onaji    … 同じ弧に対する円周角（そのまま／弦が交わってできる角＝三角形の外角／その逆算）
+     chokkei  … 直径と円周角（90°／同じ弧の円周角と組み合わせる／その逆）
+     ko       … 弧と円周角（円周を等分した点／等分した点と弦の交わり／弧の比／弧の長さ）
+     gyaku    … 円周角の定理の逆（4点が円周上にある条件をア〜エから選ぶ／逆を使って角を求める）
+     oyou     … 応用・チャレンジ（中心と二等辺三角形／円の外で交わる2直線（2通り）／
+                 円に内接する四角形を中心角で解く）
+     ランダム（モード mix）→ 上のぜんぶ（question_key は実際に出た種類）
+     日本語ラベルは db/seeds/seed_math_js3_enshuukaku.sql で question_catalog へ。
+
+   ■ 解き直し（?retry=1）は「種(seed)方式」＝ CLAUDE.md 2d
+     乱数は ri()/pick()/shuffle() に一本化してあり、出題のたびに種を1つ引いて
+     question_params:{m:question_key, s:種} だけを保存する。
+     ⚠ 生成関数の中身を変えると、既存 pending の種から出る問題が変わる
+       （params_hash は同じままなので解き直し自体は成立する）。
+     ⚠ 生成関数の中で Math.random() を直接呼ばないこと（種で再現できなくなる）。
+     ⚠ sort() に乱数の比較関数を渡さない（並べかえは shuffle() だけ）。
+
+   ■ 図（question_figure）＝ CLAUDE.md 2b
+     円周角の問題は図が無いと解けないので、全種類で画面に出した SVG を Divp.answer に渡す
+     （誤答のときだけ保存され、解き直しプリントに出る）。
+     色・線はぜんぶ SVG の属性で書く（解き直しプリントにはツールの CSS が無い）。
+     使っているタグは svg / rect / g / circle / line / path / text だけ、属性は
+     save_answer.php の FIG_TAGS / FIG_ATTRS の範囲内（paint-order・transform・d をふくむ）。
+     図は「点を円周上の角度（度）」で置いて描くので、図の角は正確な大きさ。
+     回帰テスト tests/enshuukaku.spec.js が、図に書いた角の大きさと実際の角が一致するかまで見張る。
+
+   ■ question_text は講師画面でプレーンテキストとして出る（CLAUDE.md 2a）。
+     { } \ ^ _ と生の「<」を入れない。図の「∠x」は「x」と書く。
+   ===================================================================== */
+
+var UNIT_KEY = "math_js3_enshuukaku";
+
+/* ---------- 共通モジュールの安全呼び出し（未読込でも壊れない） ---------- */
+function safeDivp(fn){
+  try{
+    if(window.Divp && typeof window.Divp[fn] === "function"){
+      return window.Divp[fn].apply(window.Divp, [].slice.call(arguments,1));
+    }
+  }catch(e){}
+  return null;
+}
+/* 経過時間は端末の時計ではなく performance.now() で測る（CLAUDE.md 5a3） */
+function nowMs(){
+  return (window.performance && typeof performance.now === "function")
+    ? performance.now() : Date.now();
+}
+
+/* ---------- RNG（xorshift32・種から決まった順に出る） ---------- */
+var _rngState = 1;
+function rngSeed(s){ _rngState = (s>>>0) || 1; }
+function rngPick(){ return (Math.floor(Math.random()*4294967296)>>>0) || 1; }  /* 種そのものだけ真の乱数 */
+function rngNext(){
+  var x = _rngState;
+  x ^= x<<13; x >>>= 0; x ^= x>>>17; x ^= x<<5; x >>>= 0;
+  _rngState = x;
+  return x/4294967296;
+}
+function ri(min,max){ return Math.floor(rngNext()*(max-min+1))+min; }
+function pick(arr){ return arr[ri(0,arr.length-1)]; }
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i=a.length-1;i>0;i--){ var j=ri(0,i); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+function rep(k, n){ var a = []; for(var i=0;i<n;i++) a.push(k); return a; }
+
+/* ---------- 数・文字 ---------- */
+function isInt(v){ return Math.abs(v-Math.round(v)) < 1e-9; }
+function rnd(x,d){ var m = Math.pow(10, d == null ? 3 : d); return Math.round(x*m)/m; }
+function nf(x){ var v = rnd(x,3); return String(v === 0 ? 0 : v); }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+/* 記録用の文字列をバイト数で切る（question_text は 255バイト。文字の途中で切らない） */
+function capBytes(s,max){
+  var out = "", b = 0;
+  for(var i=0;i<s.length;i++){
+    var c = s.charCodeAt(i), n = c < 0x80 ? 1 : c < 0x800 ? 2 : 3;
+    if(b+n > max) break;
+    out += s.charAt(i); b += n;
+  }
+  return out;
+}
+function V(s){ return '<i class="v">'+s+'</i>'; }
+var XV = V("x");
+var AX = "∠"+XV;                 /* 画面の「∠x」 */
+var KANA4 = ["ア","イ","ウ","エ"];
+function dg(v){ return nf(v)+"°"; }
+
+/* ---------- 選択肢 ----------
+   選択肢は {html, plain, key, ok}。key が同じものは同じ選択肢とみなして重ねない。
+   plain は記録用（wrong_answer / correct_answer）。 */
+function optDeg(v){
+  v = rnd(v,6);
+  return { html: dg(v), plain: dg(v), key: "d"+v, ok: isInt(v) && v > 0 && v < 360 };
+}
+function optCm(v){
+  v = rnd(v,6);
+  return { html: nf(v)+'<span class="u">cm</span>', plain: nf(v)+"cm", key: "c"+v, ok: isInt(v) && v > 0 && v < 100 };
+}
+function optLabel(s, plain){ return { html:s, plain:plain || s, key:"L"+s, ok:true }; }
+
+/* 正解1つ＋まちがい3つ。must（かならず入れるひっかけ）→ cands（ねらったまちがい。
+   この中からランダム）→ 足りなければ fb でうめる */
+function buildChoices(cor, cands, fb, must){
+  var out = [cor], seen = {}, i;
+  seen[cor.key] = 1;
+  function add(c){
+    if(out.length >= 4 || !c || !c.ok || seen[c.key]) return;
+    seen[c.key] = 1; out.push(c);
+  }
+  (must || []).forEach(add);
+  var cs = shuffle(cands);
+  for(i=0;i<cs.length;i++) add(cs[i]);
+  for(i=0;i<fb.length;i++) add(fb[i]);
+  var arr = shuffle(out);
+  return { options: arr, correct: arr.indexOf(cor) };
+}
+function fbNums(ans, step, f){
+  var a = [];
+  for(var k=1;k<=8;k++){ a.push(f(ans+step*k)); a.push(f(ans-step*k)); }
+  return a;
+}
+
+/* 問題をくみたてる（全種類共通）。o.F は図の設計図（circFig に渡す） */
+function mk(o){
+  var ch = o.options ? { options:o.options, correct:o.correct }
+                     : buildChoices(o.cor, o.cands || [], o.fb || [], o.must);
+  var chk = o.chk || {};
+  if(o.F) chk.geo = geoCheck(o.F, chk.ans);
+  return {
+    key:o.key, tag:o.tag,
+    qHtml:o.q, plainQ:capBytes(o.plain, 255),
+    fig: o.F ? circFig(o.F, o.aria || "問題の図") : "",
+    small:!!o.small,               /* 印刷で図を小さくする（条件文の長い問題） */
+    label:o.label == null ? AX+" の大きさ" : o.label,
+    u:o.u || "",
+    options:ch.options, correct:ch.correct,
+    ansText:ch.options[ch.correct].plain,
+    chk:chk,                       /* 回帰テスト用の中身（画面では使わない） */
+    expl:'<span class="ttl">解き方</span>' + o.expl
+        + (o.kufu ? '<div class="kufu">💡 ' + o.kufu + '</div>' : "")
+  };
+}
+/* 角度の答えの問題（ans：答えの角度、candv：ねらったまちがいの角度、
+   mustv：かならず選択肢に入れるひっかけの角度） */
+function degQ(o){
+  o.cor = optDeg(o.ans);
+  o.must = (o.mustv || []).map(optDeg);
+  o.cands = (o.candv || []).map(optDeg);
+  o.fb = fbNums(o.ans, 5, optDeg);
+  o.chk = { ans:o.ans, must:o.mustv || [] };
+  return mk(o);
+}
+function step(s){ return '<span class="step">'+s+'</span>'; }
+
+/* =====================================================================
+   SVG の部品。図の外わくは中身（文字のはばのめやすも入れる）から決める
+   ＝文字が viewBox の外にはみ出さない。色・線はぜんぶ属性で書く。
+   ===================================================================== */
+var SVGFONT = "Zen Maru Gothic,Hiragino Maru Gothic ProN,HGMaruGothicMPRO,"
+            + "M PLUS Rounded 1c,Yu Gothic,sans-serif";
+var C = {
+  paper:"#FFFDF7", ink:"#33312B", sub:"#8B877C",
+  shu:"#C73E2E", ai:"#2C5F8A", aiL:"#9DB8D2", shuL:"#E6A79E"
+};
+function n2(x){ return Math.round(x*100)/100; }
+/* 文字のはばのめやす */
+function twEst(s,size){
+  var w = 0;
+  for(var i=0;i<s.length;i++) w += (s.charCodeAt(i) < 128 ? 0.6 : 1.0)*size;
+  return w;
+}
+function Cv(){ return { s:"", x0:1e9, y0:1e9, x1:-1e9, y1:-1e9 }; }
+function cvBox(cv,xa,ya,xb,yb){
+  cv.x0 = Math.min(cv.x0, xa, xb); cv.x1 = Math.max(cv.x1, xa, xb);
+  cv.y0 = Math.min(cv.y0, ya, yb); cv.y1 = Math.max(cv.y1, ya, yb);
+}
+function cvLine(cv,a,b,color,sw,dash){
+  cvBox(cv,a[0],a[1],b[0],b[1]);
+  cv.s += '<line x1="'+n2(a[0])+'" y1="'+n2(a[1])+'" x2="'+n2(b[0])+'" y2="'+n2(b[1])+'" stroke="'+color
+        + '" stroke-width="'+(sw||1.5)+'" stroke-linecap="round"'+(dash ? ' stroke-dasharray="'+dash+'"' : '')+'/>';
+}
+function cvDot(cv,p,r,fill,stroke,sw){
+  cvBox(cv,p[0]-r,p[1]-r,p[0]+r,p[1]+r);
+  cv.s += '<circle cx="'+n2(p[0])+'" cy="'+n2(p[1])+'" r="'+n2(r)+'" fill="'+fill+'"'
+        + (stroke ? ' stroke="'+stroke+'" stroke-width="'+(sw||1.5)+'"' : '')+'/>';
+}
+/* 文字。まわりに紙色のふちをつけて、線の上でも読めるようにする。
+   italic：x の文字（教科書と同じななめの字） */
+function cvTx(cv,x,y,s,color,anchor,size,italic){
+  size = size || 13; anchor = anchor || "middle";
+  var w = twEst(s,size), xl = anchor === "start" ? x : anchor === "end" ? x-w : x-w/2;
+  cvBox(cv, xl-2, y-size*0.68, xl+w+2, y+size*0.68);
+  cv.s += '<text x="'+n2(x)+'" y="'+n2(y)+'" text-anchor="'+anchor+'" dominant-baseline="middle"'
+        + ' font-size="'+size+'" font-weight="700" font-family="'
+        + (italic ? "Times New Roman,Times,serif" : SVGFONT)+'"'+(italic ? ' font-style="italic"' : '')
+        + ' fill="'+color+'" paint-order="stroke" stroke="'+C.paper+'" stroke-width="4" stroke-linejoin="round">'
+        + esc(s)+'</text>';
+}
+/* できあがり。minW よりせまい図は左右に余白を足して中央におく */
+function cvFin(cv,minW,pad,aria){
+  pad = (pad == null) ? 8 : pad;
+  var bw = cv.x1-cv.x0, bh = cv.y1-cv.y0;
+  var W = Math.max(minW || 0, bw+pad*2), H = bh+pad*2;
+  var dx = (W-bw)/2 - cv.x0, dy = pad - cv.y0;
+  return '<svg viewBox="0 0 '+n2(W)+' '+n2(H)+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="'+esc(aria || "問題の図")+'">'
+       + '<rect x="0" y="0" width="'+n2(W)+'" height="'+n2(H)+'" fill="'+C.paper+'"/>'
+       + '<g transform="translate('+n2(dx)+' '+n2(dy)+')">'+cv.s+'</g></svg>';
+}
+
+/* ---------- 円の図 ----------
+   点は「円周上の角度（度。右が0°で反時計まわり）」で置く。
+   中心角・円周角は弧の度数から決まるので、生成関数が弧を偶数の度数で選べば
+   図の角も答えもぴったり整数になる。
+   F = { circle:false（円をかかない。定理の逆）, O:true（中心Oをかく）,
+         on:{A:度,…}（円周上の点）, ext:{E:[x,y],…}（交点・円の外の点。ピクセル）,
+         segs:[["A","B"],["B","C","dash"],…],
+         angs:[{v:頂点, a:, b:, t:"40°"} または {v,a,b,x:true}（∠x）],
+         arcs:[{from:度, to:度, col, t:"6cm"}]（反時計まわりに色をぬる弧）,
+         ndots:[度,…]（名前のない円周上の点＝等分した点）,
+         out:["A",…], cen:[x,y]（円の外の点の名前を、cen から遠ざかる向きに置く） } */
+var RR = 90;
+function onC(th){ var t = th*Math.PI/180; return [RR*Math.cos(t), -RR*Math.sin(t)]; }
+function vsub(a,b){ return [a[0]-b[0], a[1]-b[1]]; }
+function vadd(a,b){ return [a[0]+b[0], a[1]+b[1]]; }
+function vmul(a,k){ return [a[0]*k, a[1]*k]; }
+function vlen(a){ return Math.sqrt(a[0]*a[0]+a[1]*a[1]); }
+function vunit(a){ var l = vlen(a) || 1; return [a[0]/l, a[1]/l]; }
+function vdot(a,b){ return a[0]*b[0]+a[1]*b[1]; }
+/* 2直線 p1p2・p3p4 の交点 */
+function lineX(p1,p2,p3,p4){
+  var d = (p1[0]-p2[0])*(p3[1]-p4[1]) - (p1[1]-p2[1])*(p3[0]-p4[0]);
+  var a = p1[0]*p2[1]-p1[1]*p2[0], b = p3[0]*p4[1]-p3[1]*p4[0];
+  return [(a*(p3[0]-p4[0]) - (p1[0]-p2[0])*b)/d, (a*(p3[1]-p4[1]) - (p1[1]-p2[1])*b)/d];
+}
+function segDist(p,a,b){
+  var d = vsub(b,a), l2 = vdot(d,d);
+  var t = l2 ? vdot(vsub(p,a),d)/l2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  return vlen(vsub(p, vadd(a, vmul(d,t))));
+}
+function angInfo(Vt,A,B){
+  var u1 = vunit(vsub(A,Vt)), u2 = vunit(vsub(B,Vt));
+  var c = Math.max(-1, Math.min(1, vdot(u1,u2)));
+  return { u1:u1, u2:u2, th:Math.acos(c) };
+}
+function figPts(F){
+  var pts = {};
+  Object.keys(F.on || {}).forEach(function(k){ pts[k] = onC(F.on[k]); });
+  if(F.O) pts.O = [0,0];
+  Object.keys(F.ext || {}).forEach(function(k){ pts[k] = F.ext[k]; });
+  return pts;
+}
+/* 回帰テスト用：図に書いた角（数・x）と、図の上の実際の角の組 */
+function geoCheck(F, ans){
+  var pts = figPts(F), out = [];
+  (F.angs || []).forEach(function(g){
+    var want = g.x ? ans : parseFloat(g.t);
+    out.push([rnd(angInfo(pts[g.v], pts[g.a], pts[g.b]).th*180/Math.PI, 4), want]);
+  });
+  return out;
+}
+function tBox(c,s,size){
+  var w = twEst(s,size);
+  return { x0:c[0]-w/2-1.5, x1:c[0]+w/2+1.5, y0:c[1]-size*0.62, y1:c[1]+size*0.62 };
+}
+function boxHit(b, boxes){
+  for(var i=0;i<boxes.length;i++){
+    var o = boxes[i];
+    if(!(b.x1 <= o.x0 || b.x0 >= o.x1 || b.y1 <= o.y0 || b.y0 >= o.y1)) return true;
+  }
+  return false;
+}
+function circFig(F, aria){
+  var cv = Cv(), pts = figPts(F), segs = [], boxes = [], wedges = {};
+  var hasCircle = F.circle !== false;
+  if(hasCircle) cvDot(cv, [0,0], RR, "none", C.ink, 1.8);
+
+  /* 色をぬる弧（弧の長さ・弧の比の問題） */
+  (F.arcs || []).forEach(function(a){
+    var p1 = onC(a.from), p2 = onC(a.to);
+    var sw = ((a.to - a.from) % 360 + 360) % 360;
+    cv.s += '<path d="M'+n2(p1[0])+' '+n2(p1[1])+' A'+RR+' '+RR+' 0 '+(sw > 180 ? 1 : 0)+' 0 '
+          + n2(p2[0])+' '+n2(p2[1])+'" fill="none" stroke="'+a.col+'" stroke-width="5" stroke-linecap="round"/>';
+  });
+
+  (F.segs || []).forEach(function(s){
+    var a = pts[s[0]], b = pts[s[1]], dash = s[2] === "dash";
+    cvLine(cv, a, b, dash ? C.sub : C.ink, 1.6, dash ? "5 4" : null);
+    segs.push([a,b]);
+  });
+  /* 名前のない点まで引く線（接線のはしなど）。lines:[[[x,y],[x,y]],…] */
+  (F.lines || []).forEach(function(l){
+    cvLine(cv, l[0], l[1], C.ink, 1.6);
+    segs.push([l[0], l[1]]);
+  });
+
+  /* 角の印と、角の大きさ（または x） */
+  var labels = [];
+  (F.angs || []).forEach(function(g){
+    var Vt = pts[g.v], inf = angInfo(Vt, pts[g.a], pts[g.b]);
+    var n = (wedges[g.v] = wedges[g.v] || []).length;
+    wedges[g.v].push(inf);
+    var r = g.r || (n === 0 ? 14 : 22);
+    var col = g.x ? C.shu : C.ai;
+    var p1 = vadd(Vt, vmul(inf.u1,r)), p2 = vadd(Vt, vmul(inf.u2,r));
+    var cr = inf.u1[0]*inf.u2[1] - inf.u1[1]*inf.u2[0];
+    cv.s += '<path d="M'+n2(p1[0])+' '+n2(p1[1])+' A'+r+' '+r+' 0 0 '+(cr > 0 ? 1 : 0)+' '
+          + n2(p2[0])+' '+n2(p2[1])+'" fill="none" stroke="'+col+'" stroke-width="1.8"/>';
+    cvBox(cv, Math.min(p1[0],p2[0]), Math.min(p1[1],p2[1]), Math.max(p1[0],p2[0]), Math.max(p1[1],p2[1]));
+    labels.push({ g:g, Vt:Vt, inf:inf, r:r, col:col });
+  });
+  /* 点の目じるし（文字の場所を決める前に「点」をよける対象に入れる） */
+  var dotPts = [];
+  (F.ndots || []).forEach(function(th){ dotPts.push(onC(th)); });
+  Object.keys(pts).forEach(function(k){ dotPts.push(pts[k]); });
+  dotPts.forEach(function(p){ boxes.push({ x0:p[0]-3, x1:p[0]+3, y0:p[1]-3, y1:p[1]+3 }); });
+
+  labels.forEach(function(L){
+    var s = L.g.x ? "x" : L.g.t, size = L.g.x ? 17 : 13;
+    var bis = vunit(vadd(L.inf.u1, L.inf.u2));
+    var w = twEst(s,size), h = size*1.24;
+    var ext = Math.abs(bis[0])*w/2 + Math.abs(bis[1])*h/2;
+    var half = Math.sqrt(w*w+h*h)/2;
+    /* 細い角は数字を遠くへ押し出すと、別の頂点の角に見える（15° が C のそばに出た）。
+       頂点から 48px までにとどめ、線と少し重なる分は文字のふち（paint-order）で読ませる */
+    var d = Math.min(48, Math.max(L.r + 3 + ext, (half*0.85)/Math.sin(L.inf.th/2)));
+    var c, b, k;
+    for(k=0;k<14;k++){
+      c = vadd(L.Vt, vmul(bis, d + k*4));
+      b = tBox(c, s, size);
+      if(!boxHit(b, boxes)) break;
+    }
+    boxes.push(b);
+    cvTx(cv, c[0], c[1], s, L.col, "middle", size, !!L.g.x);
+  });
+
+  /* 弧の長さの文字 */
+  (F.arcs || []).forEach(function(a){
+    if(!a.t) return;
+    var sw = ((a.to - a.from) % 360 + 360) % 360, mid = a.from + sw/2;
+    var u = vunit(onC(mid)), c, b;
+    for(var k=0;k<8;k++){
+      c = vmul(u, RR + 15 + k*4);
+      b = tBox(c, a.t, 13);
+      if(!boxHit(b, boxes)) break;
+    }
+    boxes.push(b);
+    cvTx(cv, c[0], c[1], a.t, a.tcol || a.col, "middle", 13);
+  });
+
+  dotPts.forEach(function(p){ cvDot(cv, p, 2.6, C.ink); });
+
+  /* 点の名前。円周上の点は外向き、それ以外は線・印・ほかの文字からいちばん離れた場所 */
+  var cen = F.cen || [0,0];
+  Object.keys(pts).forEach(function(k){
+    var p = pts[k];
+    var out = (F.on && F.on[k] != null) ? vunit(p)
+            : (F.out && F.out.indexOf(k) >= 0) ? vunit(vsub(p, cen)) : null;
+    var best = null, bs = -1e9;
+    for(var i=0;i<24;i++){
+      var a = i*15*Math.PI/180, dir = [Math.cos(a), Math.sin(a)];
+      var inWedge = (wedges[k] || []).some(function(wg){
+        var a1 = Math.acos(Math.max(-1,Math.min(1,vdot(dir,wg.u1))));
+        var a2 = Math.acos(Math.max(-1,Math.min(1,vdot(dir,wg.u2))));
+        return a1 + a2 < wg.th + 0.05;
+      });
+      for(var rr=12; rr<=22; rr+=5){
+        var c = vadd(p, vmul(dir, rr)), b = tBox(c, k, 14);
+        if(boxHit(b, boxes)) continue;
+        var cl = 99;
+        segs.forEach(function(sg){ cl = Math.min(cl, segDist(c, sg[0], sg[1]) - 7); });
+        if(hasCircle) cl = Math.min(cl, Math.abs(vlen(c) - RR) - 7);
+        var sc = Math.min(cl, 6) + (out ? 5*vdot(dir,out) : 0) - (rr-12)*0.3 - (inWedge ? 12 : 0);
+        if(sc > bs){ bs = sc; best = { c:c, b:b }; }
+      }
+    }
+    if(!best){
+      var c0 = vadd(p, vmul(out || [0,1], 14));
+      best = { c:c0, b:tBox(c0, k, 14) };
+    }
+    boxes.push(best.b);
+    cvTx(cv, best.c[0], best.c[1], k, C.ink, "middle", 14);
+  });
+
+  return cvFin(cv, 0, 8, aria);
+}
+
+/* =====================================================================
+   ① 円周角と中心角（chuushin）
+   ===================================================================== */
+var KUFU_TEIRI = "1つの弧に対する円周角の大きさは、その弧に対する中心角の大きさの半分です。";
+/* 円周角 → 中心角 */
+function cA1(){
+  var a = ri(20,75), t = ri(-15,15);
+  var F = { O:true, on:{ P:90+ri(-28,28), A:270-a+t, B:270+a+t },
+    segs:[["P","A"],["P","B"],["O","A"],["O","B"]],
+    angs:[{ v:"P", a:"A", b:"B", t:dg(a) }, { v:"O", a:"A", b:"B", x:true }] };
+  return degQ({ key:"chuushin", tag:"円周角から中心角", F:F, aria:"円周角と中心角の図",
+    q:"点 O は円の中心です。"+AX+" の大きさを求めなさい。",
+    plain:"円Oで、弧ABに対する円周角∠APB="+a+"°のとき、中心角∠AOB(x)の大きさ",
+    ans:2*a, candv:[a, a/2, 180-a, 360-2*a, 90+a],
+    expl: step("∠APB は弧ABに対する円周角、"+AX+"（∠AOB）は弧ABに対する中心角")
+        + step("中心角は円周角の2倍なので")
+        + step(AX+"＝"+a+"°×2＝<b>"+dg(2*a)+"</b>"),
+    kufu: KUFU_TEIRI });
+}
+/* 中心角 → 円周角 */
+function cA2(){
+  var a = ri(20,75), t = ri(-15,15);
+  var F = { O:true, on:{ P:90+ri(-28,28), A:270-a+t, B:270+a+t },
+    segs:[["P","A"],["P","B"],["O","A"],["O","B"]],
+    angs:[{ v:"O", a:"A", b:"B", t:dg(2*a) }, { v:"P", a:"A", b:"B", x:true }] };
+  return degQ({ key:"chuushin", tag:"中心角から円周角", F:F, aria:"円周角と中心角の図",
+    q:"点 O は円の中心です。"+AX+" の大きさを求めなさい。",
+    plain:"円Oで、弧ABに対する中心角∠AOB="+(2*a)+"°のとき、円周角∠APB(x)の大きさ",
+    ans:a, candv:[2*a, 4*a, 180-2*a, 180-a, 90-a],
+    expl: step("∠AOB は弧ABに対する中心角、"+AX+"（∠APB）は弧ABに対する円周角")
+        + step("円周角は中心角の半分なので")
+        + step(AX+"＝"+(2*a)+"°÷2＝<b>"+dg(a)+"</b>"),
+    kufu: KUFU_TEIRI });
+}
+/* 円周角が鈍角になるとき（P が小さいほうの弧の上） */
+function cA3(){
+  var h = ri(40,80), c = 2*h, t = ri(-15,15);
+  var F = { O:true, on:{ A:270-h+t, B:270+h+t, P:270+t+ri(-(h-24), h-24) },
+    segs:[["P","A"],["P","B"],["O","A"],["O","B"]],
+    angs:[{ v:"O", a:"A", b:"B", t:dg(c) }, { v:"P", a:"A", b:"B", x:true }] };
+  var big = 360-c, ans = big/2;
+  return degQ({ key:"chuushin", tag:"円周角が鈍角になるとき", F:F, aria:"円周角と中心角の図",
+    q:"点 O は円の中心です。"+AX+" の大きさを求めなさい。",
+    plain:"円Oで∠AOB="+c+"°、点Pは小さいほうの弧AB上。∠APB(x)の大きさ",
+    /* 中心角をそのまま半分にした h（146°→73°）がいちばん多いまちがいなので、かならず入れる */
+    ans:ans, mustv:[h], candv:[c, 360-c, 180-c, 90+h, 2*c],
+    expl: step(AX+"（∠APB）は、点Pをふくまない側の弧AB（大きいほうの弧）に対する円周角")
+        + step("その弧に対する中心角は 360°−"+c+"°＝"+dg(big))
+        + step(AX+"＝"+big+"°÷2＝<b>"+dg(ans)+"</b>"),
+    kufu: "中心角は 180° をこえることもあります。円周角がどちらの弧に対する角なのか、点の位置で確かめましょう。" });
+}
+/* 二等辺三角形 OAB を使う */
+function cA4(){
+  var b = ri(22,66), t = ri(-12,12), aob = 180-2*b, ans = aob/2;
+  var F = { O:true, on:{ A:180+b+t, B:360-b+t, C:90+ri(-28,28) },
+    segs:[["O","A"],["O","B"],["A","B"],["C","A"],["C","B"]],
+    angs:[{ v:"A", a:"O", b:"B", t:dg(b) }, { v:"C", a:"A", b:"B", x:true }] };
+  return degQ({ key:"chuushin", tag:"二等辺三角形を使う", F:F, aria:"円周角と中心角の図",
+    q:"点 O は円の中心です。"+AX+" の大きさを求めなさい。",
+    plain:"円Oで∠OAB="+b+"°のとき、弧ABに対する円周角∠ACB(x)の大きさ",
+    ans:ans, candv:[b, aob, 2*b, 90+b, 180-b],
+    expl: step("OA＝OB（半径）なので △OAB は二等辺三角形。∠OBA＝∠OAB＝"+dg(b))
+        + step("∠AOB＝180°−"+b+"°×2＝"+dg(aob))
+        + step(AX+"（∠ACB）は弧ABに対する円周角なので "+AX+"＝"+aob+"°÷2＝<b>"+dg(ans)+"</b>"),
+    kufu: "中心 O と円周上の点を結ぶ線分はどれも半径。二等辺三角形ができていないか探しましょう。" });
+}
+/* 補助線 OA で二等辺三角形が2つ（OA はかかない）。∠OBA・∠OCA から ∠BAC か ∠BOC */
+function cA5(){
+  var b = ri(15,40), c = ri(15, Math.min(45, 75-b)), a = b+c, t = ri(-12,12);
+  var thB = 270-a+t, thC = 270+a+t;
+  var askO = ri(0,1) === 1, ans = askO ? 2*a : a;
+  var F = { O:true, on:{ A:thC+180-2*c, B:thB, C:thC },
+    segs:[["A","B"],["A","C"],["O","B"],["O","C"]],
+    angs:[{ v:"B", a:"A", b:"O", t:dg(b) }, { v:"C", a:"A", b:"O", t:dg(c) },
+          askO ? { v:"O", a:"B", b:"C", x:true } : { v:"A", a:"B", b:"C", x:true }] };
+  return degQ({ key:"chuushin", tag:askO ? "二等辺三角形2つ（中心角）" : "二等辺三角形2つ（円周角）",
+    F:F, aria:"円周角と中心角の図",
+    q:"点 O は円の中心です。"+AX+" の大きさを求めなさい。",
+    plain:"円Oで∠OBA="+b+"°、∠OCA="+c+"°のとき、"+(askO ? "∠BOC" : "∠BAC")+"(x)の大きさ",
+    ans:ans, candv: askO ? [a, 360-2*a, 180-a, 4*a, 180-2*a] : [2*a, 180-2*a, b, c, 90-a, 180-a],
+    expl: step("補助線 OA をひく。OA＝OB（半径）なので ∠OAB＝∠OBA＝"+dg(b))
+        + step("OA＝OC（半径）なので ∠OAC＝∠OCA＝"+dg(c))
+        + (askO
+          ? step("∠BAC＝"+b+"°＋"+c+"°＝"+dg(a))
+            + step(AX+"（∠BOC）は弧BCに対する中心角なので "+AX+"＝"+a+"°×2＝<b>"+dg(ans)+"</b>")
+          : step(AX+"＝∠OAB＋∠OAC＝"+b+"°＋"+c+"°＝<b>"+dg(ans)+"</b>")),
+    kufu: "中心 O と円周上の点を結ぶ補助線をひくと、半径でできる二等辺三角形が見つかります。" });
+}
+/* 2つの弧をあわせる（弧BC と弧CD の円周角から、弧BD の円周角・中心角）。
+   B,C,D は下、E,F,A は上の弧に反時計まわり。onaji の oB4 と共用 */
+function twoArcLayout(){
+  var p = ri(18,40), q = ri(18,40), t = ri(-12,12);
+  var thB = 270-p-q+t, thC = thB+2*p, thD = thC+2*q;
+  var thE = thD+ri(38,55), thA = thB+360-ri(38,55);
+  return { p:p, q:q, on:{ A:thA, B:thB, C:thC, D:thD, E:thE, F:(thE+thA)/2+ri(-12,12) } };
+}
+function cA6(){
+  var L = twoArcLayout(), p = L.p, q = L.q, s = p+q, ans = 2*s;
+  delete L.on.F;
+  var F = { O:true, on:L.on,
+    segs:[["A","B"],["A","C"],["E","C"],["E","D"],["O","B"],["O","D"]],
+    angs:[{ v:"A", a:"B", b:"C", t:dg(p) }, { v:"E", a:"C", b:"D", t:dg(q) }, { v:"O", a:"B", b:"D", x:true }] };
+  return degQ({ key:"chuushin", tag:"2つの弧をあわせた中心角", F:F, aria:"円周角と中心角の図",
+    q:"点 O は円の中心です。"+AX+" の大きさを求めなさい。",
+    plain:"円Oで∠BAC="+p+"°、∠CED="+q+"°のとき、中心角∠BOD(x)の大きさ",
+    ans:ans, candv:[s, 2*p, 2*q, 360-ans, 180-s],
+    expl: step("∠BAC は弧BCに対する円周角なので、弧BC の中心角 ∠BOC＝"+p+"°×2＝"+dg(2*p))
+        + step("∠CED は弧CDに対する円周角なので、弧CD の中心角 ∠COD＝"+q+"°×2＝"+dg(2*q))
+        + step(AX+"＝∠BOC＋∠COD＝"+(2*p)+"°＋"+(2*q)+"°＝<b>"+dg(ans)+"</b>"),
+    kufu: "弧BD は弧BC と弧CD をあわせた弧。中心角も、それぞれの中心角をたせば求められます。" });
+}
+function gen_chuushin(){
+  var r = ri(1,12);
+  return r <= 2 ? cA1() : r <= 4 ? cA2() : r <= 6 ? cA3() : r <= 8 ? cA4() : r <= 10 ? cA5() : cA6();
+}
+
+/* =====================================================================
+   ② 同じ弧に対する円周角（onaji）
+   ===================================================================== */
+function oB1(){
+  var a = ri(25,70), t = ri(-12,12), s = ri(-8,8);
+  var F = { on:{ A:270-a+t, B:270+a+t, C:90+ri(20,55)+s, D:90-ri(20,55)+s },
+    segs:[["C","A"],["C","B"],["D","A"],["D","B"]],
+    angs:[{ v:"C", a:"A", b:"B", t:dg(a) }, { v:"D", a:"A", b:"B", x:true }] };
+  if(ri(0,1)){                     /* 左右を入れかえて、x が左に出る図も作る */
+    F.angs = [{ v:"D", a:"A", b:"B", t:dg(a) }, { v:"C", a:"A", b:"B", x:true }];
+  }
+  var giv = F.angs[0].v, xv = F.angs[1].v;
+  return degQ({ key:"onaji", tag:"同じ弧に対する円周角", F:F, aria:"同じ弧に対する円周角の図",
+    q:AX+" の大きさを求めなさい。",
+    plain:"円周上の4点A,B,C,Dで∠A"+giv+"B="+a+"°のとき、∠A"+xv+"B(x)の大きさ",
+    ans:a, candv:[2*a, 180-a, 90-a, a/2, 90+a],
+    expl: step("∠A"+giv+"B と "+AX+"（∠A"+xv+"B）は、どちらも弧ABに対する円周角")
+        + step("同じ弧に対する円周角は等しいので "+AX+"＝<b>"+dg(a)+"</b>"),
+    kufu: "どの弧に対する角なのかは、角の2本の辺がはさむ弧で見分けます。" });
+}
+/* 弦が交わってできる角：A,B,C,D は反時計まわり、AC と BD の交点 E */
+function onajiLayout(){
+  var a = ri(20,50), b = ri(20,50), rest = 360-2*a-2*b;
+  var lo = Math.max(30, (rest-160)/2), hi = Math.min(80, (rest-60)/2);
+  var ab = 2*ri(Math.ceil(lo), Math.floor(hi)), cd = rest-ab;
+  var thA = 270-a-ab+ri(-10,10);
+  var on = { A:thA, B:thA+ab, C:thA+ab+2*a, D:thA+ab+2*a+cd };
+  var p = { A:onC(on.A), B:onC(on.B), C:onC(on.C), D:onC(on.D) };
+  return { a:a, b:b, on:on, E:lineX(p.A,p.C,p.B,p.D) };
+}
+function oB2(){
+  var L = onajiLayout(), a = L.a, b = L.b, ans = a+b;
+  var F = { on:L.on, ext:{ E:L.E },
+    segs:[["A","C"],["B","D"],["A","B"],["D","C"]],
+    angs:[{ v:"D", a:"B", b:"C", t:dg(a) }, { v:"B", a:"A", b:"D", t:dg(b) }, { v:"E", a:"B", b:"C", x:true }] };
+  return degQ({ key:"onaji", tag:"弦が交わってできる角", F:F, aria:"弦が交わってできる角の図",
+    q:"AC と BD の交点を E とします。"+AX+" の大きさを求めなさい。",
+    plain:"円周上のA,B,C,D。ACとBDの交点E。∠BDC="+a+"°、∠ABD="+b+"°のとき∠BEC(x)",
+    ans:ans, candv:[a, b, Math.abs(a-b), 180-a-b, 2*ans, 180-a],
+    expl: step("∠BAC と ∠BDC は、どちらも弧BCに対する円周角なので ∠BAC＝"+dg(a))
+        + step(AX+"（∠BEC）は △ABE の外角なので "+AX+"＝∠BAE＋∠ABE")
+        + step(AX+"＝"+a+"°＋"+b+"°＝<b>"+dg(ans)+"</b>"),
+    kufu: "三角形の外角は、となりにない2つの内角の和。円周角で角を「移して」三角形を作りましょう。" });
+}
+function oB3(){
+  var L = onajiLayout(), a = L.a, b = L.b, tt = a+b;
+  var F = { on:L.on, ext:{ E:L.E },
+    segs:[["A","C"],["B","D"],["A","B"],["D","C"]],
+    angs:[{ v:"E", a:"B", b:"C", t:dg(tt) }, { v:"B", a:"A", b:"D", t:dg(b) }, { v:"D", a:"B", b:"C", x:true }] };
+  return degQ({ key:"onaji", tag:"弦が交わってできる角（逆に求める）", F:F, aria:"弦が交わってできる角の図",
+    q:"AC と BD の交点を E とします。"+AX+" の大きさを求めなさい。",
+    plain:"円周上のA,B,C,D。ACとBDの交点E。∠BEC="+tt+"°、∠ABD="+b+"°のとき∠BDC(x)",
+    ans:a, candv:[b, tt, tt+b, 180-tt, 180-b],
+    expl: step("∠BEC は △ABE の外角なので ∠BAE＝∠BEC−∠ABE＝"+tt+"°−"+b+"°＝"+dg(a))
+        + step(AX+"（∠BDC）と ∠BAC は、どちらも弧BCに対する円周角なので "+AX+"＝<b>"+dg(a)+"</b>"),
+    kufu: "わかっている角が入った三角形を見つけて、外角の関係を使います。" });
+}
+/* 2つの弧をあわせた円周角（弧BC・弧CD の円周角から、弧BD の円周角 ∠BFD） */
+function oB4(){
+  var L = twoArcLayout(), p = L.p, q = L.q, ans = p+q;
+  var F = { on:L.on,
+    segs:[["A","B"],["A","C"],["E","C"],["E","D"],["F","B"],["F","D"]],
+    angs:[{ v:"A", a:"B", b:"C", t:dg(p) }, { v:"E", a:"C", b:"D", t:dg(q) }, { v:"F", a:"B", b:"D", x:true }] };
+  return degQ({ key:"onaji", tag:"2つの弧をあわせた円周角", F:F, aria:"同じ弧に対する円周角の図",
+    q:AX+" の大きさを求めなさい。",
+    plain:"円周上のA,B,C,D,E,F。∠BAC="+p+"°、∠CED="+q+"°のとき、∠BFD(x)の大きさ",
+    ans:ans, candv:[p, q, 2*ans, Math.abs(p-q), 180-ans],
+    expl: step("補助線 FC をひく。∠BFC と ∠BAC は弧BCに対する円周角なので ∠BFC＝"+dg(p))
+        + step("∠CFD と ∠CED は弧CDに対する円周角なので ∠CFD＝"+dg(q))
+        + step(AX+"＝∠BFC＋∠CFD＝"+p+"°＋"+q+"°＝<b>"+dg(ans)+"</b>"),
+    kufu: "弧を2つに分けて、それぞれの円周角を同じ点 F に集めます。" });
+}
+/* yF3・yF5（円の外で交わる2直線）は⑥の応用の段で定義している（outLayout を共用） */
+function gen_onaji(){
+  var r = ri(1,12);
+  return r <= 3 ? oB1() : r <= 5 ? oB2() : r <= 6 ? oB3() : r <= 8 ? oB4() : r <= 10 ? yF3() : yF5();
+}
+
+/* =====================================================================
+   ③ 直径と円周角（chokkei）。AB は直径
+   ===================================================================== */
+function chLayout(withD){
+  var a = ri(20,70), t = ri(-15,15);
+  var on = { A:180+t, B:t, C:t+2*a };
+  if(withD) on.D = 180+t+ri(28,152);
+  return { a:a, t:t, on:on };
+}
+function chC1(){
+  var L = chLayout(false), a = L.a, ans = 90-a;
+  var F = { O:true, on:L.on, segs:[["A","B"],["A","C"],["B","C"]],
+    angs:[{ v:"A", a:"C", b:"B", t:dg(a) }, { v:"B", a:"A", b:"C", x:true }] };
+  return degQ({ key:"chokkei", tag:"直径と円周角", F:F, aria:"直径と円周角の図",
+    q:"線分 AB は円 O の直径です。"+AX+" の大きさを求めなさい。",
+    plain:"ABは円Oの直径。∠CAB="+a+"°のとき∠ABC(x)の大きさ",
+    ans:ans, candv:[a, 180-a, 90+a, 2*a, 180-2*a],
+    expl: step("AB は直径なので、半円の弧に対する円周角 ∠ACB＝90°")
+        + step("△ABC の内角の和から "+AX+"＝180°−90°−"+a+"°＝<b>"+dg(ans)+"</b>"),
+    kufu: "直径を見つけたら「90°の角」がどこにできるかを探しましょう（直径の両はしと円周上の点を結ぶ）。" });
+}
+function chC2(){
+  var L = chLayout(true), a = L.a, ans = 90-a;
+  var F = { O:true, on:L.on, segs:[["A","B"],["A","C"],["B","C"],["A","D"],["D","C"]],
+    angs:[{ v:"A", a:"C", b:"B", t:dg(a) }, { v:"D", a:"A", b:"C", x:true }] };
+  return degQ({ key:"chokkei", tag:"直径と同じ弧の円周角", F:F, aria:"直径と円周角の図",
+    q:"線分 AB は円 O の直径です。"+AX+" の大きさを求めなさい。",
+    plain:"ABは円Oの直径。∠CAB="+a+"°のとき∠ADC(x)の大きさ",
+    ans:ans, candv:[a, 180-a, 2*a, 90+a, 180-2*a],
+    expl: step("AB は直径なので ∠ACB＝90°。△ABC で ∠ABC＝180°−90°−"+a+"°＝"+dg(ans))
+        + step(AX+"（∠ADC）と ∠ABC は、どちらも弧ACに対する円周角なので "+AX+"＝<b>"+dg(ans)+"</b>"),
+    kufu: "「直径→90°」と「同じ弧の円周角は等しい」の2つを組み合わせる問題です。" });
+}
+function chC3(){
+  var L = chLayout(true), a = L.a, ans = 90-a;
+  var F = { O:true, on:L.on, segs:[["A","B"],["A","C"],["B","C"],["A","D"],["D","C"]],
+    angs:[{ v:"D", a:"A", b:"C", t:dg(ans) }, { v:"A", a:"C", b:"B", x:true }] };
+  return degQ({ key:"chokkei", tag:"直径と同じ弧の円周角（逆に求める）", F:F, aria:"直径と円周角の図",
+    q:"線分 AB は円 O の直径です。"+AX+" の大きさを求めなさい。",
+    plain:"ABは円Oの直径。∠ADC="+ans+"°のとき∠CAB(x)の大きさ",
+    ans:a, candv:[ans, 180-ans, 2*ans, 90+ans, 180-2*ans],
+    expl: step("∠ABC と ∠ADC は、どちらも弧ACに対する円周角なので ∠ABC＝"+dg(ans))
+        + step("AB は直径なので ∠ACB＝90°")
+        + step("△ABC で "+AX+"＝180°−90°−"+ans+"°＝<b>"+dg(a)+"</b>"),
+    kufu: "「直径→90°」と「同じ弧の円周角は等しい」の2つを組み合わせる問題です。" });
+}
+function gen_chokkei(){ var r = ri(1,10); return r <= 4 ? chC1() : r <= 7 ? chC2() : chC3(); }
+
+/* =====================================================================
+   ④ 弧と円周角（ko）
+   ===================================================================== */
+var EQ_N = [6, 9, 10, 12];
+/* 円周を n 等分した点。A を頂点とする円周角 */
+function kD1(){
+  var n = pick(EQ_N), s = 180/n, k = ri(2, n-2);
+  var p = ri(0,n-1), q = p+k, v = q+ri(1, n-k-1);
+  var th0 = 90 + (ri(0,1) ? 180/n : 0);
+  function th(i){ return th0 + 360*(i % n)/n; }
+  var nd = []; for(var i=0;i<n;i++) nd.push(th(i));
+  var F = { on:{ A:th(v), B:th(p), C:th(q) }, ndots:nd,
+    segs:[["A","B"],["A","C"]],
+    angs:[{ v:"A", a:"B", b:"C", x:true }] };
+  var ans = s*k;
+  return degQ({ key:"ko", tag:"円周を等分した点", F:F, aria:"円周を等分した点の図",
+    q:"円周上の "+n+" 個の点は、円周を "+n+" 等分しています。"+AX+" の大きさを求めなさい。",
+    plain:"円周を"+n+"等分した点。弧BCは等分した弧"+k+"個分。円周角∠BAC(x)の大きさ",
+    ans:ans, candv:[2*ans, ans+s, ans-s, 180-ans, ans/2],
+    expl: step("等分した弧1つ分の中心角は 360°÷"+n+"＝"+dg(360/n)+"、円周角はその半分の "+dg(s))
+        + step(AX+" は、等分した弧 "+k+" 個分の弧BCに対する円周角")
+        + step(AX+"＝"+nf(s)+"°×"+k+"＝<b>"+dg(ans)+"</b>"),
+    kufu: "円周角の大きさは弧の長さに比例します。まず「弧1つ分の円周角」を求めましょう。" });
+}
+/* 円周を n 等分した点。弦 AC と BD の交点 E の角 */
+function kD2(){
+  var n = pick(EQ_N), s = 180/n, i;
+  var idx = []; for(i=0;i<n;i++) idx.push(i);
+  var four = shuffle(idx).slice(0,4).sort(function(x,y){ return x-y; });
+  var k1 = four[1]-four[0], k3 = four[3]-four[2], ans = (k1+k3)*s;
+  var th0 = 90 + (ri(0,1) ? 180/n : 0);
+  function th(j){ return th0 + 360*j/n; }
+  var nd = []; for(i=0;i<n;i++) nd.push(th(i));
+  var on = { A:th(four[0]), B:th(four[1]), C:th(four[2]), D:th(four[3]) };
+  var E = lineX(onC(on.A), onC(on.C), onC(on.B), onC(on.D));
+  var F = { on:on, ext:{ E:E }, ndots:nd,
+    segs:[["A","C"],["B","D"],["B","C","dash"]],
+    angs:[{ v:"E", a:"A", b:"B", x:true }] };
+  return degQ({ key:"ko", tag:"等分した点と弦の交わり", F:F, aria:"円周を等分した点の図",
+    q:"円周上の "+n+" 個の点は、円周を "+n+" 等分しています。AC と BD の交点を E とするとき、"+AX+" の大きさを求めなさい。",
+    plain:"円周を"+n+"等分した点。弧ABは"+k1+"個分、弧CDは"+k3+"個分。ACとBDの交点Eで∠AEB(x)",
+    ans:ans, candv:[k1*s, k3*s, 2*ans, Math.abs(k1-k3)*s, 180-ans],
+    expl: step("等分した弧1つ分の円周角は 360°÷"+n+"÷2＝"+dg(s))
+        + step("補助線 BC をひくと、"+AX+"（∠AEB）は △EBC の外角なので "+AX+"＝∠ACB＋∠DBC")
+        + step("∠ACB は弧AB（"+k1+"個分）に対する円周角で "+dg(k1*s)+"、∠DBC は弧CD（"+k3+"個分）に対する円周角で "+dg(k3*s))
+        + step(AX+"＝"+nf(k1*s)+"°＋"+nf(k3*s)+"°＝<b>"+dg(ans)+"</b>"),
+    kufu: "交わってできる角は、補助線で三角形を作って「外角＝2つの内角の和」にします。" });
+}
+var RATIOS = [[1,2],[2,1],[1,3],[3,1],[2,3],[3,2],[3,4],[4,3],[2,5],[5,2]];
+function ratioPick(){
+  for(var t=0;t<40;t++){
+    var r = pick(RATIOS), p = r[0], q = r[1];
+    var kMin = Math.ceil(16/Math.min(p,q)), kMax = Math.floor(Math.min(75/Math.max(p,q), 130/(p+q)));
+    if(kMax >= kMin) return { p:p, q:q, k:ri(kMin,kMax) };
+  }
+  return { p:2, q:3, k:10 };
+}
+/* 弧の比 */
+function kD3(){
+  var R = ratioPick(), a = R.p*R.k, x = R.q*R.k, t = ri(-12,12);
+  var thA = 270-(a+x)+t, thB = thA+2*a, thC = thB+2*x;
+  var F = { on:{ A:thA, B:thB, C:thC, D:thC+(360-2*a-2*x)/2+ri(-20,20) },
+    arcs:[{ from:thA, to:thB, col:C.aiL }, { from:thB, to:thC, col:C.shuL }],
+    segs:[["D","A"],["D","B"],["D","C"]],
+    angs:[{ v:"D", a:"A", b:"B", t:dg(a) }, { v:"D", a:"B", b:"C", x:true }] };
+  return degQ({ key:"ko", tag:"弧の比と円周角", F:F, aria:"弧と円周角の図",
+    q:"弧AB：弧BC＝"+R.p+"：" +R.q+" です。"+AX+" の大きさを求めなさい。",
+    plain:"弧AB:弧BC="+R.p+":"+R.q+"、∠ADB="+a+"°のとき∠BDC(x)の大きさ",
+    ans:x, candv:[a*R.p/R.q, a+x, 2*x, a, 180-a-x],
+    expl: step("1つの円で、円周角の大きさは弧の長さに比例する")
+        + step("弧AB：弧BC＝"+R.p+"：" +R.q+" なので ∠ADB："+AX+"＝"+R.p+"："+R.q)
+        + step(AX+"＝"+a+"°×"+R.q+"÷"+R.p+"＝<b>"+dg(x)+"</b>"),
+    kufu: "弧の長さが2倍・3倍になると、円周角も2倍・3倍になります。" });
+}
+/* 弧の長さ */
+function kD4(){
+  var R = ratioPick(), a = R.p*R.k, b = R.q*R.k, t = ri(-12,12);
+  var m = ri(1, Math.max(1, Math.floor(15/Math.max(R.p,R.q)))), L = R.p*m, ans = R.q*m;
+  var thA = 270-(a+b)+t, thB = thA+2*a, thC = thB+2*b;
+  var F = { on:{ A:thA, B:thB, C:thC, P:thC+(360-2*a-2*b)/2+ri(-20,20) },
+    arcs:[{ from:thA, to:thB, col:C.aiL, tcol:C.ai, t:L+"cm" }, { from:thB, to:thC, col:C.shuL }],
+    segs:[["P","A"],["P","B"],["P","C"]],
+    angs:[{ v:"P", a:"A", b:"B", t:dg(a) }, { v:"P", a:"B", b:"C", t:dg(b) }] };
+  return mk({ key:"ko", tag:"円周角と弧の長さ", F:F, aria:"弧と円周角の図",
+    q:"弧AB の長さは "+L+"cm です。弧BC の長さを求めなさい。",
+    plain:"∠APB="+a+"°、∠BPC="+b+"°、弧ABの長さ"+L+"cmのとき、弧BCの長さ",
+    label:"弧BC の長さ", u:"cm",
+    cor:optCm(ans),
+    cands:[optCm(L*R.p/R.q), optCm(L), optCm(2*ans), optCm(ans+L), optCm(L+R.q-R.p)],
+    fb:fbNums(ans, 1, optCm),
+    chk:{ ans:ans },
+    expl: step("円周角の大きさと弧の長さは比例する")
+        + step("∠APB：∠BPC＝"+a+"："+b+"＝"+R.p+"："+R.q+" なので 弧AB：弧BC＝"+R.p+"："+R.q)
+        + step("弧BC＝"+L+"cm×"+R.q+"÷"+R.p+"＝<b>"+ans+"cm</b>"),
+    kufu: "角の比をいちばん簡単な整数の比になおしてから、弧の長さにあてはめます。" });
+}
+function gen_ko(){ var r = ri(1,10); return r <= 3 ? kD1() : r <= 5 ? kD2() : r <= 8 ? kD3() : kD4(); }
+
+/* =====================================================================
+   ⑤ 円周角の定理の逆（gyaku）。四角形ABCD（A,B,C,D は反時計まわり）、対角線の交点 E
+   ===================================================================== */
+/* 線分の同じ側から見た2つの角（等しければ4点は1つの円周上にある）。
+   ang：それぞれの角の [頂点, 辺の点, 辺の点]、arc：その2つの角が対する弧 */
+var SAME = [
+  { p:["∠BAC","∠BDC"], seg:"BC", ang:[["A","B","C"],["D","B","C"]], side:"A と D" },
+  { p:["∠ABD","∠ACD"], seg:"AD", ang:[["B","A","D"],["C","A","D"]], side:"B と C" },
+  { p:["∠CAD","∠CBD"], seg:"CD", ang:[["A","C","D"],["B","C","D"]], side:"A と B" },
+  { p:["∠ADB","∠ACB"], seg:"AB", ang:[["D","A","B"],["C","A","B"]], side:"D と C" }
+];
+var TRAPS = [
+  { p:["∠BAC","∠ACD"], why:"錯角が等しいだけ（AB∥DC になる）" },
+  { p:["∠ABD","∠BDC"], why:"錯角が等しいだけ（AB∥DC になる）" },
+  { p:["∠CAD","∠ACB"], why:"錯角が等しいだけ（AD∥BC になる）" },
+  { p:["∠ADB","∠DBC"], why:"錯角が等しいだけ（AD∥BC になる）" },
+  { p:["∠ABC","∠ADC"], why:"向かい合う角が等しいだけでは、円周上にあるとはいえない" },
+  { p:["∠BAC","∠CAD"], why:"AC が ∠A を2等分しているだけ" },
+  { p:["∠ABD","∠DBC"], why:"BD が ∠B を2等分しているだけ" },
+  { p:["∠BAC","∠ABD"], why:"△EAB が二等辺三角形になるだけ" },
+  { p:["∠AEB","∠CED"], why:"対頂角はいつでも等しい（条件にならない）" }
+];
+function condH(p,v){ return p[0]+"＝"+v+"°、"+p[1]+"＝"+v+"°"; }
+function condP(p,v){ return p[0]+"="+v+"°,"+p[1]+"="+v+"°"; }
+/* 4点が円周上にある条件を選ぶ（図はふつうの四角形） */
+function gE1(){
+  var cor = pick(SAME), traps = shuffle(TRAPS).slice(0,3);
+  var items = [{ p:cor.p, ok:true, v:ri(25,70) }].concat(traps.map(function(tr){
+    return { p:tr.p, ok:false, v:ri(25,80), why:tr.why };
+  }));
+  items = shuffle(items);
+  var ci = 0;
+  items.forEach(function(it,i){ if(it.ok) ci = i; });
+  var base = { A:135, B:225, C:315, D:45 }, ext = {};
+  Object.keys(base).forEach(function(k){
+    var th = (base[k]+ri(-14,14))*Math.PI/180, r = ri(66,100);
+    ext[k] = [r*Math.cos(th), -r*Math.sin(th)];
+  });
+  ext.E = lineX(ext.A, ext.C, ext.B, ext.D);
+  var F = { circle:false, ext:ext, out:["A","B","C","D"], cen:[0,0],
+    segs:[["A","B"],["B","C"],["C","D"],["D","A"],["A","C"],["B","D"]] };
+  var opts = KANA4.map(function(k,i){ return optLabel(k, k+"："+condP(items[i].p, items[i].v)); });
+  var list = items.map(function(it,i){
+    return '<span class="sit"><span class="sl">'+KANA4[i]+'</span>'+condH(it.p, it.v)+'</span>';
+  }).join("");
+  var why = items.map(function(it,i){
+    return it.ok
+      ? step('<span class="ok">'+KANA4[i]+' ○</span> '+it.p[0]+" と "+it.p[1]+" は、線分"+cor.seg+"について同じ側（"+cor.side+"）にある2つの角で、等しい")
+      : step('<span class="ng">'+KANA4[i]+' × '+it.why+'</span>');
+  }).join("");
+  return mk({ key:"gyaku", tag:"4点が円周上にある条件", F:F, aria:"四角形ABCDの図", small:true,
+    q:"四角形ABCD の対角線の交点を E とします。4点 A、B、C、D が1つの円周上にあるといえるものを、ア〜エから1つ選びなさい。"
+      + '<span style="display:block;margin-top:4px">'+list+'</span>',
+    plain:capBytes("四角形ABCD(対角線の交点E)で、4点A,B,C,Dが1つの円周上にあるといえるもの "
+      + items.map(function(it,i){ return KANA4[i]+condP(it.p,it.v); }).join(" "), 255),
+    label:"", options:opts, correct:ci,
+    chk:{ key:"L"+KANA4[ci] },
+    expl: step("線分の同じ側にある2つの角が等しければ、4点は1つの円周上にある（円周角の定理の逆）")
+        + why
+        + step("答え <b>"+KANA4[ci]+"</b>"),
+    kufu: "2つの角が「同じ線分」を「同じ側」から見ているかを確かめます。錯角・対頂角とまちがえないように。" });
+}
+/* 定理の逆を使って角を求める（図に円はかかない） */
+function gE2(){
+  var al, be, ga, de;
+  for(var t=0;t<60;t++){
+    al = ri(24,64); be = ri(24,64); ga = ri(24,64); de = 180-al-be-ga;
+    if(de >= 24 && de <= 64) break;
+  }
+  if(!(de >= 24 && de <= 64)){ al = 40; be = 45; ga = 50; de = 45; }
+  var val = [be, de, ga, al];                  /* SAME の順の角の大きさ（弧BC・AD・CD・AB の半分） */
+  var thA = 180-al+ri(-12,12);
+  var on = { A:thA, B:thA+2*al, C:thA+2*al+2*be, D:thA+2*al+2*be+2*ga };
+  var pa = { A:onC(on.A), B:onC(on.B), C:onC(on.C), D:onC(on.D) };
+  var ix = shuffle([0,1,2,3]), i = ix[0], j = ix[1];
+  var Si = SAME[i], Sj = SAME[j], ans = val[j];
+  var F = { circle:false, on:on, ext:{ E:lineX(pa.A, pa.C, pa.B, pa.D) },
+    segs:[["A","B"],["B","C"],["C","D"],["D","A"],["A","C"],["B","D"]],
+    angs:[{ v:Si.ang[0][0], a:Si.ang[0][1], b:Si.ang[0][2], t:dg(val[i]) },
+          { v:Si.ang[1][0], a:Si.ang[1][1], b:Si.ang[1][2], t:dg(val[i]) },
+          { v:Sj.ang[0][0], a:Sj.ang[0][1], b:Sj.ang[0][2], t:dg(ans) },
+          { v:Sj.ang[1][0], a:Sj.ang[1][1], b:Sj.ang[1][2], x:true }] };
+  var others = val.filter(function(v,k){ return k !== j; });
+  return degQ({ key:"gyaku", tag:"円周角の定理の逆を使う", F:F, aria:"四角形ABCDの図",
+    q:"四角形ABCD の対角線の交点を E とします。"+AX+" の大きさを求めなさい。",
+    plain:"四角形ABCDで"+Si.p[0]+"="+Si.p[1]+"="+val[i]+"°、"+Sj.p[0]+"="+ans+"°のとき"+Sj.p[1]+"(x)",
+    ans:ans, candv:[val[i], 180-val[i]-ans, val[i]+ans, 90-ans].concat(others),
+    expl: step(Si.p[0]+"＝"+Si.p[1]+"＝"+dg(val[i])+" で、この2つの角は線分"+Si.seg+"について同じ側にある")
+        + step("円周角の定理の逆より、4点 A、B、C、D は1つの円周上にある")
+        + step(AX+"（"+Sj.p[1]+"）と "+Sj.p[0]+" は、どちらも弧"+Sj.seg+"に対する円周角なので "+AX+"＝<b>"+dg(ans)+"</b>"),
+    kufu: "図に円がなくても、等しい角の組から「4点が円周上にある」と言えれば、円周角の定理が使えます。" });
+}
+function gen_gyaku(){ return ri(1,10) <= 5 ? gE1() : gE2(); }
+
+/* =====================================================================
+   ⑥ 応用・チャレンジ（oyou）
+   ===================================================================== */
+/* 円周角 → 中心と二等辺三角形 */
+function yF1(){
+  var a = ri(24,68), t = ri(-12,12), ans = 90-a;
+  var F = { O:true, on:{ B:270-a+t, C:270+a+t, A:90+ri(-28,28) },
+    segs:[["A","B"],["A","C"],["B","C"],["O","B"],["O","C"]],
+    angs:[{ v:"A", a:"B", b:"C", t:dg(a) }, { v:"B", a:"O", b:"C", x:true }] };
+  return degQ({ key:"oyou", tag:"中心と二等辺三角形", F:F, aria:"円周角と中心角の図",
+    q:"点 O は円の中心です。"+AX+" の大きさを求めなさい。",
+    plain:"円Oで∠BAC="+a+"°のとき、∠OBC(x)の大きさ",
+    ans:ans, candv:[a, 2*a, 180-2*a, 90+a, 180-a],
+    expl: step("∠BOC は弧BCに対する中心角なので ∠BOC＝"+a+"°×2＝"+dg(2*a))
+        + step("OB＝OC（半径）なので △OBC は二等辺三角形")
+        + step(AX+"＝(180°−"+(2*a)+"°)÷2＝<b>"+dg(ans)+"</b>"),
+    kufu: "中心角を求めてから、半径でできる二等辺三角形の底角を求めます。" });
+}
+/* 円の外で交わる2直線（P−B−A、P−C−D） */
+function outLayout(){
+  for(var t=0;t<60;t++){
+    var a = ri(40,78), b = ri(15, a-22);
+    if(a+b > 120) continue;
+    var u = ri(-10,10), w = ri(-14,14);
+    var on = { A:180-a+w, B:b+u, C:-b+u, D:180+a+w };
+    var pA = onC(on.A), pB = onC(on.B), pC = onC(on.C), pD = onC(on.D);
+    var P = lineX(pA, pB, pD, pC);
+    var t1 = vdot(vsub(P,pA), vsub(pB,pA))/vdot(vsub(pB,pA), vsub(pB,pA));
+    var t2 = vdot(vsub(P,pD), vsub(pC,pD))/vdot(vsub(pC,pD), vsub(pC,pD));
+    if(t1 > 1.08 && t2 > 1.08 && vlen(P) < RR*2.05) return { a:a, b:b, on:on, P:P };   /* 遠すぎると図ぜんたいが小さくなる */
+  }
+  var on2 = { A:110, B:20, C:-20, D:250 };
+  return { a:70, b:20, on:on2, P:lineX(onC(110), onC(20), onC(250), onC(-20)) };
+}
+function yF2(){
+  var L = outLayout(), a = L.a, b = L.b, ans = a-b;
+  var F = { on:L.on, ext:{ P:L.P },
+    segs:[["P","A"],["P","D"],["A","C"],["B","D"]],
+    angs:[{ v:"C", a:"A", b:"D", t:dg(a) }, { v:"D", a:"B", b:"C", t:dg(b) }, { v:"P", a:"A", b:"D", x:true }] };
+  return degQ({ key:"oyou", tag:"円の外で交わる2直線", F:F, aria:"円の外で交わる直線の図",
+    q:"直線 AB と直線 DC が、円の外の点 P で交わっています。"+AX+" の大きさを求めなさい。",
+    plain:"直線ABとDCが円外の点Pで交わる。∠ACD="+a+"°、∠BDC="+b+"°のとき∠APD(x)",
+    ans:ans, candv:[a+b, a, b, 180-a-b, 180-a+b],
+    expl: step("∠ABD と ∠ACD は、どちらも弧ADに対する円周角なので ∠ABD＝"+dg(a))
+        + step("∠ABD は △PBD の外角なので ∠ABD＝"+AX+"＋∠BDP")
+        + step(AX+"＝"+a+"°−"+b+"°＝<b>"+dg(ans)+"</b>"),
+    kufu: "円周角で角を移して、P をふくむ三角形の外角の関係を作ります。" });
+}
+function yF3(){
+  var L = outLayout(), a = L.a, b = L.b, p = a-b;
+  var F = { on:L.on, ext:{ P:L.P },
+    segs:[["P","A"],["P","D"],["A","C"],["B","D"]],
+    angs:[{ v:"P", a:"A", b:"D", t:dg(p) }, { v:"D", a:"B", b:"C", t:dg(b) }, { v:"C", a:"A", b:"D", x:true }] };
+  /* 外角でたしてから同じ弧に移すだけなので、チャレンジではなく「同じ弧」のモードで出す */
+  return degQ({ key:"onaji", tag:"円の外で交わる2直線（逆に求める）", F:F, aria:"円の外で交わる直線の図",
+    q:"直線 AB と直線 DC が、円の外の点 P で交わっています。"+AX+" の大きさを求めなさい。",
+    plain:"直線ABとDCが円外の点Pで交わる。∠APD="+p+"°、∠BDC="+b+"°のとき∠ACD(x)",
+    ans:a, candv:[p, b, Math.abs(p-b), 180-p-b, 2*p],
+    expl: step("∠ABD は △PBD の外角なので ∠ABD＝∠BPD＋∠BDP＝"+p+"°＋"+b+"°＝"+dg(a))
+        + step(AX+"（∠ACD）と ∠ABD は、どちらも弧ADに対する円周角なので "+AX+"＝<b>"+dg(a)+"</b>"),
+    kufu: "円周角で角を移して、P をふくむ三角形の外角の関係を作ります。" });
+}
+/* 円の外で交わる2直線：外角からひいて、同じ弧の円周角に移す（onaji で出す） */
+function yF5(){
+  var L = outLayout(), a = L.a, b = L.b, p = a-b;
+  var F = { on:L.on, ext:{ P:L.P },
+    segs:[["P","A"],["P","D"],["A","C"],["B","D"]],
+    angs:[{ v:"B", a:"A", b:"D", t:dg(a) }, { v:"P", a:"A", b:"D", t:dg(p) }, { v:"A", a:"B", b:"C", x:true }] };
+  return degQ({ key:"onaji", tag:"円の外で交わる2直線（同じ弧に移す）", F:F, aria:"円の外で交わる直線の図",
+    q:"直線 AB と直線 DC が、円の外の点 P で交わっています。"+AX+" の大きさを求めなさい。",
+    plain:"直線ABとDCが円外の点Pで交わる。∠ABD="+a+"°、∠APD="+p+"°のとき∠BAC(x)",
+    ans:b, candv:[a, p, a+p, 180-a, 180-a-p],
+    expl: step("∠ABD は △PBD の外角なので ∠BDP＝∠ABD−∠BPD＝"+a+"°−"+p+"°＝"+dg(b))
+        + step(AX+"（∠BAC）と ∠BDC は、どちらも弧BCに対する円周角なので "+AX+"＝<b>"+dg(b)+"</b>"),
+    kufu: "外角の関係でまず三角形の中の角を出し、それを円周角で移します。" });
+}
+/* 円の接線（接線は接点を通る半径に垂直）。直線 BO と円の交点 C、AB は点 A での接線 */
+function yF6(){
+  /* c が小さいと B が円にくっつく（教科書の図は B が離れている）。33° までなら B は中心から半径の2.5倍以内 */
+  var c = ri(20,33), g = 90-2*c, sd = ri(0,1) ? 1 : -1, tw = 2*c*Math.PI/180;
+  var A = onC(270), B = [sd*RR*Math.tan(tw), RR];
+  var Cp = vmul(vunit(B), -RR);
+  var thC = Math.atan2(-Cp[1], Cp[0])*180/Math.PI;
+  var askC = ri(0,1) === 1, ans = askC ? c : g;
+  var F = { O:true, on:{ A:270, C:thC }, ext:{ B:B },
+    segs:[["C","B"],["C","A"]],
+    lines:[[B, vadd(A, vmul(vunit(vsub(A,B)), 46))]],   /* 接線は A の先まで少しのばす */
+    angs: askC ? [{ v:"B", a:"A", b:"C", t:dg(g) }, { v:"C", a:"A", b:"O", x:true }]
+               : [{ v:"C", a:"A", b:"O", t:dg(c) }, { v:"B", a:"A", b:"C", x:true }] };
+  return degQ({ key:"oyou", tag:askC ? "円の接線（逆に求める）" : "円の接線", F:F, aria:"円の接線の図",
+    q:"直線 AB は点 A で円 O に接しています。"+AX+" の大きさを求めなさい。",
+    plain:"ABは点Aで円Oに接する。直線BOと円の交点C。"+(askC ? "∠ABC="+g+"°のとき∠ACB(x)" : "∠ACB="+c+"°のとき∠ABC(x)"),
+    ans:ans, candv: askC ? [g, 2*c, 90-g, 45-c, 180-2*g, c+g] : [c, 2*c, 90-c, 180-2*c, 45+c],
+    expl: askC
+      ? step("OA をひく。AB は接線なので ∠OAB＝90°（接線は接点を通る半径に垂直）")
+        + step("△OAB で ∠AOB＝180°−90°−"+g+"°＝"+dg(2*c))
+        + step("OA＝OC なので ∠OAC＝"+AX+"。∠AOB は △OAC の外角なので "+AX+"×2＝"+(2*c)+"°")
+        + step(AX+"＝"+(2*c)+"°÷2＝<b>"+dg(c)+"</b>")
+      : step("OA をひく。AB は接線なので ∠OAB＝90°（接線は接点を通る半径に垂直）")
+        + step("OA＝OC なので ∠OAC＝∠OCA＝"+c+"°。∠AOB は △OAC の外角なので ∠AOB＝"+c+"°×2＝"+dg(2*c))
+        + step("△OAB で "+AX+"＝180°−90°−"+(2*c)+"°＝<b>"+dg(g)+"</b>"),
+    kufu: "接線が出てきたら、接点と中心を結んで 90° の角を作ります。∠AOB＝∠ACB×2 は、中心角と円周角の関係からも分かります。" });
+}
+/* 円に内接する四角形（中心角を使って解く） */
+function yF4(){
+  var a;
+  do{ a = ri(56,124); }while(a === 90);
+  var half = (360-2*a)/2, s1 = half+ri(-14,14), c1 = a+ri(-(a-34), a-34);
+  var thA = 90+ri(-18,18);
+  var on = { A:thA, B:thA+s1, C:thA+s1+c1, D:thA+s1+2*a };
+  var ans = 180-a;
+  var F = { on:on, segs:[["A","B"],["B","C"],["C","D"],["D","A"]],
+    angs:[{ v:"A", a:"B", b:"D", t:dg(a) }, { v:"C", a:"B", b:"D", x:true }] };
+  return degQ({ key:"oyou", tag:"円に内接する四角形", F:F, aria:"円に内接する四角形の図",
+    q:"四角形ABCD の4つの頂点は円周上にあります。"+AX+" の大きさを求めなさい。",
+    plain:"円に内接する四角形ABCDで∠BAD="+a+"°のとき∠BCD(x)の大きさ",
+    ans:ans, candv:[a, 2*a, 360-2*a, 90+a/2, a/2],
+    expl: step("円の中心を O として OB、OD をひく。∠BAD は弧BCDに対する円周角なので、弧BCD の中心角は "+a+"°×2＝"+dg(2*a))
+        + step("のこりの弧BAD の中心角は 360°−"+(2*a)+"°＝"+dg(360-2*a))
+        + step(AX+"（∠BCD）は弧BADに対する円周角なので "+AX+"＝"+(360-2*a)+"°÷2＝<b>"+dg(ans)+"</b>"),
+    kufu: "2つの弧の中心角をたすと 360°。だから向かい合う円周角をたすと 180° になります。" });
+}
+function gen_oyou(){ var r = ri(1,10); return r <= 3 ? yF1() : r <= 5 ? yF2() : r <= 7 ? yF4() : yF6(); }
+
+/* =====================================================================
+   出題の台帳
+   ===================================================================== */
+var GENS = {
+  chuushin: gen_chuushin,
+  onaji:    gen_onaji,
+  chokkei:  gen_chokkei,
+  ko:       gen_ko,
+  gyaku:    gen_gyaku,
+  oyou:     gen_oyou
+};
+/* モード → 出す question_key。同じキーをならべたぶんだけ出やすくなる */
+var MODE_KEYS = {
+  chuushin: ["chuushin"],
+  onaji:    ["onaji"],
+  chokkei:  ["chokkei"],
+  ko:       ["ko"],
+  gyaku:    ["gyaku"],
+  oyou:     ["oyou"],
+  mix:      ["chuushin","chuushin","onaji","onaji","chokkei","ko","gyaku","oyou"]
+};
+/* 印刷シート（1枚）に出す種類。図が大きいので6問 */
+var PRINT_KEYS = {
+  chuushin: rep("chuushin",6),
+  onaji:    rep("onaji",6),
+  chokkei:  rep("chokkei",6),
+  ko:       rep("ko",6),
+  gyaku:    rep("gyaku",6),
+  oyou:     rep("oyou",6),
+  mix:      ["chuushin","onaji","chokkei","ko","gyaku","oyou"]
+};
+/* 画面の見出し（印刷の題名にも使う） */
+var MODE_LABEL = {
+  chuushin:"円周角と中心角", onaji:"同じ弧に対する円周角", chokkei:"直径と円周角",
+  ko:"弧と円周角", gyaku:"円周角の定理の逆", oyou:"円周角の応用（チャレンジ）",
+  mix:"ランダム"
+};
+function printInst(m){
+  if(m === "gyaku") return "次の問題に答えなさい。等しい2つの角が、同じ線分を同じ側から見ているかを確かめましょう。";
+  if(m === "ko")    return "次の問題に答えなさい。円周角の大きさは弧の長さに比例します。";
+  return "次の問題に答えなさい。点 O は円の中心です。";
+}
+
+/* =====================================================================
+   出題エンジン（座標・比例・反比例マスターと同じ）
+   ===================================================================== */
+var MODE = "chuushin";
+var cur = null, curKey = "", curSeed = 0;
+var sel = -1, graded = false;
+var score = 0, total = 0, streak = 0, qStart = 0;
+
+/* 解き直し（?retry=1） */
+var retryQ = null, retryTotal = 0, retryDone = 0;
+
+function $(id){ return document.getElementById(id); }
+
+function makeQ(key, seed){
+  rngSeed(seed);                       /* ここから先の乱数は種で決まる */
+  return GENS[key]();
+}
+
+/* 前の問題の「正解」はんこ（divp-correct-jh）が残っていたら消す
+   （カードを作り直さないツールなので、自分で片づける） */
+function clearStamp(){
+  document.querySelectorAll("#qcard .divp-hanko, #qcard .divp-nice").forEach(function(e){ e.remove(); });
+}
+
+function newQuestion(){
+  graded = false; sel = -1;
+  clearStamp();
+  $("feedback").classList.remove("show");
+  $("toast").textContent = "";
+  $("checkBtn").style.display = "block";
+  $("nextBtn").style.display = "none";
+
+  var useKey, seed;
+  if(retryQ){
+    /* 解き直しを1周した。モード選択にもどって、案内帯をそこに出す */
+    if(!retryQ.length){
+      retryQ = null;
+      backHome();
+      showRetryBanner("解き直しおつかれさま！ 同じ問題に2回続けて正解すると、リストから消えます。");
+      return;
+    }
+    var it = retryQ.shift();
+    retryDone++;
+    useKey = it.question_params.m;
+    seed = it.question_params.s>>>0;
+  }else{
+    useKey = pick(MODE_KEYS[MODE] || MODE_KEYS.mix);
+    seed = rngPick();
+  }
+
+  curKey = useKey;
+  curSeed = seed;
+  cur = makeQ(useKey, seed);
+
+  /* 種類バッジ。ランダムは種類名がそのままヒントになるので出さない */
+  var tagText = retryQ ? ("解き直し "+retryDone+" / "+retryTotal+" ・ "+cur.tag)
+                       : (MODE === "mix" ? "" : cur.tag);
+  $("qTag").textContent = tagText;
+  $("qTag").style.display = tagText ? "" : "none";
+  $("qNo").textContent = retryQ ? "" : ("第 "+(total+1)+" 問");
+  $("qText").innerHTML = cur.qHtml;
+  $("figArea").innerHTML = cur.fig || "";
+  renderOptions();
+  qStart = nowMs();
+  try{ window.scrollTo({ top:0, behavior:"smooth" }); }catch(e){ window.scrollTo(0,0); }
+}
+
+function renderOptions(){
+  var host = $("partArea");
+  host.innerHTML = "";
+  var wrap = document.createElement("div");
+  wrap.className = "part";
+
+  if(cur.label){                   /* 空なら見出しの行ごと出さない（ア〜エから選ぶ問題） */
+    var lab = document.createElement("div");
+    lab.className = "p-label";
+    lab.innerHTML = cur.label;     /* この画面で組み立てた文字だけ */
+    wrap.appendChild(lab);
+  }
+
+  var opts = document.createElement("div");
+  opts.className = "opts";
+  cur.options.forEach(function(o, oi){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "optBtn";
+    b.dataset.idx = oi;
+    b.innerHTML = o.html;          /* 中身はこの画面で組み立てた数・単位・ア〜エだけ */
+    b.addEventListener("click", function(){ tapOption(oi); });
+    opts.appendChild(b);
+  });
+  wrap.appendChild(opts);
+  host.appendChild(wrap);
+}
+
+function tapOption(oi){
+  if(graded) return;
+  sel = oi;
+  $("toast").textContent = "";
+  document.querySelectorAll(".optBtn").forEach(function(b){
+    b.classList.toggle("on", Number(b.dataset.idx) === oi);
+  });
+}
+
+/* ---------- 答え合わせ ---------- */
+function check(){
+  if(graded || !cur) return;
+  if(sel < 0){ $("toast").textContent = "答えを選んでください"; return; }
+
+  graded = true;
+  var ok = (sel === cur.correct);
+  var btns = document.querySelectorAll(".optBtn");
+  safeDivp("markChoices", btns, { correct:cur.correct, selected:sel,
+                                  dimOthers:true, label:"正解" });
+  btns.forEach(function(b){ b.disabled = true; });
+
+  total++;
+  if(ok){ score++; streak++; } else { streak = 0; }
+  renderScore();
+
+  var sec = Math.round((nowMs()-qStart)/1000);
+  /* 学習記録（未ログイン・ローカルでは黙ってスキップされる）。
+     円周角は図が無いと解けないので question_figure も渡す（誤答のときだけ保存され、
+     teacher.php の解き直しプリントに出る＝CLAUDE.md 2b） */
+  safeDivp("answer", ok, {
+    question_key: curKey,
+    question_params: { m: curKey, s: curSeed },     /* 種方式：この2つで同じ問題を作り直せる */
+    question_text: cur.plainQ,
+    question_figure: cur.fig || null,
+    correct_answer: cur.ansText,
+    wrong_answer: ok ? null : cur.options[sel].plain,
+    time_taken_sec: (sec > 0 && sec < 600) ? sec : null
+  });
+
+  $("fbMsg").className = "fb-msg " + (ok ? "good" : "bad");
+  $("fbMsg").textContent = ok ? "正解！ よくできました" : "おしい！ 解き方を確認しよう";
+  $("expl").innerHTML = cur.expl;
+  $("feedback").classList.add("show");
+  $("checkBtn").style.display = "none";
+  $("nextBtn").style.display = "block";
+  $("toast").textContent = "";
+
+  /* 正解エフェクト（中学用の「正解」はんこ）。第1引数のカードの中に出る。
+     カードを作り直さないので自動で引っこめる（次の問題でも clearStamp で消す） */
+  if(ok) safeDivp("correct", "#qcard", { fadeMs:1200 });
+}
+
+function renderScore(){
+  $("scoreOk").textContent = score;
+  $("scoreAll").textContent = total;
+  $("scoreStreak").textContent = streak;
+}
+
+/* ---------- モード選択 ---------- */
+function startMode(m){
+  if(!MODE_KEYS[m]) return;
+  MODE = m;
+  retryQ = null;
+  score = 0; total = 0; streak = 0;
+  renderScore();
+  $("modeLabel").textContent = MODE_LABEL[m] || "";
+  document.body.classList.remove("choosing");
+  newQuestion();
+}
+function backHome(){
+  document.body.classList.add("choosing");
+  retryQ = null;
+  cur = null;
+  clearStamp();
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+
+/* ---------- 解き直し（?retry=1） ---------- */
+function showRetryBanner(msg){
+  var slot = $("retryBannerSlot");
+  var e = $("retryBanner");
+  if(!e){
+    e = document.createElement("div");
+    e.id = "retryBanner";
+    slot.appendChild(e);
+  }
+  e.textContent = msg;
+}
+function initRetry(){
+  if(!(window.Divp && typeof Divp.getRetries === "function")) return;
+  Divp.getRetries().then(function(items){
+    var use = (items||[]).filter(function(it){
+      var p = it && it.question_params;
+      return p && GENS[p.m] && typeof p.s === "number";
+    });
+    if(!use.length){
+      showRetryBanner("解き直せる問題はまだありません。まちがえた問題がここにたまっていきます。");
+      return;
+    }
+    retryQ = use.slice();
+    retryTotal = retryQ.length;
+    retryDone = 0;
+    MODE = "retry";
+    score = 0; total = 0; streak = 0;
+    renderScore();
+    $("modeLabel").textContent = "まちがえた問題の解き直し";
+    document.body.classList.remove("choosing");
+    newQuestion();
+  }).catch(function(){});
+}
+
+/* =====================================================================
+   印刷（A4・問題＋答え）。紙は毎回ちがう問題でよいので1問ごとに種を引く。
+   画面の問題と同じ生成関数を使うので、問題の中身・図・答え・解き方は画面と一致する。
+   ⚠ makeQ() は乱数の状態を書きかえるが、画面の問題(cur)は作り終わっているので影響しない。
+   ===================================================================== */
+function printItems(mode){
+  var keys = PRINT_KEYS[mode] || PRINT_KEYS.mix, seen = {}, seenTag = {}, out = [];
+  keys.forEach(function(k){
+    /* 同じ問題は2つ並べない。できれば同じ種類（タグ）もさけて、いろいろな型を出す */
+    var q = null;
+    for(var t=0; t<30; t++){
+      q = makeQ(k, rngPick());
+      if(!seen[q.plainQ] && ((seenTag[q.tag] || 0) < 2 || t >= 12)) break;
+    }
+    seen[q.plainQ] = 1;
+    seenTag[q.tag] = (seenTag[q.tag] || 0) + 1;
+    out.push(q);
+  });
+  return out;
+}
+/* 答えのページに出す「解き方」＝画面の解説の手順だけ（ポイントはのぞく） */
+function printHow(q){
+  var box = document.createElement("div");
+  box.innerHTML = q.expl;
+  var rm = box.querySelectorAll(".ttl, .kufu");
+  for(var i=0;i<rm.length;i++) rm[i].parentNode.removeChild(rm[i]);
+  var steps = box.querySelectorAll(".step"), s = [];
+  for(i=0;i<steps.length;i++){
+    /* ア〜エの ○× 一覧は長いので、紙には正解の行だけ残す */
+    var ngs = steps[i].querySelectorAll(".ng");
+    for(var j=0;j<ngs.length;j++) ngs[j].parentNode.removeChild(ngs[j]);
+    var h = steps[i].innerHTML.replace(/<br>/g, "").replace(/<\/?b>/g, "");
+    if(/^答え/.test(steps[i].textContent)) continue;
+    if(h) s.push(h);
+  }
+  return s.join(" → ");
+}
+function buildPrint(mode){
+  var items = printItems(mode);
+  var d = new Date();
+  var dateStr = d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
+  var label = MODE_LABEL[mode] || MODE_LABEL.mix;
+  function head(sub){
+    return '<div class="p-head"><div><div class="p-school">中京個別指導学院</div>'
+      + '<div class="p-title">円周角マスター<small>'+esc(label)+'　'+sub+'</small></div></div>'
+      + '<div class="p-name">'+dateStr+'　名前<span></span></div></div>';
+  }
+  var qh = items.map(function(q,i){
+    return '<div class="p-item"><span class="p-no">'+(i+1)+'</span><span class="p-tag">'+esc(q.tag)+'</span>'
+      + '<div class="p-q">'+q.qHtml+'</div>'
+      + (q.fig ? '<div class="p-fig'+(q.small ? " small" : "")+'">'+q.fig+'</div>' : '')
+      + '<div class="p-ans">答え<i></i>'+esc(q.u)+'</div></div>';
+  }).join("");
+  var ah = items.map(function(q,i){
+    return '<div class="a-item"><span class="p-no">'+(i+1)+'</span>'
+      + '<span class="a-v">'+q.options[q.correct].html+'</span>'
+      + '<span class="a-how">'+printHow(q)+'</span></div>';
+  }).join("");
+  var wm = window.ChukyoPrint ? ChukyoPrint.img() : "";
+  return wm
+    + '<div class="sheet">'+head("問題")+'<p class="p-inst">'+esc(printInst(mode))+'</p>'
+    + '<div class="p-grid">'+qh+'</div></div>'
+    + '<div class="sheet">'+head("答え")+'<div class="a-grid">'+ah+'</div></div>';
+}
+function printSheet(mode){
+  if(!PRINT_KEYS[mode]) mode = "mix";
+  var area = $("printArea");
+  /* 透かしは position:fixed で1枚だけ置く＝印刷ではどのページにも同じ位置に出る */
+  var wmCss = window.ChukyoPrint ? '<style>'+ChukyoPrint.css({ zIndex:0 })+'.wm{position:fixed;}</style>' : "";
+  area.innerHTML = wmCss + buildPrint(mode);
+  /* 透かし画像のデコードを待ってから印刷する（直後に print() するとロゴが抜けることがある） */
+  if(window.ChukyoPrint && ChukyoPrint.print) ChukyoPrint.print(area);
+  else window.print();
+}
+
+/* ---------- イベント ---------- */
+document.querySelectorAll(".m-print-btns button").forEach(function(b){
+  b.addEventListener("click", function(){ printSheet(b.dataset.mode); });
+});
+$("printBtn").addEventListener("click", function(){ printSheet(MODE); });
+document.querySelectorAll(".m-card").forEach(function(b){
+  b.addEventListener("click", function(){ startMode(b.dataset.mode); });
+});
+$("homeBtn").addEventListener("click", backHome);
+$("checkBtn").addEventListener("click", check);
+$("nextBtn").addEventListener("click", newQuestion);
+
+/* divp-core は defer で読まれるので、DOM構築後に初期化する */
+window.addEventListener("DOMContentLoaded", function(){
+  safeDivp("init", UNIT_KEY);
+  if(/[?&]retry=1/.test(location.search)){
+    try{ initRetry(); }catch(e){}
+  }
+});
+</script>
+</body>
+</html>
