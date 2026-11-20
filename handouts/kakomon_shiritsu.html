@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>私立過去問取り扱い説明書</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#33312B; --sub:#6F6B61; --line:#DAD5C8;
+    --shu:#C73E2E; --shu-bg:#FBEDEA;
+    --ai:#2C5F8A;  --ai-bg:#EAF1F7;
+    --midori:#3E8E5A; --midori-bg:#EAF4EC;
+    --kin:#C9A227; --kin-bg:#FBF5E1;
+  }
+  @page{ size:A4 portrait; margin:0; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ background:#E9E6DE; color:var(--ink);
+    font-family:"Zen Kaku Gothic New","Yu Gothic","Meiryo",sans-serif;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+  /* 紙：A4 210×297mm。高さは数mm余裕を残す（空白の2枚目を出さない） */
+  .sheet{ width:210mm; height:291mm; margin:8mm auto; background:#fff;
+    padding:8mm 14mm 6mm; position:relative; overflow:hidden;
+    box-shadow:0 2px 12px rgba(0,0,0,.18); display:flex; flex-direction:column; }
+
+  .maru{ font-family:"Zen Maru Gothic","Yu Gothic","Meiryo",sans-serif; }
+
+  /* ── 見出し ── */
+  .head{ display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1.2mm solid var(--ai); padding-bottom:1.5mm; }
+  .head .for{ font-size:10.5pt; color:var(--ai); font-weight:700; letter-spacing:.05em; }
+  .head h1{ font-family:"Zen Maru Gothic",sans-serif; font-weight:900;
+    font-size:23pt; letter-spacing:.06em; line-height:1.25; margin-top:1mm; }
+  .head h1 .em{ color:var(--shu); }
+  .brand{ text-align:center; flex:none; }
+  .brand img{ height:13mm; display:block; margin:0 auto; }
+  .brand span{ font-family:"Zen Maru Gothic",sans-serif; font-weight:700; font-size:8.5pt;
+    color:var(--sub); display:block; margin-top:.8mm; }
+
+  /* ── 章 ── */
+  .sec{ margin-top:2.6mm; }
+  .sec:last-of-type{ margin-bottom:2mm; }
+  .sec-title{ display:flex; align-items:center; gap:2.5mm; margin-bottom:2mm; }
+  .sec-title .no{ font-family:"Zen Maru Gothic",sans-serif; font-weight:900; color:#fff;
+    font-size:10pt; padding:.6mm 2.6mm; border-radius:1.5mm; letter-spacing:.05em; }
+  .sec-title h2{ font-family:"Zen Maru Gothic",sans-serif; font-weight:900; font-size:14.5pt;
+    letter-spacing:.08em; }
+  .sec-title .rule{ flex:1; height:.4mm; background:var(--line); }
+
+  /* 目的 */
+  .goal{ display:grid; grid-template-columns:1fr 1fr; gap:4mm; }
+  .goal .card{ background:var(--midori-bg); border:.5mm solid var(--midori);
+    border-radius:3mm; padding:1.8mm 4mm; }
+  .goal .card b{ display:block; font-family:"Zen Maru Gothic",sans-serif; font-weight:900;
+    font-size:15pt; color:var(--midori); letter-spacing:.08em; }
+  .goal .card p{ font-size:9.5pt; line-height:1.4; margin-top:.5mm; }
+  .goal-lead{ font-size:10pt; margin-bottom:1.2mm; line-height:1.6; }
+
+  /* 準備編 */
+  .prep{ display:grid; grid-template-columns:1fr 1fr; gap:4mm; }
+  .prep .item{ border:.5mm solid var(--kin); background:var(--kin-bg); border-radius:3mm;
+    padding:1.8mm 4mm; display:flex; gap:3mm; align-items:flex-start; }
+  .prep .icon{ flex:none; width:11mm; height:11mm; border-radius:50%; background:var(--kin);
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-family:"Zen Maru Gothic",sans-serif; font-weight:900; font-size:14pt; }
+  .prep .t{ font-family:"Zen Maru Gothic",sans-serif; font-weight:900; font-size:12pt; line-height:1.35; }
+  .prep .d{ font-size:9pt; line-height:1.35; color:var(--sub); margin-top:.8mm; }
+
+  /* 実践編 */
+  .steps{ list-style:none; }
+  .steps li{ display:flex; gap:3.5mm; align-items:stretch; position:relative; }
+  .steps li + li{ margin-top:1.2mm; }
+  .steps .num{ flex:none; width:15mm; background:var(--ai); color:#fff; border-radius:2.5mm;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-family:"Zen Maru Gothic",sans-serif; font-weight:900; line-height:1; }
+  .steps .num small{ font-size:6.5pt; letter-spacing:.1em; }
+  .steps .num span{ font-size:15pt; margin-top:.5mm; }
+  .steps .body{ flex:1; border:.4mm solid #C9D7E4; background:var(--ai-bg); border-radius:2.5mm;
+    padding:1.6mm 4mm; }
+  .steps .t{ font-family:"Zen Maru Gothic",sans-serif; font-weight:900; font-size:12pt; line-height:1.35; }
+  .steps .d{ font-size:9.2pt; line-height:1.4; margin-top:.3mm; }
+  .mk{ background:linear-gradient(transparent 58%, #F5D9A8 58%); }
+  .tag{ display:inline-block; font-family:"Zen Maru Gothic",sans-serif; font-weight:900;
+    font-size:9.5pt; color:#fff; background:var(--shu); border-radius:1.2mm;
+    padding:.2mm 1.8mm; margin-left:1.5mm; vertical-align:2px; }
+  .arrow{ text-align:center; color:var(--ai); font-size:8pt; line-height:1; height:0; }
+
+  /* 注意事項 */
+  .warn{ border:.7mm solid var(--shu); background:var(--shu-bg); border-radius:3mm;
+    padding:2mm 5mm; }
+  .warn ul{ list-style:none; }
+  .warn li{ display:flex; gap:2.5mm; align-items:baseline; font-size:10.5pt; line-height:1.35; }
+  .warn li + li{ margin-top:.8mm; }
+  .warn li::before{ content:"！"; flex:none; width:6mm; height:6mm; border-radius:50%;
+    background:var(--shu); color:#fff; font-weight:900; font-size:9pt;
+    display:inline-flex; align-items:center; justify-content:center; transform:translateY(-.3mm); }
+  .warn b{ font-family:"Zen Maru Gothic",sans-serif; font-weight:900; color:var(--shu); font-size:12pt; }
+  .warn .s{ display:block; font-size:9pt; color:var(--sub); }
+
+  .foot{ margin-top:auto; padding-top:2mm; border-top:.3mm solid var(--line);
+    display:flex; justify-content:space-between; font-size:8.5pt; color:var(--sub); }
+
+  .noprint{ display:flex; justify-content:center; align-items:center; gap:16px;
+    flex-wrap:wrap; margin:6mm 16px 0; }
+  .noprint button{ font:inherit; font-weight:700; font-size:11pt; padding:2.5mm 8mm;
+    border:0; border-radius:2mm; background:var(--ai); color:#fff; cursor:pointer; }
+  .noprint .back{ font-weight:700; font-size:11pt; color:var(--ai); text-decoration:none; }
+
+  /* スマホ・タブレット（マイページから開いたとき）は紙の枠をやめて縦に流す。印刷はA4のまま */
+  @media screen and (max-width:820px){
+    html,body{ background:#fff; }
+    .noprint{ margin:12px 16px 0; justify-content:space-between; }
+    .noprint button{ font-size:10pt; padding:8px 16px; }
+    .sheet{ width:auto; height:auto; margin:8px 0 0; padding:12px 16px 24px;
+      box-shadow:none; overflow:visible; }
+    .head{ gap:12px; }
+    .head h1{ font-size:20px; }
+    .head .for{ font-size:11px; }
+    .brand img{ height:40px; }
+    .goal, .prep{ grid-template-columns:1fr; gap:10px; }
+    .sec{ margin-top:22px; }
+    .steps .num{ width:48px; }
+    .foot{ margin-top:24px; flex-direction:column; gap:4px; }
+  }
+
+  @media print{
+    html,body{ background:#fff; }
+    .sheet{ margin:0; box-shadow:none; }
+    .noprint{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="noprint">
+  <a class="back" href="/mypage.php">← マイページにもどる</a>
+  <button onclick="window.print()">印刷する（A4縦）</button>
+</div>
+
+<div class="sheet">
+
+  <header class="head">
+    <div>
+      <div class="for">中学3年生・私立高校を受けるみなさんへ</div>
+      <h1>私立<span class="em">過去問</span>取り扱い説明書</h1>
+    </div>
+    <div class="brand">
+      <img src="data:image/png;base64,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" alt="中京個別指導学院">
+      <span>中京個別指導学院</span>
+    </div>
+  </header>
+
+  <!-- 1. 目的 -->
+  <section class="sec">
+    <div class="sec-title"><span class="no" style="background:var(--midori)">1</span><h2>目的</h2><span class="rule"></span></div>
+    <p class="goal-lead">過去問を解くのは、合否を占うためではありません。次の<b>2つをつかむため</b>です。</p>
+    <div class="goal">
+      <div class="card">
+        <b>自己把握</b>
+        <p>今の自分の実力を知る。どの教科・どの単元で点を落としているかをはっきりさせる。</p>
+      </div>
+      <div class="card">
+        <b>傾向把握</b>
+        <p>受ける高校の出題のしかたを知る。問題の形式・量・よく出る分野・時間配分をつかむ。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 準備編 -->
+  <section class="sec">
+    <div class="sec-title"><span class="no" style="background:var(--kin)">2</span><h2>準備編</h2><span class="rule"></span></div>
+    <div class="prep">
+      <div class="item">
+        <div class="icon">本</div>
+        <div>
+          <div class="t">過去問は<br>「本のタイプ」を買う</div>
+          <div class="d">受ける高校の過去問を、本（冊子）になっているもので用意する。</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="icon">写</div>
+        <div>
+          <div class="t">解答用紙は事前に<br><span class="mk">3枚程コピー</span>しておく</div>
+          <div class="d">本の後ろの方に解答用紙集があります。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 実践編 -->
+  <section class="sec">
+    <div class="sec-title"><span class="no" style="background:var(--ai)">3</span><h2>実践編</h2><span class="rule"></span></div>
+    <ol class="steps">
+      <li>
+        <div class="num"><small>STEP</small><span>1</span></div>
+        <div class="body">
+          <div class="t"><span class="mk">古い年度から</span>、<span class="mk">時間を計って</span>解く</div>
+          <div class="d">本番と同じ制限時間で解く。<br>本には図形以外、書きこみは極力しない。</div>
+        </div>
+      </li>
+      <li>
+        <div class="num"><small>STEP</small><span>2</span></div>
+        <div class="body">
+          <div class="t">時間内に解けなかった問題は、後で解く<span class="tag">＋15分</span></div>
+          <div class="d">時間が来たらいったん区切り、残りを15分だけ延長して解く。<br>ただし<b style="color:var(--shu)">延長で解いた分は点数に入れない。</b><br>時間切れで解けなかった問題に、解けた問題が含まれていないか確認しよう。<br><span class="mk">解く順番で合否が変わることもあります。</span></div>
+        </div>
+      </li>
+      <li>
+        <div class="num"><small>STEP</small><span>3</span></div>
+        <div class="body">
+          <div class="t">解いたら<span class="mk">すぐに丸つけ</span></div>
+          <div class="d">時間をあけずに丸つけし、まちがえた問題をチェックしておく。<br>書いたものは分析後に消しておく（次回すぐに取りかかれるようにするため）。</div>
+        </div>
+      </li>
+      <li>
+        <div class="num"><small>STEP</small><span>4</span></div>
+        <div class="body">
+          <div class="t">採点・<span class="mk">自己分析</span>をして<span class="mk">アプリに入力</span></div>
+          <div class="d">マイページの「過去問の記録」に点数と、できたところ／できなかったところを書く。</div>
+        </div>
+      </li>
+      <li>
+        <div class="num"><small>STEP</small><span>5</span></div>
+        <div class="body">
+          <div class="t">解説をよく読んで、<span class="mk">解き直し</span>と<span class="mk">苦手単元をワークで勉強</span></div>
+          <div class="d">まちがえた問題は解説を読んで自力で解き直す。苦手な単元はワークに戻って固める。<br>過去問に出題されていない単元も勉強するようにしよう。<br><b style="color:var(--shu)">質問したい問題はスムーズに質問できるように準備しておく。</b></div>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- 4. 注意事項 -->
+  <section class="sec">
+    <div class="sec-title"><span class="no" style="background:var(--shu)">4</span><h2>注意事項</h2><span class="rule"></span></div>
+    <div class="warn">
+      <ul>
+        <li><div><b>過去問ばかりやっても実力は付かない。</b><span class="s">実力をつけるのはふだんのワーク・問題集。過去問は「確かめる」ための道具です。</span></div></li>
+        <li><div><b>過去問に追われないように。</b><span class="s">こなすことが目的にならないよう、自分のペースで余裕を持って計画的に進める。</span></div></li>
+        <li><div><b>結果に一喜一憂しない。</b><span class="s">点数より「何ができなかったか」が大事。できなかったところが次にやるべき勉強です。</span></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>わからないことは、いつでも先生に聞いてください。</span>
+    <span>中京個別指導学院</span>
+  </footer>
+
+</div>
+</body>
+</html>

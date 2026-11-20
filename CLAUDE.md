@@ -174,6 +174,10 @@ db/                    DB用SQL（phpMyAdminで手動実行。本番へは配信
   seeds/                question_catalog等のシード（ミラー環境の再構築で再利用）
   maintenance/          運用SQL（生徒1人の記録だけ消す等。テストデータ掃除用）
   reports/              集計SQL（教室別稼働率など。phpMyAdminで実行して読む参照専用）
+handouts/              生徒向け配布資料の単独HTML（A4縦で印刷＋マイページから閲覧）。
+                       kakomon_shiritsu.html＝私立過去問取り扱い説明書（mypage.php の過去問カードの下からリンク。
+                       ロゴは data URI で埋め込み＝ローカルの file:// でもそのまま印刷できる）。
+                       .htaccess は learning/ と同じ no-cache（上書きした修正が iPhone に届くように）
 others/                塾内業務用の単独HTML（月次報告書の入力フォームなど）。
                        学習ツールではないので learning/ には置かない（＝index.php の一覧にも出ない）
 ```

@@ -604,6 +604,7 @@ function h(?string $s): string
   .kakomon-link .t small{display:block;font-size:11px;font-weight:500;color:var(--ink-soft)}
   .kakomon-link .go{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:13px;
     color:var(--ai);white-space:nowrap}
+  .kakomon-link.guide{margin-top:10px;border-left-color:var(--kin)}
 
   /* ---------- 自習の記録 ---------- */
   .selfstudy{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
@@ -805,6 +806,11 @@ function h(?string $s): string
   <a class="kakomon-link" href="/kakomon.php">
     <span class="t">過去問の記録（私立・公立）<small>点数・できたところ・できなかったところを書いておこう</small></span>
     <span class="go">ひらく →</span>
+  </a>
+  <!-- 私立過去問の使い方（配布プリントと同じもの。handouts/ の単独HTML） -->
+  <a class="kakomon-link guide" href="/handouts/kakomon_shiritsu.html">
+    <span class="t">私立過去問取り扱い説明書<small>過去問の使い方・解き方の手順と注意事項</small></span>
+    <span class="go">よむ →</span>
   </a>
 <?php endif; ?>
 
